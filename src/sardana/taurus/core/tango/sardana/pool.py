@@ -26,7 +26,7 @@
 """The device pool submodule. It contains specific part of sardana device pool"""
 
 __all__ = ["InterruptException", "StopException", "AbortException",
-           "BaseElement", "ControllerClass",
+           "BaseElement", "ControllerClass", "ControllerLibrary",
            "PoolElement", "Controller", "ComChannel", "ExpChannel",
            "CTExpChannel", "ZeroDExpChannel", "OneDExpChannel", "TwoDExpChannel",
            "PseudoCounter", "Motor", "PseudoMotor", "MotorGroup",
@@ -175,7 +175,7 @@ class ControllerClass(BaseElement):
         return cmp(self.getClassName(), o.getClassName())
 
 
-class ControllerLib(BaseElement):
+class ControllerLibrary(BaseElement):
 
     def __init__(self, **kw):
         self.__dict__.update(kw)
@@ -1779,3 +1779,16 @@ def registerExtensions():
 
     for klass_name, klass in hw_type_map:
         factory.registerDeviceClass(klass_name, klass)
+
+def unregisterExtensions():
+    factory = Factory()
+    factory.unregisterDeviceClass("Pool")
+
+    hw_type_names = [
+        'Controller',
+        'ComChannel', 'Motor', 'PseudoMotor',
+        'CTExpChannel', 'ZeroDExpChannel', 'OneDExpChannel', 'TwoDExpChannel',
+        'PseudoCounter', 'IORegister', 'MotorGroup', 'MeasurementGroup']
+
+    for klass_name in hw_type_names:
+        factory.unregisterDeviceClass(klass_name)

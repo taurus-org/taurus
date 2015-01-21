@@ -1158,3 +1158,9 @@ def registerExtensions():
     factory = Factory('tango')
     factory.registerDeviceClass('MacroServer', BaseMacroServer)
     factory.registerDeviceClass('Door', BaseDoor)
+
+def unregisterExtensions():
+    """Registers the macroserver extensions in the :class:`taurus.core.tango.TangoFactory`"""
+    factory = Factory('tango')
+    factory.unregisterDeviceClass('MacroServer')
+    factory.unregisterDeviceClass('Door')
