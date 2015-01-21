@@ -23,23 +23,5 @@
 ##
 ##############################################################################
 
-"""The sardana package. It contains specific part of sardana"""
-
-__docformat__ = 'restructuredtext'
-
-from .sardana import *
-
-
-def registerExtensions():
-    from . import pool
-    from . import macroserver
-
-    pool.registerExtensions()
-    macroserver.registerExtensions()
-
-def unregisterExtensions():
-    from . import pool
-    from . import macroserver
-
-    pool.unregisterExtensions()
-    macroserver.unregisterExtensions()
+from base import (BasePoolTestCase, ControllerLoadsTestCase,
+                  ControllerCreationTestCase, ElementCreationTestCase)
