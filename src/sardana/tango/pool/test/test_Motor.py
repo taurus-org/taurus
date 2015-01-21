@@ -51,25 +51,22 @@ class ReadMotorPositionOutsideLim(BasePoolTestCase, unittest.TestCase):
         elem_axis = 1
         self.elem = self.pool.createElement(self.elem_name, ctrl, elem_axis)
         self.elem.DefinePosition(0)
-
+    
+    @unittest.expectedFailure #Note: this tests known bug #238
     def test_read_position_outside_sw_lim(self):
-        """Testing possibility of reading position when motor is out of SW lims.
+        """Test bug #238: reading position when motor is out of SW lims.
         Verify that position has a numeric type."""
         pc = self.elem.get_attribute_config("position")
         pc.min_value = "1"
         pc.max_value = "2"
         self.elem.set_attribute_config(pc)
-        read_success = True
-        e_read = " "
         try:
             posread = self.elem.read_attribute('position').value
         except Exception as e_read:
-            read_success = False
-        msg = ("Position can not be read. Exception: %s" % e_read)
-        self.assertTrue(read_success, msg)
-        read_number_is_numeric = isinstance(posread, numbers.Number)
-        msg = ("Position has not a numeric type")
-        self.assertTrue(read_number_is_numeric, msg)
+            msg = ("Position cannot be read. Exception: %s" % e_read)
+            self.fail(msg)
+        msg = ("Position is not a number")
+        self.assertIsInstance(posread, numbers.Number, msg)
 
     def tearDown(self):
         """Remove motor element and motor controller
