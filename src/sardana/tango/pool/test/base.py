@@ -53,9 +53,9 @@ class BasePoolTestCase(object):
         # Discover the Pool launcher script
         poolExec = whichexecutable.whichfile("Pool")
         # register Pool server
-        self.pool_ds_name = "Pool/" + self.pool_ds_name
+        pool_ds_name = "Pool/" + self.pool_ds_name
         pool_free_ds_name = get_free_server(PyTango.Database(),
-                                            self.pool_ds_name)
+                                            pool_ds_name)
         self._starter = ProcessStarter(poolExec, pool_free_ds_name)
         # register Pool device
         dev_name_parts = self.pool_name.split('/')
