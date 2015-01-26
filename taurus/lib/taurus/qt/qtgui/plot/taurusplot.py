@@ -1162,7 +1162,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._showMinAction = Qt.QAction("Show Min", None)
         self._showMinAction.setCheckable(True)
         self._showMinAction.setChecked(self._showMinPeaks)
-        self.connect(self._showMaxAction,  Qt.SIGNAL("toggled(bool)"), self.showMinPeaks)
+        self.connect(self._showMinAction,  Qt.SIGNAL("toggled(bool)"), self.showMinPeaks)
 
         self._printAction = Qt.QAction("&Print plot...", None)
         self.connect(self._printAction, Qt.SIGNAL("triggered()"), self.exportPrint)
