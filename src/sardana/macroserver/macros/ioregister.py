@@ -55,9 +55,14 @@ class read_ioreg(Macro):
        ['input/output register', Type.IORegister, None, 'input/output register']
     ]
     
+    result_def = [
+       ['input/output register value', Type.Integer, None, 'value read from ' +
+                                                    'the input/output register']
+    ]
+
     def run(self, ioreg):
         name = ioreg.getName()
         data = ioreg.readIORegister(force=True)
         o = "Reading " +  name + " register "
-        self.output(o)
-        self.output(data)
+        self.debug(o)
+        return data
