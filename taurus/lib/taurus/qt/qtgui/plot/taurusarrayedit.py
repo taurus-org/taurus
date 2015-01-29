@@ -173,6 +173,7 @@ class TaurusArrayEditor(TaurusWidget):
         
         :return: (dict) a map with pertinent designer information"""
         ret = TaurusWidget.getQtDesignerPluginInfo()
+        ret['module'] = 'taurus.qt.qtgui.plot'
         ret['group'] = 'Taurus Input'
         ret['icon'] =':/designer/arrayedit.png'
         ret['container'] = False
