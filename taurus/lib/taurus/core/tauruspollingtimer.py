@@ -29,10 +29,7 @@ __all__ = ["TaurusPollingTimer"]
 
 __docformat__ = "restructuredtext"
 
-import time
-import threading
-
-from .util.log import Logger, DebugIt
+from .util.log import Logger
 from .util.containers import CaselessDict
 from .util.timer import Timer
 
@@ -52,7 +49,6 @@ class TaurusPollingTimer(Logger):
         self.dev_dict = {}
         self.attr_nb = 0
         self.timer = Timer(period/1000.0, self._pollAttributes, self)
-        self.lock = threading.RLock()
         
     def start(self):
         """ Starts the polling timer """
@@ -70,15 +66,8 @@ class TaurusPollingTimer(Logger):
            :return: (bool) True if the attribute is registered for polling or
                     False otherwise
         """
-        dev, attr_name = attribute.getParentObj(), attribute.getSimpleName()
-        self.lock.acquire()
-        try:
-            attr_dict = self.dev_dict.get(dev)
-            if attr_dict is None:
-                return False
-            return attr_dict and attr_dict.has_key(attr_name)
-        finally:
-            self.lock.release()
+        attr_dict = self.dev_dict.get(attribute.getParentObj(), {})
+        return attribute.getSimpleName() in attr_dict
 
     def getAttributeCount(self):
         """Returns the number of attributes registered for polling
@@ -96,21 +85,17 @@ class TaurusPollingTimer(Logger):
                               one attribute registered.
         """
         dev, attr_name = attribute.getParentObj(), attribute.getSimpleName()
-        self.lock.acquire()
-        try:
-            attr_dict = self.dev_dict.get(dev)
-            if attr_dict is None:
-                self.dev_dict[dev] = attr_dict = CaselessDict()
-            if not attr_dict.has_key(attr_name):
-                attr_dict[attr_name] = attribute
-                self.attr_nb += 1
-            if self.attr_nb == 1 and auto_start:
-                self.start()
-            else:
-                import taurus
-                taurus.Manager().addJob(attribute.poll, None)
-        finally:
-            self.lock.release()
+        attr_dict = self.dev_dict.get(dev)
+        if attr_dict is None:
+            self.dev_dict[dev] = attr_dict = CaselessDict()
+        if attr_name not in attr_dict:
+            attr_dict[attr_name] = attribute
+            self.attr_nb += 1
+        if self.attr_nb == 1 and auto_start:
+            self.start()
+        else:
+            import taurus
+            taurus.Manager().addJob(attribute.poll, None)
         
     def removeAttribute(self,attribute):
         """Unregisters the attribute from this polling. If the number of registered
@@ -120,30 +105,29 @@ class TaurusPollingTimer(Logger):
            :param attribute: (taurus.core.taurusattribute.TaurusAttribute) the attribute to be added
         """
         dev, attr_name = attribute.getParentObj(), attribute.getSimpleName()
-        self.lock.acquire()
-        try:
-            attr_dict = self.dev_dict.get(dev)
-            if attr_dict is None:
-                return
-            if attr_dict.has_key(attr_name):
-                del attr_dict[attr_name]
-                self.attr_nb -= 1
-            if self.attr_nb < 1:
-                self.stop()
-        finally:
-            self.lock.release()
+        attr_dict = self.dev_dict.get(dev)
+        if attr_dict is None:
+            return
+        if attr_name not in attr_dict:
+            del attr_dict[attr_name]
+            self.attr_nb -= 1
+        if self.attr_nb < 1:
+            self.stop()
         
     def _pollAttributes(self):
         """Polls the registered attributes. This method is called by the timer
            when it is time to poll. Do not call this method directly
         """
-        self.lock.acquire()
-        try:
-            for dev, attrs in self.dev_dict.items():
-                try:
-                    dev.poll(attrs)
-                except Exception, e:
-                    print e
-                    pass
-        finally:
-            self.lock.release()
+        req_ids = {}
+        for dev, attrs in self.dev_dict.items():
+            try:
+                req_id = dev.poll(attrs, asynch=True)
+                req_ids[dev] = attrs, req_id
+            except Exception as e:
+                self.error("poll_asynch error")
+                self.debug("Details:", exc_info=1)
+        for dev, (attrs, req_id) in req_ids.items():
+            try:
+                dev.poll(attrs, req_id=req_id)
+            except Exception as e:
+                self.error("poll_reply error")
