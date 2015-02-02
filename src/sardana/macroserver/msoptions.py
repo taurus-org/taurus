@@ -42,6 +42,8 @@ class ViewOption(object):
 
     _DEFAULT_VIEW_OPTIONS = {
         'ShowDial' : True,
+        'ShowCtrlAxis' : False,
+        'PosFormat': -1,
     }
 
     @classmethod
@@ -55,5 +57,9 @@ class ViewOption(object):
             d[name] = cls._DEFAULT_VIEW_OPTIONS[name]
         else:
             del d[name]
+
+    @classmethod
+    def get_view_options_keys(cls):
+        return cls._DEFAULT_VIEW_OPTIONS.keys()
 
 

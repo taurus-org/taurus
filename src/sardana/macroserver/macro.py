@@ -1807,6 +1807,13 @@ class Macro(Logger):
     def _getViewOptions(self):
         try:
             vo = self.getEnv('_ViewOptions')
+            if len(vo.keys()) < len(ViewOption.get_view_options_keys()):
+                import msoptions
+                iop = ViewOption.init_options(dict())
+                for key in iop.keys():
+                    if key not in vo.keys():
+                        vo[key] = iop[key]
+                self.setEnv('_ViewOptions', vo)
         except UnknownEnv:
             import msoptions
             vo = ViewOption.init_options(dict())
