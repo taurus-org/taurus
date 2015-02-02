@@ -130,6 +130,8 @@ packages = [
     'taurus.qt.qtgui.graphic',
     'taurus.qt.qtgui.graphic.jdraw',
     'taurus.qt.qtgui.graphic.jdraw.test.res',
+    'taurus.qt.qtgui.help',
+    'taurus.qt.qtgui.help.ui',
     'taurus.qt.qtgui.image',
     'taurus.qt.qtgui.input',
     'taurus.qt.qtgui.model',
