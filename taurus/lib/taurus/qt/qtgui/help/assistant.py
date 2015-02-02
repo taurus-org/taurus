@@ -106,7 +106,7 @@ class _Assistant(Qt.QProcess):
 
 
 __ASSISTANTS = {}
-def Assistant(collection_file, auto_create=True):
+def Assistant(collection_file, auto_create=True, parent=None):
     """
     The :func:`Assistant` will create a subprocess displaying the
     help system for the given QtHelp collection file (.qhc).
@@ -129,37 +129,40 @@ def Assistant(collection_file, auto_create=True):
         def finished(*args):
             if __ASSISTANTS and collection_file in __ASSISTANTS:
                 del __ASSISTANTS[collection_file]
-        assistant = _Assistant(collection_file)
+        assistant = _Assistant(collection_file, parent=parent)
         __ASSISTANTS[collection_file] = assistant
         assistant.connect(assistant, Qt.SIGNAL('finished(int)'), finished)
     return assistant
 
 
 def main():
-    assistant = None
+    import sys
+    
+    app = Qt.QApplication([])
+    window = Qt.QWidget()
+    layout = Qt.QHBoxLayout(window)
+    goButton = Qt.QPushButton("Activate help", window)
+    terminateButton = Qt.QPushButton("Close help", window)
+    textEdit = Qt.QLineEdit(window)
+    layout.addWidget(textEdit)
+    layout.addWidget(goButton)
+    layout.addWidget(terminateButton)
+    
     def go():
-        assistant = Assistant(textEdit.text())
+        assistant = Assistant(textEdit.text(), parent=window)
         assistant.start()
         assistant.waitForStarted()
         assistant.assistantShow(Widgets.bookmarks)
     def terminate():
-        assistant = Assistant(textEdit.text(), auto_create=False)
+        assistant = Assistant(textEdit.text(), auto_create=False, parent=window)
         if assistant:
             assistant.terminate()
-
-    app = Qt.QApplication([])
-    window = Qt.QWidget()
-    layout = Qt.QHBoxLayout(window)
-    goButton = Qt.QPushButton("Activate help")
-    terminateButton = Qt.QPushButton("Close help")
-    textEdit = Qt.QLineEdit()
-    layout.addWidget(textEdit)
-    layout.addWidget(goButton)
-    layout.addWidget(terminateButton)
+    
+    
     goButton.connect(goButton, Qt.SIGNAL('clicked()'), go)
     terminateButton.connect(terminateButton, Qt.SIGNAL('clicked()'), terminate)
     window.show()
-    app.exec_()
+    sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
