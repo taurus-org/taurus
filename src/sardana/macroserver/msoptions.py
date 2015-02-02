@@ -56,10 +56,6 @@ class ViewOption(object):
         if name in cls._DEFAULT_VIEW_OPTIONS:
             d[name] = cls._DEFAULT_VIEW_OPTIONS[name]
         else:
-            del d[name]
-
-    @classmethod
-    def get_view_options_keys(cls):
-        return cls._DEFAULT_VIEW_OPTIONS.keys()
+            del d[name]    
 
 
