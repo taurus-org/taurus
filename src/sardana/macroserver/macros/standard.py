@@ -24,8 +24,7 @@
 """This is the standard macro module"""
 
 __all__ = ["ct", "mstate", "mv", "mvr", "pwa", "pwm", "set_lim", "set_lm",
-"set_pos", "settimer", "uct", "umv", "umvr", "wa", "wm"] 
-
+           "set_pos", "settimer", "uct", "umv", "umvr", "wa", "wm"] 
 
 __docformat__ = 'restructuredtext'
 
@@ -77,25 +76,27 @@ class _wm(Macro):
                 if dial_pos is None:
                     dial_pos = float('NAN')
                 if show_ctrlaxis:
-                    axis_nb = getattr(motor, "axis")
                     ctrl_name = self.getController(motor.controller).name
-                    ca_name = "(" + ctrl_name + "." + str(axis_nb) + ")"
-                    motor_pos.append((ca_name,pos,dial_pos))
+                    axis_nb = getattr(motor, "axis")
+                    print_ctrl = "ctrl: " + ctrl_name 
+                    print_axis = "axis: " + str(axis_nb)
+                    motor_pos.append((print_ctrl, print_axis, pos, dial_pos))
                 else:
                     motor_pos.append((pos,dial_pos))
             else:
                 if show_ctrlaxis:
-                    axis_nb = getattr(motor, "axis")
                     ctrl_name = self.getController(motor.controller).name
-                    ca_name = "(" + ctrl_name + "." + str(axis_nb) + ")"
-                    motor_pos.append((ca_name,pos))
+                    axis_nb = getattr(motor, "axis")
+                    print_ctrl = "ctrl: " + ctrl_name 
+                    print_axis = "axis: " + str(axis_nb)
+                    motor_pos.append((print_ctrl, print_axis, pos))
                 else:
                     motor_pos.append((pos,))
 
             motor_width = max(motor_width,len(name))
             
             if show_ctrlaxis:
-                motor_width = max(motor_width, len(ca_name) + 2)
+                motor_width = max(motor_width, len(print_ctrl), len(print_axis))
  
         fmt = '%c*.%df' % ('%',motor_width - 5)
 
@@ -104,9 +105,9 @@ class _wm(Macro):
 
         if show_ctrlaxis:
             if show_dial:
-                t_format = ['%*s',fmt,fmt]
+                t_format = ['%*s','%*s',fmt,fmt]
             else:
-                t_format = ['%*s',fmt]
+                t_format = ['%*s','%*s',fmt]
         else:
             t_format = [fmt]
 
@@ -296,13 +297,12 @@ class wm(Macro):
             max_len = 0
             if show_ctrlaxis:
                 axis_nb = getattr(motor, "axis")
+                print_axis = "axis: " + str(axis_nb)
                 ctrl_name = self.getController(motor.controller).name
-                if len(ctrl_name) > max_len:
-                    max_len = len(ctrl_name)
-
+                print_ctrl = "ctrl: " + ctrl_name
+                max_len = max(max_len, len(print_ctrl), len(print_axis))
             name = motor.getName()
-            if len(name) > max_len:
-                max_len = len(name)
+            max_len = max(max_len, len(name))
 
             max_len = max_len + 5
             if max_len < 14:
@@ -314,7 +314,7 @@ class wm(Macro):
 
             motor_names.append([name])
             posObj = motor.getPositionObj()
-            if pos_format != -1:
+            if pos_format > -1:
                 fmt = '%c.%df' % ('%', int(pos_format))
 
             try:
@@ -328,8 +328,9 @@ class wm(Macro):
             val3 =  str_fmt % posObj.getMinValue()
 
             if show_ctrlaxis:
-                val0 =  str_fmt % (ctrl_name + "." + str(axis_nb))
-                upos = map(str, [val0, ' ', val2, val1, val3])
+                valctrl = str_fmt % (print_ctrl)
+                valaxis = str_fmt % (print_axis)
+                upos = map(str, [valctrl, valaxis, ' ', val2, val1, val3])
             else:
                 upos = map(str, ['', val2, val1, val3])
             pos_data =  upos
@@ -349,9 +350,9 @@ class wm(Macro):
             
             motor_pos.append(pos_data)
 
-        elem_fmt = (['%*s'] + ['%*s'] * 4) * 2
+        elem_fmt = (['%*s'] + ['%*s'] * 5) * 2
         if show_ctrlaxis:
-            row_head_str = [' ', 'User', ' High', ' Current', ' Low']
+            row_head_str = [' ', ' ', 'User', ' High', ' Current', ' Low']
         else:
             row_head_str = ['User', ' High', ' Current', ' Low']
             
