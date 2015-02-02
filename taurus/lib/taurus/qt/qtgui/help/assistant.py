@@ -56,15 +56,15 @@ class _Assistant(Qt.QProcess):
     """The help assistant class"""
 
     def __init__(self, collection_file, parent=None):
-        super(_Assistant, self).__init__(parent)
+        Qt.QProcess.__init__(self, parent)
         self.__collection_file = collection_file
 
     def start(self):
         if self.isRunning():
             return
         args = ["-enableRemoteControl",
-                "-collectionFile", self.__collection_file]
-        super(_Assistant, self).start("assistant", args)
+                "-collectionFile", self.__collection_file]        
+        Qt.QProcess.start(self, "assistant", args)
 
     def isRunning(self):
         return self.state() == Qt.QProcess.Running
@@ -126,12 +126,12 @@ def Assistant(collection_file, auto_create=True):
     if not auto_create:
         return assistant
     if assistant is None:
-        def finished(exitCode, exitStatus):
+        def finished(*args):
             if __ASSISTANTS and collection_file in __ASSISTANTS:
                 del __ASSISTANTS[collection_file]
         assistant = _Assistant(collection_file)
         __ASSISTANTS[collection_file] = assistant
-        assistant.finished.connect(finished)
+        assistant.connect(assistant, Qt.SIGNAL('finished(int)'), finished)
     return assistant
 
 
@@ -156,8 +156,8 @@ def main():
     layout.addWidget(textEdit)
     layout.addWidget(goButton)
     layout.addWidget(terminateButton)
-    goButton.clicked.connect(go)
-    terminateButton.clicked.connect(terminate)
+    goButton.connect(goButton, Qt.SIGNAL('clicked()'), go)
+    terminateButton.connect(terminateButton, Qt.SIGNAL('clicked()'), terminate)
     window.show()
     app.exec_()
 

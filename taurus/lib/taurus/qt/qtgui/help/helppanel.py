@@ -39,13 +39,17 @@ class _HelpBrowser(Qt.QTextBrowser):
         self.__help_engine = help_engine
         content_widget = help_engine.contentWidget()
         index_widget = help_engine.indexWidget()
-        content_widget.linkActivated.connect(self.setSource)
-        index_widget.linkActivated.connect(self.setSource)
+        content_widget.connect(content_widget, 
+                               Qt.SIGNAL('linkActivated (QUrl)'), 
+                               self.setSource)
+        index_widget.connect(index_widget, 
+                               Qt.SIGNAL('linkActivated (QUrl)'), 
+                               self.setSource)
 
     def loadResource(self, type, url):
         if url.scheme() == "qthelp":
             if self.__help_engine:
-                return self.__help_engine.fileData(url)
+                return Qt.QVariant(self.__help_engine.fileData(url))
         return Qt.QTextBrowser.loadResource(self, type, url)
 
 
@@ -67,6 +71,7 @@ class HelpPanel(Qt.QWidget):
     def __init__(self, collection_file=None, parent=None):
         Qt.QWidget.__init__(self, parent)
         layout = Qt.QVBoxLayout(self)
+        self.setLayout(layout)
         self.__help_engine = None
         if collection_file:
             self.setCollectionFile(collection_file)
@@ -89,7 +94,7 @@ class HelpPanel(Qt.QWidget):
         self.__clear()
         if not collection_file:
             return
-        help_engine = QtHelp.QHelpEngine(collection_file)
+        help_engine = QtHelp.QHelpEngine(collection_file, self)
         if not help_engine.setupData():
             raise Exception("Help engine not available")
         layout = self.layout()
@@ -137,8 +142,9 @@ class HelpPanel(Qt.QWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
+        from taurus.qt.qtgui.resource import getThemeIcon
         return { 'group'     : 'Taurus Help',
-                 'icon'      : Qt.QIcon.fromTheme("help"),
+                 'icon'      : getThemeIcon("help"),
                  'module'    : 'taurus.qt.qtgui.help',
                  'container' : False }
 
@@ -150,7 +156,7 @@ def main():
     if len(sys.argv) > 1:
         help_panel.setCollectionFile(sys.argv[1])
     help_panel.show()
-    app.exec_()
+    sys.exit(app.exec_())
 
 
 if __name__ == "__main__":

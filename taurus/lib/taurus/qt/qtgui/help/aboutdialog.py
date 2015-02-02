@@ -31,7 +31,7 @@ name and version, organization name and domain.
 
 This behaviour can be changed by setting the dialog window title
 (:meth:`~AboutDialog.setWindowTitle`) and content
-(:meth:`~AboutDialog.setText`, :meth:`~AboutDialog.setText`)
+(:meth:`~AboutDialog.setText`, :meth:`~AboutDialog.setHtml`)
 
 Example usage::
 
@@ -66,7 +66,7 @@ class AboutDialog(Qt.QDialog):
 
     This behaviour can be changed by setting the dialog window title
     (:meth:`~AboutDialog.setWindowTitle`) and content
-    (:meth:`~AboutDialog.setText`, :meth:`~AboutDialog.setText`)
+    (:meth:`~AboutDialog.setText`, :meth:`~AboutDialog.setHtml`)
 
     Example usage::
 
@@ -191,8 +191,9 @@ class AboutDialog(Qt.QDialog):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
+        from taurus.qt.qtgui.resource import getThemeIcon
         return { 'group'     : 'Taurus Help',
-                 'icon'      : Qt.QIcon.fromTheme("help"),
+                 'icon'      : getThemeIcon("help"),
                  'module'    : 'taurus.qt.qtgui.help',
                  'container' : False }
 
@@ -234,7 +235,8 @@ def main():
     app.setOrganizationDomain("http://www.taurus-scada.org/")
     about_dialog = AboutDialog()
 #    about_dialog.setText(txt)
-    pixmap = Qt.QIcon.fromTheme("folder-open").pixmap(64, 64)
+    from taurus.qt.qtgui.resource import getThemeIcon
+    pixmap = getThemeIcon("folder-open").pixmap(64, 64)
     about_dialog.setPixmap(pixmap)
     about_dialog.exec_()
 
