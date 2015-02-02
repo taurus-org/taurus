@@ -71,6 +71,9 @@ class _wm(Macro):
             if pos is None:
                 pos = float('NAN')
         
+            # TODO: refactor this code, so the info tuple is progressively
+            # expanded depending on the _ViewOptions, instead of repeating the 
+            # code in the if/else statements
             if show_dial:
                 dial_pos = motor.getDialPosition(force=True)
                 if dial_pos is None:
@@ -78,42 +81,46 @@ class _wm(Macro):
                 if show_ctrlaxis:
                     ctrl_name = self.getController(motor.controller).name
                     axis_nb = getattr(motor, "axis")
-                    print_ctrl = "ctrl: " + ctrl_name 
-                    print_axis = "axis: " + str(axis_nb)
-                    motor_pos.append((print_ctrl, print_axis, pos, dial_pos))
+                    motor_pos.append((ctrl_name, str(axis_nb), pos, dial_pos))
                 else:
                     motor_pos.append((pos,dial_pos))
             else:
                 if show_ctrlaxis:
                     ctrl_name = self.getController(motor.controller).name
                     axis_nb = getattr(motor, "axis")
-                    print_ctrl = "ctrl: " + ctrl_name 
-                    print_axis = "axis: " + str(axis_nb)
-                    motor_pos.append((print_ctrl, print_axis, pos))
+                    motor_pos.append((ctrl_name, str(axis_nb), pos))
                 else:
                     motor_pos.append((pos,))
 
             motor_width = max(motor_width,len(name))
             
             if show_ctrlaxis:
-                motor_width = max(motor_width, len(print_ctrl), len(print_axis))
+                motor_width = max(motor_width, len(ctrl_name), len(str(axis_nb)))
  
         fmt = '%c*.%df' % ('%',motor_width - 5)
 
         if pos_format > -1:
             fmt = '%c*.%df' % ('%',int(pos_format))
 
+        row_head_str = []
         if show_ctrlaxis:
+            row_head_str += ['Ctrl', 'Axis']
             if show_dial:
                 t_format = ['%*s','%*s',fmt,fmt]
+                row_head_str += ['User', 'Dial']
             else:
                 t_format = ['%*s','%*s',fmt]
+                row_head_str += ['User']
         else:
-            t_format = [fmt]
+            if show_dial:
+                t_format = [fmt, fmt]
+            else:
+                t_format = [fmt]
 
+        row_head_str = row_head_str if len(row_head_str) else None 
         table = Table(motor_pos, elem_fmt=t_format,
                       col_head_str=motor_names, col_head_width=motor_width,
-                      **self.table_opts)
+                      row_head_str=row_head_str, **self.table_opts)
         for line in table.genOutput():
             self.output(line)
 
@@ -297,10 +304,8 @@ class wm(Macro):
             max_len = 0
             if show_ctrlaxis:
                 axis_nb = getattr(motor, "axis")
-                print_axis = "axis: " + str(axis_nb)
                 ctrl_name = self.getController(motor.controller).name
-                print_ctrl = "ctrl: " + ctrl_name
-                max_len = max(max_len, len(print_ctrl), len(print_axis))
+                max_len = max(max_len, len(ctrl_name), len(str(axis_nb)))
             name = motor.getName()
             max_len = max(max_len, len(name))
 
@@ -328,8 +333,8 @@ class wm(Macro):
             val3 =  str_fmt % posObj.getMinValue()
 
             if show_ctrlaxis:
-                valctrl = str_fmt % (print_ctrl)
-                valaxis = str_fmt % (print_axis)
+                valctrl = str_fmt % (ctrl_name)
+                valaxis = str_fmt % str(axis_nb)
                 upos = map(str, [valctrl, valaxis, ' ', val2, val1, val3])
             else:
                 upos = map(str, ['', val2, val1, val3])
@@ -351,11 +356,10 @@ class wm(Macro):
             motor_pos.append(pos_data)
 
         elem_fmt = (['%*s'] + ['%*s'] * 5) * 2
+        row_head_str = []
         if show_ctrlaxis:
-            row_head_str = [' ', ' ', 'User', ' High', ' Current', ' Low']
-        else:
-            row_head_str = ['User', ' High', ' Current', ' Low']
-            
+            row_head_str += ['Ctrl', 'Axis']
+        row_head_str += ['User', ' High', ' Current', ' Low']
         if show_dial:
             row_head_str += ['Dial', ' High', ' Current', ' Low']
         table = Table(motor_pos, elem_fmt=elem_fmt, row_head_str=row_head_str,
