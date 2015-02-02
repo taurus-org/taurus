@@ -62,6 +62,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.skip_gui:
-        import taurus.test
-        taurus.test.GUI_TESTS_ENABLED = False
+        import taurus.test.skip
+        taurus.test.skip.GUI_TESTS_ENABLED = False
     run()
