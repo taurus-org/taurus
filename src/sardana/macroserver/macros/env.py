@@ -97,7 +97,7 @@ class usetvo(Macro):
 
             
 class lsenv(Macro):
-    """Lists the environment"""
+    """Lists the environment in alphabetical order"""
     
     param_def = [
         ['macro_list',
@@ -114,18 +114,23 @@ class lsenv(Macro):
             # list All the environment for the current door
             out = List(['Name', 'Value', 'Type'])
             env = self.getAllDoorEnv()
-            for k,v in env.iteritems():
-                str_val = reprValue(v)
-                type_name = type(v).__name__
-                out.appendRow([str(k), str_val, type_name])
-        else:
-            # list the environment for the current door for the given macros
-            out = List(['Macro', 'Name', 'Value', 'Type'])
+            names_list = list(env.keys())
+            names_list.sort(key=str.lower)
+            for k in names_list:
+                str_val = self.reprValue(env[k])
+                type_name = type(env[k]).__name__
+                out.appendRow([k, str_val, type_name])
+        # list the environment for the current door for the given macros
+        else:            
+            out = List(['Macro', 'Name', 'Value', 'Type']) 
             for macro in macro_list:
                 env = self.getEnv(key=None, macro_name=macro.name)
-                for k, v in env.iteritems():
-                    type_name = type(v).__name__
-                    out.appendRow([ macro.name, k, self.reprValue(v), type_name ])
+                names_list = list(env.keys())
+                names_list.sort(key=str.lower)
+                for k in names_list:
+                    str_val = self.reprValue(env[k])
+                    type_name = type(env[k]).__name__
+                    out.appendRow([macro.name, k, str_val, type_name])
 
         for line in out.genOutput():
             self.output(line)
