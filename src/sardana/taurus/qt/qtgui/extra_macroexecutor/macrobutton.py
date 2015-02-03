@@ -39,6 +39,7 @@ from taurus.core import TaurusEventType, TaurusDevice
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.base import TaurusBaseWidget
+from taurus.qt.qtgui.button import TaurusCommandButton
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 from taurus.core.util.colors import DEVICE_STATE_PALETTE
 from taurus.qt.qtgui.util.ui import UILoadable
@@ -92,7 +93,7 @@ class MacroButton(TaurusWidget):
         self.showProgress(visible)
         
     def showProgress(self, visible):
-        '''Set wether the progress bar is shown
+        '''Set whether the progress bar is shown
         
         :param visible: (bool) If True, the progress bar is shown. Otherwise it 
                         is hidden'''
@@ -290,30 +291,6 @@ class MacroButton(TaurusWidget):
                 'icon': ':/designer/pushbutton.png'}
 
 
-class MacroButtonAbortDoor(Qt.QPushButton, TaurusBaseWidget): 
-    '''A button for aborting macros on a door'''
-    #todo: why not inheriting from (TaurusBaseComponent, Qt.QPushButton)?
-    def __init__(self, parent=None, designMode=False):
-        name = self.__class__.__name__
-        self.call__init__wo_kw(Qt.QPushButton, parent)
-        self.call__init__(TaurusBaseWidget, name, designMode=designMode)
-        
-        self.setText('Abort')
-        self.setToolTip('Abort Macro')
-        self.connect(self, Qt.SIGNAL('clicked()'), self.abort)
-        
-    def getModelClass(self):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
-        return TaurusDevice
-
-    @ProtectTaurusMessageBox(msg='An error occurred trying to abort the macro.')
-    def abort(self):
-        '''stops macros'''
-        door = self.getModelObj()
-        if door is not None:
-            door.stopMacro()
-
-
 if __name__ == '__main__':
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
@@ -346,7 +323,7 @@ if __name__ == '__main__':
     _argEditors = []
     for a in range(5):
         col += 1
-        w.layout().addWidget(Qt.QLabel('arg0'), 0, col)
+        w.layout().addWidget(Qt.QLabel('arg%d' % a), 0, col)
         argEdit = Qt.QLineEdit()
         w.layout().addWidget(argEdit, 1, col)
         _argEditors.append(argEdit)
@@ -369,8 +346,8 @@ if __name__ == '__main__':
     show_progress.setChecked(True)
     w.layout().addWidget(show_progress, 5, 0)
 
-    mb_abort = MacroButtonAbortDoor()
-
+    mb_abort = TaurusCommandButton(command = 'StopMacro', 
+                                   icon=':/actions/media_playback_stop.svg')
     mb_abort.setModel(door_name)
 
     w.layout().addWidget(mb_abort, 5, 1)
