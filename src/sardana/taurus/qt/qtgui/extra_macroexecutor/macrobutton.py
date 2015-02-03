@@ -406,7 +406,8 @@ if __name__ == '__main__':
 
     # Since everything is now connected, the parameters will be updated
     macro_name.setText('ascan')
-    for e,v in zip(_argEditors, 'mot25 1 10 5 0.1'.split()):
+    macro_params = [demo_motor_name, '0', '1', '5', '.1']
+    for e,v in zip(_argEditors, macro_params):
         e.setText(v)
 
     w.show()
