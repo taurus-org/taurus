@@ -108,7 +108,11 @@ class MacroButton(TaurusWidget):
         if self.door is not None:
             self.disconnect(self.door, Qt.SIGNAL('macroStatusUpdated'), self._statusUpdated)
             self.disconnect(self.door, Qt.SIGNAL('resultUpdated'), self._resultUpdated)
+
+            # disable management of Door Tango States
             self.door.getAttribute('State').removeListener(self.door_state_listener)
+            self.disconnect(self.door_state_listener, Qt.SIGNAL('doorStateChanged'), self._doorStateChanged)
+            self.door_state_listener = None
 
         try: self.door = taurus.Device(model)
         except: return
@@ -346,7 +350,7 @@ if __name__ == '__main__':
     show_progress.setChecked(True)
     w.layout().addWidget(show_progress, 5, 0)
 
-    mb_abort = TaurusCommandButton(command = 'StopMacro', 
+    mb_abort = TaurusCommandButton(command = 'StopMacro',
                                    icon=':/actions/media_playback_stop.svg')
     mb_abort.setModel(door_name)
 
