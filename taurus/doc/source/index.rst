@@ -10,6 +10,9 @@ Welcome to Taurus's |version| documentation!
 
 .. sidebar:: Latest news
 
+    2015-02-04
+        Taurus 3.4.0 released!
+        
     2014-07-11
         Taurus 3.3.0 released!
         
