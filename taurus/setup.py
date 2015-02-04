@@ -222,7 +222,7 @@ if os.path.isdir(abspath('lib', 'taurus', 'external', 'enum', 'enum')):
     packages.append('taurus.external.enum.enum')
 if os.path.isdir(abspath('lib', 'taurus', 'external', 'pint', 'pint')):
     packages.append('taurus.external.pint.pint')
-    package_data['taurus.external.pint.pint'] = ['default_en.txt']
+    package_data['taurus.external.pint.pint'] = ['*.txt']
     
 
 def get_script_files():
