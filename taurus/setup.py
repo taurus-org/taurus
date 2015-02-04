@@ -133,24 +133,19 @@ packages = [
     'taurus.qt.qtgui.graphic.jdraw',
     'taurus.qt.qtgui.graphic.jdraw.test.res',
     'taurus.qt.qtgui.help',
-    'taurus.qt.qtgui.help.ui',
     'taurus.qt.qtgui.image',
     'taurus.qt.qtgui.input',
     'taurus.qt.qtgui.model',
     'taurus.qt.qtgui.panel',
     'taurus.qt.qtgui.panel.test',
     'taurus.qt.qtgui.panel.report',
-    'taurus.qt.qtgui.panel.report.ui',
-    'taurus.qt.qtgui.panel.ui',
     'taurus.qt.qtgui.plot',
-    'taurus.qt.qtgui.plot.ui',
     'taurus.qt.qtgui.resource',
 #    'taurus.qt.qtgui.shell',
     'taurus.qt.qtgui.style',
     'taurus.qt.qtgui.table',
     'taurus.qt.qtgui.taurusgui',
     'taurus.qt.qtgui.taurusgui.conf',
-    'taurus.qt.qtgui.taurusgui.ui',
     'taurus.qt.qtgui.tree',
     'taurus.qt.qtgui.ui',
     'taurus.qt.qtgui.util',
@@ -171,7 +166,6 @@ extra_packages = [
     'taurus.qt.qtgui.extra_nexus',
     'taurus.qt.qtgui.extra_xterm',
     'taurus.qt.qtgui.extra_guiqwt',
-    'taurus.qt.qtgui.extra_guiqwt.ui',
 
     'taurus.qt.qtgui.taurusgui.conf.tgconf_example01',
     'taurus.qt.qtgui.taurusgui.conf.tgconf_macrogui',
@@ -208,12 +202,22 @@ package_data = {
     'taurus.qt.qtgui.resource' : ['*.rcc'],
     'taurus.qt.qtgui.util'     : ['tauruswidget_template',
                                   'tauruswidget_qtdesignerplugin_template'],
-    'taurus.qt.qtgui.util.test.test_ui' : ['ui/*', 'ui/mywidget2/*'],
     'taurus.qt.uic'            : ['pyuic4/*'],
     'taurus.qt.qtgui.taurusgui.conf.tgconf_example01' : ['images/*'],
     'taurus.qt.qtgui.button.test' : ['res/*'],
-    'taurus.qt.qtgui.graphic.jdraw.test' : ['res/*']
+    'taurus.qt.qtgui.graphic.jdraw.test' : ['res/*'],
+    
+    'taurus.qt.qtgui.help': ['ui/*.ui'],
+    'taurus.qt.qtgui.panel.report': ['ui/*.ui'],
+    'taurus.qt.qtgui.panel': ['ui/*.ui'],
+    'taurus.qt.qtgui.plot': ['ui/*.ui'],
+    'taurus.qt.qtgui.taurusgui': ['ui/*.ui'],
+    'taurus.qt.qtgui.extra_guiqwt': ['ui/*.ui'],
+    'taurus.qt.qtgui.util.test.test_ui' : ['ui/*.ui', 'ui/mywidget2/*.ui'],
 }
+
+
+
 
 # The files listed here will be made executable when installed.
 # The file names are relative to the dir containing setup.py
@@ -461,13 +465,6 @@ class build(dftbuild):
             packages.extend(extra_packages)
         resource_package_data = self.get_extra_resource_package_data()
         package_data['taurus.qt.qtgui.resource'].extend(resource_package_data)
-
-        for package in packages:
-            if package.endswith(".ui"):
-                pdata = package_data.get(package)
-                if pdata is None:
-                    package_data[package] = pdata = []
-                pdata.append("*.ui")
 
     def build_jdraw(self):
         print("Building jdraw grammar...", end='')
