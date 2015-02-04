@@ -295,6 +295,34 @@ class MacroButton(TaurusWidget):
                 'icon': ':/designer/pushbutton.png'}
 
 
+class MacroButtonAbortDoor(Qt.QPushButton, TaurusBaseWidget):
+    '''Deprecated class. Instead use TaurusCommandButton.
+    A button for aborting macros on a door
+    '''
+    #todo: why not inheriting from (TaurusBaseComponent, Qt.QPushButton)?
+    def __init__(self, parent=None, designMode=False):
+        name = self.__class__.__name__
+        self.call__init__wo_kw(Qt.QPushButton, parent)
+        self.call__init__(TaurusBaseWidget, name, designMode=designMode)
+        self.warning('Deprecation warning: use TaurusCommandButton class ' +\
+                     'instead of MacroButtonAbortDoor')
+
+        self.setText('Abort')
+        self.setToolTip('Abort Macro')
+        self.connect(self, Qt.SIGNAL('clicked()'), self.abort)
+
+    def getModelClass(self):
+        '''reimplemented from :class:`TaurusBaseWidget`'''
+        return TaurusDevice
+
+    @ProtectTaurusMessageBox(msg='An error occurred trying to abort the macro.')
+    def abort(self):
+        '''stops macros'''
+        door = self.getModelObj()
+        if door is not None:
+            door.stopMacro()
+
+
 if __name__ == '__main__':
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
