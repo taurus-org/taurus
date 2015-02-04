@@ -154,14 +154,6 @@ packages = [
     'taurus.qt.uic',
 ]
 
-# check if local implementations of enum and pint are here (debian removes them
-# before running setup to avoid license issues)
-if os.path.isdir(abspath('lib', 'taurus', 'external', 'enum', 'enum')):
-    packages.append('taurus.external.enum.enum')
-if os.path.isdir(abspath('lib', 'taurus', 'external', 'pint', 'pint')):
-    packages.append('taurus.external.pint.pint')
-
-
 extra_packages = [
     'taurus.qt.qtgui.extra_nexus',
     'taurus.qt.qtgui.extra_xterm',
@@ -206,7 +198,7 @@ package_data = {
     'taurus.qt.qtgui.taurusgui.conf.tgconf_example01' : ['images/*'],
     'taurus.qt.qtgui.button.test' : ['res/*'],
     'taurus.qt.qtgui.graphic.jdraw.test' : ['res/*'],
-    
+        
     'taurus.qt.qtgui.help': ['ui/*.ui'],
     'taurus.qt.qtgui.panel.report': ['ui/*.ui'],
     'taurus.qt.qtgui.panel': ['ui/*.ui'],
@@ -217,14 +209,21 @@ package_data = {
 }
 
 
-
-
 # The files listed here will be made executable when installed.
 # The file names are relative to the dir containing setup.py
 # Note: They must also be listed in packages or package_data
 executable_data = [
     'taurus/qt/qtgui/button/test/res/Timeout',
 ]
+
+# check if local implementations of enum and pint are here (debian removes them
+# before running setup to avoid license issues)
+if os.path.isdir(abspath('lib', 'taurus', 'external', 'enum', 'enum')):
+    packages.append('taurus.external.enum.enum')
+if os.path.isdir(abspath('lib', 'taurus', 'external', 'pint', 'pint')):
+    packages.append('taurus.external.pint.pint')
+    package_data['taurus.external.pint.pint'] = ['default_en.txt']
+    
 
 def get_script_files():
     scripts_dir = abspath('scripts')
