@@ -308,6 +308,7 @@ def main():
         'sardana.util.motion',
 
         'sardana.pool',
+        'sardana.pool.test',
         'sardana.pool.poolcontrollers',
 
         'sardana.macroserver',
@@ -320,6 +321,7 @@ def main():
         'sardana.tango',
         'sardana.tango.core',
         'sardana.tango.pool',
+        'sardana.tango.pool.test',
         'sardana.tango.macroserver',
         'sardana.tango.macroserver.test',
 
