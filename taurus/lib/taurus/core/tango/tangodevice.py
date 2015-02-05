@@ -194,23 +194,56 @@ class TangoDevice(TaurusDevice):
     def _getDefaultDescription(self):
         return DFT_TANGO_DEVICE_DESCRIPTION
 
-    def poll(self, attrs):
-        '''optimized by reading of multiple attributes in one go'''
-        t = time.time()
-        try:
-            result = self.read_attributes(attrs.keys())
-        except PyTango.DevFailed, e:
+    def __pollResult(self, attrs, ts, result, error=False):
+        if error:
             for attr in attrs.values():
-                attr.poll(single=False, value=None, error=e, time=t)
+                attr.poll(single=False, value=None, error=result, time=ts)
             return
-        
-        for i, da in enumerate(result):
+
+        for da in result:
             if da.has_failed:
                 v, err = None, PyTango.DevFailed(*da.get_err_stack())
             else:
                 v, err = da, None
             attr = attrs[da.name]
-            attr.poll(single=False, value=v, error=err, time=t)
+            attr.poll(single=False, value=v, error=err, time=ts)
+
+    def __pollAsynch(self, attrs):
+        ts = time.time()
+        try:
+            req_id = self.read_attributes_asynch(attrs.keys())
+        except PyTango.DevFailed as e:
+            return False, e, ts
+        return True, req_id, ts
+
+    def __pollReply(self, attrs, req_id, timeout=None):
+        ok, req_id, ts = req_id
+        if not ok:
+            self.__pollResult(attrs, ts, req_id, error=True)
+            return
+
+        if timeout is None:
+            timeout = 0
+        timeout = int(timeout*1000)
+        result = self.read_attributes_reply(req_id, timeout)
+        self.__pollResult(attrs, ts, result)
+
+    def poll(self, attrs, asynch=False, req_id=None):
+        '''optimized by reading of multiple attributes in one go'''
+        if req_id is not None:
+            return self.__pollReply(attrs, req_id)
+
+        if asynch:
+            return self.__pollAsynch(attrs)
+
+        error = False
+        ts = time.time()
+        try:
+            result = self.read_attributes(attrs.keys())
+        except PyTango.DevFailed as e:
+            error = True
+            result = e
+        self.__pollResult(attrs, ts, result, error=error)
     
     def _repr_html_(self):
         try:

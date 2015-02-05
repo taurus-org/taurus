@@ -29,17 +29,24 @@ __all__ = ["Timer"]
 
 __docformat__ = "restructuredtext"
 
-import threading
 import time
-import log
+import threading
 
-class Timer(log.Logger):
+from .log import Logger
 
-    def __init__(self, interval, function, parent, *args, **kwargs):
-        """Create Timer Object. Interval in seconds (The argument may be a 
-        floating point number for subsecond precision)"""
-        
-        self.call__init__(log.Logger, 'Timer on ' + function.__name__, parent)
+class Timer(Logger):
+    """
+    Timer Object.
+
+    Interval in seconds (The argument may be a floating point number for
+    subsecond precision).
+    If strict_timing is True, the timer will try to compensate for drifting
+    due to the time it takes to execute function in each loop.
+    """
+
+    def __init__(self, interval, function, parent, strict_timing=True,
+                 *args, **kwargs):
+        Logger.__init__(self, 'Timer on ' + function.__name__, parent)
         self.__lock = threading.Lock()
         self.__interval = interval
         self.__function = function
@@ -49,6 +56,7 @@ class Timer(log.Logger):
         self.__alive = False
         self.__start_nb = 0
         self.__thread = None
+        self.__strict_timing = strict_timing
         
     def start(self):
         """ Start Timer Object """
@@ -76,8 +84,17 @@ class Timer(log.Logger):
     def __run(self):
         """ Private Thread Function """
         self.debug("Timer thread starting")
+        next_time = time.time() + self.__interval
         while self.__loop:
             self.__function(*self.__args, **self.__kwargs)
-            time.sleep(self.__interval)
+            nap = self.__interval
+            if self.__strict_timing:
+                curr_time = time.time()
+                nap = max(0, next_time - curr_time)
+                if curr_time > next_time:
+                    self.warning("loop function took more than loop interval (%ss)",
+                                 self.__interval)
+            next_time += self.__interval
+            time.sleep(nap)
         self.__alive = False
         self.debug("Timer thread ending")

@@ -36,3 +36,10 @@ def registerExtensions():
 
     pool.registerExtensions()
     macroserver.registerExtensions()
+
+def unregisterExtensions():
+    from . import pool
+    from . import macroserver
+
+    pool.unregisterExtensions()
+    macroserver.unregisterExtensions()

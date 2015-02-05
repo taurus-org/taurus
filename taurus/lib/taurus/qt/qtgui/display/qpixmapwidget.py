@@ -175,7 +175,7 @@ class QPixmapWidget(Qt.QWidget):
         """Sets the alignment to apply when drawing the pixmap.
         :param pixmap: the new alignment
         :type  pixmap: PyQt4.Qt.Alignment"""
-        self._alignment = alignment
+        self._alignment = Qt.Qt.Alignment(alignment)
         self.update()
     
     def resetAlignment(self):

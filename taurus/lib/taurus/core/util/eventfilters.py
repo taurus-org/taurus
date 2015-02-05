@@ -23,7 +23,8 @@
 ##
 #############################################################################
 
-"""event filters library to be used with :meth:`taurus.qt.qtgui.base.TaurusBaseComponent.setFilters`"""
+"""event filters library to be used with 
+:meth:`taurus.qt.qtgui.base.TaurusBaseComponent.setFilters`"""
 
 import PyTango
 import taurus
@@ -44,12 +45,16 @@ def IGNORE_CHANGE(s, t, v):
 
 def ONLY_CHANGE_AND_PERIODIC(s, t, v):
     '''Only change events pass'''
-    if t in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic]: return s,t,v
+    if t in [taurus.core.taurusbasetypes.TaurusEventType.Change, 
+             taurus.core.taurusbasetypes.TaurusEventType.Periodic]: 
+        return s,t,v
     else: return None
 
 def IGNORE_CHANGE_AND_PERIODIC(s, t, v):
     '''Config events are discarded'''
-    if t not in [taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic]: return s,t,v
+    if t not in [taurus.core.taurusbasetypes.TaurusEventType.Change, 
+                 taurus.core.taurusbasetypes.TaurusEventType.Periodic]: 
+        return s,t,v
     else: return None
     
 def ONLY_CONFIG(s, t, v):
@@ -75,7 +80,7 @@ def IGNORE_FAKE(s, t, v):
 
 class EventValueMap(dict):
     """A filter destined to change the original value into another one according
-    to a given map. Example:
+    to a given map. Example::
            
         filter = EventValueMap({1:"OPEN", 2:"CHANGING", 3:"CLOSED"})
        
@@ -95,7 +100,8 @@ class EventValueMap(dict):
     }
 
     def __call__(self, s, t, v):
-        if not t in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic):
+        if not t in (taurus.core.taurusbasetypes.TaurusEventType.Change, 
+                     taurus.core.taurusbasetypes.TaurusEventType.Periodic):
             return s, t, v
         if v is None:
             return s, t, v
@@ -107,4 +113,69 @@ class EventValueMap(dict):
         
         v.type = EventValueMap.PYTYPE_TO_TANGO.get(type(v.value), v.type)
         return s, t, v
+
+
+class RepeatedEventFilter(object):
+    """
+    The instances of this class will be callables that can be used as filters 
+    of repeated-value events. 
+    If the event type is Change or Periodic, it will only pass when its 
+    evt_value.value is different from that of the last event received from the 
+    same source and type. If evt_value.value is not available in the current 
+    event, the whole evt_value is used for comparison and as a future reference.
+    
+    This is useful to avoid processing repetitive events.
+    
+    Note that you cannot use this class as a filter: you need to use an 
+    instance of it.
+    
+    Note 2: Use a different instance each time you insert this filter 
+    into a different widget unless you *really* know what you are doing.
+    
+    Example of usage::
+           
+        filters = [RepeatedEventFilter(), IGNORE_CONFIG]
+        filterEvent(s, t, v, filters)
         
+    """
+    def __init__(self):
+        self._lastValues = {}
+
+    def __call__(self, s, t, v):
+        # restrict this  filter only to change and periodic events. 
+        if ONLY_CHANGE_AND_PERIODIC(s, t, v) is None:
+            return s,t,v
+        # block event if we recorded one before with same src, type and v.value
+        new_value = getattr(v, 'value', v)
+        try:
+            if self._lastValues[(s, t)] == new_value:
+                return None
+        except KeyError:
+            pass
+        # if it was't blocked, store src, type and v.value for future checks
+        self._lastValues[(s, t)] =  new_value
+        return s, t, v
+
+
+def filterEvent(evt_src=-1, evt_type=-1, evt_value=-1, filters=()):
+    """The event is processed by each and all filters in strict order
+    unless one of them returns None (in which case the event is discarded)
+
+    :param evt_src: (object) object that triggered the event
+    :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType) type of event
+    :param evt_value: (object) event value
+    :param filters: (sequence<callable>) a sequence of callables, each returning
+                    either None (to discard the event) or the tuple (with 
+                    possibly transformed values) of 
+                    (evt_src, evt_type, evt_value)
+    
+    :return: (None or tuple) The result of piping the event through the given 
+             filters.
+    """
+    evt = evt_src, evt_type, evt_value
+
+    for f in filters:
+        evt = f(*evt)
+        if evt is None:
+            return None
+    return evt

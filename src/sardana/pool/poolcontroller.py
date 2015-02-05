@@ -596,7 +596,7 @@ class PoolController(PoolBaseController):
             exc_info = sys.exc_info()
             for axis in axes:
                 element = self.get_element(axis=axis)
-                ctrl_values[element] = None, exc_info
+                ctrl_values[element] = SardanaValue(exc_info=exc_info)
             return ctrl_values
 
         for axis in axes:

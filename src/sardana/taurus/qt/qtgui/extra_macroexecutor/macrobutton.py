@@ -30,6 +30,7 @@ macrobutton.py:
 __all__ = ['MacroButton']
 
 import functools
+import uuid
 
 import PyTango
 
@@ -82,6 +83,7 @@ class MacroButton(TaurusWidget):
         self.door_state_listener = None
         self.macro_name = ''
         self.macro_args = []
+        self.macro_id = None
         self.running_macro = None
 
         self.ui.progress.setValue(0)
@@ -119,7 +121,6 @@ class MacroButton(TaurusWidget):
         door_available = True
         if state not in [PyTango.DevState.ON, PyTango.DevState.ALARM] and not self.ui.button.isChecked():
             door_available = False
-            self.ui.progress.setValue(0)
 
         self.ui.button.setEnabled(door_available)
         self.ui.progress.setEnabled(door_available)
@@ -139,10 +140,16 @@ class MacroButton(TaurusWidget):
 
         status_dict = first_tuple[1][0]
         # KEYS RECEIVED FROM A 'SCAN' MACRO AND A 'TWICE' MACRO: IS IT GENERAL ?!?!?!
+        macro_id = status_dict['id']
+        # if macro id is unknown ignoring this signal
+        if macro_id is None:
+            return
+        # check if we have launch this macro, otherwise ignore the signal
+        if macro_id != str(self.macro_id):
+            return
         state = status_dict['state']
         step = status_dict['step']
         step_range = status_dict['range']
-        macro_id = status_dict['id']
 
         # Update progress bar
         self.ui.progress.setMinimum(step_range[0])
@@ -194,7 +201,9 @@ class MacroButton(TaurusWidget):
 
         # Thanks to gjover for the hint... :-D
         #macro_cmd = self.macro_name + ' ' + ' '.join(self.macro_args)
-        macro_cmd_xml = '<macro name="%s">\n' % self.macro_name
+        self.macro_id = uuid.uuid1()
+        macro_cmd_xml = '<macro name="%s" id="%s">\n' % \
+                        (self.macro_name, self.macro_id)
         for arg in self.macro_args:
             macro_cmd_xml += '<param value="%s"/>\n' % arg
         macro_cmd_xml += '</macro>'
@@ -266,7 +275,24 @@ class MacroButtonAbortDoor(TaurusWidget):
 
 if __name__ == '__main__':
     import sys
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+    from taurus.core.util.argparse import get_taurus_parser
+    from sardana.macroserver.macros.test import SarDemoEnv
+
+    parser = get_taurus_parser()
+    parser.set_usage("python macrobutton.py [door_name]")
+    parser.set_description("Macro button for macro execution")
+
+    app = TaurusApplication(app_name="macrobutton",
+                            app_version=taurus.Release.version)
+
+    args = app.get_command_line_args()
+
+    if len(args) < 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    door_name = args[0]
 
     w = Qt.QWidget()
     w.setLayout(Qt.QGridLayout())
@@ -308,7 +334,7 @@ if __name__ == '__main__':
     from sardana.taurus.qt.qtcore.tango.sardana.macroserver import registerExtensions
     registerExtensions()
     mb = MacroButton()
-    mb.setModel('door/gc/1')
+    mb.setModel(door_name)
 
     w.layout().addWidget(mb, 2, 0, 2, 7)
 
@@ -322,7 +348,7 @@ if __name__ == '__main__':
     w.layout().addWidget(show_progress, 5, 0)
 
     mb_abort = MacroButtonAbortDoor()
-    mb_abort.setModel('door/gc/1')
+    mb_abort.setModel(door_name)
     w.layout().addWidget(mb_abort, 5, 1)
 
     # Change macro name
@@ -355,9 +381,18 @@ if __name__ == '__main__':
     # Clear parameters
     Qt.QObject.connect(clear_button, Qt.SIGNAL('clicked()'), clear_params)
 
+    # Obtain a demo motor
+    try:
+        demo_motor_name = SarDemoEnv(door_name).getMotors()[0]
+    except Exception, e:
+        from taurus.core.util.log import warning, debug
+        warning('It was unable to obtain a demo motor')
+        debug('Details: %s' % e.message)
+        demo_motor_name = ''
+
     # Since everything is now connected, the parameters will be updated
     macro_name.setText('ascan')
-    arg0.setText('gcdmot1')
+    arg0.setText(demo_motor_name)
     arg1.setText('1')
     arg2.setText('10')
     arg3.setText('5')

@@ -72,6 +72,8 @@ class FIO_FileRecorder(BaseFileRecorder):
         if macro:
             self.macro = macro
         self.db = PyTango.Database()
+        if filename:
+            self.setFileName(self.base_filename)
 
     def setFileName(self, filename):
         if self.fd != None: 
@@ -90,12 +92,15 @@ class FIO_FileRecorder(BaseFileRecorder):
         # construct the filename, e.g. : /dir/subdir/etcdir/prefix_00123.fio
         #
         tpl = filename.rpartition('.')
-        serial = self.recordlist.getEnvironValue('serialno')
-        self.filename = "%s_%05d.%s" % (tpl[0], serial, tpl[2])
-        #
-        # in case we have MCAs, prepare the dir name
-        #
-        self.mcaDirName = "%s_%05d" % (tpl[0], serial)
+        try: # For avoiding error when calling at __init__
+            serial = self.recordlist.getEnvironValue('serialno')
+            self.filename = "%s_%05d.%s" % (tpl[0], serial, tpl[2])
+            #
+            # in case we have MCAs, prepare the dir name
+            #
+            self.mcaDirName = "%s_%05d" % (tpl[0], serial)
+        except:
+            self.filename = "%s_%s.%s" % (tpl[0], "[ScanId]", tpl[2])
 
     def getFormat(self):
         return DataFormats.whatis(DataFormats.fio)
@@ -172,12 +177,12 @@ class FIO_FileRecorder(BaseFileRecorder):
             outLine = " Col %d %s %s\n" % ( i, col.label, dType)
             self.fd.write( outLine)
             i += 1
-        # +++
+        #
         # 11.9.2012 timestamp to the end
         #
         outLine = " Col %d %s %s\n" % ( i, 'timestamp', 'DOUBLE')
         self.fd.write( outLine)
-        # +++
+
         self.fd.flush()
 
     def _writeRecord(self, record):
@@ -186,12 +191,13 @@ class FIO_FileRecorder(BaseFileRecorder):
         nan, ctNames, fd = float('nan'), self.ctNames, self.fd
         outstr = ''
         for c in ctNames:
+            if c == "timestamp" or c == "point_nb":
+                continue
             outstr += ' ' + str(record.data.get(c, nan))
-        # +++
+        #
         # 11.9.2012 timestamp to the end
         #
         outstr += ' ' + str(record.data.get('timestamp', nan))
-        # +++
         outstr += '\n'
         
         fd.write( outstr )
@@ -337,7 +343,11 @@ class SPEC_FileRecorder(BaseFileRecorder):
                 'nocols':    len(names),
                 'labels':    '  '.join(labels)
                }
-        header = '\n'
+        #Compatibility with PyMca
+        if os.path.exists(self.filename):
+            header = '\n'
+        else:
+            header = ''
         header += '#S %(serialno)s %(title)s\n'
         header += '#U %(user)s\n'
         header += '#D %(epoch)s\n'

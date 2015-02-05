@@ -120,7 +120,7 @@ class Starter(object):
         not present)
         e.g. to create Starter in an init script::
             
-            add_new_device('sys/tg_test/foobar', klass='TangoTest')
+            addNewDevice('sys/tg_test/foobar', klass='TangoTest')
         
         :param klass: class name. If None passed, it defaults to the server 
                       name (without instance name)
@@ -130,12 +130,21 @@ class Starter(object):
             return
         if klass is None:
             klass = self.ds_name.split('/')[0]
-        #register the server
+        # in case the device is already defined, skipping...
+        db = PyTango.Database()
+        try:
+            db.import_device(device)
+            _log.warning('%s already exists. Skipping' % device)
+            return
+        except:
+            pass
+        # register the device, 
+        # in case the server did not exist before this will define it
         dev_info = PyTango.DbDevInfo()
         dev_info.name = device
         dev_info.klass = klass
         dev_info.server = self.ds_name
-        PyTango.Database().add_device(dev_info)
+        db.add_device(dev_info)
         #create proxy to dserver
         self.dserver = PyTango.DeviceProxy(self.dserver_name)
         #keep track of added devices
@@ -152,10 +161,9 @@ class Starter(object):
         for device in self._addedDevices:
             PyTango.Database().delete_device(device)
             _log.info('Deleted device %s'%device)
-        
         if (self.serverExisted or len(self._addedDevices)==0) and not force:
             msg = ('%s was not registered by this starter. Not removing. '+
-                   'Use %s.removeDS(force=True) to force removal')% \
+                   'Use %s.cleanDb(force=True) to force cleanup')% \
                                  (self.ds_name, self.__class__.__name__)
             _log.warning(msg)
         else:
@@ -172,6 +180,7 @@ class Starter(object):
         except PyTango.DevFailed:
             return False
         return True
+
 
 class ProcessStarter(Starter):
     '''A :class:`Starter` which uses subprocess to start and stop a device 
@@ -206,9 +215,6 @@ class ProcessStarter(Starter):
             _log.warning('Process not started, cannot terminate it.')
 
 
-
-
-
 if __name__ == '__main__':
     
     from taurus.test.resource import getResourcePath
@@ -222,7 +228,7 @@ if __name__ == '__main__':
         print "ping:", PyTango.DeviceProxy(devname).ping()
     except Exception, e:
         print e
-    #s.stopDs()
+    s.stopDs()
     s.cleanDb(force=False)
     
     

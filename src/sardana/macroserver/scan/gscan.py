@@ -250,7 +250,7 @@ class GScan(Logger):
         except UnknownEnv:
             mnt_grps = macro.getObjs(".*", type_class=Type.MeasurementGroup)
             if len(mnt_grps) == 0:
-                ScanSetupError('No Measurement Group defined')
+                raise ScanSetupError('No Measurement Group defined')
             mnt_grp = mnt_grps[0]
             macro.info("ActiveMntGrp not defined. Using %s", mnt_grp)
             macro.setEnv('ActiveMntGrp', mnt_grp.getName())
@@ -395,7 +395,7 @@ class GScan(Logger):
             raise
         except Exception:
             macro.warning('ScanFile is not defined. This operation will not '
-                          'be stored persistently. Use "expconf" (or "senv ScanDir <scan '
+                          'be stored persistently. Use "expconf" (or "senv ScanFile <scan '
                           'file(s)>") to enable it')
             return ()
 
@@ -2025,9 +2025,8 @@ class CTScan(CScan):
                 
                 for moveable, start, final in zip(moveables, starts, finals):
                     name = moveable.moveable.getName()
-                    step_size = abs((end - start) / nr_of_points)
-                    for point_nr, position in enumerate(np.arange(start, \
-                                                            final, step_size)):
+                    for point_nr, position in enumerate(np.linspace(start, \
+                                                        final, nr_of_points)):
                         positions_records[point_nr][name] = position    
                     
                 return positions_records

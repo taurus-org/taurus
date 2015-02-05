@@ -24,7 +24,7 @@
 """This is the standard macro module"""
 
 __all__ = ["ct", "mstate", "mv", "mvr", "pwa", "pwm", "set_lim", "set_lm",
-           "set_pos", "settimer", "uct", "umv", "umvr", "wa", "wm"]
+           "set_pos", "settimer", "uct", "umv", "umvr", "wa", "wm"] 
 
 __docformat__ = 'restructuredtext'
 
@@ -54,33 +54,73 @@ class _wm(Macro):
     
     def run(self, *motor_list):
         show_dial = self.getViewOption(ViewOption.ShowDial)
+        show_ctrlaxis = self.getViewOption(ViewOption.ShowCtrlAxis)
+        pos_format = self.getViewOption(ViewOption.PosFormat)
+
         motor_width = 9
         motor_names = []
         motor_pos   = []
         motor_list = list(motor_list)
         motor_list.sort()
         for motor in motor_list:
+
             name = motor.getName()
             motor_names.append([name])
+
             pos = motor.getPosition(force=True)
             if pos is None:
                 pos = float('NAN')
-            
+        
+            # TODO: refactor this code, so the info tuple is progressively
+            # expanded depending on the _ViewOptions, instead of repeating the 
+            # code in the if/else statements
             if show_dial:
                 dial_pos = motor.getDialPosition(force=True)
                 if dial_pos is None:
                     dial_pos = float('NAN')
-                motor_pos.append((pos,dial_pos))
+                if show_ctrlaxis:
+                    ctrl_name = self.getController(motor.controller).name
+                    axis_nb = getattr(motor, "axis")
+                    motor_pos.append((ctrl_name, str(axis_nb), pos, dial_pos))
+                else:
+                    motor_pos.append((pos,dial_pos))
             else:
-                motor_pos.append((pos,))
+                if show_ctrlaxis:
+                    ctrl_name = self.getController(motor.controller).name
+                    axis_nb = getattr(motor, "axis")
+                    motor_pos.append((ctrl_name, str(axis_nb), pos))
+                else:
+                    motor_pos.append((pos,))
 
             motor_width = max(motor_width,len(name))
-
+            
+            if show_ctrlaxis:
+                motor_width = max(motor_width, len(ctrl_name), len(str(axis_nb)))
+ 
         fmt = '%c*.%df' % ('%',motor_width - 5)
 
-        table = Table(motor_pos, elem_fmt=[fmt],
+        if pos_format > -1:
+            fmt = '%c*.%df' % ('%',int(pos_format))
+
+        row_head_str = []
+        if show_ctrlaxis:
+            row_head_str += ['Ctrl', 'Axis']
+            if show_dial:
+                t_format = ['%*s','%*s',fmt,fmt]
+                row_head_str += ['User', 'Dial']
+            else:
+                t_format = ['%*s','%*s',fmt]
+                row_head_str += ['User']
+        else:
+            if show_dial:
+                t_format = [fmt, fmt]
+            else:
+                t_format = [fmt]
+
+        row_head_str = row_head_str if len(row_head_str) else None 
+        table = Table(motor_pos, elem_fmt=t_format,
                       col_head_str=motor_names, col_head_width=motor_width,
-                      **self.table_opts)
+                      row_head_str=row_head_str, **self.table_opts)
         for line in table.genOutput():
             self.output(line)
 
@@ -141,11 +181,17 @@ class wu(Macro):
 class wa(Macro):
     """Show all motor positions"""
 
-    def prepare(self, **opts):
-        self.all_motors = self.findObjs('.*', type_class=Type.Moveable)
+    param_def = [
+        ['filter',
+         ParamRepeat(['filter', Type.String, '.*', 'a regular expression filter'], min=0, max=1),
+         '.*', 'a regular expression filter'],
+    ]
+
+    def prepare(self, *filter, **opts):
+        self.all_motors = self.findObjs(filter, type_class=Type.Moveable)
         self.table_opts = {}
     
-    def run(self):
+    def run(self, *filter):
         nr_motors = len(self.all_motors)
         if nr_motors == 0:
             self.output('No motor defined')
@@ -164,8 +210,14 @@ class wa(Macro):
 class pwa(Macro):
     """Show all motor positions in a pretty table"""
 
-    def run(self):
-        self.execMacro('wa', **Table.PrettyOpts)
+    param_def = [
+        ['filter',
+         ParamRepeat(['filter', Type.String, '.*', 'a regular expression filter'], min=0, max=1),
+         '.*', 'a regular expression filter'],
+    ]
+
+    def run(self, *filter):
+        self.execMacro('wa', *filter, **Table.PrettyOpts)
 
 class set_lim(Macro):
     """Sets the software limits on the specified motor hello"""
@@ -244,22 +296,70 @@ class wm(Macro):
         motor_pos   = []
 
         show_dial = self.getViewOption(ViewOption.ShowDial)
-        
+        show_ctrlaxis = self.getViewOption(ViewOption.ShowCtrlAxis)
+        pos_format = self.getViewOption(ViewOption.PosFormat)
+ 
         for motor in motor_list:
+                   
+            max_len = 0
+            if show_ctrlaxis:
+                axis_nb = getattr(motor, "axis")
+                ctrl_name = self.getController(motor.controller).name
+                max_len = max(max_len, len(ctrl_name), len(str(axis_nb)))
             name = motor.getName()
+            max_len = max(max_len, len(name))
+
+            max_len = max_len + 5
+            if max_len < 14:
+                max_len = 14 # Length of 'Not specified'
+
+            str_fmt = "%c%ds" % ('%', int(max_len))
+
+            name = str_fmt % name
+
             motor_names.append([name])
             posObj = motor.getPositionObj()
-            upos = map(str, [posObj.getMaxValue(), motor.getPosition(force=True), posObj.getMinValue()])
-            pos_data = [''] + upos
+            if pos_format > -1:
+                fmt = '%c.%df' % ('%', int(pos_format))
+
+            try:
+                val1 = fmt % motor.getPosition(force=True)
+                val1 = str_fmt % val1
+            except:
+                val1 = str_fmt % motor.getPosition(force=True)
+      
+
+            val2 =  str_fmt % posObj.getMaxValue()
+            val3 =  str_fmt % posObj.getMinValue()
+
+            if show_ctrlaxis:
+                valctrl = str_fmt % (ctrl_name)
+                valaxis = str_fmt % str(axis_nb)
+                upos = map(str, [valctrl, valaxis, ' ', val2, val1, val3])
+            else:
+                upos = map(str, ['', val2, val1, val3])
+            pos_data =  upos
             if show_dial:
-                dPosObj = motor.getDialPositionObj()
-                dpos = map(str, [dPosObj.getMaxValue(), motor.getDialPosition(force=True), dPosObj.getMinValue()])
+                try:
+                    val1 = fmt % motor.getDialPosition(force=True)
+                    val1 = str_fmt % val1
+                except:
+                    val1 = str_fmt % motor.getDialPosition(force=True)
+     
+                dPosObj = motor.getDialPositionObj() 
+                val2 =  str_fmt % dPosObj.getMaxValue()
+                val3 =  str_fmt % dPosObj.getMinValue()
+
+                dpos = map(str, [val2, val1, val3])
                 pos_data += [''] + dpos
             
             motor_pos.append(pos_data)
 
-        elem_fmt = (['%*s'] + ['%*s'] * 3) * 2
-        row_head_str = ['User', ' High', ' Current', ' Low']
+        elem_fmt = (['%*s'] + ['%*s'] * 5) * 2
+        row_head_str = []
+        if show_ctrlaxis:
+            row_head_str += ['Ctrl', 'Axis']
+        row_head_str += ['User', ' High', ' Current', ' Low']
         if show_dial:
             row_head_str += ['Dial', ' High', ' Current', ' Low']
         table = Table(motor_pos, elem_fmt=elem_fmt, row_head_str=row_head_str,
@@ -462,7 +562,6 @@ class ct(Macro):
         self.mnt_grp = self.getObj(mnt_grp_name, type_class=Type.MeasurementGroup)
 
     def run(self, integ_time):
-        self.output("hello")
         if self.mnt_grp is None:
             self.error('ActiveMntGrp is not defined or has invalid value')
             return
@@ -573,3 +672,4 @@ class settimer(Macro):
 def report(self, *message):
     """Logs a new record into the message report system (if active)"""
     self.report(' '.join(message))
+

@@ -281,7 +281,7 @@ class SingletonWorker():#Qt.QObject):
         self.getQueue().put(item,block,timeout)
         
     def size(self):
-        self.getQueue().qsize()
+        return self.getQueue().qsize()
         
     def next(self,item=None):
         if item is not None: self.put(item)
