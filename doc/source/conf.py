@@ -28,9 +28,86 @@ import sys
 import os
 import os.path as osp
 
+
+# -- Mocking modules if needed --------------------------------------------
+
+try:
+    from unittest.mock import MagicMock # Pyton >=3.3
+except ImportError:
+    try:
+        from mock import MagicMock
+    except:
+        print 'Mock module not available'
+
+def _add_mock_modules(module_names, mock=None):
+    '''update sys.modules with mocks for the given module names'''
+    if mock is None:
+        mock = MagicMock()
+    sys.modules.update([(name, mock) for name in module_names])
+
+try:
+    import PyTango
+except ImportError:
+    PyTangoMock = MagicMock(DeviceClass=MagicMock,
+                            Device_4Impl=MagicMock,
+                            Release=MagicMock(version_info=(999, 99, 9,
+                                                            'mock', 0))
+                           )
+
+    _add_mock_modules(['PyTango'], mock=PyTangoMock)
+    _add_mock_modules(['PyTango.utils',
+                      'PyTango.constants'])
+
+try:
+    import IPython
+except ImportError:
+    _add_mock_modules(['IPython',
+                      'IPython.core',
+                      'IPython.core.magic',
+                      'IPython.core.page',
+                      'IPython.core.profiledir',
+                      'IPython.core.application',
+                      'IPython.core.interactiveshell',
+                      'IPython.config',
+                      'IPython.config.configurable',
+                      'IPython.config.application',
+                      'IPython.utils',
+                      'IPython.utils.traitlets',
+                      'IPython.utils.io',
+                      'IPython.utils.path',
+                      'IPython.utils.process',
+                      'IPython.utils.coloransi',
+                      'IPython.frontend',
+                      'IPython.frontend.terminal',
+                      'IPython.frontend.terminal.ipapp',
+                      'IPython.frontend.qt',
+                      'IPython.frontend.qt.console',
+                      'IPython.frontend.qt.console.rich_ipython_widget',
+                      'IPython.frontend.qt.console.qtconsoleapp',
+                      'IPython.terminal',
+                      'IPython.terminal.ipapp',
+                      ])
+
+#and a few more modules that may need mocking.
+for name in ['numpy',
+             'lxml',
+             'taurus.external.qt',
+            ]:
+    try:
+        __import__(name)
+    except ImportError:
+        _add_mock_modules([name])
+
+# End of mocking
+# -----------------------------------------------------------------
+
 def set_src():
-    sar_dir = osp.join(osp.dirname(osp.abspath(__file__)), osp.pardir, osp.pardir, 'src')
+    sar_dir = osp.join(osp.dirname(osp.abspath(__file__)),
+                       osp.pardir, osp.pardir, 'src')
+    taurus_dir = osp.join(osp.dirname(osp.abspath(__file__)),
+                          osp.pardir, osp.pardir, 'taurus', 'lib')
     sys.path.insert(0, osp.abspath(sar_dir))
+    sys.path.insert(0, osp.abspath(taurus_dir))
 
 # try to use code from src distribution
 set_src()
