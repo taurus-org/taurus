@@ -70,7 +70,7 @@ authors = {'Tiago'          : ('Tiago Coutinho','tiago.coutinho@esrf.fr'),
            'Reszela'        : ('Zbigniew Reszela','zreszela@cells.es') }
             
 
-url = 'http://packages.python.org/taurus'
+url = 'http://taurus-scada.org'
 
 download_url = 'http://pypi.python.org/packages/source/t/taurus'
 
