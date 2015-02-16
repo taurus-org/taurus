@@ -2,7 +2,7 @@
 
 #############################################################################
 ##
-## This file is part of Taurus, a Tango User Interface Library
+## This file is part of Taurus
 ##
 ## http://www.tango-controls.org/static/tau/latest/doc/html/index.html
 ##
