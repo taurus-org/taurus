@@ -24,7 +24,7 @@ class ControllerTemplate():
                 '##\n'+\
                 '## This file is part of Sardana\n'+\
                 '##\n'+\
-                '## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html\n'+\
+                '## http://www.sardana-controls.org/\n'+\
                 '##\n'+\
                 '## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain\n'+\
                 '##\n'+\

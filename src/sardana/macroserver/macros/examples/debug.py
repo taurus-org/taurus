@@ -2,9 +2,9 @@
 
 #############################################################################
 ##
-## This file is part of Sardana, a Tango User Interface Library
+## This file is part of Sardana
 ## 
-## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+## http://www.sardana-controls.org/
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ## 
