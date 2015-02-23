@@ -108,8 +108,10 @@ class TaurusPollingTimer(Logger):
         attr_dict = self.dev_dict.get(dev)
         if attr_dict is None:
             return
-        if attr_name not in attr_dict:
+        if attr_name in attr_dict:
             del attr_dict[attr_name]
+            if not attr_dict:
+                del self.dev_dict[dev]
             self.attr_nb -= 1
         if self.attr_nb < 1:
             self.stop()
