@@ -31,7 +31,7 @@ __docformat__ = "restructuredtext"
 
 from threading import Thread, currentThread
 from Queue import Queue
-from time import sleep
+from time import sleep, time
 from traceback import extract_stack, format_list
 
 from prop import propertx
@@ -51,7 +51,7 @@ class ThreadPool(Logger):
         self.jobs = Queue(Qsize)
         self.size = Psize
         self.accept = True
-        
+
     @propertx
     def size():
         def set(self, newSize):
@@ -99,6 +99,15 @@ class ThreadPool(Logger):
     @property
     def qsize(self): return self.jobs.qsize()
 
+    def getNumOfBusyWorkers(self):
+        ''' Get the number of workers that are in busy mode.
+        '''
+        n = 0
+        for w in self.workers:
+            if w.isBusy():
+                n += 1
+        return n
+
 
 class Worker(Thread, Logger):
     
@@ -109,12 +118,14 @@ class Worker(Thread, Logger):
         self.daemon = daemon
         self.pool = pool
         self.cmd=''
+        self.busy = False
     
     def run(self):
         get = self.pool.jobs.get
         while True:
             cmd, args, kw, callback, th_id, stack = get()
             if cmd:
+                self.busy = True
                 self.cmd = cmd.__name__
                 try:
                     if callback:
@@ -127,10 +138,14 @@ class Worker(Thread, Logger):
                                "from thread %s:\n%s",
                                self.cmd, th_id, orig_stack, exc_info=1)
                 finally:
+                    self.busy = False
                     self.cmd = ''
             else:
                 self.pool.workers.remove(self)
                 return
+
+    def isBusy(self):
+        return self.busy
 
 if __name__=='__main__':
 
@@ -150,20 +165,58 @@ if __name__=='__main__':
     def show(*arg, **kw):
         print 'callback : %s' % arg[0]
 
-    pool = ThreadPool(5, 50)
-    print "\n\t\t... let's add some jobs ...\n"
-    for j in range(5):
-        if j==1: pool.add(badJob)
-        for i in range(5,0,-1):
-            pool.add(longJob, show, i)
-            pool.add(easyJob, show, i)
-    print '''
-        \t\t... and now, we're waiting for the %i workers to get the %i jobs done ...
-    ''' % (pool.size, pool.qsize)
-    sleep(15)
-    print "\n\t\t... ok, that may take a while, let's get some reinforcement ...\n"
-    sleep(5)
-    pool.size=50
-    print '\n\t\t... Joining ...\n'
-    pool.join()
-    print '\n\t\t... Ok ...\n'
+    def test_1(**kwargs):
+        workers = kwargs.pop('workers', 5)
+        jobqueue = kwargs.pop('jobqueue', 10)
+        pool = ThreadPool(name='ThreadPool', Psize=workers, Qsize=jobqueue)
+        print "\n\t\t... let's add some jobs ...\n"
+        for j in range(5):
+            if j==1: pool.add(badJob)
+            for i in range(5, 0, -1):
+                pool.add(longJob, show, i)
+                pool.add(easyJob, show, i)
+        print '''
+            \t\t... and now, we're waiting for the %i workers to get the %i jobs done ...
+        ''' % (pool.size, pool.qsize)
+        sleep(15)
+        print "\n\t\t... ok, that may take a while, let's get some reinforcement ...\n"
+        sleep(5)
+        pool.size=50
+        print '\n\t\t... Joining ...\n'
+        pool.join()
+        print '\n\t\t... Ok ...\n'
+
+    def test_2(**kwargs):
+        workers = kwargs.pop('workers', 5)
+        jobqueue = kwargs.pop('jobqueue', 10)
+        numjobs = kwargs.pop('numjobs', 10)
+        sleep_t = kwargs.pop('sleep_t', 1)
+        #from taurus.core.util.threadpool import ThreadPool
+        pool = ThreadPool(name='ThreadPool', Psize=workers, Qsize=jobqueue)
+        print "\n\t\t... Check the number of busy workers ...\n"
+        print "Num of busy workers = %s" % (pool.getNumOfBusyWorkers())
+        print "\n\t\t... let's add some jobs ...\n"
+        for i in range(numjobs):
+            pool.add(easyJob, None, sleep_t)
+        print '\n\t\t... Monitoring the busy workers ...\n'
+        t0 = time()
+        while pool.getNumOfBusyWorkers() > 0 :
+            print "busy workers = %s" % (pool.getNumOfBusyWorkers())
+            sleep(0.5)
+        t1 = time()
+        print "Run %s jobs of 1 second took %.3f" % (numjobs, t1-t0)
+        print '\n\t\t... Joining ...\n'
+        pool.join()
+        print '\n\t\t... Ok ...\n'
+
+    def main(argv):
+        kwargs = {}
+        for arg in argv:
+            k, v = arg.split('=')
+            kwargs[k] = int(v)
+        # Run test
+        test_1(**kwargs)
+        test_2(**kwargs)
+
+    import sys
+    main(sys.argv[1:])
