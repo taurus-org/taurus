@@ -106,7 +106,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # The master toctree document.
-master_doc = 'contents'
+master_doc = 'index'
 
 # General information about the project.
 project = u'sardana'
@@ -211,11 +211,11 @@ html_static_path = ['_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {'index': ['indexsidebar.html']}
+#html_sidebars = {}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
-html_additional_pages = { 'index' : 'index.html' }
+#html_additional_pages = {}
 
 # If false, no module index is generated.
 #html_use_modindex = True
@@ -252,7 +252,7 @@ latex_font_size = '10pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('contents', 'sardana.tex', u'Sardana Documentation',
+  ('index', 'sardana.tex', u'Sardana Documentation',
    u'Sardana team', 'manual'),
 ]
 
