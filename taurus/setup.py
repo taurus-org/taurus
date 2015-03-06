@@ -770,9 +770,9 @@ if sphinx:
                 catalog.close()
                 os.chdir(orig_dir)
             
-            #make thumbnails    
+            #make thumbnails 
             try:
-                if self.external_img_tools:
+                if self.thumbnails_source == 'wand':
                     from wand.image import Image
                     def transform(ifname, ofname):
                         with Image(filename=ifname) as img:
@@ -780,7 +780,7 @@ if sphinx:
                             img.save(filename=ofname)
                             return True
                         return False
-                else:
+                elif self.thumbnails_source == 'qt':
                     import PyQt4.Qt
                     if PyQt4.Qt.qApp.instance() is None:
                         self.app = PyQt4.Qt.QApplication([])
@@ -789,10 +789,30 @@ if sphinx:
                         pixmap = Qt.QPixmap(ifname)
                         p = pixmap.scaledToWidth(24, Qt.Qt.SmoothTransformation)
                         return p.save(ofname)
-                    
+                else:
+                    if not os.path.isabs(self.thumbnails_source):
+                        m = 'Absolute path required for Thumbnails dir or zip'
+                        raise ValueError(m)
+                    shutil.rmtree(pngs_dir, ignore_errors=True)
+                    if self.thumbnails_source.lower().endswith('.zip'):
+                        from zipfile import ZipFile
+                        zfile = ZipFile(self.thumbnails_source)
+                        zfile.extractall(pngs_dir)
+                    else:
+                        shutil.copytree(thumbnails_source, pngs_dir)
+                    def transform(ifname, ofname):
+                        #just check if the required thumbnail exists
+                        return os.path.isfile(ofname) 
+
                 print("\tCreating PNG thumbnails for icon catalog")
                 os.path.walk(self.resource_dir, self._make_thumbnails, 
                              (self.resource_dir, pngs_dir, transform) )
+                # create a zipped file for the thumbnails
+                fname = abspath('doc', '~thumbnails.zip')
+                if os.path.isfile(fname):
+                    os.remove(fname)
+                self._zipdir(pngs_dir, fname) 
+                
             except ImportError, e:
                 print("\tCannot create PNG thumbnails for icon catalog: %s" %
                        repr(e))
@@ -815,6 +835,22 @@ if sphinx:
                         ok = transform(full_source_fname, full_target_fname)
                         print(ok and "[OK]" or "[FAIL]", full_source_fname, 
                               '->', full_target_fname)
+        
+        @staticmethod                
+        def _zipdir(basedir, archivename):
+            '''function to zip the contents of basedir into archivename. 
+            Adapted from: http://stackoverflow.com/questions/296499
+            '''
+            from zipfile import ZipFile, ZIP_DEFLATED
+            from contextlib import closing
+            assert os.path.isdir(basedir)
+            with closing(ZipFile(archivename, "w", ZIP_DEFLATED)) as z:
+                for root, dirs, files in os.walk(basedir):
+                    #NOTE: ignore empty directories
+                    for fn in files:
+                        absfn = os.path.join(root, fn)
+                        zfn = absfn[len(basedir)+len(os.sep):] 
+                        z.write(absfn, zfn)
                         
         def getThemeIcon(self, resource):
             try:
@@ -917,24 +953,25 @@ if sphinx:
 
     class build_doc(BuildDoc):
         user_options = BuildDoc.user_options + \
-                     [('external-img-tools', None,
-                       ("Use external tools for creating catalog " + 
-                        "(useful if QApplication cannot be used during " + 
-                        "the doc build). Requires the wand python module") ),
+                     [('thumbnails-source=', None, 
+                       ('Source for catalog thumbnails. Use "qt" for ' +
+                        'transforming the icons in the resource dir using ' +
+                        'QPixmap  (this is the default). Use "wand" to ' +
+                        'transform using the wand module. Or provide an ' +
+                        'absolute path to either a dir or a zipfile ' +
+                        'containing a tree of pre-transformed thumbnails') ),
                       ('skip-api', None, 'skip api doc creation'),
                       ('skip-catalog', None, 'skip icon catalog creation')
                       ]
-        boolean_options = BuildDoc.boolean_options + ['external-img-tools',
-                                                      'skip-api',
+        boolean_options = BuildDoc.boolean_options + ['skip-api',
                                                       'skip-catalog'
                                                       ]
 
         def initialize_options (self):
             BuildDoc.initialize_options(self)
-            self.external_img_tools = False
+            self.thumbnails_source = 'qt'
             self.skip_api = False
             self.skip_catalog = False
-            
 
         def run(self):
             try:
@@ -980,7 +1017,7 @@ if sphinx:
             catalog = build_catalog()
             catalog.fname = fname
             catalog.builder_target_dir = self.builder_target_dir
-            catalog.external_img_tools = self.external_img_tools
+            catalog.thumbnails_source = self.thumbnails_source
             catalog.verbose = self.distribution.verbose
             catalog.out = self.out
             catalog.run()

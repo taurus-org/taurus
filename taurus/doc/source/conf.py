@@ -65,11 +65,6 @@ if on_rtd:
     import imp
         
     def _build_catalog():
-        try:
-            import wand
-        except ImportError:
-            import subprocess
-            subprocess.call(['pip', 'install', 'wand'])
         #import setup.py as a module
         name = 'setup'
         data = imp.find_module(name, [_setup_dir])
@@ -79,7 +74,7 @@ if on_rtd:
         fname = os.path.join(_doc_dir, 'source', 'devel', 'catalog.html')
         catalog.fname = fname
         catalog.builder_target_dir = _this_dir
-        catalog.external_img_tools = True
+        catalog.thumbnails_source = os.path.join(_doc_dir, 'thumbnails.zip')
         catalog.verbose = True
         catalog.out = sys.stdout
         catalog.run()
