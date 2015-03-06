@@ -196,7 +196,7 @@ class TangoAttribute(TaurusAttribute):
                     attrvalue = str(value).lower() == 'true'
             elif type == DataType.DevUChar:
                 attrvalue = chr(value)
-            elif type == DataType.DevState:
+            elif type == DataType.DevState or type == DataType.DevEncoded:
                 attrvalue = value
             else:
                 attrvalue = str(value)
