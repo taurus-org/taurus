@@ -55,6 +55,10 @@ def loadUi(obj, filename=None, path=None, with_ui=None):
                  [default: None, meaning calculate path with algorithm explained
                  before]
     :type path: str
+    :param with_ui: if True, the objects defined in the ui file will be 
+                    accessible as submembers of an ui member of the widget. If
+                    False, such objects will directly be members of the widget. 
+    :type with_ui: bool
     """
     if path is None:
         obj_file = sys.modules[obj.__module__].__file__
