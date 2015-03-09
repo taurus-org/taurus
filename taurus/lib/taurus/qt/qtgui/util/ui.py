@@ -151,9 +151,14 @@ def UILoadable(klass=None, with_ui=None):
         return functools.partial(UILoadable, with_ui=with_ui)
 
     klass_name = klass.__name__
+    klass_file = sys.modules[klass.__module__].__file__
+    klass_path = os.path.join(os.path.dirname(klass_file), 'ui')
+
     def _loadUi(self, filename=None, path=None):
         if filename is None:
             filename = klass_name + os.path.extsep + 'ui'
+        if path is None:
+            path = klass_path
         return loadUi(self, filename=filename, path=path, with_ui=with_ui)
     
     klass.loadUi = _loadUi
