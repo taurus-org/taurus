@@ -22,3 +22,13 @@
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
+
+from taurus.external.qt import Qt
+from taurus.qt.qtgui.util.ui import UILoadable
+        
+@UILoadable
+class MyWidget3(Qt.QWidget):
+    
+    def __init__(self, parent=None):
+        Qt.QWidget.__init__(self, parent)
+        self.loadUi()
