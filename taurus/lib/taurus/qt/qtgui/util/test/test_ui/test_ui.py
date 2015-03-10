@@ -30,6 +30,8 @@ import os.path
 from taurus.external import unittest
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
+from taurus.qt.qtgui.test import BaseWidgetTestCase
+from mywidget3 import MyWidget3
 
 
 class UILoadableTestCase(unittest.TestCase):
@@ -77,6 +79,19 @@ class UILoadableTestCase(unittest.TestCase):
                          "widget has a my_button member")
         self.assertEquals(widget.ui.my_button.text(), "This is MY2 button",
                           "button text differs from expected")
+
+         
+class Bug339_TestCase(BaseWidgetTestCase, unittest.TestCase):
+    '''Test for bug 339: https://sourceforge.net/p/sardana/tickets/339/'''
+    def test_bug339(self):
+        '''Check inheritance of UILoadable classes across packages (bug #339)
+        '''
+        class Bug339_Widget(MyWidget3):
+                pass 
+        try:
+            Bug339_Widget()
+        except:
+            self.fail('Inheriting from UILoadable from another package fails')
         
 
 def main():

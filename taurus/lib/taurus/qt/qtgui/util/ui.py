@@ -55,6 +55,10 @@ def loadUi(obj, filename=None, path=None, with_ui=None):
                  [default: None, meaning calculate path with algorithm explained
                  before]
     :type path: str
+    :param with_ui: if True, the objects defined in the ui file will be 
+                    accessible as submembers of an ui member of the widget. If
+                    False, such objects will directly be members of the widget. 
+    :type with_ui: bool
     """
     if path is None:
         obj_file = sys.modules[obj.__module__].__file__
@@ -147,9 +151,14 @@ def UILoadable(klass=None, with_ui=None):
         return functools.partial(UILoadable, with_ui=with_ui)
 
     klass_name = klass.__name__
+    klass_file = sys.modules[klass.__module__].__file__
+    klass_path = os.path.join(os.path.dirname(klass_file), 'ui')
+
     def _loadUi(self, filename=None, path=None):
         if filename is None:
             filename = klass_name + os.path.extsep + 'ui'
+        if path is None:
+            path = klass_path
         return loadUi(self, filename=filename, path=path, with_ui=with_ui)
     
     klass.loadUi = _loadUi
