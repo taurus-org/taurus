@@ -58,18 +58,15 @@ class BaseWidgetTestCase(object):
           - The widget must be instantiated
         
         """
-        if self._klass is None:
-            self.skipTest('klass is None')
-            return
-
         unittest.TestCase.setUp(self)
         
         app = TaurusApplication.instance()
         if app is None:
             app = TaurusApplication([])
         self._app = app
-
-        self._widget = self._klass(*self.initargs, **self.initkwargs)
+        
+        if self._klass is not None:
+            self._widget = self._klass(*self.initargs, **self.initkwargs)
 
 
 @skipUnlessGui()
