@@ -799,7 +799,7 @@ if sphinx:
                         zfile = ZipFile(self.thumbnails_source)
                         zfile.extractall(pngs_dir)
                     else:
-                        shutil.copytree(thumbnails_source, pngs_dir)
+                        shutil.copytree(self.thumbnails_source, pngs_dir)
                     def transform(ifname, ofname):
                         #just check if the required thumbnail exists
                         return os.path.isfile(ofname) 
