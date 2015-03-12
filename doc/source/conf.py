@@ -5,7 +5,7 @@
 ##
 ## This file is part of Sardana
 ## 
-## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+## http://www.sardana-controls.org/
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ## 
@@ -26,22 +26,33 @@
 
 import sys
 import os
-import os.path as osp
 
-def set_src():
-    sar_dir = osp.join(osp.dirname(osp.abspath(__file__)), osp.pardir, osp.pardir, 'src')
-    sys.path.insert(0, osp.abspath(sar_dir))
+# declare some useful absolute paths
+_this_dir = os.path.dirname(os.path.abspath(__file__))
+_setup_dir = os.path.abspath(os.path.join(_this_dir, os.path.pardir, 
+                             os.path.pardir))
+_src_dir = os.path.join(_setup_dir, 'src')
+_taurus_dir = os.path.join(_setup_dir, 'taurus')
+_taurus_lib_dir = os.path.join(_taurus_dir, 'lib')
+_mock_path = os.path.join(_taurus_dir, 'doc', 'mock.zip')
 
-# try to use code from src distribution
-set_src()
+
+# append mock dir to the sys path (mocks will be used if needed)
+sys.path.append(_mock_path)
+
+# fix the mock so that the docs work with it
+import PyTango
+if not isinstance(PyTango.Release.version_info, tuple):
+    PyTango.Release.version_info=(999, 99, 9, 'mock', 0)
+
+# Import code from src distribution
+sys.path.insert(0, _src_dir)
+sys.path.insert(0, _taurus_lib_dir)
+
+
+
 import sardana
 
-as_pdf_extension = True
-try:
-    import rst2pdf.pdfbuilder
-except ImportError:
-    as_pdf_extension = False
-    
 def fix_sardana_for_doc():
     
     def type_getattr(self, name):
@@ -79,8 +90,11 @@ extensions = ['sphinx.ext.pngmath',
               'spock_console_highlighting',
 ]
 
-if as_pdf_extension:
+try:
+    import rst2pdf.pdfbuilder
     extensions.append('rst2pdf.pdfbuilder')
+except:
+    pass
     
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -92,7 +106,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # The master toctree document.
-master_doc = 'contents'
+master_doc = 'index'
 
 # General information about the project.
 project = u'sardana'
@@ -176,7 +190,7 @@ html_theme_path = []
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = osp.join("_static", "logo.png")
+html_logo = os.path.join("_static", "logo.png")
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -197,11 +211,11 @@ html_static_path = ['_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {'index': ['indexsidebar.html']}
+#html_sidebars = {}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
-html_additional_pages = { 'index' : 'index.html' }
+#html_additional_pages = {}
 
 # If false, no module index is generated.
 #html_use_modindex = True
@@ -238,7 +252,7 @@ latex_font_size = '10pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('contents', 'sardana.tex', u'Sardana Documentation',
+  ('index', 'sardana.tex', u'Sardana Documentation',
    u'Sardana team', 'manual'),
 ]
 
@@ -288,8 +302,8 @@ intersphinx_mapping = {
     'http://docs.scipy.org/doc/scipy/reference' : None,
     'http://docs.scipy.org/doc/numpy' : None,
     'http://ipython.org/ipython-doc/stable/' : None,
-    'http://www.tango-controls.org/static/PyTango/latest/doc/html' : None,
-    'http://www.tango-controls.org/static/taurus/latest/doc/html' : None,
+    'http://www.esrf.fr/computing/cs/tango/tango_doc/kernel_doc/pytango/latest/': None,
+    'http://www.taurus-scada.org' : None,
     'http://pyqt.sourceforge.net/Docs/PyQt4/' : None,
     'http://matplotlib.sourceforge.net/' : None,
     'http://packages.python.org/guiqwt/' : None,

@@ -5,7 +5,7 @@
 ##
 ## This file is part of Sardana
 ## 
-## http://www.tango-controls.org/static/sardana/latest/doc/html/index.html
+## http://www.sardana-controls.org/
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ## 
@@ -68,7 +68,7 @@ authors = {'Tiago'          : ('Tiago Coutinho','tiago.coutinho@esrf.fr'),
            'Pascual-Izarra' : ('Carlos Pascual-Izarra','cpascual@cells.es'),
            'Reszela'        : ('Zbigniew Reszela','zreszela@cells.es') }
 
-url = 'http://packages.python.org/sardana'
+url = 'http://www.sardana-controls.org'
 
 download_url = 'http://pypi.python.org/packages/source/s/sardana'
 
