@@ -55,7 +55,7 @@ class DoorOutput(Qt.QPlainTextEdit):
 
     def onDoorInfoChanged(self, info):
         """call on info attribute changed"""
-        txt = "<font color=\"Black\">"
+        txt = "<font color=\"Blue\">"
         if info is None:
             return
 
@@ -66,7 +66,7 @@ class DoorOutput(Qt.QPlainTextEdit):
 
     def onDoorWarningChanged(self, warning):
         """call on warning attribute changed"""
-        txt = "<font color=\"Black\">"
+        txt = "<font color=\"Orange\">"
         if warning is None:
             return
         for line in warning:
