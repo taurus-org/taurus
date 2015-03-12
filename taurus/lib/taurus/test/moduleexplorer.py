@@ -166,7 +166,10 @@ class ModuleExplorer(object):
         '''
         mname = info['modulename']
         try:
-            ret = [(mname, el) for el in info[key]]
+            if not isinstance(info[key], list):
+                ret = [(mname, info[key])]
+            else:
+                ret = [(mname, el) for el in info[key]]
         except KeyError:
             return []
         for sminfo in info['submodules'].itervalues():

@@ -26,99 +26,31 @@
 
 import sys
 import os
-import os.path as osp
+
+# declare some useful absolute paths
+_this_dir = os.path.dirname(os.path.abspath(__file__))
+_setup_dir = os.path.abspath(os.path.join(_this_dir, os.path.pardir, 
+                             os.path.pardir))
+_src_dir = os.path.join(_setup_dir, 'src')
+_taurus_dir = os.path.join(_setup_dir, 'taurus')
+_taurus_lib_dir = os.path.join(_taurus_dir, 'lib')
+_mock_path = os.path.join(_taurus_dir, 'doc', 'mock.zip')
 
 
-# -- Mocking modules if needed --------------------------------------------
+# append mock dir to the sys path (mocks will be used if needed)
+sys.path.append(_mock_path)
 
-try:
-    from unittest.mock import MagicMock # Pyton >=3.3
-except ImportError:
-    try:
-        from mock import MagicMock
-    except:
-        print 'Mock module not available'
+# fix the mock so that the docs work with it
+import PyTango
+if not isinstance(PyTango.Release.version_info, tuple):
+    PyTango.Release.version_info=(999, 99, 9, 'mock', 0)
 
-def _add_mock_modules(module_names, mock=None):
-    '''update sys.modules with mocks for the given module names'''
-    if mock is None:
-        mock = MagicMock()
-    sys.modules.update([(name, mock) for name in module_names])
+# Import code from src distribution
+sys.path.insert(0, _src_dir)
+sys.path.insert(0, _taurus_lib_dir)
 
-try:
-    import PyTango
-except ImportError:
-    PyTangoMock = MagicMock(DeviceClass=MagicMock,
-                            Device_4Impl=MagicMock,
-                            Release=MagicMock(version_info=(999, 99, 9,
-                                                            'mock', 0))
-                           )
-
-    _add_mock_modules(['PyTango'], mock=PyTangoMock)
-    _add_mock_modules(['PyTango.utils',
-                      'PyTango.constants'])
-
-try:
-    import IPython
-except ImportError:
-    _add_mock_modules(['IPython',
-                      'IPython.core',
-                      'IPython.core.magic',
-                      'IPython.core.page',
-                      'IPython.core.profiledir',
-                      'IPython.core.application',
-                      'IPython.core.interactiveshell',
-                      'IPython.config',
-                      'IPython.config.configurable',
-                      'IPython.config.application',
-                      'IPython.utils',
-                      'IPython.utils.traitlets',
-                      'IPython.utils.io',
-                      'IPython.utils.path',
-                      'IPython.utils.process',
-                      'IPython.utils.coloransi',
-                      'IPython.frontend',
-                      'IPython.frontend.terminal',
-                      'IPython.frontend.terminal.ipapp',
-                      'IPython.frontend.qt',
-                      'IPython.frontend.qt.console',
-                      'IPython.frontend.qt.console.rich_ipython_widget',
-                      'IPython.frontend.qt.console.qtconsoleapp',
-                      'IPython.terminal',
-                      'IPython.terminal.ipapp',
-                      ])
-
-#and a few more modules that may need mocking.
-for name in ['numpy',
-             'lxml',
-             'taurus.external.qt',
-            ]:
-    try:
-        __import__(name)
-    except ImportError:
-        _add_mock_modules([name])
-
-# End of mocking
-# -----------------------------------------------------------------
-
-def set_src():
-    sar_dir = osp.join(osp.dirname(osp.abspath(__file__)),
-                       osp.pardir, osp.pardir, 'src')
-    taurus_dir = osp.join(osp.dirname(osp.abspath(__file__)),
-                          osp.pardir, osp.pardir, 'taurus', 'lib')
-    sys.path.insert(0, osp.abspath(sar_dir))
-    sys.path.insert(0, osp.abspath(taurus_dir))
-
-# try to use code from src distribution
-set_src()
 import sardana
 
-as_pdf_extension = True
-try:
-    import rst2pdf.pdfbuilder
-except ImportError:
-    as_pdf_extension = False
-    
 def fix_sardana_for_doc():
     
     def type_getattr(self, name):
@@ -156,8 +88,11 @@ extensions = ['sphinx.ext.pngmath',
               'spock_console_highlighting',
 ]
 
-if as_pdf_extension:
+try:
+    import rst2pdf.pdfbuilder
     extensions.append('rst2pdf.pdfbuilder')
+except:
+    pass
     
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -169,7 +104,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # The master toctree document.
-master_doc = 'contents'
+master_doc = 'index'
 
 # General information about the project.
 project = u'sardana'
@@ -253,7 +188,7 @@ html_theme_path = []
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = osp.join("_static", "logo.png")
+html_logo = os.path.join("_static", "logo.png")
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -274,11 +209,11 @@ html_static_path = ['_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-html_sidebars = {'index': ['indexsidebar.html']}
+#html_sidebars = {}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
-html_additional_pages = { 'index' : 'index.html' }
+#html_additional_pages = {}
 
 # If false, no module index is generated.
 #html_use_modindex = True
@@ -315,7 +250,7 @@ latex_font_size = '10pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('contents', 'sardana.tex', u'Sardana Documentation',
+  ('index', 'sardana.tex', u'Sardana Documentation',
    u'Sardana team', 'manual'),
 ]
 

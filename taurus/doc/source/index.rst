@@ -1,44 +1,36 @@
-.. Tau documentation master file, created by
-   sphinx-quickstart on Thu Dec 10 10:39:03 2009.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
-Welcome to Taurus's |version| documentation!
+Welcome to Taurus's Home Page!
 =============================================
 
     |image1| |image2| |image3|
 
-.. sidebar:: Latest news
-
-    2015-02-04
-        Taurus 3.4.0 released!
-        
-    2014-07-11
-        Taurus 3.3.0 released!
-        
-    2014-02-14
-        Taurus 3.2.0 released!
-
-    2013-07-25
-        Taurus 3.1.0 released!
-
-    2012-04-24
-        Taurus 3.0.0 released!
-
-    2011-03-23
-        Taurus 2.1.1 released!
 
 
-Taurus is a python framework for both CLI and GUI tango applications. It is
-build on top of PyTango_ and PyQt_. Taurus stands for TAngo User interface 'R' US.
+Taurus is a python framework for control and data acquisition CLIs and GUIs
+in scientific/industrial environments.
+It supports multiple control systems or data sources: Tango_, EPICS_, spec... 
+New control system libraries can be integrated through plugins.
 
-Taurus was originally known as Tau. Since version 2 the name was
-changed to Taurus.
+For non-programmers: Taurus allows the creation of fully-featured GUI (with 
+forms, plots, synoptics, etc) from scratch in a few minutes using a "wizard",
+which can also be customized and expanded by drag-and-dropping elements 
+around at execution time.
 
-An :ref:`introduction` guide will help you getting started with the basic taurus
-concepts.
+For programmers: Taurus gives full control to more advanced users to create 
+and customize CLIs and GUIs programmatically using Python and a very simple 
+and economical API which abstracts data sources as "models".
 
-For sampling, see the :ref:`screenshots` and :ref:`examples` directory.
+Of course, Taurus is Free Software (under LGPL). You can download it from PyPi_,
+access its Documentation_ or get support from its community and the latest code
+from the `project page <http://sourceforge.net/projects/sardana>`_.
+
+Projects related to Taurus
+---------------------------
+
+- Taurus uses PyQt_ for the GUIs (Pyside_ support planned)
+- Tango_ is supported vis PyTango_ 
+- Taurus is part of the Sardana_ suite
+
 
 .. |image1| image::  _static/taurusform_example02.png
     :align: middle
@@ -47,7 +39,7 @@ For sampling, see the :ref:`screenshots` and :ref:`examples` directory.
 .. |image2| image::  _static/taurusplot03.png
     :align: middle
     :height: 180
-    
+
 .. |image3| image::  _static/taurus_tree01.png
     :align: middle
     :height: 180
@@ -56,14 +48,21 @@ For sampling, see the :ref:`screenshots` and :ref:`examples` directory.
 .. toctree::
     :hidden:
 
-    contents
+    Home Page <http://taurus-scada.org>
+    Project Page <http://sourceforge.net/projects/sardana>
+    Download from PyPI <http://pypi.python.org/pypi/taurus>
+    docs
 
 :Last Update: |today|
 
 
 .. _Tango: http://www.tango-controls.org/
 .. _PyTango: http://packages.python.org/PyTango/
-.. _Qt: http://qt.nokia.com/products/
+.. _EPICS: http://www.aps.anl.gov/epics/
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
-.. _IPython: http://ipython.scipy.org/
-.. _ATK: http://www.tango-controls.org/Documents/gui/atk/tango-application-toolkit
+.. _Sardana: http://sardana-controls.org
+.. _PySide: http://pyside.org
+.. _LGPL: http://www.gnu.org/licenses/lgpl.html
+.. _PyPi: http://pypi.python.org/pypi/taurus 
+.. _Documentation: http://taurus.readthedocs.org
+
