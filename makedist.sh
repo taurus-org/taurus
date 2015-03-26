@@ -26,11 +26,10 @@
 # It is meant for internal taurus distribution managers use so do not expect 
 # in an arbitrary system (i.e. do not cry about bugs in this script)
 
-
 #Create distribution packages
 rm -rf build
 #create windows installable
-python setup.py bdist_wininst --plat-name win install_scripts --wrappers --ignore-shebang 
+python setup.py bdist_wininst --plat-name win install --no-doc install_scripts --wrappers --ignore-shebang build --no-doc
 #create source tarball (without docs)
 rm  -rf build
 python setup.py sdist 

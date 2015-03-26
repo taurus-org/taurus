@@ -1,17 +1,14 @@
-.. _sardana-users-guide-index:
+.. _users-guide-index:
 
 ============
 User's Guide
 ============
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     
-    Overview <overview>
-    Getting started <getting_started/index>
-    Spock <spock>
-    Scans <scan>
-    Standard macro catalog <standard_macro_catalog>
+    Introduction <introduction>
+    Getting started <getting_started>
+    User's Interface <ui/index>
     Screenshots <screenshots>
-    FAQ <faq>
-
+    

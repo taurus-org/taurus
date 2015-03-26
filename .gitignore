@@ -1,10 +1,12 @@
-/MANIFEST
-/contrib
+MANIFEST
 /dist
 *.pyc
 *.qrc
 *.rcc
 /build/
+/lib/taurus/qt/qtgui/graphic/jdraw/jdraw_lextab.py
+/lib/taurus/qt/qtgui/graphic/jdraw/jdraw_yacctab.py
+parser.out
+parsetab.py
 /setup.cfg
-/taurus/lib/taurus/qt/qtgui/graphic/jdraw/jdraw_lextab.py
-/taurus/lib/taurus/qt/qtgui/graphic/jdraw/jdraw_yacctab.py
+doc/~thumbnails.zip

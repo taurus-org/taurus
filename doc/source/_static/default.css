@@ -321,15 +321,3 @@ div.versioninfo {
     line-height: 1.3em;
     font-size: 0.9em;
 }
-
-#gallery {
-	overflow: hidden;
-	width: 90%;
-	height: 450px;
-	text-align: center;
-}
-
-#gallery img {
-    height: 450px;
-}
-

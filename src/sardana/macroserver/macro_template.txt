@@ -1,6 +1,0 @@
-@macro()
-def @macro_name@(self):
-    """Macro @macro_name@"""
-    self.output("Running @macro_name@...")
-
-
