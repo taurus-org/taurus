@@ -58,7 +58,7 @@ class FreeSpaceDevice(EvaluationDevice):
 
 def test1():
     import taurus
-    a = taurus.Attribute('eval://dev=taurus.core.evaluation.dev_example.FreeSpaceDevice;getFreeSpace("/")/1024/1024') #calculates free space in Mb
+    a = taurus.Attribute('eval:@taurus.core.evaluation.dev_example.FreeSpaceDevice/getFreeSpace("/")/1024/1024') #calculates free space in Mb
     print "Free space: %iMb"%a.read().value
     
 def test2():
@@ -68,7 +68,7 @@ def test2():
     app = TaurusApplication()
     
     w = TaurusLabel()
-    attrname='eval://dev=taurus.core.evaluation.dev_example.FreeSpaceDevice;getFreeSpace("/")' #calculates free space in Mb
+    attrname='eval:@taurus.core.evaluation.dev_example.FreeSpaceDevice/getFreeSpace("/")' #calculates free space in Mb
     
     w.setModel(attrname)
 

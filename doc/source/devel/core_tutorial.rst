@@ -7,163 +7,185 @@
 taurus core tutorial
 =====================
 
-The core module, besides other things, is a container for models (we will use 
-the term "model" to refer to the model component in an MVC driven architecture).
+The core has been designed to provide a model-based abstraction to the various 
+sources of data and/or control objects supported via the Taurus schemes (we use 
+the term "model" to refer to the model component in an MVC driven architecture). 
 
-The core as been designed to provide models for Tango_ but can also be extended 
-to provide models for other libraries like SPEC_ or EPICS_. That is why you will
-never find yourself writting code to create Device objects directly.
-Instead, all requests for taurus objects should go through one of the two major 
-``taurus.core`` components:
+An scheme is a plugin for Taurus that provides the glue between Taurus and a
+given source of data and/or of objects that can be controlled. For example, 
+schemes exist for various control system libraries (such as
+Tango_, SPEC_, or EPICS_) as well as for processing data (e.g. the 
+:mod:`taurus.core.evaluation` scheme).
 
-  - :class:`taurus.core.TaurusManager`
-  - :class:`taurus.core.TaurusFactory`
-
-An important aspect of the core is that it is only dependent on PyTango_. This
-means that you could potentially use taurus.core inside your python device server
-to access any other tango elements (database, devices, attributes...)
-
-But before I show you how to access these objects, a word on the taurus concept of
-model.
+Each scheme implements at least a Factory (derived from 
+:class:`taurus.core.TaurusFactory`) which provides Taurus model objects ,
+for a given model name.
 
 .. _model-concept:
 
-model concept
+Model concept
 -------------
 
-The model in taurus is tipically any server based object like Database, Device, 
-Attribute. Each model has a unique name (model name). This name is a string 
-with a Uniform Resouce Identifier (URI) format.
+All Taurus Elements (Devices, Attributes, etc) are model objects with an 
+associated unique name. The model name is an URI (as defined in RFC3986_).
 
-::
+In practice, the URIs have the following form (for a complete and rigorous 
+description refer to RFC3986_):
 
-    foo://username:password@example.com:8042/over/there/index.dtb;type=animal?name=ferret#nose
-    \ /   \________________/\_________/ \__/\_________/ \___/ \_/ \_________/ \_________/ \__/
-     |           |               |        |     |         |     |       |            |     |
-  scheme     userinfo         hostname  port  path  filename extension parameter(s) query fragment
-          \________________________________/
-                      authority
+[<scheme>:][<authority>][<path>][?<query>][#<fragment>]
 
-For Tango:
+Notes: 
 
-- The 'scheme' must be the string "tango" (lowercase mandatory)
+- The <authority>, if present, starts by '//'
+- The <path>, if present, starts by '/' (except for relative URIs)
 
-- The 'authority' is the Tango database (<hostname> and <port> mandatory)
+A model object (also referred to occasionally as Taurus Element) is an instance 
+of a class derived from one of :class:`taurus.core.TaurusAuthority`, 
+:class:`taurus.core.TaurusDevice`, :class:`taurus.core.TaurusAttribute`, or 
+:class:`taurus.core.TaurusConfiguration`.    
 
-- The 'path' is the Tango object, which can be a Device or Attribute.
-  For device it must have the format _/_/_ or alias 
-  For attribute it must have the format _/_/_/_ or devalias/_
-  
-- The 'filename' and 'extension' are always empty
 
-- The 'parameter' is always empty
+Examples of model names
+-----------------------
 
-- The 'the query' is valid when the 'path' corresponds to an Attribute. Valid
-  queries must have the format configuration=<config param>. Valid 
-  configuration parameters are: label, format, description, unit, display_unit, 
-  standard_unit, max_value, min_value, max_alarm, min_alarm, 
-  max_warning, min_warning. in this case the Tango object is a Configuration
+Different schemes may choose different conventions to name the models that they
+provide. 
 
-So, for example, the full model name for the tango device `sys/tg_test/1` is: 
+The following are some examples for the :mod:`taurus.core.tango` scheme:
+
+The full Taurus model name for a Tango device `sys/tg_test/1` is: 
 
 ``tango://machine:10000/sys/tg_test/1``
 
-taurus uses the tango scheme by default so the previous name can be shortened to:
+Now, if we assume that ``tango`` is set as the default scheme and that 
+``machine:10000`` is set as the default TANGO_HOST and that the data base 
+The same device assuming that ``tgtest1`` is set as an alias of 
+``sys/tg_test/1``, the same Tango device could be accessed as: 
 
-``machine:10000/sys/tg_test/1``
+``tgtest1``
 
-and if you have a TANGO_HOST (or tango.rc) pointing to `machine:10000` you can
-even reduce the previous name to a shorter one:
-
-``sys/tg_test/1``
-
-Below follows a non exaustive list of taurus models that convers 99% of the needs:
-
-- *scheme*: the URI scheme (aka protocol)
-
-  - Syntax: ``<string>://``
-  - For tango is always: ``tango://``
+In the case of Tango attributes, here are some examples:
   
-- *database*
+``tango://machine:10000/sys/tg_test/1/double_scalar``,
+ 
+``sys/tg_test/1/double_scalar``, 
 
-  - For tango: ``[<scheme>]<host>:<port>``
-  - example: ``tango://machine:10000``
-  
-- *device*
+``tango:tg_test1/double_scalar``, 
 
-  - For tango: ``[<database>/]<string>/<string>/<string> | [<database>/]<string>``
-  - examples: ``tango://machine:10000/sys/tg_test/1``, ``sys/tg_test/1``, ``tango://tg_test1``, ``tg_test1``
-  
-- *attribute*
+``tg_test1/double_scalar``
 
-  - For tango: ``<device>/<string>``
-  - examples: ``tango://machine:10000/sys/tg_test/1/position``, ``sys/tg_test/1/double_scalar``, ``tango://tg_test1/double_scalar``, ``tg_test1/double_scalar``
+See :mod:`taurus.core.tango` for a more exhaustive description and more
+examples related to Tango.
 
-- *attribute configuration parameter*
+The following are some examples for the :mod:`taurus.core.evaluation` scheme.
 
-  - For tango: ``<attribute>?configuration=<string>``
-  - example: ``sys/tg_test/1/double_scalar?configuration=label``
+An evaluation attribute that generates an array of random values when read:
+    
+``eval:rand(256)``
 
+An evaluation attribute that applies a multiplication factor to an existing 
+tango attribute (and which is updated every time that the tango attribute 
+changes):
+
+``eval:123.4*{tango:sys/tg_test/1/double_scalar}``
+
+Or one that adds noise to a tango image attribute:
+    
+``eval:img={tango:sys/tg_test/1/short_image_ro};img+10*rand(*img.shape)``
+
+See :mod:`taurus.core.evaluation` for a more exhaustive description and some 
+tricks with the Evaluation scheme (e.g. creating custom evaluators to run 
+arbitrary python code).
+
+Now an example for the :mod:`taurus.core.epics` scheme. The model name for the 
+EPICS process variable (PV) "my:example.RBV" is:
+
+``epics:my:example.RBV``
+
+Note that you can create your own schemes and add them to taurus (e.g., an 
+scheme to access your own home-brew control system). Some schemes that are in 
+our TO-DO list are:
+
+- A scheme to access datasets in HDF5 files as Taurus attributes
+- A scheme to access ranges of cells in a spreadsheet file as Taurus attributes
+- A scheme to access column/row data in ASCII files as Taurus attributes
+- A scheme to access data from mySQL databases as Taurus attributes
+- A scheme to access Tango-archived data as Taurus attributes
+ 
 model access
 ------------
 
-As mentioned above, a model object is obtained through the :class:`taurus.core.TaurusManager` 
-and :class:`taurus.core.TaurusFactory` classes.
-To simplify the API, taurus provides some functions that hide the access to the
-:class:`taurus.core.TaurusManager` and :class:`taurus.core.TaurusFactory` classes. So here is 
-how you get a model object for a device called `sys/tg_test/1`::
+Taurus users are encouraged to write code that is "scheme-agnostic",
+that is, that it neither assumes the availability of certain schemes nor uses
+any scheme-specific feature. For this, Taurus provides several high-level 
+scheme-agnostic helpers to obtain the Taurus Element associated to a given 
+model name:
+
+- :func:`taurus.Authority`
+- :func:`taurus.Device`
+- :func:`taurus.Attribute`
+- :func:`taurus.Configuration`
+- :func:`taurus.Object`
+
+The first four helpers require you to know which type of Element (e.g., 
+Attribute, Device,...) is represented by the model name. If you do not know that
+beforehand, you can use :meth:`taurus.Object` which will automatically find the 
+type and provide you with the corresponding model object (but of course this is 
+slightly less efficient than using one of the first four helpers). 
+
+These helpers will automatically find out which scheme corresponds to the given 
+model and will delegate the creation of the model object to the corresponding 
+scheme-specific Factory. Therefore, the returned model object will be of a 
+specialized subclass of the corresponding Taurus generic Element and it 
+will expose the scheme-agnostic API plus optionally some scheme-specific 
+methods (e.g., :class:`taurus.core.tango.TangoDevice` objects provide all the 
+API of a :class:`taurus.core.TaurusDevice` but they also provide all the methods 
+from a :class:`PyTango.DeviceProxy`)
+
+For example, obtaining the device model object for a TangoTest Device
+can be done as follows::
 
     import taurus
-    tautest = taurus.Device('sys/tg_test/1')
-
-At first you may think that this code contradicts what I said before about not 
-creating taurus models directly. This is because taurus.Device is a function, not a 
-python class. Here is the equivalent code accessing the low level taurus library::
-
-    import taurus.core
-    manager = taurus.core.TaurusManager()
-    factory = manager.getFactory() # by default the factory scheme is 'tango'
-    tautest = factory.getDevice('sys/tg_test/1')
-
-In line 2 taurus gives you a reference to the singleton object of class 
-:class:`taurus.core.TaurusManager`. In line 3 the manager gives you a singleton 
-reference to a tango implementation of the class :class:`taurus.core.TaurusFactory` 
-(should be :class:`taurus.core.tango.TangoFactory`). In line 4, the factory gives 
-you a tango implementation of the class :class:`taurus.core.TaurusDevice` (should be
-:class:`taurus.core.tango.TangoDevice`).
-
-If you don't know which type of object your model name represents, you can use::
+    testDev = taurus.Device('sys/tg_test/1')
+    
+or, using :meth:`taurus.Object`::
+ 
+    import taurus
+    testDev = taurus.Object('sys/tg_test/1')
+    
+Also for example, obtaining the Taurus Attribute model corresponding to the 
+EPICS Process Variable called "my:example.RBV" is just::
 
     import taurus
-    tautest = taurus.Object('sys/tg_test/1')
+    testDev = taurus.Attribute('epics:my:example.RBV')
+ 
+    
+Taurus also provides other helpers to access lower level objects for dealing
+with models:
 
-or the equivalent low level API::
+- :func:`taurus.Factory`
+- :func:`taurus.Manager`
 
-    import taurus.core
-    manager = taurus.core.TaurusManager()
-    tautest = manager.getObject('sys/tg_test/1')
+And also some useful methods to validate names, find out the element type(s) 
+for a given name and other related tasks:
 
-Note, however, that that using the Object API is slightly slower since you are
-implicitly asking taurus to search for the appropriate model type that corresponds
-to the model name you gave.
+- :func:`taurus.isValidName`
+- :func:`taurus.getValidTypesForName`
+- :func:`taurus.getSchemeFromName`
 
-Similarly, if you need access to an attribute (say double_scalar) the code should be::
 
-    import taurus
-    position = taurus.Attribute('sys/tg_test/1/double_scalar')
-
-or if you have already a taurus device::
-
-    import taurus
-    tautest = taurus.Device('sys/tg_test/1')
-    position = tautest.getAttribute('double_scalar')
-
-Advantages over PyTango
------------------------
+Advantages of accessing Tango via Taurus over PyTango
+-----------------------------------------------------
 
 If you are familiar with PyTango_ you may be asking yourself what is the real 
-advantage of using taurus instead of PyTango_ directly. There are actually many 
-benefits from using taurus. Here is a list of the most important ones.
+advantage of using taurus instead of PyTango_ directly for accessing Tango 
+objects. There are actually many benefits from using taurus. Here is a list of 
+the most important ones.
+
+*integration with other schemes*
+    Taurus is not just Tango. For example, you can treat a Tango Attribute just 
+    as you would treat an EPICS attribute, and use them both in the same 
+    application. 
 
 *model unicity:*
     you may request as many times as you like for the same model name and taurus
@@ -184,13 +206,13 @@ benefits from using taurus. Here is a list of the most important ones.
         >>> print sim1 == sim2
         False
 
-*model inteligence:*
-    taurus is clever enough to know that, for example, 'sys/tg_test/1' represents
-    the same model as 'tango://SYS/Tg_TEST/1' so::
+*model intelligence:*
+    taurus is clever enough to know that, for example, 'sys/tg_test/1' 
+    represents the same model as 'tango:SYS/Tg_TEST/1' so::
     
         >>> import taurus
         >>> sim1 = taurus.Device('sys/tg_test/1')
-        >>> sim2 = taurus.Device('tango://SYS/Tg_TEST/1')
+        >>> sim2 = taurus.Device('tango:SYS/Tg_TEST/1')
         >>> print sim1 == sim2
         True
     
@@ -217,3 +239,4 @@ benefits from using taurus. Here is a list of the most important ones.
 .. _numpy: http://numpy.scipy.org/
 .. _SPEC: http://www.certif.com/
 .. _EPICS: http://www.aps.anl.gov/epics/
+.. _RFC3986: https://tools.ietf.org/html/rfc3986

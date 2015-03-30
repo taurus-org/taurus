@@ -165,7 +165,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     
     def getTaurusManager(self):
-        """Returns the the taurus manager singleton. This is just a helper method.
+        """Returns the taurus manager singleton. This is just a helper method.
         It is the equivalent of doing::
             
             import taurus
@@ -175,17 +175,25 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         """
         return taurus.Manager()
     
-    def getTaurusFactory(self, scheme=None):
-        """Returns the the taurus factory singleton for the given scheme.
+    def getTaurusFactory(self, scheme=''):
+        """Returns the taurus factory singleton for the given scheme.
         This is just a helper method. It is the equivalent of doing::
 
             import taurus
             factory = taurus.Factory(scheme)
         
-        :param scheme: (str or None) the scheme. None defaults to 'tango'.
+        :param scheme: (str or None) the scheme. If scheme is an empty string,
+                       or is not passed, the scheme will be obtained from the
+                       model name. For backwards compatibility (but deprecated),
+                       passing None is equivalent to 'tango'.
         
         :return: (taurus.core.taurusfactory.TaurusFactory) the TaurusFactory
         """
+        if scheme == '':
+            scheme = taurus.getSchemeFromName(self.getModelName() or '')
+        if scheme is None:
+            scheme = 'tango'
+
         return taurus.Factory(scheme)
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -571,7 +579,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param cache: (bool) if set to True (default) use the cache value. If set to 
                       False will force a connection to the server.
             
-        :return: (PyTango.DeviceAttribute) the tango value object.
+        :return: (TaurusAttrValue) the tango value object.
         """
         if self.modelObj is None:
             return None

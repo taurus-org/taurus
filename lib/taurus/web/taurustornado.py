@@ -36,13 +36,13 @@ from tornado.web import Application, RequestHandler, StaticFileHandler
 from tornado.websocket import WebSocketHandler
 from tornado.escape import json_encode, json_decode
 
-from taurus import Database, Device, Attribute, Configuration, Object
-from taurus.core.taurusdatabase import TaurusDatabase
+from taurus import Authority, Device, Attribute, Configuration, Object
+from taurus.core.taurusauthority import TaurusAuthority
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusconfiguration import TaurusConfiguration
 from taurus.core.taurusbasetypes import AttrQuality, TaurusEventType, DataFormat
-from taurus.core.taurusvalidator import AttributeNameValidator, ConfigurationNameValidator
+from taurus.core.tango.tangovalidator import TangoAttributeNameValidator, TangoConfigurationNameValidator
 from taurus.core.util.colors import ATTRIBUTE_QUALITY_PALETTE
 
 # ugly import to properly manage Tango exceptions
@@ -134,7 +134,8 @@ class TaurusWebConfiguration(object):
     
     def __init__(self, ws, name):
         self.name = name
-        self.param = ConfigurationNameValidator().getParams(name)['configparam']
+        tcValidator = TangoConfigurationNameValidator()
+        self.param = tcValidator.getUriGroups(name)['cfgkey']
         self.ws = ws
         self.configuration = Configuration(self.name)
         self.configuration.addListener(self)
@@ -203,9 +204,9 @@ class TaurusSocket(WebSocketHandler):
             model_names = set(data['models'])
             for model_name in model_names:
                 model_name = str(model_name)
-                if AttributeNameValidator().isValid(model_name):
+                if TangoAttributeNameValidator().isValid(model_name):
                     web_model = TaurusWebAttribute(self, model_name)
-                elif ConfigurationNameValidator().isValid(model_name):
+                elif TangoConfigurationNameValidator().isValid(model_name):
                     web_model = TaurusWebConfiguration(self, model_name)
                 else:
                     continue

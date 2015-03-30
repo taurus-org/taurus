@@ -56,11 +56,11 @@ example, you can launch a `TaurusForm` with an epics attribute::
 Similarly, you can combine epics attributes with attributes from other schemes::
 
     $> taurusform 'epics://my:example.RBV' 'tango://sys/tg_test/1/float_scalar'\ 
-       'eval://{epics://my:example.RBV}*{tango://sys/tg_test/1/float_scalar}'
+       'eval:{epics://my:example.RBV}*{tango://sys/tg_test/1/float_scalar}'
 
 Currently, the taurus epics scheme just supports epics PVs, implementing them as
 taurus attributes (with configuration objects as well). Other taurus classes
-such as the Database, and Device classes are just convenience dummy objects in
+such as the Authority, and Device classes are just convenience dummy objects in
 the epics scheme at this point. Epics records may eventually be mapped as
 Devices.
 

@@ -45,11 +45,11 @@ from taurus.core.util.singleton import Singleton
 from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusdatabase import TaurusDatabase
+from taurus.core.taurusauthority import TaurusAuthority
 from taurus.core.taurusconfiguration import TaurusConfiguration
 
 
-class SimulationDatabase(TaurusDatabase):
+class SimulationAuthority(TaurusAuthority):
     def factory(self):
         return SimulationFactory()
         
@@ -60,10 +60,10 @@ class SimulationDatabase(TaurusDatabase):
         return "a/b/c"
     
     def cache(self):
-        return Factory('tango').getDatabase().cache()
+        return Factory('tango').getAuthority().cache()
         
     def __getattr__(self, name):
-        return "SimulationDatabase object calling %s" % name
+        return "SimulationAuthority object calling %s" % name
     
    
 class SimulationDevice(TaurusDevice):
@@ -262,8 +262,8 @@ class SimulationFactory(Singleton, TaurusFactory, Logger):
         """
         objType = None
         try:
-            if SimulationDatabase.isValid(absolute_name, MatchLevel.NORMAL_COMPLETE):
-                objType = SimulationDatabase 
+            if SimulationAuthority.isValid(absolute_name, MatchLevel.NORMAL_COMPLETE):
+                objType = SimulationAuthority 
             elif SimulationDevice.isValid(absolute_name, MatchLevel.NORMAL_COMPLETE):
                 objType = SimulationDevice
             elif SimulationAttribute.isValid(absolute_name, MatchLevel.NORMAL_COMPLETE):
@@ -275,30 +275,29 @@ class SimulationFactory(Singleton, TaurusFactory, Logger):
             self.traceback()
         return objType
 
-    def getDatabase(self, db_name=None):
-        """getDatabase(string db_name) -> taurus.core.taurusdatabase.TaurusDatabase
+    def getAuthority(self, db_name=None):
+        """getAuthority(string db_name) -> taurus.core.taurusauthority.TaurusAuthority
            
-        Obtain the object corresponding to the given database name or the 
-        default database if db_name is None.
-        If the corresponding database object already exists, the existing 
+        Obtain the object corresponding to the given authority name or the 
+        default authority if db_name is None.
+        If the corresponding authority object already exists, the existing 
         instance is returned. Otherwise a new instance is stored and returned.
            
-        @param[in] db_name database name string. It should be formed like: 
+        @param[in] db_name authority name string. It should be formed like: 
                            <scheme>://<authority>. If <scheme> is ommited then 
                            it will use the default scheme. if db_name is None, 
-                           the default database is used
+                           the default authority is used
                            
-        @return a taurus.core.taurusdatabase.TaurusDatabase object 
+        @return a taurus.core.taurusauthority.TaurusAuthority object 
         @throws TaurusException if the given name is invalid.
         """
         if not db_name is None:
-            validator = SimulationDatabase.getNameValidator()
-            params = validator.getParams(db_name)
-            if params is None:
-                raise TaurusException("Invalid database name %s." % db_name)
+            validator = SimulationAuthority.getNameValidator()
+            if not validator.isValid(db_name):
+                raise TaurusException("Invalid authority name %s." % db_name)
         
         if not hasattr(self, "_db"):
-            self._db = SimulationDatabase("sim:01")
+            self._db = SimulationAuthority("sim:01")
         return self._db
 
     def getDevice(self, dev_name):
@@ -318,12 +317,11 @@ class SimulationFactory(Singleton, TaurusFactory, Logger):
         @throws TaurusException if the given name is invalid.
         """
         validator = SimulationDevice.getNameValidator()
-        params = validator.getParams(dev_name)
-        if params is None:
+        if not validator.isValid(dev_name):
             raise TaurusException("Invalid device name %s." % dev_name)
 
         if not hasattr(self, "_dev"):
-            db = self.getDatabase("sim:01")
+            db = self.getAuthority("sim:01")
             self._dev = SimulationDevice("sim:01/a/b/c", parent=db, storeCallback=self._storeDev)
         return self._dev
         
@@ -340,9 +338,8 @@ class SimulationFactory(Singleton, TaurusFactory, Logger):
         @throws TaurusException if the given name is invalid.
         """
         validator = SimulationAttribute.getNameValidator()
-        params = validator.getParams(attr_name)
-        
-        if params is None:
+
+        if not validator.isValid(attr_name):
             raise TaurusException("Invalid attribute name %s." % attr_name)
         
         if not hasattr(self, "_attr"):
@@ -368,9 +365,8 @@ class SimulationFactory(Singleton, TaurusFactory, Logger):
 
     def _getConfigurationFromName(self, name):
         validator = SimulationConfiguration.getNameValidator()
-        params = validator.getParams(name)
-                
-        if params is None:
+
+        if not validator.isValid(name):
             raise taurus.core.taurusexception.TaurusException("Invalid configuration name %s." % name)
 
         if not hasattr(self, "_conf"):

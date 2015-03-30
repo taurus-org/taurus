@@ -30,13 +30,13 @@ __all__ = ["TangoObjectType", "EVENT_TO_POLLING_EXCEPTIONS",
 
 __docformat__ = "restructuredtext"
 
-from taurus.core.taurusbasetypes import SubscriptionState
 from taurus.core.util.enumeration import Enumeration
 
 TangoObjectType = Enumeration("TangoObjectType", 
-                              ["Database", "Server", "Class", "Device", 
+                              ["Authority", "Server", "Class", "Device", 
                                "Attribute","Property","Configuration",
                                "Object"])
+TangoObjectType.Database = TangoObjectType.Authority #backwards compatibility
 
 import numpy
 import PyTango
@@ -69,16 +69,16 @@ EVENT_TO_POLLING_EXCEPTIONS = ('API_AttributePollingNotStarted',
 
 FROM_TANGO_TO_NUMPY_TYPE = {
    PyTango.DevBoolean : numpy.bool8,
-     PyTango.DevUChar : numpy.ubyte,
-     PyTango.DevShort : numpy.short,
-    PyTango.DevUShort : numpy.ushort,
-      PyTango.DevLong : numpy.int32,
-     PyTango.DevULong : numpy.uint32,
-    PyTango.DevLong64 : numpy.int64,
+   PyTango.DevUChar : numpy.ubyte,
+   PyTango.DevShort : numpy.short,
+   PyTango.DevUShort : numpy.ushort,
+   PyTango.DevLong : numpy.int32,
+   PyTango.DevULong : numpy.uint32,
+   PyTango.DevLong64 : numpy.int64,
    PyTango.DevULong64 : numpy.uint64,
-    PyTango.DevString : numpy.str,
-    PyTango.DevDouble : numpy.float64,
-     PyTango.DevFloat : numpy.float32,
+   PyTango.DevString : numpy.str,
+   PyTango.DevDouble : numpy.float64,
+   PyTango.DevFloat : numpy.float32,
 }
 
 FROM_TANGO_TO_STR_TYPE = {

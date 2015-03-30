@@ -69,7 +69,7 @@ X, Y, TITLE, VIS = range(NUMCOLS)
 SRC_ROLE =  Qt.Qt.UserRole + 1
 PROPS_ROLE = Qt.Qt.UserRole + 2
 
-ATTRNAMEVALIDATOR = taurus.core.taurusvalidator.AttributeNameValidator()
+ATTRNAMEVALIDATOR = taurus.core.tango.tangovalidator.TangoAttributeNameValidator()
 
 class Component(object):
     def __init__(self, src):
@@ -78,7 +78,7 @@ class Component(object):
         self.icon = Qt.QIcon()
         self.ok = True
         self._attrnamevalidator = ATTRNAMEVALIDATOR
-        self._dbCache = taurus.Database()
+        self._dbCache = taurus.Authority()
         self.setSrc(src)
     
     def update(self):
@@ -99,13 +99,13 @@ class Component(object):
             return src, src[1:].strip(), getThemeIcon('accessories-calculator'),True
         #for tango attributes
         if self._attrnamevalidator.isValid(src):
-            pars = self._attrnamevalidator.getParams(src)
-            dev = self._dbCache.getDevice(pars['devicename'])
+            pars = self._attrnamevalidator.getUriGroups(src)
+            dev = self._dbCache.getDevice(pars['devname'])
             if dev is None:
                 return src, src, getThemeIcon('network-error'),False
-            attr = dev.getAttribute(pars['attributename'])
+            attr = dev.getAttribute(pars['_shortattrname'])
             if attr is None:
-                return src, pars['attributename'], getThemeIcon('network-error'),False            
+                return src, pars['_shortattrname'], getThemeIcon('network-error'),False
             return src, attr.name(), getThemeIcon('network-server'),True
         #for nexus files
         m = re.match(NEXUS_SRC,src)

@@ -38,13 +38,14 @@ import taurus.qt.qtgui.resource
 from taurus.core.taurusbasetypes import TaurusSWDevState, TaurusElementType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusdatabase import TaurusDevInfo
 from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
 from taurus.qt.qtgui.display import TaurusValueLabel as LABEL_CLASS #@todo: TaurusValueLabel is deprecated. Use TaurusLabel instead
 from taurus.qt.qtgui.display import TaurusStateLed as LED_CLASS #@todo: TaurusStateLed is deprecated. Use TaurusLed instead
 from taurus.qt.qtgui.panel.taurusform import TaurusForm
 from taurus.qt.qtgui.panel.taurusform import TaurusCommandsForm
 from taurus.qt.qtgui.util.ui import UILoadable
+
+from taurus.core.tango.tangodatabase import TangoDevInfo # @todo: Tango-centric!
 
 ###############################################################################
 # TaurusDevicePanel (from Vacca)
@@ -411,7 +412,7 @@ class TaurusDevicePanel(TaurusWidget):
 
 
 def filterNonExported(obj):
-    if not isinstance(obj, TaurusDevInfo) or obj.exported():
+    if not isinstance(obj, TangoDevInfo) or obj.exported():
         return obj
     return None
 
@@ -480,7 +481,7 @@ class TaurusDevPanel(TaurusMainWindow):
         
     def onItemSelectionChanged(self, current, previous):
         itemData = current.itemData()
-        if isinstance(itemData, TaurusDevInfo):
+        if isinstance(itemData, TangoDevInfo):
             self.onDeviceSelected(itemData)
         
     def onDeviceSelected(self, devinfo):
@@ -588,7 +589,7 @@ def TaurusPanelMain():
     w = TaurusDevPanel()
     
     if options.tango_host is None:
-        options.tango_host = taurus.Database().getNormalName()
+        options.tango_host = taurus.Authority().getNormalName()
     w.setTangoHost(options.tango_host)
     
     if len(args) == 1: 

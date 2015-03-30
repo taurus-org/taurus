@@ -27,6 +27,8 @@
 taurusdevicepropertytable.py: 
 """
 
+#todo: tango-centric
+
 __all__ = ["TaurusPropTable"]
 
 from taurus.external.qt import Qt, QtCore, QtGui
@@ -67,7 +69,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         return QtGui.QTableWidget.minimumSizeHint(self)
 
     def getModelClass(self):
-        return taurus.core.taurusdatabase.TaurusDatabase
+        return taurus.core.taurusauthority.TaurusAuthority
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

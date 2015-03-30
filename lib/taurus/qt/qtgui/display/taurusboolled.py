@@ -199,7 +199,7 @@ class TaurusBoolLed(QLed, TaurusBaseWidget):
         elif evt_value.data_format == PyTango.AttrDataFormat.SPECTRUM:
             v = evt_value.value[self.boolIndex]
 
-        if v is True: #we know that evt_value will always be a DeviceAttribute because we filter out Config events
+        if v is True: #we know that evt_value will always be a TaurusAttrVal because we filter out Config events
             self.setPixmap(self._ledColorPixmap)
         else:
             self.setPixmap(self._ledColorOffPixmap)

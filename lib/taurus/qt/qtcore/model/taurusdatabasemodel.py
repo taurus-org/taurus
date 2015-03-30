@@ -40,8 +40,9 @@ __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusSWDevHealth
-from taurus.core.taurusdatabase import TaurusInfo, TaurusDatabase
 import taurus.qt.qtcore.mimetypes
+
+from taurus.core.tango.tangodatabase import TangoInfo, TangoDatabase
 
 from .taurusmodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 
@@ -75,7 +76,7 @@ def getSWDevHealthToolTip(*args, **kwargs):
 
 
 class TaurusTreeDbBaseItem(TaurusBaseTreeItem):
-    DisplayFunc = TaurusInfo.name
+    DisplayFunc = TangoInfo.name
 
 
 class TaurusTreeDevicePartItem(TaurusTreeDbBaseItem):
@@ -449,7 +450,7 @@ class TaurusDbBaseModel(TaurusBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
         devices = data.devices()
 
@@ -478,7 +479,7 @@ class TaurusDbSimpleDeviceAliasModel(TaurusDbBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
         devices = data.devices()
 
@@ -500,7 +501,7 @@ class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
         devices = data.devices()
 
@@ -523,7 +524,7 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.deviceTree()
 
         rootItem = self._rootItem
@@ -549,7 +550,7 @@ class TaurusDbPlainServerModel(TaurusDbBaseModel):
         if data is None:
             return
 
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
 
         servers = data.servers()
@@ -577,7 +578,7 @@ class TaurusDbServerModel(TaurusDbBaseModel):
         if data is None:
             return
 
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
 
         servers, klasses, devices = data.servers(), data.klasses(), data.devices()
@@ -625,7 +626,7 @@ class TaurusDbDeviceClassModel(TaurusDbBaseModel):
         if data is None:
             return
 
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
 
         rootItem = self._rootItem

@@ -49,22 +49,24 @@ class TaurusListener(Logger):
 class TaurusExceptionListener(object):
     """Class for handling ConnectionFailed, DevFailed and TaurusException exceptions."""
 
-    def connectionFailed(self, ex):
-        self._printException(ex)
+    def connectionFailed(self, exception):
+        msg = 'Deprecation warning: please note that the "connectionFailed" ' +\
+              'method is deprecated. Scheme-specific exceptions should be ' +\
+              'implemented in each model and be transformed into taurus ' +\
+              'exceptions according Sep3 specifications'
+        self.info(msg)
+        self._printException(exception)
 
     def devFailed(self, exception):
-        self._printException(self)
+        msg = 'Deprecation warning: please note that the "devFailed" ' +\
+              'method is deprecated. Scheme-specific exceptions should be ' +\
+              'implemented in each model and be transformed into taurus ' +\
+              'exception according Sep3 specifications'
+        self.info(msg)
+        self._printException(exception)
 
     def exceptionReceived(self, exception):
-        import PyTango
-        if isinstance(exception, PyTango.ConnectionFailed):
-            self.connectionFailed(exception)
-
-        elif isinstance(exception, PyTango.DevFailed):
-            self.devFailed(exception)
-
-        else:
-            self._printException(exception)
+        self._printException(exception)
 
     def _printException(self, exception):
         print self.__class__.__name__, "received", exception.__class__.__name__, str(exception)

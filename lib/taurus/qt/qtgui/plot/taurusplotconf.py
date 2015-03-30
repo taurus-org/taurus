@@ -98,7 +98,7 @@ class TaurusPlotConfDlg(Qt.QWidget):
         self.ui.propView.setSelectionModel(self.selectionModel)
         
         #host
-        host = taurus.Database().getNormalName()
+        host = taurus.Authority().getNormalName()
         self.ui.tangoTree.setModel(host)
         
         #Connections        

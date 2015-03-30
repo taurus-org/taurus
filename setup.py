@@ -73,6 +73,7 @@ packages = [
     'taurus.external',
     'taurus.external.argparse',
     'taurus.external.enum',
+    #'taurus.external.enum.enum', #todo: do we need this one?
     'taurus.external.ordereddict',
     'taurus.external.pint',
     'taurus.external.qt',
@@ -80,6 +81,7 @@ packages = [
     'taurus.external.test',
 
     'taurus.core',
+    'taurus.core.test',
     'taurus.core.util',
     'taurus.core.util.argparse',
     'taurus.core.util.decorator',
@@ -94,6 +96,8 @@ packages = [
 
     'taurus.core.tango',
     'taurus.core.tango.img',
+    'taurus.core.tango.util',
+    'taurus.core.tango.test',
 
     'taurus.console',
     'taurus.console.util',

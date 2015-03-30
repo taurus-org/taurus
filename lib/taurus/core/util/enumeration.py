@@ -122,6 +122,13 @@ class Enumeration(object):
         if not no_doc:
             self.__doc_enum()
 
+    def __call__(self, i):
+        #TODO: Dummy implementation to simulate Python Enum behaviour. 
+        # It is not a complete replacement because although we can use 
+        # Enumeration as Callable, it still return an int instead of an
+        # Enumeration member.
+        return self.lookup[self.whatis(i)]
+
     def _generateUniqueId(self):
         if self._flaggable:
             n = 2 ** self._uniqueId

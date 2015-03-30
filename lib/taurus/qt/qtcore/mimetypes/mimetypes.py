@@ -25,8 +25,7 @@
 
 """mimetypes.py: contains MIME type definitions used by taurus widgets"""
 
-
-TAURUS_DB_MIME_TYPE = 'application/taurus-database'
+TAURUS_AUTH_MIME_TYPE = 'application/taurus-authority'
 TAURUS_DEV_MIME_TYPE = 'application/taurus-device'
 TAURUS_ATTR_MIME_TYPE = 'application/taurus-attribute'
 TAURUS_MODEL_MIME_TYPE = 'application/taurus-model' #a generic model type

@@ -23,18 +23,18 @@
 ##
 #############################################################################
 
-"""This module contains all taurus tango database"""
+"""This module defines the TangoDevice object"""
 
 __all__ = ["TangoDevice"]
 
 __docformat__ = "restructuredtext"
 
 import time
-import PyTango
-
+from PyTango import (DeviceProxy, DevFailed, LockerInfo, DeviceAttribute)
 from taurus import Factory
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusbasetypes import TaurusSWDevState, TaurusLockInfo, LockStatus
+
 
 DFT_TANGO_DEVICE_DESCRIPTION = "A TANGO device"
 
@@ -48,29 +48,22 @@ class _TangoInfo(object):
         self.server_version = 1
                 
 class TangoDevice(TaurusDevice):
+
+    # helper class property that stores a reference to the corresponding factory
+    _factory = None
+    _scheme = 'tango'
+
     def __init__(self, name, **kw):
         """Object initialization."""
         self.call__init__(TaurusDevice, name, **kw)
-
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # TaurusModel necessary overwrite
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # helper class property that stores a reference to the corresponding factory
-    _factory = None
-    
-    @classmethod
-    def factory(cls):
-        if cls._factory is None:
-            cls._factory = Factory(scheme='tango')
-        return cls._factory
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusDevice necessary overwrite
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     def _createHWObject(self):
         try:
-            return PyTango.DeviceProxy(self.getFullName())
-        except PyTango.DevFailed, e:
+            return DeviceProxy(self.getFullName())
+        except DevFailed, e:
             self.warning('Could not create HW object: %s' % (e[0].desc))
             self.traceback()
             
@@ -94,7 +87,7 @@ class TangoDevice(TaurusDevice):
             return lock_info
         try:
             dev = self.getHWObj()
-            li = PyTango.LockerInfo()
+            li = LockerInfo()
             locked = dev.get_locker(li)
             msg = "%s " % self.getSimpleName()
             if locked:
@@ -141,9 +134,10 @@ class TangoDevice(TaurusDevice):
         return state
         
     def decode(self, event_value):
-        if isinstance(event_value, PyTango.DeviceAttribute):
+        from taurus.core.tango.tangoattribute import TangoAttrValue 
+        if isinstance(event_value, TangoAttrValue):
             new_sw_state = TaurusSWDevState.Running
-        elif isinstance(event_value, PyTango.DevFailed):
+        elif isinstance(event_value, DevFailed):
             new_sw_state = self._handleExceptionEvent(event_value)
         elif isinstance(event_value, int): # TaurusSWDevState
             new_sw_state = event_value
@@ -151,7 +145,7 @@ class TangoDevice(TaurusDevice):
             self.info("Unexpected value to decode: %s" % str(event_value))
             new_sw_state = TaurusSWDevState.Crash
             
-        value = PyTango.DeviceAttribute()
+        value = TangoAttrValue()
         value.value = new_sw_state
         
         return value
@@ -202,7 +196,7 @@ class TangoDevice(TaurusDevice):
 
         for da in result:
             if da.has_failed:
-                v, err = None, PyTango.DevFailed(*da.get_err_stack())
+                v, err = None, DevFailed(*da.get_err_stack())
             else:
                 v, err = da, None
             attr = attrs[da.name]
@@ -212,7 +206,7 @@ class TangoDevice(TaurusDevice):
         ts = time.time()
         try:
             req_id = self.read_attributes_asynch(attrs.keys())
-        except PyTango.DevFailed as e:
+        except DevFailed as e:
             return False, e, ts
         return True, req_id, ts
 
@@ -240,7 +234,7 @@ class TangoDevice(TaurusDevice):
         ts = time.time()
         try:
             result = self.read_attributes(attrs.keys())
-        except PyTango.DevFailed as e:
+        except DevFailed as e:
             error = True
             result = e
         self.__pollResult(attrs, ts, result, error=error)

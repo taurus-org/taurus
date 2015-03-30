@@ -43,7 +43,7 @@ import Queue
 from taurus import Manager
 from taurus.core.util.containers import CaselessDefaultDict
 from taurus.core.util.log import Logger
-from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
+from taurus.core.tango.tangovalidator import TangoDeviceNameValidator, TangoAttributeNameValidator
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.util.enumeration import Enumeration
@@ -61,11 +61,12 @@ SynopticSelectionStyle = Enumeration("SynopticSelectionStyle", [
 
 def parseTangoUri(name):
     from taurus.core import tango
-    validator = {tango.TangoDevice    : DeviceNameValidator,
-                 tango.TangoAttribute : AttributeNameValidator }
-    try: 
-        params = validator[tango.TangoFactory().findObjectClass(name)]().getParams(name)
-        return (params if 'devicename' in params else None)
+    validator = {tango.TangoDevice    : TangoDeviceNameValidator,
+                 tango.TangoAttribute : TangoAttributeNameValidator }
+    try:
+        val = validator[tango.TangoFactory().findObjectClass(name)]()
+        params = val.getUriGroups(name)
+        return (params if '_devslashname' in params else None)
     except: 
         return None
 
@@ -289,9 +290,9 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         alnum = '(?:[a-zA-Z0-9-_\*]|(?:\.\*))(?:[a-zA-Z0-9-_\*]|(?:\.\*))*'
         target = str(item_name).strip().split()[0].lower().replace('/state','') #If it has spaces only the first word is used
         #Device names should match also its attributes or only state?
-        if not strict and AttributeNameValidator().getParams(target):
+        if not strict and TangoAttributeNameValidator().getUriGroups(target):
             target = target.rsplit('/',1)[0]
-        if DeviceNameValidator().getParams(target): 
+        if TangoDeviceNameValidator().getUriGroups(target):
             if strict: target+='(/state)?'
             else: target+='(/'+alnum+')?'
         if not target.endswith('$'): target+='$' 

@@ -537,7 +537,7 @@ def test1():
     #model1 = 'sys/tg_test/1/long64_image_ro'
     model1 = 'sys/tg_test/1/ulong_image_ro'
     taurusimage = make.image(taurusmodel= model1)
-    #taurusrgbimage = make.rgbimage(taurusmodel= 'eval://array([[[ 222, 0, 0], [0, 222, 0]], [[0, 0, 222], [222, 222, 222]]])')
+    #taurusrgbimage = make.rgbimage(taurusmodel= 'eval:array([[[ 222, 0, 0], [0, 222, 0]], [[0, 0, 222], [222, 222, 222]]])')
     #taurusxyimage= make.xyimage(taurusmodel= model1)
     #taurusxyimage.set_xy(numpy.arange(251)*10,numpy.arange(251)*100 )
     

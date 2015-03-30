@@ -31,12 +31,15 @@ __docformat__ = "restructuredtext"
 
 import weakref
 
-from taurus.core.taurusbasetypes import TaurusElementType
+from .taurushelper import Factory
 from .taurusmodel import TaurusModel
 from .taurusconfiguration import TaurusConfigurationProxy
 
+from taurus import tauruscustomsettings
+from taurus.core.taurusbasetypes import TaurusElementType
+
 class TaurusAttribute(TaurusModel):
-    
+
     def __init__(self, name, parent, **kwargs):
         self.call__init__(TaurusModel, name, parent)
 
@@ -63,6 +66,8 @@ class TaurusAttribute(TaurusModel):
         if not storeCallback is None:
             storeCallback(self)
 
+
+
         self._dev_hw_obj = parent.getHWObj()
     
     def cleanUp(self):
@@ -70,7 +75,13 @@ class TaurusAttribute(TaurusModel):
         self._unsubscribeEvents()
         self._dev_hw_obj = None
         TaurusModel.cleanUp(self)
-        
+
+    @classmethod
+    def factory(cls):
+        if cls._factory is None:
+            cls._factory = Factory(scheme=cls._scheme)
+        return cls._factory
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -84,9 +95,12 @@ class TaurusAttribute(TaurusModel):
         """build an 'absolute' model name from the parent model and the 'relative'
         name. 
         - If parent_model is a TaurusDevice, the return is a composition of
-        the database model name and is device name
+        the database model name and its device name
         - If parent_model is a TaurusAttribute, the relative name is ignored and
         the parent name is returned
+        
+        Note: This is a basic implementation. You may need to reimplement this 
+              for a specific scheme if it supports "useParentModel". 
         """
         if parent_model is None:
             return relative_name
@@ -99,8 +113,7 @@ class TaurusAttribute(TaurusModel):
             
     @classmethod
     def getNameValidator(cls):
-        import taurusvalidator
-        return taurusvalidator.AttributeNameValidator()
+        return cls.factory().getAttributeNameValidator()
         
     # received configuration events
     def eventReceived(self, src, src_type, evt_value):

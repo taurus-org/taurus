@@ -29,7 +29,10 @@ __all__ = ["TaurusPollingTimer"]
 
 __docformat__ = "restructuredtext"
 
-from .util.log import Logger
+import time
+import threading
+
+from .util.log import Logger, DebugIt
 from .util.containers import CaselessDict
 from .util.timer import Timer
 
@@ -49,6 +52,7 @@ class TaurusPollingTimer(Logger):
         self.dev_dict = {}
         self.attr_nb = 0
         self.timer = Timer(period/1000.0, self._pollAttributes, self)
+        self.lock = threading.RLock()
         
     def start(self):
         """ Starts the polling timer """
@@ -66,8 +70,13 @@ class TaurusPollingTimer(Logger):
            :return: (bool) True if the attribute is registered for polling or
                     False otherwise
         """
-        attr_dict = self.dev_dict.get(attribute.getParentObj(), {})
-        return attribute.getSimpleName() in attr_dict
+        dev, attr_name = attribute.getParentObj(), attribute.getSimpleName()
+        self.lock.acquire()
+        try:
+            attr_dict = self.dev_dict.get(dev)
+            return attr_dict and attr_dict.has_key(attr_name)
+        finally:
+            self.lock.release()
 
     def getAttributeCount(self):
         """Returns the number of attributes registered for polling
@@ -87,7 +96,10 @@ class TaurusPollingTimer(Logger):
         dev, attr_name = attribute.getParentObj(), attribute.getSimpleName()
         attr_dict = self.dev_dict.get(dev)
         if attr_dict is None:
-            self.dev_dict[dev] = attr_dict = CaselessDict()
+            if attribute.factory().caseSensitive:
+                self.dev_dict[dev] = attr_dict = {}
+            else:
+                self.dev_dict[dev] = attr_dict = CaselessDict()
         if attr_name not in attr_dict:
             attr_dict[attr_name] = attribute
             self.attr_nb += 1

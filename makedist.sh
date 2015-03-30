@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #############################################################################
-## This file is part of Taurus, a Tango User Interface Library
-##
-## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+## This file is part of Taurus
+## 
+## http://taurus-scada.org
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##

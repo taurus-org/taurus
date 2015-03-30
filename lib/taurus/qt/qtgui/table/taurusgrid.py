@@ -30,6 +30,9 @@ integrated with taurus and regular expressions by srubio
 alba, 2009
 """
 
+# This module needs a total cleanup. Both re. code conventions and algorithms. 
+#   --cpascual 20140827
+
 __all__ = ["TaurusGrid"]
 
 __docformat__ = 'restructuredtext'
@@ -78,9 +81,9 @@ def get_all_models(expressions,limit=1000):
         expressions = list(str(e) for e in expressions)
         
     #self.debug( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
-    taurus_db = taurus.core.taurusmanager.TaurusManager().getFactory()().getDatabase()
-    #taurus_db = taurus.Database(os.environ['TANGO_HOST'])
-    if 'SimulationDatabase' in str(type(taurus_db)):
+    taurus_db = taurus.Authority()
+    #taurus_db = taurus.Authority(os.environ['TANGO_HOST'])
+    if 'SimulationAuthority' in str(type(taurus_db)):  # WHAAAAAAT????? Someone should get beaten for this line
         #self.trace( 'Using a simulated database ...')
         models = expressions
     else:
@@ -138,8 +141,8 @@ def get_readwrite_models(expressions,limit=1000):
     elif any(isinstance(expressions,klass) for klass in (QtCore.QStringList,list,tuple,dict)):
         expressions = list(str(e) for e in expressions)
         
-    taurus_db = taurus.core.taurusmanager.TaurusManager().getFactory()().getDatabase()
-    if 'SimulationDatabase' in str(type(taurus_db)):
+    taurus_db = taurus.Authority()
+    if 'SimulationAuthority' in str(type(taurus_db)):   # WHAAAT???? At least check instances...
       models = expressions
     else:
       all_devs = taurus_db.get_device_exported('*')

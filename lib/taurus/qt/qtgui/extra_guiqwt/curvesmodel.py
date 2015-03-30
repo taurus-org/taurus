@@ -341,7 +341,7 @@ class CurveItemConfDlg(Qt.QWidget):
         #host
 
         import taurus  #@todo: I get "UnboundLocalError: local variable 'taurus' referenced before assignment" if I don't import taurus again here ????
-        host = taurus.Database().getNormalName()
+        host = taurus.Authority().getNormalName()
         self.ui.tangoTree.setModel(host)
 
         #Connections

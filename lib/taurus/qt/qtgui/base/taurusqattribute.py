@@ -30,7 +30,8 @@ import weakref
 import re
 import PyTango
 
-from taurus.core.taurusvalidator import AttributeNameValidator
+from taurus.core import TaurusAttrValue
+from taurus.core.tango.tangovalidator import TangoAttributeNameValidator
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.core.util.safeeval import SafeEvaluator
@@ -58,7 +59,7 @@ class TaurusQAttributeFactory(object): #@this probably needs to be ported to a p
     
     
 taurusQAttributeFactory = TaurusQAttributeFactory()
-ATTRNAMEVALIDATOR = AttributeNameValidator()
+ATTRNAMEVALIDATOR = TangoAttributeNameValidator()
 
 class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
     '''A listener for taurus attributes.
@@ -183,9 +184,11 @@ class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
             self._values = None
             self.emit(Qt.SIGNAL('dataChanged'))
             return
-        value = val if isinstance(val, PyTango.DeviceAttribute) else self.getModelValueObj()
-        if not isinstance(value, PyTango.DeviceAttribute):
-            self.debug("Could not get DeviceAttribute value for this event. Dropping")
+        if isinstance(val, (TaurusAttrValue, PyTango.DeviceAttribute)):
+            value = val
+        else:
+            value = self.getModelValueObj()
+            self.debug("Could not get TaurusAttrValue value for this event. Dropping")
             return
         self.value = value.value
         self.emit(Qt.SIGNAL('dataChanged'))

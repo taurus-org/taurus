@@ -514,7 +514,7 @@ def taurusCurveDlgMain():
     
     #check & process options
     if options.demo:
-        args.append('eval://rand(128)')
+        args.append('eval:rand(128)')
         
     w = TaurusCurveDialog(edit=False, wintitle=options.window_name)
     
@@ -563,7 +563,7 @@ def taurusTrendDlgMain():
         raise NotImplementedError('Archiving support is not yet implemented')
       
     if options.demo:
-        args.append('eval://rand()')
+        args.append('eval:rand()')
     
     taurusparam = TaurusTrendParam()
     taurusparam.stackMode = stackMode
@@ -602,9 +602,9 @@ def taurusImageDlgMain():
     #check & process options
     if options.demo:
         if options.rgb_mode:
-            args.append('eval://randint(0,256,(10,20,3))')
+            args.append('eval:randint(0,256,(10,20,3))')
         else:
-            args.append('eval://rand(256,128)')
+            args.append('eval:rand(256,128)')
     w = TaurusImageDialog(wintitle=options.window_name)
     
     w.setRGBmode(options.rgb_mode)

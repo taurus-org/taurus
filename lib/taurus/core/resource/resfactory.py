@@ -29,7 +29,7 @@ simfactory.py:
 
 import os, imp, operator, types
 
-from taurus import Factory, Database, Manager
+from taurus import Factory, Authority, Manager
 from taurus.core.taurusexception import TaurusException
 from taurus.core.taurusbasetypes import OperationMode, MatchLevel, \
     TaurusAttrValue, TaurusEventType
@@ -38,7 +38,7 @@ from taurus.core.util.log import Logger
 from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusdatabase import TaurusDatabase
+from taurus.core.taurusauthority import TaurusAuthority
 from taurus.core.taurusconfiguration import TaurusConfiguration
 
 class ModuleDict(dict):
@@ -201,28 +201,28 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
 
         return objType
 
-    def getDatabase(self, alias=None):
+    def getAuthority(self, alias=None):
         """
-        Obtain the object corresponding to the given database name or the 
-        default database if db_name is None.
-        If the corresponding database object already exists, the existing 
+        Obtain the object corresponding to the given authority name or the 
+        default authority if alias is None.
+        If the corresponding Authority object already exists, the existing 
         instance is returned. Otherwise a new instance is stored and returned.
            
-        :param alias: (str) database name string alias. If None, the 
-                     default database is used
+        :param alias: (str) authority name string alias. If None, the 
+                     default Authority is used
                            
-        :return: (taurus.core.taurusdatabase.TaurusDatabase) database object
+        :return: (taurus.core.taurusauthority.TaurusAuthority) authority object
         :raise: (NameError) if the alias does not exist
         :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
         """
         if alias is None:
-            return Database()
+            return Authority()
         
         alias = self.getValue(alias)
         if not alias:
             raise NameError(alias)
         
-        return Manager().getDatabase(alias)
+        return Manager().getAuthority(alias)
 
     def getDevice(self, alias):
         """

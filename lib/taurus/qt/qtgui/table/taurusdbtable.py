@@ -26,22 +26,24 @@
 """This module provides a base widget that can be used to display a taurus 
 model in a table widget"""
 
+#todo: tango-centric!!!
+
 __all__ = ["TaurusDbTableWidget"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
-from taurus.core.taurusdatabase import TaurusDatabase
 from taurus.qt.qtcore.model import *
+from taurus.core.taurusauthority import TaurusAuthority 
 from taurus.qt.qtgui.resource import getElementTypeIcon, getElementTypeIconName
 from taurustable import TaurusBaseTableWidget
 
 
 class TaurusDbTableWidget(TaurusBaseTableWidget):
     """A class:`taurus.qt.qtgui.tree.TaurusBaseTableWidget` that connects to a
-    :class:`taurus.core.taurusdatabase.TaurusDatabase` model. It can show the list of database
-    elements in two different perspectives:
+    :class:`taurus.core.taurusauthority.TaurusAuthority` model. It can show 
+    the list of database elements in two different perspectives:
     
     - device : a device list based perspective
     - server : a server list based perspective
@@ -68,7 +70,7 @@ class TaurusDbTableWidget(TaurusBaseTableWidget):
     DftPerspective = TaurusElementType.Device
 
     def getModelClass(self):
-        return TaurusDatabase
+        return TaurusAuthority
     
     def sizeHint(self):
         return Qt.QSize(1024, 512)
@@ -93,7 +95,7 @@ def main_TaurusDbTableWidget(host, perspective=TaurusElementType.Device):
 def demo():
     """Table panels"""
     import taurus
-    db = taurus.Database()
+    db = taurus.Authority()
     host = db.getNormalName()
     w = main_TaurusDbTableWidget(host, TaurusElementType.Device)
     

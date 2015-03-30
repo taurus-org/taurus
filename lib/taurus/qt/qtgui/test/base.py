@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     class TaurusLabelTest(GenericWidgetTestCase, unittest.TestCase):
         _klass = TaurusLabel
-        modelnames = ['sys/tg_test/1/wave', '', 'eval://1', None]
+        modelnames = ['sys/tg_test/1/wave', '', 'eval:1', None]
 
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TaurusLabelTest)
     unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)

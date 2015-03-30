@@ -26,8 +26,9 @@
 """a list of helper methods"""
 
 __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
+           'getValidTypesForName', 'isValidName', 'makeSchemeExplicit',
            'Manager', 'Factory', 'Device', 'Attribute', 'Configuration',
-           'Database', 'Object', 'Logger',
+           'Database', 'Authority', 'Object', 'Logger',
            'Critical', 'Error', 'Warning', 'Info', 'Debug', 'Trace',
            'setLogLevel', 'setLogFormat', 'getLogLevel', 'getLogFormat',
            'resetLogLevel', 'resetLogFormat',
@@ -38,6 +39,12 @@ __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
 __docformat__ = "restructuredtext"
 
 import sys
+import re
+from taurus import tauruscustomsettings
+
+
+#regexp for finding the scheme
+__SCHEME_RE = re.compile(r'([^:/?#]+):.*')
 
 
 def __translate_version_str2int(version_str):
@@ -198,11 +205,16 @@ def _check_dependencies(forlog=False):
     core_requirements = {
     #    module       minimum  recommended
         "Python"   : ("2.6.0", "2.6.0"),
+    }
+
+    core_optional_requirements = {
+    #    module       minimum  recommended
         "PyTango"  : ("7.1.0", "7.1.0"),
     }
 
     widget_requirements = {
     #    module       minimum  recommended
+        "PyTango"  : ("7.1.0", "7.1.0"),
         "PyQt"     : ("4.4.0", "4.4.0"),
         "PyQwt"     : ("5.2.0", "5.2.0"),
     }
@@ -227,6 +239,9 @@ def _check_dependencies(forlog=False):
     else:
         yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPythonStr, **MSG)
 
+    yield -1, "Checking OPTIONAL dependencies of taurus.core..."
+    r = core_optional_requirements
+
     m = "Checking for PyTango >=%s..." % r["PyTango"][0]
     minPyTango, recPyTango = map(__translate_version_str2int, r["PyTango"])
     currPyTango, currPyTangoStr = __get_pytango_version_number(), __get_pytango_version()
@@ -239,6 +254,14 @@ def _check_dependencies(forlog=False):
 
     yield -1, "Checking required dependencies of taurus.qt..."
     r = widget_requirements
+
+    m = "Checking for PyTango >=%s..." % r["PyTango"][0]
+    if currPyTango is None:
+        yield 2, "{msg} {ERR} (Not found])".format(msg=m, **MSG)
+    elif currPyTango < minPyTango:
+        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyTangoStr, rec=r['PyTango'][1], **MSG)
+    else:
+        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyTangoStr, **MSG)
 
     m = "Checking for PyQt >=%s..." % r["PyQt"][0]
     minPyQt, recPyQt = map(__translate_version_str2int, r["PyQt"])
@@ -293,13 +316,91 @@ def _check_dependencies(forlog=False):
     else:
         yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currqtcontrolsStr, **MSG)
 
+def getSchemeFromName(name, implicit=True):
+    '''Return the scheme from a taurus name.
+    
+    :param name: (str) taurus model name URI.
+    :param implicit: (bool) controls whether to return the default scheme 
+                     (if implicit is True -default-) or None (if implicit is 
+                     False) in case `model` does not contain the scheme name 
+                     explicitly. The default schema may be defined in
+                     :module:`taurus.tauruscusmsettings` ('tango' is assumed if 
+                     not defined)
+    '''
+    m = __SCHEME_RE.match(name)
+    if m is not None:
+        return m.groups()[0]
+    if implicit:
+        return getattr(tauruscustomsettings, 'DEFAULT_SCHEME', "tango")
+    else: 
+        return None
+    
+def makeSchemeExplicit(name, default=None):
+    '''return the name guaranteeing that the scheme is present. If name already
+    contains the scheme, it is returned unchanged.
+    
+    :param name: (str) taurus model name URI.
+    :param default: (str) The default scheme to use. If no default is passed, 
+                     the one defined in tauruscustomsettings.DEFAULT_SCHEME is
+                     used.
+                     
+    :return: the name with the explicit scheme.
+    '''
+    if getSchemeFromName(name, implicit=False) is None:
+        if default is None:
+            default = getattr(tauruscustomsettings, 'DEFAULT_SCHEME', "tango")
+        return "%s:%s" % (default, name)
+    else:
+        return name
+        
+def getValidTypesForName(name, strict=True):
+    '''
+    Returns a list of all Taurus element types for which `name` is a valid 
+    model name (while in many cases a name may only be valid for one 
+    element type, this is not necessarily true in general)
+    
+    :param name: (str) taurus model name
+    :param strict: (bool) If True, names that are not RFC3986-compliant but
+                   which would be accepted for backwards compatibility are 
+                   considered valid. 
+                   
+    :return: (list<TaurusElementType.element>) where element can be one of:
+             `Configuration`, `Attribute`, `Device` or `Authority` 
+    '''
+    try:
+        factory = Factory(scheme=getSchemeFromName(name))
+    except:
+        return []
+    return factory.getValidTypesForName(name, strict=strict)
 
-def getSchemeFromName(name):
-    if name is None: return None
-    i = name.find('://')
-    if i == -1: return None
-    return name[:i]
-
+def isValidName(name, etypes=None, strict=True):
+    '''Returns True is the given name is a valid Taurus model name. If 
+    `etypes` is passed, it returns True only if name is valid for at least 
+    one of the given the element types. Otherwise it returns False. 
+    For example::
+    
+        isValidName('tango:foo')--> True
+        isValidName('tango:a/b/c', [TaurusElementType.Attribute]) --> False 
+        
+    :param name: (str) the string to be checked for validity
+    :param etypes: (seq<TaurusElementType>) if given, names will only be 
+                   considered valid if they represent one of the given 
+                   element types. Supported element types are:
+                   `Configuration`, `Attribute`, `Device` and `Authority`
+    :param strict: (bool) If True, names that are not RFC3986-compliant but
+                   which would be accepted for backwards compatibility are 
+                   considered valid. 
+    
+    :return: (bool) 
+    '''
+    validtypes = getValidTypesForName(name, strict=strict)
+    if etypes is None:
+        return bool(validtypes)
+    for e in etypes:
+        if e in validtypes:
+            return True
+        return False
+        
 def Manager():
     """Returns the one and only TaurusManager
     
@@ -427,39 +528,57 @@ def Configuration(attr_or_conf_name, conf_name=None):
     else:
         return Attribute(attr_or_conf_name).getConfig(conf_name)
 
-def Database(db_name=None):
-    """Returns the taurus database
+def Database(name=None):
+    '''Database() is deprecated. Use Authority instead'''
+    return Authority(name=name)
+
+def Authority(name=None):
+    """Returns a taurus authority
     
     It is a shortcut to::
 
         import taurus.core.taurusmanager
         manager = taurus.core.taurusmanager.TaurusManager()
         factory = manager.getFactory()
-        db  = factory.getDatabase(db_name)
+        db  = factory.getAuthority(dname)
         
-    :param db_name: database name. If None (default) it will use the TANGO_HOST value
-    :type db_name: str or None
-    :return: a taurus database
-    :rtype: :class:`taurus.core.taurusdatabase.TaurusDatabase`"""
-    return Factory(getSchemeFromName(db_name)).getDatabase(db_name)
+    :param name: authority name. If None (default) it will return the default 
+                 authority of the default scheme. For example, if the default 
+                 scheme is tango, it will return the default TANGO_HOST database
+    :type name: str or None
+    :return: a taurus authority
+    :rtype: :class:`taurus.core.taurusauthority.TaurusAuthority`"""
+    return Factory(getSchemeFromName(name or '')).getAuthority(name)
 
-def Object(klass, name):
+def Object(*args):
     """Returns an taurus object of given class for the given name
     
-    It is a shortcut to::
-
-        import taurus.core.taurusmanager
-        manager = taurus.core.taurusmanager.TaurusManager()
-        factory = manager.getFactory()
-        obj  = factory.getObject(klass, name)
-
-    :param klass: a taurus model subclass (TaurusDevice, for example)
-    :type klass: class TaurusModel
-    :param name: the full object name
-    :type name: str
+    Can be called as:
+    
+      - Object(name)
+      - Object(cls, name)
+    
+    Where:
+    
+      - `name` is a model name (str) 
+      - `cls` is a class derived from TaurusModel 
+        
+    If `cls` is not given, Object() will try to guess it from `name`. 
+    
     :return: a taurus object
-    :rtype: :class:`taurus.core.taurusmodel.TaurusModel`"""
-    return Factory(getSchemeFromName(name)).getObject(klass, name)
+    :rtype: :class:`taurus.core.taurusmodel.TaurusModel`
+    """
+    if len(args) == 1:
+        klass, name = None, args[0]
+    elif len(args) == 2:
+        klass, name = args
+    else:
+        msg = 'Object() takes either 1 or 2 arguments (%i given)' % len(args)
+        raise TypeError(msg)
+    factory = Factory(getSchemeFromName(name))
+    if klass is None:
+        klass = factory.findObjectClass(name)
+    return factory.getObject(klass, name)
 
 from taurus.core.util import log as __log_mod
 

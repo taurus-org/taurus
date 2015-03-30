@@ -25,13 +25,15 @@
 
 """This module provides widgets that display the database in a tree format"""
 
+#todo: tango-centric!!
+
 __all__ = ["TaurusDbTreeWidget"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
-from taurus.core.taurusdatabase import TaurusDatabase
+from taurus.core.taurusauthority import TaurusAuthority
 from taurus.qt.qtcore.model import *
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.resource import getThemeIcon, getElementTypeIcon, getElementTypeIconName
@@ -39,7 +41,7 @@ from taurustree import TaurusBaseTreeWidget
 
 class TaurusDbTreeWidget(TaurusBaseTreeWidget):
     """A class:`taurus.qt.qtgui.tree.TaurusBaseTreeWidget` that connects to a
-    :class:`taurus.core.taurusdatabase.TaurusDatabase` model. It can show the list of database
+    :class:`taurus.core.taurusauthority.TaurusAuthority` model. It can show the list of database
     elements in four different perspectives:
     
     - device : a three level hierarchy of devices (domain/family/name)
@@ -81,7 +83,7 @@ class TaurusDbTreeWidget(TaurusBaseTreeWidget):
     DftPerspective = TaurusElementType.Device
 
     def getModelClass(self):
-        return TaurusDatabase
+        return TaurusAuthority
     
     def sizeHint(self):
         return Qt.QSize(1024, 512)
@@ -243,7 +245,7 @@ class _TaurusTreePanel(Qt.QWidget, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getModelClass(self):
-        return TaurusDatabase
+        return TaurusAuthority
     
     @Qt.pyqtSignature("setModel(QString)")
     def setModel(self, model):
@@ -294,7 +296,7 @@ def main_TaurusDbTreeWidget(host, perspective=TaurusElementType.Device):
 def demo():
     """DB panels"""
     import taurus
-    db = taurus.Database()
+    db = taurus.Authority()
     host = db.getNormalName()
     w =main_TaurusTreePanel(host)
     # w = main_TaurusDbTreeWidget(host, TaurusElementType.Device)

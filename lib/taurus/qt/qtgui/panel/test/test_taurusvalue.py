@@ -39,7 +39,7 @@ class TestTaurusValue(BaseWidgetTestCase, unittest.TestCase):
         
         #Make sure the basics are taken care of (QApplication, etc)
         BaseWidgetTestCase.setUp(self)
-        self._widget.setModel('eval://1')
+        self._widget.setModel('eval:1')
         self._widget.show()
  
     def tearDown(self):

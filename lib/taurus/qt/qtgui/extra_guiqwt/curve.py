@@ -273,7 +273,7 @@ def taurusTrendMain():
     stackMode = stackModeMap[options.x_axis_mode.lower()]
       
     if options.demo:
-        args.append('eval://rand()')
+        args.append('eval:rand()')
         
     w = CurveDialog(edit=False, toolbar=True, wintitle="Taurus Trend")
 

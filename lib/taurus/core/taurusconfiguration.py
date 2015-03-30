@@ -32,6 +32,9 @@ __docformat__ = "restructuredtext"
 
 from .taurusbasetypes import AttrAccess, TaurusElementType
 from .taurusmodel import TaurusModel
+from .taurushelper import Factory
+
+from taurus import tauruscustomsettings
 
 
 class TaurusConfigurationProxy(object):
@@ -105,6 +108,12 @@ class TaurusConfiguration(TaurusModel):
         self._attr_info = None
         self._dev_hw_obj = None
         TaurusModel.cleanUp(self)        
+
+    @classmethod
+    def factory(cls):
+        if cls._factory is None:
+            cls._factory = Factory(scheme=cls._scheme)
+        return cls._factory
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
@@ -122,6 +131,9 @@ class TaurusConfiguration(TaurusModel):
         the database model name and is device name
         - If parent_model is a TaurusConfiguration, the relative name is ignored and
         the parent name is returned
+        
+        Note: This is a basic implementation. You may need to reimplement this 
+              for a specific scheme if it supports "useParentModel". 
         """
         if parent_model is None:
             return relative_name
@@ -134,21 +146,18 @@ class TaurusConfiguration(TaurusModel):
         
     @classmethod
     def getNameValidator(cls):
-        import taurusvalidator
-        return taurusvalidator.ConfigurationNameValidator()
+        return cls.factory().getConfigurationNameValidator()
     
     def _getDevName(self):
-        params = self.getNameValidator().getParams(self.getFullName())
-        return params.get('devicename') or params.get('devalias')
+        params = self.getNameValidator().getUriGroups(self.getFullName())
+        return params.get('devname')
     
     def _getFullAttrName(self):
-        params = self.getNameValidator().getParams(self.getFullName())
-        ret = params.get('devicename') or params.get('devalias')
-        ret += '/' + params.get('attributename')
-        return ret
+        params = self.getNameValidator().getUriGroups(self.getFullName())
+        return '%s/%s' % (params.get('devname'), params.get('_shortattrname'))
 
     def _getAttrName(self):
-        return self.getNameValidator().getParams(self.getFullName()).get('attributename')
+        return self.getNameValidator().getUriGroups(self.getFullName()).get('_shortattrname')
          
     def _getDev(self):
         dev = None
@@ -164,10 +173,8 @@ class TaurusConfiguration(TaurusModel):
         attrObj = self.getParentObj()
         if attrObj is None:
             attrname = self._getFullAttrName()
-            if createAttr:
-                attrObj = self.factory().getAttribute(attrname)
-            else:
-                attrObj = self.factory().getExistingAttribute(attrname)
+            attrObj = self.factory().getAttribute(attrname,
+                                                  create_if_needed=createAttr)
         return attrObj
     
     def getValueObj(self, cache=True):

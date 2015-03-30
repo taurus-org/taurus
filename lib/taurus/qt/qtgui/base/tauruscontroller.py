@@ -256,12 +256,15 @@ class TaurusConfigurationControllerHelper(object):
     @property
     def configParam(self):
         if self._configParam is None:
-            model = self.widget().model
+            modelName = self.widget().getModelName()
             try:
-                #@todo: This works for tango, eval and epics configuration names but is not general.
-                #@todo: This should be done calling to the ConfigurationNameValidator
-                self._configParam = model[model.rfind('?configuration=')+15:]
-            except:
+                f = self.widget().getTaurusFactory()
+                v = f.getConfigurationNameValidator()
+                groups = v.getUriGroups(modelName)
+                self._configParam = groups.get('cfgkey')
+            except Exception, e:
+                import taurus
+                taurus.warning("Cannot get cfgkey. Reason: %s", e)
                 self._configParam = ''
         return self._configParam
 
@@ -285,16 +288,20 @@ class TaurusConfigurationControllerHelper(object):
                 attr = self.attrObj()
                 if attr is not None:
                     val = val.replace('<label>', attr.label or '---')      
-                    val = val.replace('<attr_name>',attr.name or '---')
-                    val = val.replace('<attr_fullname>',attr.getFullName() or '---')
-                    val = val.replace('<dev_alias>',attr.dev_alias or '---')
-                    val = val.replace('<dev_name>',attr.dev_name or '---')
+                    val = val.replace('<attr_name>', attr.name or '---')
+                    val = val.replace('<attr_fullname>', attr.getFullName() or \
+                                      '---')
                 dev = self.deviceObj()   
-                if dev is not None:     
-                    val = val.replace('<dev_fullname>',dev.getFullName() or '---')
+                if dev is not None:
+                    val = val.replace('<dev_fullname>', dev.getFullName() or \
+                                      '---')
+                    val = val.replace('<dev_alias>', dev.getSimpleName() or \
+                                      '---')
+                    val = val.replace('<dev_name>', dev.getNormalName() or \
+                                      '---')
             else:
                 val = widget.getNoneValue()
-        except:    
+        except:
             widget.debug("Invalid configuration parameter '%s'" % param)
             val = widget.getNoneValue()
         if val is None:

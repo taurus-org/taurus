@@ -108,7 +108,7 @@ class TaurusAttributeChooser(Qt.QWidget, TaurusBaseWidget):
         self.ui.final_List.addItems(self.selectedItemsComplete)
 
     def getDb(self):
-        return self.getTaurusFactory().getDatabase()
+        return self.getTaurusFactory().getAuthority()
 
     def setDevName(self):
         """Fill the devices list"""

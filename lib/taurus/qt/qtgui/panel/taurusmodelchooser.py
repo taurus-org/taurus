@@ -37,6 +37,8 @@ from taurus.core.util.containers import CaselessList
 from taurusmodellist import TaurusModelList
 import taurus.qt.qtgui.resource
 
+#@todo: tango-centric!!
+from taurus.core.tango.tangodatabase import TangoDevInfo, TangoAttrInfo
 
 class TaurusModelSelectorTree(TaurusWidget):
     def __init__(self, parent = None, selectables=None, buttonsPos=None, designMode = None):
@@ -96,12 +98,13 @@ class TaurusModelSelectorTree(TaurusWidget):
             raise ValueError("Invalid buttons position")
     
     def getSelectedModels(self):
+        # todo: this method is tango-centric, but it could be fixed...
         selected = []
         for item in self._deviceTree.selectedItems():
             nfo = item.itemData()
-            if isinstance(nfo, taurus.core.taurusdatabase.TaurusDevInfo):
+            if isinstance(nfo, TangoDevInfo):
                 selected.append(nfo.fullName())
-            elif isinstance(nfo, taurus.core.taurusdatabase.TaurusAttrInfo):
+            elif isinstance(nfo, TangoAttrInfo):
                 selected.append( "%s/%s"%(nfo.device().fullName(),nfo.name()) )
             else: 
                 self.info("Unknown item '%s' in selection"%repr(nfo))
@@ -146,7 +149,7 @@ class TaurusModelChooser(TaurusWidget):
                             model. Otherwise (default) a list of models can be selected
         '''
         TaurusWidget.__init__(self, parent)
-        if host is None: host = taurus.Database().getNormalName()
+        if host is None: host = taurus.Authority().getNormalName()
         
         
         self._allowDuplicates = False

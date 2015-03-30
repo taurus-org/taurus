@@ -36,7 +36,7 @@ from .tauruslistener import *
 from .taurusdevice import *
 from .taurusattribute import *
 from .taurusconfiguration import *
-from .taurusdatabase import *
+from .taurusauthority import *
 from .taurusfactory import *
 from .taurusmanager import *
 from .taurusoperation import *

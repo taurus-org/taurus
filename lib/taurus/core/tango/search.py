@@ -86,7 +86,7 @@ def get_matching_devices(expressions,limit=0,exported=False):
     """ 
     Searches for devices matching expressions, if exported is True only running devices are returned 
     """
-    db = taurus.Database()
+    db = taurus.Authority()
     all_devs = [s.lower() for s in db.get_device_name('*','*')]
     #This code is used to get data from multiples hosts
     #if any(not fun.matchCl(rehost,expr) for expr in expressions): all_devs.extend(get_all_devices(exported))
@@ -103,14 +103,14 @@ def get_matching_devices(expressions,limit=0,exported=False):
     return result
 
 def get_device_for_alias(alias):
-    db = taurus.Database()
+    db = taurus.Authority()
     try: return db.get_device_alias(alias)
     except Exception,e:
         if 'no device found' in str(e).lower(): return None
         return None #raise e
 
 def get_alias_for_device(dev):
-    db = taurus.Database()
+    db = taurus.Authority()
     try: 
         result = db.get_alias(dev) #.get_database_device().DbGetDeviceAlias(dev)
         return result
@@ -119,5 +119,5 @@ def get_alias_for_device(dev):
         return None #raise e
 
 def get_alias_dict(exp='*'):
-    tango = taurus.Database()
+    tango = taurus.Authority()
     return dict((k,tango.get_device_alias(k)) for k in tango.get_device_alias_list(exp))

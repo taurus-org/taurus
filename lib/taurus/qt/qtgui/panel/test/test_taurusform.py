@@ -41,15 +41,15 @@ class TaurusFormTest(GenericWidgetTestCase, unittest.TestCase):
                   ['sys/tg_test/1/wave'],
                   [],
                   '',
-                  ['eval://1'],
+                  ['eval:1'],
                   None,
                   ['sys/tg_test/1/%s' % a for a in (
                    'short_scalar', 'double_array',
                    'uchar_image_ro', 'string_spectrum',
                    'no_value', 'throw_exception')],
                   [''],
-                  'sys/tg_test/1,eval://1',
-                  'sys/tg_test/1/short_image eval://rand(16)',
+                  'sys/tg_test/1,eval:1',
+                  'sys/tg_test/1/short_image eval:rand(16)',
                   [None]
                   ]
 

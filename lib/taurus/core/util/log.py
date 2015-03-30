@@ -265,6 +265,44 @@ class CriticalIt(LogIt):
         LogIt.__init__(self, level=logging.CRITICAL, showargs=showargs, showret=showret)
 
 
+
+class PrintIt(object):
+    '''A decorator similar to TraceIt, DebugIt,... etc but which does not 
+    require the decorated class to inherit from Logger.
+    It just uses print statements instead of logging. It is here just to be
+    used as a replacement of those decorators if you cannot use them on a 
+    non-logger class.
+    ''' 
+    def __init__(self, showargs=False, showret=False):
+        self._showargs = showargs
+        self._showret = showret
+
+    def __call__(self, f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            fname = f.func_name
+            in_msg = "-> %s" % fname
+            if self._showargs:
+                if len(args) > 1: in_msg += str(args[1:])
+                if len(kwargs):   in_msg += str(kwargs)
+            print 
+            print in_msg
+            out_msg = "<-"
+            try:
+                ret = f(*args, **kwargs)
+            except Exception, e:
+                out_msg += " (with %s) %s" % (e.__class__.__name__, fname)
+                print out_msg
+                raise
+            out_msg += " %s" % fname
+            if not ret is None and self._showret:
+                out_msg += " = %s" % str(ret)
+            print out_msg
+            print
+            return ret
+        return wrapper
+    
+
 class MemoryLogHandler(list, logging.handlers.BufferingHandler):
     """An experimental log handler that stores temporary records in memory.
        When flushed it passes the records to another handler"""

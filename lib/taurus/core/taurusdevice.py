@@ -32,6 +32,9 @@ __docformat__ = "restructuredtext"
 from .taurusbasetypes import TaurusSWDevState, TaurusEventType, \
     TaurusLockInfo, TaurusElementType
 from .taurusmodel import TaurusModel
+from .taurushelper import Factory
+
+from taurus import tauruscustomsettings
 
 DFT_DEVICE_DESCRIPTION = "A device"
 
@@ -69,6 +72,12 @@ class TaurusDevice(TaurusModel):
             self._deviceStateObj.removeListener(self)
         self._deviceStateObj = None
         TaurusModel.cleanUp(self)
+
+    @classmethod
+    def factory(cls):
+        if cls._factory is None:
+            cls._factory = Factory(scheme=cls._scheme)
+        return cls._factory
 
     # Export the DeviceProxy interface into this object.
     # This way we can call for example read_attribute on an object of this class
@@ -164,10 +173,13 @@ class TaurusDevice(TaurusModel):
     def buildModelName(cls, parent_model, relative_name):
         """build an 'absolute' model name from the parent model and the 'relative'
         name.
-        - If parent_model is a TaurusDatabase, the return is a composition of
-        the database model name and is device name
+        - If parent_model is a TaurusAuthority, the return is a composition of
+        the authority model name and the device name
         - If parent_model is a TaurusDevice, the relative name is ignored and
         the parent name is returned
+        
+        Note: This is a basic implementation. You may need to reimplement this 
+              for a specific scheme if it supports "useParentModel". 
         """
         if parent_model is None:
             return relative_name
@@ -180,8 +192,7 @@ class TaurusDevice(TaurusModel):
 
     @classmethod
     def getNameValidator(cls):
-        import taurusvalidator
-        return taurusvalidator.DeviceNameValidator()
+        return cls.factory().getDeviceNameValidator()
 
     def getValueObj(self, cache=True):
         if not self.hasListeners() or not cache:

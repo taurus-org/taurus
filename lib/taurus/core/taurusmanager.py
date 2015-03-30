@@ -38,12 +38,14 @@ from .util.log import Logger
 from .util.threadpool import ThreadPool
 
 from .taurusbasetypes import OperationMode, ManagerState, TaurusSerializationMode
-from .taurusdatabase import TaurusDatabase
+from .taurusauthority import TaurusAuthority
 from .taurusdevice import TaurusDevice
 from .taurusattribute import TaurusAttribute
 from .taurusconfiguration import TaurusConfiguration
 from .taurusexception import TaurusException
 from .taurusfactory import TaurusFactory
+from .taurushelper import getSchemeFromName
+from taurus import tauruscustomsettings
 
 
 class TaurusManager(Singleton, Logger):
@@ -59,7 +61,7 @@ class TaurusManager(Singleton, Logger):
     PLUGIN_KEY = "__taurus_plugin__"
     
     DefaultSerializationMode = TaurusSerializationMode.Concurrent
-    default_scheme = "tango"
+    default_scheme = getattr(tauruscustomsettings, 'DEFAULT_SCHEME', "tango")
 
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
@@ -225,13 +227,18 @@ class TaurusManager(Singleton, Logger):
         if factory is None: return
         return factory.findObjectClass(absolute_name)
     
-    def getDatabase(self, name):
+    def getAuthority(self, name):
         """Returns a database object for the given name
         
         :param name: (str) database name
-        :return: (taurus.core.taurusdatabase.TaurusDatabase) the database for the given name
+        :return: (taurus.core.taurusauthority.TaurusAuthority) the authority for the given name
         """
-        return self.getObject(TaurusDatabase, name)
+        return self.getObject(TaurusAuthority, name)
+    
+    def getDatabase(self, name):
+        """Deprecated. Use getAuthority instead"""
+        self.warning('getDatabase is deprecated. Use getAuthority instead')
+        return self.getAuthority(self, name)
 
     def getDevice(self, name):
         """Returns a device object for the given name
@@ -258,21 +265,23 @@ class TaurusManager(Singleton, Logger):
         return self.getObject(TaurusConfiguration, name)
         
     def _get_factory(self, name):
-        scheme = self._get_scheme(name)
+        scheme = self.getScheme(name)
         if scheme is None: return
         try:
             return self.getPlugins()[scheme]()
         except:
             raise TaurusException('Invalid scheme "%s"'%scheme)
 
-    def _get_scheme(self, name):
-        try:
-            return name[:name.index('://')]
-        except ValueError, e:
-            return self.default_scheme
+    def getScheme(self, name):
+        '''Returns the scheme name for a given model name
+        
+        :param name: (str) model name
+        :return: (str) scheme name
+        '''
+        return getSchemeFromName(name, implicit=True)
         
     def _get_schema(self, name):
-        raise DeprecationWarning('_get_schema is deprecated. Use _get_scheme instead')
+        raise DeprecationWarning('_get_schema is deprecated. Use getScheme instead')
 
     def _build_plugins(self):
         plugin_classes = self._get_plugin_classes()
@@ -288,9 +297,15 @@ class TaurusManager(Singleton, Logger):
                 else:
                     plugins[scheme] = plugin_class
         return plugins
+
+    def buildPlugins(self):
+        '''Returns the current valid plugins
+
+        :return: (dic) plugins
+        ''' 
+        return self._build_plugins()
         
     def _get_plugin_classes(self):
-        import taurusfactory
         upgrade_classes = []
         
         elems = os.listdir(self._this_path)

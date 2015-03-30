@@ -33,10 +33,12 @@ import os
 import traceback
 import taurus
 from taurus.external.qt import Qt
-from taurus.core.taurusvalidator import DeviceNameValidator, AttributeNameValidator
+from taurus.core.taurusbasetypes import TaurusElementType
+from taurus.core import taurushelper
 from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem, SynopticSelectionStyle
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseWidget
+
 import jdraw_parser
 
 class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
@@ -134,7 +136,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     
     def get_device_list(self):
         items = [(item,parseTangoUri(item)) for item in self.get_item_list()]
-        return list(set(v['devicename'] for k,v in items if v)) 
+        return list(set(v['_devslashname'] for k,v in items if v)) 
     
     def get_item_colors(self,emit = False):
         item_colors = {}
@@ -283,14 +285,18 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
             self.debug('getModelMimeData(%s)'%model)
             mimeData = Qt.QMimeData()
             if model:
-                if DeviceNameValidator().getParams(model): 
-                    self.debug('getMimeData(): DeviceModel at %s: %s',self.mousePos,model)
-                    mimeData.setData(TAURUS_DEV_MIME_TYPE,model)
-                elif AttributeNameValidator().getParams(model):
-                    self.debug('getMimeData(): AttributeModel at %s: %s',self.mousePos,model)
-                    mimeData.setData(TAURUS_ATTR_MIME_TYPE,model)
+                taurusType = taurushelper.getValidTypesForName(model, False)
+                if TaurusElementType.Device in taurusType:
+                    self.debug('getMimeData(): DeviceModel at %s: %s',
+                        self.mousePos,model)
+                    mimeData.setData(TAURUS_DEV_MIME_TYPE, model)
+                if TaurusElementType.Attribute in taurusType:
+                    self.debug('getMimeData(): AttributeModel at %s: %s',
+                        self.mousePos,model)
+                    mimeData.setData(TAURUS_ATTR_MIME_TYPE, model)
                 else:
-                    self.debug('getMimeData(): UnknownModel at %s: %s',self.mousePos,model)
+                    self.debug('getMimeData(): UnknownModel at %s: %s',
+                        self.mousePos,model)
                     mimeData.setData(TAURUS_MODEL_MIME_TYPE, model)
         except:
             self.debug('jdrawView.getModelMimeData(%s): unable to get MimeData'%model)

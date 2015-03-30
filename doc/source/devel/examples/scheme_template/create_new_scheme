@@ -1,0 +1,65 @@
+#############################################################################
+##
+## This file is part of Taurus, a Tango User Interface Library
+## 
+## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+##
+## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+## 
+## Taurus is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+## 
+## Taurus is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+## 
+## You should have received a copy of the GNU Lesser General Public License
+## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+##
+#############################################################################
+## 
+## Script for create a new scheme using the template
+## 
+## Execute the script like that
+##       sh create_new_scheme my_scheme_name
+##          where my_scheme_name= should be in lowercase
+##
+## Once the script create the template, you have to complete it
+## and copy the generated folder in taurus.core
+
+if [[ -z "$1" ]] ; then
+    echo "Please enter the scheme name: "
+    read low_scheme_name
+    echo "You entered: $low_scheme_name"
+else
+    low_scheme_name=$1
+fi
+
+string=($low_scheme_name)
+upper_scheme_name=${string[@]^}
+
+#dir_4_new_schemes=../../../../../lib/taurus/core/
+#
+#if [ -d "$dir_4_new_schemes$low_scheme_name" ]; then
+#    echo 'Sorry, but this scheme exists in taurus.core '
+#    exit -1
+#fi
+
+
+# It will change XXX to the given scheme name
+mkdir -p $low_scheme_name
+list=$(ls *.py)
+for item in $list
+do
+if [ -f "$item" ] ; then
+    new_name=${item/XXX/$low_scheme_name}
+    cp -f $item $low_scheme_name/$new_name
+    file=$low_scheme_name/$new_name   
+    sed -i "s/XXX/$low_scheme_name/g" $file
+    sed -i "s/YYY/$upper_scheme_name/g" $file
+fi
+done
+cp __taurus_plugin__ $low_scheme_name/

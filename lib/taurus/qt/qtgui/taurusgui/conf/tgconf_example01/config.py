@@ -128,7 +128,7 @@ dummytoolbar = ToolBarDescription('Empty Toolbar',
 
 mon2 = AppletDescription('Dummy Monitor',
                         classname = 'TaurusMonitorTiny',
-                        model='eval://1000*rand(2)')
+                        model='eval:1000*rand(2)')
 
 
 #===============================================================================

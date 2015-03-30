@@ -37,28 +37,123 @@ import time
 import PyTango
 
 from taurus import Factory, Manager
-from taurus.core.taurusbasetypes import TaurusEventType
+from taurus.core.taurusbasetypes import (TaurusEventType, TaurusConfigValue,
+                                         DataFormat, DataType)
 from taurus.core.taurusconfiguration import TaurusConfiguration
 from .enums import EVENT_TO_POLLING_EXCEPTIONS
 
-class TangoConfiguration(TaurusConfiguration):
-    
-    def __init__(self, name, parent, storeCallback = None):
-        self._events_working = False
-        self.call__init__(TaurusConfiguration, name, parent, storeCallback)
 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # TaurusModel necessary overwrite
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+FROM_TANGO_TO_TAURUS_DFORMAT = {PyTango.AttrDataFormat.SCALAR:DataFormat._0D,
+                                PyTango.AttrDataFormat.SPECTRUM:DataFormat._1D,
+                                PyTango.AttrDataFormat.IMAGE:DataFormat._2D}
+
+FROM_TANGO_TO_TAURUS_TYPE = {PyTango.CmdArgType.DevVoid:None,
+        PyTango.CmdArgType.DevBoolean:DataType.Boolean,
+        PyTango.CmdArgType.DevShort:DataType.Integer,
+        PyTango.CmdArgType.DevLong:DataType.Integer,
+        PyTango.CmdArgType.DevFloat:DataType.Float,
+        PyTango.CmdArgType.DevDouble:DataType.Float,
+        PyTango.CmdArgType.DevUShort:DataType.Integer,
+        PyTango.CmdArgType.DevULong:DataType.Integer,
+        PyTango.CmdArgType.DevString:DataType.String,
+        PyTango.CmdArgType.DevVarCharArray:DataType.Integer,
+        PyTango.CmdArgType.DevVarShortArray:DataType.Integer,
+        PyTango.CmdArgType.DevVarLongArray:DataType.Integer,
+        PyTango.CmdArgType.DevVarFloatArray:DataType.Float,
+        PyTango.CmdArgType.DevVarDoubleArray:DataType.Float,
+        PyTango.CmdArgType.DevVarUShortArray:DataType.Integer,
+        PyTango.CmdArgType.DevVarULongArray:DataType.Integer,
+        PyTango.CmdArgType.DevVarStringArray:DataType.String,
+        PyTango.CmdArgType.DevVarLongStringArray:DataType.String,
+        PyTango.CmdArgType.DevVarDoubleStringArray:DataType.String,
+        PyTango.CmdArgType.DevState:DataType.Boolean, #TODO check could be Integer
+        PyTango.CmdArgType.ConstDevString:DataType.String,
+        PyTango.CmdArgType.DevVarBooleanArray:DataType.Boolean,
+        PyTango.CmdArgType.DevUChar:DataType.String,
+        PyTango.CmdArgType.DevLong64:DataType.Integer,
+        PyTango.CmdArgType.DevULong64:DataType.Integer,
+        PyTango.CmdArgType.DevVarLong64Array:DataType.Integer,
+        PyTango.CmdArgType.DevVarULong64Array:DataType.Integer,
+        PyTango.CmdArgType.DevInt:DataType.Integer,
+        PyTango.CmdArgType.DevEncoded:DataType.String}
+
+class TangoConfigValue(TaurusConfigValue):
+    '''A TaurusConfigValue specialization to decode PyTango.AttrInfoEx
+    objects'''
+
+    
+
+    def __init__(self, pytango_attrinfoex=None):
+        TaurusConfigValue.__init__(self)
+        if  pytango_attrinfoex is None:
+            self._pytango_attrinfoex = PyTango.AttrInfoEx()
+        else:
+            self._pytango_attrinfoex = i = pytango_attrinfoex
+
+            self.name = i.name
+            self.writable = i.writable
+            self.label = i.label
+            self.unit = i.unit
+            self.warning = [i.alarms.min_warning, i.alarms.max_warning]
+            self.data_format = FROM_TANGO_TO_TAURUS_DFORMAT[i.data_format]
+            self.range = [i.min_value, i.max_value]
+            self.alarm = [i.min_alarm, i.max_alarm]
+            self.description = i.description
+            ####################################################################
+            #TODO: Uncomment it and delete the next line when GUIs become
+            # Tango independent. Once it has been done the existing
+            # taurushelper test 'read_attr' for tango should be enabled.
+            # self.type should be a TaurusDataType instead of PyTango.CmdArgType
+            #self.type = FROM_TANGO_TO_TAURUS_TYPE[i.data_type]
+            self.type = i.data_type
+            ####################################################################
+
+            #################################################
+            # Tango-specific extension of TaurusConfigValue
+            self.climits = [i.min_value, i.max_value]
+            self.calarms = [i.min_alarm, i.max_alarm]
+            self.cwarnings = [i.alarms.min_warning, i.alarms.max_warning]
+            self.cranges = [i.min_value, i.min_alarm, i.alarms.min_warning,
+                        i.alarms.max_warning, i.max_alarm, i.max_value]
+            self.max_dim = 1, 1
+            #################################################
+
+            # %6.2f is the default value that Tango sets when the format is
+            # unassigned. This is only good for float types! So for other
+            # types I am changing this value.
+            # There's a bug about this in the core TangoC++ project, so
+            # this code may become useless someday.
+            if i.format == '%6.2f':
+                if PyTango.is_float_type(i.data_type, inc_array=True):
+                    pass
+                elif PyTango.is_int_type(i.data_type, inc_array=True):
+                    self.format = '%d'
+                elif i.data_type in (PyTango.CmdArgType.DevString,
+                                     PyTango.CmdArgType.DevVarStringArray):
+                    self.format = '%s'
+            else:
+                self.format = i.format
+
+            #################################################
+            # The following members will be accessed via __getattr__
+            # self.standard_unit
+            # self.display_unit
+            # self.disp_level
+            #################################################
+
+    def __getattr__(self, name):
+        return getattr(self._pytango_attrinfoex, name)
+
+
+class TangoConfiguration(TaurusConfiguration):
 
     # helper class property that stores a reference to the corresponding factory
     _factory = None
-    
-    @classmethod
-    def factory(cls):
-        if cls._factory is None:
-            cls._factory = Factory("tango")
-        return cls._factory
+    _scheme = 'tango'
+
+    def __init__(self, name, parent, storeCallback = None):
+        self._events_working = False
+        self.call__init__(TaurusConfiguration, name, parent, storeCallback)
 
     def __getattr__(self, name):
         if self._attr_info is None:
@@ -84,13 +179,13 @@ class TangoConfiguration(TaurusConfiguration):
         return self.getWritable(cache) == PyTango.AttrWriteType.READ_WRITE
     
     def isScalar(self, cache=True):
-        return self.getDataFormat(cache) == PyTango.AttrDataFormat.SCALAR
+        return self.getDataFormat(cache) == DataFormat._0D
     
     def isSpectrum(self, cache=True):
-        return self.getDataFormat(cache) == PyTango.AttrDataFormat.SPECTRUM
+        return self.getDataFormat(cache) == DataFormat._1D
     
     def isImage(self, cache=True):
-        return self.getDataFormat(cache) == PyTango.AttrDataFormat.IMAGE
+        return self.getDataFormat(cache) == DataFormat._2D
     
     def encode(self, value):
         """Translates the given value into a tango compatible value according to
@@ -203,48 +298,30 @@ class TangoConfiguration(TaurusConfiguration):
                 self.trace(str(e))
                 
     def decode(self, i):
-        if i is None:
-            return i
-        
-        i.climits = [i.min_value, i.max_value]
-        i.calarms = [i.min_alarm, i.max_alarm]
-        i.cwarnings = [i.alarms.min_warning, i.alarms.max_warning]
-        i.cranges = [i.min_value, i.min_alarm, i.alarms.min_warning,
-                    i.alarms.max_warning, i.max_alarm, i.max_value]
-        i.range = [i.min_value, i.max_value]
-        i.alarm = [i.min_alarm, i.max_alarm]
-        i.warning = [i.alarms.min_warning, i.alarms.max_warning]
+        #i is a pytango_AttrInfoEx... the return must be TangoConfigValue
+        ret = TangoConfigValue(i)
+
+        # TODO: These may not be necessary (Taurus agnostic code should not 
+        #       depend on them)
         # add dev_name, dev_alias, attr_name, attr_full_name
-        i.dev_name = self._getDev().getNormalName()
-        i.dev_alias = self._getDev().getSimpleName()
+        self.dev_name = self._getDev().getNormalName()
+        self.dev_alias = self._getDev().getSimpleName()
         try:
             attr = self._getAttr()
             if attr is not None:
-                i.attr_fullname = self._getAttr().getNormalName()
-                i.attr_name = self._getAttr().getSimpleName()
+                ret.attr_fullname = self._getAttr().getNormalName()
+                ret.attr_name = self._getAttr().getSimpleName()
             else: 
                 self.debug(('TangoConfiguration.decode(%s/%s): ' +
                               'self._getAttr() returned None (failed detach?)'), 
-                           i.dev_name, i.name)
+                           ret.dev_name, ret.name)
         except:
             import traceback
-            self.warning('at TangoConfiguration.decode(%s/%s)', i.dev_name, i.name)
+            self.warning('at TangoConfiguration.decode(%s/%s)', ret.dev_name, 
+                         ret.name)
             self.warning(traceback.format_exc())
-            i.attr_name = i.attr_fullname = ''
-        
-        # %6.2f is the default value that Tango sets when the format is
-        # unassigned. This is only good for float types! So for other
-        # types I am changing this value.
-        # There's a bug about this in the core TangoC++ project, so
-        # this code may become useless someday.
-        if i.format == '%6.2f':
-            if PyTango.is_float_type(i.data_type, inc_array=True):
-                pass
-            elif PyTango.is_int_type(i.data_type, inc_array=True):
-                i.format = '%d'
-            elif i.data_type in (PyTango.CmdArgType.DevString, PyTango.CmdArgType.DevVarStringArray):
-                i.format = '%s'
-        return i
+            ret.attr_name = ret.attr_fullname = ''
+        return ret
 
     def push_event(self, event):
         if event.err:
@@ -273,8 +350,7 @@ class TangoConfiguration(TaurusConfiguration):
         listeners = tuple(self._listeners)
         #Manager().addJob(self._push_event, None, event)
         Manager().addJob(self.fireEvent, None, TaurusEventType.Config, self._attr_info, listeners=listeners)
-        
-    
+
     #===========================================================================
     # Some methods reimplemented from TaurusConfiguration
     #===========================================================================
@@ -296,7 +372,7 @@ class TangoConfiguration(TaurusConfiguration):
         if c:
             return c.data_type
         return None
-    
+
     def getRange(self, cache=True):
         return self.getLimits(cache=cache)
     

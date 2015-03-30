@@ -26,7 +26,9 @@
 """This module contains ANSI color codes"""
 
 __all__ = ["make_color_table", "NoColors", "TermColors", "HTMLColors",
-           "NoTangoColors", "TermTangoColors", "HTMLTangoColors", 
+           "NoTangoColors", "NoTaurusColors",
+           "TermTangoColors", "TermTaurusColors",
+           "HTMLTangoColors", "HTMLTaurusColors",
            "NoTaurusSWDevStateColors", "TermTaurusSWDevStateColors",
            "NoTauSWDevStateColors", "TermTauSWDevStateColors",
            "ANSIEscapeCodeHandler"]
@@ -34,6 +36,7 @@ __all__ = ["make_color_table", "NoColors", "TermColors", "HTMLColors",
 __docformat__ = "restructuredtext"
 
 import os
+from taurus.core.taurusbasetypes import TaurusSWDevState, DevState
 
 __color_templates = (
     ("Black"       , "0;30"),
@@ -101,27 +104,23 @@ make_color_table(NoColors,fake=True)
 make_color_table(TermColors)
 make_color_table(HTMLColors,True)
 
-import PyTango
+NoTaurusColors = {DevState.ON     : NoColors.Green,
+                  DevState.ALARM   : NoColors.Brown,
+                  DevState.FAULT   : NoColors.Red,
+                  DevState.UNKNOWN : NoColors.LightGray,
+                  None             : NoColors.DarkGray }
 
-NoTangoColors = { PyTango.DevState.ON      : NoColors.Green,
-                    PyTango.DevState.ALARM   : NoColors.Brown,
-                    PyTango.DevState.FAULT   : NoColors.Red,
-                    PyTango.DevState.UNKNOWN : NoColors.LightGray,
-                    None                     : NoColors.DarkGray }
+TermTaurusColors = {DevState.ON     : TermColors.Green,
+                    DevState.ALARM   : TermColors.Brown,
+                    DevState.FAULT   : TermColors.Red,
+                    DevState.UNKNOWN : TermColors.LightGray,
+                    None             : TermColors.DarkGray }
 
-TermTangoColors = { PyTango.DevState.ON      : TermColors.Green,
-                    PyTango.DevState.ALARM   : TermColors.Brown,
-                    PyTango.DevState.FAULT   : TermColors.Red,
-                    PyTango.DevState.UNKNOWN : TermColors.LightGray,
-                    None                     : TermColors.DarkGray }
-
-HTMLTangoColors = { PyTango.DevState.ON      : HTMLColors.Green,
-                    PyTango.DevState.ALARM   : HTMLColors.Brown,
-                    PyTango.DevState.FAULT   : HTMLColors.Red,
-                    PyTango.DevState.UNKNOWN : HTMLColors.LightGray,
-                    None                     : HTMLColors.DarkGray }
-                    
-from taurus.core.taurusbasetypes import TaurusSWDevState
+HTMLTaurusColors = {DevState.ON      : HTMLColors.Green,
+                    DevState.ALARM   : HTMLColors.Brown,
+                    DevState.FAULT   : HTMLColors.Red,
+                    DevState.UNKNOWN : HTMLColors.LightGray,
+                    None             : HTMLColors.DarkGray }
 
 NoTaurusSWDevStateColors = {
     TaurusSWDevState.Uninitialized       : NoColors.LightGray,
@@ -137,8 +136,17 @@ TermTaurusSWDevStateColors = {
     TaurusSWDevState.Crash               : TermColors.Red,
     TaurusSWDevState.EventSystemShutdown : TermColors.Brown }
 
+
+#===============================================================================
+# Backwards-compat redefinitions
+NoTangoColors = NoTaurusColors
+TermTangoColors = TermTaurusColors
+HTMLTangoColors = HTMLTaurusColors
+ 
 NoTauSWDevStateColors = NoTaurusSWDevStateColors
 TermTauSWDevStateColors = TermTaurusSWDevStateColors
+#===============================================================================
+
 
 class ANSIEscapeCodeHandler(object):
     """ANSI Escape sequences handler"""
@@ -237,3 +245,6 @@ class ANSIEscapeCodeHandler(object):
         self.underline = False
         self.foreground_color = None
         self.background_color = None
+
+
+

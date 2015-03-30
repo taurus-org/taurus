@@ -25,7 +25,8 @@
 
 """This module contains all taurus tango attribute"""
 
-__all__ = ["TangoAttribute", "TangoStateAttribute", "TangoAttributeEventListener"]
+__all__ = ["TangoAttribute", "TangoStateAttribute", 
+           "TangoAttributeEventListener", "TangoAttrValue"]
 
 __docformat__ = "restructuredtext"
 
@@ -37,18 +38,47 @@ import numpy
 
 from taurus import Factory, Manager
 from taurus.core.taurusattribute import TaurusAttribute, TaurusStateAttribute
-from taurus.core.taurusbasetypes import TaurusEventType, TaurusSerializationMode, \
-    SubscriptionState
+from taurus.core.taurusbasetypes import ( TaurusEventType, 
+    TaurusSerializationMode, SubscriptionState, TaurusAttrValue, AttrQuality, 
+    DataFormat)
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
 from .enums import EVENT_TO_POLLING_EXCEPTIONS
 
 DataType = PyTango.CmdArgType
 
+
+class TangoAttrValue(TaurusAttrValue):
+    '''A TaurusAttrValue specialization to decode PyTango.DeviceAttribute 
+    objects'''
+    
+    def __init__(self, config=None, pytango_dev_attr=None):
+        TaurusAttrValue.__init__(self, config=config)
+        self._pytango_dev_attr = p = pytango_dev_attr
+        if  pytango_dev_attr is None:
+            self._pytango_dev_attr = PyTango.DeviceAttribute()
+        else:
+            self.value = p.value
+            self.w_value = p.w_value
+            self.time = p.time
+            self.quality = AttrQuality.get(p.quality)
+            self.has_failed = p.has_failed
+            #self.err_stack = p.err_stack
+            
+     
+    def __getattr__(self, name):
+        try:
+            return getattr(self._pytango_dev_attr, name)
+        except AttributeError:
+            return getattr(self.config, name)
+
+
+
 class TangoAttribute(TaurusAttribute):
 
     # helper class property that stores a reference to the corresponding factory
     _factory = None
+    _scheme = 'tango'
 
     def __init__(self, name, parent, **kwargs):
 
@@ -84,15 +114,6 @@ class TangoAttribute(TaurusAttribute):
             from taurus.core.tango import TangoConfiguration  # @todo...
             self.__attr_config = TangoConfiguration(cfg_name, self)
         return self.__attr_config
-
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # TaurusModel necessary overwrite
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    @classmethod
-    def factory(cls):
-        if cls._factory is None:
-            cls._factory = Factory(scheme='tango')
-        return cls._factory
 
     def getNewOperation(self, value):
         attr_value = PyTango.AttributeValue()
@@ -179,7 +200,7 @@ class TangoAttribute(TaurusAttribute):
 
         fmt = self.getDataFormat()
         type = self.getType()
-        if fmt == PyTango.SCALAR:
+        if fmt == DataFormat._0D:
             if type == DataType.DevDouble:
                 attrvalue = float(value)
             elif type == DataType.DevFloat:
@@ -200,7 +221,7 @@ class TangoAttribute(TaurusAttribute):
                 attrvalue = value
             else:
                 attrvalue = str(value)
-        elif fmt in (PyTango.SPECTRUM, PyTango.IMAGE):
+        elif fmt in (DataFormat._1D, DataFormat._2D):
             attrvalue = value
         else:
             attrvalue = str(value)
@@ -209,7 +230,10 @@ class TangoAttribute(TaurusAttribute):
     def decode(self, attr_value):
         """Decodes a value that was received from PyTango into the expected 
         representation"""
-        return attr_value
+        config = self._getRealConfig().getValueObj()
+        value = TangoAttrValue(config=config, pytango_dev_attr=attr_value)
+        return value
+        
 
     def write(self, value, with_read=True):
         """ Write the value in the Tango Device Attribute """

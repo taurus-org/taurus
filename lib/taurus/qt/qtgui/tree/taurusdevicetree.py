@@ -496,7 +496,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
             print 'TaurusDevTree.%s: %s'%(self.getLogLevel(),msg) #@TODO: use the taurus logger instead! ~~cpascual 20121121
         
     def setTangoHost(self,tango_host=None):
-        self.db = taurus.Database(tango_host)
+        self.db = taurus.Authority(tango_host)
         
     #model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, 
                                 #TaurusBaseWidget.setModel, 
@@ -506,7 +506,7 @@ class TaurusDevTree(TaurusTreeNodeContainer,Qt.QTreeWidget, TaurusBaseWidget):
         return self._filters    
     
     def getModelClass(self):
-        return list #taurus.core.taurusdatabase.TaurusDatabase
+        return list #taurus.core.taurusauthority.TaurusAuthority
         
     def setModel(self,model):
         TaurusBaseWidget.setModel(self,model)
@@ -1513,7 +1513,7 @@ def taurusDevTreeMain():
     form = TaurusSearchTree()
     #try:
         #if options.tango_host is None:
-            #options.tango_host = taurus.Database().getNormalName()
+            #options.tango_host = taurus.Authority().getNormalName()
         #form.setTangoHost(options.tango_host)
     #except: pass
     

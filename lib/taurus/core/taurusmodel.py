@@ -105,8 +105,8 @@ class TaurusModel(Logger):
         return self._simp_name
 
     @classmethod
-    def isValid(cls, name, level = MatchLevel.ANY):
-        return cls.getNameValidator().isValid(name, level)
+    def isValid(cls, *args, **kwargs):
+        return cls.getNameValidator().isValid(*args, **kwargs)
 
     @classmethod
     def buildModelName(cls, parent_model, relative_name):

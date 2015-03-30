@@ -39,7 +39,7 @@ class TaurusLabelTest(GenericWidgetTestCase, unittest.TestCase):
     .. seealso: :class:`taurus.qt.qtgui.test.base.GenericWidgetTestCase`
     '''
     _klass = TaurusLabel
-    modelnames = ['sys/tg_test/1/wave', '', 'eval://1', None]
+    modelnames = ['sys/tg_test/1/wave', '', 'eval:1', None]
     
 class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
 

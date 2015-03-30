@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""This module provides widgets that display the database in a tree format"""
+"""This module provides widgets that display the authority in a tree format"""
 
 __docformat__ = 'restructuredtext'
 
@@ -36,6 +36,9 @@ import taurus.core
 import taurus.core.util
 import taurus.qt.qtgui.base
 import taurus.qt.qtgui.resource
+
+from taurus.core.tango.tangodatabase import (TangoAttrInfo, TangoDevInfo,
+                                             TangoServInfo)
 
 ElemType = taurus.core.taurusbasetypes.TaurusElementType
 getElementTypeIcon = taurus.qt.qtgui.resource.getElementTypeIcon
@@ -74,25 +77,25 @@ class BaseElementFilter(BaseFilter):
 
 class DeviceFilter(BaseElementFilter):
     
-    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusDevInfo.name):
+    def __init__(self, re_expr, func=TangoDevInfo.name):
         super(DeviceFilter, self).__init__(re_expr, func=func)
 
 
 class DeviceClassFilter(BaseElementFilter):
     
-    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusDevInfo.name):
+    def __init__(self, re_expr, func=TangoDevInfo.name):
         super(DeviceClassFilter, self).__init__(re_expr, func=func)
 
 
 class ServerFilter(BaseElementFilter):
 
-    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusServInfo.name):
+    def __init__(self, re_expr, func=TangoServInfo.name):
         super(ServerFilter, self).__init__(re_expr, func=func)
 
 
 class AttributeFilter(BaseElementFilter):
     
-    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusAttrInfo.name):
+    def __init__(self, re_expr, func=TangoAttrInfo.name):
         super(AttributeFilter, self).__init__(re_expr, func=func)
 
 
@@ -111,27 +114,27 @@ class KlassFilter(BaseFilter):
 def getFilter(type, re_expr=None):
     if re_expr is None:
         if type == ElemType.Device:
-            return KlassFilter(taurus.core.taurusdatabase.TaurusDevInfo)
+            return KlassFilter(TangoDevInfo)
         elif type == ElemType.Server:
-            return KlassFilter(taurus.core.taurusdatabase.TaurusServInfo)
+            return KlassFilter(TangoServInfo)
         elif type == ElemType.DeviceClass:
-            return KlassFilter(taurus.core.taurusdatabase.TaurusDevInfo)
+            return KlassFilter(TangoDevInfo)
         return None
 
     if type == ElemType.Device:
         return DeviceFilter(re_expr)
     elif type == ElemType.Domain:
-        return DeviceFilter(re_expr, taurus.core.taurusdatabase.TaurusDevInfo.domain)
+        return DeviceFilter(re_expr, TangoDevInfo.domain)
     elif type == ElemType.Family:
-        return DeviceFilter(re_expr, taurus.core.taurusdatabase.TaurusDevInfo.family)
+        return DeviceFilter(re_expr, TangoDevInfo.family)
     elif type == ElemType.Member:
-        return DeviceFilter(re_expr, taurus.core.taurusdatabase.TaurusDevInfo.member)
+        return DeviceFilter(re_expr, TangoDevInfo.member)
     elif type == ElemType.Server:
         return ServerFilter(re_expr)
     elif type == ElemType.ServerName:
-        return ServerFilter(re_expr, taurus.core.taurusdatabase.TaurusServInfo.serverName)
+        return ServerFilter(re_expr, TangoServInfo.serverName)
     elif type == ElemType.ServerInstance:
-        return ServerFilter(re_expr, taurus.core.taurusdatabase.TaurusServInfo.serverInstance)
+        return ServerFilter(re_expr, TangoServInfo.serverInstance)
     elif type == ElemType.DeviceClass:
         return DeviceClassFilter(re_expr)
     elif type == ElemType.Attribute:
@@ -285,7 +288,7 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.taurusdatabase.TaurusDatabase
+        return taurus.core.taurusauthority.TaurusAuthority
 
     #: This property holds the unique URI string representing the model name 
     #: with which this widget will get its data from. The convention used for 
@@ -368,7 +371,7 @@ class TaurusFilterPanelOld2(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.taurusdatabase.TaurusDatabase
+        return taurus.core.taurusauthority.TaurusAuthority
 
     def setModel(self, m):
         taurus.qt.qtgui.base.TaurusBaseWidget.setModel(self, m)
@@ -659,7 +662,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.taurusdatabase.TaurusDatabase
+        return taurus.core.taurusauthority.TaurusAuthority
 
     def setModel(self, m):
         taurus.qt.qtgui.base.TaurusBaseWidget.setModel(self, m)
@@ -703,7 +706,7 @@ def main():
     if len(args)>0: 
         host=args[0]
     else: 
-        host = taurus.Database().getNormalName()
+        host = taurus.Authority().getNormalName()
     
     w = TaurusFilterPanel()
     w.setWindowIcon(Qt.QIcon(":/actions/system-shutdown.svg"))

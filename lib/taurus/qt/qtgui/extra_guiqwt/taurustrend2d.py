@@ -244,7 +244,7 @@ def taurusTrend2DMain():
     stackMode = stackModeMap[options.x_axis_mode.lower()]
       
     if options.demo:
-        args.append('eval://sin(x+t)?x=linspace(0,3,40);t=rand()')
+        args.append('eval:x=linspace(0,3,40);t=rand();sin(x+t)')
         
     w = TaurusTrend2DDialog(stackMode=stackMode, wintitle=options.window_name, 
                             buffersize=int(options.max_buffer_size))

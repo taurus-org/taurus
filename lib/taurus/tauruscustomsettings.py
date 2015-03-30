@@ -55,7 +55,10 @@ T_FORM_COMPACT = False
 # False (or commented out) for backwards compatibility
 LIGHTWEIGHT_IMPORTS = False
 
-# Extra Taurus schemes. You can add a list of modules to be loaded for
+# Set your default scheme (if not defined, "tango" is assumed)     
+DEFAULT_SCHEME = "tango"
+
+# Extra Taurus schemes. You can add a list of modules to be loaded for 
 # providing support to new schemes
 # EXTRA_SCHEME_MODULES = ['myownschememodule']
 

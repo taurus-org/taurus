@@ -30,8 +30,8 @@ __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "TaurusSerializationMode", "SubscriptionState", "TaurusEventType",
            "MatchLevel", "TaurusElementType", "LockStatus", "DataFormat",
            "AttrQuality", "AttrAccess", "DisplayLevel", "ManagerState",
-           "TaurusTimeVal", "TaurusAttrValue", "TaurusConfigValue",
-           "TaurusLockInfo"]
+           "TaurusTimeVal", "TaurusAttrValue", "TaurusConfigValue", "DataType",
+           "TaurusLockInfo", "DevState"]
 
 __docformat__ = "restructuredtext"
 
@@ -109,7 +109,7 @@ TaurusElementType = Enumeration(
     'Command',
     'Property',
     'Configuration',
-    'Database',
+    'Authority'
 ))
 
 LockStatus = Enumeration(
@@ -117,7 +117,7 @@ LockStatus = Enumeration(
     'Unlocked',
     'Locked',
     'LockedMaster',
-    'Unknown',
+    'Unknown'
 ))
 
 DataFormat = Enumeration(
@@ -132,7 +132,7 @@ DataType = Enumeration(
     'Integer',
     'Float',
     'String',
-    'Boolean',
+    'Boolean'
 ))
 
 SubscriptionState = Enumeration(
@@ -143,14 +143,14 @@ SubscriptionState = Enumeration(
     "PendingSubscribe"
 ))
 
-#################
-# Not in use yet:
 
 AttrQuality = Enumeration(
 'AttrQuality', (
     'ATTR_VALID', 
     'ATTR_INVALID', 
-    'ATTR_ALARM'
+    'ATTR_ALARM',
+    'ATTR_CHANGING',
+    'ATTR_WARNING'
 ))
 
 AttrAccess = Enumeration(
@@ -175,7 +175,23 @@ ManagerState =  Enumeration(
     'CLEANED'
 )) 
 
-
+DevState =  Enumeration(
+'DevState', (
+    'ON',
+    'OFF',
+    'CLOSE',
+    'OPEN',
+    'INSERT',
+    'EXTRACT',
+    'MOVING',
+    'STANDBY',
+    'FAULT',
+    'INIT',
+    'RUNNING',
+    'ALARM',
+    'DISABLE',
+    'UNKNOWN'
+))
 
 class TaurusTimeVal(object):
     def __init__(self):
@@ -222,15 +238,17 @@ class TaurusTimeVal(object):
          
 
 class TaurusAttrValue(object):
-    def __init__(self):
+    def __init__(self, config=None):
+        if config is None:
+            config = TaurusConfigValue()
         self.value = None
         self.w_value = None
         self.time = None
         self.quality = AttrQuality.ATTR_VALID
-        self.format = 0
+        #self.format = 0
         self.has_failed = False
         self.err_stack = None
-        self.config = TaurusConfigValue()
+        self.config = config
         
     def __getattr__(self,name):
         return getattr(self.config, name)
@@ -245,18 +263,13 @@ class TaurusConfigValue(object):
         self.name = None
         self.writable = None
         self.data_format = None
-        self.type = None
-        self.max_dim = 1, 1
         self.label = None
         self.unit = None
-        self.standard_unit = None
-        self.display_unit= None
-        self.format = None
+        self.type = None
+        self.description = None
         self.range = float('-inf'), float('inf')
         self.alarm = float('-inf'), float('inf')
         self.warning = float('-inf'), float('inf')
-        self.disp_level = None
-        self.description = None
     
     def __repr__(self):
         return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
