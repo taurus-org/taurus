@@ -81,15 +81,15 @@ class UILoadableTestCase(unittest.TestCase):
                           "button text differs from expected")
 
          
-class Bug339_TestCase(BaseWidgetTestCase, unittest.TestCase):
-    '''Test for bug 339: https://sourceforge.net/p/sardana/tickets/339/'''
-    def test_bug339(self):
-        '''Check inheritance of UILoadable classes across packages (bug #339)
+class Bug151_TestCase(BaseWidgetTestCase, unittest.TestCase):
+    '''Test for bug 151: https://sourceforge.net/p/tauruslib/tickets/151/'''
+    def test_bug151(self):
+        '''Check inheritance of UILoadable classes across packages (bug #151)
         '''
-        class Bug339_Widget(MyWidget3):
+        class Bug151_Widget(MyWidget3):
                 pass 
         try:
-            Bug339_Widget()
+            Bug151_Widget()
         except:
             self.fail('Inheriting from UILoadable from another package fails')
         
