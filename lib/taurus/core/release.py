@@ -53,15 +53,16 @@ name = 'taurus'
 # bdist_deb does not accept underscores (a Debian convention).
 
 
-version_info = (3,4,0,'rc',0)
+version_info = (3,5,0,'rc',0)
 version = '.'.join(map(str, version_info[:3]))
 revision = str(version_info[4])
 
-description = "A library designed to provide an abstraction layer over PyTango."
+description = "A framework for scientific/industrial CLIs and GUIs"
 
-long_description = """Taurus stands for TAngo User interface 'R' US. It
-is a python framework for both CLI and GUI tango applications.
-It is build on top of PyTango and PyQt."""
+long_description = """Taurus is a python framework for control and data 
+acquisition CLIs and GUIs in scientific/industrial environments. 
+It supports multiple control systems or data sources: Tango, EPICS, spec... 
+New control system libraries can be integrated through plugins."""
 
 license = 'LGPL'
 
@@ -70,7 +71,7 @@ authors = {'Tiago'          : ('Tiago Coutinho','tiago.coutinho@esrf.fr'),
            'Reszela'        : ('Zbigniew Reszela','zreszela@cells.es') }
             
 
-url = 'http://taurus-scada.org'
+url = 'http://www.taurus-scada.org'
 
 download_url = 'http://pypi.python.org/packages/source/t/taurus'
 
