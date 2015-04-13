@@ -54,16 +54,9 @@ sys.path.append(os.path.abspath('sphinxext'))
 # it has no effect on local builds
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd:
-    # unfortunately, RTD installs sardana instead of taurus 
-    # and it fails because of the PyTango mocked version
-    # fix the PyTango mock so that rtd can install sardana
-    import PyTango
-    if not isinstance(PyTango.Release.version_info, tuple):
-        PyTango.Release.version_info=(999, 99, 9, 'mock', 0)
-    
+if on_rtd:    
     import imp
-        
+
     def _build_catalog():
         #import setup.py as a module
         name = 'setup'
