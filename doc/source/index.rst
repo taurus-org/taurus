@@ -2,9 +2,7 @@
 Welcome to Taurus's Home Page!
 =============================================
 
-    |image1| |image2| |image3|
-
-
+    |image1| 
 
 Taurus is a python framework for control and data acquisition CLIs and GUIs
 in scientific/industrial environments.
@@ -32,24 +30,15 @@ Projects related to Taurus
 - Taurus is part of the Sardana_ suite
 
 
-.. |image1| image::  _static/taurusform_example02.png
+.. |image1| image::  _static/taurus_showcase01.png
     :align: middle
     :height: 180
-
-.. |image2| image::  _static/taurusplot03.png
-    :align: middle
-    :height: 180
-
-.. |image3| image::  _static/taurus_tree01.png
-    :align: middle
-    :height: 180
-
 
 .. toctree::
     :hidden:
 
-    Home Page <http://taurus-scada.org>
-    Project Page <http://sourceforge.net/projects/sardana>
+    Home Page <http://www.taurus-scada.org>
+    Project Page <http://sourceforge.net/projects/tauruslib>
     Download from PyPI <http://pypi.python.org/pypi/taurus>
     docs
 

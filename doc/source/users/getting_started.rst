@@ -69,24 +69,20 @@ necessary to run taurus on your windows machine
 Working from Git
 ----------------
 
-Sometimes it is convenient to work directly from the git source without
-installing. Taurus code is hosted in a `subdirectory
-<http://sourceforge.net/p/sardana/sardana.git/ci/master/tree/taurus/>`_ of the
-`main Sardana git repository <http://sourceforge.net/p/sardana/sardana.git>`_
+Sometimes it is convenient to work directly from the git source without 
+installing. 
 
-You can clone sardana from our main git repository::
+You can clone taurus from our main git repository::
 
-    git clone git://git.code.sf.net/p/sardana/sardana.git sardana
-
-and you will find the taurus code in the `sardana/taurus` directory.
+    git clone git://git.code.sf.net/p/tauruslib/taurus.git taurus
 
 Then, if you decide to work directly from Git code (without installing):
 
-    1. add <sardana_root_dir>/taurus/lib to PYTHONPATH
-    2. add <sardana_root_dir>/taurus/scripts to PATH
+    1. add <taurus_root_dir>/lib to PYTHONPATH
+    2. add <taurus_root_dir>/scripts to PATH
     3. build the resources::
     
-        cd <sardana_root_dir>/taurus
+        cd <taurus_root_dir>
         python setup.py build_resources
         
 

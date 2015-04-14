@@ -184,7 +184,7 @@ class TangoAttribute(TaurusAttribute):
                 attrvalue = float(value)
             elif type == DataType.DevFloat:
                 # We encode to float, but rounding to Tango::DevFloat precision
-                # see: http://sf.net/p/sardana/tickets/162
+                # see: http://sf.net/p/tauruslib/tickets/61
                 attrvalue = float(numpy.float32(value))
             elif PyTango.is_int_type(type):
                 #attrvalue = int(value)

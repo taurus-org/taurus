@@ -49,7 +49,7 @@ class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
         AttributeError: type object 'TaurusConfigurationProxy' has no attribute
         'buildModelName'.
         
-        See: http://sf.net/p/sardana/tickets/169/
+        See: http://sf.net/p/tauruslib/tickets/65/
     
 
     .. seealso: :class:`taurus.qt.qtgui.test.base.BaseWidgetTestCase`
