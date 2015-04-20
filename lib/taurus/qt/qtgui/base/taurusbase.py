@@ -55,39 +55,6 @@ from taurus.qt.qtgui.util import ActionFactory
 
 DefaultNoneValue = "-----"
 
-TTANGO_TO_TQT = {
-    str                        : 'QString',
-    int                        : 'int',
-    long                       : 'long',
-    float                      : 'float',
-    bool                       : 'bool',
-    list                       : 'QList',
-    tuple                      : 'QList',
-    dict                       : 'QMap',
-    PyTango.ArgType.DevDouble          : 'float',
-    PyTango.ArgType.DevFloat           : 'float',
-    PyTango.ArgType.DevLong            : 'int',
-    PyTango.ArgType.DevShort           : 'int',
-    PyTango.ArgType.DevBoolean         : 'bool',
-    PyTango.ArgType.DevUChar           : 'int',
-    PyTango.ArgType.DevState           : 'int',
-    PyTango.ArgType.DevString          : 'QString',
-    PyTango.ArgType.DevULong           : 'int',
-    PyTango.ArgType.DevLong64          : 'long',
-    PyTango.ArgType.DevULong64         : 'long',
-    PyTango.ArgType.DevUShort          : 'int',
-    PyTango.ArgType.DevVarBooleanArray : 'QList',
-    PyTango.ArgType.DevVarCharArray    : 'QList',
-    PyTango.ArgType.DevVarDoubleArray  : 'QList',
-    PyTango.ArgType.DevVarFloatArray   : 'QList',
-    PyTango.ArgType.DevVarLongArray    : 'QList',
-    PyTango.ArgType.DevVarLong64Array  : 'QList',
-    PyTango.ArgType.DevVarShortArray   : 'QList',
-    PyTango.ArgType.DevVarStringArray  : 'QList',
-    PyTango.ArgType.DevVarULongArray   : 'QList',
-    PyTango.ArgType.DevVarUShortArray  : 'QList',
-}
-
 class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     """A generic Taurus component.
        
