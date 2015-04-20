@@ -30,4 +30,6 @@ __docformat__ = 'restructuredtext'
 from .qtree import *
 from .taurustree import *
 from .taurusdbtree import *
-from .taurusdevicetree import *
+
+#taurusdevicetree should be removed from taurus or merged with taurusdbtree
+# from .taurusdevicetree import *  

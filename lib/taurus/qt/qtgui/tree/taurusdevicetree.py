@@ -27,12 +27,19 @@
 taurusdevicetree.py: 
 """
 
+# @todo: This module is not being used anywhere in Taurus and depends on 
+# non-standard and non-provided modules. It is also quite specific and 
+# tango-centric, so it should be removed from Taurus or merged with Taurusdbtree
+
 __all__ = ["TaurusDevTree","TaurusSearchTree","TaurusDevTreeOptions"] #,"SearchEdit"] #"TaurusTreeNode"]
 
-import time,os,re,traceback
+import time,os,traceback
 from functools import partial
 import PyTango # to change!!
 
+# @todo: icons_dev_tree is not an included or standard module. 
+#        Is anybody using it? If not, the following lines should be removed and   
+#        the TaurusDevTree.setStateIcon method should be cleaned
 try:import icons_dev_tree
 except:icons_dev_tree = None
 
