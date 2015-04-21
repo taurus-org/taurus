@@ -30,7 +30,6 @@ __all__ = ['IcepapDriverParam']
 
 from taurus.core.evaluation import EvaluationDevice
 import re
-import pyIcePAP
 
 class IcepapDriverParam(EvaluationDevice):
     '''A simple example of usage of the evaluation scheme for 
@@ -46,6 +45,7 @@ class IcepapDriverParam(EvaluationDevice):
 
         # Get the icepap host and port to connect
         self.ipap = None
+        import pyIcePAP
 
         try:
             db_name = self.getNameValidator().getDBName(self._full_name)
@@ -75,12 +75,12 @@ class IcepapDriverParam(EvaluationDevice):
 
 ATTR_IPAP_POS = 'eval://db=icepap06:5000;dev=taurus.core.evaluation.ipap_example.IcepapDriverParam;getAxisParam(1,"POS")'
 
-def test1():
+def _test1():
     import taurus.core
     a = taurus.Attribute(ATTR_IPAP_POS)
-    print "axis pos:", a.read().value
+    print "axi_s pos:", a.read().value
     
-def test2():
+def _test2():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.display import TaurusLabel
@@ -93,5 +93,5 @@ def test2():
     sys.exit(app.exec_())
     
 if __name__ == "__main__":
-    test1()
-    test2()
+    _test1()
+    _test2()
