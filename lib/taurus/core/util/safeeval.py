@@ -32,8 +32,6 @@ __all__ = ["SafeEvaluator"]
 __docformat__ = "restructuredtext"
 
 
-import numpy
-
 class SafeEvaluator:
     """This class provides a safe eval replacement. 
     
@@ -57,6 +55,8 @@ class SafeEvaluator:
         if safedict is None: safedict={}    
         self.safe_dict = safedict
         if defaultSafe:
+            import numpy
+            from taurus.external.pint import Quantity
             self.safe_dict['pow'] = pow
             self.safe_dict['len'] = len
             self.safe_dict['int'] = int
@@ -65,6 +65,8 @@ class SafeEvaluator:
                 self.safe_dict[n] = getattr(numpy, n)
             for n in self._default_numpy_random:
                 self.safe_dict[n] = getattr(numpy.random, n)
+            self.safe_dict['Quantity'] = Quantity
+            self.safe_dict['Q'] = Quantity # Q() is an alias for Quantity() 
         
         self._originalSafeDict = self.safe_dict.copy()
         
