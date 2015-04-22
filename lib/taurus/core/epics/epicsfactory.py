@@ -677,7 +677,7 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
 #===============================================================================
 # Just for testing
 #===============================================================================
-def test1():
+def _test1():
     f = EpicsFactory()
     d = f.getDevice('epics://foo:bar:')
     a = f.getAttribute('epics://foo:bar:baz')
@@ -695,7 +695,7 @@ def test1():
 #    print c.getUnit()
     
 
-def test2():
+def _test2():
     from taurus import Attribute
     a = Attribute('epics://mp49t:sim1.RBV')
     class Dummy:
@@ -711,7 +711,7 @@ def test2():
     while kk.n <= 20:
         time.sleep(1)        
     
-def test3():
+def _test3():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.panel import TaurusForm
@@ -739,6 +739,6 @@ def test3():
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    test3()
+    _test3()
     
         
