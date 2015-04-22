@@ -128,11 +128,8 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
                 image = TaurusRGBImageItem(param)
             else:
                 from taurus import Attribute
-                try:
-                    from PyTango import DevEncoded  #@todo: replace this (Tango-centric).
-                except:
-                    DevEncoded = 28 #@todo: hardcoded fallback to be replaced when the data types are handled in Taurus
-                if Attribute(taurusmodel).read().type == DevEncoded:
+                from taurus.core import DataType
+                if Attribute(taurusmodel).read().type == DataType.DevEncoded:
                     image = TaurusEncodedImageItem(param)
                 else:
                     image = TaurusImageItem(param)

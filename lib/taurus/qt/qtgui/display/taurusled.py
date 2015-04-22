@@ -35,12 +35,7 @@ import operator
 
 from taurus.external.qt import Qt
 
-# Shame on me!!!!
-import PyTango
-
-State = PyTango.DevState
-DataFormat = PyTango.AttrDataFormat
-Quality = PyTango.AttrQuality
+from taurus.core import DevState, DataFormat, AttrQuality
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from qled import QLed
@@ -60,12 +55,12 @@ class _TaurusLedController(object):
                 None : (  False,    "black",     True) }
 
     LedQualityMap = {
-        Quality.ATTR_ALARM : (   True,   "orange",    False),
-     Quality.ATTR_CHANGING : (   True,     "blue",    False),
-      Quality.ATTR_INVALID : (   True,      "red",    False),
-        Quality.ATTR_VALID : (   True,    "green",    False),
-      Quality.ATTR_WARNING : (   True,   "orange",    False),
-                      None : (  False,    "black",     True) }
+        AttrQuality.ATTR_ALARM : (   True,   "orange",    False),
+     AttrQuality.ATTR_CHANGING : (   True,     "blue",    False),
+      AttrQuality.ATTR_INVALID : (   True,      "red",    False),
+        AttrQuality.ATTR_VALID : (   True,    "green",    False),
+      AttrQuality.ATTR_WARNING : (   True,   "orange",    False),
+                          None : (  False,    "black",     True) }
     
     def __init__(self, widget):
         self._widget = weakref.ref(widget)
@@ -159,20 +154,20 @@ class _TaurusLedControllerBool(_TaurusLedController):
 class _TaurusLedControllerState(_TaurusLedController):
     
     #                key      status,       color, inTrouble
-    LedMap = {    State.ON : (   True,    "green",    False),
-                 State.OFF : (  False,    "black",    False),
-               State.CLOSE : (   True,    "white",    False),
-                State.OPEN : (   True,    "green",    False),
-              State.INSERT : (   True,    "green",    False),
-             State.EXTRACT : (   True,    "green",    False),
-              State.MOVING : (   True,     "blue",    False),
-             State.STANDBY : (   True,   "yellow",    False),
-               State.FAULT : (   True,      "red",    False),
-                State.INIT : (   True,   "yellow",    False),
-             State.RUNNING : (   True,     "blue",    False),
-               State.ALARM : (   True,   "orange",    False),
-             State.DISABLE : (   True,  "magenta",    False),
-             State.UNKNOWN : (  False,    "black",    False),
+    LedMap = {    DevState.ON : (   True,    "green",    False),
+                 DevState.OFF : (  False,    "black",    False),
+               DevState.CLOSE : (   True,    "white",    False),
+                DevState.OPEN : (   True,    "green",    False),
+              DevState.INSERT : (   True,    "green",    False),
+             DevState.EXTRACT : (   True,    "green",    False),
+              DevState.MOVING : (   True,     "blue",    False),
+             DevState.STANDBY : (   True,   "yellow",    False),
+               DevState.FAULT : (   True,      "red",    False),
+                DevState.INIT : (   True,   "yellow",    False),
+             DevState.RUNNING : (   True,     "blue",    False),
+               DevState.ALARM : (   True,   "orange",    False),
+             DevState.DISABLE : (   True,  "magenta",    False),
+             DevState.UNKNOWN : (  False,    "black",    False),
                       None : (  False,    "black",     True) }
     
     def usePreferedColor(self, widget):

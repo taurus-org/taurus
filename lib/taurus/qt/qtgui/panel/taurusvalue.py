@@ -35,8 +35,8 @@ __docformat__ = 'restructuredtext'
 
 import weakref
 from taurus.external.qt import Qt
-import PyTango
 import taurus.core
+from taurus.core import DataType
 
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
@@ -428,21 +428,21 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             except:
                 pass
             if config.isScalar():
-                if  configType == PyTango.ArgType.DevBoolean:
+                if  configType == DataType.Boolean:
                     result = [CenteredLed, ExpandingLabel]
-                elif configType == PyTango.ArgType.DevState:
+                elif configType == DataType.DevState:
                     result = [CenteredLed, ExpandingLabel]
                 elif str(self.getModel()).lower().endswith('/status'): #@todo: tango-centric!!
                     result = [TaurusStatusLabel, ExpandingLabel]
                 else:
                     result = [ExpandingLabel]
             elif config.isSpectrum():
-                if PyTango.is_numerical_type(configType): #@todo: tango-centric!!
+                if configType in (DataType.Float, DataType.Integer): 
                     result = [TaurusPlotButton, TaurusValuesTableButton, ExpandingLabel]
                 else:
                     result = [TaurusValuesTableButton, ExpandingLabel]
             elif config.isImage():
-                if PyTango.is_numerical_type(configType): #@todo: tango-centric!!
+                if configType in (DataType.Float, DataType.Integer):
                     try: 
                         from taurus.qt.qtgui.extra_guiqwt import TaurusImageDialog #unused import but useful to determine if TaurusImageButton should be added
                         result = [TaurusImageButton, TaurusValuesTableButton, ExpandingLabel]
@@ -490,19 +490,13 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         config = modelobj.getConfig()
         if config.isScalar():
             configType = config.getType() 
-            if configType == PyTango.ArgType.DevBoolean:
+            if configType == DataType.Boolean:
                 result = [DefaultTaurusValueCheckBox, TaurusValueLineEdit]
-            #elif PyTango.is_numerical_type(configType ):
-            #    result = TaurusWheelEdit
             else:
                 result = [TaurusValueLineEdit, TaurusValueSpinBox, TaurusWheelEdit]
         elif config.isSpectrum():
             configType = config.getType()
-            if configType in (PyTango.ArgType.DevDouble, PyTango.ArgType.DevFloat, 
-                              PyTango.ArgType.DevInt, PyTango.ArgType.DevLong, 
-                              PyTango.ArgType.DevLong64, PyTango.ArgType.DevShort, 
-                              PyTango.ArgType.DevULong, PyTango.ArgType.DevULong64, 
-                              PyTango.ArgType.DevUShort):
+            if configType in (DataType.Float, DataType.Integer):
                 result = [TaurusArrayEditorButton, TaurusValuesTableButton_W, TaurusValueLineEdit]
             else:
                 result = [TaurusValuesTableButton_W, TaurusValueLineEdit]

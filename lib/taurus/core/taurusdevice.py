@@ -112,17 +112,17 @@ class TaurusDevice(TaurusModel):
 
     def getStateObj(self):
         if self._deviceStateObj is None:
-            self._deviceStateObj = self.factory().getAttribute("%s/state" % self.getFullName())
+            self._deviceStateObj = self.factory().getAttribute("%s/state" % self.getFullName()) # tango-centric!
         return self._deviceStateObj
 
     def getState(self, cache=True):
         stateAttrValue = self.getStateObj().getValueObj(cache=cache)
         if not stateAttrValue is None:
-            return stateAttrValue.value
+            return stateAttrValue.rvalue
         return None
 
     def getSWState(self, cache=True):
-        return self.getValueObj(cache=cache).value
+        return self.getValueObj(cache=cache).rvalue
 
     def getAttribute(self, attrname):
         """Returns the attribute object given its name"""
@@ -204,7 +204,7 @@ class TaurusDevice(TaurusModel):
         return self._deviceSwState
 
     def getDisplayValue(self,cache=True):
-        return TaurusSWDevState.whatis(self.getValueObj(cache).value)
+        return TaurusSWDevState.whatis(self.getValueObj(cache).rvalue)
 
     def getDisplayDescrObj(self,cache=True):
         obj = []
@@ -259,8 +259,8 @@ class TaurusDevice(TaurusModel):
             return
         value = self.decode(event_value)
 
-        if value.value != self._deviceSwState.value:
-            self.debug("SW Device State changed %s -> %s" % (TaurusSWDevState.whatis(self._deviceSwState.value), TaurusSWDevState.whatis(new_sw_state)))
+        if value.rvalue != self._deviceSwState.rvalue:
+            self.debug("SW Device State changed %s -> %s" % (TaurusSWDevState.whatis(self._deviceSwState.rvalue), TaurusSWDevState.whatis(new_sw_state)))
             self._deviceSwState = value
             self.fireEvent(TaurusEventType.Change, value)
 

@@ -225,7 +225,7 @@ class TaurusAttribute(TaurusModel):
         if not attrvalue:
             return None
         
-        v = attrvalue.w_value
+        v = attrvalue.wvalue
         return self.displayValue(v)
         
     def displayValue(self,value):

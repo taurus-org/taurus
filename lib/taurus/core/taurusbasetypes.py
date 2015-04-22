@@ -129,11 +129,28 @@ DataFormat = Enumeration(
 
 DataType = Enumeration(
 'DataType', (
-    'Integer',
-    'Float',
-    'String',
-    'Boolean'
+    'Integer', # Can be used in scheme-agnostic code
+    'Float', # Can be used in scheme-agnostic code
+    'String', # Can be used in scheme-agnostic code 
+    'Boolean', # Can be used in scheme-agnostic code
+    'Bytes', 
+    'DevState', # This type is for Tango backwards-compat. Avoid using it
+    'DevEncoded', # This type is for Tango backwards-compat. Avoid using it
+    'Object' # use this for opaque py objects not described by any of the above
 ))
+# monkey-patch DataType to provide from_python_type()
+__PYTHON_TYPE_TO_TAURUS_DATATYPE = {
+        str : DataType.String,
+        int : DataType.Integer,
+        long : DataType.Integer,
+        float : DataType.Float,
+        bool : DataType.Boolean,
+        #bytes : DataType.Bytes, # see below... 
+    }
+if str is not bytes: # Python >=3
+    __PYTHON_TYPE_TO_TAURUS_DATATYPE[bytes] = DataType.Bytes
+# Note: in Python2, DataType.from_python_type(bytes) --> DataType.String
+DataType.from_python_type = __PYTHON_TYPE_TO_TAURUS_DATATYPE.get
 
 SubscriptionState = Enumeration(
 "SubscriptionState", (
@@ -241,14 +258,103 @@ class TaurusAttrValue(object):
     def __init__(self, config=None):
         if config is None:
             config = TaurusConfigValue()
-        self.value = None
-        self.w_value = None
+        self.rvalue = None
+        self.wvalue = None
         self.time = None
         self.quality = AttrQuality.ATTR_VALID
         #self.format = 0
-        self.has_failed = False
-        self.err_stack = None
+        self.error = None
         self.config = config
+    
+    # --------------------------------------------------------
+    # This is for backwards compat with the API of taurus < 4 
+    #
+    def _get_value(self):
+        '''for backwards compat with taurus < 4'''
+        self.__deprecation_msg('value', '.rvalue', repr(self))
+        try:
+            return self.__fix_int(self.rvalue.magnitude)
+        except AttributeError: 
+            return self.rvalue
+        
+    def _set_value(self, value):
+        '''for backwards compat with taurus < 4'''
+        self.__deprecation_msg('value', '.rvalue', 
+                               'Setting %r to %s'%(value,self.config.name))
+        
+        if self.rvalue is None: #we do not have a previous rvalue
+            import numpy
+            dtype = numpy.array(value).dtype
+            if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
+                msg = 'Refusing to set ambiguous value (deprecated .value API)'
+                raise ValueError(msg)
+            else:
+                self.rvalue = value                
+        elif hasattr(self.rvalue, 'units'): # we do have it and is a Quantity
+            from taurus.external.pint import Quantity
+            self.rvalue = Quantity(value, units = self.rvalue.units)
+        else: # we do have a previous value and is not a quantity
+            self.rvalue = value
+
+    value = property(_get_value, _set_value)
+        
+    def _get_w_value(self):
+        '''for backwards compat with taurus < 4'''
+        self.__deprecation_msg('w_value', '.wvalue', repr(self))
+        try:
+            return self.__fix_int(self.wvalue.magnitude)
+        except AttributeError: 
+            return self.wvalue
+         
+    def _set_w_value(self, value):
+        '''for backwards compat with taurus < 4'''
+        self.__deprecation_msg('w_value', '.wvalue', 
+                               'Setting %r to %s'%(value,self.config.name))
+        
+        if self.wvalue is None: #we do not have a previous wvalue
+            import numpy
+            dtype = numpy.array(value).dtype
+            if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
+                msg = 'Refusing to set ambiguous value (deprecated .value API)'
+                raise ValueError(msg)
+            else:
+                self.wvalue=value                
+        elif hasattr(self.wvalue, 'units'): # we do have it and is a Quantity
+            from taurus.external.pint import Quantity
+            self.wvalue = Quantity(value, units = self.wvalue.units)
+        else: # we do have a previous value and is not a quantity
+            self.wvalue=value
+
+    w_value = property(_get_w_value, _set_w_value)
+            
+    @property
+    def has_failed(self):
+        '''for backwards compat with taurus < 4'''
+        self.__deprecation_msg('has_failed', '.error')
+        return self.error
+    
+    @classmethod
+    def __deprecation_msg(cls, dep, alt, extra_msg=''):
+        from taurus import warning, debug
+        import traceback
+        fstack = traceback.format_stack()
+        warning('%s.%s is deprecated. Use %s instead\nUsed in: %s', cls, dep, 
+                alt, fstack[-3])
+        debug('%s\n%s', extra_msg, ''.join(fstack[:-2]))
+        
+    def __fix_int(self, value):
+        '''cast value to int if its config says it is an integer.
+        Works on scalar and non-scalar values'''
+        if self.config.type != DataType.Integer:
+            return value
+        try:
+            return int(value)
+        except TypeError:
+            import numpy
+            return numpy.array(value, dtype='int')
+            
+    #    
+    # --------------------------------------------------------
         
     def __getattr__(self,name):
         return getattr(self.config, name)
@@ -264,7 +370,6 @@ class TaurusConfigValue(object):
         self.writable = None
         self.data_format = None
         self.label = None
-        self.unit = None
         self.type = None
         self.description = None
         self.range = float('-inf'), float('inf')
@@ -277,7 +382,7 @@ class TaurusConfigValue(object):
     def isWrite(self):
         return self.writable == AttrAccess.WRITE
     
-    def isReadOnly(sel):
+    def isReadOnly(self):
         return self.writable == AttrAccess.READ
 
     def isReadWrite(self):

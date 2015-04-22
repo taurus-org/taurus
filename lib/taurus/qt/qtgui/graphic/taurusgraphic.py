@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import PyTango
 
 #############################################################################
 ##
@@ -41,6 +40,7 @@ import types
 import Queue
 
 from taurus import Manager
+from taurus.core import AttrQuality, DevState, DataType
 from taurus.core.util.containers import CaselessDefaultDict
 from taurus.core.util.log import Logger
 from taurus.core.tango.tangovalidator import TangoDeviceNameValidator, TangoAttributeNameValidator
@@ -51,6 +51,7 @@ from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
                                   ExternalAppAction, TaurusWidgetFactory)
+
 
 SynopticSelectionStyle = Enumeration("SynopticSelectionStyle", [
     # A blue ellipse is displayed around the selected objects
@@ -997,7 +998,7 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
                 quality = None
                 if v:
                     quality = v.quality
-                if quality == PyTango.AttrQuality.ATTR_VALID and self._validBackground:
+                if quality == AttrQuality.ATTR_VALID and self._validBackground:
                     background = self._validBackground
                 else:
                     background, _ = QT_ATTRIBUTE_QUALITY_PALETTE.qcolor(quality)
@@ -1039,12 +1040,11 @@ class TaurusGraphicsStateItem(TaurusGraphicsItem):
         self._currBrush = Qt.QBrush(Qt.Qt.NoBrush)
         if v: # or self.getShowState():
             try:
-                import PyTango
                 bg_brush, fg_brush = None,None
-                if self.getModelObj().getType() == PyTango.ArgType.DevState:
+                if self.getModelObj().getType() == DataType.DevState:
                     bg_brush, fg_brush = QT_DEVICE_STATE_PALETTE.qbrush(v.value)
-                elif self.getModelObj().getType() == PyTango.ArgType.DevBoolean:
-                    bg_brush, fg_brush = QT_DEVICE_STATE_PALETTE.qbrush((PyTango.DevState.FAULT,PyTango.DevState.ON)[v.value])
+                elif self.getModelObj().getType() == DataType.Boolean:
+                    bg_brush, fg_brush = QT_DEVICE_STATE_PALETTE.qbrush((DevState.FAULT,DevState.ON)[v.value])
                 elif self.getShowQuality():
                     bg_brush, fg_brush = QT_ATTRIBUTE_QUALITY_PALETTE.qbrush(v.quality)            
                 if None not in (bg_brush,fg_brush):

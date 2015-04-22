@@ -36,16 +36,18 @@ import threading
 import PyTango
 import numpy
 
-from taurus import Factory, Manager
+from taurus import Manager
+from taurus.external.pint import Quantity
+
 from taurus.core.taurusattribute import TaurusAttribute, TaurusStateAttribute
 from taurus.core.taurusbasetypes import ( TaurusEventType, 
     TaurusSerializationMode, SubscriptionState, TaurusAttrValue, AttrQuality, 
-    DataFormat)
+    DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
-from .enums import EVENT_TO_POLLING_EXCEPTIONS
 
-DataType = PyTango.CmdArgType
+from .util.tango_taurus import quality_from_tango
+from .enums import EVENT_TO_POLLING_EXCEPTIONS, FROM_TANGO_TO_NUMPY_TYPE
 
 
 class TangoAttrValue(TaurusAttrValue):
@@ -55,23 +57,50 @@ class TangoAttrValue(TaurusAttrValue):
     def __init__(self, config=None, pytango_dev_attr=None):
         TaurusAttrValue.__init__(self, config=config)
         self._pytango_dev_attr = p = pytango_dev_attr
-        if  pytango_dev_attr is None:
-            self._pytango_dev_attr = PyTango.DeviceAttribute()
+        if p is None:
+            self._pytango_dev_attr = p = PyTango.DeviceAttribute()
+            return
+        numerical = PyTango.is_numerical_type(config._tango_data_type, 
+                                              inc_array=True)
+        if p.has_failed:
+            self.error = PyTango.DevFailed(*p.get_err_stack())
         else:
-            self.value = p.value
-            self.w_value = p.w_value
-            self.time = p.time
-            self.quality = AttrQuality.get(p.quality)
-            self.has_failed = p.has_failed
-            #self.err_stack = p.err_stack
-            
+            if p.is_empty: # spectra and images can be empty without failing
+                dtype = FROM_TANGO_TO_NUMPY_TYPE.get(config._tango_data_type)
+                if config.data_format == DataFormat._1D:
+                    shape = (0,)
+                elif config.data_format == DataFormat._2D:
+                    shape = (0, 0)
+                p.value = numpy.empty(shape, dtype=dtype)
+                if not (numerical or config.type==DataType.Boolean):
+                    # generate a nested empty list of given shape
+                    p.value = []
+                    for i in xrange(len(shape)-1):
+                        p.value = [p.value]
+
+        rvalue = p.value
+        wvalue = p.w_value
+        #fmt = self.config._display_format
+        units = self.config._units
+        if numerical:
+            if rvalue is not None:
+                rvalue = Quantity(rvalue, units=units)
+                #rvalue.default_format = fmt + rvalue.default_format
+            if wvalue is not None:
+                wvalue = Quantity(wvalue, units=units)
+                #wvalue.default_format = fmt + wvalue.default_format
+
+        self.rvalue = rvalue
+        self.wvalue = wvalue
+        self.time = p.time
+        self.quality = quality_from_tango(p.quality)
      
     def __getattr__(self, name):
         try:
-            return getattr(self._pytango_dev_attr, name)
-        except AttributeError:
             return getattr(self.config, name)
-
+        except AttributeError:
+            return getattr(self._pytango_dev_attr, name)
+            
 
 
 class TangoAttribute(TaurusAttribute):
@@ -131,60 +160,46 @@ class TangoAttribute(TaurusAttribute):
         if not cfg:
             self.warning("attribute does not contain information")
             return False
-        if inc_array and not self.isScalar():
-            return False
-
-        type = cfg.getType()
-        return PyTango.is_numerical_type(type, inc_array=inc_array)
+        tgtype = cfg.getValueObj()._tango_data_type
+        return PyTango.is_numerical_type(tgtype, inc_array=inc_array)
 
     def isInteger(self, inc_array=False):
         cfg = self._getRealConfig()
         if not cfg:
             self.warning("attribute does not contain information")
             return False
-        if inc_array and not self.isScalar():
-            return False
-
-        type = cfg.getType()
-        return PyTango.is_int_type(type, inc_array=inc_array)
+        tgtype = cfg.getValueObj()._tango_data_type
+        return PyTango.is_int_type(tgtype, inc_array=inc_array)
 
     def isFloat(self, inc_array=False):
         cfg = self._getRealConfig()
         if not cfg:
             self.warning("attribute does not contain information")
             return False
-        if inc_array and not self.isScalar():
-            return False
-
-        type = cfg.getType()
-        return PyTango.is_float_type(type, inc_array=inc_array)
+        tgtype = cfg.getValueObj()._tango_data_type
+        return PyTango.is_float_type(tgtype, inc_array=inc_array)
 
     def isBoolean(self, inc_array=False):
         cfg = self._getRealConfig()
         if not cfg:
             self.warning("attribute does not contain information")
             return False
-        if inc_array and not self.isScalar():
-            return False
-
-        type = cfg.getType()
-        if inc_array:
-            return type in (DataType.DevBoolean, DataType.DevVarBooleanArray)
-        else:
-            return type == DataType.DevBoolean
+        tgtype = cfg.getValueObj()._tango_data_type
+        return PyTango.is_bool_type(tgtype, inc_array=inc_array)
 
     def isState(self):
         cfg = self._getRealConfig()
         if not cfg:
             self.warning("attribute does not contain information")
             return False
-        return cfg.getType() == DataType.DevState
+        tgtype = cfg.getValueObj()._tango_data_type
+        return tgtype == PyTango.CmdArgType.DevState
 
     def getDisplayValue(self, cache=True):
         attrvalue = self.getValueObj(cache=cache)
         if not attrvalue:
             return None
-        v = attrvalue.value
+        v = attrvalue.rvalue
 
         return self.displayValue(v)
 
@@ -193,38 +208,58 @@ class TangoAttribute(TaurusAttribute):
         the attribute data type"""
 
         attrvalue = None
-
-        if self._getRealConfig() is None:
+        cfg = self._getRealConfig()
+        if cfg is None:
             self.warning("attribute does not contain information")
             return value
+        
+        try:
+            magnitude = value.magnitude
+            units = value.units
+        except AttributeError:
+            magnitude = value
+            units = None
+            
+        # convert the magnitude to the units of the server
+        if units:
+            if cfg._units:
+                magnitude = value.to(cfg._units).magnitude
+            else:
+                msg = ( 'Attempt to encode a value with units (%s)' +
+                        ' for an attribute without configured units') % units
+                raise ValueError(msg)
 
         fmt = self.getDataFormat()
-        type = self.getType()
+        tgtype = cfg.getValueObj()._tango_data_type
         if fmt == DataFormat._0D:
-            if type == DataType.DevDouble:
-                attrvalue = float(value)
-            elif type == DataType.DevFloat:
+            if tgtype == PyTango.CmdArgType.DevDouble:
+                attrvalue = float(magnitude)
+            elif tgtype == PyTango.CmdArgType.DevFloat:
                 # We encode to float, but rounding to Tango::DevFloat precision
                 # see: http://sf.net/p/sardana/tickets/162
-                attrvalue = float(numpy.float32(value))
-            elif PyTango.is_int_type(type):
-                #attrvalue = int(value)
-                attrvalue = long(value)  #changed as a partial workaround to a problem in PyTango writing to DevULong64 attributes (see ALBA RT#29793)
-            elif type == DataType.DevBoolean:
+                attrvalue = float(numpy.float32(magnitude))
+            elif PyTango.is_int_type(tgtype):
+                #attrvalue = int(magnitude)
+                attrvalue = long(magnitude)  #changed as a partial workaround to a problem in PyTango writing to DevULong64 attributes (see ALBA RT#29793)
+            elif tgtype == PyTango.CmdArgType.DevBoolean:
                 try:
-                    attrvalue = bool(int(value))
+                    attrvalue = bool(int(magnitude))
                 except:
-                    attrvalue = str(value).lower() == 'true'
-            elif type == DataType.DevUChar:
-                attrvalue = chr(value)
-            elif type == DataType.DevState or type == DataType.DevEncoded:
-                attrvalue = value
+                    attrvalue = str(magnitude).lower() == 'true'
+            elif tgtype == PyTango.CmdArgType.DevUChar:
+                attrvalue = chr(magnitude)
+            elif tgtype in (PyTango.CmdArgType.DevState,
+                            PyTango.CmdArgType.DevEncoded):
+                attrvalue = magnitude
             else:
-                attrvalue = str(value)
+                attrvalue = str(magnitude)
         elif fmt in (DataFormat._1D, DataFormat._2D):
-            attrvalue = value
+            if PyTango.is_int_type(tgtype):
+                # cast to integer because the magnitude conversion gives floats 
+                magnitude = magnitude.astype('int64')
+            attrvalue = magnitude
         else:
-            attrvalue = str(value)
+            attrvalue = str(magnitude)
         return attrvalue
 
     def decode(self, attr_value):
@@ -258,7 +293,7 @@ class TangoAttribute(TaurusAttribute):
                             break;
                     else:
                         raise df
-                result = self.decode(result)
+                #result = self.decode(result) #TODO: make sure this is not needed
                 self.poll(single=False, value=result, time=time.time())
                 return result
             else:

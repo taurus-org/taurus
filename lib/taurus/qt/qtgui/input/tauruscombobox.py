@@ -32,8 +32,8 @@ __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 
-import PyTango
-import taurus.core
+from taurus.core import DataType, TaurusEventType
+from taurus.core.taurusattribute import TaurusAttribute
 from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseWritableWidget
 from taurus.core.util import eventfilters
 
@@ -95,18 +95,18 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         model = self.getModelObj()
         if model is None:
             return None
-
+        dtype = model.getConfig().getType()
         new_value = self.itemData(self.currentIndex())
         if new_value is None:
             return None
-
-        if PyTango.is_int_type(model.data_type):
+        
+        if dtype == DataType.Integer:
             func = int
-        elif PyTango.is_float_type(model.data_type):
+        elif dtype == DataType.Float:
             func = float
-        elif model.data_type in (PyTango.DevString,):
+        elif dtype == DataType.String:
             func = str
-        elif model.data_type in (PyTango.DevBoolean,):
+        elif dtype == DataType.Boolean:
             func = bool
         else:
             return None
@@ -223,10 +223,8 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         # the default, not modified by us
         model = widget.getModelObj()
         if model:
-            widget.fireEvent( model,
-                             taurus.core.taurusbasetypes.TaurusEventType.Periodic,
-                             model.getValueObj()
-            )
+            widget.fireEvent( model, TaurusEventType.Periodic,
+                              model.getValueObj() )
 
     def setQModel(self, *args, **kwargs):
         '''access to :meth:`QCombobox.setModel`
@@ -298,12 +296,12 @@ class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
     
     def getModelClass(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
-        return taurus.core.taurusattribute.TaurusAttribute
+        return TaurusAttribute
             
     def handleEvent(self, evt_src, evt_type, evt_value):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         self.clear()
-        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Error:
+        if evt_type == TaurusEventType.Error:
             return
         if not (evt_src is None or evt_value is None) :
             attrList = list(evt_value.value)

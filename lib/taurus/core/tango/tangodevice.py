@@ -146,7 +146,7 @@ class TangoDevice(TaurusDevice):
             new_sw_state = TaurusSWDevState.Crash
             
         value = TangoAttrValue()
-        value.value = new_sw_state
+        value.rvalue = new_sw_state
         
         return value
         

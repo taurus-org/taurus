@@ -37,12 +37,6 @@ from taurus.core import TaurusConfigValue, DataFormat
 
 from taurus.core.evaluation.evalvalidator import QUOTED_TEXT_RE, PY_VAR_RE
 
-FROM_PYTHON_TO_TAURUS_TYPE = {bool:DataType.Boolean,
-                              int:DataType.Integer,
-                              long:DataType.Integer,
-                              float:DataType.Float,
-                              str:DataType.String}
-
 class EvaluationAttribute(TaurusAttribute):
     '''
     A :class:`TaurusAttribute` that can be used to perform mathematical
@@ -185,8 +179,8 @@ class EvaluationAttribute(TaurusAttribute):
         refobj = Attribute(ref)
         if refobj not in self._references:
             evaluator = self.getParentObj()
-            v = refobj.read().value
-            # add its value to the evaluator symbols
+            v = refobj.read().rvalue
+            # add its rvalue to the evaluator symbols
             evaluator.addSafe({self.getId(refobj) : v})
             #add the object to the reference list 
             self._references.append(refobj)             
@@ -194,7 +188,7 @@ class EvaluationAttribute(TaurusAttribute):
     
     def eventReceived(self, evt_src, evt_type, evt_value):
         try:
-            v = evt_value.value
+            v = evt_value.rvalue
         except AttributeError:
             self.trace('Ignoring event from %s'%repr(evt_src))
             return
@@ -212,15 +206,15 @@ class EvaluationAttribute(TaurusAttribute):
         if self._transformation is None: return
         try:
             evaluator = self.getParentObj() 
-            self._value.value = evaluator.eval(self._transformation)
+            self._value.rvalue = evaluator.eval(self._transformation)
             self._value.time = TaurusTimeVal.now()
             self._value.quality = AttrQuality.ATTR_VALID
-            value_dimension = len(numpy.shape(self._value.value))            
+            value_dimension = len(numpy.shape(self._value.rvalue))            
             value_dformat = DataFormat(value_dimension)
             # TODO: this logic is related to the configuration class
             # in the future we could move it there
             self._value.config.data_format = value_dformat
-            self._value.config.type = self._encodeType(self._value.value,
+            self._value.config.type = self._encodeType(self._value.rvalue,
                                                        value_dformat)
         except Exception, e:
             self._value.quality = AttrQuality.ATTR_INVALID
@@ -241,19 +235,20 @@ class EvaluationAttribute(TaurusAttribute):
         '''
         # TODO: this logic is related to the configuration class
         # in the future we could move it there
-        if dformat is DataFormat._0D:
-            dataType = type(value)
-        elif dformat is DataFormat._1D:
-            if isinstance(value[0], numpy.generic):
-                dataType = type(value[0].item())
-            else:
-                dataType = type(value[0])
-        elif dformat is DataFormat._2D:
-            if isinstance(value[0][0], numpy.generic):
-                dataType = type(value[0][0].item())
-            else:
-                dataType = type(value[0][0])
-        return FROM_PYTHON_TO_TAURUS_TYPE.get(dataType)
+        
+        try: # handle Quantities
+            value = value.magnitude
+        except AttributeError:
+            pass
+        try: # handle numpy arrays
+            value = value.item(0)
+        except AttributeError: # for bool, bytes, str, seq<str>...
+            if dformat is DataFormat._1D:
+                value = value[0]
+            elif dformat is DataFormat._2D:
+                value = value[0][0]
+        dataType = type(value)
+        return DataType.from_python_type(dataType)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite from TaurusAttribute
@@ -262,13 +257,13 @@ class EvaluationAttribute(TaurusAttribute):
         return True
         
     def isBoolean(self):
-        return isinstance(self._value.value, bool)
+        return isinstance(self._value.rvalue, bool)
     
     def isState(self):
         return False
 
     def getDisplayValue(self,cache=True):
-        return str(self.read(cache=cache).value)
+        return str(self.read(cache=cache).rvalue)
 
     def encode(self, value):
         return value
@@ -291,7 +286,7 @@ class EvaluationAttribute(TaurusAttribute):
         if not cache:
             symbols = {}
             for ref in self._references:
-                symbols[self.getId(ref)] = ref.read(cache=False).value
+                symbols[self.getId(ref)] = ref.read(cache=False).rvalue
             evaluator = self.getParentObj()  
             evaluator.addSafe(symbols)
             self.applyTransformation()

@@ -31,6 +31,7 @@ __docformat__ = 'restructuredtext'
 
 import functools
 from taurus.external import unittest
+from taurus.external.pint import Quantity
 import taurus
 from taurus.test import insertTest
 from taurus.core import (TaurusElementType, TaurusAttribute, TaurusDevice,
@@ -289,7 +290,7 @@ class DeviceTestCase(unittest.TestCase):
                           type=DataType.Integer))
 @insertTest(helper_name='read_attr',
             name='eval:x=-1;x+{eval:x=2;x}+{eval:x=10;x}',
-            expected=dict(data_format=DataFormat._0D, unit=None, w_value=None,
+            expected=dict(data_format=DataFormat._0D, wvalue=None, w_value=None, 
                           label='-1+{eval:x=2;x}+{eval:x=10;x}',
                           type=DataType.Integer))
 @insertTest(helper_name='read_attr', name='eval://2*{eval://1.0}+{eval://2.0}',
@@ -314,73 +315,101 @@ class DeviceTestCase(unittest.TestCase):
             name='eval:{tango:sys/tg_test/1/string_image}',
             expected=dict(data_format=DataFormat._2D, type=DataType.String))
 @insertTest(helper_name='get_object', name='tango:a/b/c/d')
-################################################################################
-# TODO: DataType should be taurus.dataType instead of PyTango.CmdArgType
-# These test will be skipped
 @insertTest(helper_name='read_attr', name='tango:sys/tg_test/1/short_scalar',
             expected=dict(data_format=DataFormat._0D, type=DataType.Integer,
-                          label='short_scalar'), skip=True,
-            skipmsg='Tango does not support taurus.DataType')
+                          label='short_scalar'))
 @insertTest(helper_name='read_attr', name='tango:sys/tg_test/1/float_image',
             expected=dict(data_format=DataFormat._2D, type=DataType.Float,
-                          label='float_image'), skip=True,
-            skipmsg='Tango does not support taurus.DataType')
+                          label='float_image'))
 @insertTest(helper_name='read_attr', name='tango:sys/tg_test/1/boolean_scalar',
             expected=dict(data_format=DataFormat._0D, type=DataType.Boolean,
-                          label='boolean_scalar'), skip=True,
-            skipmsg='Tango does not support taurus.DataType')
+                          label='boolean_scalar'))
 @insertTest(helper_name='read_attr', name='tango:sys/tg_test/1/double_spectrum',
             expected=dict(data_format=DataFormat._1D, type=DataType.Float,
-                          label='double_spectrum'), skip=True,
-            skipmsg='Tango does not support taurus.DataType')
-################################################################################
+                          label='double_spectrum'))
 @insertTest(helper_name='read_attr', name='eval:1.0',
-            expected=dict(value=1.0, unit=None, w_value=None, label='1.0',
+            expected=dict(rvalue=1.0, value=1.0, 
+                          wvalue=None, w_value=None, label='1.0',
                           type=DataType.Float, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:x=3;x+1',
-            expected=dict(value=4, unit=None, w_value=None, label='3+1',
+            expected=dict(rvalue=4, value=4, wvalue=None, w_value=None, 
+                          label='3+1',
                           type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:2*{eval:3}',
-            expected=dict(value=6, label='2*{eval:3}', unit=None, w_value=None,
-                          type=DataType.Integer))
+            expected=dict(rvalue=6, value=6, label='2*{eval:3}',
+                          wvalue=None, w_value=None,
+                          type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:2*{eval:3*{eval:4}}',
-            expected=dict(value=24, label='2*{eval:3*{eval:4}}',
-                          unit=None, w_value=None, type=DataType.Integer))
+            expected=dict(rvalue=24,value=24, label='2*{eval:3*{eval:4}}',
+                          wvalue=None, w_value=None, type=DataType.Integer, 
+                          data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:1*{eval:2*{eval:3*{eval:4}}}',
-            expected=dict(value=24, label='1*{eval:2*{eval:3*{eval:4}}}',
-                          unit=None, w_value=None, type=DataType.Integer))
+            expected=dict(rvalue=24, value=24, 
+                          label='1*{eval:2*{eval:3*{eval:4}}}',
+                          wvalue=None, w_value=None, type=DataType.Integer, 
+                          data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:{eval:1}+{eval:9}',
-            expected=dict(value=10, label='{eval:1}+{eval:9}', unit=None,
-                          w_value=None, type=DataType.Integer))
+            expected=dict(rvalue=10, value=10, label='{eval:1}+{eval:9}',
+                          wvalue=None, w_value=None, type=DataType.Integer, 
+                          data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:"aaa"+"bbb"',
-            expected=dict(value="aaabbb", label='"aaa"+"bbb"', unit=None,
-                          w_value=None, type=DataType.String))
+            expected=dict(rvalue="aaabbb", value="aaabbb", label='"aaa"+"bbb"',
+                          wvalue=None, w_value=None, type=DataType.String,
+                          data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:{eval:"aaa"}+{eval:"bbb"}',
-            expected=dict(value="aaabbb", label='{eval:"aaa"}+{eval:"bbb"}',
-                          unit=None, w_value=None))
+            expected=dict(rvalue="aaabbb", value="aaabbb", 
+                          wvalue=None, w_value=None,
+                          label='{eval:"aaa"}+{eval:"bbb"}',
+                          type=DataType.String, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:{eval:"a"}*3',
-            expected=dict(value="aaa", label='{eval:"a"}*3', unit=None,
-                          w_value=None, type=DataType.String))
+            expected=dict(rvalue="aaa", value="aaa", label='{eval:"a"}*3',
+                          wvalue=None, w_value=None, type=DataType.String,
+                          data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:len("abc")',
-            expected=dict(value=3, unit=None, w_value=None, label='len("abc")',
-                          type=DataType.Integer))
+            expected=dict(rvalue=3, wvalue=None, value=3, w_value=None, 
+                          label='len("abc")',
+                          type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:"a.b.c".split(".")',
-            expected=dict(value=['a', 'b', 'c'], unit=None, w_value=None,
-                          label='"a.b.c".split(".")', type=DataType.String))
+            expected=dict(rvalue=['a', 'b', 'c'], value=['a', 'b', 'c'], 
+                          wvalue=None, w_value=None,
+                          label='"a.b.c".split(".")', type=DataType.String
+                          , data_format=DataFormat._1D))
 @insertTest(helper_name='read_attr', name='eval:[1,1,1].count(1)',
-            expected=dict(value=3, unit=None, w_value=None,
-                          type=DataType.Integer))
+            expected=dict(rvalue=3, wvalue=None, value=3, w_value=None,
+                          type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:[1,2,3].reverse()',
-            expected=dict(value=None, unit=None, w_value=None,
+            expected=dict(rvalue=None, value=None, wvalue=None, w_value=None,
                           label='[1,2,3].reverse()'))
 @insertTest(helper_name='read_attr',
             name='eval:[1,1,3].count(1)*{eval:[1,1,3].count(1)*{eval:2}}',
-            expected=dict(value=8, unit=None, w_value=None,
+            expected=dict(rvalue=8, value=8, wvalue=None, w_value=None,
                           type=DataType.Integer))
 @insertTest(helper_name='read_attr', name='eval:"split.split".split("split")',
-            expected=dict(value=['', '.', ''],unit=None, w_value=None, 
+            expected=dict(rvalue=['', '.', ''], value=['', '.', ''], 
+                          wvalue=None, w_value=None, 
                           label='"split.split".split("split")',
                           type=DataType.String))
+@insertTest(helper_name='read_attr', name='eval:Quantity(1.0)',
+            expected=dict(rvalue=Quantity(1.0), value=1.0, 
+                          w_value=None, wvalue=None, label='Quantity(1.0)',
+                          type=DataType.Float, data_format=DataFormat._0D))
+@insertTest(helper_name='read_attr', name='eval:Quantity("1km")',
+            expected=dict(rvalue=Quantity(1000,'m'), value=1, 
+                          w_value=None, wvalue=None, label='Quantity("1km")',
+                          type=DataType.Integer, data_format=DataFormat._0D))
+@insertTest(helper_name='read_attr', name='eval:Quantity("0.1km")',
+            expected=dict(rvalue=Quantity(100,'m'), value=0.1, 
+                          w_value=None, wvalue=None, label='Quantity("0.1km")',
+                          type=DataType.Float, data_format=DataFormat._0D))
+@insertTest(helper_name='read_attr', name='eval:Q("1m")*3+{eval:Q(3,"dm")}',
+            expected=dict(rvalue=Quantity("3.3m"), value=3.3, 
+                          wvalue=None, w_value=None,
+                          label='Q("1m")*3+{eval:Q(3,"dm")}',
+                          type=DataType.Float))
+@insertTest(helper_name='read_attr', name='eval:Q("1km").to("mm").magnitude',
+            expected=dict(rvalue=1e6, value=1e6, wvalue=None, w_value=None,
+                          label='Q("1km").to("mm").magnitude',
+                          type=DataType.Float))
 class AttributeTestCase(unittest.TestCase):
     '''TestCase for the taurus.Attribute helper'''
     def get_object(self, name=None, klass=None):
@@ -418,8 +447,7 @@ class AttributeTestCase(unittest.TestCase):
                 msg = ('The read value for "%s" does not provide info on %s' % 
                        (name, k))
                 self.fail(msg) 
-            msg = ('The read %s for "%s" should be %s (got %s)' % 
-                   (k, name, repr(exp), repr(got))) 
+            msg = ('Expected %s=%r for "%s" (got %r)' % (k, exp, name, got)) 
             self.assertEqual(got, exp, msg)
   
 @insertTest(helper_name='get_object', name='tango:a/b/c/d?configuration', 

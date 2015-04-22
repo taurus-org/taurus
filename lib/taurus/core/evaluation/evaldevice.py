@@ -74,5 +74,5 @@ class EvaluationDevice(TaurusDevice, SafeEvaluator):
             self.info("Unexpected value to decode: %s" % str(event_value))
             new_sw_state = TaurusSWDevState.Crash
         value = TaurusAttrValue() 
-        value.value = new_sw_state
+        value.rvalue = new_sw_state
         return value
