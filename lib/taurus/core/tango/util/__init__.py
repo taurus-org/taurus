@@ -27,4 +27,4 @@
 
 __docformat__ = 'restructuredtext'
 
-from .eventfilters import *
+

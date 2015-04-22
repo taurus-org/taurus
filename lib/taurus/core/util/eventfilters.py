@@ -27,19 +27,6 @@
 :meth:`taurus.qt.qtgui.base.TaurusBaseComponent.setFilters`"""
 
 
-def EventValueMap(s, t, v):
-    '''Deprecated. Use  taurus.core.tango.util.eventfilter.EventValueMap instead
-    '''
-    msg = ('taurus.core.util.eventfilters.EventValueMap is deprecated. ' +
-           'Use  taurus.core.tango.util.eventfilters.EventValueMap instead')
-    from taurus import warning
-    warning(msg)
-    try:
-        import taurus.core.tango.util.eventfilters
-        return taurus.core.tango.util.eventfilters.EventValueMap()(s, t, v)
-    except ImportError:
-        return None
-
 def IGNORE_ALL(s, t, v):
     '''Will discard all events'''
     return None
@@ -94,6 +81,38 @@ def ONLY_VALID(s, t, v):
     from taurus.core import AttrQuality
     if t == AttrQuality.ATTR_VALID: return s,t,v
     else: return None
+
+
+class EventValueMap(dict):
+    """A filter destined to change the original value into another one according
+    to a given map. Example:
+           
+        filter = EventValueMap({1:"OPEN", 2:"CHANGING", 3:"CLOSED"})
+       
+    this will create a filter that changes the integer value of the event
+    into a string. The event type is changed according to the python type in
+    the map value.
+       
+    For now it only supports simple types: str, int, long, float, bool
+    """
+
+    def __call__(self, s, t, v):
+        import copy
+        from taurus.core import TaurusEventType, DataType
+        
+        if not t in (TaurusEventType.Change, TaurusEventType.Periodic):
+            return s, t, v
+        if v is None:
+            return s, t, v
+        
+        # make a copy
+        v = copy.copy(v)
+        
+        v.value = self.get(v.rvalue, v.rvalue)
+        
+        v.type = DataType.from_python_type(type(v.rvalue), v.type)
+        return s, t, v
+
 
 class RepeatedEventFilter(object):
     """
