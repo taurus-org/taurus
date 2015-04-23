@@ -609,6 +609,7 @@ warning = __log_mod.warning
 error = __log_mod.error
 fatal = __log_mod.fatal
 critical = __log_mod.critical
+deprecated = __log_mod.deprecated
 
 def changeDefaultPollingPeriod(period):
     Manager().changeDefaultPollingPeriod(period)

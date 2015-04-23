@@ -30,7 +30,7 @@ __all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
            "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
            "LogFilter",
            "_log", "trace", "debug", "info", "warning", "error", "fatal",
-           "critical"]
+           "critical", "deprecated"]
 
 __docformat__ = "restructuredtext"
 
@@ -785,18 +785,43 @@ class Logger(Object):
         """
         self.log_obj.warning(msg, *args, **kw)
 
-    def deprecated(self, msg, *args, **kw):
-        """Record a deprecated warning message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :meth:`logging.Logger.warning`.
+    def deprecated(self, msg=None, dep=None, alt=None, rel=None, dbg_msg=None,
+                   _callerinfo=None, **kw):
+        """Record a deprecated warning message in this object's logger. 
+           If message is not passed, a estandard deprecation message is 
+           constructued using dep, alt, rel arguments.
+           Also, an extra debug message can be recorded, followed by traceback
+           info.
 
-           :param msg: (str) the message to be recorded
-           :param args: list of arguments
-           :param kw: list of keyword arguments
+           :param msg: (str) the message to be recorded (if None passed, it will
+                       be constructed using dep (and, optionally, alt and rel)
+           :param dep: (str) name of deprecated feature (in case msg is None)
+           :param alt: (str) name of alternative feature (in case msg is None)
+           :param rel: (str) name of release from which the feature was 
+                       deprecated (in case msg is None)
+           :param dbg_msg: (str) msg for debug (or None to log only the warning)  
+           :param _callerinfo: for internal use only. Do not use this argument.
+           :param kw: any additional keyword arguments, are passed to 
+                     :meth:`logging.Logger.warning`
         """
-        filename, lineno, func = self.log_obj.findCaller()
+        if msg is None:
+            if dep is None:
+                raise TypeError('deprecated takes either msg or dep argument')
+            msg = '%s is deprecated' % dep
+            if rel is not None:
+                msg += ' (from %s)' % rel
+            if alt is not None:
+                msg += '. Use %s instead' % alt
+                
+        if _callerinfo is None:
+            _callerinfo = self.log_obj.findCaller()
+        filename, lineno, _ = _callerinfo
         depr_msg = warnings.formatwarning(msg, DeprecationWarning, filename, lineno)
-        self.log_obj.warning(depr_msg, *args, **kw)
-
+        self.log_obj.warning(depr_msg, **kw)
+        if dbg_msg:
+            self.debug(dbg_msg)
+            self.stack()
+        
     def error(self, msg, *args, **kw):
         """Record an error message in this object's logger. Accepted *args* and
            *kwargs* are the same as :meth:`logging.Logger.error`.
@@ -835,8 +860,8 @@ class Logger(Object):
            :param msg: (str) the message to be recorded
            :param args: list of arguments
         """
-        self.log_obj.exception(msg, *args)
-
+        self.log_obj.exception(msg, *args)      
+        
     def flushOutput(self):
         """Flushes the log output"""
         self.syncLog()
@@ -930,3 +955,7 @@ def fatal(msg, *args, **kw):
 
 def critical(msg, *args, **kw):
     return __getrootlogger().critical(msg, *args, **kw)
+
+def deprecated(*args, **kw):
+    kw['_callerinfo'] = __getrootlogger().findCaller()
+    return Logger("TaurusRootLogger").deprecated(*args, **kw)
