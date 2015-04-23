@@ -178,10 +178,7 @@ class TaurusConfiguration(TaurusModel):
         return attrObj
     
     def getValueObj(self, cache=True):
-        """ Returns the current configuration for the attribute.
-            if cache is set to True (default) and the the configuration has 
-            events active then it will return the local cached value. Otherwise
-            it will read from the tango layer."""
+        """ Returns the current configuration for the attribute."""
         raise RuntimeError("May not be called in abstract TaurusConfiguration")
     
     def getDisplayValue(self,cache=True):
@@ -192,12 +189,43 @@ class TaurusConfiguration(TaurusModel):
 
     def getDisplayDescription(self,cache=True):
         return self.getDescription(cache)
-
+    
     def getDisplayDescrObj(self,cache=True):
+        name = self.getLabel(cache=cache)
         attrObj = self.getParentObj()
-        if attrObj is None:
-            return [('name', self.getLabel(cache=cache))]
-        return attrObj.getDisplayDescrObj(cache=cache)
+        if attrObj is not None:
+            if name:
+                name += " (" + attrObj.getNormalName() + ")"
+            else:
+                name = attrObj.getDisplayName(cache=cache)
+        obj = [('name', name)]
+
+        descr = self.getDescription(cache=cache)
+        if descr and descr != self.no_description:
+            obj.append(('description',descr.replace("<","&lt;").replace(">","&gt;")))
+            
+        limits = self.getRange(cache=cache)
+        if limits and (limits[0] != self.no_min_value or \
+                       limits[1] != self.no_max_value):
+            if limits[0] == self.no_min_value: limits[0] = self.no_cfg_value
+            if limits[1] == self.no_max_value: limits[1] = self.no_cfg_value
+            obj.append(('limits', "[%s, %s]" % (limits[0],limits[1])))
+
+        alarms = self.getAlarms(cache=cache)
+        if alarms and (alarms[0] != self.no_min_alarm or \
+                       alarms[1] != self.no_max_alarm):
+            if alarms[0] == self.no_min_alarm: alarms[0] = self.no_cfg_value
+            if alarms[1] == self.no_max_alarm: alarms[1] = self.no_cfg_value
+            obj.append(('alarms', "[%s, %s]" % (alarms[0],alarms[1])))
+
+        warnings = self.getWarnings(cache=cache)
+        if warnings and (warnings[0] != self.no_min_warning or \
+                         warnings[1] != self.no_max_warning):
+            if warnings[0] == self.no_min_warning: warnings[0] = self.no_cfg_value
+            if warnings[1] == self.no_max_warning: warnings[1] = self.no_cfg_value
+            obj.append(('warnings', "[%s, %s]" % (warnings[0],warnings[1])))
+        
+        return obj
     
 #    def isWritable(self):
 #        return True
@@ -225,13 +253,15 @@ class TaurusConfiguration(TaurusModel):
         return self._cfg_evt_id
 
     def isWritable(self, cache=True):
-        return not self.isReadOnly(cache)
-    
-    def getWritable(self, cache=True):
         c = self.getValueObj(cache=cache)
-        if c:
-            return c.writable
-        return None
+        if c is None:
+            raise RuntimeError('Cannot access the config Value')
+        return c.writable
+        
+    def getWritable(self, cache=True):
+        '''deprecated'''
+        self.deprecated(dep='getWritable', alt='isWritable', rel='taurus 4')
+        return self.isWritable(cache)
     
     def getType(self, cache=True):
         c = self.getValueObj(cache=cache)
@@ -254,7 +284,7 @@ class TaurusConfiguration(TaurusModel):
     def getMaxDimX(self, cache=True):
         '''.. warning: Deprecated. Use :meth:`getMaxDim`
         '''
-        self.info('Deprecation warning: TaurusConfiguration.getMaxDimX is deprecated. Use getMaxDim')
+        self.deprecated(dep='getMaxDimX', alt='getMaxDim')
         c = self.getValueObj(cache=cache)
         if c:
             return c.max_dim[0]
@@ -263,7 +293,7 @@ class TaurusConfiguration(TaurusModel):
     def getMaxDimY(self, cache=True):
         '''.. warning: Deprecated. Use :meth:`getMaxDim`
         '''
-        self.info('Deprecation warning: TaurusConfiguration.getMaxDimX is deprecated. Use getMaxDim')
+        self.deprecated(dep='getMaxDimY', alt='getMaxDim')
         c = self.getValueObj(cache=cache)
         if c:
             return c.max_dim[1]
@@ -294,22 +324,30 @@ class TaurusConfiguration(TaurusModel):
         return None
     
     def getUnit(self, cache=True):
-        c = self.getValueObj(cache=cache)
-        if c:
-            return c.unit
-        return None
+        self.deprecated(dep='getUnit', alt='TaurusAttrValue.rvalue.units',
+                        rel='taurus 4')
+        try:
+            return str(self._getAttr().read().rvalue.units)
+        except:
+            return None
     
     def getStandardUnit(self, cache=True):
-        c = self.getValueObj(cache=cache)
-        if c:
-            return c.standard_unit
-        return None
+        self.deprecated(dep='getStandardUnit', 
+                        alt='TaurusAttrValue.rvalue.units',
+                        rel='taurus 4')
+        try:
+            return str(self._getAttr().read().rvalue.units)
+        except:
+            return None
         
     def getDisplayUnit(self, cache=True):
-        c = self.getValueObj(cache=cache)
-        if c:
-            return c.display_unit
-        return None
+        self.deprecated(dep='getDisplayUnit', 
+                        alt='TaurusAttrValue.rvalue.units',
+                        rel='taurus 4')
+        try:
+            return str(self._getAttr().read().rvalue.units)
+        except:
+            return None
 
     def getFormat(self, cache=True):
         c = self.getValueObj(cache=cache)
@@ -494,13 +532,25 @@ class TaurusConfiguration(TaurusModel):
         return not numpy.isscalar(m) and numpy.array(m).ndim == 2
     
     def isWrite(self, cache=True):
-        return self.getWritable(cache) == AttrAccess.WRITE
+        '''deprecated'''
+        self.deprecated(dep='isWrite', alt='isWritable', rel='taurus 4')
+        return self.isWritable(cache)
     
     def isReadOnly(self, cache=True):
-        return self.getWritable(cache) == AttrAccess.READ
+        '''deprecated'''
+        self.deprecated(dep='isReadOnly', alt='isWritable', rel='taurus 4')
+        return not self.isWritable(cache)
 
     def isReadWrite(self, cache=True):
-        return self.getWritable(cache) == AttrAccess.READ_WRITE
+        '''deprecated'''
+        self.deprecated(dep='isReadWrite', alt='isWritable', rel='taurus 4')
+        return self.isWritable(cache)
+    
+    
+    
+    
+    
+    
 
 #del AttrAccess
 #del TaurusModel

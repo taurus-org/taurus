@@ -104,6 +104,7 @@ class TangoConfigValue(TaurusConfigValue):
             self.max_dim = 1, 1
             
             self.display_level = display_level_from_tango(i.disp_level)
+            self.tango_writable = i.writable
             #################################################
 
 
@@ -157,29 +158,22 @@ class TangoConfiguration(TaurusConfiguration):
                     raise AttributeError
                     
     def isWrite(self, cache=True):
-        self.warning('TangoConfiguration.isWrite is deprecated. ' +
-                     'Use TangoConfiguration.writable')
-        return self.writable
-    
+        return self.getTangoWritable(cache) == PyTango.AttrWriteType.WRITE
+     
     def isReadOnly(self, cache=True):
-        self.warning('TangoConfiguration.isReadOnly is deprecated. ' +
-                     'Use TangoConfiguration.writable')
-        return not self.writable
-
+        return not self.getTangoWritable(cache) == PyTango.AttrWriteType.READ
+  
     def isReadWrite(self, cache=True):
-        self.warning('TangoConfiguration.isReadWrite is deprecated. ' +
-                     'Use TangoConfiguration.writable')
-        return self.writable
+        return self.getTangoWritable(cache) == PyTango.AttrWriteType.READ_WRITE 
     
-    def isScalar(self, cache=True):
-        return self.getDataFormat(cache) == DataFormat._0D
-    
-    def isSpectrum(self, cache=True):
-        return self.getDataFormat(cache) == DataFormat._1D
-    
-    def isImage(self, cache=True):
-        return self.getDataFormat(cache) == DataFormat._2D
-    
+    def getTangoWritable(self, cache=True):
+        '''like TaurusConfiguration.getWritable, but it returns a
+         PyTango.AttrWriteType instead of a bool'''
+        c = self.getValueObj(cache=cache)
+        if c:
+            return c.tango_writable
+        return None
+        
     def encode(self, value):
         """Translates the given value into a tango compatible value according to
         the attribute data type

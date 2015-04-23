@@ -171,43 +171,9 @@ class TaurusAttribute(TaurusModel):
             return None
 
     def getDisplayDescrObj(self,cache=True):
-        name = self.getLabel(cache=cache)
-        if name:
-            name += " (" + self.getNormalName().upper() + ")"
-        else:
-            name = self.getDisplayName(cache=cache)
-        obj = [('name', name)]
-
-        descr = self.getDescription(cache=cache)
-        if descr and descr != self.no_description:
-            obj.append(('description',descr.replace("<","&lt;").replace(">","&gt;")))
-        
-        unit = self.getUnit(cache=cache)
-        if unit and unit != self.no_unit:
-            obj.append(('unit', unit))
-            
-        limits = self.getRange(cache=cache)
-        if limits and (limits[0] != self.no_min_value or \
-                       limits[1] != self.no_max_value):
-            if limits[0] == self.no_min_value: limits[0] = self.no_cfg_value
-            if limits[1] == self.no_max_value: limits[1] = self.no_cfg_value
-            obj.append(('limits', "[%s, %s]" % (limits[0],limits[1])))
-
-        alarms = self.getAlarms(cache=cache)
-        if alarms and (alarms[0] != self.no_min_alarm or \
-                       alarms[1] != self.no_max_alarm):
-            if alarms[0] == self.no_min_alarm: alarms[0] = self.no_cfg_value
-            if alarms[1] == self.no_max_alarm: alarms[1] = self.no_cfg_value
-            obj.append(('alarms', "[%s, %s]" % (alarms[0],alarms[1])))
-
-        warnings = self.getWarnings(cache=cache)
-        if warnings and (warnings[0] != self.no_min_warning or \
-                         warnings[1] != self.no_max_warning):
-            if warnings[0] == self.no_min_warning: warnings[0] = self.no_cfg_value
-            if warnings[1] == self.no_max_warning: warnings[1] = self.no_cfg_value
-            obj.append(('warnings', "[%s, %s]" % (warnings[0],warnings[1])))
-        
-        return obj
+        c = self._getRealConfig()
+        if c is not None:
+            return c.getDisplayDescrObj(cache)
         
     def areStrValuesEqual(self,v1,v2):
         try:
@@ -337,7 +303,7 @@ class TaurusAttribute(TaurusModel):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
 
     def _getRealConfig(self):
-        """ Returns the current configuration of the attribute."""
+        """ Returns the current TaurusConfiguration of the attribute."""
         raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute::_getRealConfig")
 
     def getConfig(self):
@@ -356,18 +322,22 @@ class TaurusAttribute(TaurusModel):
         return ob
     
     def isWritable(self, cache=True):
-        return not self._getRealConfig().isReadOnly(cache=cache)
+        return self._getRealConfig().isWritable(cache=cache)
     
     def isWrite(self, cache=True):
+        '''deprecated'''
         return self._getRealConfig().isWrite(cache=cache)
     
     def isReadOnly(self, cache=True):
+        '''deprecated'''
         return self._getRealConfig().isReadOnly(cache=cache)
 
     def isReadWrite(self, cache=True):
+        '''deprecated'''
         return self._getRealConfig().isReadWrite(cache=cache)
 
     def getWritable(self, cache=True):
+        '''deprecated'''
         return self._getRealConfig().getWritable(cache=cache)
 
 
