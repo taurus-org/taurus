@@ -242,14 +242,14 @@ class TaurusDevice(TaurusModel):
         return self.getAttribute(child_name)
 
     def eventReceived(self, event_src, event_type, event_value):
-        new_sw_state = TaurusSWDevState.Uninitialized
-
         if event_type == TaurusEventType.Config:
             return
         value = self.decode(event_value)
-
         if value.value != self._deviceSwState.value:
-            self.debug("SW Device State changed %s -> %s" % (TaurusSWDevState.whatis(self._deviceSwState.value), TaurusSWDevState.whatis(new_sw_state)))
+            msg = "SW Device State changed %s -> %s" %\
+                  (TaurusSWDevState.whatis(self._deviceSwState.value), 
+                   TaurusSWDevState.whatis(value.value))
+            self.debug(msg)
             self._deviceSwState = value
             self.fireEvent(TaurusEventType.Change, value)
 
