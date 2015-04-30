@@ -266,7 +266,7 @@ class TaurusAttributeNameValidator(_TaurusBaseValidator):
     '''Base class for Device name validators.
     The namePattern will be composed from URI segments as follows:
       
-    <scheme>://[<authority>/]<path>[?<query>][#<fragment>]    
+    <scheme>:[<authority>/]<path>[?<query>][#<fragment>]    
 
     Derived classes must provide attributes defining a regexp string for each 
     URI segment (they can be empty strings):
