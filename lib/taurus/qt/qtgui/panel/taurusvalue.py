@@ -88,9 +88,9 @@ class DefaultLabelWidget(TaurusLabel):
         elementtype = self.taurusValueBuddy().getModelType()
         if elementtype == TaurusElementType.Attribute:
             config = self.taurusValueBuddy().getLabelConfig()
-            TaurusLabel.setModel(self, model + "?configuration=%s"%config)
+            TaurusLabel.setModel(self, model + "#%s"%config)
         elif elementtype == TaurusElementType.Device:
-            TaurusLabel.setModel(self, model + "/state?configuration=dev_alias")
+            TaurusLabel.setModel(self, model + "/state#dev_alias")
     
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
@@ -157,7 +157,7 @@ class DefaultUnitsWidget(TaurusLabel):
     def setModel(self, model):
         if model is None or model=='': 
             return TaurusLabel.setModel(self, None)
-        TaurusLabel.setModel(self, model + "?configuration=unit") #@todo: tango-centric!
+        TaurusLabel.setModel(self, model + "#unit") #@todo: tango-centric!
     def sizeHint(self):
         #print "UNITSSIZEHINT:",Qt.QLabel.sizeHint(self).width(), self.minimumSizeHint().width(), Qt.QLabel.minimumSizeHint(self).width()
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 24)
@@ -256,7 +256,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             dummy = ExpandingLabel()
             layout.addWidget(dummy)
             dummy.setUseParentModel(True)
-            dummy.setModel("?configuration=attr_fullname") 
+            dummy.setModel("#attr_fullname") 
             dummy.setPrefixText("< TaurusValue: ")
             dummy.setSuffixText(" >")
         else:

@@ -118,7 +118,7 @@ def demo():
     p1 = TaurusLabelTestPanel()
     p1.w_model.setText("sys/tg_test/1/double_scalar")
     p2 = TaurusLabelTestPanel()
-    p2.w_model.setText("sys/tg_test/1/double_scalar?configuration=label")
+    p2.w_model.setText("sys/tg_test/1/double_scalar#label")
     p2.w_bg.setCurrentIndex(2)
     layout.addWidget(p1, 0, 0)
     layout.addWidget(p2, 0, 1)

@@ -199,7 +199,7 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
     @property
     def nonStrictNamePattern(self):
         '''In non-strict mode, allow double-slash even if there is no Authority.
-        (e.g., "tango://a/b/c" passes this non-strict form)
+        (e.g., "tango://a/b/c/d" passes this non-strict form)
         '''
         return self.namePattern.replace('tango):(', 'tango)://(')
     
@@ -224,32 +224,34 @@ class TangoConfigurationNameValidator(TaurusConfigurationNameValidator):
     scheme = 'tango'
     authority = TangoAuthorityNameValidator.authority
     path = TangoAttributeNameValidator.path
-    query = 'configuration(=(?P<cfgkey>[^# ]+))?'
-    fragment = '(?!)'  
+    query = '(?!)'
+    fragment = '(?P<cfgkey>[^# ]*)'  
 
 
     def getNames(self, fullname, factory=None, queryAuth=True):
         """Returns the complete and short names"""
-        
+                
         groups = self.getUriGroups(fullname)
         if groups is None:
             return None
         
-        query = groups.get('query')
         cfgkey = groups.get('cfgkey')
         
         complete, normal, short = None, None, cfgkey or 'configuration'
         
         # reuse the getNames from the Attribute validator...
-        attrname = fullname.split('?',1)[0]
+        if groups['__STRICT__']:
+            attrname = fullname.split('#')[0]
+        else: # for bck-compat
+            attrname = fullname.split('?configuration')[0]
         v = TangoAttributeNameValidator()
         attrcomplete, attrnormal, _ = v.getNames(attrname, factory=factory,
                                                  queryAuth=queryAuth)
         
         if attrcomplete is not None:
-            complete = '%s?%s'%(attrcomplete, query)
+            complete = '%s#%s'%(attrcomplete, cfgkey)
         if attrnormal is not None:
-            normal = '%s?%s'%(attrnormal, query)
+            normal = '%s#%s'%(attrnormal, cfgkey)
         
         return complete, normal, short
         
@@ -257,7 +259,20 @@ class TangoConfigurationNameValidator(TaurusConfigurationNameValidator):
     @property
     def nonStrictNamePattern(self):
         '''In non-strict mode, allow double-slash even if there is no Authority.
-        (e.g., "tango://a/b/c" passes this non-strict form)
+        Also use old style "?configuration[=cfgkey]" instead of fragment-based.
+        (e.g., "tango://a/b/c/d?configuration=units" passes this non-strict 
+        form)
         '''
-        return self.namePattern.replace('tango):(', 'tango)://(')
+
+        pattern = r'^(?P<scheme>%(scheme)s)://' + \
+                  r'((?P<authority>%(authority)s)(?=/))?' + \
+                  r'(?P<path>%(path)s)' + \
+                  r'\?(?P<query>%(query)s)' + \
+                  r'(#(?P<fragment>%(fragment)s))?$'     
+        
+        return pattern % dict(scheme=self.scheme, 
+                              authority=self.authority,
+                              path=self.path, 
+                              query= 'configuration(=(?P<cfgkey>[^# ]+))?', 
+                              fragment= '(?!)')
 

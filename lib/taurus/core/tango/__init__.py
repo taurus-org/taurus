@@ -95,7 +95,7 @@ And TaurusConfiguration objects representing the Tango attribute
 configuration properties can be accessed as::
     
     >>> import taurus
-    >>> my_config = taurus.Configuration('sys/tg_test/1/ampli?configuration')
+    >>> my_config = taurus.Configuration('sys/tg_test/1/ampli#')
     
 (in this example I assumed ``tango`` being set as the default scheme and 
 ``machine:10000`` being the default database)

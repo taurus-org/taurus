@@ -52,7 +52,7 @@ naming for referring to attributes (:class:`EvaluationAttribute`):
     or, finally, the following for referring to an attribute configuration 
     (:class:`EvaluationConfiguration`) item:
     
-    `eval:[//<authority>][@<evaluator>/][<subst>;]<expr>?configuration=<cfgkey>` 
+    `eval:[//<authority>][@<evaluator>/][<subst>;]<expr>#<cfgkey>` 
   
     where:
     

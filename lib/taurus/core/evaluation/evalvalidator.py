@@ -409,8 +409,8 @@ class EvaluationConfigurationNameValidator(TaurusConfigurationNameValidator):
     scheme = 'eval'
     authority = EvaluationAuthorityNameValidator.authority
     path = EvaluationAttributeNameValidator.path
-    query = 'configuration(=(?P<cfgkey>[^# ]+))?'
-    fragment = '(?!)'  
+    query = '(?!)' 
+    fragment = '(?P<cfgkey>[^# ]*)'   
     
     def isValid(self, name, matchLevel=None, strict=True):
         '''reimplemented from :class:`TaurusConfigurationNameValidator` to do 
@@ -422,7 +422,9 @@ class EvaluationConfigurationNameValidator(TaurusConfigurationNameValidator):
             return False
         #let EvaluationAttributeNameValidator.getNames do the ref checking
         v = EvaluationAttributeNameValidator()
-        attrUri = name.split('?configuration')[0]
+        attrUri = name.split('#')[0]
+        if not strict:
+            attrUri = attrUri.split('?configuration')[0] # for bck-compat
         return v.isValid(attrUri, strict=strict)
         
     def getNames(self, fullname, factory=None):
@@ -432,16 +434,18 @@ class EvaluationConfigurationNameValidator(TaurusConfigurationNameValidator):
         if groups is None:
             return None  
         
-        query = groups.get('query')
-        cfgkey = groups.get('cfgkey')
+        cfgkey = groups.get('cfgkey','')
         
-        #let EvaluationAttributeNameValidator.getNames do the hard work...
+        # let EvaluationAttributeNameValidator.getNames do the hard work...
         v = EvaluationAttributeNameValidator()
-        attrUri = fullname.split('?configuration')[0]
+        if groups['__STRICT__']:
+            attrUri = fullname.split('#')[0]
+        else: # for bck-compat
+            attrUri = fullname.split('?configuration')[0]
         attrcomplete, attrnormal, _ = v.getNames(attrUri, factory=factory)
         
-        complete = '%s?%s'%(attrcomplete, query)
-        normal = '%s?%s'%(attrnormal, query)
+        complete = '%s#%s'%(attrcomplete, cfgkey)
+        normal = '%s#%s'%(attrnormal, cfgkey)
         short = cfgkey or 'configuration'
             
         return complete, normal, short
@@ -461,8 +465,17 @@ class EvaluationConfigurationNameValidator(TaurusConfigurationNameValidator):
         #@TODO: Maybe this belongs to the factory, not the validator
         names = self.getNames(s)
         if names is None: return None
-        return names[0].rsplit('?configuration',1)[0]
+        return names[0].rsplit('#',1)[0]
 
 
 if __name__ == '__main__':
+    
+    cfgval = EvaluationConfigurationNameValidator()
+#     print cfgval.namePattern
+#     print cfgval.getNames('eval:1#')
+#     print cfgval.getNames('eval:1#label')
+#     print cfgval.getNames('eval://1?configuration')
+#     print cfgval.getNames('eval://1?configuration=label')
+    print cfgval.getNames('eval://a+b?a=2;b=3?configuration=label')
+    print cfgval.isValid('eval://a+b?a=2;b=3?configuration=label')
     pass

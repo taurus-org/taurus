@@ -58,7 +58,7 @@ class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
     
     def setUp(self):
         BaseWidgetTestCase.setUp(self)
-        self._widget.setModel('sys/tg_test/1/double_scalar?configuration=label')
+        self._widget.setModel('sys/tg_test/1/double_scalar#label')
         self._expectedModelClass = self._widget.getModelClass()
         self._parent = TaurusWidget()
         self._parent.setModel('sys/tg_test/1')
@@ -67,13 +67,13 @@ class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
         
     def test_bug169(self):
         '''Check if setModel works when using parent model''' 
-        self._widget.setModel('/double_scalar?configuration=label')
+        self._widget.setModel('/double_scalar#label')
         
     def test_relativemodelclass(self):
         '''Check consistency in modelClass when using parent model (re: bug169)
         ''' 
         try:
-            self._widget.setModel('/double_scalar?configuration=label')
+            self._widget.setModel('/double_scalar#label')
         finally:
             mc = self._widget.getModelClass()
             msg = ('getModelClass() inconsistency:\n expected: %s\n got: %s' % 

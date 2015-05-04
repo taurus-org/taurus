@@ -71,7 +71,7 @@ class TaurusConfigurationPanel(Qt.QWidget):
 
     def setModel(self, model):
     	self._ui.fullNameLineEdit.setText(model)
-    	model+='?configuration='
+    	model+='#'
         self._ui.labelConfig.setModel(model+'label')
         self._ui.unitConfig.setModel(model+'unit')
         self._ui.displayUnitConfig.setModel(model+'display_unit')

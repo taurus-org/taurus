@@ -182,15 +182,15 @@ class _TaurusBaseValidator(Singleton):
             note: if foo123 wasn't the default TANGO_HOST, the normal name
             would be '//foo:123/a/b/c/d' 
             
-         - for the configuration (assuming we passed ?configuration=label)::
+         - for the configuration (assuming we passed #label)::
             
-            ('tango://foo:123/a/b/c/d?configuration=label',
-             'a/b/c/d?configuration=label',
+            ('tango://foo:123/a/b/c/d#label',
+             'a/b/c/d#label',
              'label')
              
          - for the configuration (assuming we did not pass a conf key)::
-            ('tango://foo:123/a/b/c/d?configuration', 
-             'a/b/c/d?configuration', 
+            ('tango://foo:123/a/b/c/d#', 
+             'a/b/c/d#', 
              'configuration')
              
         Note: it must always be possible to construct the 3 names from a *valid*
@@ -292,7 +292,7 @@ class TaurusConfigurationNameValidator(_TaurusBaseValidator):
     '''Base class for Device name validators.
     The namePattern will be composed from URI segments as follows:
       
-    <scheme>:[<authority>/]<path>?<query>[#<fragment>]    
+    <scheme>:[<authority>/]<path>[?<query>]#<fragment>    
 
     Derived classes must provide attributes defining a regexp string for each 
     URI segment (they can be empty strings):
@@ -310,8 +310,8 @@ class TaurusConfigurationNameValidator(_TaurusBaseValidator):
     pattern = r'^(?P<scheme>%(scheme)s):' + \
               r'((?P<authority>%(authority)s)(?=/))?' + \
               r'(?P<path>%(path)s)' + \
-              r'(\?(?P<query>%(query)s))' + \
-              r'(#(?P<fragment>%(fragment)s))?$'          
+              r'(\?(?P<query>%(query)s))?' + \
+              r'#(?P<fragment>%(fragment)s)$'          
 
 
 class TaurusDatabaseNameValidator(TaurusAuthorityNameValidator): 
@@ -331,11 +331,11 @@ if __name__ == '__main__':
         scheme = 'foo'
         authority = '[^?#/]+'
         path = '[^?#]+'
-        query = 'configuration(=(?P<cfgkey>[^?#]+))?'
-        fragment = '(?!)'
+        query = '(?!)'
+        fragment = '(?P<cfgkey>[^?#]+)'
     
     v = FooConfigurationNameValidator()
-    name = 'foo://bar?configuration=label'
+    name = 'foo://bar#label'
     print v.isValid(name)
     print v.getUriGroups(name)
     

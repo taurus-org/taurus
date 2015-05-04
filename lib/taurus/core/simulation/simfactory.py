@@ -212,7 +212,7 @@ class SimulationAttribute(TaurusAttribute):
 
     def _getRealConfig(self):
         if self._config is None:
-            cfg_name = "%s?configuration" % self.getFullName()
+            cfg_name = "%s#" % self.getFullName()
             self._config = SimulationConfiguration(cfg_name, self)
         return self._config
 
@@ -370,14 +370,14 @@ class SimulationFactory(Singleton, TaurusFactory, Logger):
             raise taurus.core.taurusexception.TaurusException("Invalid configuration name %s." % name)
 
         if not hasattr(self, "_conf"):
-            name = "sim:01/a/b/c/d?configuration"
+            name = "sim:01/a/b/c/d#"
             attr = self.getAttribute("sim:01/a/b/c/d")
             SimulationConfiguration(name, attr, storeCallback=self._storeConfig)
         return self._config
     
     def _getConfigurationFromAttribute(self, attr):
         if not hasattr(self, "_conf"):
-            name = "sim:01/a/b/c/d?configuration"
+            name = "sim:01/a/b/c/d#"
             SimulationConfiguration(name, attr, storeCallback=self._storeConfig)
         return self._config
     

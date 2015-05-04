@@ -188,7 +188,7 @@ class TaurusSocket(WebSocketHandler):
         should be an array of strings, each representing a model name.
         Example:
             { models : [ "BO/S05/Pump5/Pressure", 
-                         "BO/S05/Pump5/Pressure?configuration=unit",
+                         "BO/S05/Pump5/Pressure#unit",
                          "sys/tg_test/1/double_scalar" ]
             }
             So far, only attributes and configuration parameters are supported.

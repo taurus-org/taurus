@@ -204,7 +204,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
         
     def _getConfigurationFromAttribute(self, attr):
         cfg = attr.getConfig()
-        cfg_name = attr.getFullName() + "?configuration"
+        cfg_name = attr.getFullName() + "#"
         self.eval_configs[cfg_name] = cfg
         return cfg
     
