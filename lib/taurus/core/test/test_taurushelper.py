@@ -195,7 +195,6 @@ DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
 @isInvalidConf(name='eval:2# ')
 @isInvalidConf(name='evaluation:1#label')
 @isInvalidConf(name='eval://dev=bar;foo#label')
-@isInvalidConf(name='eval:2+3#')
 @isInvalidConf(name='eval:a+b;a=2;b=3#label')
 @isInvalidConf(name='eval://foo')
 @isValidConf(name='evaluation://db=foo;dev=bar;1?configuration=label', strict=False)
@@ -251,7 +250,7 @@ class AuthorityTestCase(unittest.TestCase):
         msg = ('%s("%s") is not an instance of %s (it is %s)' %
                (taurus.Authority.__name__, name,
                 klass.__name__, a.__class__.__name__) )
-        self.assertTrue(isinstance(a,klass), msg)  
+        self.assertTrue(isinstance(a, klass), msg)  
         
 
 @insertTest(helper_name='get_object', name='tango:a/b/c')
@@ -280,7 +279,7 @@ class DeviceTestCase(unittest.TestCase):
                (taurus.Device.__name__, name,
                 klass.__name__, a.__class__.__name__) )
 
-        self.assertTrue(isinstance(a,klass), msg)
+        self.assertTrue(isinstance(a, klass), msg)
 
 
 @insertTest(helper_name='read_attr',
@@ -396,7 +395,7 @@ class AttributeTestCase(unittest.TestCase):
         msg = ('%s("%s") is not an instance of %s (it is %s)' %
                (taurus.Attribute.__name__, name,
                 klass.__name__, a.__class__.__name__) )
-        self.assertTrue(isinstance(a,klass), msg)
+        self.assertTrue(isinstance(a, klass), msg)
         return a
         
     def read_attr(self, name=None, expected=None, skip=False,
@@ -440,7 +439,7 @@ class ConfigurationTestCase(unittest.TestCase):
         msg = ('%s("%s") is not an instance of %s (it is %s)' %
                (taurus.Configuration.__name__, name,
                 klass.__name__, a.__class__.__name__) )
-        self.assertTrue(isinstance(a,klass), msg)  
+        self.assertTrue(isinstance(a, klass), msg)  
 
 
 if __name__ == '__main__':

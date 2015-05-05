@@ -131,18 +131,19 @@ class TangoAttrValidatorTestCase(AbstractNameValidatorTestCase,
 #===============================================================================
 @valid(name = 'tango:a/b/c/d#', 
        groups={'devname':'a/b/c', 'attrname':'a/b/c/d', '_shortattrname':'d',
-               'cfgkey':None})
+               'cfgkey':''})
 @valid(name = 'tango:a/b/c/d#label', 
        groups={'devname':'a/b/c', 'attrname':'a/b/c/d', '_shortattrname':'d',
                'cfgkey':'label'})
 @valid(name = 'tango:alias/attr#')
 @valid(name = 'tango:alias/attr#label')
 @valid(name = 'tango://a/b/c/d?configuration', strict=False)
+@valid(name = 'tango://a/b/c/d?configuration=label', strict=False)
 @invalid(name = 'tango://a/b/c/d#')
 @invalid(name = 'tango:a/b/c/d')
-@invalid(name = 'tango:a/b/c/d?foo')
-@invalid(name = 'tango:a/b/c/d?foo=label')
-@invalid(name = 'tango:a/b/c/d#?foo=label')
+@invalid(name = 'tango://a/b/c/d?foo', strict=False)
+@invalid(name = 'tango://a/b/c/d?foo=label', strict=False)
+@valid(name = 'tango:a/b/c/d#?foo=label') # "?" is allowed in cfgkeys!
 @valid(name = 'tango:a/b/c/d#label?foo=bar')
 @names(name = 'tango://foo:123/a/b/c/d#', 
        out=('tango://foo:123/a/b/c/d#', 
