@@ -899,11 +899,6 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             return
         
         self._localModelName = model
-        
-#        # if in offline mode don't bother trying to register
-#        opMode = taurus.core.taurusmanager.TaurusManager().getOperationMode()
-#        if opMode == taurus.core.taurusbasetypes.OperationMode.OFFLINE:
-#            return
 
         parent_widget = None
         try:

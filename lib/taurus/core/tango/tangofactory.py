@@ -117,7 +117,6 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def reInit(self):
         """Reinitialize the singleton"""
         self._default_tango_host = None
-        self.operation_mode = OperationMode.ONLINE
         self.dft_db = None
         self.tango_db = CaselessWeakValueDict()
         self.tango_db_queries = CaselessWeakValueDict()
@@ -611,5 +610,23 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def getConfigurationNameValidator(self):
         """Return TangoConfigurationNameValidator"""
         import tangovalidator
-        return tangovalidator.TangoConfigurationNameValidator() 
+        return tangovalidator.TangoConfigurationNameValidator()
+
+    def setOperationMode(self, mode):
+        """ Deprecated. setOperationMode(OperationMode mode) -> None
+            Sets the operation mode for the Tango system."""
+        dep = 'setOperationMode'
+        rel = 'Taurus4'
+        dbg_msg = "Don't use this method"
+        msg = '%s is deprecated (from %s). %s' % (dep, rel, dbg_msg)
+        self.deprecated(msg)
+
+    def getOperationMode(self):
+        """Deprecated. Gives the current operation mode."""
+        dep = 'getOperationMode'
+        rel = 'Taurus4'
+        dbg_msg = "Don't use this method"
+        msg = '%s is deprecated (from %s). %s' % (dep, rel, dbg_msg)
+        self.deprecated(msg)
+        return OperationMode.ONLINE
     
