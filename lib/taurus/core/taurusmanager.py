@@ -153,6 +153,7 @@ class TaurusManager(Singleton, Logger):
         rel = 'Taurus4'
         dbg_msg = "Don't use this method"
         msg = '%s is deprecated (from %s). %s' % (dep, rel, dbg_msg)
+        self.deprecated(msg)
         
     def getOperationMode(self):
         """Deprecated. Gives the current operation mode.
