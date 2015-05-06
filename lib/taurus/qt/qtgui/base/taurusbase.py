@@ -1527,7 +1527,8 @@ class TaurusBaseWidget(TaurusBaseComponent):
         :param ops: (sequence<taurus.core.taurusoperation.TaurusOperation> or None) list of operations to apply. 
                     If None is given (default) the component fetches the pending operations
                     
-        :return: (bool) False if the apply was aborted by the user. True otherwise.
+        :return: (bool) False if the apply was aborted by the user or if the
+                 widget is in design mode. True otherwise.
         """
         
         if ops is None: ops = self.getPendingOperations()
@@ -1554,6 +1555,11 @@ class TaurusBaseWidget(TaurusBaseComponent):
             result = warningDlg.exec_()
             if result != Qt.QMessageBox.Ok:
                 return False
+        
+        if self._designMode:
+            self.info('Refusing to apply operation while in design mode')
+            return False
+        
         self.applyPendingOperations(ops)
         return True
 
@@ -1702,7 +1708,6 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
                            (even if the forceApply mode is disabled by 
                            :meth:`setForceApply`)
         '''
-        
         if self.hasPendingOperations():
             applied = self.safeApplyOperations()
             if applied: 
