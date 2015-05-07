@@ -353,7 +353,7 @@ def makeSchemeExplicit(name, default=None):
     else:
         return name
         
-def getValidTypesForName(name, strict=True):
+def getValidTypesForName(name, strict=None):
     '''
     Returns a list of all Taurus element types for which `name` is a valid 
     model name (while in many cases a name may only be valid for one 
@@ -373,7 +373,7 @@ def getValidTypesForName(name, strict=True):
         return []
     return factory.getValidTypesForName(name, strict=strict)
 
-def isValidName(name, etypes=None, strict=True):
+def isValidName(name, etypes=None, strict=None):
     '''Returns True is the given name is a valid Taurus model name. If 
     `etypes` is passed, it returns True only if name is valid for at least 
     one of the given the element types. Otherwise it returns False. 

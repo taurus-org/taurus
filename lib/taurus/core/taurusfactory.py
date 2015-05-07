@@ -299,7 +299,7 @@ class TaurusFactory(object):
     def __repr__(self):
         return '{0}(schemes={1})'.format(self.__class__.__name__, ", ".join(self.schemes))
     
-    def getValidTypesForName(self, name, strict=True):
+    def getValidTypesForName(self, name, strict=None):
         '''
         Returns a list of all Taurus element types for which `name` is a valid 
         model name (while in many cases a name may only be valid for one 
@@ -357,7 +357,7 @@ class TaurusFactory(object):
             msg = ('generic findObjectClass called but %s does ' + 
                    'not define elementTypesMap.') % self.__class__.__name__
             raise RuntimeError(msg)
-        for t in self.getValidTypesForName(absolute_name, strict=False):
+        for t in self.getValidTypesForName(absolute_name):
             ret = elementTypesMap.get(t, None)
             if ret is not None:
                 return ret

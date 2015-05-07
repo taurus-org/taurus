@@ -125,7 +125,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
             d = self.eval_devs.get(fullname, None)
             #if we do not know it, create the dev and store it in cache
             if d is None:
-                groups = validator.getUriGroups(dev_name, strict=False)
+                groups = validator.getUriGroups(dev_name)
                 if groups['_evalclass'] is not None:
                     modulename, classname = groups['_evalclass'].rsplit('.', 1)
                     try:

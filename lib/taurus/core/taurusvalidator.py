@@ -33,6 +33,7 @@ __all__ = ["TaurusAuthorityNameValidator", "TaurusDeviceNameValidator",
 __docformat__ = "restructuredtext"
 
 import re
+from taurus import tauruscustomsettings
 from taurus.core.util.singleton import Singleton
 from taurus.core.taurushelper import makeSchemeExplicit
 
@@ -78,7 +79,7 @@ class _TaurusBaseValidator(Singleton):
         '''
         return None
         
-    def isValid(self, name, matchLevel=None, strict=True):
+    def isValid(self, name, matchLevel=None, strict=None):
         '''Whether the name matches the validator pattern.
         If strict is False, it also tries to match against the non-strict regexp
         (It logs a warning if it matched only the non-strict alternative)
@@ -100,11 +101,13 @@ class _TaurusBaseValidator(Singleton):
         warning(msg)
         return self.isValid(name)
             
-    def getUriGroups(self, name, strict=True):
+    def getUriGroups(self, name, strict=None):
         '''returns the named groups dictionary from the URI regexp matching.
         If strict is False, it also tries to match against the non-strict regexp
         (It logs a warning if it matched only the non-strict alternative) 
         '''
+        if strict is None:
+            strict = getattr(tauruscustomsettings, 'STRICT_MODEL_NAMES', False)
         name = makeSchemeExplicit(name, default=self.scheme)
         m = self.name_re.match(name)
         #if it is strictly valid, return the groups
