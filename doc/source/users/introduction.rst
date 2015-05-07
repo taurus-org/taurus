@@ -16,8 +16,10 @@ applications (CLIs and GUIs) to Tango_ device servers.
           Nevertheless, due to its Tango roots, this documentation may assume
           that you are using Tango.
 
-Taurus is developed as a part of the Sardana_ project, which aims to provide an
-integrated SCADA, but it can be used independently of the rest of Sardana.
+Taurus was developed within the Sardana_ project, but since it has being found 
+to be useful for other projects not related to Sardana, it has been 
+moved to a separate project (although both projects are kept in sync and share 
+most of their developers).
 
 For its Tango interface, Taurus uses PyTango_ which is a python binding
 for the Tango_ library. It provides an abstraction layer that allows Tango to be
