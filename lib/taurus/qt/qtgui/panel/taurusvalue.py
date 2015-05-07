@@ -86,11 +86,19 @@ class DefaultLabelWidget(TaurusLabel):
         try: config = self.taurusValueBuddy().getLabelConfig()
         except Exception: config = 'label'
         elementtype = self.taurusValueBuddy().getModelType()
+        fullname = self.taurusValueBuddy().getModelObj().getFullName()
         if elementtype == TaurusElementType.Attribute:
             config = self.taurusValueBuddy().getLabelConfig()
-            TaurusLabel.setModel(self, model + "#%s"%config)
+            TaurusLabel.setModel(self, '%s#%s'%(fullname,config))
         elif elementtype == TaurusElementType.Device:
-            TaurusLabel.setModel(self, model + "/state#dev_alias")
+            ## @TODO: tango-centric!
+            # TaurusLabel.setModel(self, '%s/state#dev_alias'%fullname) 
+            #
+            ## The following is a workaround to avoid tango-centricity, but
+            ## it has the drawback that the model is not set (e.g., no tooltip)
+            devName = self.taurusValueBuddy().getModelObj().getSimpleName()
+            TaurusLabel.setModel(self, None)
+            self.setText(devName)
     
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
@@ -157,7 +165,7 @@ class DefaultUnitsWidget(TaurusLabel):
     def setModel(self, model):
         if model is None or model=='': 
             return TaurusLabel.setModel(self, None)
-        TaurusLabel.setModel(self, model + "#unit") #@todo: tango-centric!
+        TaurusLabel.setModel(self, model + "#unit") 
     def sizeHint(self):
         #print "UNITSSIZEHINT:",Qt.QLabel.sizeHint(self).width(), self.minimumSizeHint().width(), Qt.QLabel.minimumSizeHint(self).width()
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 24)
@@ -676,7 +684,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             
             #set the model for the subwidget
             if hasattr(self._labelWidget,'setModel'):
-                self._labelWidget.setModel(self.getModelName())
+                self._labelWidget.setModel(self.getFullModelName())
             
     def updateReadWidget(self):
         #get the class for the widget and replace it if necessary
@@ -707,7 +715,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             
             #set the model for the subwidget
             if hasattr(self._readWidget,'setModel'):
-                self._readWidget.setModel(self.getModelName())
+                self._readWidget.setModel(self.getFullModelName())
 
     def updateWriteWidget(self):
         #get the class for the widget and replace it if necessary
@@ -734,7 +742,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             
             #set the model for the subwidget
             if hasattr(self._writeWidget,'setModel'):
-                self._writeWidget.setModel(self.getModelName())
+                self._writeWidget.setModel(self.getFullModelName())
         
     def updateUnitsWidget(self):
         #get the class for the widget and replace it if necessary
@@ -753,7 +761,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             
             #set the model for the subwidget
             if hasattr(self._unitsWidget,'setModel'):
-                self._unitsWidget.setModel(self.getModelName())
+                self._unitsWidget.setModel(self.getFullModelName())
                 
     def updateCustomWidget(self):
         #get the class for the widget and replace it if necessary
@@ -766,7 +774,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if self._customWidget is not None:            
             #set the model for the subwidget
             if hasattr(self._customWidget,'setModel'):
-                self._customWidget.setModel(self.getModelName())
+                self._customWidget.setModel(self.getFullModelName())
                 
     def updateExtraWidget(self):
         #get the class for the widget and replace it if necessary
@@ -782,7 +790,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                         
             #set the model for the subwidget
             if hasattr(self._extraWidget,'setModel'):
-                self._extraWidget.setModel(self.getModelName())
+                self._extraWidget.setModel(self.getFullModelName())
                 
                 
     def addLabelWidgetToLayout(self):

@@ -491,7 +491,17 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :return: (str) the model name
         """
         return self.modelName
-
+    
+    def getFullModelName(self):
+        """Returns the full name of the current model object.
+        
+        :return: (str) the model name
+        """
+        obj = self.getModelObj()
+        if obj is None:
+            return None
+        return obj.getFullName()
+    
     def getParentModelName(self):
         """Returns the parent model name or an empty string if the component
         has no parent
