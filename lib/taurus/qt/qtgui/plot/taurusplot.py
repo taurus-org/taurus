@@ -2546,7 +2546,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if klass is None:
             from taurus.qt.qtgui.panel import QDataExportDialog
             klass = QDataExportDialog
-        dialog = klass(parent=self, datadict=frozendata)
+        dialog = klass(parent=self, datadict=frozendata, 
+                       sortedNames=self.getCurveNamesSorted())
         dialog.setXIsTime(self.getXIsTime())
         return dialog.exec_()
 

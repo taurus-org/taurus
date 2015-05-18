@@ -50,7 +50,7 @@ class QDataExportDialog(Qt.QDialog):
     allInSingleFile = "All sets in a single file (table like)"
     allInMultipleFiles = "All set in multiple files"
 
-    def __init__(self, parent=None, datadict=None):
+    def __init__(self, parent=None, datadict=None, sortedNames=None):
         super(QDataExportDialog,self).__init__(parent)
         self.loadUi()
         self._xIsTime = False
@@ -59,17 +59,21 @@ class QDataExportDialog(Qt.QDialog):
         Qt.QObject.connect(self.exportBT,Qt.SIGNAL("clicked()"),self.exportData)
         Qt.QObject.connect(self.dataSetCB,Qt.SIGNAL("currentIndexChanged(const QString&)"),self.onDataSetCBChange)
         
-        self.setDataSets(datadict)
+        self.setDataSets(datadict, sortedNames)
+        
 
 
-    def setDataSets(self, datadict):
+    def setDataSets(self, datadict, sortedNames=None):
         """Used to set the sets that are to be offered for exporting. It overwrites previous values.
         """
         if datadict is None: return
+        if sortedNames is None:
+            sortedNames = sorted(self.datadict.keys())
+        self.sortedNames = sortedNames
         self.datatime=datetime.now()
         self.datadict=datadict
         self.dataSetCB.clear()
-        self.dataSetCB.insertItems(0,sorted(self.datadict.keys()))
+        self.dataSetCB.insertItems(0, sortedNames)
         if len(self.datadict.keys()) > 1:
             self.dataSetCB.insertItems(0,[self.allInSingleFile, self.allInMultipleFiles])
 
@@ -118,7 +122,7 @@ class QDataExportDialog(Qt.QDialog):
             outputdir=Qt.QFileDialog.getExistingDirectory (self, 'Export Directory', Qt.QString())
             if not outputdir:return False
             preffix=os.path.join(str(outputdir),"set")
-        for i,k in zip(range(len(self.datadict)),sorted(self.datadict.keys())):
+        for i,k in zip(range(len(self.datadict)), self.sortedNames):
             ofile="%s%03i.dat"%(preffix,i+1)
             try:
                 self.exportCurrentData(set=k,ofile=ofile,verbose=False,AllowCloseAfter=False)
@@ -143,9 +147,12 @@ class QDataExportDialog(Qt.QDialog):
             header = "# DATASET= " 
             body = ""
             previous = None
-            for curve_name in sorted(self.datadict.keys()):
+            for curve_name in self.sortedNames:
                 xdata, ydata = self.datadict[curve_name]
-                if (previous is not None) and (previous != xdata):
+                if previous is None:
+                    previous = xdata
+                    header +=' "abscissa"'
+                elif previous != xdata:
                     if (key==self.allInSingleFile):
                         self.dataTE.clear()
                         Qt.QMessageBox.critical(self,\
@@ -158,17 +165,17 @@ class QDataExportDialog(Qt.QDialog):
                         self.dataTE.insertPlainText("Unable to display because abscissas are different.\n"\
                                                     "Curves will be saved each one in its own file")
                         return
-                else:
-                    previous = xdata
-                    header +=' "abscissa", "%s"' % curve_name
+                header +=' , "%s"' % curve_name
+            
             header+="\n# SNAPSHOT_TIME= %s\n"%self.datatime.isoformat('_')
             #if we reached this point x axes are equal, so fill the editor with the data
             for i, x in enumerate(previous):
                 if self.xIsTime():
+                    t=datetime.fromtimestamp(x)
                     body += "%s" % t.isoformat('_')
                 else:
                     body += "%g" % x
-                for curve_name in sorted(self.datadict.keys()):
+                for curve_name in self.sortedNames:
                     xdata, ydata = self.datadict[curve_name]
                     body += ("\t%g" % ydata[i])
                 body+="\n"
