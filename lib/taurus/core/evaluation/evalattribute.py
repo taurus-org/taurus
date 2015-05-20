@@ -221,7 +221,8 @@ class EvaluationAttribute(TaurusAttribute):
             msg = " the function '%s' could not be evaluated. Reason: %s" \
                     %( self._transformation, repr(e))
             self.warning(msg)
-            #self.traceback(taurus.Warning)
+            #import taurus
+            #self.traceback(taurus.Debug)
 
     def _encodeType(self, value, dformat):
         ''' Encode the value type into Taurus data type. In case of non-zero 
@@ -242,6 +243,8 @@ class EvaluationAttribute(TaurusAttribute):
             pass
         try: # handle numpy arrays
             value = value.item(0)
+        except ValueError: # for numpy arrays of shape=() 
+            value = value.item()
         except AttributeError: # for bool, bytes, str, seq<str>...
             if dformat is DataFormat._1D:
                 value = value[0]
