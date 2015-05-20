@@ -102,17 +102,17 @@ DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
 @isValidAttr(name='tango:a/b  /c/d')
 @isInvalidAttr(name='tango:a/b/c/d/')
 @isInvalidAttr(name='tango:a/b/c')
-@isInvalidAttr(name='tango:a/b/c/d?configuration=label')
-@isValidConf(name='implicit/tango/attr/name?configuration=label',
+@isInvalidAttr(name='tango:a/b/c/d#label')
+@isValidConf(name='implicit/tango/attr/name#label',
              skip=(DEFAULT_SCHEME != 'tango'))
-@isValidConf(name='implicittangoalias/attrname?configuration=label',
+@isValidConf(name='implicittangoalias/attrname#label',
              skip=(DEFAULT_SCHEME != 'tango'))
-@isValidConf(name='tango:alias/attr?configuration=label')
-@isValidConf(name='tango://foo:10000/a/b/c/d?configuration=label')
-@isValidConf(name='tango:a/b/c/d?configuration=label')
-@isValidConf(name='tango:a/b  /c/d?configuration=label')
+@isValidConf(name='tango:alias/attr#label')
+@isValidConf(name='tango://foo:10000/a/b/c/d#label')
+@isValidConf(name='tango:a/b/c/d#label')
+@isValidConf(name='tango:a/b  /c/d#label')
 @isValidConf(name='tango://a/b/c/d?configuration=label', strict=False)
-@isInvalidConf(name='tango://a/b/c/d?configuration=label', strict=True)
+@isInvalidConf(name='tango://a/b/c/d#label', strict=True)
 @isInvalidConf(name='tango://a/b')
 @isInvalidConf(name='tango://a/b/c')
 @isInvalidConf(name='tango://a/b/c/d')
@@ -121,7 +121,7 @@ DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
 @isInvalidAuth(name='evaluation://db=foo')
 @isInvalidAuth(name='evaluation://localhost')
 @isInvalidAuth(name='eval://db=foo')
-@isInvalidAuth(name='eval://localhost?configuration')
+@isInvalidAuth(name='eval://localhost#')
 @isInvalidAuth(name='eval://')
 @isInvalidAuth(name='evaluation://user@host:port')
 @isInvalidAuth(name='eval://user@host:port')
@@ -142,7 +142,7 @@ DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
 @isInvalidDev(name='eval://db=foo')
 @isInvalidDev(name='eval://dev=bar')
 @isInvalidDev(name='eval:')
-@isInvalidDev(name='eval:@Foo?configuration')
+@isInvalidDev(name='eval:@Foo#')
 @isInvalidDev(name='eval:1')
 @isInvalidDev(name='eval:DEV=bar')
 @isInvalidDev(name='eval:@DEV=bar')
@@ -180,24 +180,23 @@ DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
 @isInvalidAttr(name='eval://2+3')
 @isInvalidAttr(name='evaluation://2+3')
 @isInvalidAttr(name='eval:a+b?a=2;b=3')
-@isInvalidAttr(name='eval:foo?configuration')
+@isInvalidAttr(name='eval:foo#')
 @isInvalidAttr(name='eval:{tango:a/b/c}*2')
 @isInvalidAttr(name='eval:k-a;k=2;a=3')
 @isInvalidAttr(name='eval:a=1;b=2;a+b;a*2')
 @isInvalidAttr(name='eval:a=1;b=2;a+b;;;')
 @isInvalidAttr(name='eval:a=1;;;b=2;a+b')
-@isValidConf(name='eval:a=2;b=3;a+b?configuration=label')
-@isValidConf(name='eval:{tango:a/b/c/d}?configuration')
-@isValidConf(name='eval:{tango:a/b/c/d}*2?configuration=label')
-@isValidConf(name='eval:k=2;a=3;a*k?configuration=units')
-@isValidConf(name='eval://localhost/@mymod.MyClass/1?configuration=label')
-@isValidConf(name='eval:{tango:a/b/c/d}*2?configuration=1+2')
-@isInvalidConf(name='eval:{tango:a/b/c}*2?configuration')
-@isInvalidConf(name='eval:2?configuration= ')
-@isInvalidConf(name='evaluation:1?configuration=label')
-@isInvalidConf(name='eval://dev=bar;foo?configuration=label')
-@isInvalidConf(name='eval:2+3?configuration=')
-@isInvalidConf(name='eval:a+b;a=2;b=3?configuration=label')
+@isValidConf(name='eval:a=2;b=3;a+b#label')
+@isValidConf(name='eval:{tango:a/b/c/d}#')
+@isValidConf(name='eval:{tango:a/b/c/d}*2#label')
+@isValidConf(name='eval:k=2;a=3;a*k#units')
+@isValidConf(name='eval://localhost/@mymod.MyClass/1#label')
+@isValidConf(name='eval:{tango:a/b/c/d}*2#1+2')
+@isInvalidConf(name='eval:{tango:a/b/c}*2#')
+@isInvalidConf(name='eval:2# ')
+@isInvalidConf(name='evaluation:1#label')
+@isInvalidConf(name='eval://dev=bar;foo#label')
+@isInvalidConf(name='eval:a+b;a=2;b=3#label')
 @isInvalidConf(name='eval://foo')
 @isValidConf(name='evaluation://db=foo;dev=bar;1?configuration=label', strict=False)
 @isValidConf(name='eval://db=foo;dev=bar;1?configuration=label', strict=False)
@@ -252,7 +251,7 @@ class AuthorityTestCase(unittest.TestCase):
         msg = ('%s("%s") is not an instance of %s (it is %s)' %
                (taurus.Authority.__name__, name,
                 klass.__name__, a.__class__.__name__) )
-        self.assertTrue(isinstance(a,klass), msg)  
+        self.assertTrue(isinstance(a, klass), msg)  
         
 
 @insertTest(helper_name='get_object', name='tango:a/b/c')
@@ -281,7 +280,7 @@ class DeviceTestCase(unittest.TestCase):
                (taurus.Device.__name__, name,
                 klass.__name__, a.__class__.__name__) )
 
-        self.assertTrue(isinstance(a,klass), msg)
+        self.assertTrue(isinstance(a, klass), msg)
 
 
 @insertTest(helper_name='read_attr',
@@ -425,7 +424,7 @@ class AttributeTestCase(unittest.TestCase):
         msg = ('%s("%s") is not an instance of %s (it is %s)' %
                (taurus.Attribute.__name__, name,
                 klass.__name__, a.__class__.__name__) )
-        self.assertTrue(isinstance(a,klass), msg)
+        self.assertTrue(isinstance(a, klass), msg)
         return a
         
     def read_attr(self, name=None, expected=None, skip=False,
@@ -450,9 +449,9 @@ class AttributeTestCase(unittest.TestCase):
             msg = ('Expected %s=%r for "%s" (got %r)' % (k, exp, name, got)) 
             self.assertEqual(got, exp, msg)
   
-@insertTest(helper_name='get_object', name='tango:a/b/c/d?configuration', 
+@insertTest(helper_name='get_object', name='tango:a/b/c/d#', 
             klass=TaurusConfigurationProxy)
-@insertTest(helper_name='get_object', name='eval:1?configuration')
+@insertTest(helper_name='get_object', name='eval:1#')
 class ConfigurationTestCase(unittest.TestCase):
     '''TestCase for the taurus.Configuration helper'''
     def get_object(self, name=None, klass=None):
@@ -468,7 +467,7 @@ class ConfigurationTestCase(unittest.TestCase):
         msg = ('%s("%s") is not an instance of %s (it is %s)' %
                (taurus.Configuration.__name__, name,
                 klass.__name__, a.__class__.__name__) )
-        self.assertTrue(isinstance(a,klass), msg)  
+        self.assertTrue(isinstance(a, klass), msg)  
 
 
 if __name__ == '__main__':

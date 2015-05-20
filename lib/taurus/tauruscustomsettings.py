@@ -50,6 +50,12 @@ T_FORM_CUSTOM_WIDGET_MAP = \
 # True sets the preferred mode of TaurusForms to use "compact" widgets
 T_FORM_COMPACT = False
 
+# Strict RFC3986 URI names in models
+# True makes Taurus only use the strict URI names
+# False enables a backwards-compatibility mode for pre-sep3 model names
+STRICT_MODEL_NAMES = False
+
+
 # Lightweight imports:
 # True enables delayed imports (may break older code).
 # False (or commented out) for backwards compatibility

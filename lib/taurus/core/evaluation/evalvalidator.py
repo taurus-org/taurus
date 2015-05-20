@@ -130,7 +130,7 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
     query = '(?!)'
     fragment = '(?!)' 
     
-    def getUriGroups(self, name, strict=True):
+    def getUriGroups(self, name, strict=None):
         '''reimplemented from :class:`TaurusDeviceNameValidator` to provide 
         backwards compatibility with ol syntax'''
         groups = TaurusDeviceNameValidator.getUriGroups(self, name, 
@@ -151,7 +151,7 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
         '''reimplemented from :class:`TaurusDeviceNameValidator`'''
         from evalfactory import EvaluationFactory
         #TODO: add mechanism to select strict mode instead of hardcoding here
-        groups = self.getUriGroups(fullname, strict=False)
+        groups = self.getUriGroups(fullname)
         if groups is None:
             return None      
 
@@ -255,7 +255,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         '''
         return _findAllTokensBetweenChars(expr, '{', '}')
             
-    def isValid(self, name, matchLevel=None, strict=True):
+    def isValid(self, name, matchLevel=None, strict=None):
         '''reimplemented from :class:`TaurusAttributeNameValidator` to do extra
         check on references validity (recursive) 
         '''
@@ -279,7 +279,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
                     return False
         return True
 
-    def getUriGroups(self, name, strict=True):
+    def getUriGroups(self, name, strict=None):
         '''reimplemented from :class:`TaurusAttributeNameValidator` to provide 
         backwards compatibility with old syntax'''
         groups = TaurusAttributeNameValidator.getUriGroups(self, name, 
@@ -314,9 +314,8 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
     
     def getNames(self, fullname, factory=None):
         '''reimplemented from :class:`TaurusDeviceNameValidator`'''
-        #TODO: add mechanism to select strict mode instead of hardcoding here
         from evalfactory import EvaluationFactory
-        groups = self.getUriGroups(fullname, strict=False) 
+        groups = self.getUriGroups(fullname) 
         if groups is None:
             return None
         
@@ -361,7 +360,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         :return: (str) the expression (from the name )expanded with any 
                  substitution k,v pairs also defined in the name
         '''
-        groups = self.getUriGroups(name, strict=False) 
+        groups = self.getUriGroups(name) 
         if groups is None:
             return None
         _expr = groups['_expr']
@@ -371,9 +370,8 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
     def getDeviceName(self, name):
         #@TODO: Maybe this belongs to the factory, not the validator
         '''Obtain the fullname of the device from the attribute name'''
-        #TODO: add mechanism to select strict mode instead of hardcoding here
         from evalfactory import EvaluationFactory
-        groups = self.getUriGroups(name, strict=False) 
+        groups = self.getUriGroups(name) 
         if groups is None:
             return None
         authority = groups.get('authority')
@@ -409,10 +407,10 @@ class EvaluationConfigurationNameValidator(TaurusConfigurationNameValidator):
     scheme = 'eval'
     authority = EvaluationAuthorityNameValidator.authority
     path = EvaluationAttributeNameValidator.path
-    query = 'configuration(=(?P<cfgkey>[^# ]+))?'
-    fragment = '(?!)'  
+    query = '(?!)' 
+    fragment = '(?P<cfgkey>[^# ]*)'   
     
-    def isValid(self, name, matchLevel=None, strict=True):
+    def isValid(self, name, matchLevel=None, strict=None):
         '''reimplemented from :class:`TaurusConfigurationNameValidator` to do 
         extra check on references validity (recursive) 
         '''
@@ -422,26 +420,29 @@ class EvaluationConfigurationNameValidator(TaurusConfigurationNameValidator):
             return False
         #let EvaluationAttributeNameValidator.getNames do the ref checking
         v = EvaluationAttributeNameValidator()
-        attrUri = name.split('?configuration')[0]
+        attrUri = name.split('#')[0]
+        attrUri = attrUri.split('?configuration')[0] # for bck-compat
         return v.isValid(attrUri, strict=strict)
         
     def getNames(self, fullname, factory=None):
         '''reimplemented from :class:`TaurusDeviceNameValidator`'''
 
-        groups = self.getUriGroups(fullname, strict=False)
+        groups = self.getUriGroups(fullname)
         if groups is None:
             return None  
         
-        query = groups.get('query')
-        cfgkey = groups.get('cfgkey')
+        cfgkey = groups.get('cfgkey','')
         
-        #let EvaluationAttributeNameValidator.getNames do the hard work...
+        # let EvaluationAttributeNameValidator.getNames do the hard work...
         v = EvaluationAttributeNameValidator()
-        attrUri = fullname.split('?configuration')[0]
+        if groups['__STRICT__']:
+            attrUri = fullname.split('#')[0]
+        else: # for bck-compat
+            attrUri = fullname.split('?configuration')[0]
         attrcomplete, attrnormal, _ = v.getNames(attrUri, factory=factory)
         
-        complete = '%s?%s'%(attrcomplete, query)
-        normal = '%s?%s'%(attrnormal, query)
+        complete = '%s#%s'%(attrcomplete, cfgkey)
+        normal = '%s#%s'%(attrnormal, cfgkey)
         short = cfgkey or 'configuration'
             
         return complete, normal, short
@@ -461,8 +462,17 @@ class EvaluationConfigurationNameValidator(TaurusConfigurationNameValidator):
         #@TODO: Maybe this belongs to the factory, not the validator
         names = self.getNames(s)
         if names is None: return None
-        return names[0].rsplit('?configuration',1)[0]
+        return names[0].rsplit('#',1)[0]
 
 
 if __name__ == '__main__':
+    
+    cfgval = EvaluationConfigurationNameValidator()
+#     print cfgval.namePattern
+#     print cfgval.getNames('eval:1#')
+#     print cfgval.getNames('eval:1#label')
+#     print cfgval.getNames('eval://1?configuration')
+#     print cfgval.getNames('eval://1?configuration=label')
+    print cfgval.getNames('eval://a+b?a=2;b=3?configuration=label')
+    print cfgval.isValid('eval://a+b?a=2;b=3?configuration=label')
     pass

@@ -13,7 +13,6 @@ Developer's Guide
     Icon guide <icon_guide>
     Designer tutorial <designer_tutorial>
     Core tutorial <core_tutorial>
-    Scheme template <scheme_template>
     Widget tutorial <widget_tutorial>
     Popup menu tutorial <popupmenu_tutorial>
     API <api/taurus>

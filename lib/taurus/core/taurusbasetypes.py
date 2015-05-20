@@ -59,6 +59,8 @@ TaurusSWDevHealth = Enumeration(
     'NotExportedNotAlive' # device didn't report exported and connection failed
 ))
 
+# Deprecated enumeration. 
+# According with TEP3, the logic of the OperationMode should be in the widgets
 OperationMode = Enumeration(
 'OperationMode', (
     'OFFLINE',

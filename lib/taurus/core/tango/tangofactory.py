@@ -68,13 +68,13 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     Tango model names are URI based See https://tools.ietf.org/html/rfc3986.
     For example, a TangoConfiguration would be::
         
-        tango://foo.org:1234/a/b/c/d?configuration=label
-        \___/   \_____/ \__/ \_____/ \___________/ \___/ 
-          |        |     |      |        |           | 
-          |    hostname port  attr      cfg       cfgkey
-          |   \____________/\______/ \_________________/
-          |         |           |           |
-        scheme   authority     path       query
+        tango://foo.org:1234/a/b/c/d#label
+        \___/   \_____/ \__/ \_____/ \___/ 
+          |        |     |      |      |     
+          |    hostname port  attr   cfgkey
+          |   \____________/\______/ \_____/
+          |         |           |      |
+        scheme   authority     path  fragment
 
     For Tango Elements:
     
@@ -83,11 +83,11 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         - The 'path' is the Tango object, which can be a Device or Attribute.
           For device it must have the format _/_/_ or alias 
           For attribute it must have the format _/_/_/_ or devalias/_
-        - The 'query' is valid when the 'path' corresponds to an Attribute. Valid
-          queries must have the format configuration=<cfgkey>. Valid 
-          configuration parameters are: label, format, description, unit, display_unit, 
+        - The 'fragment' is valid when the 'path' corresponds to an Attribute.
+          Valid fragments must either be empty or consist on a  <cfgkey>. Valid 
+          configuration keys are: label, format, description, unit, display_unit, 
           standard_unit, max_value, min_value, max_alarm, min_alarm, 
-          max_warning, min_warning. in this case the Tango object is a Configuration
+          max_warning, min_warning. In this case the Tango object is a Configuration
     """
     
     #: the list of schemes that this factory supports. For this factory: 'tango' 
@@ -117,7 +117,6 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def reInit(self):
         """Reinitialize the singleton"""
         self._default_tango_host = None
-        self.operation_mode = OperationMode.ONLINE
         self.dft_db = None
         self.tango_db = CaselessWeakValueDict()
         self.tango_db_queries = CaselessWeakValueDict()
@@ -445,8 +444,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
             raise TaurusException("Cannot find full name of '%s'" % cfg_name)
         
         #but note that in the tango_configs dict, we do not use the cfgkey...
-        attr_name = (full_cfg_name.split('?',1)[0])
-        full_cfg_name = attr_name + '?configuration'
+        attr_name = (full_cfg_name.split('#',1)[0])
+        full_cfg_name = attr_name + '#'
         
         cfg = self.tango_configs.get(full_cfg_name)
 
@@ -457,7 +456,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         
     def _getConfigurationFromAttribute(self,attrObj):
         cfg = attrObj.getConfig()
-        cfg_name = attrObj.getFullName() + "?configuration"
+        cfg_name = attrObj.getFullName() + "#"
         self.tango_configs[cfg_name] = cfg
         return cfg
     
@@ -611,5 +610,23 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def getConfigurationNameValidator(self):
         """Return TangoConfigurationNameValidator"""
         import tangovalidator
-        return tangovalidator.TangoConfigurationNameValidator() 
+        return tangovalidator.TangoConfigurationNameValidator()
+
+    def setOperationMode(self, mode):
+        """ Deprecated. setOperationMode(OperationMode mode) -> None
+            Sets the operation mode for the Tango system."""
+        dep = 'setOperationMode'
+        rel = 'Taurus4'
+        dbg_msg = "Don't use this method"
+        msg = '%s is deprecated (from %s). %s' % (dep, rel, dbg_msg)
+        self.deprecated(msg)
+
+    def getOperationMode(self):
+        """Deprecated. Gives the current operation mode."""
+        dep = 'getOperationMode'
+        rel = 'Taurus4'
+        dbg_msg = "Don't use this method"
+        msg = '%s is deprecated (from %s). %s' % (dep, rel, dbg_msg)
+        self.deprecated(msg)
+        return OperationMode.ONLINE
     

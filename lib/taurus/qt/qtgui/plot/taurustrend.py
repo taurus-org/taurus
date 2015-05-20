@@ -206,14 +206,14 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         basetitle = basetitle.replace('<model>',self.getModel())
         if isinstance(attr, taurus.core.taurusattribute.TaurusAttribute):
             basetitle = basetitle.replace('<label>',attr.label or '---')
-            basetitle = basetitle.replace('<attr_name>',attr.name or '---')
+            basetitle = basetitle.replace('<attr_name>', attr.getSimpleName() or '---')
             basetitle = basetitle.replace('<attr_fullname>',attr.getFullName() or '---')
             basetitle = basetitle.replace('<attr_full_name>',attr.getFullName() or '---')
-            basetitle = basetitle.replace('<dev_alias>',attr.dev_alias or '---')
-            basetitle = basetitle.replace('<dev_name>',attr.dev_name or '---')
         
         dev = attr.getParentObj()
         if dev is not None:
+            basetitle = basetitle.replace('<dev_alias>', dev.getSimpleName() or '---')
+            basetitle = basetitle.replace('<dev_name>', dev.getNormalName() or '---')
             basetitle = basetitle.replace('<dev_fullname>',dev.getFullName() or '---')
             basetitle = basetitle.replace('<dev_full_name>',dev.getFullName() or '---')
 

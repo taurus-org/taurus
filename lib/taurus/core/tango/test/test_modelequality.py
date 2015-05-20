@@ -18,18 +18,18 @@ attr_models2 = ['tango:sys/tg_test/1/float_scalar',
                 'tango:sys/tg_test/2/float_scalar']
 # the same configuration models, just different cases
 conf_models1 = [
-        'tango:sys/tg_test/1/float_scalar?configuration=label',
-        'tango:SYS/TG_TEST/1/FLOAT_SCALAR?configuration=LABEL'
+        'tango:sys/tg_test/1/float_scalar#label',
+        'tango:SYS/TG_TEST/1/FLOAT_SCALAR#LABEL'
         ]
 # different configuration models
 conf_models2 = [
-        'tango:sys/tg_test/1/float_scalar?configuration=label',
-        'tango:sys/tg_test/2/float_scalar?configuration=label'
+        'tango:sys/tg_test/1/float_scalar#label',
+        'tango:sys/tg_test/2/float_scalar#label'
         ]
-# the same configuration models, just different cases
+# the same configuration models, just different cfgkeys
 conf_models3 = [
-        'tango:sys/tg_test/1/float_scalar?configuration=label',
-        'tango:SYS/TG_TEST/1/FLOAT_SCALAR?configuration=unit'
+        'tango:sys/tg_test/1/float_scalar#label',
+        'tango:SYS/TG_TEST/1/FLOAT_SCALAR#range'
         ]
 
 # test cases for the model case insensitiveness

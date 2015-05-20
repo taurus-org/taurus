@@ -61,7 +61,7 @@ __all__ = ["TaurusFactory"]
 
 __docformat__ = "restructuredtext"
 
-from taurusbasetypes import OperationMode, TaurusElementType
+from taurusbasetypes import TaurusElementType
 from taurusauthority import TaurusAuthority
 from taurusdevice import TaurusDevice
 from taurusattribute import TaurusAttribute
@@ -77,7 +77,6 @@ class TaurusFactory(object):
     
     def __init__(self):
         self._polling_period = self.DefaultPollingPeriod
-        self.operation_mode = OperationMode.ONLINE
         self.polling_timers = {}
         self._polling_enabled = True    
         
@@ -220,17 +219,9 @@ class TaurusFactory(object):
         """
         return scheme in self.shemes
 
-    def setOperationMode(self, mode):
-        """ setOperationMode(OperationMode mode) -> None
-            Sets the operation mode for the Tango system."""
-        self.operation_mode = mode
-        
-    def getOperationMode(self):
-        return self.operation_mode
-
     def findObject(self, absolute_name):
         """ Must give an absolute name"""
-        if self.operation_mode == OperationMode.OFFLINE or not absolute_name:
+        if not absolute_name:
             return None
         obj = None
         cls = self.findObjectClass(absolute_name)
@@ -308,7 +299,7 @@ class TaurusFactory(object):
     def __repr__(self):
         return '{0}(schemes={1})'.format(self.__class__.__name__, ", ".join(self.schemes))
     
-    def getValidTypesForName(self, name, strict=True):
+    def getValidTypesForName(self, name, strict=None):
         '''
         Returns a list of all Taurus element types for which `name` is a valid 
         model name (while in many cases a name may only be valid for one 
@@ -366,7 +357,7 @@ class TaurusFactory(object):
             msg = ('generic findObjectClass called but %s does ' + 
                    'not define elementTypesMap.') % self.__class__.__name__
             raise RuntimeError(msg)
-        for t in self.getValidTypesForName(absolute_name, strict=False):
+        for t in self.getValidTypesForName(absolute_name):
             ret = elementTypesMap.get(t, None)
             if ret is not None:
                 return ret

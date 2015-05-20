@@ -491,7 +491,17 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :return: (str) the model name
         """
         return self.modelName
-
+    
+    def getFullModelName(self):
+        """Returns the full name of the current model object.
+        
+        :return: (str) the model name
+        """
+        obj = self.getModelObj()
+        if obj is None:
+            return None
+        return obj.getFullName()
+    
     def getParentModelName(self):
         """Returns the parent model name or an empty string if the component
         has no parent
@@ -899,11 +909,6 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             return
         
         self._localModelName = model
-        
-#        # if in offline mode don't bother trying to register
-#        opMode = taurus.core.taurusmanager.TaurusManager().getOperationMode()
-#        if opMode == taurus.core.taurusbasetypes.OperationMode.OFFLINE:
-#            return
 
         parent_widget = None
         try:
@@ -1532,7 +1537,8 @@ class TaurusBaseWidget(TaurusBaseComponent):
         :param ops: (sequence<taurus.core.taurusoperation.TaurusOperation> or None) list of operations to apply. 
                     If None is given (default) the component fetches the pending operations
                     
-        :return: (bool) False if the apply was aborted by the user. True otherwise.
+        :return: (bool) False if the apply was aborted by the user or if the
+                 widget is in design mode. True otherwise.
         """
         
         if ops is None: ops = self.getPendingOperations()
@@ -1559,6 +1565,11 @@ class TaurusBaseWidget(TaurusBaseComponent):
             result = warningDlg.exec_()
             if result != Qt.QMessageBox.Ok:
                 return False
+        
+        if self._designMode:
+            self.info('Refusing to apply operation while in design mode')
+            return False
+        
         self.applyPendingOperations(ops)
         return True
 
@@ -1707,7 +1718,6 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
                            (even if the forceApply mode is disabled by 
                            :meth:`setForceApply`)
         '''
-        
         if self.hasPendingOperations():
             applied = self.safeApplyOperations()
             if applied: 

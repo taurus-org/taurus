@@ -211,7 +211,7 @@ def main():
     if len(args) > 0:
         models = map(str.lower, args)
     else:
-        models = [ 'sys/tg_test/1/%s?configuration=label' % a for a in ('state', 'status', 'double_scalar' ) ]
+        models = [ 'sys/tg_test/1/%s#label' % a for a in ('state', 'status', 'double_scalar' ) ]
 
     w = Qt.QWidget()
     layout = Qt.QGridLayout()

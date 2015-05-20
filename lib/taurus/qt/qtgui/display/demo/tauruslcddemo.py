@@ -108,7 +108,7 @@ def demo():
     p1 = TaurusLCDTestPanel()
     p1.w_model.setText("sys/tg_test/1/double_scalar")
     p2 = TaurusLCDTestPanel()
-    p2.w_model.setText("sys/tg_test/1/double_scalar?configuration=min_value")
+    p2.w_model.setText("sys/tg_test/1/double_scalar#min_value")
     p2.w_bg.setCurrentIndex(2)
     layout.addWidget(p1, 0, 0)
     layout.addWidget(p2, 0, 1)

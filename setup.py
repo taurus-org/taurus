@@ -86,13 +86,17 @@ packages = [
     'taurus.core.util.argparse',
     'taurus.core.util.decorator',
     'taurus.core.util.report',
+    'taurus.core.util.test',
     'taurus.core.utils',  # old, deprecated: maintain for compatibility
 
     'taurus.core.resource',
 
-    'taurus.core.simulation',
+    # 'taurus.core.spec',
+    
+    # 'taurus.core.spec',
 
     'taurus.core.evaluation',
+    'taurus.core.evaluation.test',
 
     'taurus.core.tango',
     'taurus.core.tango.img',
@@ -155,6 +159,7 @@ packages = [
     'taurus.qt.qtgui.util',
     'taurus.qt.qtgui.util.test',
     'taurus.qt.qtgui.util.test.test_ui',
+    'taurus.qt.qtgui.util.test.test_ui.mywidget3',
     'taurus.qt.uic',
 ]
 
@@ -180,19 +185,23 @@ provides = [
 
 requires = [
     'numpy (>=1.1)',
-    'PyTango (>=7.1)',
-    'PyQt4 (>=4.4)',
-    'PyQt4.Qwt5 (>=5.2.0)',   # plotting
-    'ply (>=2.3)',            # jdraw parser
-    'lxml (>=2.1)',           # tau2taurus, taurusuic4
-    'spyder (>=2.2)',         # shell, editor
+    #########################################################################
+    # TODO: if using setuptools, the following can be moved to extra_requires 
+    'PyTango (>=7.1)', # [Taurus-Tango]
+    'PyQt4 (>=4.4)', # [Taurus-Qt]
+    'PyQt4.Qwt5 (>=5.2.0)',  # [Taurus-Qt-Plot]
+    'ply (>=2.3)', # [Taurus-Qt-Synoptic]
+    'lxml (>=2.1)', #  [Taurus-TaurusGUI]
+    'spyder (>=2.2)', # [Taurus-Editor] --> or maybe move it to sardana
+    #
+    #########################################################################
 ]
 
 package_data = {
-    'taurus.core.epics'        : ['__taurus_plugin__'],
+    # 'taurus.core.epics'        : ['__taurus_plugin__'],
     'taurus.core.evaluation'   : ['__taurus_plugin__'],
     'taurus.core.resource'     : ['__taurus_plugin__'],
-    'taurus.core.simulation'   : ['__taurus_plugin__'],
+    # 'taurus.core.spec'         : ['__taurus_plugin__'],
     'taurus.core.tango'        : ['__taurus_plugin__'],
 
     'taurus.qt.qtgui.resource' : ['*.rcc'],
@@ -210,6 +219,7 @@ package_data = {
     'taurus.qt.qtgui.taurusgui': ['ui/*.ui'],
     'taurus.qt.qtgui.extra_guiqwt': ['ui/*.ui'],
     'taurus.qt.qtgui.util.test.test_ui' : ['ui/*.ui', 'ui/mywidget2/*.ui'],
+    'taurus.qt.qtgui.util.test.test_ui.mywidget3' : ['ui/*.ui'],
 }
 
 

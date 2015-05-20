@@ -83,7 +83,6 @@ class TaurusManager(Singleton, Logger):
         self.trace("reInit()")
         this_path = os.path.abspath(__file__)
         self._this_path = os.path.dirname(this_path)
-        self._operation_mode = OperationMode.ONLINE
         self._serialization_mode = self.DefaultSerializationMode
         if self._serialization_mode == TaurusSerializationMode.Concurrent:
             self._thread_pool = ThreadPool(name="TaurusTP",
@@ -147,25 +146,25 @@ class TaurusManager(Singleton, Logger):
         return self._serialization_mode
     
     def setOperationMode(self, mode):
-        """Sets the operation mode for the system.
+        """Deprecated. Sets the operation mode for the system.
         
         :param mode: (OperationMode) the new operation mode"""
-        self.debug("Setting operation mode to %s" % OperationMode.whatis(mode))
-        if mode == OperationMode.OFFLINE:
-            self._initial_default_scheme = self.default_scheme
-            self.default_scheme = "simulation"
-        else:
-            self.default_scheme = self._initial_default_scheme
-            
-        self._operation_mode = mode
-        for plugin in self.getPlugins().values():
-            plugin().setOperationMode(mode)
+        dep = 'setOperationMode'
+        rel = 'Taurus4'
+        dbg_msg = "Don't use this method"
+        msg = '%s is deprecated (from %s). %s' % (dep, rel, dbg_msg)
+        self.deprecated(msg)
         
     def getOperationMode(self):
-        """Gives the current operation mode.
+        """Deprecated. Gives the current operation mode.
         
         :return: (OperationMode) the current operation mode"""
-        return self._operation_mode
+        dep = 'getOperationMode'
+        rel = 'Taurus4'
+        dbg_msg = "Don't use this method"
+        msg = '%s is deprecated (from %s). %s' % (dep, rel, dbg_msg)
+        self.deprecated(msg)
+        return OperationMode.ONLINE
         
     def getDefaultFactory(self):
         """Gives the default factory.

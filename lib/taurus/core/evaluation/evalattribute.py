@@ -87,7 +87,7 @@ class EvaluationAttribute(TaurusAttribute):
     def _getRealConfig(self):
         """ Returns the current configuration of the attribute."""
         if self.__attr_config is None:
-            cfg_name = "%s?configuration" % self.getFullName()
+            cfg_name = "%s#" % self.getFullName()
             self.__attr_config = EvaluationConfiguration(cfg_name, self)
         return self.__attr_config
     
