@@ -115,10 +115,10 @@ and *how* it is shown in the form.
 - You can alter *what* is shown in two ways:
 
   - right-clicking in the form and selecting the `Modify contents` option in the
-    context menu. A :ref:`TauruModelChooser <modelchooser>` widget will let you
+    context menu. A :ref:`TaurusModelChooser <modelchooser>` widget will let you
     modify the list of taurus models being represented by the form.
   - Dropping models that you drag from another taurus widget (typically another
-    TaurusForm, or a :ref:`TauruModelChooser <modelchooser>`). See the `Drag and
+    TaurusForm, or a :ref:`TaurusModelChooser <modelchooser>`). See the `Drag and
     Drop support`_ section for more details.
   
 - Regarding *how* it is shown, you can change which widget is used for
