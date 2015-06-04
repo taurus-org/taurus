@@ -34,8 +34,7 @@ from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)
 from taurus.core.evaluation.evalvalidator import (EvaluationAuthorityNameValidator,
                                            EvaluationDeviceNameValidator,
-                                           EvaluationAttributeNameValidator,
-                                           EvaluationConfigurationNameValidator)
+                                           EvaluationAttributeNameValidator)
 
  
 #===============================================================================
@@ -97,9 +96,8 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 # Tests for Eval Attribute name validation
 #===============================================================================
  
-@valid(name='eval://db=localhost;dev=taurus.core.evaluation.dev_example.FreeSpaceDevice;getFreeSpace("/")/1024/1024', strict=False)
- 
- 
+@valid(name='eval://db=localhost;dev=taurus.core.evaluation.dev_example.FreeSpaceDevice;getFreeSpace("/")/1024/1024',
+       strict=False)
 @valid(name='eval:1')
 #===============================================================================
 # this is equivalent to "eval:1". The '/' is part of the path, but not of the 
@@ -136,11 +134,12 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='eval:/@foo/1', groups={'path':'/@foo/1', 'attrname':'1'})
 @valid(name='eval:@foo/1', groups={'path':'@foo/1', 'attrname':'1'}) 
 
-@invalid(name='eval:1#label')
+# @invalid(name='eval:1#label')
+#
+# @invalid(name='eval:1?foo')
+# @invalid(name='eval:1?configuration')
+# @invalid(name='eval:1?configuration=foo')
 
-@invalid(name='eval:1?foo')
-@invalid(name='eval:1?configuration')
-@invalid(name='eval:1?configuration=foo')
 #===============================================================================
 
 #
@@ -193,15 +192,10 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @invalid(name='eval:{tango://a/b/c/d}') # invalid because of non-strict ref
 @valid(name='eval:{tango://a/b/c/d}', strict=False) # but valid with old syntax
 
-class EvaluationAttrValidatorTestCase(AbstractNameValidatorTestCase,
-                                      unittest.TestCase):
-    validator = EvaluationAttributeNameValidator
- 
- 
 #===============================================================================
-# Tests for Eval Configuration name validation
+# Tests for eval attribute  name validation (when passing cfgkey)
 #===============================================================================
- 
+
 @valid(name='eval:1#')
 @valid(name='eval:1#units' , groups={'cfgkey':'units'})
 @valid(name='eval:{tango:a/b/c/d}*2#')
@@ -209,39 +203,38 @@ class EvaluationAttrValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='eval:k=2;a={tango:a/b/c/d};a*k#units')
 @valid(name='eval://localhost/@Foo/k=2;a={eval:1};a*k#label')
 @valid(name='eval://localhost/@mymod.MyEvalClass/1#label')
-@invalid(name='eval:1# ')
+@invalid(name='eval:1# ') # invalid because of the trailing space
 
-@names(name='eval:1#units', 
-       out=('eval://localhost/@DefaultEvaluator/1#units', 
-            '1#units', 
-            'units'))
+@names(name='eval:1#units',
+       out=('eval://localhost/@DefaultEvaluator/1#units',
+            '1#units',
+            '1#units'))
 
-@names(name='eval:@Foo/a={tango:a/b/c/d};x=2;a*x#', 
+@names(name='eval:@Foo/a={tango:a/b/c/d};x=2;a*x#',
        out=('eval://localhost/@Foo/{tango:a/b/c/d}*2#',
             '@Foo/a={tango:a/b/c/d};x=2;a*x#',
-            'configuration'))
+            'a*x#'))
 
 #old syntax gets transformed into new one!
-@names(name='eval://1?configuration=units', 
-       out=('eval://localhost/@DefaultEvaluator/1#units', 
-            '1#units', 
-            'units'))
+@names(name='eval://1?configuration=units',
+       out=('eval://localhost/@DefaultEvaluator/1#units',
+            '1#units',
+            '1#units'))
 
 #old syntax gets transformed into new one!
-@names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration', 
+@names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration',
        out=('eval://localhost/@Foo/{tango:a/b/c/d}*2#',
             '@Foo/a={tango:a/b/c/d};x=2;a*x#',
-            'configuration'))
+            'a*x#'))
 
 #old syntax gets transformed into new one!
-@names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration=label', 
+@names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration=label',
        out=('eval://localhost/@Foo/{tango:a/b/c/d}*2#label',
             '@Foo/a={tango:a/b/c/d};x=2;a*x#label',
-            'label'))
-
-class EvaluationConfValidatorTestCase(AbstractNameValidatorTestCase,
-                                 unittest.TestCase):
-    validator = EvaluationConfigurationNameValidator
+            'a*x#label'))
+class EvaluationAttrValidatorTestCase(AbstractNameValidatorTestCase,
+                                      unittest.TestCase):
+    validator = EvaluationAttributeNameValidator
 
 
 
