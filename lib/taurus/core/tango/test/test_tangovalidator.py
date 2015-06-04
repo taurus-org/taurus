@@ -35,8 +35,7 @@ from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)
 from taurus.core.tango.tangovalidator import (TangoAuthorityNameValidator,
                                               TangoDeviceNameValidator,
-                                              TangoAttributeNameValidator,
-                                              TangoConfigurationNameValidator)
+                                              TangoAttributeNameValidator)
 
 import PyTango
 __GETENV = PyTango.ApiUtil.get_env_var
@@ -52,14 +51,14 @@ __GETENV = PyTango.ApiUtil.get_env_var
 @invalid(name = 'tango://foo:10000/?')
 @invalid(name = 'tango://foo:bar')
 @invalid(name = 'tango://foo:10000/foo')
-@names(name = 'tango://foo:123', 
+@names(name = 'tango://foo:123',
        out=('tango://foo:123', '//foo:123', 'foo:123'))
 @names(name = '//foo:123', #using implicit scheme!
        out=('tango://foo:123', '//foo:123', 'foo:123'))
-class TangoAuthValidatorTestCase(AbstractNameValidatorTestCase, 
+class TangoAuthValidatorTestCase(AbstractNameValidatorTestCase,
                                  unittest.TestCase):
     validator = TangoAuthorityNameValidator
-    
+
 
 #===============================================================================
 # Tests for Tango Device name validation
@@ -78,23 +77,23 @@ class TangoAuthValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name = 'tango://a/b/c', strict=False)
 @invalid(name = 'tango://a/b/c', strict=True)
 @invalid(name = 'tango://devalias')
-@names(name = 'tango://foo:123/a/b/c', 
+@names(name = 'tango://foo:123/a/b/c',
        out=('tango://foo:123/a/b/c', '//foo:123/a/b/c', 'a/b/c'))
-@names(name = 'tango:sys/tg_test/1', 
+@names(name = 'tango:sys/tg_test/1',
        out=('tango://%s/sys/tg_test/1' % __GETENV("TANGO_HOST"),
             'sys/tg_test/1', 'sys/tg_test/1'))
 @names(name = 'tango:alias', out=(None, None, 'alias'))
-# @names(name = 'tango:mot49', # commented out because it assumes mot49 exists 
+# @names(name = 'tango:mot49', # commented out because it assumes mot49 exists
 #        out=('tango://%s/motor/motctrl13/1'% __GETENV("TANGO_HOST"),
-#             'motor/motctrl13/1', 'mot49'))  
-class TangoDevValidatorTestCase(AbstractNameValidatorTestCase, 
+#             'motor/motctrl13/1', 'mot49'))
+class TangoDevValidatorTestCase(AbstractNameValidatorTestCase,
                                  unittest.TestCase):
     validator = TangoDeviceNameValidator
 
 
 #===============================================================================
-# Tests for Tango Attribute name validation
-#===============================================================================    
+# Tests for Tango Attribute name validation (without fragment)
+#===============================================================================
 @valid(name = 'tango:a/b/c/d', groups={'devname':'a/b/c',
                                        'attrname':'a/b/c/d',
                                        '_shortattrname':'d'})
@@ -109,30 +108,23 @@ class TangoDevValidatorTestCase(AbstractNameValidatorTestCase,
 @invalid(name = 'tango://alias/attr')
 @invalid(name = 'tango://a/b/c/d?')
 @invalid(name = 'tango:a/b/c')
-@invalid(name = 'tango:a/b/c/d#label')
-@invalid(name = 'tango:a/b/c/d#')
-@invalid(name = 'tango:a/b/c/d#foo')
 @invalid(name = 'tango:sys/tg_test/1')
-@names(name = 'tango://foo:123/a/b/c/d', 
+@names(name = 'tango://foo:123/a/b/c/d',
        out=('tango://foo:123/a/b/c/d', '//foo:123/a/b/c/d', 'd'))
-@names(name = 'tango:sys/tg_test/1/float_scalar', 
+@names(name = 'tango:sys/tg_test/1/float_scalar',
        out=('tango://%s/sys/tg_test/1/float_scalar' % __GETENV("TANGO_HOST"),
             'sys/tg_test/1/float_scalar', 'float_scalar'))
 # @names(name = 'tango:mot49/position', # commented out because it assumes mot49
 #        out=('tango://%s/motor/motctrl13/1/position'% __GETENV("TANGO_HOST"),
 #             'motor/motctrl13/1/position', 'position'))
-class TangoAttrValidatorTestCase(AbstractNameValidatorTestCase, 
-                                 unittest.TestCase):
-    validator = TangoAttributeNameValidator
-
 
 #===============================================================================
-# Tests for Tango Configuration name validation 
+# Tests for validation of Attribute name with fragment
 #===============================================================================
-@valid(name = 'tango:a/b/c/d#', 
+@valid(name = 'tango:a/b/c/d#',
        groups={'devname':'a/b/c', 'attrname':'a/b/c/d', '_shortattrname':'d',
                'cfgkey':''})
-@valid(name = 'tango:a/b/c/d#label', 
+@valid(name = 'tango:a/b/c/d#label',
        groups={'devname':'a/b/c', 'attrname':'a/b/c/d', '_shortattrname':'d',
                'cfgkey':'label'})
 @valid(name = 'tango:alias/attr#')
@@ -140,25 +132,26 @@ class TangoAttrValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name = 'tango://a/b/c/d?configuration', strict=False)
 @valid(name = 'tango://a/b/c/d?configuration=label', strict=False)
 @invalid(name = 'tango://a/b/c/d#')
-@invalid(name = 'tango:a/b/c/d')
 @invalid(name = 'tango://a/b/c/d?foo', strict=False)
 @invalid(name = 'tango://a/b/c/d?foo=label', strict=False)
 @valid(name = 'tango:a/b/c/d#?foo=label') # "?" is allowed in cfgkeys!
 @valid(name = 'tango:a/b/c/d#label?foo=bar')
-@names(name = 'tango://foo:123/a/b/c/d#', 
-       out=('tango://foo:123/a/b/c/d#', 
-            '//foo:123/a/b/c/d#', 'configuration'))
-@names(name = 'tango://foo:123/a/b/c/d#label', 
-       out=('tango://foo:123/a/b/c/d#label', 
-            '//foo:123/a/b/c/d#label', 'label'))
-@names(name = 'tango:sys/tg_test/1/float_scalar#', 
+@names(name = 'tango://foo:123/a/b/c/d#',
+       out=('tango://foo:123/a/b/c/d#',
+            '//foo:123/a/b/c/d#', 'd#'))
+@names(name = 'tango://foo:123/a/b/c/d#label',
+       out=('tango://foo:123/a/b/c/d#label',
+            '//foo:123/a/b/c/d#label', 'd#label'))
+@names(name = 'tango:sys/tg_test/1/float_scalar#',
        out=('tango://%s/sys/tg_test/1/float_scalar#' % \
             __GETENV("TANGO_HOST"),
-            'sys/tg_test/1/float_scalar#', 'configuration'))
-class TangoConfValidatorTestCase(AbstractNameValidatorTestCase, 
+            'sys/tg_test/1/float_scalar#', 'float_scalar#'))
+@names(name = 'tango://foo:123/a/b/c/d?configuration=label',
+       out=('tango://foo:123/a/b/c/d#label',
+            '//foo:123/a/b/c/d#label', 'd#label'))
+class TangoAttrValidatorTestCase(AbstractNameValidatorTestCase, 
                                  unittest.TestCase):
-    validator = TangoConfigurationNameValidator
-    
+    validator = TangoAttributeNameValidator
 
 
 if __name__ == '__main__':
