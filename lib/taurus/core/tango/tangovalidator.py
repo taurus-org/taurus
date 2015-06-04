@@ -25,16 +25,15 @@
 
 """This module contains the base taurus name validator classes"""
 
-__all__ = ["TangoAuthorityNameValidator", "TangoDeviceNameValidator", 
+__all__ = ["TangoAuthorityNameValidator", "TangoDeviceNameValidator",
 "TangoAttributeNameValidator", "TangoConfigurationNameValidator"]
 
 __docformat__ = "restructuredtext"
 
 
-from taurus.core.taurusvalidator import (TaurusAttributeNameValidator, 
-                                         TaurusDeviceNameValidator, 
-                                         TaurusAuthorityNameValidator, 
-                                         TaurusConfigurationNameValidator) 
+from taurus.core.taurusvalidator import (TaurusAttributeNameValidator,
+                                         TaurusDeviceNameValidator,
+                                         TaurusAuthorityNameValidator)
 
 
 #todo: I do not understand the behaviour of getNames for Auth, Dev and Attr in
@@ -59,7 +58,7 @@ class TangoAuthorityNameValidator(TaurusAuthorityNameValidator):
     fragment = '(?!)'
 
 
-class TangoDeviceNameValidator(TaurusDeviceNameValidator):    
+class TangoDeviceNameValidator(TaurusDeviceNameValidator):
     '''Validator for Tango device names. Apart from the standard named 
     groups (scheme, authority, path, query and fragment), the following named 
     groups are created:
@@ -79,7 +78,7 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
     path = r'/?(?P<devname>((?P<_devalias>[^/?#:]+)|' + \
            r'(?P<_devslashname>[^/?#:]+/[^/?#:]+/[^/?#:]+)))'
     query = '(?!)'
-    fragment = '(?!)' 
+    fragment = '(?!)'
 
     def getNames(self, fullname, factory=None, queryAuth=True):
         '''reimplemented from :class:`TaurusDeviceNameValidator`. It accepts an
@@ -90,14 +89,14 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
         groups = self.getUriGroups(fullname)
         if groups is None:
             return None
-    
+
         import PyTango
-        default_authority = '//' + PyTango.ApiUtil.get_env_var('TANGO_HOST')        
+        default_authority = '//' + PyTango.ApiUtil.get_env_var('TANGO_HOST')
 
         authority = groups.get('authority')
         if authority is None:
-            groups['authority'] = authority = default_authority       
-        
+            groups['authority'] = authority = default_authority
+
         db = None
         if queryAuth:
             # attempt to get an Authority object    
@@ -108,9 +107,9 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
                 db = factory.getAuthority('tango:%s' % authority)
             except:
                 pass
-        
+
         #note, since we validated, we either have alias or slashname (not both)
-        _devalias = groups.get('_devalias')    
+        _devalias = groups.get('_devalias')
         _devslashname = groups.get('_devslashname')
         
         if _devslashname is None and db is not None:
@@ -130,7 +129,7 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
             normal = '%(_devslashname)s' % groups
         else:
             normal = '%(authority)s/%(_devslashname)s' % groups
-        
+
         #and finally the short
         if _devalias is not None:
             short = _devalias
@@ -141,8 +140,8 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
             else:
                 short = _devslashname
         
-        return complete, normal, short  
-            
+        return complete, normal, short
+
     
     @property
     def nonStrictNamePattern(self):
@@ -156,7 +155,8 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
     '''Validator for Tango attribute names. Apart from the standard named 
     groups (scheme, authority, path, query and fragment), the following named 
     groups are created:
-    
+
+     - [cfgkey]: configuration key (e.g., "label", "units",... It also be "")
      - attrname: attribute name including device name
      - _shortattrname: attribute name excluding device name
      - devname: as in :class:`TangoDeviceNameValidator`
@@ -173,15 +173,15 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
     path = ('(?P<attrname>%s/(?P<_shortattrname>[^/?:#]+))' %
             TangoDeviceNameValidator.path)
     query = '(?!)'
-    fragment = '(?!)'  
+    fragment = '(?P<cfgkey>[^# ]*)'
 
     def getNames(self, fullname, factory=None, queryAuth=True):
         """Returns the complete and short names"""
-                
+
         groups = self.getUriGroups(fullname)
         if groups is None:
-            return None  
-        
+            return None
+
         complete, normal, short = None, None, groups.get('_shortattrname')
         
         # reuse the getNames from the Device validator...
@@ -193,86 +193,32 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
             complete = '%s/%s'%(devcomplete, short)
         if devnormal is not None:
             normal = '%s/%s'%(devnormal, short)
-        
-        return complete, normal, short
 
-    @property
-    def nonStrictNamePattern(self):
-        '''In non-strict mode, allow double-slash even if there is no Authority.
-        (e.g., "tango://a/b/c/d" passes this non-strict form)
-        '''
-        return self.namePattern.replace('tango):(', 'tango)://(')
-    
-    
-class TangoConfigurationNameValidator(TaurusConfigurationNameValidator):
-    '''Validator for Tango configuration names. Apart from the standard named 
-    groups (scheme, authority, path, query and fragment), the following named 
-    groups are created:
-    
-     - [cfgkey]: configuration key (e.g., "label", "units",...)
-     - attrname: as in :class:`TangoAttributeNameValidator`
-     - _shortattrname: as in :class:`TangoAttributeNameValidator`
-     - devname:  as in :class:`TangoDeviceNameValidator`
-     - [_devalias]: as in :class:`TangoDeviceNameValidator`
-     - [_devslashname]: as in :class:`TangoDeviceNameValidator`
-     - [host] as in :class:`TangoAuthorityNameValidator`
-     - [port] as in :class:`TangoAuthorityNameValidator`
-     
-    Note: brackets on the group name indicate that this group will only contain
-    a string if the URI contains it.
-    '''
-    scheme = 'tango'
-    authority = TangoAuthorityNameValidator.authority
-    path = TangoAttributeNameValidator.path
-    query = '(?!)'
-    fragment = '(?P<cfgkey>[^# ]*)'  
-
-
-    def getNames(self, fullname, factory=None, queryAuth=True):
-        """Returns the complete and short names"""
-                
-        groups = self.getUriGroups(fullname)
-        if groups is None:
-            return None
-        
+        # add fragment if cfgkey was present (this works both for strict and non-strict names)
         cfgkey = groups.get('cfgkey')
-        
-        complete, normal, short = None, None, cfgkey or 'configuration'
-        
-        # reuse the getNames from the Attribute validator...
-        if groups['__STRICT__']:
-            attrname = fullname.split('#')[0]
-        else: # for bck-compat
-            attrname = fullname.split('?configuration')[0]
-        v = TangoAttributeNameValidator()
-        attrcomplete, attrnormal, _ = v.getNames(attrname, factory=factory,
-                                                 queryAuth=queryAuth)
-        
-        if attrcomplete is not None:
-            complete = '%s#%s'%(attrcomplete, cfgkey)
-        if attrnormal is not None:
-            normal = '%s#%s'%(attrnormal, cfgkey)
-        
+        if cfgkey is not None:
+            complete = '%s#%s' % (complete, cfgkey)
+            normal = '%s#%s' % (normal, cfgkey)
+            short = '%s#%s' % (short, cfgkey)
+
         return complete, normal, short
-        
-    
+
     @property
     def nonStrictNamePattern(self):
         '''In non-strict mode, allow double-slash even if there is no Authority.
         Also use old style "?configuration[=cfgkey]" instead of fragment-based.
-        (e.g., "tango://a/b/c/d?configuration=units" passes this non-strict 
+        (e.g., "tango://a/b/c/d?configuration=units" passes this non-strict
         form)
         '''
 
         pattern = r'^(?P<scheme>%(scheme)s)://' + \
                   r'((?P<authority>%(authority)s)(?=/))?' + \
                   r'(?P<path>%(path)s)' + \
-                  r'\?(?P<query>%(query)s)' + \
-                  r'(#(?P<fragment>%(fragment)s))?$'     
-        
-        return pattern % dict(scheme=self.scheme, 
-                              authority=self.authority,
-                              path=self.path, 
-                              query= 'configuration(=(?P<cfgkey>[^# ]+))?', 
-                              fragment= '(?!)')
+                  r'(\?(?P<query>%(query)s))?' + \
+                  r'(#(?P<fragment>%(fragment)s))?$'
 
+        return pattern % dict(scheme=self.scheme,
+                              authority='(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})',
+                              path=self.path,
+                              query= 'configuration(=(?P<cfgkey>[^# ]+))?',
+                              fragment= '(?!)')
