@@ -27,7 +27,7 @@
 
 
 __all__ = ["TaurusAuthorityNameValidator", "TaurusDeviceNameValidator", 
-           "TaurusAttributeNameValidator", "TaurusConfigurationNameValidator"]
+           "TaurusAttributeNameValidator"]
 
 
 __docformat__ = "restructuredtext"
@@ -118,7 +118,7 @@ class _TaurusBaseValidator(Singleton):
         #if we are strict (or no less-strict pattern is defined) return None 
         if strict or self.nonStrictName_re is None:
             return None
-        #If a less-strict" pattern is defined, use it, but warn if it works
+        #If a less-strict pattern is defined, use it, but warn if it works
         m = self.nonStrictName_re.match(name)
         if m is None:
             return None
@@ -185,16 +185,16 @@ class _TaurusBaseValidator(Singleton):
             note: if foo123 wasn't the default TANGO_HOST, the normal name
             would be '//foo:123/a/b/c/d' 
             
-         - for the configuration (assuming we passed #label)::
+         - for the attribute (assuming we passed #label)::
             
             ('tango://foo:123/a/b/c/d#label',
              'a/b/c/d#label',
-             'label')
+             'd#label')
              
-         - for the configuration (assuming we did not pass a conf key)::
+         - for the attribute (assuming we did not pass a conf key)::
             ('tango://foo:123/a/b/c/d#', 
              'a/b/c/d#', 
-             'configuration')
+             'd#')
              
         Note: it must always be possible to construct the 3 names from a *valid*
         **fullname** URI. If the given URI is valid but it is not the full name, 
@@ -291,32 +291,6 @@ class TaurusAttributeNameValidator(_TaurusBaseValidator):
               r'(#(?P<fragment>%(fragment)s))?$'         
 
 
-class TaurusConfigurationNameValidator(_TaurusBaseValidator):
-    '''Base class for Device name validators.
-    The namePattern will be composed from URI segments as follows:
-      
-    <scheme>:[<authority>/]<path>[?<query>]#<fragment>    
-
-    Derived classes must provide attributes defining a regexp string for each 
-    URI segment (they can be empty strings):
-    
-    - scheme
-    - authority
-    - path
-    - query
-    - fragment
-    
-    Additionally, the namePattern resulting from composing the above segments
-    must contain a named group called "cfgkey" (normally within the 
-    query segment).
-    '''
-    pattern = r'^(?P<scheme>%(scheme)s):' + \
-              r'((?P<authority>%(authority)s)(?=/))?' + \
-              r'(?P<path>%(path)s)' + \
-              r'(\?(?P<query>%(query)s))?' + \
-              r'#(?P<fragment>%(fragment)s)$'          
-
-
 class TaurusDatabaseNameValidator(TaurusAuthorityNameValidator): 
     '''Backwards-compatibility only. Use TaurusAuthorityNameValidator instead'''
     def __init__(self, *args, **kwargs):
@@ -330,14 +304,14 @@ class TaurusDatabaseNameValidator(TaurusAuthorityNameValidator):
 
 if __name__ == '__main__':
     
-    class FooConfigurationNameValidator(TaurusConfigurationNameValidator):
+    class FooAttributeNameValidator(TaurusAttributeNameValidator):
         scheme = 'foo'
         authority = '[^?#/]+'
         path = '[^?#]+'
         query = '(?!)'
         fragment = '(?P<cfgkey>[^?#]+)'
     
-    v = FooConfigurationNameValidator()
+    v = FooAttributeNameValidator()
     name = 'foo://bar#label'
     print v.isValid(name)
     print v.getUriGroups(name)
