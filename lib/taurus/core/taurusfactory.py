@@ -317,8 +317,6 @@ class TaurusFactory(object):
                  `Configuration`, `Attribute`, `Device` or `Authority` 
         '''
         ret = []
-        if self.getConfigurationNameValidator().isValid(name, strict=strict):
-            ret.append(TaurusElementType.Configuration)
         if self.getAttributeNameValidator().isValid(name, strict=strict):
             ret.append(TaurusElementType.Attribute)
         if self.getDeviceNameValidator().isValid(name, strict=strict):
