@@ -35,7 +35,6 @@ __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
 
 __docformat__ = "restructuredtext"
 
-import time
 import datetime
 
 from .util.enumeration import Enumeration
@@ -258,24 +257,36 @@ class TaurusTimeVal(object):
 
 class TaurusAttrValue(object):
     def __init__(self, config=None):
-        if config is None:
-            config = TaurusConfigValue()
+        # TODO: config parameter is maintained for backwards compatibility
         self.rvalue = None
         self.wvalue = None
         self.time = None
         self.quality = AttrQuality.ATTR_VALID
         #self.format = 0
         self.error = None
-        self.config = config
-    
+        ########################################################################
+        # From TaurusConfigValue attributes
+        self.name = None
+        self.writable = None
+        self.data_format = None
+        self.label = None
+        self.type = None
+        self.description = None
+        self.range = float('-inf'), float('inf')
+        self.alarm = float('-inf'), float('inf')
+        self.warning = float('-inf'), float('inf')
+        ########################################################################
+        # TODO remove this ref
+        self.config = self
+
     # --------------------------------------------------------
     # This is for backwards compat with the API of taurus < 4 
     #
     def _get_value(self):
         '''for backwards compat with taurus < 4'''
         from taurus.core.util.log import deprecated 
-        deprecated(dep='value', alt='.rvalue', rel='taurus 4', 
-                        dbg_msg=repr(self))
+        deprecated(dep='value', alt='.rvalue', rel='taurus 4',
+                   dbg_msg=repr(self))
         try:
             return self.__fix_int(self.rvalue.magnitude)
         except AttributeError: 
@@ -284,8 +295,8 @@ class TaurusAttrValue(object):
     def _set_value(self, value):
         '''for backwards compat with taurus < 4'''
         from taurus.core.util.log import deprecated 
-        deprecated(dep='value',  alt='.rvalue', rel='taurus 4', 
-                        dbg_msg='Setting %r to %s'%(value,self.config.name))
+        deprecated(dep='value',  alt='.rvalue', rel='taurus 4',
+                   dbg_msg='Setting %r to %s'%(value, self.name))
         
         if self.rvalue is None: #we do not have a previous rvalue
             import numpy
@@ -306,7 +317,7 @@ class TaurusAttrValue(object):
     def _get_w_value(self):
         '''for backwards compat with taurus < 4'''
         from taurus.core.util.log import deprecated 
-        deprecated(dep='w_value', alt='.wvalue', rel='taurus 4', 
+        deprecated(dep='w_value', alt='.wvalue', rel='taurus 4',
                         dbg_msg=repr(self))
         try:
             return self.__fix_int(self.wvalue.magnitude)
@@ -315,9 +326,9 @@ class TaurusAttrValue(object):
          
     def _set_w_value(self, value):
         '''for backwards compat with taurus < 4'''
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='w_value', alt='.wvalue', rel='taurus 4', 
-                        dbg_msg='Setting %r to %s'%(value,self.config.name))
+        from taurus.core.util.log import deprecated
+        deprecated(dep='w_value', alt='.wvalue', rel='taurus 4',
+                        dbg_msg='Setting %r to %s'%(value, self.name))
         
         if self.wvalue is None: #we do not have a previous wvalue
             import numpy
@@ -343,41 +354,21 @@ class TaurusAttrValue(object):
         return self.error
         
     def __fix_int(self, value):
-        '''cast value to int if its config says it is an integer.
+        '''cast value to int if  it is an integer.
         Works on scalar and non-scalar values'''
-        if self.config.type != DataType.Integer:
+        if self.type != DataType.Integer:
             return value
         try:
             return int(value)
         except TypeError:
             import numpy
             return numpy.array(value, dtype='int')
-            
-    #    
-    # --------------------------------------------------------
-        
-    def __getattr__(self,name):
-        return getattr(self.config, name)
     
     def __repr__(self):
         return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
-        #values = ", ".join(["%s=%s"%(m,repr(getattr(self,m))) for m in self.__dict__])
-        #return "%s(%s)"%(self.__class__.__name__, values)
 
-class TaurusConfigValue(object):
-    def __init__(self):
-        self.name = None
-        self.writable = None
-        self.data_format = None
-        self.label = None
-        self.type = None
-        self.description = None
-        self.range = float('-inf'), float('inf')
-        self.alarm = float('-inf'), float('inf')
-        self.warning = float('-inf'), float('inf')
-    
-    def __repr__(self):
-        return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
+    ############################################################################
+    # Form TaurusConfigValue methods
 
     #===========================================================================
     # The following methods are here for taurus<4 bck-compat
@@ -392,51 +383,51 @@ class TaurusConfigValue(object):
         
     def _set_unit(self, value):
         '''for backwards compat with taurus < 4'''
-        extra_msg = 'ignoring setting of units of %s to %r' % (self.config.name, 
+        extra_msg = 'ignoring setting of units of %s to %r' % (self.name,
                                                                value )
         from taurus.core.util.log import deprecated
-        deprecated(dep='unit', alt='.rvalue.units', rel='taurus 4', 
-                        dbg_msg=extra_msg)
+        deprecated(dep='unit', alt='.rvalue.units', rel='taurus 4',
+                   dbg_msg=extra_msg)
 
     unit = property(_get_unit, _set_unit)
     
     def isWrite(self, cache=True):
         from taurus.core.util.log import deprecated 
-        deprecated(dep='isWrite', alt='TaurusConfiguration.writable', 
-                        rel='taurus 4')
+        deprecated(dep='isWrite', alt='self.writable', rel='taurus 4')
         return self.writable
      
     def isReadOnly(self, cache=True):
         from taurus.core.util.log import deprecated 
-        deprecated(dep='isReadOnly', alt='TaurusConfiguration.writable', 
-                        rel='taurus 4')
+        deprecated(dep='isReadOnly', alt='self.writable', rel='taurus 4')
         return not self.writable
  
     def isReadWrite(self, cache=True):
         from taurus.core.util.log import deprecated 
-        deprecated(dep='isReadWrite', alt='TaurusConfiguration.writable', 
-                        rel='taurus 4')
+        deprecated(dep='isReadWrite', alt='self.writable', rel='taurus 4')
         return self.writable
 
     def isScalar(self):
         from taurus.core.util.log import deprecated 
-        deprecated(dep='isScalar', alt='TaurusConfiguration.format', 
-                        rel='taurus 4')
+        deprecated(dep='isScalar', alt='self.format', rel='taurus 4')
         return self.format == DataFormat._0D
     
     def isSpectrum(self):
         from taurus.core.util.log import deprecated 
-        deprecated(dep='isSpectrum', alt='TaurusConfiguration.format', 
-                        rel='taurus 4')
+        deprecated(dep='isSpectrum', alt='self.format', rel='taurus 4')
         return self.format == DataFormat._1D
     
     def isImage(self):
         from taurus.core.util.log import deprecated 
-        deprecated(dep='isImage', alt='TaurusConfiguration.format', 
-                        rel='taurus 4')
+        deprecated(dep='isImage', alt='self.format', rel='taurus 4')
         return self.format == DataFormat._2D
     #
     #===========================================================================
+
+class TaurusConfigValue(object):
+    def __init__(self):
+        from taurus.core.util.log import deprecated
+        deprecated(dep='TaurusConfigValue',  alt='TaurusAttrValue',
+                   rel='taurus 4', dbg_msg='Do not use this class')
 
 class TaurusLockInfo(object):
     
