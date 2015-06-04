@@ -191,7 +191,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
     def _getConfigurationFromName(self, cfg_name):
         cfg = self.eval_configs.get(cfg_name, None) #first try with the given name
         if cfg is None: #if not, try with the full name
-            validator = self.getConfigurationNameValidator()
+            validator = self.getConfigurationNameValidator()  #!! TODO: This is borken now that getConfigurationNameValidator does not exist
             names = validator.getNames(cfg_name)
             if names is None:
                 raise TaurusException("Invalid evaluation configuration name %s" % cfg_name)
@@ -287,10 +287,5 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
         """Return EvaluationAttributeNameValidator"""
         import evalvalidator
         return evalvalidator.EvaluationAttributeNameValidator()
-
-    def getConfigurationNameValidator(self):
-        """Return EvaluationConfigurationNameValidator"""
-        import evalvalidator
-        return evalvalidator.EvaluationConfigurationNameValidator() 
   
         

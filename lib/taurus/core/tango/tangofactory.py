@@ -607,11 +607,6 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         import tangovalidator
         return tangovalidator.TangoAttributeNameValidator()
 
-    def getConfigurationNameValidator(self):
-        """Return TangoConfigurationNameValidator"""
-        import tangovalidator
-        return tangovalidator.TangoConfigurationNameValidator()
-
     def setOperationMode(self, mode):
         """ Deprecated. setOperationMode(OperationMode mode) -> None
             Sets the operation mode for the Tango system."""
