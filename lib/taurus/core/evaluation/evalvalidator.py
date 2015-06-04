@@ -24,8 +24,7 @@
 
 __all__ = ['EvaluationConfigurationNameValidator', 
            'EvaluationDeviceNameValidator', 
-           'EvaluationAttributeNameValidator', 
-           'EvaluationDatabaseNameValidator']
+           'EvaluationAttributeNameValidator']
 
 import re
 import hashlib
@@ -35,8 +34,7 @@ from taurus.core import TaurusElementType
 
 from taurus.core.taurusvalidator import (TaurusAttributeNameValidator, 
                                          TaurusDeviceNameValidator, 
-                                         TaurusAuthorityNameValidator, 
-                                         TaurusConfigurationNameValidator) 
+                                         TaurusAuthorityNameValidator)
 
 # Pattern for python variables
 PY_VAR = r'(?<![\.a-zA-Z0-9_])[a-zA-Z_][a-zA-Z0-9_]*'
@@ -202,7 +200,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             (EvaluationDeviceNameValidator.devname, K_EQUALS_V)
             )
     query = '(?!)'
-    fragment = '(?!)'
+    fragment = '(?P<cfgkey>[^# ]*)'
     
     @staticmethod
     def expandExpr(expr, substmap):
@@ -339,16 +337,24 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             normal = '%s/%s' % (authority, normal) 
         short = groups['_expr']
 
+        # add fragment if cfgkey was present (this works both for strict and non-strict names)
+        cfgkey = groups.get('cfgkey')
+        if cfgkey is not None:
+            complete = '%s#%s' % (complete, cfgkey)
+            normal = '%s#%s' % (normal, cfgkey)
+            short = '%s#%s' % (short, cfgkey)
+
         return complete, normal, short
 
     @property
     def nonStrictNamePattern(self):
-        '''In non-strict mode support old-style eval names
+        '''In non-strict mode support old-style eval config names
         '''
         p = r'^(?P<scheme>eval|evaluation)://(db=(?P<_dbname>[^?#;]+);)?' + \
             r'(dev=(?P<_old_devname>[^?#;]+);)?' + \
             r'(?P<_expr>[^?#;]+)' + \
-            r'(\?(?!configuration=)(?P<_subst>[^#?]*))?(#(?P<fragment>.*))?$'
+            r'(?P<_substquery>\?(?!configuration=)(?P<_subst>[^#?]*))?' + \
+            r'(\?(?P<query>configuration=?(?P<cfgkey>[^#?]*)))?$'
         return p
     
     def getExpandedExpr(self, name):
@@ -366,6 +372,13 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         _expr = groups['_expr']
         _subst = groups['_subst']
         return self.expandExpr(_expr, _subst or {})
+
+    def getAttrName(self, s):
+        #@TODO: Maybe this belongs to the factory, not the validator
+        # TODO: this is pre-tep14 API from the EvaluationConfigurationNameValidator. Check usage and remove.
+        names = self.getNames(s)
+        if names is None: return None
+        return names[0].rsplit('#',1)[0]
     
     def getDeviceName(self, name):
         #@TODO: Maybe this belongs to the factory, not the validator
@@ -391,83 +404,11 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             return None
         dbname = m.group('dbname') or EvaluationFactory.DEFAULT_DATABASE
         return "eval://db=%s"%dbname
-    
-    
-class EvaluationConfigurationNameValidator(TaurusConfigurationNameValidator):
-    '''Validator for Eval configuration names. Apart from the standard named 
-    groups (scheme, authority, path, query and fragment), and everything 
-    from :class:`EvaluationAttributeNameValidator`, the following named 
-    groups are created:
-    
-     - [cfgkey]: configuration key (e.g., "label", "units",...)
-     
-    Note: brackets on the group name indicate that this group will only contain
-    a string if the URI contains it.
-    '''
-    scheme = 'eval'
-    authority = EvaluationAuthorityNameValidator.authority
-    path = EvaluationAttributeNameValidator.path
-    query = '(?!)' 
-    fragment = '(?P<cfgkey>[^# ]*)'   
-    
-    def isValid(self, name, matchLevel=None, strict=None):
-        '''reimplemented from :class:`TaurusConfigurationNameValidator` to do 
-        extra check on references validity (recursive) 
-        '''
-        #do the standard check
-        if not TaurusConfigurationNameValidator.isValid(self, name, 
-                                                        strict=strict):
-            return False
-        #let EvaluationAttributeNameValidator.getNames do the ref checking
-        v = EvaluationAttributeNameValidator()
-        attrUri = name.split('#')[0]
-        attrUri = attrUri.split('?configuration')[0] # for bck-compat
-        return v.isValid(attrUri, strict=strict)
-        
-    def getNames(self, fullname, factory=None):
-        '''reimplemented from :class:`TaurusDeviceNameValidator`'''
-
-        groups = self.getUriGroups(fullname)
-        if groups is None:
-            return None  
-        
-        cfgkey = groups.get('cfgkey','')
-        
-        # let EvaluationAttributeNameValidator.getNames do the hard work...
-        v = EvaluationAttributeNameValidator()
-        if groups['__STRICT__']:
-            attrUri = fullname.split('#')[0]
-        else: # for bck-compat
-            attrUri = fullname.split('?configuration')[0]
-        attrcomplete, attrnormal, _ = v.getNames(attrUri, factory=factory)
-        
-        complete = '%s#%s'%(attrcomplete, cfgkey)
-        normal = '%s#%s'%(attrnormal, cfgkey)
-        short = cfgkey or 'configuration'
-            
-        return complete, normal, short
-    
-    @property
-    def nonStrictNamePattern(self):
-        '''In non-strict mode support old-style eval names
-        '''            
-        p = r'^(?P<scheme>eval|evaluation)://(db=(?P<_dbname>[^?#;]+);)?' + \
-            r'(dev=(?P<_old_devname>[^?#;]+);)?' + \
-            r'(?P<_expr>[^?#;]+)' + \
-            r'(?P<_substquery>\?(?!configuration=)(?P<_subst>[^#?]*))?' + \
-            r'(\?(?P<query>configuration=?(?P<cfgkey>[^#?]*)))$'
-        return p
-
-    def getAttrName(self, s):
-        #@TODO: Maybe this belongs to the factory, not the validator
-        names = self.getNames(s)
-        if names is None: return None
-        return names[0].rsplit('#',1)[0]
 
 
 if __name__ == '__main__':
     
-    cfgval = EvaluationConfigurationNameValidator()
+    cfgval = EvaluationAttributeNameValidator()
 #     print cfgval.namePattern
 #     print cfgval.getNames('eval:1#')
 #     print cfgval.getNames('eval:1#label')
