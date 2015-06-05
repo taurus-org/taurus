@@ -465,7 +465,7 @@ class SpecFactory(Singleton, TaurusFactory, Logger):
         import specvalidator
         return specvalidator.SpecAttributeNameValidator()
 
-    def getConfigurationNameValidator(self):
+    def getConfigurationNameValidator(self): # TODO: This is broken now that getConfigurationNameValidator does not exist
         """Return SpecConfigurationNameValidator"""
         import specvalidator
         return specvalidator.SpecConfigurationNameValidator()

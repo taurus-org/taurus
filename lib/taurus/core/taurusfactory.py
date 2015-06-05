@@ -184,10 +184,6 @@ class TaurusFactory(object):
         raise RuntimeError("getAttributeNameValidator cannot be called for" \
                            " abstract TaurusFactory")
 
-    def getConfigurationNameValidator(self):
-        raise RuntimeError("getConfigurationNameValidator cannot be called" \
-                           " for abstract TaurusFactory") 
-
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Factory extension API
     # Override the following methods if you need to provide special classes for

@@ -259,7 +259,7 @@ class TaurusConfigurationControllerHelper(object):
             modelName = self.widget().getModelName()
             try:
                 f = self.widget().getTaurusFactory()
-                v = f.getConfigurationNameValidator()
+                v = f.getAttributeNameValidator()
                 groups = v.getUriGroups(modelName)
                 self._configParam = groups.get('cfgkey')
             except Exception, e:
