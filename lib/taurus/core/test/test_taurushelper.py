@@ -35,8 +35,7 @@ from taurus.external.pint import Quantity
 import taurus
 from taurus.test import insertTest
 from taurus.core import (TaurusElementType, TaurusAttribute, TaurusDevice,
-                         TaurusAuthority, TaurusConfiguration, DataType,
-                         TaurusConfigurationProxy, TaurusAttrValue, DataFormat)
+                         TaurusAuthority, DataType, TaurusAttrValue, DataFormat)
 
 #decorators
 isValid = functools.partial(insertTest, helper_name='isValid')
@@ -57,12 +56,6 @@ isValidAttr = functools.partial(insertTest, helper_name='isValid',
 isInvalidAttr = functools.partial(insertTest, helper_name='isValid',
                                   expected=False,
                                   elementType=TaurusElementType.Attribute)
-isValidConf = functools.partial(insertTest, helper_name='isValid',
-                                elementType=TaurusElementType.Configuration)
-isInvalidConf = functools.partial(insertTest, helper_name='isValid',
-                                  expected=False,
-                                  elementType=TaurusElementType.Configuration)
-
 
 from taurus import tauruscustomsettings
 DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
@@ -102,20 +95,19 @@ DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
 @isValidAttr(name='tango:a/b  /c/d')
 @isInvalidAttr(name='tango:a/b/c/d/')
 @isInvalidAttr(name='tango:a/b/c')
-@isInvalidAttr(name='tango:a/b/c/d#label')
-@isValidConf(name='implicit/tango/attr/name#label',
+@isValidAttr(name='implicit/tango/attr/name#label',
              skip=(DEFAULT_SCHEME != 'tango'))
-@isValidConf(name='implicittangoalias/attrname#label',
+@isValidAttr(name='implicittangoalias/attrname#label',
              skip=(DEFAULT_SCHEME != 'tango'))
-@isValidConf(name='tango:alias/attr#label')
-@isValidConf(name='tango://foo:10000/a/b/c/d#label')
-@isValidConf(name='tango:a/b/c/d#label')
-@isValidConf(name='tango:a/b  /c/d#label')
-@isValidConf(name='tango://a/b/c/d?configuration=label', strict=False)
-@isInvalidConf(name='tango://a/b/c/d#label', strict=True)
-@isInvalidConf(name='tango://a/b')
-@isInvalidConf(name='tango://a/b/c')
-@isInvalidConf(name='tango://a/b/c/d')
+@isValidAttr(name='tango:alias/attr#label')
+@isValidAttr(name='tango://foo:10000/a/b/c/d#label')
+@isValidAttr(name='tango:a/b/c/d#label')
+@isValidAttr(name='tango:a/b  /c/d#label')
+@isValidAttr(name='tango://a/b/c/d?configuration=label', strict=False)
+@isInvalidAttr(name='tango://a/b/c/d#label', strict=True)
+@isInvalidAttr(name='tango://a/b')
+@isInvalidAttr(name='tango://a/b/c')
+@isInvalidAttr(name='tango://a/b/c/d')
 @isValidAuth(name='eval://localhost')
 @isInvalidAuth(name='eval://foo')
 @isInvalidAuth(name='evaluation://db=foo')
@@ -180,29 +172,29 @@ DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
 @isInvalidAttr(name='eval://2+3')
 @isInvalidAttr(name='evaluation://2+3')
 @isInvalidAttr(name='eval:a+b?a=2;b=3')
-@isInvalidAttr(name='eval:foo#')
+@isValidAttr(name='eval:foo#')
 @isInvalidAttr(name='eval:{tango:a/b/c}*2')
 @isInvalidAttr(name='eval:k-a;k=2;a=3')
 @isInvalidAttr(name='eval:a=1;b=2;a+b;a*2')
 @isInvalidAttr(name='eval:a=1;b=2;a+b;;;')
 @isInvalidAttr(name='eval:a=1;;;b=2;a+b')
-@isValidConf(name='eval:a=2;b=3;a+b#label')
-@isValidConf(name='eval:{tango:a/b/c/d}#')
-@isValidConf(name='eval:{tango:a/b/c/d}*2#label')
-@isValidConf(name='eval:k=2;a=3;a*k#units')
-@isValidConf(name='eval://localhost/@mymod.MyClass/1#label')
-@isValidConf(name='eval:{tango:a/b/c/d}*2#1+2')
-@isInvalidConf(name='eval:{tango:a/b/c}*2#')
-@isInvalidConf(name='eval:2# ')
-@isInvalidConf(name='evaluation:1#label')
-@isInvalidConf(name='eval://dev=bar;foo#label')
-@isInvalidConf(name='eval:a+b;a=2;b=3#label')
-@isInvalidConf(name='eval://foo')
-@isValidConf(name='evaluation://db=foo;dev=bar;1?configuration=label', strict=False)
-@isValidConf(name='eval://db=foo;dev=bar;1?configuration=label', strict=False)
-@isValidConf(name='eval://dev=bar;foo?configuration=label', strict=False)
-@isValidConf(name='eval://2+3?configuration=label', strict=False)
-@isValidConf(name='eval://a+b?a=2;b=3?configuration=label', strict=False)
+@isValidAttr(name='eval:a=2;b=3;a+b#label')
+@isValidAttr(name='eval:{tango:a/b/c/d}#')
+@isValidAttr(name='eval:{tango:a/b/c/d}*2#label')
+@isValidAttr(name='eval:k=2;a=3;a*k#units')
+@isValidAttr(name='eval://localhost/@mymod.MyClass/1#label')
+@isValidAttr(name='eval:{tango:a/b/c/d}*2#1+2')
+@isInvalidAttr(name='eval:{tango:a/b/c}*2#')
+@isInvalidAttr(name='eval:2# ')
+@isInvalidAttr(name='evaluation:1#label')
+@isInvalidAttr(name='eval://dev=bar;foo#label')
+@isInvalidAttr(name='eval:a+b;a=2;b=3#label')
+@isInvalidAttr(name='eval://foo')
+@isValidAttr(name='evaluation://db=foo;dev=bar;1?configuration=label', strict=False)
+@isValidAttr(name='eval://db=foo;dev=bar;1?configuration=label', strict=False)
+@isValidAttr(name='eval://dev=bar;foo?configuration=label', strict=False)
+@isValidAttr(name='eval://2+3?configuration=label', strict=False)
+@isValidAttr(name='eval://a+b?a=2;b=3?configuration=label', strict=False)
 class IsValidNameTestCase(unittest.TestCase):
     '''Class to test validity or invalidity of taurus URIs'''
     def isValid(self, name=None, expected=True, elementType=None,
@@ -409,6 +401,8 @@ class DeviceTestCase(unittest.TestCase):
             expected=dict(rvalue=1e6, value=1e6, wvalue=None, w_value=None,
                           label='Q("1km").to("mm").magnitude',
                           type=DataType.Float))
+@insertTest(helper_name='read_attr', name='tango:a/b/c/d#')
+@insertTest(helper_name='read_attr', name='eval:1#')
 class AttributeTestCase(unittest.TestCase):
     '''TestCase for the taurus.Attribute helper'''
     def get_object(self, name=None, klass=None):
@@ -449,26 +443,6 @@ class AttributeTestCase(unittest.TestCase):
             msg = ('Expected %s=%r for "%s" (got %r)' % (k, exp, name, got)) 
             self.assertEqual(got, exp, msg)
   
-@insertTest(helper_name='get_object', name='tango:a/b/c/d#', 
-            klass=TaurusConfigurationProxy)
-@insertTest(helper_name='get_object', name='eval:1#')
-class ConfigurationTestCase(unittest.TestCase):
-    '''TestCase for the taurus.Configuration helper'''
-    def get_object(self, name=None, klass=None):
-        '''check if Configuration returns the expected type'''
-        if klass is None:
-            klass = TaurusConfiguration
-        manager = taurus.Manager()
-        scheme = manager.getScheme(name)
-        supportedSchemes = manager.getPlugins().keys()
-        if scheme not in supportedSchemes:
-            self.skipTest('"%s" scheme not supported' % scheme)
-        a = taurus.Configuration(name)
-        msg = ('%s("%s") is not an instance of %s (it is %s)' %
-               (taurus.Configuration.__name__, name,
-                klass.__name__, a.__class__.__name__) )
-        self.assertTrue(isinstance(a, klass), msg)  
-
 
 if __name__ == '__main__':
     pass

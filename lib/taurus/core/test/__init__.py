@@ -24,7 +24,6 @@
 #############################################################################
 
 from .basevalidator import valid, invalid, names, AbstractNameValidatorTestCase
-from .modelequality import TaurusModelEqualityTestCase, \
-                          testAttributeModelEquality, \
-                          testDeviceModelEquality, \
-                          testConfigurationModelEquality
+from .modelequality import (TaurusModelEqualityTestCase,
+                            testAttributeModelEquality,
+                            testDeviceModelEquality)

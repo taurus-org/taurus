@@ -24,7 +24,7 @@
 
 import functools
 
-from taurus import Device, Attribute, Configuration#, Authority
+from taurus import Device, Attribute #, Authority
 from taurus.test import insertTest
         
 class TaurusModelEqualityTestCase(object):
@@ -68,12 +68,6 @@ testAttributeModelEquality = functools.partial(insertTest,
                                 helper_name = 'modelsEqual',
                                 class_ = Attribute,
                                 test_method_name = 'testAttributeModelEquality')
-
-testConfigurationModelEquality = functools.partial(insertTest, 
-                            helper_name = 'modelsEqual',
-                            class_ = Configuration,
-                            test_method_name = 'testConfigurationModelEquality')         
-                         
 
 # def set_alias(device):
 #     import PyTango

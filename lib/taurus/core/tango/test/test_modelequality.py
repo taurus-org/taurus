@@ -1,8 +1,7 @@
 import unittest
 from taurus.core.test.modelequality import TaurusModelEqualityTestCase, \
                                            testDeviceModelEquality, \
-                                           testAttributeModelEquality, \
-                                           testConfigurationModelEquality 
+                                           testAttributeModelEquality
 
 # the same device models, just different cases 
 dev_models1 = ['tango:sys/tg_test/1',
@@ -35,16 +34,16 @@ conf_models3 = [
 # test cases for the model case insensitiveness
 @testAttributeModelEquality(models = attr_models1, equal = True)
 @testDeviceModelEquality(models = dev_models1, equal = True)
-@testConfigurationModelEquality(models = conf_models1, equal = True)
+@testAttributeModelEquality(models = conf_models1, equal = True)
 
 # test cases for the different models inequality
 @testAttributeModelEquality(models = attr_models2, equal = False)
 @testDeviceModelEquality(models = dev_models2, equal = False)
-@testConfigurationModelEquality(models = conf_models2, equal = False)
+@testAttributeModelEquality(models = conf_models2, equal = False)
 
 # test cases for the different models equality
 #TODO: add device/alias equality tests
-@testConfigurationModelEquality(models = conf_models3, equal = True)
+@testAttributeModelEquality(models = conf_models3, equal = True)
 class TangoModelEqualityTestCase(TaurusModelEqualityTestCase, 
                                  unittest.TestCase):
     """TestCase class for tango model equality testing."""
