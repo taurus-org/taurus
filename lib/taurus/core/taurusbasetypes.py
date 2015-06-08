@@ -36,6 +36,7 @@ __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
 __docformat__ = "restructuredtext"
 
 import datetime
+import weakref
 
 from .util.enumeration import Enumeration
 
@@ -277,7 +278,7 @@ class TaurusAttrValue(object):
         self.warning = float('-inf'), float('inf')
         ########################################################################
         # TODO remove this ref
-        self.config = self
+        self.config =  weakref.proxy(self)
 
     # --------------------------------------------------------
     # This is for backwards compat with the API of taurus < 4 
