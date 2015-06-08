@@ -33,7 +33,6 @@ import weakref
 
 from .taurushelper import Factory
 from .taurusmodel import TaurusModel
-from .taurusconfiguration import TaurusConfigurationProxy
 from taurus.core.taurusbasetypes import TaurusElementType
 
 class TaurusAttribute(TaurusModel):
@@ -327,25 +326,11 @@ class TaurusAttribute(TaurusModel):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for attribute configuration
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
-
-    def _getRealConfig(self):
-        """ Returns the current TaurusConfiguration of the attribute."""
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute::_getRealConfig")
-
+        
     def getConfig(self):
         """ Returns the current configuration of the attribute."""
-        try:
-            ob = None
-            ob = self.__weakFakeConfigObj()
-        except Exception:
-            pass
-
-        if ob is not None:
-            return ob
-
-        ob = TaurusConfigurationProxy(self)
-        self.__weakFakeConfigObj = weakref.ref(ob)
-        return ob
+        self.deprecated(dep='getConfig', alt='getValueObj', rel='taurus 4')
+        return self.getValueObj(cache=True)
 
     ##########################################################################
     # TaurusConfiguration Methods
