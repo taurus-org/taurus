@@ -157,21 +157,6 @@ class TaurusFactory(object):
         raise RuntimeError("getAttribute cannot be called for abstract" \
                            " TaurusFactory")
 
-    def getConfiguration(self, param):
-        """getConfiguration(param) -> taurus.core.taurusconfiguration.TaurusConfiguration
-
-        Obtain the object corresponding to the given attribute or full name.
-        If the corresponding configuration already exists, the existing instance
-        is returned. Otherwise a new instance is stored and returned.
-
-        @param[in] param taurus.core.taurusattribute.TaurusAttribute object or full configuration name
-           
-        @return a taurus.core.taurusattribute.TaurusAttribute object
-        @throws TaurusException if the given name is invalid.
-        """
-        raise RuntimeError("getConfiguration cannot be called for abstract" \
-                           " TaurusFactory")
-
     def getAuthorityNameValidator(self):
         raise RuntimeError("getAuthorityNameValidator cannot be called for" \
                            "  abstract TaurusFactory")
@@ -226,16 +211,23 @@ class TaurusFactory(object):
         return obj
 
     def getObject(self, cls, name):
+        t4_msg = 'The TaurusConfiguration classes are deprecated in Taurus4'
         if issubclass(cls, TaurusAuthority):
             return self.getAuthority(name)
         elif issubclass(cls, TaurusDevice):
             return self.getDevice(name)
         elif issubclass(cls, TaurusAttribute):
             return self.getAttribute(name)
+        # For backward compatibility
         elif issubclass(cls, TaurusConfiguration):
-            return self.getConfiguration(name)
+            self.deprecated(dep='TaurusConfiguration', alt='TaurusAttribute',
+                            rel='taurus 4', dbg_msg=t4_msg)
+            return self.getAttribute(name)
         elif issubclass(cls, TaurusConfigurationProxy):
-            return self.getConfiguration(name)
+            self.deprecated(dep='TaurusConfigurationProxy',
+                            alt='TaurusAttribute',
+                            rel='taurus 4', dbg_msg=t4_msg)
+            return self.getAttribute(name)
         else:
             return None
 
