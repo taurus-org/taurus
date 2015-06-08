@@ -30,7 +30,6 @@ __all__ = ["TaurusManager"]
 __docformat__ = "restructuredtext"
 
 import os
-import imp
 import atexit
 
 from .util.singleton import Singleton
@@ -261,7 +260,9 @@ class TaurusManager(Singleton, Logger):
         :param name: (str) configuration name
         :return: (taurus.core.taurusconfiguration.TaurusConfiguration) the configuration for the given name
         """
-        return self.getObject(TaurusConfiguration, name)
+        self.deprecated(dep='getConfiguration', alt='getAttribute',
+                        rel='taurus 4')
+        return self.getAttribute(name)
         
     def _get_factory(self, name):
         scheme = self.getScheme(name)

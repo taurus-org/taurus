@@ -523,10 +523,9 @@ def Configuration(attr_or_conf_name, conf_name=None):
     :type conf_name: str or None
     :return: a taurus configuration
     :rtype: :class:`taurus.core.taurusconfiguration.TaurusConfiguration`"""
-    if conf_name is None:
-        return Factory(scheme=getSchemeFromName(attr_or_conf_name)).getConfiguration(attr_or_conf_name)
-    else:
-        return Attribute(attr_or_conf_name).getConfig(conf_name)
+    from taurus.core.util.log import deprecated
+    deprecated(dep='Configuration', alt='Attribute', rel='taurus 4')
+    return Attribute(attr_or_conf_name)
 
 def Database(name=None):
     '''Database() is deprecated. Use Authority instead'''
