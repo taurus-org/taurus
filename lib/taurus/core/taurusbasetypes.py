@@ -257,28 +257,17 @@ class TaurusTimeVal(object):
          
 
 class TaurusAttrValue(object):
-    def __init__(self, config=None):
+    def __init__(self, config=None, attrref=None):
         # TODO: config parameter is maintained for backwards compatibility
         self.rvalue = None
         self.wvalue = None
         self.time = None
         self.quality = AttrQuality.ATTR_VALID
-        #self.format = 0
         self.error = None
-        ########################################################################
-        # From TaurusConfigValue attributes
-        self.name = None
-        self.writable = None
-        self.data_format = None
-        self.label = None
-        self.type = None
-        self.description = None
-        self.range = float('-inf'), float('inf')
-        self.alarm = float('-inf'), float('inf')
-        self.warning = float('-inf'), float('inf')
-        ########################################################################
-        # TODO remove this ref
-        self.config =  weakref.proxy(self)
+        self._attrRef = attrref
+        self.config = None
+        if self._attrRef:
+            self.config =  weakref.proxy(self._attrRef)
 
     # --------------------------------------------------------
     # This is for backwards compat with the API of taurus < 4 
@@ -368,61 +357,6 @@ class TaurusAttrValue(object):
     def __repr__(self):
         return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
 
-    ############################################################################
-    # Form TaurusConfigValue methods
-
-    #===========================================================================
-    # The following methods are here for taurus<4 bck-compat
-    #
-    
-    def _get_unit(self):
-        '''for backwards compat with taurus < 4'''
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='unit', alt='TaurusAttrValue.rvalue.units', 
-                        rel='taurus 4', dbg_msg='Cannot return unit')
-        return ''
-        
-    def _set_unit(self, value):
-        '''for backwards compat with taurus < 4'''
-        extra_msg = 'ignoring setting of units of %s to %r' % (self.name,
-                                                               value )
-        from taurus.core.util.log import deprecated
-        deprecated(dep='unit', alt='.rvalue.units', rel='taurus 4',
-                   dbg_msg=extra_msg)
-
-    unit = property(_get_unit, _set_unit)
-    
-    def isWrite(self, cache=True):
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='isWrite', alt='self.writable', rel='taurus 4')
-        return self.writable
-     
-    def isReadOnly(self, cache=True):
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='isReadOnly', alt='self.writable', rel='taurus 4')
-        return not self.writable
- 
-    def isReadWrite(self, cache=True):
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='isReadWrite', alt='self.writable', rel='taurus 4')
-        return self.writable
-
-    def isScalar(self):
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='isScalar', alt='self.format', rel='taurus 4')
-        return self.format == DataFormat._0D
-    
-    def isSpectrum(self):
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='isSpectrum', alt='self.format', rel='taurus 4')
-        return self.format == DataFormat._1D
-    
-    def isImage(self):
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='isImage', alt='self.format', rel='taurus 4')
-        return self.format == DataFormat._2D
-    #
-    #===========================================================================
 
 class TaurusConfigValue(object):
     def __init__(self):
