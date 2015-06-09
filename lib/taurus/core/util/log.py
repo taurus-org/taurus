@@ -42,6 +42,7 @@ import warnings
 import traceback
 import inspect
 import threading
+import functools
 
 from object import Object
 from wrap import wraps
@@ -959,3 +960,18 @@ def critical(msg, *args, **kw):
 def deprecated(*args, **kw):
     kw['_callerinfo'] = __getrootlogger().findCaller()
     return Logger("TaurusRootLogger").deprecated(*args, **kw)
+
+def deprecation_decorator(func=None, alt=None, rel=None, dbg_msg=None):
+    """decorator to mark methods as deprecated"""
+    if func is None:
+        return functools.partial(deprecation_decorator, alt=alt, rel=rel,
+                                 dbg_msg=dbg_msg)
+
+    def new_func(*args, **kwargs):
+        deprecated(dep=func.__name__, alt=alt, rel=rel, dbg_msg=dbg_msg)
+        return func(*args, **kwargs)
+
+    new_func.__name__ = func.__name__
+    new_func.__doc__ = '(Deprecated)\n' + (func.__doc__ or '')
+    new_func.__dict__.update(func.__dict__)
+    return new_func
