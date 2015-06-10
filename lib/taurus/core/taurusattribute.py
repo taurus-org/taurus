@@ -502,7 +502,7 @@ class TaurusAttribute(TaurusModel):
         '''.. warning: Deprecated. Use :meth:`getRange`
         '''
         self.deprecated(dep='getLimits', alt='getRange')
-        self.getRange(cache=cache)
+        return self.getRange(cache=cache)
 
     def getRange(self, cache=True):
         return self.range
@@ -529,7 +529,6 @@ class TaurusAttribute(TaurusModel):
 
     def getMaxWarning(self, cache=True):
         return self.warning[1]
-
 
     def getWarnings(self, cache=True):
         return self.warning
@@ -630,6 +629,3 @@ class TaurusStateAttribute(TaurusAttribute):
     def isInformDeviceOfErrors(self):
         return True
 
-#del weakef
-#del TaurusModel
-#del TaurusConfigurationProxy
