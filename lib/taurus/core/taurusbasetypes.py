@@ -357,6 +357,12 @@ class TaurusAttrValue(object):
     def __repr__(self):
         return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
 
+    def __getattr__(self, name):
+        try:
+            return getattr(self._attrRef, name)
+        except AttributeError:
+            raise Exception('%s does not have the attribute %s'
+                            %(self._attrRef, name))
 
 class TaurusConfigValue(object):
     def __init__(self):
