@@ -213,18 +213,18 @@ class IsValidNameTestCase(unittest.TestCase):
         if scheme not in supportedSchemes:
             self.skipTest('"%s" scheme not supported' % scheme)
         returned = taurus.isValidName(name, etypes=elementType, strict=strict)
-                    
+
         msg = ('isValidName returns %s (expected %s for name=%s and etype=%s)' %
                (returned, expected, name, elementName))
         self.assertEqual(returned, expected, msg)
-        
+
     def test_unsupported(self):
         '''Testing that an unsupported scheme validates as False'''
         returned = taurus.isValidName('_unsupported_://foo')
         msg = ('Validating unsupported schemes must return False (got %s)' %
                returned)
         self.assertFalse(returned, msg)
-         
+
 
 #@insertTest(helper_name='get_object', name='eval://foo')
 @insertTest(helper_name='get_object', name='eval://localhost')
@@ -243,8 +243,8 @@ class AuthorityTestCase(unittest.TestCase):
         msg = ('%s("%s") is not an instance of %s (it is %s)' %
                (taurus.Authority.__name__, name,
                 klass.__name__, a.__class__.__name__) )
-        self.assertTrue(isinstance(a, klass), msg)  
-        
+        self.assertTrue(isinstance(a, klass), msg)
+
 
 @insertTest(helper_name='get_object', name='tango:a/b/c')
 @insertTest(helper_name='get_object', name='eval://localhost/@Foo')
@@ -281,7 +281,7 @@ class DeviceTestCase(unittest.TestCase):
                           type=DataType.Integer))
 @insertTest(helper_name='read_attr',
             name='eval:x=-1;x+{eval:x=2;x}+{eval:x=10;x}',
-            expected=dict(data_format=DataFormat._0D, wvalue=None, w_value=None, 
+            expected=dict(data_format=DataFormat._0D, wvalue=None, w_value=None,
                           label='-1+{eval:x=2;x}+{eval:x=10;x}',
                           type=DataType.Integer))
 @insertTest(helper_name='read_attr', name='eval://2*{eval://1.0}+{eval://2.0}',
@@ -319,11 +319,11 @@ class DeviceTestCase(unittest.TestCase):
             expected=dict(data_format=DataFormat._1D, type=DataType.Float,
                           label='double_spectrum'))
 @insertTest(helper_name='read_attr', name='eval:1.0',
-            expected=dict(rvalue=1.0, value=1.0, 
+            expected=dict(rvalue=1.0, value=1.0,
                           wvalue=None, w_value=None, label='1.0',
                           type=DataType.Float, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:x=3;x+1',
-            expected=dict(rvalue=4, value=4, wvalue=None, w_value=None, 
+            expected=dict(rvalue=4, value=4, wvalue=None, w_value=None,
                           label='3+1',
                           type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:2*{eval:3}',
@@ -332,23 +332,23 @@ class DeviceTestCase(unittest.TestCase):
                           type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:2*{eval:3*{eval:4}}',
             expected=dict(rvalue=24,value=24, label='2*{eval:3*{eval:4}}',
-                          wvalue=None, w_value=None, type=DataType.Integer, 
+                          wvalue=None, w_value=None, type=DataType.Integer,
                           data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:1*{eval:2*{eval:3*{eval:4}}}',
-            expected=dict(rvalue=24, value=24, 
+            expected=dict(rvalue=24, value=24,
                           label='1*{eval:2*{eval:3*{eval:4}}}',
-                          wvalue=None, w_value=None, type=DataType.Integer, 
+                          wvalue=None, w_value=None, type=DataType.Integer,
                           data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:{eval:1}+{eval:9}',
             expected=dict(rvalue=10, value=10, label='{eval:1}+{eval:9}',
-                          wvalue=None, w_value=None, type=DataType.Integer, 
+                          wvalue=None, w_value=None, type=DataType.Integer,
                           data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:"aaa"+"bbb"',
             expected=dict(rvalue="aaabbb", value="aaabbb", label='"aaa"+"bbb"',
                           wvalue=None, w_value=None, type=DataType.String,
                           data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:{eval:"aaa"}+{eval:"bbb"}',
-            expected=dict(rvalue="aaabbb", value="aaabbb", 
+            expected=dict(rvalue="aaabbb", value="aaabbb",
                           wvalue=None, w_value=None,
                           label='{eval:"aaa"}+{eval:"bbb"}',
                           type=DataType.String, data_format=DataFormat._0D))
@@ -357,11 +357,11 @@ class DeviceTestCase(unittest.TestCase):
                           wvalue=None, w_value=None, type=DataType.String,
                           data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:len("abc")',
-            expected=dict(rvalue=3, wvalue=None, value=3, w_value=None, 
+            expected=dict(rvalue=3, wvalue=None, value=3, w_value=None,
                           label='len("abc")',
                           type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:"a.b.c".split(".")',
-            expected=dict(rvalue=['a', 'b', 'c'], value=['a', 'b', 'c'], 
+            expected=dict(rvalue=['a', 'b', 'c'], value=['a', 'b', 'c'],
                           wvalue=None, w_value=None,
                           label='"a.b.c".split(".")', type=DataType.String
                           , data_format=DataFormat._1D))
@@ -376,24 +376,24 @@ class DeviceTestCase(unittest.TestCase):
             expected=dict(rvalue=8, value=8, wvalue=None, w_value=None,
                           type=DataType.Integer))
 @insertTest(helper_name='read_attr', name='eval:"split.split".split("split")',
-            expected=dict(rvalue=['', '.', ''], value=['', '.', ''], 
-                          wvalue=None, w_value=None, 
+            expected=dict(rvalue=['', '.', ''], value=['', '.', ''],
+                          wvalue=None, w_value=None,
                           label='"split.split".split("split")',
                           type=DataType.String))
 @insertTest(helper_name='read_attr', name='eval:Quantity(1.0)',
-            expected=dict(rvalue=Quantity(1.0), value=1.0, 
+            expected=dict(rvalue=Quantity(1.0), value=1.0,
                           w_value=None, wvalue=None, label='Quantity(1.0)',
                           type=DataType.Float, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:Quantity("1km")',
-            expected=dict(rvalue=Quantity(1000,'m'), value=1, 
+            expected=dict(rvalue=Quantity(1000,'m'), value=1,
                           w_value=None, wvalue=None, label='Quantity("1km")',
                           type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:Quantity("0.1km")',
-            expected=dict(rvalue=Quantity(100,'m'), value=0.1, 
+            expected=dict(rvalue=Quantity(100,'m'), value=0.1,
                           w_value=None, wvalue=None, label='Quantity("0.1km")',
                           type=DataType.Float, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:Q("1m")*3+{eval:Q(3,"dm")}',
-            expected=dict(rvalue=Quantity("3.3m"), value=3.3, 
+            expected=dict(rvalue=Quantity("3.3m"), value=3.3,
                           wvalue=None, w_value=None,
                           label='Q("1m")*3+{eval:Q(3,"dm")}',
                           type=DataType.Float))
@@ -401,7 +401,6 @@ class DeviceTestCase(unittest.TestCase):
             expected=dict(rvalue=1e6, value=1e6, wvalue=None, w_value=None,
                           label='Q("1km").to("mm").magnitude',
                           type=DataType.Float))
-@insertTest(helper_name='read_attr', name='tango:a/b/c/d#')
 @insertTest(helper_name='read_attr', name='eval:1#')
 class AttributeTestCase(unittest.TestCase):
     '''TestCase for the taurus.Attribute helper'''
