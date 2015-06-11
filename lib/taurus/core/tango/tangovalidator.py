@@ -175,7 +175,7 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
     query = '(?!)'
     fragment = '(?P<cfgkey>[^# ]*)'
 
-    def getNames(self, fullname, factory=None, queryAuth=True):
+    def getNames(self, fullname, factory=None, queryAuth=True, cfgkey=False):
         """Returns the complete and short names"""
 
         groups = self.getUriGroups(fullname)
@@ -194,12 +194,10 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
         if devnormal is not None:
             normal = '%s/%s'%(devnormal, short)
 
-        # add fragment if cfgkey was present (this works both for strict and non-strict names)
-        cfgkey = groups.get('cfgkey')
-        if cfgkey is not None:
-            complete = '%s#%s' % (complete, cfgkey)
-            normal = '%s#%s' % (normal, cfgkey)
-            short = '%s#%s' % (short, cfgkey)
+        # return fragment if cfgkey
+        if cfgkey:
+            key = groups.get('cfgkey', None)
+            return complete, normal, short, key
 
         return complete, normal, short
 

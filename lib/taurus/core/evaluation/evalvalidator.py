@@ -22,8 +22,7 @@
 ##
 #############################################################################
 
-__all__ = ['EvaluationConfigurationNameValidator', 
-           'EvaluationDeviceNameValidator', 
+__all__ = ['EvaluationDeviceNameValidator',
            'EvaluationAttributeNameValidator']
 
 import re
@@ -310,7 +309,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         
         return groups
     
-    def getNames(self, fullname, factory=None):
+    def getNames(self, fullname, factory=None, cfgkey=False):
         '''reimplemented from :class:`TaurusDeviceNameValidator`'''
         from evalfactory import EvaluationFactory
         groups = self.getUriGroups(fullname) 
@@ -337,13 +336,10 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             normal = '%s/%s' % (authority, normal) 
         short = groups['_expr']
 
-        # add fragment if cfgkey was present (this works both for strict and non-strict names)
-        cfgkey = groups.get('cfgkey')
-        if cfgkey is not None:
-            complete = '%s#%s' % (complete, cfgkey)
-            normal = '%s#%s' % (normal, cfgkey)
-            short = '%s#%s' % (short, cfgkey)
-
+        # return fragment if cfgkey
+        if cfgkey:
+            key = groups.get('cfgkey', None)
+            return complete, normal, short, key
         return complete, normal, short
 
     @property
