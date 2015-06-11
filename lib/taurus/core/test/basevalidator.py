@@ -33,6 +33,7 @@ __docformat__ = 'restructuredtext'
 from functools import partial
 from taurus.test import insertTest
 
+from taurus.core.taurusvalidator import TaurusAttributeNameValidator
 
 valid = partial(insertTest, helper_name='isValid')
 invalid = partial(insertTest, helper_name='isInvalid')
@@ -64,9 +65,12 @@ class AbstractNameValidatorTestCase(object):
         
     def test_singleton(self):
         '''Check that the validator is a singleton'''
-        self.assertIs(self.validator(),self.validator())
+        self.assertIs(self.validator(), self.validator())
         
-    def getNames(self, name=None, out=None):
-        names = self.validator().getNames(name)
-        self.assertEqual(names, out)       
-        
+    def getNames(self, name=None, out=None, cfgkey=False):
+        v = self.validator()
+        if isinstance(v, TaurusAttributeNameValidator):
+            names = v.getNames(name, cfgkey=cfgkey)
+        else:
+            names = v.getNames(name)
+        self.assertEqual(names, out)

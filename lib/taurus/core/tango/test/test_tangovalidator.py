@@ -137,18 +137,18 @@ class TangoDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name = 'tango:a/b/c/d#?foo=label') # "?" is allowed in cfgkeys!
 @valid(name = 'tango:a/b/c/d#label?foo=bar')
 @names(name = 'tango://foo:123/a/b/c/d#',
-       out=('tango://foo:123/a/b/c/d#',
-            '//foo:123/a/b/c/d#', 'd#'))
+       out=('tango://foo:123/a/b/c/d',
+            '//foo:123/a/b/c/d', 'd', ''), cfgkey=True)
 @names(name = 'tango://foo:123/a/b/c/d#label',
-       out=('tango://foo:123/a/b/c/d#label',
-            '//foo:123/a/b/c/d#label', 'd#label'))
+       out=('tango://foo:123/a/b/c/d',
+            '//foo:123/a/b/c/d', 'd', 'label'), cfgkey=True)
 @names(name = 'tango:sys/tg_test/1/float_scalar#',
-       out=('tango://%s/sys/tg_test/1/float_scalar#' % \
+       out=('tango://%s/sys/tg_test/1/float_scalar' % \
             __GETENV("TANGO_HOST"),
-            'sys/tg_test/1/float_scalar#', 'float_scalar#'))
+            'sys/tg_test/1/float_scalar', 'float_scalar', ''), cfgkey=True)
 @names(name = 'tango://foo:123/a/b/c/d?configuration=label',
-       out=('tango://foo:123/a/b/c/d#label',
-            '//foo:123/a/b/c/d#label', 'd#label'))
+       out=('tango://foo:123/a/b/c/d',
+            '//foo:123/a/b/c/d', 'd', 'label'), cfgkey=True)
 class TangoAttrValidatorTestCase(AbstractNameValidatorTestCase, 
                                  unittest.TestCase):
     validator = TangoAttributeNameValidator

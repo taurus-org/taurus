@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""Test for taurus.core.tango.test.test_tangovalidator..."""
+"""Test for taurus.core.evaluation.test.test_evalvalidator..."""
 
 
 __docformat__ = 'restructuredtext'
@@ -33,8 +33,8 @@ from taurus.external import unittest
 from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)
 from taurus.core.evaluation.evalvalidator import (EvaluationAuthorityNameValidator,
-                                           EvaluationDeviceNameValidator,
-                                           EvaluationAttributeNameValidator)
+                                                  EvaluationDeviceNameValidator,
+                                                  EvaluationAttributeNameValidator)
 
  
 #===============================================================================
@@ -206,32 +206,32 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @invalid(name='eval:1# ') # invalid because of the trailing space
 
 @names(name='eval:1#units',
-       out=('eval://localhost/@DefaultEvaluator/1#units',
-            '1#units',
-            '1#units'))
+       out=('eval://localhost/@DefaultEvaluator/1',
+            '1',
+            '1', 'units'), cfgkey=True)
 
 @names(name='eval:@Foo/a={tango:a/b/c/d};x=2;a*x#',
-       out=('eval://localhost/@Foo/{tango:a/b/c/d}*2#',
-            '@Foo/a={tango:a/b/c/d};x=2;a*x#',
-            'a*x#'))
+       out=('eval://localhost/@Foo/{tango:a/b/c/d}*2',
+            '@Foo/a={tango:a/b/c/d};x=2;a*x',
+            'a*x', ''), cfgkey=True)
 
 #old syntax gets transformed into new one!
 @names(name='eval://1?configuration=units',
-       out=('eval://localhost/@DefaultEvaluator/1#units',
-            '1#units',
-            '1#units'))
+       out=('eval://localhost/@DefaultEvaluator/1',
+            '1',
+            '1', 'units'), cfgkey=True)
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration',
-       out=('eval://localhost/@Foo/{tango:a/b/c/d}*2#',
-            '@Foo/a={tango:a/b/c/d};x=2;a*x#',
-            'a*x#'))
+       out=('eval://localhost/@Foo/{tango:a/b/c/d}*2',
+            '@Foo/a={tango:a/b/c/d};x=2;a*x',
+            'a*x', ''), cfgkey=True)
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration=label',
-       out=('eval://localhost/@Foo/{tango:a/b/c/d}*2#label',
-            '@Foo/a={tango:a/b/c/d};x=2;a*x#label',
-            'a*x#label'))
+       out=('eval://localhost/@Foo/{tango:a/b/c/d}*2',
+            '@Foo/a={tango:a/b/c/d};x=2;a*x',
+            'a*x', 'label'), cfgkey=True)
 class EvaluationAttrValidatorTestCase(AbstractNameValidatorTestCase,
                                       unittest.TestCase):
     validator = EvaluationAttributeNameValidator
