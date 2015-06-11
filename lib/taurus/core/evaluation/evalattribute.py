@@ -26,14 +26,12 @@ __all__ = ['EvaluationAttribute']
 
 import numpy, re
 
-from evalconfiguration import EvaluationConfiguration
-from taurus import Factory
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import SubscriptionState, TaurusEventType, \
     TaurusAttrValue, TaurusTimeVal, AttrQuality, DataType
 from taurus.core.taurusexception import TaurusException
 from taurus.core.taurushelper import Attribute, Manager
-from taurus.core import TaurusConfigValue, DataFormat
+from taurus.core import DataFormat
 
 from taurus.core.evaluation.evalvalidator import QUOTED_TEXT_RE, PY_VAR_RE
 
@@ -59,17 +57,15 @@ class EvaluationAttribute(TaurusAttribute):
         self.call__init__(TaurusAttribute, name, parent,
                             storeCallback=storeCallback)
         
-        self._value = TaurusAttrValue()
+        self._value = TaurusAttrValue(attrref=self)
 
         #Evaluation Attributes are always read-only (at least for now)
-        self._value.config.writable = False
-        self._value.config.label = self.getSimpleName()
-        self._value.config.name = self._value.config.label
+        self.writable = False
+        self.label = self.getSimpleName()
+        self.name = self.label
         self._references = []
         self._validator = self.getNameValidator()
         self._transformation = None
-        # reference to the configuration object
-        self.__attr_config = None
         self.__subscription_state = SubscriptionState.Unsubscribed
 
         #This should never be None because the init already ran the validator
@@ -80,16 +76,6 @@ class EvaluationAttribute(TaurusAttribute):
         if ok:
             self._transformation = trstring
             self.applyTransformation()
-
-    def __getattr__(self,name):
-        return getattr(self._getRealConfig(), name)
-    
-    def _getRealConfig(self):
-        """ Returns the current configuration of the attribute."""
-        if self.__attr_config is None:
-            cfg_name = "%s#" % self.getFullName()
-            self.__attr_config = EvaluationConfiguration(cfg_name, self)
-        return self.__attr_config
     
     @staticmethod
     def getId(obj, idFormat=r'_V%i_'):
@@ -213,9 +199,9 @@ class EvaluationAttribute(TaurusAttribute):
             value_dformat = DataFormat(value_dimension)
             # TODO: this logic is related to the configuration class
             # in the future we could move it there
-            self._value.config.data_format = value_dformat
-            self._value.config.type = self._encodeType(self._value.rvalue,
-                                                       value_dformat)
+            self.data_format = value_dformat
+            self.type = self._encodeType(self._value.rvalue,
+                                         value_dformat)
         except Exception, e:
             self._value.quality = AttrQuality.ATTR_INVALID
             msg = " the function '%s' could not be evaluated. Reason: %s" \
@@ -234,9 +220,6 @@ class EvaluationAttribute(TaurusAttribute):
 
         :return: (taurus.DataType)
         '''
-        # TODO: this logic is related to the configuration class
-        # in the future we could move it there
-        
         try: # handle Quantities
             value = value.magnitude
         except AttributeError:
@@ -323,11 +306,6 @@ class EvaluationAttribute(TaurusAttribute):
             If it is the first listener, it triggers the subscription to
             the referenced attributes.
             If the listener is already registered nothing happens."""
-        
-        #subscribe to configuration events for this attribute
-        cfg = self.getConfig()
-        cfg.addListener(listener)
-        
         initial_subscription_state = self.__subscription_state
         
         ret = TaurusAttribute.addListener(self, listener)
@@ -353,9 +331,6 @@ class EvaluationAttribute(TaurusAttribute):
             and it is the last element then stop the polling timer.
             If the listener is not registered nothing happens."""
         ret = TaurusAttribute.removeListener(self, listener)
-
-        cfg = self._getRealConfig()
-        cfg.removeListener(listener)
         
         if ret and not self.hasListeners():
             self._deactivatePolling()

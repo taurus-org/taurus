@@ -28,11 +28,10 @@ evaluation module. See __init__.py for more detailed documentation
 __all__ = ['EvaluationFactory']
 
 
-import time, re, weakref
+import weakref
 
 from taurus.core.taurusbasetypes import TaurusElementType
 from evalattribute import EvaluationAttribute
-from evalconfiguration import EvaluationConfiguration
 from evalauthority import EvaluationAuthority
 from evaldevice import EvaluationDevice 
 from taurus.core.taurusexception import TaurusException
@@ -47,13 +46,13 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
     """
     elementTypesMap = {TaurusElementType.Authority: EvaluationAuthority,
                        TaurusElementType.Device: EvaluationDevice,
-                       TaurusElementType.Attribute: EvaluationAttribute,
-                       TaurusElementType.Configuration: EvaluationConfiguration
+                       TaurusElementType.Attribute: EvaluationAttribute
                        }
     schemes = ("eval","evaluation")
     DEFAULT_DEVICE = '@DefaultEvaluator'
     DEFAULT_AUTHORITY = '//localhost'
     DEFAULT_DATABASE = '_DefaultEvalDB'
+
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
         pass
@@ -71,9 +70,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
     def findObjectClass(self, absolute_name):
         """Operation models are always OperationAttributes
         """
-        if EvaluationConfiguration.isValid(absolute_name):
-            return EvaluationConfiguration
-        elif EvaluationDevice.isValid(absolute_name):
+        if EvaluationDevice.isValid(absolute_name):
             return EvaluationDevice
         elif EvaluationAttribute.isValid(absolute_name):
             return EvaluationAttribute
@@ -172,42 +169,6 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                 a = EvaluationAttribute(fullname, parent=dev, storeCallback=self._storeAttr) #use full name
         return a
 
-    def getConfiguration(self, param):
-        """getConfiguration(param) -> taurus.core.taurusconfiguration.TaurusConfiguration
-
-        Obtain the object corresponding to the given attribute or full name.
-        If the corresponding configuration already exists, the existing instance
-        is returned. Otherwise a new instance is stored and returned.
-
-        @param[in] param taurus.core.taurusattribute.TaurusAttribute object or full configuration name
-           
-        @return a taurus.core.taurusattribute.TaurusAttribute object
-        @throws TaurusException if the given name is invalid.
-        """
-        if isinstance(param, str):
-            return self._getConfigurationFromName(param)
-        return self._getConfigurationFromAttribute(param)
-
-    def _getConfigurationFromName(self, cfg_name):
-        cfg = self.eval_configs.get(cfg_name, None) #first try with the given name
-        if cfg is None: #if not, try with the full name
-            validator = self.getAttributeNameValidator()  # TODO: This is broken now that getConfigurationNameValidator does not exist
-            names = validator.getNames(cfg_name)
-            if names is None:
-                raise TaurusException("Invalid evaluation configuration name %s" % cfg_name)
-            fullname = names[0]
-            cfg = self.eval_configs.get(fullname, None)
-            if cfg is None: #if the full name is not there, create one
-                attr = self.getAttribute(validator.getAttrName(cfg_name))
-                cfg = EvaluationConfiguration(names[0], parent=attr, storeCallback=self._storeConfig) #use full name
-        return cfg
-        
-    def _getConfigurationFromAttribute(self, attr):
-        cfg = attr.getConfig()
-        cfg_name = attr.getFullName() + "#"
-        self.eval_configs[cfg_name] = cfg
-        return cfg
-    
     def _storeDev(self, dev):
         name = dev.getFullName()
         exists = self.eval_devs.get(name)
