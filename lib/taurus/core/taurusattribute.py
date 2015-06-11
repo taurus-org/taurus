@@ -31,7 +31,9 @@ __docformat__ = "restructuredtext"
 
 from .taurushelper import Factory
 from .taurusmodel import TaurusModel
+from .util.log import tep14_deprecation
 from taurus.core.taurusbasetypes import TaurusElementType, DataFormat
+
 
 class TaurusAttribute(TaurusModel):
 
@@ -334,10 +336,10 @@ class TaurusAttribute(TaurusModel):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for attribute configuration
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
-        
+
+    @tep14_deprecation(alt='getValueObj')
     def getConfig(self):
         """ Returns the current configuration of the attribute."""
-        self.deprecated(dep='getConfig', alt='getValueObj', rel='taurus 4')
         return self.getValueObj(cache=True)
 
     ##########################################################################
@@ -415,9 +417,8 @@ class TaurusAttribute(TaurusModel):
     def isWritable(self, cache=True):
         return self.writable
 
+    @tep14_deprecation(alt='isWritable')
     def getWritable(self, cache=True):
-        '''deprecated'''
-        self.deprecated(dep='getWritable', alt='isWritable', rel='taurus 4')
         return self.isWritable(cache)
 
     def getType(self, cache=True):
@@ -429,20 +430,16 @@ class TaurusAttribute(TaurusModel):
     def getMaxDim(self, cache=True):
         return self.max_dim
 
+    @tep14_deprecation(alt='getMaxDim')
     def getMaxDimX(self, cache=True):
-        '''.. warning: Deprecated. Use :meth:`getMaxDim`
-        '''
-        self.deprecated(dep='getMaxDimX', alt='getMaxDim')
         dim = self.getMaxDim(cache)
         if dim:
             return dim[0]
         else:
             return None
 
+    @tep14_deprecation(alt='getMaxDim')
     def getMaxDimY(self, cache=True):
-        '''.. warning: Deprecated. Use :meth:`getMaxDim`
-        '''
-        self.deprecated(dep='getMaxDimY', alt='getMaxDim')
         dim = self.getMaxDim(cache)
         if dim:
             return dim[1]
@@ -463,27 +460,22 @@ class TaurusAttribute(TaurusModel):
     def getLabel(self, cache=True):
         return self.label
 
+    @tep14_deprecation(alt='.rvalue.units')
     def getUnit(self, cache=True):
-        self.deprecated(dep='getUnit', alt='TaurusAttrValue.rvalue.units',
-                        rel='taurus 4')
         try:
             return str(self.getValueObj(cache).rvalue.units)
         except:
             return None
 
+    @tep14_deprecation(alt='.rvalue.units')
     def getStandardUnit(self, cache=True):
-        self.deprecated(dep='getStandardUnit',
-                        alt='TaurusAttrValue.rvalue.units',
-                        rel='taurus 4')
         try:
             return str(self.getValueObj(cache).rvalue.units)
         except:
             return None
 
+    @tep14_deprecation(alt='.rvalue.units')
     def getDisplayUnit(self, cache=True):
-        self.deprecated(dep='getDisplayUnit',
-                        alt='TaurusAttrValue.rvalue.units',
-                        rel='taurus 4')
         try:
             return str(self.getValueObj(cache).rvalue.units)
         except:
@@ -498,22 +490,17 @@ class TaurusAttribute(TaurusModel):
     def getMaxValue(self, cache=True):
         return self.range[1]
 
+    @tep14_deprecation(alt='getRange')
     def getLimits(self, cache=True):
-        '''.. warning: Deprecated. Use :meth:`getRange`
-        '''
-        self.deprecated(dep='getLimits', alt='getRange')
         return self.getRange(cache=cache)
 
     def getRange(self, cache=True):
         return self.range
 
+    @tep14_deprecation(alt='getRange')
     def getRanges(self, cache=True):
-        '''.. warning: Deprecated. Use :meth:`getRange`
-        '''
-        self.deprecated(dep='getRanges', alt='getRange')
         return [self.range[0], self.alarm[0], self.warning[0],
                 self.warning[1], self.alarm[1], self.range[1]]
-        return None
 
     def getMinAlarm(self, cache=True):
         return self.alarm[0]
@@ -553,10 +540,8 @@ class TaurusAttribute(TaurusModel):
         self.label = lbl
         self._applyConfig()
 
+    @tep14_deprecation(alt='getRange')
     def setLimits(self, low, high):
-        '''.. warning: Deprecated. Use :meth:`setRange`
-        '''
-        self.deprecated(dep='setLimits', alt='getRange')
         self.setRange(low, high)
 
     def setRange(self, low, high):
@@ -575,48 +560,43 @@ class TaurusAttribute(TaurusModel):
         pass
 
     def isBoolean(self, cache=True):
-        # TODO it should be implemented in TaurusAttrValue
         v = self.read(cache)
         return isinstance(v.rvalue, bool)
 
+    @tep14_deprecation(alt='isWritable')
     def isReadOnly(self, cache=True):
-        '''deprecated'''
-        self.deprecated(dep='isReadOnly', alt='isWritable', rel='taurus 4')
         return not self.isWritable(cache)
 
+    @tep14_deprecation(alt='isWritable')
     def isReadWrite(self, cache=True):
-        '''deprecated'''
-        self.deprecated(dep='isReadWrite', alt='isWritable', rel='taurus 4')
         return self.isWritable(cache)
 
+    @tep14_deprecation(alt='isWritable')
     def isWrite(self, cache=True):
-        self.deprecated(dep='isWrite', alt='self.writable', rel='taurus 4')
         return self.isWritable(cache)
 
+    @tep14_deprecation(alt='self.data_format')
     def isScalar(self):
-        self.deprecated(dep='isScalar', alt='self.data_format',
-                        rel='taurus 4')
         return self.data_format == DataFormat._0D
 
+    @tep14_deprecation(alt='self.data_format')
     def isSpectrum(self):
-        self.deprecated(dep='isSpectrum', alt='self.data_format',
-                        rel='taurus 4')
         return self.data_format == DataFormat._1D
 
+    @tep14_deprecation(alt='self.data_format')
     def isImage(self):
-        self.deprecated(dep='isImage', alt='self.data_format', rel='taurus 4')
         return self.data_format == DataFormat._2D
 
     def _get_unit(self):
         '''for backwards compat with taurus < 4'''
         return self.getUnit(True)
 
+    @tep14_deprecation(alt='.rvalue.units')
     def _set_unit(self, value):
         '''for backwards compat with taurus < 4'''
-        extra_msg = 'ignoring setting of units of %s to %r' % (self.name,
+        extra_msg = 'Ignoring setting of units of %s to %r' % (self.name,
                                                                value )
-        self.deprecated(dep='unit', alt='.rvalue.units', rel='taurus 4',
-                   dbg_msg=extra_msg)
+        self.debug(extra_msg)
 
     unit = property(_get_unit, _set_unit)
 

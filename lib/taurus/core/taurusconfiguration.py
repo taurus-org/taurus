@@ -31,6 +31,7 @@ __all__ = ["TaurusConfigurationProxy", "TaurusConfiguration"]
 __docformat__ = "restructuredtext"
 
 from .taurusmodel import TaurusModel
+from .util.log import tep14_deprecation
 
 class TaurusConfigurationProxy(object):
     """
@@ -42,11 +43,9 @@ class TaurusConfigurationProxy(object):
     That's why to the outside world we don't give access to it directly
     but to objects of this new TaurusConfigurationProxy class.
     """
+    @tep14_deprecation(dbg_msg='Do not use this class')
     def __init__(self, parent):
         self.__parent = parent
-        from taurus.core.util.log import deprecated
-        deprecated(dep='TaurusConfigurationProxy', rel='taurus 4',
-                   dbg_msg='Do not use this class')
 
     def __getattr__(self, name):
         return getattr(self.__parent._getRealConfig(), name)
@@ -56,8 +55,6 @@ class TaurusConfigurationProxy(object):
 
 
 class TaurusConfiguration(TaurusModel):
-        
+    @tep14_deprecation(alt='TaurusAttribute', dbg_msg='Do not use this class')
     def __init__(self, name, parent, storeCallback = None):
-        from taurus.core.util.log import deprecated
-        deprecated(dep='TaurusConfiguration',  alt='TaurusAttribute',
-                   rel='taurus 4', dbg_msg='Do not use this class')
+        pass

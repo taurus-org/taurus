@@ -30,7 +30,8 @@ __all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
            "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
            "LogFilter",
            "_log", "trace", "debug", "info", "warning", "error", "fatal",
-           "critical", "deprecated"]
+           "critical", "deprecated", "deprecation_decorator",
+           "tep14_deprecation"]
 
 __docformat__ = "restructuredtext"
 
@@ -975,3 +976,6 @@ def deprecation_decorator(func=None, alt=None, rel=None, dbg_msg=None):
     new_func.__doc__ = '(Deprecated)\n' + (func.__doc__ or '')
     new_func.__dict__.update(func.__dict__)
     return new_func
+
+
+tep14_deprecation = functools.partial(deprecation_decorator, rel='tep14')

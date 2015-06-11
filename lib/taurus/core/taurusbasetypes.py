@@ -39,6 +39,7 @@ import datetime
 import weakref
 
 from .util.enumeration import Enumeration
+from .util.log import debug, tep14_deprecation
 
 TaurusSWDevState = Enumeration(
 'TaurusSWDevState', (
@@ -272,21 +273,19 @@ class TaurusAttrValue(object):
     # --------------------------------------------------------
     # This is for backwards compat with the API of taurus < 4 
     #
+    @tep14_deprecation(alt='.rvalue')
     def _get_value(self):
         '''for backwards compat with taurus < 4'''
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='value', alt='.rvalue', rel='taurus 4',
-                   dbg_msg=repr(self))
+        debug(repr(self))
         try:
             return self.__fix_int(self.rvalue.magnitude)
         except AttributeError: 
             return self.rvalue
-        
+
+    @tep14_deprecation(alt='.rvalue')
     def _set_value(self, value):
         '''for backwards compat with taurus < 4'''
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='value',  alt='.rvalue', rel='taurus 4',
-                   dbg_msg='Setting %r to %s'%(value, self.name))
+        debug('Setting %r to %s'%(value, self.name))
         
         if self.rvalue is None: #we do not have a previous rvalue
             import numpy
@@ -303,22 +302,20 @@ class TaurusAttrValue(object):
             self.rvalue = value
 
     value = property(_get_value, _set_value)
-        
+
+    @tep14_deprecation(alt='.wvalue')
     def _get_w_value(self):
         '''for backwards compat with taurus < 4'''
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='w_value', alt='.wvalue', rel='taurus 4',
-                        dbg_msg=repr(self))
+        debug(repr(self))
         try:
             return self.__fix_int(self.wvalue.magnitude)
         except AttributeError: 
             return self.wvalue
-         
+
+    @tep14_deprecation(alt='.wvalue')
     def _set_w_value(self, value):
         '''for backwards compat with taurus < 4'''
-        from taurus.core.util.log import deprecated
-        deprecated(dep='w_value', alt='.wvalue', rel='taurus 4',
-                        dbg_msg='Setting %r to %s'%(value, self.name))
+        debug('Setting %r to %s'%(value, self.name))
         
         if self.wvalue is None: #we do not have a previous wvalue
             import numpy
@@ -335,12 +332,10 @@ class TaurusAttrValue(object):
             self.wvalue=value
 
     w_value = property(_get_w_value, _set_w_value)
-            
+
+    @tep14_deprecation(alt='.error')
     @property
     def has_failed(self):
-        '''for backwards compat with taurus < 4'''
-        from taurus.core.util.log import deprecated 
-        deprecated(dep='has_failed', alt='.error', rel='taurus 4')
         return self.error
         
     def __fix_int(self, value):
@@ -365,10 +360,9 @@ class TaurusAttrValue(object):
                             %(self._attrRef, name))
 
 class TaurusConfigValue(object):
+    @tep14_deprecation(alt='TaurusAttrValue')
     def __init__(self):
-        from taurus.core.util.log import deprecated
-        deprecated(dep='TaurusConfigValue',  alt='TaurusAttrValue',
-                   rel='taurus 4', dbg_msg='Do not use this class')
+        pass
 
 class TaurusLockInfo(object):
     

@@ -211,7 +211,7 @@ class TaurusFactory(object):
         return obj
 
     def getObject(self, cls, name):
-        t4_msg = 'The TaurusConfiguration classes are deprecated in Taurus4'
+        t4_msg = 'The TaurusConfiguration classes are deprecated in tep14'
         if issubclass(cls, TaurusAuthority):
             return self.getAuthority(name)
         elif issubclass(cls, TaurusDevice):

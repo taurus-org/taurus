@@ -41,6 +41,7 @@ __docformat__ = "restructuredtext"
 import sys
 import re
 from taurus import tauruscustomsettings
+from .util.log import tep14_deprecation
 
 
 #regexp for finding the scheme
@@ -495,6 +496,7 @@ def Attribute(dev_or_attr_name, attr_name=None):
             dev = dev_or_attr_name
         return dev.getAttribute(attr_name)
 
+@tep14_deprecation( alt='Attribute')
 def Configuration(attr_or_conf_name, conf_name=None):
     """Returns the taurus configuration for either the pair (attribute name, conf name) 
     or full conf name
@@ -523,8 +525,6 @@ def Configuration(attr_or_conf_name, conf_name=None):
     :type conf_name: str or None
     :return: a taurus configuration
     :rtype: :class:`taurus.core.taurusconfiguration.TaurusConfiguration`"""
-    from taurus.core.util.log import deprecated
-    deprecated(dep='Configuration', alt='Attribute', rel='taurus 4')
     return Attribute(attr_or_conf_name)
 
 def Database(name=None):
