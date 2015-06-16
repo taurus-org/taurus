@@ -333,8 +333,8 @@ class TaurusAttrValue(object):
 
     w_value = property(_get_w_value, _set_w_value)
 
-    @tep14_deprecation(alt='.error')
     @property
+    @tep14_deprecation(alt='.error')
     def has_failed(self):
         return self.error
         
