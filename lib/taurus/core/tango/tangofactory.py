@@ -44,21 +44,18 @@ from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusbasetypes import OperationMode
 from taurus.core.taurusexception import TaurusException, DoubleRegistration
 from taurus.core.tauruspollingtimer import TaurusPollingTimer
-from taurus.core.util.log import Logger
+from taurus.core.util.log import Logger, tep14_deprecation
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.containers import CaselessWeakValueDict, CaselessDict
 
 from .tangodatabase import TangoAuthority
 from .tangoattribute import TangoAttribute, TangoStateAttribute
 from .tangodevice import TangoDevice
-from .tangoconfiguration import TangoConfiguration
 
 _Authority = TangoAuthority
 _Attribute = TangoAttribute
 _StateAttribute = TangoStateAttribute
 _Device = TangoDevice
-_Configuration = TangoConfiguration
-
 
 class TangoFactory(Singleton, TaurusFactory, Logger):
     """A :class:`TaurusFactory` singleton class to provide Tango-specific
@@ -96,8 +93,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     caseSensitive = False
     elementTypesMap = {TaurusElementType.Authority: TangoAuthority,
                        TaurusElementType.Device: TangoDevice,
-                       TaurusElementType.Attribute: TangoAttribute,
-                       TaurusElementType.Configuration: TangoConfiguration
+                       TaurusElementType.Attribute: TangoAttribute
                        }
     
     def __init__(self):
@@ -120,7 +116,6 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         self.dft_db = None
         self.tango_db = CaselessWeakValueDict()
         self.tango_db_queries = CaselessWeakValueDict()
-        self.tango_configs = CaselessWeakValueDict()
         self.tango_attrs = CaselessWeakValueDict()
         self.tango_devs = CaselessWeakValueDict()
         self.tango_dev_queries = CaselessWeakValueDict()
@@ -138,7 +133,6 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         """Cleanup the singleton instance"""
         self.trace("[TangoFactory] cleanUp")
         for k,v in self.tango_attrs.items():       v.cleanUp()
-        for k,v in self.tango_configs.items():     v.cleanUp()
         for k,v in self.tango_dev_queries.items(): v.cleanUp()
         for k,v in self.tango_devs.items():        v.cleanUp()
         self.dft_db = None
@@ -166,13 +160,6 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            :return:  dictionary will all registered databases on this factory
            :rtype: dict"""
         return dict(self.tango_db)
-
-    def getExistingConfigurations(self):
-        """Returns a new dictionary will all registered configurations on this factory
-           
-           :return:  dictionary will all registered configurations on this factory
-           :rtype: dict"""
-        return dict(self.tango_configs)
 
     def set_default_tango_host(self, tango_host):
         """Sets the new default tango host.
@@ -396,20 +383,21 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         """
         self.deprecated("Use getConfiguration(full_attr_name) instead")
         attr = self.getAttribute(full_attr_name)
-        return attr.getConfig()
+        return attr
 
-    def getConfiguration(self,param):
+    @tep14_deprecation(alt='getAttribute')
+    def getConfiguration(self, param):
         """Obtain the object corresponding to the given attribute or full name.
            If the corresponding configuration already exists, the existing instance
            is returned. Otherwise a new instance is stored and returned.
 
-           :param param: (taurus.core.taurusattribute.TaurusAttribute or str) attrubute object or full configuration name
+           :param param: (taurus.core.taurusattribute.TaurusAttribute or str) attribute object or full configuration name
            
-           :return: (taurus.core.tango.TangoConfiguration) configuration object
+           :return: (taurus.core.tango.TangoAttribute) configuration object
         """
         if isinstance(param, str):
-            return self._getConfigurationFromName(param)
-        return self._getConfigurationFromAttribute(param)
+            return self.getAttribute(param)
+        return param
 
     def _getAttributeClass(self, **params):
         attr_name = params.get("attr_name")
@@ -425,41 +413,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                 dev_name = db.getElementFullName(dev_name)
             tango_dev_klass = db.get_class_for_device(dev_name)
             return self.tango_dev_klasses.get(tango_dev_klass, _Device)
-        
-    def _getConfigurationFromName(self,cfg_name):
-        cfg = self.tango_configs.get(cfg_name)
-        
-        if cfg is not None:
-            return cfg
-        
-        # Simple approach did not work. Lets build a proper configuration name
-        validator = _Configuration.getNameValidator()
-        groups = validator.getUriGroups(cfg_name)
-        if groups is None:
-            raise TaurusException(("Invalid Tango Configuration name '%s'") % 
-                                  cfg_name)
-        full_cfg_name, _, _ = validator.getNames(cfg_name)
-        
-        if full_cfg_name is None:
-            raise TaurusException("Cannot find full name of '%s'" % cfg_name)
-        
-        #but note that in the tango_configs dict, we do not use the cfgkey...
-        attr_name = (full_cfg_name.split('#',1)[0])
-        full_cfg_name = attr_name + '#'
-        
-        cfg = self.tango_configs.get(full_cfg_name)
 
-        if cfg is None:
-            attrObj = self.getAttribute(attr_name)
-            cfg = self._getConfigurationFromAttribute(attrObj)
-        return cfg
-        
-    def _getConfigurationFromAttribute(self,attrObj):
-        cfg = attrObj.getConfig()
-        cfg_name = attrObj.getFullName() + "#"
-        self.tango_configs[cfg_name] = cfg
-        return cfg
-    
     def _storeDevice(self, dev):
         name, alias = dev.getFullName(), dev.getSimpleName()
         exists = self.tango_devs.get(name)
