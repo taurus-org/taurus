@@ -88,8 +88,7 @@ class TangoAttrValue(TaurusAttrValue):
 
         rvalue = p.value
         wvalue = p.w_value
-        #fmt = self.config._display_format
-        units = self.config._units
+        units = attrref._units
         if numerical:
             if rvalue is not None:
                 rvalue = Quantity(rvalue, units=units)
@@ -141,22 +140,18 @@ class TangoAttribute(TaurusAttribute):
         # From TangoConfiguration
         self._events_working = False
 
-    def __getattr__(self, name):
-        dev = self.getParentObj()
-        try:
+        attr_info = None
+        if parent:
             attr_name = self.getSimpleName().split('#')[0]
-            attr_info = dev.attribute_query(attr_name)
-            return getattr(attr_info, name)
-        except AttributeError:
-            return None
+            attr_info = parent.attribute_query(attr_name)
+        self.reInit(attr_info)
 
- #   def getParentObj(self):
- #       if self._parentObj is None:
- #           f = self._factory
- #           v = f.getAttributeNameValidator()
- #           dev_name = v.getUriGroups(self.getFullName())['devname']
- #           self._parentObj = f.getDevice(dev_name)
- #       return self._parentObj()
+    def __getattr__(self, name):
+        try:
+            return getattr(self._pytango_attrinfoex, name)
+        except AttributeError:
+            raise Exception('TangoAttribute does not have the attribute %s'
+                            %name)
 
     def getNewOperation(self, value):
         attr_value = PyTango.AttributeValue()
@@ -260,13 +255,6 @@ class TangoAttribute(TaurusAttribute):
         """Decodes a value that was received from PyTango into the expected 
         representation"""
         # TODO decode of the configuration
-        #config = self._getRealConfig().getValueObj()
-        dev = self.getParentObj()
-        attr_info = None
-        if dev:
-            attr_name = self.getSimpleName().split('#')[0]
-            attr_info = dev.attribute_query(attr_name)
-        self.reInit(attr_info)
         value = TangoAttrValue(pytango_dev_attr=attr_value, attrref=self)
         return value
 
