@@ -29,6 +29,8 @@ __all__ = ["TaurusAttribute", "TaurusStateAttribute"]
 
 __docformat__ = "restructuredtext"
 
+import weakref
+
 from .taurushelper import Factory
 from .taurusmodel import TaurusModel
 from .util.log import tep14_deprecation
@@ -337,10 +339,10 @@ class TaurusAttribute(TaurusModel):
     # API for attribute configuration
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
 
-    @tep14_deprecation(alt='getValueObj')
+    @tep14_deprecation(alt='self')
     def getConfig(self):
         """ Returns the current configuration of the attribute."""
-        return self.getValueObj(cache=True)
+        return weakref.proxy(self)
 
     ##########################################################################
     # TaurusConfiguration Methods
