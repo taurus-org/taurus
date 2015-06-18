@@ -67,9 +67,10 @@ class AbstractNameValidatorTestCase(object):
         '''Check that the validator is a singleton'''
         self.assertIs(self.validator(), self.validator())
         
-    def getNames(self, name=None, out=None, cfgkey=False):
+    def getNames(self, name=None, out=None):
         v = self.validator()
         if isinstance(v, TaurusAttributeNameValidator):
+            cfgkey = len(out) > 3
             names = v.getNames(name, cfgkey=cfgkey)
         else:
             names = v.getNames(name)

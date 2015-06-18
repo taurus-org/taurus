@@ -138,17 +138,17 @@ class TangoDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name = 'tango:a/b/c/d#label?foo=bar')
 @names(name = 'tango://foo:123/a/b/c/d#',
        out=('tango://foo:123/a/b/c/d',
-            '//foo:123/a/b/c/d', 'd', ''), cfgkey=True)
+            '//foo:123/a/b/c/d', 'd', ''))
 @names(name = 'tango://foo:123/a/b/c/d#label',
        out=('tango://foo:123/a/b/c/d',
-            '//foo:123/a/b/c/d', 'd', 'label'), cfgkey=True)
+            '//foo:123/a/b/c/d', 'd', 'label'))
 @names(name = 'tango:sys/tg_test/1/float_scalar#',
        out=('tango://%s/sys/tg_test/1/float_scalar' % \
             __GETENV("TANGO_HOST"),
-            'sys/tg_test/1/float_scalar', 'float_scalar', ''), cfgkey=True)
+            'sys/tg_test/1/float_scalar', 'float_scalar', ''))
 @names(name = 'tango://foo:123/a/b/c/d?configuration=label',
        out=('tango://foo:123/a/b/c/d',
-            '//foo:123/a/b/c/d', 'd', 'label'), cfgkey=True)
+            '//foo:123/a/b/c/d', 'd', 'label'))
 class TangoAttrValidatorTestCase(AbstractNameValidatorTestCase, 
                                  unittest.TestCase):
     validator = TangoAttributeNameValidator

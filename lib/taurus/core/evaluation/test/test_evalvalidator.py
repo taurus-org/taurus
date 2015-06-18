@@ -208,30 +208,30 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @names(name='eval:1#units',
        out=('eval://localhost/@DefaultEvaluator/1',
             '1',
-            '1', 'units'), cfgkey=True)
+            '1', 'units'))
 
 @names(name='eval:@Foo/a={tango:a/b/c/d};x=2;a*x#',
        out=('eval://localhost/@Foo/{tango:a/b/c/d}*2',
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
-            'a*x', ''), cfgkey=True)
+            'a*x', ''))
 
 #old syntax gets transformed into new one!
 @names(name='eval://1?configuration=units',
        out=('eval://localhost/@DefaultEvaluator/1',
             '1',
-            '1', 'units'), cfgkey=True)
+            '1', 'units'))
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration',
        out=('eval://localhost/@Foo/{tango:a/b/c/d}*2',
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
-            'a*x', ''), cfgkey=True)
+            'a*x', ''))
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration=label',
        out=('eval://localhost/@Foo/{tango:a/b/c/d}*2',
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
-            'a*x', 'label'), cfgkey=True)
+            'a*x', 'label'))
 class EvaluationAttrValidatorTestCase(AbstractNameValidatorTestCase,
                                       unittest.TestCase):
     validator = EvaluationAttributeNameValidator
