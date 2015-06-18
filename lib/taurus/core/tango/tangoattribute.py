@@ -33,6 +33,7 @@ __docformat__ = "restructuredtext"
 # -*- coding: utf-8 -*-
 import time
 import threading
+import weakref
 import PyTango
 import numpy
 from functools import partial
@@ -47,6 +48,7 @@ from taurus.core.taurusbasetypes import (TaurusEventType,
                                          DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
+from taurus.core.util.log import debug, tep14_deprecation
 
 from .enums import EVENT_TO_POLLING_EXCEPTIONS, FROM_TANGO_TO_NUMPY_TYPE
 
@@ -61,26 +63,41 @@ from .util.tango_taurus import (description_from_tango,
 class TangoAttrValue(TaurusAttrValue):
     '''A TaurusAttrValue specialization to decode PyTango.DeviceAttribute 
     objects'''
-    
-    def __init__(self, config=None, pytango_dev_attr=None, attrref=None):
-        TaurusAttrValue.__init__(self, attrref=attrref)
+
+    def __init__(self, attr=None, pytango_dev_attr=None, config=None):
+        # config parameter is kept for backwards compatibility only
+        TaurusAttrValue.__init__(self)
+        if config is not None:
+            from taurus.core.util.log import deprecated
+            deprecated(dep='"config" kwarg', alt='"attr"', rel='tep14')
+            attr = config
+        if attr is None:
+            self._attrRef = None
+        else:
+            self._attrRef = weakref.proxy(attr)
+        self.config = self._attrRef  # bck-compat
+
         self._pytango_dev_attr = p = pytango_dev_attr
         if p is None:
             self._pytango_dev_attr = p = PyTango.DeviceAttribute()
             return
-        numerical = PyTango.is_numerical_type(attrref._tango_data_type,
+
+        if self._attrRef is None:
+            return
+
+        numerical = PyTango.is_numerical_type(self._attrRef._tango_data_type,
                                               inc_array=True)
         if p.has_failed:
             self.error = PyTango.DevFailed(*p.get_err_stack())
         else:
             if p.is_empty: # spectra and images can be empty without failing
-                dtype = FROM_TANGO_TO_NUMPY_TYPE.get(attrref._tango_data_type)
-                if attrref.data_format == DataFormat._1D:
+                dtype = FROM_TANGO_TO_NUMPY_TYPE.get(self._attrRef._tango_data_type)
+                if self._attrRef.data_format == DataFormat._1D:
                     shape = (0,)
-                elif attrref.data_format == DataFormat._2D:
+                elif self._attrRef.data_format == DataFormat._2D:
                     shape = (0, 0)
                 p.value = numpy.empty(shape, dtype=dtype)
-                if not (numerical or attrref.type==DataType.Boolean):
+                if not (numerical or self._attrRef.type==DataType.Boolean):
                     # generate a nested empty list of given shape
                     p.value = []
                     for _ in xrange(len(shape)-1):
@@ -88,7 +105,7 @@ class TangoAttrValue(TaurusAttrValue):
 
         rvalue = p.value
         wvalue = p.w_value
-        units = attrref._units
+        units = self._attrRef._units
         if numerical:
             if rvalue is not None:
                 rvalue = Quantity(rvalue, units=units)
@@ -99,12 +116,100 @@ class TangoAttrValue(TaurusAttrValue):
         self.wvalue = wvalue
         self.time = p.time
         self.quality = quality_from_tango(p.quality)
-     
-    def __attr__(self, name):
+
+    def __getattr__(self, name):
         try:
-            return getattr(self._attrRef, name)
+            ret = getattr(self._attrRef, name)
         except AttributeError:
-            return getattr(self._pytango_dev_attr, name)
+            try:
+                ret = getattr(self._pytango_dev_attr, name)
+            except AttributeError:
+                raise AttributeError('%s has no attribute %s'
+                                     %(self.__class__.__name__, name))
+        # return the attr but only after warning
+        from taurus.core.util.log import deprecated
+        deprecated(dep='TangoAttrValue.%s' % name,
+                   alt='TangoAttribute.%s' % name, rel='tep14')
+        return ret
+
+    # --------------------------------------------------------
+    # This is for backwards compat with the API of taurus < 4
+    #
+    @tep14_deprecation(alt='.rvalue')
+    def _get_value(self):
+        '''for backwards compat with taurus < 4'''
+        debug(repr(self))
+        try:
+            return self.__fix_int(self.rvalue.magnitude)
+        except AttributeError:
+            return self.rvalue
+
+    @tep14_deprecation(alt='.rvalue')
+    def _set_value(self, value):
+        '''for backwards compat with taurus < 4'''
+        debug('Setting %r to %s'%(value, self.name))
+
+        if self.rvalue is None: #we do not have a previous rvalue
+            import numpy
+            dtype = numpy.array(value).dtype
+            if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
+                msg = 'Refusing to set ambiguous value (deprecated .value API)'
+                raise ValueError(msg)
+            else:
+                self.rvalue = value
+        elif hasattr(self.rvalue, 'units'): # we do have it and is a Quantity
+            from taurus.external.pint import Quantity
+            self.rvalue = Quantity(value, units = self.rvalue.units)
+        else: # we do have a previous value and is not a quantity
+            self.rvalue = value
+
+    value = property(_get_value, _set_value)
+
+    @tep14_deprecation(alt='.wvalue')
+    def _get_w_value(self):
+        '''for backwards compat with taurus < 4'''
+        debug(repr(self))
+        try:
+            return self.__fix_int(self.wvalue.magnitude)
+        except AttributeError:
+            return self.wvalue
+
+    @tep14_deprecation(alt='.wvalue')
+    def _set_w_value(self, value):
+        '''for backwards compat with taurus < 4'''
+        debug('Setting %r to %s'%(value, self.name))
+
+        if self.wvalue is None: #we do not have a previous wvalue
+            import numpy
+            dtype = numpy.array(value).dtype
+            if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
+                msg = 'Refusing to set ambiguous value (deprecated .value API)'
+                raise ValueError(msg)
+            else:
+                self.wvalue=value
+        elif hasattr(self.wvalue, 'units'): # we do have it and is a Quantity
+            from taurus.external.pint import Quantity
+            self.wvalue = Quantity(value, units = self.wvalue.units)
+        else: # we do have a previous value and is not a quantity
+            self.wvalue=value
+
+    w_value = property(_get_w_value, _set_w_value)
+
+    @property
+    @tep14_deprecation(alt='.error')
+    def has_failed(self):
+        return self.error
+
+    def __fix_int(self, value):
+        '''cast value to int if  it is an integer.
+        Works on scalar and non-scalar values'''
+        if self.type != DataType.Integer:
+            return value
+        try:
+            return int(value)
+        except TypeError:
+            import numpy
+            return numpy.array(value, dtype='int')
 
 
 class TangoAttribute(TaurusAttribute):
@@ -255,7 +360,7 @@ class TangoAttribute(TaurusAttribute):
         """Decodes a value that was received from PyTango into the expected 
         representation"""
         # TODO decode of the configuration
-        value = TangoAttrValue(pytango_dev_attr=attr_value, attrref=self)
+        value = TangoAttrValue(pytango_dev_attr=attr_value, attr=self)
         return value
 
     def write(self, value, with_read=True):

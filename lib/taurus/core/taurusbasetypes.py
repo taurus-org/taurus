@@ -36,10 +36,9 @@ __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
 __docformat__ = "restructuredtext"
 
 import datetime
-import weakref
 
 from .util.enumeration import Enumeration
-from .util.log import debug, tep14_deprecation
+from .util.log import tep14_deprecation
 
 TaurusSWDevState = Enumeration(
 'TaurusSWDevState', (
@@ -258,106 +257,16 @@ class TaurusTimeVal(object):
          
 
 class TaurusAttrValue(object):
-    def __init__(self, config=None, attrref=None):
-        # TODO: config parameter is maintained for backwards compatibility
+    def __init__(self):
         self.rvalue = None
         self.wvalue = None
         self.time = None
         self.quality = AttrQuality.ATTR_VALID
         self.error = None
-        self._attrRef = attrref
-        self.config = None
-        if self._attrRef:
-            self.config =  weakref.proxy(self._attrRef)
-
-    # --------------------------------------------------------
-    # This is for backwards compat with the API of taurus < 4 
-    #
-    @tep14_deprecation(alt='.rvalue')
-    def _get_value(self):
-        '''for backwards compat with taurus < 4'''
-        debug(repr(self))
-        try:
-            return self.__fix_int(self.rvalue.magnitude)
-        except AttributeError: 
-            return self.rvalue
-
-    @tep14_deprecation(alt='.rvalue')
-    def _set_value(self, value):
-        '''for backwards compat with taurus < 4'''
-        debug('Setting %r to %s'%(value, self.name))
-        
-        if self.rvalue is None: #we do not have a previous rvalue
-            import numpy
-            dtype = numpy.array(value).dtype
-            if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
-                msg = 'Refusing to set ambiguous value (deprecated .value API)'
-                raise ValueError(msg)
-            else:
-                self.rvalue = value                
-        elif hasattr(self.rvalue, 'units'): # we do have it and is a Quantity
-            from taurus.external.pint import Quantity
-            self.rvalue = Quantity(value, units = self.rvalue.units)
-        else: # we do have a previous value and is not a quantity
-            self.rvalue = value
-
-    value = property(_get_value, _set_value)
-
-    @tep14_deprecation(alt='.wvalue')
-    def _get_w_value(self):
-        '''for backwards compat with taurus < 4'''
-        debug(repr(self))
-        try:
-            return self.__fix_int(self.wvalue.magnitude)
-        except AttributeError: 
-            return self.wvalue
-
-    @tep14_deprecation(alt='.wvalue')
-    def _set_w_value(self, value):
-        '''for backwards compat with taurus < 4'''
-        debug('Setting %r to %s'%(value, self.name))
-        
-        if self.wvalue is None: #we do not have a previous wvalue
-            import numpy
-            dtype = numpy.array(value).dtype
-            if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
-                msg = 'Refusing to set ambiguous value (deprecated .value API)'
-                raise ValueError(msg)
-            else:
-                self.wvalue=value                
-        elif hasattr(self.wvalue, 'units'): # we do have it and is a Quantity
-            from taurus.external.pint import Quantity
-            self.wvalue = Quantity(value, units = self.wvalue.units)
-        else: # we do have a previous value and is not a quantity
-            self.wvalue=value
-
-    w_value = property(_get_w_value, _set_w_value)
-
-    @property
-    @tep14_deprecation(alt='.error')
-    def has_failed(self):
-        return self.error
-        
-    def __fix_int(self, value):
-        '''cast value to int if  it is an integer.
-        Works on scalar and non-scalar values'''
-        if self.type != DataType.Integer:
-            return value
-        try:
-            return int(value)
-        except TypeError:
-            import numpy
-            return numpy.array(value, dtype='int')
     
     def __repr__(self):
         return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
 
-    def __getattr__(self, name):
-        try:
-            return getattr(self._attrRef, name)
-        except AttributeError:
-            raise Exception('%s does not have the attribute %s'
-                            %(self._attrRef, name))
 
 class TaurusConfigValue(object):
     @tep14_deprecation(alt='TaurusAttrValue')

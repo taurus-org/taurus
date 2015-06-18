@@ -25,6 +25,7 @@
 __all__ = ['EvaluationAttribute']
 
 import numpy, re
+import weakref
 
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import SubscriptionState, TaurusEventType, \
@@ -32,8 +33,118 @@ from taurus.core.taurusbasetypes import SubscriptionState, TaurusEventType, \
 from taurus.core.taurusexception import TaurusException
 from taurus.core.taurushelper import Attribute, Manager
 from taurus.core import DataFormat
+from taurus.core.util.log import debug, tep14_deprecation
 
 from taurus.core.evaluation.evalvalidator import QUOTED_TEXT_RE, PY_VAR_RE
+
+class EvaluationAttrValue(TaurusAttrValue):
+    """Reimplementation of TaurusAttrValue to provide bck-compat via a ref
+
+    """
+     # TODO: remove this class once the standard widgets are adapted to TEP14
+    def __init__(self, attr=None, config=None):
+        # config parameter is kept for backwards compatibility only
+        TaurusAttrValue.__init__(self)
+        if config is not None:
+            from taurus.core.util.log import deprecated
+            deprecated(dep='"config" kwarg', alt='"attr"', rel='tep14')
+            attr = config
+        if attr is None:
+            self._attrRef = None
+        else:
+            self._attrRef = weakref.proxy(attr)
+        self.config = self._attrRef
+
+    def __getattr__(self, name):
+        try:
+            ret = getattr(self._attrRef, name)
+        except AttributeError:
+            raise AttributeError('%s has no attribute %s'
+                                 %(self.__class__.__name__, name))
+        # return the attr but only after warning
+        from taurus.core.util.log import deprecated
+        deprecated(dep='EvaluationAttrValue.%s' % name,
+                   alt='EvaluationAttribute.%s' % name, rel='tep14')
+        return ret
+
+    # --------------------------------------------------------
+    # This is for backwards compat with the API of taurus < 4
+    #
+    @tep14_deprecation(alt='.rvalue')
+    def _get_value(self):
+        '''for backwards compat with taurus < 4'''
+        debug(repr(self))
+        try:
+            return self.__fix_int(self.rvalue.magnitude)
+        except AttributeError:
+            return self.rvalue
+
+    @tep14_deprecation(alt='.rvalue')
+    def _set_value(self, value):
+        '''for backwards compat with taurus < 4'''
+        debug('Setting %r to %s'%(value, self.name))
+
+        if self.rvalue is None: #we do not have a previous rvalue
+            import numpy
+            dtype = numpy.array(value).dtype
+            if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
+                msg = 'Refusing to set ambiguous value (deprecated .value API)'
+                raise ValueError(msg)
+            else:
+                self.rvalue = value
+        elif hasattr(self.rvalue, 'units'): # we do have it and is a Quantity
+            from taurus.external.pint import Quantity
+            self.rvalue = Quantity(value, units = self.rvalue.units)
+        else: # we do have a previous value and is not a quantity
+            self.rvalue = value
+
+    value = property(_get_value, _set_value)
+
+    @tep14_deprecation(alt='.wvalue')
+    def _get_w_value(self):
+        '''for backwards compat with taurus < 4'''
+        debug(repr(self))
+        try:
+            return self.__fix_int(self.wvalue.magnitude)
+        except AttributeError:
+            return self.wvalue
+
+    @tep14_deprecation(alt='.wvalue')
+    def _set_w_value(self, value):
+        '''for backwards compat with taurus < 4'''
+        debug('Setting %r to %s'%(value, self.name))
+
+        if self.wvalue is None: #we do not have a previous wvalue
+            import numpy
+            dtype = numpy.array(value).dtype
+            if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
+                msg = 'Refusing to set ambiguous value (deprecated .value API)'
+                raise ValueError(msg)
+            else:
+                self.wvalue=value
+        elif hasattr(self.wvalue, 'units'): # we do have it and is a Quantity
+            from taurus.external.pint import Quantity
+            self.wvalue = Quantity(value, units = self.wvalue.units)
+        else: # we do have a previous value and is not a quantity
+            self.wvalue=value
+
+    w_value = property(_get_w_value, _set_w_value)
+
+    @property
+    @tep14_deprecation(alt='.error')
+    def has_failed(self):
+        return self.error
+
+    def __fix_int(self, value):
+        '''cast value to int if  it is an integer.
+        Works on scalar and non-scalar values'''
+        if self.type != DataType.Integer:
+            return value
+        try:
+            return int(value)
+        except TypeError:
+            import numpy
+            return numpy.array(value, dtype='int')
 
 class EvaluationAttribute(TaurusAttribute):
     '''
@@ -42,11 +153,11 @@ class EvaluationAttribute(TaurusAttribute):
     operation is described in the attribute name itself. An Evaluation Attribute
     will keep references to any other attributes being referenced and it will
     update its own value whenever any of the referenced attributes change.
-    
-    .. seealso:: :mod:`taurus.core.evaluation` 
-    
+
+    .. seealso:: :mod:`taurus.core.evaluation`
+
     .. warning:: In most cases this class should not be instantiated directly.
-                 Instead it should be done via the 
+                 Instead it should be done via the
                     :meth:`EvaluationFactory.getAttribute`
     '''
     # helper class property that stores a reference to the corresponding factory
@@ -57,7 +168,7 @@ class EvaluationAttribute(TaurusAttribute):
         self.call__init__(TaurusAttribute, name, parent,
                             storeCallback=storeCallback)
         
-        self._value = TaurusAttrValue(attrref=self)
+        self._value = EvaluationAttrValue(attr=self)
 
         #Evaluation Attributes are always read-only (at least for now)
         self.writable = False
