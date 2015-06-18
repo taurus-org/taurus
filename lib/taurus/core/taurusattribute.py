@@ -104,9 +104,6 @@ class TaurusAttribute(TaurusModel):
         self.warning = float('-inf'), float('inf')
         # TODO decide what to do with self.format and its get and set methods
         self.format = '%s'
-        ########################################################################
-
-        self._subscribeEvents()
 
     def cleanUp(self):
         self.trace("[TaurusAttribute] cleanUp")
