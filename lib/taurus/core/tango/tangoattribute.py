@@ -248,7 +248,11 @@ class TangoAttribute(TaurusAttribute):
         attr_info = None
         if parent:
             attr_name = self.getSimpleName()
-            attr_info = parent.attribute_query(attr_name)
+            try:
+                attr_info = parent.attribute_query(attr_name)
+            except AttributeError: # if PyTango could not connect to the dev
+                attr_info = None
+
         self.reInit(attr_info)
 
     def __getattr__(self, name):
@@ -903,7 +907,7 @@ class TangoAttribute(TaurusAttribute):
     # it is the old constructor
     def reInit(self, pytango_attrinfoex=None):
         if  pytango_attrinfoex is None:
-            self._pytango_attrinfoex = PyTango.AttrInfoEx()
+            self._pytango_attrinfoex = PyTango.AttributeInfoEx()
         else:
             self._pytango_attrinfoex = i = pytango_attrinfoex
 
