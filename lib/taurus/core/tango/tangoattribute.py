@@ -239,10 +239,27 @@ class TangoAttribute(TaurusAttribute):
         self.__subscription_state = SubscriptionState.Unsubscribed
         self.__subscription_event = threading.Event()
 
+        # configuration attributes
+        self._dev_hw_obj = None
+
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
+
+        # subscribe to configuration events (unsubscription done at cleanup)
+        self._subscribeConfEvents()
 
         #######################################################################
         # From TangoConfiguration
+
+        #######################################################################
+        # TaurusConfiguration Attributes
+        # the last configuration value
+        self._attr_info  = None
+        # the last time the configuration was read
+        self._attr_timestamp = 0
+        # the configuration event identifier
+        self._cfg_evt_id = None
+        ########################################################################
+
         self._events_working = False
 
         attr_info = None
@@ -255,7 +272,16 @@ class TangoAttribute(TaurusAttribute):
 
         self.reInit(attr_info)
 
+    def cleanUp(self):
+        self.trace("[TangoAttribute] cleanUp")
+        self._unsubscribeConfEvents()
+        self._dev_hw_obj = None
+        self._attr_info = None
+        TaurusAttribute.cleanUp(self)
+
     def __getattr__(self, name):
+        if name in ['rvalue', 'value']:
+            return self.read().rvalue
         try:
             return getattr(self._pytango_attrinfoex, name)
         except AttributeError:
@@ -548,11 +574,6 @@ class TangoAttribute(TaurusAttribute):
         """ Enable subscription to the attribute events. If change events are 
             not supported polling is activated """
 
-        # We have to register for configuration events before registering for
-        # change events because when a change event occurs we need to have
-        # configuration info in order to know how to decode the value
-        self.trace("Subscribing to change events...")
-
         dev = self.getParentObj()
         if dev is None:
             self.debug("failed to subscribe change events: device is None")
@@ -605,6 +626,12 @@ class TangoAttribute(TaurusAttribute):
         manager = Manager()
         sm = self.getSerializationMode()
         if not event.err:
+            # if it is a  configuration event
+            #_, event_type, _ = event
+            if isinstance(event, PyTango.AttrConfEventData):
+                self.push_conf_event(event)
+                return
+            # attribute event
             self.__attr_value, self.__attr_err, self.__attr_timestamp = self.decode(event.attr_value), None, curr_time
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
@@ -723,77 +750,58 @@ class TangoAttribute(TaurusAttribute):
     # PyTango event handling (private)
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    # def _subscribeEvents(self):
-    #     """ Enable subscription to the attribute configuration events."""
-    #     self.trace("Subscribing to configuration events...")
-    #     dev = self._getDev()
-    #     if dev is None:
-    #         self.debug("failed to subscribe config events: device is None")
-    #         return
-    #     dev = dev.getHWObj()
-    #     if dev is None:
-    #         self.debug("failed to subscribe config events: HW is None")
-    #         return
-    #
-    #     attrname = self._getAttrName()
-    #     try:
-    #         self._cfg_evt_id = dev.subscribe_event(attrname,
-    #                                               PyTango.EventType.ATTR_CONF_EVENT,
-    #                                               self, [], True)
-    #     except PyTango.DevFailed, e:
-    #         self.debug("Unexpected exception trying to subscribe to CONFIGURATION events.")
-    #         self.traceback()
-    #         # Subscription failed either because event mechanism is not available
-    #         # or because the device server is not running.
-    #         # The first possibility is assumed so an attempt to get the configuration
-    #         # manually is done
-    #         try:
-    #             self.getValueObj(cache=False)
-    #         except:
-    #             self.debug("Error getting attribute configuration")
-    #             self.traceback()
-    #
-    # def _unsubscribeEvents(self):
-    #     # Careful in this method: This is intended to be executed in the cleanUp
-    #     # so we should not access external objects from the factory, like the
-    #     # parent object
-    #     if self._cfg_evt_id and not self._dev_hw_obj is None:
-    #         self.trace("Unsubscribing to configuration events (ID=%s)" % str(self._cfg_evt_id))
-    #         try:
-    #             self._dev_hw_obj.unsubscribe_event(self._cfg_evt_id)
-    #             self._cfg_evt_id = None
-    #         except PyTango.DevFailed, e:
-    #             self.debug("Exception trying to unsubscribe configuration events")
-    #             self.trace(str(e))
+    def _subscribeConfEvents(self):
+        """ Enable subscription to the attribute configuration events."""
+        self.trace("Subscribing to configuration events...")
+        if self._dev_hw_obj is None:
+            dev = self.getParentObj()
+            if dev is None:
+                self.debug("failed to subscribe config events: device is None")
+                return
+            self._dev_hw_obj = dev.getHWObj()
 
-    # def decode(self, i):
-    #     #     #i is a pytango_AttrInfoEx... the return must be TangoConfigValue
-    #     ret = self._getAttr().__attr_value
-    #     ret.reInit(i)
-    #
-    #     # TODO: These may not be necessary (Taurus agnostic code should not
-    #     #       depend on them)
-    #     # add dev_name, dev_alias, attr_name, attr_full_name
-    #     self.dev_name = self._getDev().getNormalName()
-    #     self.dev_alias = self._getDev().getSimpleName()
-    #     try:
-    #         attr = self._getAttr()
-    #         if attr is not None:
-    #             ret.attr_fullname = self._getAttr().getNormalName()
-    #             ret.attr_name = self._getAttr().getSimpleName()
-    #         else:
-    #             self.debug(('TangoConfiguration.decode(%s/%s): ' +
-    #                           'self._getAttr() returned None (failed detach?)'),
-    #                        ret.dev_name, ret.name)
-    #     except:
-    #         import traceback
-    #         self.warning('at TangoConfiguration.decode(%s/%s)', ret.dev_name,
-    #                      ret.name)
-    #         self.warning(traceback.format_exc())
-    #         ret.attr_name = ret.attr_fullname = ''
-    #     return ret
+        if self._dev_hw_obj is None:
+            self.debug("failed to subscribe config events: HW is None")
+            return
 
-    # def push_event(self, event):
+        attrname = self.getSimpleName()
+        try:
+            self._cfg_evt_id = self._dev_hw_obj.subscribe_event(attrname,
+                                                  PyTango.EventType.ATTR_CONF_EVENT,
+                                                  self, [], True)
+        except PyTango.DevFailed, e:
+            self.debug("Unexpected exception trying to subscribe to CONFIGURATION events.")
+            self.traceback()
+            # Subscription failed either because event mechanism is not available
+            # or because the device server is not running.
+            # The first possibility is assumed so an attempt to get the configuration
+            # manually is done
+            # TODO decide what should be done here
+            try:
+                self.getValueObj(cache=False)
+            except:
+                self.debug("Error getting attribute configuration")
+                self.traceback()
+
+    def _unsubscribeConfEvents(self):
+        # Careful in this method: This is intended to be executed in the cleanUp
+        # so we should not access external objects from the factory, like the
+        # parent object
+        if self._cfg_evt_id and not self._dev_hw_obj is None:
+            self.trace("Unsubscribing to configuration events (ID=%s)" % str(self._cfg_evt_id))
+            try:
+                self._dev_hw_obj.unsubscribe_event(self._cfg_evt_id)
+                self._cfg_evt_id = None
+            except PyTango.DevFailed, e:
+                self.debug("Exception trying to unsubscribe configuration events")
+                self.trace(str(e))
+
+    def decodeconf(self, i):
+        #i is a pytango_AttrInfoEx... the return must be TangoConfigValue
+        self.reInit(i)
+        return self
+
+    def push_conf_event(self, event):
     #     if event.err:
     #         if event.errors[0].reason not in EVENT_TO_POLLING_EXCEPTIONS:
     #             self._attr_timestamp = time.time()
@@ -801,25 +809,25 @@ class TangoAttribute(TaurusAttribute):
     #         else:
     #             self._events_working = False
     #         return
-    #     if self._getAttr() is None and not self._listeners:
-    #         #===================================================================
-    #         # This is a safety net to catch "zombie" TangoConfiguration objects
-    #         # when they get called.
-    #         # If you get here, there is some bug elsewhere which should be
-    #         # investigated.
-    #         # Without this safety net, you would get exceptions.
-    #         # We assume that a TangoConfiguration object which has no listeners
-    #         # and which is not associated to a TangoAttribute, is a "zombie".
-    #         self.warning('"Zombie" object (%s) received an event. Unsubscribing it.', repr(self))
-    #         self._unsubscribeEvents()
-    #         return
-    #         #===================================================================
-    #     self._events_working = True
-    #     self._attr_timestamp = time.time()
-    #     self._attr_info = self.decode(event.attr_conf)
-    #     listeners = tuple(self._listeners)
-    #     #Manager().addJob(self._push_event, None, event)
-    #     Manager().addJob(self.fireEvent, None, TaurusEventType.Config, self._attr_info, listeners=listeners)
+#         if not self._listeners:
+             #===================================================================
+             # This is a safety net to catch "zombie" TangoConfiguration objects
+             # when they get called.
+             # If you get here, there is some bug elsewhere which should be
+             # investigated.
+             # Without this safety net, you would get exceptions.
+             # We assume that a TangoConfiguration object which has no listeners
+             # and which is not associated to a TangoAttribute, is a "zombie".
+#             self.warning('"Zombie" object (%s) received an event. Unsubscribing it.', repr(self))
+#             self._unsubscribeConfEvents()
+#             return
+             #===================================================================
+         self._events_working = True
+         self._attr_timestamp = time.time()
+         self._attr_info = self.decodeconf(event.attr_conf)
+
+         listeners = tuple(self._listeners)
+         Manager().addJob(self.fireEvent, None, TaurusEventType.Config, self._attr_info, listeners=listeners)
 
     #===========================================================================
     # Some methods reimplemented from TaurusConfiguration

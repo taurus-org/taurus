@@ -87,10 +87,6 @@ class TaurusAttribute(TaurusModel):
         # TaurusConfiguration Attributes
         # the last configuration value
         self._attr_info  = None
-        # the last time the configuration was read
-        self._attr_timestamp = 0
-        # the configuration event identifier
-        self._cfg_evt_id = None
         ########################################################################
         # From TaurusConfigValue attributes
         self.name = None
@@ -108,9 +104,6 @@ class TaurusAttribute(TaurusModel):
     def cleanUp(self):
         self.trace("[TaurusAttribute] cleanUp")
         self._unsubscribeEvents()
-        self._dev_hw_obj = None
-        self._attr_info = None
-        self._dev_hw_obj = None
         TaurusModel.cleanUp(self)
 
     @classmethod
@@ -189,15 +182,15 @@ class TaurusAttribute(TaurusModel):
 
     def poll(self):
         raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.poll")
-            
+
     def _subscribeEvents(self):
         raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute._subscribeEvents")
-        
+
     def _unsubscribeEvents(self):
         raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute._unsubscribeEvents")
 
-#    def isUsingEvents(self):
-#        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.isUsingEvents")
+    def isUsingEvents(self):
+        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.isUsingEvents")
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel necessary overwrite
@@ -208,7 +201,7 @@ class TaurusAttribute(TaurusModel):
             return self.read(cache=cache)
         except Exception:
             return None
-        
+
     def areStrValuesEqual(self,v1,v2):
         try:
             if "nan" == str(v1).lower() == str(v2).lower(): return True
@@ -224,10 +217,10 @@ class TaurusAttribute(TaurusModel):
         attrvalue = self.getValueObj(cache=cache)
         if not attrvalue:
             return None
-        
+
         v = attrvalue.wvalue
         return self.displayValue(v)
-        
+
     def displayValue(self,value):
         if value is None:
             return None
@@ -247,7 +240,7 @@ class TaurusAttribute(TaurusModel):
             # if cannot calculate value based on the format just return the value
             ret = str(value)
         return ret
-    
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
@@ -265,42 +258,42 @@ class TaurusAttribute(TaurusModel):
         self.__forced_polling = force
         if force:
             self.__activate_polling = True
-        
+
         if self.__activate_polling:
             self._activatePolling()
-    
+
     def disablePolling(self):
         self.__enable_polling = False
         self.__forced_polling = False
         if self.__activate_polling:
             self._deactivatePolling()
-            
+
     def isPollingEnabled(self):
         return self.__enable_polling
-        
+
     def _activatePolling(self):
         self.__activate_polling = True
         if not self.isPollingEnabled():
             return
         self.factory().addAttributeToPolling(self, self.getPollingPeriod())
         self.__polled = True
-    
+
     def _deactivatePolling(self):
         self.__activate_polling = False
         self.factory().removeAttributeFromPolling(self)
         self.__polled = False
-    
+
     def isPollingActive(self):
         return self.__polled
-    
+
     def isPollingForced(self):
         return self.__forced_polling
-    
+
     def changePollingPeriod(self, period):
         """change polling period to period miliseconds """
         if self.__polling_period == period and self.__activate_polling:
             return
-            
+
         self.__polling_period = period
         if self.__activate_polling:
             self._deactivatePolling()
@@ -309,7 +302,7 @@ class TaurusAttribute(TaurusModel):
     def isPolled(self):
         self.deprecated("use isPollingActive()")
         return self.isPollingActive()
-    
+
     def getPollingPeriod(self):
         """returns the polling period """
         return self.__polling_period
@@ -318,7 +311,7 @@ class TaurusAttribute(TaurusModel):
 
     def activatePolling(self, period, unsubscribe_evts=False, force=False):
         """activate polling for attribute.
-        
+
            :param period: polling period (in miliseconds)
            :type period: int
         """
@@ -373,7 +366,7 @@ class TaurusAttribute(TaurusModel):
     def _getAttr(self, createAttr=False):
         return self
     ##########################################################################
-    
+
     def getDisplayValue(self,cache=True):
         return self.getLabel(cache)
 
@@ -409,9 +402,6 @@ class TaurusAttribute(TaurusModel):
             obj.append(('warnings', "[%s, %s]" % (warnings[0],warnings[1])))
 
         return obj
-
-    def isUsingEvents(self):
-        return self._cfg_evt_id
 
     def isWritable(self, cache=True):
         return self.writable
