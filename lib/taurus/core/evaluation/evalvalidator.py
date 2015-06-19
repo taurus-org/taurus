@@ -374,7 +374,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         # TODO: this is pre-tep14 API from the EvaluationConfigurationNameValidator. Check usage and remove.
         names = self.getNames(s)
         if names is None: return None
-        return names[0].rsplit('#',1)[0]
+        return names[0]
     
     def getDeviceName(self, name):
         #@TODO: Maybe this belongs to the factory, not the validator

@@ -247,7 +247,7 @@ class TangoAttribute(TaurusAttribute):
 
         attr_info = None
         if parent:
-            attr_name = self.getSimpleName().split('#')[0]
+            attr_name = self.getSimpleName()
             attr_info = parent.attribute_query(attr_name)
         self.reInit(attr_info)
 
