@@ -34,7 +34,7 @@ import sys
 from taurus.external.qt import Qt
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.resource import getPixmap
-from .qpixmapwidget import QPixmapWidget
+from taurus.qt.qtgui.display.qpixmapwidget import QPixmapWidget
 
 LedColor  = Enumeration("LedColor",  ["BLUE", "GREEN", "RED", "YELLOW", "ORANGE", "MAGENTA", "GRENOBLE", "BLACK", "WHITE"])
 LedStatus = Enumeration("LedStatus", ["ON", "OFF"])
