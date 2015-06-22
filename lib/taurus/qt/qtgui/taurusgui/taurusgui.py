@@ -197,6 +197,10 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
             configdict['widget'] = self.widget().createConfig()
         return configdict
 
+    def closeEvent(self, event):
+        Qt.QDockWidget.closeEvent(self, event)      
+        TaurusBaseWidget.closeEvent(self, event)
+
 
 class TaurusGui(TaurusMainWindow):
     '''
@@ -314,6 +318,18 @@ class TaurusGui(TaurusMainWindow):
         except:
             pass
         TaurusMainWindow.closeEvent(self, event)
+        for n, panel in self.__panels.items():
+            panel.closeEvent(event)
+            panel.widget().closeEvent(event)
+            if not event.isAccepted():
+                result = Qt.QMessageBox.question(
+                    self, 'Closing error',
+                    "Panel '%s' cannot be closed. Proceed closing?" % n,
+                    Qt.QMessageBox.Yes | Qt.QMessageBox.No)
+                if result == Qt.QMessageBox.Yes:
+                    event.accept()
+                else:
+                    break
 
     def __updatePanelsMenu(self):
         '''dynamically fill the panels menus'''

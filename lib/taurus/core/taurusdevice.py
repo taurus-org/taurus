@@ -34,8 +34,6 @@ from .taurusbasetypes import TaurusSWDevState, TaurusEventType, \
 from .taurusmodel import TaurusModel
 from .taurushelper import Factory
 
-from taurus import tauruscustomsettings
-
 DFT_DEVICE_DESCRIPTION = "A device"
 
 
@@ -253,14 +251,15 @@ class TaurusDevice(TaurusModel):
         return self.getAttribute(child_name)
 
     def eventReceived(self, event_src, event_type, event_value):
-        new_sw_state = TaurusSWDevState.Uninitialized
-
         if event_type == TaurusEventType.Config:
             return
         value = self.decode(event_value)
 
         if value.rvalue != self._deviceSwState.rvalue:
-            self.debug("SW Device State changed %s -> %s" % (TaurusSWDevState.whatis(self._deviceSwState.rvalue), TaurusSWDevState.whatis(new_sw_state)))
+            msg = "SW Device State changed %s -> %s" %\
+                  (TaurusSWDevState.whatis(self._deviceSwState.rvalue), 
+                   TaurusSWDevState.whatis(value.rvalue))
+            self.debug(msg)
             self._deviceSwState = value
             self.fireEvent(TaurusEventType.Change, value)
 
