@@ -114,7 +114,7 @@ class TangoAttrValue(TaurusAttrValue):
 
         self.rvalue = rvalue
         self.wvalue = wvalue
-        self.time = p.time
+        self.time = p.time #TODO: decode this into a TaurusTimeVal
         self.quality = quality_from_tango(p.quality)
 
     def __getattr__(self, name):
@@ -225,9 +225,6 @@ class TangoAttribute(TaurusAttribute):
 
         # the last attribute error
         self.__attr_err = None
-
-        # the last time the attribute was read
-        self.__attr_timestamp = 0
 
         # the change event identifier
         self.__chg_evt_id = None
@@ -438,7 +435,6 @@ class TangoAttribute(TaurusAttribute):
             else:
                 self.__attr_value = self.decode(kwargs.get('value'))
                 self.__attr_err = kwargs.get('error')
-                self.__attr_timestamp = kwargs.get('time', time.time())
                 if self.__attr_err:
                     raise self.__attr_err
         except PyTango.DevFailed, df:
@@ -462,7 +458,11 @@ class TangoAttribute(TaurusAttribute):
         curr_time = time.time()
 
         if cache:
-            dt = (curr_time - self.__attr_timestamp) * 1000
+            try:
+                attr_timestamp = self.__attr_value.time.totime()
+            except AttributeError:
+                attr_timestamp = 0
+            dt = (curr_time - attr_timestamp) * 1000
             if dt < self.getPollingPeriod():
                 if self.__attr_value is not None:
                     return self.__attr_value
@@ -473,10 +473,10 @@ class TangoAttribute(TaurusAttribute):
             try:
                 dev = self.getParentObj()
                 v = dev.read_attribute(self.getSimpleName())
-                self.__attr_value, self.__attr_err, self.__attr_timestamp = self.decode(v), None, curr_time
+                self.__attr_value, self.__attr_err = self.decode(v), None
                 return self.__attr_value
             except PyTango.DevFailed, df:
-                self.__attr_value, self.__attr_err, self.__attr_timestamp = None, df, curr_time
+                self.__attr_value, self.__attr_err = None, df
                 err = df[0]
                 self.debug("[Tango] read failed (%s): %s", err.reason, err.desc)
                 raise df
@@ -632,7 +632,7 @@ class TangoAttribute(TaurusAttribute):
                 self.push_conf_event(event)
                 return
             # attribute event
-            self.__attr_value, self.__attr_err, self.__attr_timestamp = self.decode(event.attr_value), None, curr_time
+            self.__attr_value, self.__attr_err = self.decode(event.attr_value), None
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
             if not self.isPollingForced():
