@@ -249,8 +249,6 @@ class TangoAttribute(TaurusAttribute):
 
         #######################################################################
         # TaurusConfiguration Attributes
-        # the last configuration value
-        self._attr_info  = None
         # the last time the configuration was read
         self._attr_timestamp = 0
         # the configuration event identifier
@@ -273,7 +271,6 @@ class TangoAttribute(TaurusAttribute):
         self.trace("[TangoAttribute] cleanUp")
         self._unsubscribeConfEvents()
         self._dev_hw_obj = None
-        self._attr_info = None
         TaurusAttribute.cleanUp(self)
 
     def __getattr__(self, name):
@@ -626,23 +623,29 @@ class TangoAttribute(TaurusAttribute):
         manager = Manager()
         sm = self.getSerializationMode()
         if not event.err:
-            # if it is a  configuration event
-            #_, event_type, _ = event
+            # if it is a configuration event
             if isinstance(event, PyTango.AttrConfEventData):
-                self.push_conf_event(event)
-                return
-            # attribute event
-            self.__attr_value, self.__attr_err = self.decode(event.attr_value), None
-            self.__subscription_state = SubscriptionState.Subscribed
-            self.__subscription_event.set()
-            if not self.isPollingForced():
-                self._deactivatePolling()
+                event_type = TaurusEventType.Config
+                # make sure that there is a self.__attr_value
+                if self.__attr_value is None:
+                    # TODO: maybe we can avoid this read?
+                    self.__attr_value = self.read(cache=False)
+                self._decodeAttrInfoEx(event.attr_conf)
+            # if it is an attribute event
+            else:
+                event_type = TaurusEventType.Change
+                self.__attr_value, self.__attr_err = self.decode(event.attr_value), None
+                self.__subscription_state = SubscriptionState.Subscribed
+                self.__subscription_event.set()
+                if not self.isPollingForced():
+                    self._deactivatePolling()
+            # notify the listeners
             listeners = tuple(self._listeners)
             if sm == TaurusSerializationMode.Concurrent:
-                manager.addJob(self.fireEvent, None, TaurusEventType.Change,
+                manager.addJob(self.fireEvent, None, event_type,
                                self.__attr_value, listeners=listeners)
             else:
-                self.fireEvent(TaurusEventType.Change, self.__attr_value,
+                self.fireEvent(event_type, self.__attr_value,
                                listeners=listeners)
         elif event.errors[0].reason in EVENT_TO_POLLING_EXCEPTIONS:
             if self.isPollingActive():
@@ -688,32 +691,6 @@ class TangoAttribute(TaurusAttribute):
 #        the attribute data type
 #        value must be a valid """
 #        return value
-
-    def getValueObj(self, cache=True):
-        """ Returns the current configuration for the attribute.
-            if cache is set to True (default) and the the configuration has 
-            events active then it will return the local cached value. Otherwise
-            it will read from the tango layer."""
-        if cache and self._attr_info is not None:
-            return self._attr_info
-
-        curr_time = time.time()
-
-        dt = (curr_time - self._attr_timestamp)*1000
-        if dt < self.DftTimeToLive:
-            return self._attr_info
-
-        self._attr_timestamp = curr_time
-        try:
-            dev = self._getDev()
-            v = dev.attribute_query(self._getAttrName())
-            self._attr_info = self.decode(v)
-        except PyTango.DevFailed, df:
-            err = df[0]
-            self.debug("[Tango] read configuration failed (%s): %s" % (err.reason, err.desc))
-        except Exception, e:
-            self.debug("[Tango] read configuration failed: %s" % str(e))
-        return self._attr_info
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
@@ -795,39 +772,6 @@ class TangoAttribute(TaurusAttribute):
             except PyTango.DevFailed, e:
                 self.debug("Exception trying to unsubscribe configuration events")
                 self.trace(str(e))
-
-    def decodeconf(self, i):
-        #i is a pytango_AttrInfoEx... the return must be TangoConfigValue
-        self.reInit(i)
-        return self
-
-    def push_conf_event(self, event):
-    #     if event.err:
-    #         if event.errors[0].reason not in EVENT_TO_POLLING_EXCEPTIONS:
-    #             self._attr_timestamp = time.time()
-    #             self._events_working = True
-    #         else:
-    #             self._events_working = False
-    #         return
-#         if not self._listeners:
-             #===================================================================
-             # This is a safety net to catch "zombie" TangoConfiguration objects
-             # when they get called.
-             # If you get here, there is some bug elsewhere which should be
-             # investigated.
-             # Without this safety net, you would get exceptions.
-             # We assume that a TangoConfiguration object which has no listeners
-             # and which is not associated to a TangoAttribute, is a "zombie".
-#             self.warning('"Zombie" object (%s) received an event. Unsubscribing it.', repr(self))
-#             self._unsubscribeConfEvents()
-#             return
-             #===================================================================
-         self._events_working = True
-         self._attr_timestamp = time.time()
-         self._attr_info = self.decodeconf(event.attr_conf)
-
-         listeners = tuple(self._listeners)
-         Manager().addJob(self.fireEvent, None, TaurusEventType.Config, self._attr_info, listeners=listeners)
 
     #===========================================================================
     # Some methods reimplemented from TaurusConfiguration
@@ -913,7 +857,7 @@ class TangoAttribute(TaurusAttribute):
     ###########################################################################
     # TangoConfValue methods
     # it is the old constructor
-    def reInit(self, pytango_attrinfoex=None):
+    def _decodeAttrInfoEx(self, pytango_attrinfoex=None):
         if  pytango_attrinfoex is None:
             self._pytango_attrinfoex = PyTango.AttributeInfoEx()
         else:

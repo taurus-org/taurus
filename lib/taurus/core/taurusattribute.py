@@ -83,10 +83,6 @@ class TaurusAttribute(TaurusModel):
 
         self._dev_hw_obj = parent.getHWObj()
 
-        #######################################################################
-        # TaurusConfiguration Attributes
-        # the last configuration value
-        self._attr_info  = None
         ########################################################################
         # From TaurusConfigValue attributes
         self.name = None
