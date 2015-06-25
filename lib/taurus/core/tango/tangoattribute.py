@@ -410,7 +410,7 @@ class TangoAttribute(TaurusAttribute):
                         if err.reason == 'API_UnsupportedFeature':
                             dev.write_attribute(name, value)
                             result = dev.read_attribute(name)
-                            break;
+                            break
                     else:
                         raise df
                 #result = self.decode(result) #TODO: make sure this is not needed
