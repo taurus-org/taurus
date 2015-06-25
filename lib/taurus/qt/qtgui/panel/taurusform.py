@@ -296,7 +296,7 @@ class TaurusForm(TaurusWidget):
                 self.warning('Cannot handle model "%s". Using default widget.'%(model))
                 return self._defaultFormWidget,(),{}
             try:
-                key = obj.getHWObj().info().dev_class
+                key = obj.getHWObj().info().dev_class  # TODO: Tango-centric
             except:
                 return self._defaultFormWidget,(),{}
             #value = self._formWidgetsMap.get(key, self._defaultFormWidget)

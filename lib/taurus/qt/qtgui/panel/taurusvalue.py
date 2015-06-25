@@ -527,7 +527,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if modelclass and modelclass.getTaurusElementType() != TaurusElementType.Device:
             return None
         try:
-            key = self.getModelObj().getHWObj().info().dev_class
+            key = self.getModelObj().getHWObj().info().dev_class  # TODO: Tango-centric
         except:
             return None
         return self.getCustomWidgetMap().get(key, None)
