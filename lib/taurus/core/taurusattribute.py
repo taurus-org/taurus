@@ -81,8 +81,6 @@ class TaurusAttribute(TaurusModel):
         if not storeCallback is None:
             storeCallback(self)
 
-        self._dev_hw_obj = parent.getHWObj()
-
         ########################################################################
         # From TaurusConfigValue attributes
         self.name = None
