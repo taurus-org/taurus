@@ -242,18 +242,8 @@ class TangoAttribute(TaurusAttribute):
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
 
         # subscribe to configuration events (unsubscription done at cleanup)
+        self.__cfg_evt_id = None
         self._subscribeConfEvents()
-
-        #######################################################################
-        # From TangoConfiguration
-
-        #######################################################################
-        # TaurusConfiguration Attributes
-        # the last time the configuration was read
-        self._attr_timestamp = 0
-        # the configuration event identifier
-        self._cfg_evt_id = None
-        ########################################################################
 
         self._events_working = False
 
@@ -743,9 +733,9 @@ class TangoAttribute(TaurusAttribute):
 
         attrname = self.getSimpleName()
         try:
-            self._cfg_evt_id = self._dev_hw_obj.subscribe_event(attrname,
-                                                  PyTango.EventType.ATTR_CONF_EVENT,
-                                                  self, [], True)
+            self.__cfg_evt_id = self._dev_hw_obj.subscribe_event(
+                                  attrname, PyTango.EventType.ATTR_CONF_EVENT,
+                                  self, [], True)
         except PyTango.DevFailed, e:
             self.debug("Unexpected exception trying to subscribe to CONFIGURATION events.")
             self.traceback()
@@ -764,11 +754,12 @@ class TangoAttribute(TaurusAttribute):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object
-        if self._cfg_evt_id and not self._dev_hw_obj is None:
-            self.trace("Unsubscribing to configuration events (ID=%s)" % str(self._cfg_evt_id))
+        if self.__cfg_evt_id and not self._dev_hw_obj is None:
+            self.trace("Unsubscribing to configuration events (ID=%s)",
+                       str(self.__cfg_evt_id))
             try:
-                self._dev_hw_obj.unsubscribe_event(self._cfg_evt_id)
-                self._cfg_evt_id = None
+                self._dev_hw_obj.unsubscribe_event(self.__cfg_evt_id)
+                self.__cfg_evt_id = None
             except PyTango.DevFailed, e:
                 self.debug("Exception trying to unsubscribe configuration events")
                 self.trace(str(e))
