@@ -207,8 +207,6 @@ class QWheelEdit(Qt.QFrame):
         self._editing = False
         self._showArrowButtons = True
         self._setDigits(QWheelEdit.DefaultIntDigitCount, QWheelEdit.DefaultDecDigitCount)
-        # set as default min and max value to "-inf" & "+inf"
-        self._setMinMax( self._minValue, self._maxValue)
         self._setValue(0)
         
         self._build()
@@ -259,7 +257,7 @@ class QWheelEdit(Qt.QFrame):
         
         signLabel = _DigitLabel('+')
         signLabel.setFocusPolicy(Qt.Qt.NoFocus)
-        signLabel.setAlignment(Qt.Qt.AlignRight)
+        signLabel.setAlignment(Qt.Qt.AlignRight|Qt.Qt.AlignVCenter)
         self._digitLabels.append(signLabel)
         l.addWidget(signLabel, 1, 0)
         l.setRowMinimumHeight(1, signLabel.minimumSizeHint().height())
@@ -389,6 +387,8 @@ class QWheelEdit(Qt.QFrame):
         if self._decDigitCount > 0:
             total_chars += 1 # for dot
         self._valueFormat = '%%+0%d.%df' % (total_chars, self._decDigitCount)
+        self._setMinMax( self._getMinPossibleValue(),
+                         self._getMaxPossibleValue())
         # we call setValue to update the self._value_str
         self._setValue(self.getValue())
         
@@ -403,10 +403,11 @@ class QWheelEdit(Qt.QFrame):
         @return (str) a proper string representation of the given value
         """
         if v is None:
-            return (self._valueFormat % 0).replace('0', '-')
-        ret = self._valueFormat % v
-        if ret.endswith('nan'):
-            ret = ret.replace('0',' ')
+            ret = (self._valueFormat % 0).replace('0', '-')
+        else:
+            ret = self._valueFormat % v
+            if ret.endswith('nan'):
+                ret = ret.replace('0',' ')
         self._value_str = ret
         return ret
     
@@ -480,7 +481,7 @@ class QWheelEdit(Qt.QFrame):
         if self._roundFunc:
             v = self._roundFunc(v)
         if v > self._maxValue or v < self._minValue:
-            taurus.warning('You are trying to set a value out of limits')
+            taurus.warning('Value "%g" out of limits' % v)
             return
         self._previous_value = self._value
         self._value = v
