@@ -481,14 +481,12 @@ class TangoAttribute(TaurusAttribute):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def __fireRegisterEvent(self, listener):
-        #fire a first configuration event
-        # TODO TaurusEventType.Config
-        # cfg = self._pytango_attrinfoex
-        # self.fireEvent(TaurusEventType.Config, cfg, listener)
-
-        #fire a first change event
+        '''fire the first config and change (or error) events'''
         try:
             v = self.read()
+            # note: it may seem redundant, but some widgets may only react to
+            # one or another type, so we should send both for bck-compat
+            self.fireEvent(TaurusEventType.Config, v, listener)
             self.fireEvent(TaurusEventType.Change, v, listener)
         except:
             self.fireEvent(TaurusEventType.Error, self.__attr_err, listener)
@@ -729,37 +727,6 @@ class TangoAttribute(TaurusAttribute):
 #        the attribute data type
 #        value must be a valid """
 #        return value
-
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # API for listeners
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
-
-    # def __fireRegisterEvent(self, listener):
-    #     value = self.getValueObj()
-    #     if value is not None:
-    #         self.fireEvent(TaurusEventType.Config, value, listener)
-    #
-    # def addListener(self, listener):
-    #     """ Add a TaurusListener object in the listeners list.
-    #         If the listener is already registered nothing happens."""
-    #     ret = TaurusConfiguration.addListener(self, listener)
-    #     if not ret:
-    #         return ret
-    #
-    #     #fire a first configuration event
-    #     #if len(self._listeners) > 1 or not self._events_working:
-    #     Manager().addJob(self.__fireRegisterEvent, None, (listener,))
-    #     return ret
-    #
-    # def removeListener(self, listener):
-    #     """ Remove a TaurusListener from the listeners list.
-    #     If it is the last listener, unsubscribe from events."""
-    #     ret = TaurusConfiguration.removeListener(self, listener)
-    #     if not ret:
-    #         return ret
-    #     if not self.hasListeners():
-    #         self._unsubscribeEvents()
-    #     return ret
 
     #===========================================================================
     # Some methods reimplemented from TaurusConfiguration
