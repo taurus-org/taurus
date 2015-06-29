@@ -605,6 +605,54 @@ class TangoAttribute(TaurusAttribute):
         self._deactivatePolling()
         self.__subscription_state = SubscriptionState.Unsubscribed
 
+    def _subscribeConfEvents(self):
+        """ Enable subscription to the attribute configuration events."""
+        self.trace("Subscribing to configuration events...")
+        if self.__dev_hw_obj is None:
+            dev = self.getParentObj()
+            if dev is None:
+                self.debug("failed to subscribe to cfg events: device is None")
+                return
+            self.__dev_hw_obj = dev.getHWObj()
+            if self.__dev_hw_obj is None:
+                self.debug("failed to subscribe to cfg events: HW is None")
+                return
+
+        attr_name = self.getSimpleName()
+        try:
+            self.__cfg_evt_id = self.__dev_hw_obj.subscribe_event(
+                                      attr_name,
+                                      PyTango.EventType.ATTR_CONF_EVENT,
+                                      self, [], True)
+        except PyTango.DevFailed, e:
+            self.debug("Error trying to subscribe to CONFIGURATION events.")
+            self.traceback()
+            # Subscription failed either because event mechanism is not available
+            # or because the device server is not running.
+            # The first possibility is assumed so an attempt to get the configuration
+            # manually is done
+            # TODO decide what should be done here
+            try:
+                attrinfoex = self.__dev_hw_obj.attribute_query(attr_name)
+                self._decodeAttrInfoEx(attrinfoex)
+            except:
+                self.debug("Error getting attribute configuration")
+                self.traceback()
+
+    def _unsubscribeConfEvents(self):
+        # Careful in this method: This is intended to be executed in the cleanUp
+        # so we should not access external objects from the factory, like the
+        # parent object
+        if self.__cfg_evt_id and not self.__dev_hw_obj is None:
+            self.trace("Unsubscribing to configuration events (ID=%s)",
+                       str(self.__cfg_evt_id))
+            try:
+                self.__dev_hw_obj.unsubscribe_event(self.__cfg_evt_id)
+                self.__cfg_evt_id = None
+            except PyTango.DevFailed, e:
+                self.debug("Error trying to unsubscribe configuration events")
+                self.trace(str(e))
+
     def push_event(self, event):
         """Method invoked by the PyTango layer when a change event occurs.
            Default implementation propagates the event to all listeners."""
@@ -712,58 +760,6 @@ class TangoAttribute(TaurusAttribute):
     #     if not self.hasListeners():
     #         self._unsubscribeEvents()
     #     return ret
-
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # PyTango event handling (private)
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
-    def _subscribeConfEvents(self):
-        """ Enable subscription to the attribute configuration events."""
-        self.trace("Subscribing to configuration events...")
-        if self.__dev_hw_obj is None:
-            dev = self.getParentObj()
-            if dev is None:
-                self.debug("failed to subscribe to cfg events: device is None")
-                return
-            self.__dev_hw_obj = dev.getHWObj()
-            if self.__dev_hw_obj is None:
-                self.debug("failed to subscribe to cfg events: HW is None")
-                return
-
-        attr_name = self.getSimpleName()
-        try:
-            self.__cfg_evt_id = self.__dev_hw_obj.subscribe_event(
-                                      attr_name,
-                                      PyTango.EventType.ATTR_CONF_EVENT,
-                                      self, [], True)
-        except PyTango.DevFailed, e:
-            self.debug("Error trying to subscribe to CONFIGURATION events.")
-            self.traceback()
-            # Subscription failed either because event mechanism is not available
-            # or because the device server is not running.
-            # The first possibility is assumed so an attempt to get the configuration
-            # manually is done
-            # TODO decide what should be done here
-            try:
-                attrinfoex = self.__dev_hw_obj.attribute_query(attr_name)
-                self._decodeAttrInfoEx(attrinfoex)
-            except:
-                self.debug("Error getting attribute configuration")
-                self.traceback()
-
-    def _unsubscribeConfEvents(self):
-        # Careful in this method: This is intended to be executed in the cleanUp
-        # so we should not access external objects from the factory, like the
-        # parent object
-        if self.__cfg_evt_id and not self.__dev_hw_obj is None:
-            self.trace("Unsubscribing to configuration events (ID=%s)",
-                       str(self.__cfg_evt_id))
-            try:
-                self.__dev_hw_obj.unsubscribe_event(self.__cfg_evt_id)
-                self.__cfg_evt_id = None
-            except PyTango.DevFailed, e:
-                self.debug("Error trying to unsubscribe configuration events")
-                self.trace(str(e))
 
     #===========================================================================
     # Some methods reimplemented from TaurusConfiguration
