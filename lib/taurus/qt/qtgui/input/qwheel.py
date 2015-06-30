@@ -31,10 +31,10 @@ __docformat__ = 'restructuredtext'
 
 import os
 import math
+import numpy
 
+import taurus
 from taurus.external.qt import Qt
-
-#from taurus.qt.qtgui.resource.qrc_extra_icons import *
 
 class _ArrowButton(Qt.QPushButton):
     """Private class to be used by QWheelEdit for an arrow button"""
@@ -201,14 +201,14 @@ class QWheelEdit(Qt.QFrame):
         self._previous_value = 0
         self._value = 0
         self._value_str = '0'
-        self._minValue = float('-inf')
-        self._maxValue = float('+inf')
+        self._minValue = numpy.finfo('d').min # -inf
+        self._maxValue = numpy.finfo('d').max # inf
         self._editor = None
         self._editing = False
         self._showArrowButtons = True
         self._setDigits(QWheelEdit.DefaultIntDigitCount, QWheelEdit.DefaultDecDigitCount)
-
-        self._setMinMax( self._getMinPossibleValue(), self._getMaxPossibleValue())
+        # set as default min and max value to "-inf" & "+inf"
+        self._setMinMax( self._minValue, self._maxValue)
         self._setValue(0)
         
         self._build()
@@ -480,6 +480,7 @@ class QWheelEdit(Qt.QFrame):
         if self._roundFunc:
             v = self._roundFunc(v)
         if v > self._maxValue or v < self._minValue:
+            taurus.warning('You are trying to set a value out of limits')
             return
         self._previous_value = self._value
         self._value = v
@@ -739,7 +740,7 @@ class QWheelEdit(Qt.QFrame):
         rect = Qt.QRect(l.cellRect(1, 0).topLeft(), l.cellRect(1,
                             l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
-        ed.setAlignment(Qt.Qt.AlignRight);
+        ed.setAlignment(Qt.Qt.AlignRight)
         ed.setMaxLength(self.getDigitCount() + 2)
         ed.setText(self.getValueStr())
         ed.selectAll()
@@ -888,8 +889,8 @@ def main():
     button_layout.addWidget(resetbutton)
     isb.setValue(arrowWidget.getIntDigitCount())
     dsb.setValue(arrowWidget.getDecDigitCount())
-    minv.setRange(float('-inf'), float('+inf'))
-    maxv.setRange(float('-inf'), float('+inf'))
+    minv.setRange(numpy.finfo('d').min, numpy.finfo('d').max)
+    maxv.setRange(numpy.finfo('d').min, numpy.finfo('d').max)
     minv.setValue(arrowWidget.getMinValue())
     maxv.setValue(arrowWidget.getMaxValue())
     showarrowbutton.setChecked(arrowWidget.getShowArrowButtons())
