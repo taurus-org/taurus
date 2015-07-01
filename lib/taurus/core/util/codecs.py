@@ -86,6 +86,8 @@ class Codec(Logger):
         """Constructor"""
         Logger.__init__(self, self.__class__.__name__)
     
+    # TODO: similar code exists in encode and decode methods from different
+    # codecs. It should be implemented in this base class 'Codec'.
     def encode(self, data, *args, **kwargs):
         """encodes the given data. This method is abstract an therefore must
         be implemented in the subclass.
