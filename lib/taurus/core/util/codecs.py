@@ -123,7 +123,10 @@ class NullCodec(Codec):
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
-        return data
+        format = 'null'
+        if len(data[0]):
+            format += '_%s' % data[0]
+        return format, data[1]
     
     def decode(self, data, *args, **kwargs):
         """decodes with Null encoder. Just returns the given data
@@ -131,7 +134,10 @@ class NullCodec(Codec):
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
-        return data
+        if not data[0].startswith('null'):
+            return data
+        format = data[0].partition('_')[2]
+        return format, data[1]
 
 
 class ZIPCodec(Codec):
@@ -744,7 +750,7 @@ class CodecPipeline(Codec, list):
         
         Codec.__init__(self)
         list.__init__(self)
-        
+
         f = CodecFactory()
         for i in format.split('_'):
             codec = f.getCodec(i)
