@@ -63,7 +63,8 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusCurveChooserTool
         self.add_tool(TaurusCurveChooserTool)
         self.setModifiableByUser(self._modifiableByUser)
-    
+        self.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
+
     def keyPressEvent(self,event):
         if(event.key() == Qt.Qt.Key_Escape):
             event.ignore()
@@ -203,7 +204,8 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         if taurusparam is None:
             taurusparam = TaurusTrendParam()
         self.defaultTaurusparam = taurusparam
-    
+        self.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
+
     def keyPressEvent(self,event):
         if(event.key() == Qt.Qt.Key_Escape):
             event.ignore()
@@ -417,7 +419,8 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
         from taurus.qt.qtgui.extra_guiqwt.tools import TaurusModelChooserTool
         self.add_tool(TaurusModelChooserTool, singleModel=True)
         self.setModifiableByUser(True)
-        
+        self.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
+
     def keyPressEvent(self,event):
         if(event.key() == Qt.Qt.Key_Escape):
             event.ignore()
@@ -623,5 +626,4 @@ def taurusImageDlgMain():
 if __name__ == "__main__":
 #    taurusCurveDlgMain()
     taurusTrendDlgMain()
-#    taurusImageDlgMain()    
-    
+#    taurusImageDlgMain()
