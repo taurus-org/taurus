@@ -668,11 +668,22 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         if prop.sStyle is not None: s.setStyle(Qwt5.QwtSymbol.Style(prop.sStyle))
         if prop.sSize is not None: s.setSize(prop.sSize)
         if prop.sColor is not None:
-            s.brush().setColor(Qt.QColor(prop.sColor))
-            s.pen().setColor(s.brush().color()) #the symbol pen color is the same as the symbol filling
+            b = s.brush()
+            p = s.pen()
+            color = Qt.QColor(prop.sColor)
+            p.setColor(color)
+            b.setColor(color)
+            b.setStyle(Qt.Qt.NoBrush)
+            s.setBrush(b)
+            s.setPen(p)
         if prop.sFill is not None:
-            if prop.sFill: s.brush().setStyle(Qt.Qt.SolidPattern)
-            else: s.brush().setStyle(Qt.Qt.NoBrush)
+            b = s.brush()
+            if prop.sFill:
+                b.setStyle(Qt.Qt.SolidPattern)
+                s.setBrush(b)
+            else:
+                s.brush().setStyle(Qt.Qt.NoBrush)
+                s.setBrush(b)
         p = Qt.QPen(self.pen())
         if prop.lStyle is not None: p.setStyle(prop.lStyle)
         if prop.lWidth is not None: p.setWidth(prop.lWidth)
