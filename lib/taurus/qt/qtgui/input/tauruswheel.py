@@ -29,9 +29,10 @@ __all__ = ["TaurusWheelEdit" ]
 
 __docformat__ = 'restructuredtext'
 
+import taurus
 from taurus.external.qt import Qt
 
-import taurus.core
+from  taurus.core.taurusbasetypes import TaurusEventType
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from qwheel import QWheelEdit
 
@@ -51,30 +52,64 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
         
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config and not evt_value is None:
+        if evt_type == TaurusEventType.Config and evt_value is not None:
+            int_part = 0
+            dec_part = 1
+            warning = False
+            # get the minimal valid format
+            format_value = self.getFormatFromValue(self._value)
             f = evt_value.format.lower()
             if f[-1] not in ('d', 'f', 'g'):
                 raise ValueError("'%s' format unsupported" % f)
             f = f.replace('g','f')
             if 'd' == f[-1]:
                 dec_nb = 0
-                try: total = int(f[1:-1])
-                except: total = 6
+                try: int_nb = int(f[1:-1])
+                except: int_nb = 6
             else:
-                f = map(int, f[1:-1].split('.', 1))
-                total = f[0]
-                if len(f)>1:
-                    dec_nb = f[1]
+                fmap = map(int, f[1:-1].split('.', 1))
+                int_nb = fmap[int_part]
+                if len(fmap)>1:
+                    dec_nb = fmap[dec_part]
                 else:
                     dec_nb = 2
-            int_nb = total-dec_nb
+                if dec_nb < format_value[dec_part]:
+                    warning = True
+                    dec_nb = format_value[dec_part]
+
+            if int_nb < format_value[int_part]:
+                warning = True
+                int_nb = format_value[int_part]
+
+            if warning:
+                msg = ('Invalid format for the current value '
+                       '(hint: use "%s.%s%s" or more)'
+                       %(int_nb, dec_nb, f[-1]))
+                taurus.warning(msg)
+
             self.setDigitCount(int_nb=int_nb, dec_nb=dec_nb)
-            try: self.setMinValue(float(evt_value.min_value))
-            except: pass
-            try: self.setMaxValue(float(evt_value.max_value))
-            except: pass
+            try:
+                self.setMinValue(float(evt_value.min_value))
+            except:
+                pass
+            try:
+                self.setMaxValue(float(evt_value.max_value))
+            except:
+                pass
         TaurusBaseWritableWidget.handleEvent(self, evt_src, evt_type, evt_value)
-    
+
+    def getFormatFromValue(self, value):
+        int_part = 0
+        dec_part = 1
+        str_value = str(value)
+        int_dec = str_value.split('.')
+        int_nb = len(int_dec[int_part])
+        try:
+            dec_nb = len(int_dec[dec_part])
+        except:
+            dec_nb = 0
+        return int_nb, dec_nb
+
     def updateStyle(self):
         TaurusBaseWritableWidget.updateStyle(self)
         if self.hasPendingOperations():
