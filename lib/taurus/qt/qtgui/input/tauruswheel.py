@@ -53,39 +53,31 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
         
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_type == TaurusEventType.Config and evt_value is not None:
-            int_part = 0
-            dec_part = 1
-            warning = False
-            # get the minimal valid format
-            format_value = self.getFormatFromValue(self._value)
-            f = evt_value.format.lower()
-            if f[-1] not in ('d', 'f', 'g'):
-                raise ValueError("'%s' format unsupported" % f)
-            f = f.replace('g','f')
-            if 'd' == f[-1]:
-                dec_nb = 0
-                try: int_nb = int(f[1:-1])
-                except: int_nb = 6
+            import re
+            # match the format string to "%[width][.precision][f_type]"
+            m = re.match(r'%([0-9]+)?(\.([0-9]+))?([df])', evt_value.format)
+            if m is None:
+                raise ValueError("'%s' format unsupported" % evt_value.format)
+
+            width, _, precision, f_type = m.groups()
+
+            if width is None:
+                width = self.DefaultIntDigitCount + \
+                        self.DefaultDecDigitCount + 1
             else:
-                fmap = map(int, f[1:-1].split('.', 1))
-                int_nb = fmap[int_part]
-                if len(fmap)>1:
-                    dec_nb = fmap[dec_part]
-                else:
-                    dec_nb = 2
-                if dec_nb < format_value[dec_part]:
-                    warning = True
-                    dec_nb = format_value[dec_part]
+                width = int(width)
 
-            if int_nb < format_value[int_part]:
-                warning = True
-                int_nb = format_value[int_part]
+            if precision is None:
+                precision = self.DefaultDecDigitCount
+            else:
+                precision = int(precision)
 
-            if warning:
-                msg = ('Invalid format for the current value '
-                       '(hint: use "%s.%s%s" or more)'
-                       %(int_nb, dec_nb, f[-1]))
-                taurus.warning(msg)
+            dec_nb = precision
+
+            if dec_nb == 0 or f_type == 'd':
+                int_nb = width
+            else:
+                int_nb = width - dec_nb - 1 # account for decimal sep
 
             self.setDigitCount(int_nb=int_nb, dec_nb=dec_nb)
             try:
@@ -97,18 +89,6 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
             except:
                 pass
         TaurusBaseWritableWidget.handleEvent(self, evt_src, evt_type, evt_value)
-
-    def getFormatFromValue(self, value):
-        int_part = 0
-        dec_part = 1
-        str_value = str(value)
-        int_dec = str_value.split('.')
-        int_nb = len(int_dec[int_part])
-        try:
-            dec_nb = len(int_dec[dec_part])
-        except:
-            dec_nb = 0
-        return int_nb, dec_nb
 
     def updateStyle(self):
         TaurusBaseWritableWidget.updateStyle(self)
