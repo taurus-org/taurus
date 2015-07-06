@@ -729,6 +729,9 @@ class clean(dftclean):
         doc_devel = abspath('doc', 'source', 'devel')
         garbage.append(os.path.join(doc_devel, 'catalog.html'))
 
+        doc = abspath('doc')
+        garbage.append(os.path.join(doc, '~thumbnails.zip'))
+
         # delete the garbage files
         for fn in garbage:
             if os.path.exists(fn):
