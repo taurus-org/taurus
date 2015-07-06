@@ -35,6 +35,7 @@ import StringIO
 from distutils import log
 from distutils.core import setup, Command
 from distutils.command.build import build as dftbuild
+from distutils.command.clean import clean as dftclean
 from distutils.command.install import install as dftinstall
 from distutils.command.install_lib import install_lib as dftinstall_lib
 from distutils.command.install_scripts import install_scripts as dftinstall_scripts
@@ -703,13 +704,60 @@ class install(dftinstall):
     sub_commands.append(('install_html', has_html))
 
 
+class clean(dftclean):
+    def run(self):
+        dftclean.run(self)
+
+        # This is a very crude approach to clean the garbage created by taurus
+        # outside of the build dir when running the build command
+        # see: https://sourceforge.net/p/sardana/tickets/324/
+        import glob
+        from distutils.dir_util import remove_tree
+
+        # collect the garbage *files* to be deleted
+        garbage = []
+
+        resource = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource')
+        garbage.extend(glob.glob(os.path.join(resource, '*.rcc')))
+        garbage.extend(glob.glob(os.path.join(resource, '*.qrc')))
+        garbage.append(os.path.join(resource, 'catalog.html'))
+
+        jdraw = abspath('lib', 'taurus', 'qt', 'qtgui', 'graphic', 'jdraw')
+        garbage.append(os.path.join(jdraw, 'jdraw_lextab.py'))
+        garbage.append(os.path.join(jdraw, 'jdraw_yacctab.py'))
+
+        doc_devel = abspath('doc', 'source', 'devel')
+        garbage.append(os.path.join(doc_devel, 'catalog.html'))
+
+        doc = abspath('doc')
+        garbage.append(os.path.join(doc, '~thumbnails.zip'))
+
+        # delete the garbage files
+        for fn in garbage:
+            if os.path.exists(fn):
+                log.info("removing '%s'", fn)
+                if self.dry_run:
+                    continue
+                os.remove(fn)
+            else:
+                log.debug("'%s' does not exist -- can't clean it", fn)
+
+        # now delete the api dir
+        api_dir = os.path.join(doc_devel, 'api')
+        if os.path.exists(api_dir):
+            remove_tree(api_dir, dry_run=self.dry_run)
+        else:
+            log.debug("'%s' does not exist -- can't clean it", api_dir)
+
+
 cmdclass = { 'build' : build,
              'build_resources' : build_resources,
              'install' : install,
              'install_lib': install_lib,
              'install_man' : install_man,
              'install_html' : install_html,
-             'install_scripts' : install_scripts}
+             'install_scripts' : install_scripts,
+             'clean' : clean }
 
 if sphinx:
     from sphinx.setup_command import BuildDoc
