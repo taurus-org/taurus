@@ -384,7 +384,6 @@ class TaurusGui(TaurusMainWindow):
         self.panelsToolBar = self.addToolBar("Panels")
         self.panelsToolBar.setObjectName("PanelsToolbar")
         self.panelsToolBar.addAction(self.newPanelAction)
-        self.panelsToolBar.addAction(self.newExternalApp)
         self.viewToolBarsMenu.addAction(self.panelsToolBar.toggleViewAction())
 
     def __initQuickAccessToolBar(self):
@@ -421,12 +420,17 @@ class TaurusGui(TaurusMainWindow):
         tm.addAction(getIcon(":/apps/preferences-system-session.svg"), "manage instrument-panel associations", self.onShowAssociationDialog)
         tm.addAction(getThemeIcon("document-save"), "Export current Panel configuration to XML", self.onExportCurrentPanelConfiguration)
         tm.addAction(getIcon(":/actions/data-transfer.svg"), "Show Shared Data Manager connections", self.showSDMInfo)
-        icon = getThemeIcon('list-add')
-        self.newExternalApp = tm.addAction(icon, "Add ExternalApp...",
-                                           self.createExternalApp)
-        icon = getThemeIcon('list-remove')
-        self.removeExternalApp = tm.addAction(icon, "Remove ExternalApp...",
-                                              self.removeExternalApp)
+
+        # tools->external apps submenu
+        self.addExternalApplicationAction = self.externalAppsMenu.addAction(
+            getThemeIcon('list-add'),
+            'Add external application launcher...',
+            self.createExternalApp)
+        self.removeExternalApplicationAction = self.externalAppsMenu.addAction(
+            getThemeIcon('list-remove'),
+            'Remove external appication launcher...',
+            self.removeExternalApp)
+        self.externalAppsMenu.addSeparator()
 
     def createExternalApp(self):
         '''Add a new external application on execution time'''
@@ -453,7 +457,8 @@ class TaurusGui(TaurusMainWindow):
             self._external_app_names.append(name)
 
     def removeExternalApp(self, name=None):
-        ''' remove the given external application from the GUI.
+        '''Remove the given external application from the GUI.
+
         :param name: (str or None) the name of the external application to be
                      removed
                      If None given, the user will be prompted
@@ -1194,7 +1199,10 @@ class TaurusGui(TaurusMainWindow):
             panel.toggleViewAction().setEnabled(modifiable)
             panel.setFeatures(dwfeat)
         for action in (self.newPanelAction, self.showAllPanelsAction,
-                       self.hideAllPanelsAction):
+                       self.hideAllPanelsAction,
+                       self.addExternalApplicationAction,
+                       self.removeExternalApplicationAction,
+                       ):
             action.setEnabled(modifiable)
 
         self._lockviewAction.setChecked(not modifiable)
