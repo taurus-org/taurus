@@ -765,12 +765,12 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         if self.isFilteredWhenLog():
             #filter out the nonpossitive elements if the scale is logarithmic
             if self.plot():
-                type_ = self.plot().axisScaleEngine(self.xAxis()).transformation().type()
+                type_ = self.plot().getAxisTransformationType(self.xAxis())
                 if type_ == Qwt5.QwtScaleTransformation.Log10:
                     x,y = numpy.array(x),numpy.array(y)
                     valid = x>0 #this is an array of bools representing valid entries
                     x , y = x[valid], y[valid]
-                type_ = self.plot().axisScaleEngine(self.yAxis()).transformation().type()
+                type_ = self.plot().getAxisTransformationType(self.yAxis())
                 if type_ == Qwt5.QwtScaleTransformation.Log10:
                     x,y = numpy.array(x),numpy.array(y)
                     valid = y>0 #this is an array of bools representing valid entries
@@ -997,12 +997,15 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._curvePens = LoopList(DFT_CURVE_PENS)
         self._gridPen = Qt.QPen(Qt.Qt.gray, 1)
         self._supportedConfigVersions = ["tpc-1","tpc-1.1"] #the latest element of this list is considered the current version
+
 #        Logger.__init__(self)
 #        Qwt5.QwtPlot.__init__(self, parent)
 
         #dictionary for default axes naming
         self._axesnames = {Qwt5.QwtPlot.xBottom:'X',Qwt5.QwtPlot.xTop:'X2',
                            Qwt5.QwtPlot.yLeft:'Y1', Qwt5.QwtPlot.yRight:'Y2'}
+        # cache for the values of the axis transformation
+        self.__transformations = {}
 
         #Data Import Dialog (it will only be initialised if required)
         self.DataImportDlg=None
@@ -1222,6 +1225,29 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 #                except:
 #                    self.info('Dropped data is invalid (%s)'%repr(modelname))
 #                return
+
+    def getAxisTransformationType(self, axis):
+        """Retrieve the transformation type for a given axis (cached)
+
+        :param axis: (Qwt5.QwtPlot.Axis) the axis
+
+        :return: (Qwt5.QwtScaleTransformation.Type)
+
+        .. note:: this method helps to avoid a memory leak in Qwt (see
+                  http://sf.net/p/tauruslib/tickets/171 )
+        """
+        try:
+            return self.__transformations[axis]
+        except KeyError:
+            t =  self.axisScaleEngine(axis).transformation().type()
+            self.__transformations[axis] = t
+            return t
+
+    def setAxisScaleEngine(self, axis, scaleEngine):
+        """ reimplemented from :meth:`Qwt5.QwtPlot.setAxisScaleEngine` to store
+         a cache of the transformation type """
+        self.__transformations[axis] = scaleEngine.transformation().type()
+        return Qwt5.QwtPlot.setAxisScaleEngine(self, axis, scaleEngine)
 
     def getCurveTitle(self, curvename):
         '''return the current title associated to a given curve name
@@ -2150,9 +2176,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         y1Min, y1Max= self.getAxisScale(Qwt5.QwtPlot.yLeft)
         y2Min, y2Max= self.getAxisScale(Qwt5.QwtPlot.yRight)
         axesdict= {'xMin': xMin, 'xMax': xMax, 'y1Min': y1Min, 'y1Max': y1Max, 'y2Min': y2Min, 'y2Max': y2Max,
-                   'xMode': int(self.axisScaleEngine(Qwt5.QwtPlot.xBottom).transformation().type()),
-                   'y1Mode':int(self.axisScaleEngine(Qwt5.QwtPlot.yLeft).transformation().type()),
-                   'y2Mode':int(self.axisScaleEngine(Qwt5.QwtPlot.yRight).transformation().type()),
+                   'xMode': int(self.getAxisTransformationType(Qwt5.QwtPlot.xBottom)),
+                   'y1Mode':int(self.getAxisTransformationType(Qwt5.QwtPlot.yLeft)),
+                   'y2Mode':int(self.getAxisTransformationType(Qwt5.QwtPlot.yRight)),
                    'xDyn': self.getXDynScale(),
                    'xIsTime':self.getXIsTime()
                    }
@@ -2438,7 +2464,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if not Qwt5.QwtPlot.axisValid(axis):
             self.error("TaurusPlot.setScale() invalid axis: " + axis)
         if scale is None:
-            currentType = self.axisScaleEngine(axis).transformation().type()
+            currentType = self.getAxisTransformationType(axis)
             if currentType == Qwt5.QwtScaleTransformation.Linear:
                 scale = Qwt5.QwtScaleTransformation.Log10
             elif  currentType == Qwt5.QwtScaleTransformation.Log10:
