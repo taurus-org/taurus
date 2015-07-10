@@ -74,7 +74,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         self.setToolTip("Launches %s (external application)"%text)
         self.registerConfigProperty(self.cmdArgs, self.setCmdArgs, 'cmdArgs')
     
-    def setCmdArgs(self, cmdargs):
+    def setCmdArgs(self, cmdargs, emitsignal=True):
         '''Sets the command args for executing this external application.
         
         It emits the "cmdArgsChanged" signal with the new cmdArgs list 
@@ -88,7 +88,8 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
             import shlex
             cmdargs = shlex.split(str(cmdargs))
         self.__cmdargs = cmdargs
-        self.emit(Qt.SIGNAL("cmdArgsChanged"), self.__cmdargs)
+        if emitsignal:
+            self.emit(Qt.SIGNAL("cmdArgsChanged"), self.__cmdargs)
         
     def cmdArgs(self):
         return self.__cmdargs
