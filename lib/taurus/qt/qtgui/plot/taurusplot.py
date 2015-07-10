@@ -67,13 +67,16 @@ class DummyLock(object):
 #from taurus.core.util.log import TraceIt, DebugIt, InfoIt, WarnIt
 
 
-DFT_CURVE_PENS = [Qt.QPen(Qt.Qt.red, 2),
-                 Qt.QPen(Qt.Qt.blue, 2),
-                 Qt.QPen(Qt.Qt.green, 2),
-                 Qt.QPen(Qt.Qt.magenta, 2),
-                 Qt.QPen(Qt.Qt.cyan, 2),
-                 Qt.QPen(Qt.Qt.yellow, 2),
-                 Qt.QPen(Qt.Qt.black, 2)]
+DFT_CURVE_PENS = [Qt.QPen(Qt.Qt.red),
+                 Qt.QPen(Qt.Qt.blue),
+                 Qt.QPen(Qt.Qt.green),
+                 Qt.QPen(Qt.Qt.magenta),
+                 Qt.QPen(Qt.Qt.cyan),
+                 Qt.QPen(Qt.Qt.yellow),
+                 Qt.QPen(Qt.Qt.black)]
+
+for __p in DFT_CURVE_PENS:
+    __p.setWidth(1) # TODO: we would like this to be 2, but bug #171 forces 1
 
 class TaurusZoomer(Qwt5.QwtPlotZoomer):
     '''A QwtPlotZoomer that displays the label assuming that X values are timestamps'''
