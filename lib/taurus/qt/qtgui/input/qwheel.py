@@ -33,7 +33,6 @@ import os
 import math
 import numpy
 
-import taurus
 from taurus.external.qt import Qt
 
 class _ArrowButton(Qt.QPushButton):
@@ -369,18 +368,25 @@ class QWheelEdit(Qt.QFrame):
     
     def _setDigits(self, int_nb=None, dec_nb=None):
         """_setDigits(self, int_nb=None, dec_nb=None) -> None
-        
-        Sets the number of digits that this widget shows.
-        
+
+        Sets the number of digits that this widget shows. It will ensure that
+        the current value can be displayed (i.e., int_nb will be forced to be
+        large enough for displaying the integer representation of the value)
+
         @param[in] int_nb (int) number of integer digits (optional, default is
                    None, meaning use the existing number of integer digits
         @param[in] dec_nb (int) number of decimal digits (optional, default is
                    None, meaning use the existing number of decimal digits
         """
+
         if not int_nb is None:
             self._intDigitCount = int_nb
         if not dec_nb is None:
             self._decDigitCount = dec_nb
+
+        # make sure that the current value can be displayed
+        self._intDigitCount = max(self._intDigitCount, len("%d" % self._value))
+
         self._digitCount = self._intDigitCount + self._decDigitCount
         total_chars = self._digitCount
         total_chars += 1 # for sign
@@ -481,7 +487,6 @@ class QWheelEdit(Qt.QFrame):
         if self._roundFunc:
             v = self._roundFunc(v)
         if v > self._maxValue or v < self._minValue:
-            taurus.warning('Value "%g" out of limits' % v)
             return
         self._previous_value = self._value
         self._value = v
