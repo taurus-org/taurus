@@ -148,7 +148,7 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         #qwt QwtPlot.axis enum type to relate our GUI combo name and qwt axis name (enum type).
         axes = [self.ui.y1ModeComboBox, self.ui.y2ModeComboBox, self.ui.xModeComboBox]
         for axis in range(len(axes)):
-            scaleType = self.parent.axisScaleEngine(axis).transformation().type()
+            scaleType = self.parent.getAxisTransformationType(axis)
             if scaleType == Qwt5.QwtScaleTransformation.Linear:
                 axes[axis].setCurrentIndex(0)
             elif scaleType == Qwt5.QwtScaleTransformation.Log10:
