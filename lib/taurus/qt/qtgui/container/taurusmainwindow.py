@@ -45,13 +45,17 @@ from taurus.qt.qtgui.dialog import protectTaurusMessageBox
 
 class CommandArgsLineEdit(Qt.QLineEdit):
     ''' An specialized QLineEdit that can transform its text from/to command argument lists'''
-    def __init__(self, *args):
+    def __init__(self, extapp, *args):
         Qt.QLineEdit.__init__(self, *args)
-    
+        self._extapp = extapp
+        self.connect(self, Qt.SIGNAL("textEdited(QString)"), self.setCmdText)
+
     def setCmdText(self, cmdargs):
         if not isinstance(cmdargs, (basestring, Qt.QString)): 
             cmdargs = " ".join(cmdargs)
         self.setText(cmdargs)
+        self._extapp.setCmdArgs(self.getCmdArgs(), False)
+
     def getCmdArgs(self):
         import shlex
         return shlex.split(str(self.text()))
@@ -84,10 +88,9 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
             self.externalAppsPage.setWidgetResizable(True)
             self._tabwidget.addTab(self.externalAppsPage, "External Application Paths")
         label = "Command line for %s"%unicode(extapp.text())
-        editWidget = CommandArgsLineEdit(" ".join(extapp.cmdArgs()))
+        editWidget = CommandArgsLineEdit(extapp, " ".join(extapp.cmdArgs()))
         #editWidget = Qt.QLineEdit(" ".join(extapp.cmdArgs()))
         self.externalAppsPage.widget().layout().addRow(label, editWidget)
-        self.connect(editWidget, Qt.SIGNAL("textEdited(QString)"), extapp.setCmdArgs)
         self.connect(extapp, Qt.SIGNAL("cmdArgsChanged"), editWidget.setCmdText)
 
     def deleteExternalAppConfig(self, extapp):
