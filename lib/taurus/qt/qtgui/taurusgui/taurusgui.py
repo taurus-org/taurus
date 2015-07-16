@@ -297,11 +297,11 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM = SharedDataManager(self)
 
         self.__initPanelsMenu()
-        self.__initViewMenu()
         self.__initQuickAccessToolBar()
         self.__initJorgBar()
         self.__initSharedDataConnections()
         self.__initToolsMenu()
+        self.__initViewMenu()
         self.__initPanelsToolBar()
 
         self.loadConfiguration(confname)
