@@ -85,7 +85,7 @@ class TaurusModel(Logger):
     
     @classmethod
     def factory(cls):
-        raise RuntimeError("TaurusModel::factory cannot be called")
+        raise NotImplementedError("TaurusModel.factory cannot be called")
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for naming
@@ -93,7 +93,8 @@ class TaurusModel(Logger):
 
     @classmethod
     def getTaurusElementType(cls):
-        raise RuntimeError("TaurusModel::getTaurusElementType cannot be called")
+        raise NotImplementedError("TaurusModel.getTaurusElementType cannot" \
+                                  " be called")
 
     def getFullName(self):
         return self._full_name
@@ -110,11 +111,12 @@ class TaurusModel(Logger):
 
     @classmethod
     def buildModelName(cls, parent_model, relative_name):
-        raise RuntimeError("TaurusModel::buildModelName cannot be called")
+        raise NotImplementedError("TaurusModel.buildModelName cannot be called")
     
     @classmethod
     def getNameValidator(cls):
-        raise RuntimeError("TaurusModel::getNameValidator cannot be called")
+        raise NotImplementedError("TaurusModel.getNameValidator cannot be"
+                                  "called")
             
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for hierarchy access 
@@ -148,14 +150,16 @@ class TaurusModel(Logger):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def getValueObj(self,cache=True):
-        raise RuntimeError("TaurusModel::getValueObj cannot be called")
+        raise NotImplementedError("TaurusModel.getValueObj cannot be called")
     
     def getDisplayValue(self,cache=True):
-        raise RuntimeError("TaurusModel::getDisplayValue cannot be called")
+        raise NotImplementedError("TaurusModel.getDisplayValue cannot be" \
+                                  " called")
     
     def getDisplayDescrObj(self,cache=True):
         """A brief description of the model. Can be used as tooltip, for example"""
-        raise RuntimeError("TaurusModel::getDisplayDescrObj cannot be called")
+        raise NotImplementedError("TaurusModel.getDisplayDescrObj cannot be" \
+                                  " called")
     
     def getDisplayName(self,cache=True, complete=True):
         full_name = self.getFullName()

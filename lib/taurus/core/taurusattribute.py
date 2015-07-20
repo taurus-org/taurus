@@ -151,40 +151,50 @@ class TaurusAttribute(TaurusModel):
     # Necessary to overwrite in subclass
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     def isNumeric(self):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.isNumeric")
+        raise NotImplementedError("Not allowed to call AbstractClass" \
+                                  " TaurusAttribute.isNumeric")
         
 #    def isBoolean(self):
-#        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.isBoolean")
+#        raise NotImplementedError("Not allowed to call AbstractClass TaurusAttribute.isBoolean")
     
     def isState(self):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.isState")
+        raise NotImplementedError("Not allowed to call AbstractClass" \
+                                  " TaurusAttribute.isState")
 
 #    def getDisplayValue(self,cache=True):
-#        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.getDisplayValue")
+#        raise NotImplementedError("Not allowed to call AbstractClass TaurusAttribute.getDisplayValue")
 
     def encode(self, value):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.encode")
+        raise NotImplementedError("Not allowed to call AbstractClass" \
+                                  " TaurusAttribute.encode")
 
     def decode(self, attr_value):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.decode")
+        raise NotImplementedError("Not allowed to call AbstractClass" \
+                                  " TaurusAttribute.decode")
 
     def write(self, value, with_read=True):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.write")
+        raise NotImplementedError("Not allowed to call AbstractClass" \
+                                  " TaurusAttribute.write")
 
     def read(self, cache=True):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.read")
+        raise NotImplementedError("Not allowed to call AbstractClass" \
+                                  " TaurusAttribute.read")
 
     def poll(self):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.poll")
+        raise NotImplementedError("Not allowed to call AbstractClass" \
+                                  " TaurusAttribute.poll")
 
     def _subscribeEvents(self):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute._subscribeEvents")
+        raise NotImplementedError("Not allowed to call AbstractClass" \
+                                  " TaurusAttribute._subscribeEvents")
 
     def _unsubscribeEvents(self):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute._unsubscribeEvents")
+        raise NotImplementedError("Not allowed to call AbstractClass" \
+                                  " TaurusAttribute._unsubscribeEvents")
 
     def isUsingEvents(self):
-        raise RuntimeError("Not allowed to call AbstractClass TaurusAttribute.isUsingEvents")
+        raise NotImplementedError("Not allowed to call AbstractClass" \
+                                  " TaurusAttribute.isUsingEvents")
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel necessary overwrite

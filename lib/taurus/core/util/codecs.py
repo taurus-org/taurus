@@ -94,8 +94,8 @@ class Codec(Logger):
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
-        :raises: RuntimeError"""
-        raise RuntimeError("decode cannot be called on abstract Codec")
+        :raises: NotImplementedError"""
+        raise NotImplementedError("encode cannot be called on abstract Codec")
     
     def decode(self, data, *args, **kwargs):
         """decodes the given data. This method is abstract an therefore must
@@ -105,8 +105,8 @@ class Codec(Logger):
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
-        :raises: RuntimeError"""
-        raise RuntimeError("decode cannot be called on abstract Codec")
+        :raises: NotImplementedError"""
+        raise NotImplementedError("decode cannot be called on abstract Codec")
 
     def __str__(self):
         return '%s()' % self.__class__.__name__

@@ -81,7 +81,7 @@ class AbstractEpicsNameValidator(Singleton):
     def getNames(self, s, factory=None):
         """Returns the full, normal and simple names for this object, or None if there is no match'''
         """
-        raise RuntimeError('Not Allowed to call this method from subclasses')
+        raise NotImplementedError('abstract. Needs being implemented')
     
     def getDeviceName(self, s, full=True):
         '''

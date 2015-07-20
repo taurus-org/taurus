@@ -120,7 +120,7 @@ class TaurusFactory(object):
         @return a taurus.core.taurusauthority.TaurusAuthority object 
         @throws TaurusException if the given name is invalid.
         """
-        raise RuntimeError("getAuthority cannot be called for abstract" \
+        raise NotImplementedError("getAuthority cannot be called for abstract" \
                            " TaurusFactory")
 
     def getDevice(self, dev_name, **kw):
@@ -139,7 +139,7 @@ class TaurusFactory(object):
         @return a taurus.core.taurusdevice.TaurusDevice object 
         @throws TaurusException if the given name is invalid.
         """
-        raise RuntimeError("getDevice cannot be called for abstract" \
+        raise NotImplementedError("getDevice cannot be called for abstract" \
                            " TaurusFactory")
 
     def getAttribute(self, attr_name):
@@ -154,20 +154,20 @@ class TaurusFactory(object):
         @return a taurus.core.taurusattribute.TaurusAttribute object 
         @throws TaurusException if the given name is invalid.
         """
-        raise RuntimeError("getAttribute cannot be called for abstract" \
+        raise NotImplementedError("getAttribute cannot be called for abstract" \
                            " TaurusFactory")
 
     def getAuthorityNameValidator(self):
-        raise RuntimeError("getAuthorityNameValidator cannot be called for" \
-                           "  abstract TaurusFactory")
+        raise NotImplementedError("getAuthorityNameValidator cannot be called" \
+                                  " for abstract TaurusFactory")
 
     def getDeviceNameValidator(self):
-        raise RuntimeError("getDeviceNameValidator cannot be called for" \
-                           " abstract TaurusFactory")
+        raise NotImplementedError("getDeviceNameValidator cannot be called" \
+                                  " for abstract TaurusFactory")
 
     def getAttributeNameValidator(self):
-        raise RuntimeError("getAttributeNameValidator cannot be called for" \
-                           " abstract TaurusFactory")
+        raise NotImplementedError("getAttributeNameValidator cannot be called" \
+                                  " for abstract TaurusFactory")
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Factory extension API
@@ -269,8 +269,8 @@ class TaurusFactory(object):
            :param period: (float) polling period (in seconds)
            :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
         """
-        raise RuntimeError("addAttributeToPolling cannot be called for abstract" \
-                           " TaurusFactory")
+        raise NotImplementedError("addAttributeToPolling cannot be called" \
+                                  " for abstract TaurusFactory")
         
     def removeAttributeFromPolling(self, attribute):
         """Deactivate the polling (client side) for the given attribute. If the
@@ -278,8 +278,8 @@ class TaurusFactory(object):
 
            :param attribute: (str) attribute name.
         """
-        raise RuntimeError("removeAttributeFromPolling cannot be called for abstract" \
-                           " TaurusFactory")
+        raise NotImplementedError("removeAttributeFromPolling cannot be" \
+                                  " called for abstract TaurusFactory")
 
     def __str__(self):
         return '{0}()'.format(self.__class__.__name__)
