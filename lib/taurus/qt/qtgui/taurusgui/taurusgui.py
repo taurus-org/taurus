@@ -727,6 +727,8 @@ class TaurusGui(TaurusMainWindow):
                 # update the temporally external applications
                 for name in dlg.getAll2():
                     self.__permanent_ext_apps.append(str(name))
+                    if name in self.__external_app:
+                        self.__external_app.pop(str(name))
 
                 for name in dlg.getAll1():
                     self.unregisterConfigurableItem("_extApp[%s]" % str(name),
