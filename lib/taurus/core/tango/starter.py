@@ -88,7 +88,10 @@ class Starter(object):
             if self.isRunning():
                 time.sleep(1)
             else:
-                time.sleep(3) #TODO: figure out why we have to wait here
+                ##############################################################
+                # TODO: this workaround doesn't seem necessary (see isRunning)
+                #time.sleep(3)
+                ##############################################################
                 _log.info('Server %s has been stopped' % self.ds_name)
                 return
         _log.warning('Server %s did not stop within %d seconds'%
@@ -107,7 +110,10 @@ class Starter(object):
                       (self.ds_name, i))
             if self.isRunning():
                 _log.info('Server %s has been started' % self.ds_name)
-                time.sleep(3) #TODO: figure out why we have to wait here
+                ##############################################################
+                # TODO: this workaround doesn't seem necessary (see isRunning)
+                #time.sleep(3)
+                ##############################################################
                 return
             else:
                 time.sleep(1)
@@ -173,6 +179,8 @@ class Starter(object):
 
 
     def isRunning(self):
+        # TODO: In case the sleeps in startDS and stopDS need to be re-added,
+        #       we should study another implementation for this method.
         if self.dserver is None:
             return False
         try:

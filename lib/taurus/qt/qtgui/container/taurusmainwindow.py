@@ -45,13 +45,17 @@ from taurus.qt.qtgui.dialog import protectTaurusMessageBox
 
 class CommandArgsLineEdit(Qt.QLineEdit):
     ''' An specialized QLineEdit that can transform its text from/to command argument lists'''
-    def __init__(self, *args):
+    def __init__(self, extapp, *args):
         Qt.QLineEdit.__init__(self, *args)
-    
+        self._extapp = extapp
+        self.connect(self, Qt.SIGNAL("textEdited(QString)"), self.setCmdText)
+
     def setCmdText(self, cmdargs):
         if not isinstance(cmdargs, (basestring, Qt.QString)): 
             cmdargs = " ".join(cmdargs)
         self.setText(cmdargs)
+        self._extapp.setCmdArgs(self.getCmdArgs(), False)
+
     def getCmdArgs(self):
         import shlex
         return shlex.split(str(self.text()))
@@ -84,11 +88,34 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
             self.externalAppsPage.setWidgetResizable(True)
             self._tabwidget.addTab(self.externalAppsPage, "External Application Paths")
         label = "Command line for %s"%unicode(extapp.text())
-        editWidget = CommandArgsLineEdit(" ".join(extapp.cmdArgs()))
+        editWidget = CommandArgsLineEdit(extapp, " ".join(extapp.cmdArgs()))
         #editWidget = Qt.QLineEdit(" ".join(extapp.cmdArgs()))
         self.externalAppsPage.widget().layout().addRow(label, editWidget)
-        self.connect(editWidget, Qt.SIGNAL("textEdited(QString)"), extapp.setCmdArgs)
         self.connect(extapp, Qt.SIGNAL("cmdArgsChanged"), editWidget.setCmdText)
+
+    def deleteExternalAppConfig(self, extapp):
+        '''Remove the given external application configuration from
+        the "External Apps" tab of the configuration dialog
+        
+        :param extapp: (ExternalAppAction) the external application that is to
+                       be included in the configuration menu.
+        '''
+        from taurus.external.qt import Qt
+        layout = self.externalAppsPage.widget().layout()
+        for cnt in reversed(range(layout.count())):
+            widget = layout.itemAt(cnt).widget()
+            if widget is not None:
+                text = str(widget.text()) # command1
+                if isinstance(widget, Qt.QLabel):
+                    dialog_text = "Command line for %s" % unicode(extapp.text())
+                    if text == dialog_text:
+                        layout.removeWidget(widget)
+                        widget.close()
+                else:
+                    cmdargs = " ".join(extapp.cmdArgs())
+                    if text == cmdargs:
+                        layout.removeWidget(widget)
+                        widget.close()
         
     def show(self):
         ''' calls :meth:`Qt.QDialog.show` only if there is something to configure'''
@@ -726,7 +753,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.saveSettings() #save current window state before closing
         if hasattr(self,"socketServer"):
             self.socketServer.close()
-        
+        Qt.QMainWindow.closeEvent(self, event)
+        TaurusBaseContainer.closeEvent(self, event)
+
         #print "\n\n------ MAIN WINDOW CLOSED ------ \n\n"
     
     def addExternalAppLauncher(self, extapp, toToolBar=True, toMenu=True):
@@ -748,7 +777,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''
         if not isinstance(extapp, ExternalAppAction):
             extapp = ExternalAppAction(extapp, parent = self)
-        if extapp.parentWidget() is None: extapp.setParent(self)
+        if extapp.parentWidget() is None:
+            extapp.setParent(self)
         
         self.configurationDialog.addExternalAppConfig(extapp)
         self.configurationAction.setEnabled(True)
@@ -768,7 +798,32 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             self.externalAppsMenu.addAction(extapp)
         #register this action for config
         self.registerConfigDelegate(extapp, "_extApp[%s]"%str(extapp.text()))
-        
+
+    def deleteExternalAppLauncher(self, action):
+        '''
+        Remove launchers for an external application to the Tools Menu
+        and/or to the Tools ToolBar.
+
+        :param extapp: (ExternalAppAction) the external application
+                       to be removed passed as a :class:`ExternalAppAction`
+        '''
+        self.configurationDialog.deleteExternalAppConfig(action)
+        try:
+            # if is in ToolBar
+            self.extAppsBar.removeAction(action)
+            self.extAppsBar.update()
+        except:
+            pass
+        try:
+            # if is in Menu
+            self.externalAppsMenu.removeAction(action)
+            self.externalAppsMenu.update
+        except:
+            pass
+        #unregister this action for config
+        self.unregisterConfigurableItem("_extApp[%s]" % str(action.text()),
+                                        raiseOnError=False)
+
     def _onChangeTangoHostAction(self):
         '''
         slot called when the Change Tango Host is triggered. It prompts for a

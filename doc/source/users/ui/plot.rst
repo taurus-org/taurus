@@ -161,7 +161,7 @@ stored in a file, or even against some attribute of the control system...
 ...then the `Input data selection` option from the `TaurusPlot context menu`_ is for you!
 
 From the `Attributes` tab of the import data dialog, you can choose which Tango attributes are
-plotted, thanks to a :ref:`TauruModelChooser <modelchooser>` widget.
+plotted, thanks to a :ref:`TaurusModelChooser <modelchooser>` widget.
 
 .. figure:: /_static/taurusmodelchooser01.png
    :align: center

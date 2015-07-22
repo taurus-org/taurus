@@ -46,10 +46,13 @@ from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseComponent
 from taurus.qt.qtgui.container import TaurusMainWindow
-from taurus.qt.qtgui.taurusgui.utils import ExternalApp, PanelDescription, \
-    ToolBarDescription, AppletDescription
+from taurus.qt.qtgui.taurusgui.utils import (ExternalApp, PanelDescription,
+                                             ToolBarDescription,
+                                             AppletDescription)
+from taurus.qt.qtgui.taurusgui.appsettingswizard import ExternalAppEditor
 from taurus.qt.qtgui.panel import QDoubleListDlg
 from taurus.qt.qtgui.util.ui import UILoadable
+from taurus.qt.qtgui.taurusgui.utils import ExternalAppAction
 
 
 @UILoadable(with_ui='ui')
@@ -197,6 +200,10 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
             configdict['widget'] = self.widget().createConfig()
         return configdict
 
+    def closeEvent(self, event):
+        Qt.QDockWidget.closeEvent(self, event)      
+        TaurusBaseWidget.closeEvent(self, event)
+
 
 class TaurusGui(TaurusMainWindow):
     '''
@@ -268,11 +275,18 @@ class TaurusGui(TaurusMainWindow):
             self.defaultConfigRecursionDepth = configRecursionDepth
 
         self.__panels = {}
+        self.__external_app = {}
+        self.__external_app_actions = {}
+        self._external_app_names = []
+        self.__permanent_ext_apps = []
         self.__synoptics = []
         self.__instrumentToPanelMap = {}
         self.__panelToInstrumentMap = {}
         self.setDockNestingEnabled(True)
 
+        self.registerConfigProperty(self._getPermanentExternalApps,
+                                    self._setPermanentExternalApps,
+                                    'permanentexternalapps')
         self.registerConfigProperty(self._getPermanentCustomPanels, self._setPermanentCustomPanels, 'permanentCustomPanels')
         self.registerConfigProperty(self.getAllInstrumentAssociations, self.setAllInstrumentAssociations, 'instrumentAssociation')
 
@@ -283,12 +297,12 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM = SharedDataManager(self)
 
         self.__initPanelsMenu()
-        self.__initViewMenu()
-        self.__initPanelsToolBar()
         self.__initQuickAccessToolBar()
         self.__initJorgBar()
         self.__initSharedDataConnections()
         self.__initToolsMenu()
+        self.__initViewMenu()
+        self.__initPanelsToolBar()
 
         self.loadConfiguration(confname)
 
@@ -314,6 +328,18 @@ class TaurusGui(TaurusMainWindow):
         except:
             pass
         TaurusMainWindow.closeEvent(self, event)
+        for n, panel in self.__panels.items():
+            panel.closeEvent(event)
+            panel.widget().closeEvent(event)
+            if not event.isAccepted():
+                result = Qt.QMessageBox.question(
+                    self, 'Closing error',
+                    "Panel '%s' cannot be closed. Proceed closing?" % n,
+                    Qt.QMessageBox.Yes | Qt.QMessageBox.No)
+                if result == Qt.QMessageBox.Yes:
+                    event.accept()
+                else:
+                    break
 
     def __updatePanelsMenu(self):
         '''dynamically fill the panels menus'''
@@ -390,9 +416,77 @@ class TaurusGui(TaurusMainWindow):
     def __initToolsMenu(self):
         if self.toolsMenu is None:
             self.toolsMenu = Qt.QMenu("Tools")
-        self.toolsMenu.addAction(getIcon(":/apps/preferences-system-session.svg"), "manage instrument-panel associations", self.onShowAssociationDialog)
-        self.toolsMenu.addAction(getThemeIcon("document-save"), "Export current Panel configuration to XML", self.onExportCurrentPanelConfiguration)
-        self.toolsMenu.addAction(getIcon(":/actions/data-transfer.svg"), "Show Shared Data Manager connections", self.showSDMInfo)
+        tm = self.toolsMenu
+        tm.addAction(getIcon(":/apps/preferences-system-session.svg"), "manage instrument-panel associations", self.onShowAssociationDialog)
+        tm.addAction(getThemeIcon("document-save"), "Export current Panel configuration to XML", self.onExportCurrentPanelConfiguration)
+        tm.addAction(getIcon(":/actions/data-transfer.svg"), "Show Shared Data Manager connections", self.showSDMInfo)
+
+        # tools->external apps submenu
+        self.addExternalApplicationAction = self.externalAppsMenu.addAction(
+            getThemeIcon('list-add'),
+            'Add external application launcher...',
+            self.createExternalApp)
+        self.removeExternalApplicationAction = self.externalAppsMenu.addAction(
+            getThemeIcon('list-remove'),
+            'Remove external appication launcher...',
+            self.removeExternalApp)
+        self.externalAppsMenu.addSeparator()
+
+    def createExternalApp(self):
+        '''Add a new external application on execution time'''
+        app_editor = ExternalAppEditor(self)
+        name, xml, ok = app_editor.getDialog()
+        if name in self._external_app_names:
+            msg = ('The "%s" external application exists in your GUI.'
+                   ' If you want to create a new one, '
+                   'please use other text label' % name)
+            taurus.warning(msg)
+            return
+
+        if ok:
+            extapp = ExternalApp.fromXml(xml)
+            action = extapp.getAction()
+            action_name = str(action.text())
+            self.__external_app[action_name] = extapp
+            self._addExternalAppLauncher(name, action)
+
+    def _addExternalAppLauncher(self, name, action):
+            action_name = str(action.text())
+            self.__external_app_actions[action_name] = action
+            self.addExternalAppLauncher(action)
+            self._external_app_names.append(name)
+
+    def removeExternalApp(self, name=None):
+        '''Remove the given external application from the GUI.
+
+        :param name: (str or None) the name of the external application to be
+                     removed
+                     If None given, the user will be prompted
+        '''
+        apps = self.__external_app.keys() + self.__permanent_ext_apps
+        if name is None:
+            items = sorted(apps)
+            msg1 = "Remove External application"
+            msg2 = ("External application to be removed "
+                    "(only custom external applications can be removed).")
+            name, ok = Qt.QInputDialog.getItem (self, msg1, msg2, items, 0,
+                                                False)
+            if not ok:
+                return
+        name = unicode(name)
+        if name not in apps:
+            msg = ('Cannot remove the external application "%s"'
+                   ' (not found)' % name)
+            self.debug(msg)
+            return
+        if name in self.__external_app.keys():
+            self.__external_app.pop(name)
+        else:
+            self.__permanent_ext_apps.remove(name)
+        action = self.__external_app_actions.pop(name)
+        self._external_app_names.remove(name)
+        self.deleteExternalAppLauncher(action)
+        self.debug('External application "%s" removed' % name)
 
     def setCustomWidgetMap(self, map):
         '''
@@ -423,7 +517,9 @@ class TaurusGui(TaurusMainWindow):
     def createConfig(self, *args, **kwargs):
         '''reimplemented from TaurusMainWindow.createConfig'''
         self.updatePermanentCustomPanels(showAlways=False)
-        return TaurusMainWindow.createConfig(self, *args, **kwargs)
+        self.updatePermanentExternalApplications(showAlways=False)
+        cfg = TaurusMainWindow.createConfig(self, *args, **kwargs)
+        return cfg
 
     def removePanel(self, name=None):
         ''' remove the given panel from the GUI.
@@ -544,6 +640,22 @@ class TaurusGui(TaurusMainWindow):
         '''
         return copy.deepcopy(self.__panels.keys())
 
+    def _setPermanentExternalApps(self, permExternalApps):
+        '''creates empty panels for restoring custom panels.
+
+        :param permCustomPanels: (list<str>) list of names of custom panels
+        '''
+        #first create the panels if they don't actually exist
+        for name in permExternalApps:
+            if name not in self._external_app_names:
+                # create empty action
+                self.__permanent_ext_apps.append(name)
+                action = ExternalAppAction('', name)
+                self._addExternalAppLauncher(name, action)
+
+    def _getPermanentExternalApps(self):
+        return self.__permanent_ext_apps
+
     def _setPermanentCustomPanels(self, permCustomPanels):
         '''creates empty panels for restoring custom panels.
         
@@ -591,6 +703,36 @@ class TaurusGui(TaurusMainWindow):
                 for name in dlg.getAll1():
                     self.__panels[name].setPermanent(False)
                     self.unregisterConfigurableItem(name, raiseOnError=False)
+
+    def updatePermanentExternalApplications(self, showAlways=True):
+        '''
+        Shows a dialog for selecting which new externals applications
+        should be permanently stored in the configuration.
+
+        :param showAlways: (bool) forces showing the dialog
+        '''
+        #check if there are some newly created external applications that may
+        # be made permanent
+        #permanet_ext_app = list(self._external_app_names)
+        if len(self.__external_app) > 0 or showAlways:
+            msg = 'Select which of the external applications should be stored'
+            dlg = QDoubleListDlg(winTitle='Stored external applications',
+                                 mainLabel=msg,
+                                 label1='Temporary (to be discarded)',
+                                 label2='Permanent (to be stored)',
+                                 list1=self.__external_app.keys(),
+                                 list2=self.__permanent_ext_apps)
+            result = dlg.exec_()
+            if result == Qt.QDialog.Accepted:
+                # update the temporally external applications
+                for name in dlg.getAll2():
+                    self.__permanent_ext_apps.append(str(name))
+                    if name in self.__external_app:
+                        self.__external_app.pop(str(name))
+
+                for name in dlg.getAll1():
+                    self.unregisterConfigurableItem("_extApp[%s]" % str(name),
+                                                    raiseOnError=False)
 
     def createCustomPanel(self, paneldesc=None):
         '''
@@ -1030,6 +1172,7 @@ class TaurusGui(TaurusMainWindow):
                         EXTERNAL_APPS.append(ea)
 
         for a in EXTERNAL_APPS:
+            self._external_app_names.append(str(a.getAction().text()))
             self.addExternalAppLauncher(a.getAction())
 
 
@@ -1057,7 +1200,11 @@ class TaurusGui(TaurusMainWindow):
         for panel in self.__panels.values():
             panel.toggleViewAction().setEnabled(modifiable)
             panel.setFeatures(dwfeat)
-        for action in (self.newPanelAction, self.showAllPanelsAction, self.hideAllPanelsAction):
+        for action in (self.newPanelAction, self.showAllPanelsAction,
+                       self.hideAllPanelsAction,
+                       self.addExternalApplicationAction,
+                       self.removeExternalApplicationAction,
+                       ):
             action.setEnabled(modifiable)
 
         self._lockviewAction.setChecked(not modifiable)

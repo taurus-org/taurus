@@ -29,9 +29,10 @@ __all__ = ["TaurusWheelEdit" ]
 
 __docformat__ = 'restructuredtext'
 
+import taurus
 from taurus.external.qt import Qt
 
-import taurus.core
+from  taurus.core.taurusbasetypes import TaurusEventType
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from qwheel import QWheelEdit
 
@@ -51,30 +52,44 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
         
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config and not evt_value is None:
-            f = evt_value.format.lower()
-            if f[-1] not in ('d', 'f', 'g'):
-                raise ValueError("'%s' format unsupported" % f)
-            f = f.replace('g','f')
-            if 'd' == f[-1]:
-                dec_nb = 0
-                try: total = int(f[1:-1])
-                except: total = 6
+        if evt_type == TaurusEventType.Config and evt_value is not None:
+            import re
+            # match the format string to "%[width][.precision][f_type]"
+            m = re.match(r'%([0-9]+)?(\.([0-9]+))?([df])', evt_value.format)
+            if m is None:
+                raise ValueError("'%s' format unsupported" % evt_value.format)
+
+            width, _, precision, f_type = m.groups()
+
+            if width is None:
+                width = self.DefaultIntDigitCount + \
+                        self.DefaultDecDigitCount + 1
             else:
-                f = map(int, f[1:-1].split('.', 1))
-                total = f[0]
-                if len(f)>1:
-                    dec_nb = f[1]
-                else:
-                    dec_nb = 2
-            int_nb = total-dec_nb
+                width = int(width)
+
+            if precision is None:
+                precision = self.DefaultDecDigitCount
+            else:
+                precision = int(precision)
+
+            dec_nb = precision
+
+            if dec_nb == 0 or f_type == 'd':
+                int_nb = width
+            else:
+                int_nb = width - dec_nb - 1 # account for decimal sep
+
             self.setDigitCount(int_nb=int_nb, dec_nb=dec_nb)
-            try: self.setMinValue(float(evt_value.min_value))
-            except: pass
-            try: self.setMaxValue(float(evt_value.max_value))
-            except: pass
+            try:
+                self.setMinValue(float(evt_value.min_value))
+            except:
+                pass
+            try:
+                self.setMaxValue(float(evt_value.max_value))
+            except:
+                pass
         TaurusBaseWritableWidget.handleEvent(self, evt_src, evt_type, evt_value)
-    
+
     def updateStyle(self):
         TaurusBaseWritableWidget.updateStyle(self)
         if self.hasPendingOperations():
