@@ -250,6 +250,12 @@ class TaurusAttribute(TaurusModel):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def enablePolling(self, force=False):
+        '''Enable polling. See :meth:`isPollingEnabled` for clarification of
+        what enabled polling means.
+
+        :param force: (bool) True also activates polling 
+                      (see: :meth:`activatePolling`)
+        '''
         self.__enable_polling = True
         self.__forced_polling = force
         if force:
@@ -259,12 +265,24 @@ class TaurusAttribute(TaurusModel):
             self._activatePolling()
     
     def disablePolling(self):
+        '''Disable polling and if polling is active also deactivate it.
+        See :meth:`isPollingEnabled` for clarification of
+        what enabled polling means.
+        '''
         self.__enable_polling = False
         self.__forced_polling = False
         if self.__activate_polling:
             self._deactivatePolling()
             
     def isPollingEnabled(self):
+        '''Indicate whether polling was activated/deactivated by user.
+        Enabled polling does not mean that it is active - periodically poll
+        the attribute. By default the attribute creation enables polling.
+
+        :return: (bool) whether polling is enabled
+
+        :see: :meth:`enablePolling`, :meth:`disablePolling`
+        '''
         return self.__enable_polling
         
     def _activatePolling(self):
@@ -280,6 +298,14 @@ class TaurusAttribute(TaurusModel):
         self.__polled = False
     
     def isPollingActive(self):
+        '''Indicate whether polling is active. Active polling means that
+        a periodic timer poll the attribute. By default the attribute creation
+        does not activate polling.
+
+        :return: (bool) whether polling is active
+
+        :see: :meth:`activatePolling`, :meth:`disablePolling`
+        '''
         return self.__polled
     
     def isPollingForced(self):
