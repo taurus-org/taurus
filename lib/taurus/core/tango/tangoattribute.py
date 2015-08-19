@@ -238,10 +238,6 @@ class TangoAttribute(TaurusAttribute):
 
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
 
-        # subscribe to configuration events (unsubscription done at cleanup)
-        self.__cfg_evt_id = None
-        self._subscribeConfEvents()
-
         self._events_working = False
 
         attr_info = None
@@ -253,13 +249,18 @@ class TangoAttribute(TaurusAttribute):
                 # if PyTango could not connect to the dev
                 attr_info = None
 
+        self._pytango_attrinfoex = None
         self._decodeAttrInfoEx(attr_info)
+        # subscribe to configuration events (unsubscription done at cleanup)
+        self.__cfg_evt_id = None
+        self._subscribeConfEvents()
 
     def cleanUp(self):
         self.trace("[TangoAttribute] cleanUp")
         self._unsubscribeConfEvents()
-        self.__dev_hw_obj = None
         TaurusAttribute.cleanUp(self)
+        self.__dev_hw_obj = None
+        self._pytango_attrinfoex = None
 
     def __getattr__(self, name):
         try:
