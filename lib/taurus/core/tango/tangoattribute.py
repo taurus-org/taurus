@@ -261,8 +261,6 @@ class TangoAttribute(TaurusAttribute):
         TaurusAttribute.cleanUp(self)
 
     def __getattr__(self, name):
-        if name in ['rvalue', 'value']:
-            return self.read().rvalue
         try:
             return getattr(self._pytango_attrinfoex, name)
         except AttributeError:
