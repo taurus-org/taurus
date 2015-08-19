@@ -249,7 +249,8 @@ class TangoAttribute(TaurusAttribute):
             attr_name = self.getSimpleName()
             try:
                 attr_info = parent.attribute_query(attr_name)
-            except AttributeError: # if PyTango could not connect to the dev
+            except (AttributeError, PyTango.DevFailed):
+                # if PyTango could not connect to the dev
                 attr_info = None
 
         self._decodeAttrInfoEx(attr_info)
