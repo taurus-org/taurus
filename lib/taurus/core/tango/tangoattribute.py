@@ -660,11 +660,11 @@ class TangoAttribute(TaurusAttribute):
             # if it is a configuration event
             if isinstance(event, PyTango.AttrConfEventData):
                 event_type = TaurusEventType.Config
+                self._decodeAttrInfoEx(event.attr_conf)
                 # make sure that there is a self.__attr_value
                 if self.__attr_value is None:
                     # TODO: maybe we can avoid this read?
                     self.__attr_value = self.read(cache=False)
-                self._decodeAttrInfoEx(event.attr_conf)
             # if it is an attribute event
             else:
                 event_type = TaurusEventType.Change
