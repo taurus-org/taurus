@@ -252,7 +252,7 @@ class TangoAttribute(TaurusAttribute):
             except AttributeError: # if PyTango could not connect to the dev
                 attr_info = None
 
-        self.reInit(attr_info)
+        self._decodeAttrInfoEx(attr_info)
 
     def cleanUp(self):
         self.trace("[TangoAttribute] cleanUp")
