@@ -301,25 +301,8 @@ class TangoAttribute(TaurusAttribute):
         return tgtype == PyTango.CmdArgType.DevState
 
     @tep14_deprecation(dbg_msg='Deprecated method')
-    def displayValue(self,value):
-        if value is None:
-            return None
-        ret = None
-        try:
-            if self.isScalar():
-                fmt = self.getFormat()
-                if self.isNumeric() and fmt is not None:
-                    ret = fmt % value
-                else:
-                    ret = str(value)
-            elif self.isSpectrum():
-                ret = str(value)
-            else:
-                ret = str(value)
-        except:
-            # if cannot calculate value based on the format just return the value
-            ret = str(value)
-        return ret
+    def displayValue(self, value):
+        return str(value)
 
     @tep14_deprecation(alt='getLabel')
     def getDisplayValue(self, cache=True):
