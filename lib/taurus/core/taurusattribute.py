@@ -519,19 +519,15 @@ class TaurusAttribute(TaurusModel):
     def setParam(self, param_name, value):
         if self.getParam(param_name):
             setattr(self, param_name, value)
-            self._applyConfig()
 
     def setFormat(self, fmt):
         self.format = fmt
-        self._applyConfig()
 
     def setDescription(self, descr):
         self.description = descr
-        self._applyConfig()
 
     def setLabel(self, lbl):
         self.label = lbl
-        self._applyConfig()
 
     @tep14_deprecation(alt='getRange')
     def setLimits(self, low, high):
@@ -539,18 +535,12 @@ class TaurusAttribute(TaurusModel):
 
     def setRange(self, low, high):
         self.range = [low, high]
-        self._applyConfig()
 
     def setWarnings(self, low, high):
         self.warning = [low, high]
-        self._applyConfig()
 
     def setAlarms(self, low, high):
         self.alarm = [low, high]
-        self._applyConfig()
-
-    def _applyConfig(self):
-        pass
 
     def isBoolean(self, cache=True):
         v = self.read(cache)

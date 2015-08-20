@@ -805,6 +805,30 @@ class TangoAttribute(TaurusAttribute):
         self.calarms = [l_str, h_str]
         self._applyConfig()
 
+    def setFormat(self, fmt):
+        TaurusAttribute.setFormat(self, fmt)
+        self._applyConfig()
+
+    def setDescription(self, descr):
+        TaurusAttribute.setDescription(self, descr)
+        self._applyConfig()
+
+    def setLabel(self, lbl):
+        TaurusAttribute.setLabel(self, lbl)
+        self._applyConfig()
+
+    def setRange(self, low, high):
+        TaurusAttribute.setRange(self, low, high)
+        self._applyConfig()
+
+    def setWarnings(self, low, high):
+        TaurusAttribute.setWarnings(self, low, high)
+        self._applyConfig()
+
+    def setAlarms(self, low, high):
+        TaurusAttribute.setAlarms(self, low, high)
+        self._applyConfig()
+
     def _applyConfig(self):
         config = self._pytango_attrinfoex
         self.setConfigEx(config)
