@@ -213,18 +213,6 @@ class TaurusAttribute(TaurusModel):
         except:
             return False
 
-    def getDisplayWriteValue(self,cache=True):
-        if not self.isWritable():
-            self.warning("requesting write value of a read-only attribute")
-            return None
-
-        attrvalue = self.getValueObj(cache=cache)
-        if not attrvalue:
-            return None
-
-        v = attrvalue.wvalue
-        return self.displayValue(v)
-
     def displayValue(self,value):
         if value is None:
             return None

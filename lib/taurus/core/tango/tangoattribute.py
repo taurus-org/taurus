@@ -308,6 +308,10 @@ class TangoAttribute(TaurusAttribute):
 
         return self.displayValue(v)
 
+    @tep14_deprecation(dbg_msg='Do not use')
+    def getDisplayWriteValue(self,cache=True):
+         raise NotImplementedError("Not available since Taurus4")
+
     def encode(self, value):
         """Translates the given value into a tango compatible value according to
         the attribute data type"""
