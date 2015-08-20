@@ -138,14 +138,6 @@ class TaurusAttribute(TaurusModel):
     @classmethod
     def getNameValidator(cls):
         return cls.factory().getAttributeNameValidator()
-        
-    # received configuration events
-    def eventReceived(self, src, src_type, evt_value):
-        """Method invoked by the configuration object when a configuration event
-           is received. Default implementation propagates the event to all 
-           listeners."""
-        #self.fireEvent(src_type, evt_value)
-        pass
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite in subclass
@@ -331,33 +323,6 @@ class TaurusAttribute(TaurusModel):
     
     def __str__(self):
         return self.getFullName()
-
-    ##########################################################################
-    # TODO: should be deleted in a second iteration
-    def _getDevName(self):
-        params = self.getNameValidator().getUriGroups(self.getFullName())
-        return params.get('devname')
-
-    def _getDev(self):
-        dev = None
-        attrObj = self.getParentObj()
-        if attrObj is None or attrObj.getParent() is None:
-            devname = self._getDevName()
-            dev = self.factory().getDevice(devname)
-        else:
-            dev = attrObj.getParent()
-        return dev
-
-    def _getFullAttrName(self):
-        # TODO the method has a wrong name
-        return self.getNormalName()
-
-    def _getAttrName(self):
-        return self.getSimpleName()
-
-    def _getAttr(self, createAttr=False):
-        return self
-    ##########################################################################
 
     def getDisplayValue(self,cache=True):
         return self.getLabel(cache)
