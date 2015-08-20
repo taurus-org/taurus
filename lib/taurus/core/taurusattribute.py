@@ -92,8 +92,6 @@ class TaurusAttribute(TaurusModel):
         self.range = float('-inf'), float('inf')
         self.alarm = float('-inf'), float('inf')
         self.warning = float('-inf'), float('inf')
-        # TODO decide what to do with self.format and its get and set methods
-        self.format = '%s'
 
     def cleanUp(self):
         self.trace("[TaurusAttribute] cleanUp")
@@ -153,9 +151,6 @@ class TaurusAttribute(TaurusModel):
         raise NotImplementedError("Not allowed to call AbstractClass" \
                                   " TaurusAttribute.isState")
 
-#    def getDisplayValue(self,cache=True):
-#        raise NotImplementedError("Not allowed to call AbstractClass TaurusAttribute.getDisplayValue")
-
     def encode(self, value):
         raise NotImplementedError("Not allowed to call AbstractClass" \
                                   " TaurusAttribute.encode")
@@ -204,26 +199,6 @@ class TaurusAttribute(TaurusModel):
             return self.encode(v1) == self.encode(v2)
         except:
             return False
-
-    def displayValue(self,value):
-        if value is None:
-            return None
-        ret = None
-        try:
-            if self.isScalar():
-                fmt = self.getFormat()
-                if self.isNumeric() and fmt is not None:
-                    ret = fmt % value
-                else:
-                    ret = str(value)
-            elif self.isSpectrum():
-                ret = str(value)
-            else:
-                ret = str(value)
-        except:
-            # if cannot calculate value based on the format just return the value
-            ret = str(value)
-        return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
@@ -309,23 +284,11 @@ class TaurusAttribute(TaurusModel):
         self.deprecated("use disablePolling()")
         self.disablePolling()
 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # API for attribute configuration
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
-
-    @tep14_deprecation(alt='self')
-    def getConfig(self):
-        """ Returns the current configuration of the attribute."""
-        return weakref.proxy(self)
-
     ##########################################################################
     # TaurusConfiguration Methods
     
     def __str__(self):
         return self.getFullName()
-
-    def getDisplayValue(self,cache=True):
-        return self.getLabel(cache)
 
     def getDisplayDescription(self,cache=True):
         return self.getDescription(cache)
@@ -363,42 +326,11 @@ class TaurusAttribute(TaurusModel):
     def isWritable(self, cache=True):
         return self.writable
 
-    @tep14_deprecation(alt='isWritable')
-    def getWritable(self, cache=True):
-        return self.isWritable(cache)
-
     def getType(self, cache=True):
         return self.type
 
     def getDataFormat(self, cache=True):
         return self.data_format
-
-    def getMaxDim(self, cache=True):
-        return self.max_dim
-
-    @tep14_deprecation(alt='getMaxDim')
-    def getMaxDimX(self, cache=True):
-        dim = self.getMaxDim(cache)
-        if dim:
-            return dim[0]
-        else:
-            return None
-
-    @tep14_deprecation(alt='getMaxDim')
-    def getMaxDimY(self, cache=True):
-        dim = self.getMaxDim(cache)
-        if dim:
-            return dim[1]
-        else:
-            return None
-
-    def getShape(self, cache=True):
-        if self.isScalar(cache):
-            return ()
-        elif self.isSpectrum():
-            return (self.getMaxDimX(),)
-        else:
-            return self.getMaxDim()
 
     def getDescription(self, cache=True):
         return self.description
@@ -406,47 +338,14 @@ class TaurusAttribute(TaurusModel):
     def getLabel(self, cache=True):
         return self.label
 
-    @tep14_deprecation(alt='.rvalue.units')
-    def getUnit(self, cache=True):
-        try:
-            return str(self.getValueObj(cache).rvalue.units)
-        except:
-            return None
-
-    @tep14_deprecation(alt='.rvalue.units')
-    def getStandardUnit(self, cache=True):
-        try:
-            return str(self.getValueObj(cache).rvalue.units)
-        except:
-            return None
-
-    @tep14_deprecation(alt='.rvalue.units')
-    def getDisplayUnit(self, cache=True):
-        try:
-            return str(self.getValueObj(cache).rvalue.units)
-        except:
-            return None
-
-    def getFormat(self, cache=True):
-        return self.format
-
     def getMinValue(self, cache=True):
         return self.range[0]
 
     def getMaxValue(self, cache=True):
         return self.range[1]
 
-    @tep14_deprecation(alt='getRange')
-    def getLimits(self, cache=True):
-        return self.getRange(cache=cache)
-
     def getRange(self, cache=True):
         return self.range
-
-    @tep14_deprecation(alt='getRange')
-    def getRanges(self, cache=True):
-        return [self.range[0], self.alarm[0], self.warning[0],
-                self.warning[1], self.alarm[1], self.range[1]]
 
     def getMinAlarm(self, cache=True):
         return self.alarm[0]
@@ -466,25 +365,11 @@ class TaurusAttribute(TaurusModel):
     def getWarnings(self, cache=True):
         return self.warning
 
-    def getParam(self, param_name):
-        return getattr(self, param_name)
-
-    def setParam(self, param_name, value):
-        if self.getParam(param_name):
-            setattr(self, param_name, value)
-
-    def setFormat(self, fmt):
-        self.format = fmt
-
     def setDescription(self, descr):
         self.description = descr
 
     def setLabel(self, lbl):
         self.label = lbl
-
-    @tep14_deprecation(alt='getRange')
-    def setLimits(self, low, high):
-        self.setRange(low, high)
 
     def setRange(self, low, high):
         self.range = [low, high]
@@ -499,30 +384,6 @@ class TaurusAttribute(TaurusModel):
         v = self.read(cache)
         return isinstance(v.rvalue, bool)
 
-    @tep14_deprecation(alt='isWritable')
-    def isReadOnly(self, cache=True):
-        return not self.isWritable(cache)
-
-    @tep14_deprecation(alt='isWritable')
-    def isReadWrite(self, cache=True):
-        return self.isWritable(cache)
-
-    @tep14_deprecation(alt='isWritable')
-    def isWrite(self, cache=True):
-        return self.isWritable(cache)
-
-    @tep14_deprecation(alt='self.data_format')
-    def isScalar(self):
-        return self.data_format == DataFormat._0D
-
-    @tep14_deprecation(alt='self.data_format')
-    def isSpectrum(self):
-        return self.data_format == DataFormat._1D
-
-    @tep14_deprecation(alt='self.data_format')
-    def isImage(self):
-        return self.data_format == DataFormat._2D
-
     def _get_unit(self):
         '''for backwards compat with taurus < 4'''
         return self.getUnit(True)
@@ -535,6 +396,7 @@ class TaurusAttribute(TaurusModel):
         self.debug(extra_msg)
 
     unit = property(_get_unit, _set_unit)
+
 
 class TaurusStateAttribute(TaurusAttribute):
     """ """

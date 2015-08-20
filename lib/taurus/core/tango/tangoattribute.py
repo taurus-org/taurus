@@ -300,6 +300,28 @@ class TangoAttribute(TaurusAttribute):
         tgtype = self._tango_data_type
         return tgtype == PyTango.CmdArgType.DevState
 
+    @tep14_deprecation(dbg_msg='Deprecated method')
+    def displayValue(self,value):
+        if value is None:
+            return None
+        ret = None
+        try:
+            if self.isScalar():
+                fmt = self.getFormat()
+                if self.isNumeric() and fmt is not None:
+                    ret = fmt % value
+                else:
+                    ret = str(value)
+            elif self.isSpectrum():
+                ret = str(value)
+            else:
+                ret = str(value)
+        except:
+            # if cannot calculate value based on the format just return the value
+            ret = str(value)
+        return ret
+
+    @tep14_deprecation(alt='getLabel')
     def getDisplayValue(self, cache=True):
         attrvalue = self.getValueObj(cache=cache)
         if not attrvalue:
@@ -307,6 +329,33 @@ class TangoAttribute(TaurusAttribute):
         v = attrvalue.rvalue
 
         return self.displayValue(v)
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def getUnit(self, cache=True):
+        try:
+            return str(self.getValueObj(cache).rvalue.units)
+        except:
+            return None
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def getStandardUnit(self, cache=True):
+        try:
+            return str(self.getValueObj(cache).rvalue.units)
+        except:
+            return None
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def getDisplayUnit(self, cache=True):
+        try:
+            return str(self.getValueObj(cache).rvalue.units)
+        except:
+            return None
+
+    def getFormat(self, cache=True):
+        return self.format
+
+    def setFormat(self, fmt):
+        self.format = fmt
 
     @tep14_deprecation(dbg_msg='Do not use')
     def getDisplayWriteValue(self,cache=True):
@@ -712,6 +761,10 @@ class TangoAttribute(TaurusAttribute):
     ###########################################################################
     # TangoConfiguration
 
+    @tep14_deprecation(alt='isWritable')
+    def getWritable(self, cache=True):
+        return self.isWritable(cache)
+
     def isWrite(self, cache=True):
         return self.getTangoWritable(cache) == PyTango.AttrWriteType.WRITE
 
@@ -745,6 +798,46 @@ class TangoAttribute(TaurusAttribute):
 #    def getType(self, cache=True):
 #        return self.data_type
 
+    @tep14_deprecation(alt='self.data_format')
+    def isScalar(self):
+        return self.data_format == DataFormat._0D
+
+    @tep14_deprecation(alt='self.data_format')
+    def isSpectrum(self):
+        return self.data_format == DataFormat._1D
+
+    @tep14_deprecation(alt='self.data_format')
+    def isImage(self):
+        return self.data_format == DataFormat._2D
+
+    def getMaxDim(self, cache=True):
+        return self.max_dim
+
+    @tep14_deprecation(alt='getMaxDim')
+    def getMaxDimX(self, cache=True):
+        dim = self.getMaxDim(cache)
+        if dim:
+            return dim[0]
+        else:
+            return None
+
+    @tep14_deprecation(alt='getMaxDim')
+    def getMaxDimY(self, cache=True):
+        dim = self.getMaxDim(cache)
+        if dim:
+            return dim[1]
+        else:
+            return None
+
+    @tep14_deprecation(dbg_msg='Deprecated method')
+    def getShape(self, cache=True):
+        if self.isScalar(cache):
+            return ()
+        elif self.isSpectrum():
+            return (self.getMaxDimX(),)
+        else:
+            return self.getMaxDim()
+
     def getRange(self, cache=True):
         return self.getLimits(cache=cache)
 
@@ -772,8 +865,9 @@ class TangoAttribute(TaurusAttribute):
     def getWarnings(self, cache=True):
         return list(self.cwarnings)
 
+    @tep14_deprecation(alt='getattr')
     def getParam(self, param_name):
-        # TODO mal implementado
+        # TODO not well implemented
         if param_name.endswith('warning') or param_name.endswith('alarm'):
             attr = self.alarms
         try:
@@ -781,8 +875,9 @@ class TangoAttribute(TaurusAttribute):
         except:
             return None
 
+    @tep14_deprecation(alt='setattr')
     def setParam(self, param_name, value):
-        # TODO mal implementado
+        # TODO not well implemented
         if param_name.endswith('warning') or param_name.endswith('alarm'):
             attr = self.alarms
         setattr(attr, param_name, value)
@@ -836,6 +931,11 @@ class TangoAttribute(TaurusAttribute):
     def _applyConfig(self):
         config = self._pytango_attrinfoex
         self.setConfigEx(config)
+
+    @tep14_deprecation(alt='self')
+    def getConfig(self):
+        """ Returns the current configuration of the attribute."""
+        return weakref.proxy(self)
 
     ###########################################################################
     # TangoConfValue methods
@@ -892,7 +992,6 @@ class TangoAttribute(TaurusAttribute):
             self.tango_writable = i.writable
             #################################################
 
-
             self.format = standard_display_format_from_tango(i.data_type,
                                                              i.format)
 
@@ -913,6 +1012,7 @@ class TangoAttribute(TaurusAttribute):
     def _tango_data_type(self):
         '''returns the *tango* (not Taurus) data type'''
         return self._pytango_attrinfoex.data_type
+
 
 class TangoStateAttribute(TangoAttribute, TaurusStateAttribute):
     def __init__(self, name, parent, **kwargs):
