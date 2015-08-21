@@ -1,0 +1,302 @@
+#!/usr/bin/env python
+
+#############################################################################
+##
+## This file is part of Taurus, a Tango User Interface Library
+##
+## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+##
+## Copyright 2014 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+## Taurus is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Lesser General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## Taurus is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU Lesser General Public License for more details.
+##
+## You should have received a copy of the GNU Lesser General Public License
+## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+##
+#############################################################################
+import numpy
+
+from PyTango import DeviceProxy, AttrWriteType, DevState
+from PyTango.server import Device, DeviceMeta, attribute, run, command
+
+class TangoSchemeTest(Device):
+    __metaclass__ = DeviceMeta
+
+    MAXDIMX = 32
+    MAXDIMY = 32
+    DIMX = 3
+    DIMY = 3
+
+    attrs = {'bool_scalar': dict(dtype=bool),
+             'short_scalar': dict(unit="mm", dtype=numpy.int16),
+             'short_scalar_nu': dict(dtype=numpy.int16),
+             'float_scalar': dict(unit="mm", dtype=numpy.float32),
+             'string_scalar': dict(dtype=str),
+             'bool_spectrum': dict(dtype=(bool,), max_dim_x=MAXDIMX),
+             'short_spectrum': dict(unit="mm", dtype=(numpy.int16,),
+                                    max_dim_x=MAXDIMX),
+             'float_spectrum': dict(unit="mm", dtype=(numpy.float32,),
+                                    max_dim_x=MAXDIMX),
+             'string_spectrum': dict(dtype=(str,), max_dim_x=MAXDIMX),
+             'bool_image': dict(dtype=[(bool,)], max_dim_x=MAXDIMX,
+                                max_dim_y=MAXDIMY),
+             'short_image': dict(unit="mm", dtype=[(numpy.int16,)],
+                                    max_dim_x=MAXDIMX, max_dim_y=MAXDIMY),
+             'float_image': dict(unit="mm", dtype=[(numpy.float32,)],
+                                    max_dim_x=MAXDIMX, max_dim_y=MAXDIMY),
+             'string_image': dict(dtype=[(str,)], max_dim_x=MAXDIMX,
+                                  max_dim_y=MAXDIMY),
+             }
+
+    default_read = {'bool': True,
+                    'int': 123,
+                    'float': 1.23,
+                    'string': 'hello world'}
+
+    # READ ONLY ATTRIBUTES
+    # SCALARS
+    boolean_scalar_ro = attribute(access=AttrWriteType.READ,
+                                **attrs['bool_scalar'])
+    short_scalar_ro = attribute(access=AttrWriteType.READ,
+                                **attrs['short_scalar'])
+    short_scalar_ro_nu = attribute(access=AttrWriteType.READ,
+                                **attrs['short_scalar_nu'])
+    float_scalar_ro = attribute(access=AttrWriteType.READ,
+                                **attrs['float_scalar'])
+    string_scalar_ro = attribute(access=AttrWriteType.READ,
+                                **attrs['string_scalar'])
+    # SPECTRUMS
+    boolean_spectrum_ro = attribute(access=AttrWriteType.READ,
+                                  **attrs['bool_spectrum'])
+    short_spectrum_ro = attribute(access=AttrWriteType.READ,
+                                  **attrs['short_spectrum'])
+    float_spectrum_ro = attribute(access=AttrWriteType.READ,
+                                  **attrs['float_spectrum'])
+    string_spectrum_ro = attribute(access=AttrWriteType.READ,
+                                  **attrs['string_spectrum'])
+    # IMAGES
+    boolean_image_ro = attribute(access=AttrWriteType.READ,
+                                  **attrs['bool_image'])
+    short_image_ro = attribute(access=AttrWriteType.READ,
+                                  **attrs['short_image'])
+    float_image_ro = attribute(access=AttrWriteType.READ,
+                                  **attrs['float_image'])
+    string_image_ro = attribute(access=AttrWriteType.READ,
+                                  **attrs['string_image'])
+
+    # READ/WRITE ATTRIBUTES
+    # SCALARS
+    boolean_scalar = attribute(access=AttrWriteType.READ_WRITE,
+                                **attrs['bool_scalar'])
+    short_scalar = attribute(access=AttrWriteType.READ_WRITE,
+                                **attrs['short_scalar'])
+    short_scalar_nu = attribute(access=AttrWriteType.READ_WRITE,
+                                **attrs['short_scalar_nu'])
+    float_scalar = attribute(access=AttrWriteType.READ_WRITE,
+                                **attrs['float_scalar'])
+    string_scalar = attribute(access=AttrWriteType.READ_WRITE,
+                                **attrs['string_scalar'])
+    # SPECTRUM
+    boolean_spectrum = attribute(access=AttrWriteType.READ_WRITE,
+                               **attrs['bool_spectrum'])
+    short_spectrum = attribute(access=AttrWriteType.READ_WRITE,
+                               **attrs['short_spectrum'])
+    float_spectrum = attribute(access=AttrWriteType.READ_WRITE,
+                               **attrs['float_spectrum'])
+    string_spectrum = attribute(access=AttrWriteType.READ_WRITE,
+                               **attrs['string_spectrum'])
+    # IMAGES
+    boolean_image = attribute(access=AttrWriteType.READ,
+                                  **attrs['bool_image'])
+    short_image = attribute(access=AttrWriteType.READ,
+                                  **attrs['short_image'])
+    float_image = attribute(access=AttrWriteType.READ,
+                                  **attrs['float_image'])
+    string_image = attribute(access=AttrWriteType.READ,
+                                  **attrs['string_image'])
+
+    # READ ONLY METHODS
+    # SCALARS
+    def read_boolean_scalar_ro(self):
+        return self.default_read['bool']
+
+    def read_short_scalar_ro(self):
+        return self.default_read['int']
+
+    def read_short_scalar_ro_nu(self):
+        return self.default_read['int']
+
+    def read_float_scalar_ro(self):
+        return self.default_read['float']
+
+    def read_string_scalar_ro(self):
+        return self.default_read['string']
+
+    # SPECTRUMS
+    def read_boolean_spectrum_ro(self):
+        return [self.default_read['bool']] * self.DIMX
+
+    def read_short_spectrum_ro(self):
+        return [self.default_read['int']] * self.DIMX
+
+    def read_float_spectrum_ro(self):
+        return [self.default_read['float']] * self.DIMX
+
+    def read_string_spectrum_ro(self):
+        return [self.default_read['string']] * self.DIMX
+
+    # IMAGES
+    def read_boolean_image_ro(self):
+        return [[self.default_read['bool']] * self.DIMX] * self.DIMY
+
+    def read_short_image_ro(self):
+        return [[self.default_read['int']] * self.DIMX] * self.DIMY
+
+    def read_float_image_ro(self):
+        return [[self.default_read['float']] * self.DIMX] * self.DIMY
+
+    def read_string_image_ro(self):
+        return [[self.default_read['string']] * self.DIMX] * self.DIMY
+
+    # READ/WRITE METHODS
+    # SCALARS
+    def read_boolean_scalar(self):
+        return getattr(self, '_boolean_scalar', self.default_read['bool'])
+
+    def write_boolean_scalar(self, v):
+        self._boolean_scalar = v
+
+    def read_short_scalar(self):
+        return getattr(self, '_short_scalar', self.default_read['int'])
+
+    def write_short_scalar(self, v):
+        self._short_scalar = v
+
+    def read_short_scalar_nu(self):
+        return getattr(self, '_short_scalar_nu', self.default_read['int'])
+
+    def write_short_scalar_nu(self, v):
+        self._short_scalar_nu = v
+
+    def read_float_scalar(self):
+        return getattr(self, '_float_scalar', self.default_read['float'])
+
+    def write_float_scalar(self, v):
+        self._float_scalar = v
+
+    def read_string_scalar(self):
+        return getattr(self, '_string_scalar', self.default_read['string'])
+
+    def write_string_scalar(self, v):
+        self._string_scalar = v
+
+    # SPECTRUMS
+    def read_boolean_spectrum(self):
+        return getattr(self, '_boolean_spectrum',
+                       [self.default_read['bool']] * self.DIMX)
+
+    def write_boolean_spectrum(self, v):
+        self._boolean_spectrum = v
+
+    def read_short_spectrum(self):
+        return getattr(self, '_short_spectrum',
+                       [self.default_read['int']] * self.DIMX)
+
+    def write_short_spectrum(self, v):
+        self._short_spectrum = v
+
+    def read_float_spectrum(self):
+        return getattr(self, '_float_spectrum',
+                       [self.default_read['float']] * self.DIMX)
+
+    def write_float_spectrum(self, v):
+        self._float_spectrum = v
+
+    def read_string_spectrum(self):
+        return getattr(self, '_string_spectrum',
+                       [self.default_read['str']] * self.DIMX)
+
+    def write_string_spectrum(self, v):
+        self._string_spectrum = v
+
+    # IMAGES
+    def read_boolean_image(self):
+        return getattr(self, '_boolean_image',
+                       [[self.default_read['bool']] * self.DIMX] * self.DIMY)
+
+    def write_boolean_image(self, v):
+        self._boolean_image = v
+
+    def read_short_image(self):
+        return getattr(self, '_short_image',
+                       [[self.default_read['int']] * self.DIMX] * self.DIMY)
+
+    def write_short_image(self, v):
+        self._short_image = v
+
+    def read_float_image(self):
+        return getattr(self, '_float_image',
+                       [[self.default_read['float']] * self.DIMX] * self.DIMY)
+
+    def write_float_image(self, v):
+        self._float_image = v
+
+    def read_string_image(self):
+        return getattr(self, '_string_image',
+                       [[self.default_read['string']] * self.DIMX] * self.DIMY)
+
+    def write_string_image(self, v):
+        self._string_image = v
+
+    def init_device(self):
+        # To setUp the state
+        Device.init_device(self)
+        self.set_state(DevState.ON)
+
+    @command
+    def Reset(self):
+        """ Reset the attributes value and configuration parameters
+        """
+        # Reset the attributes configuration
+        # TODO there is a bug in self.set_attribute_config_3(),
+        # so is not possible to use the PyTango.Device API
+        dev = DeviceProxy(self.get_name())
+        attr_list = list(dev.get_attribute_list())
+        for attr in attr_list:
+            attrInfoex = dev.get_attribute_config(attr)
+            if attr.startswith('string') or attr.startswith('boolean') or\
+               attr.startswith('State') or attr.startswith('Status') or\
+               attr.endswith('_nu'):
+                attrInfoex.unit = ''
+            else:
+                attrInfoex.unit = 'mm'
+            dev.set_attribute_config(attrInfoex)
+        # Reset the atrributes value
+        self._boolean_scalar = self.default_read['bool']
+        self._short_scalar = self.default_read['int']
+        self._short_scalar_nu = self.default_read['int']
+        self._float_scalar = self.default_read['float']
+        self._string_scalar = self.default_read['string']
+        self._boolean_spectrum = [self.default_read['bool']] * self.DIMX
+        self._short_spectrum = [self.default_read['int']] * self.DIMX
+        self._float_spectrum = [self.default_read['float']] * self.DIMX
+        self._string_spectrum = [self.default_read['string']] * self.DIMX
+        v = [[self.default_read['bool']] * self.DIMX] * self.DIMY
+        self._boolean_image = v
+        v = [[self.default_read['int']] * self.DIMX] * self.DIMY
+        self._short_image = v
+        v = [[self.default_read['float']] * self.DIMX] * self.DIMY
+        self._float_image = v
+        v = [[self.default_read['string']] * self.DIMX] * self.DIMY
+        self._string_image = v
+
+if __name__ == "__main__":
+    run([TangoSchemeTest])
