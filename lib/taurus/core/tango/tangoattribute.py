@@ -249,8 +249,10 @@ class TangoAttribute(TaurusAttribute):
                 # if PyTango could not connect to the dev
                 attr_info = None
 
+        # decode the Tango configuration attribute (adds extra members)
         self._pytango_attrinfoex = None
         self._decodeAttrInfoEx(attr_info)
+
         # subscribe to configuration events (unsubscription done at cleanup)
         self.__cfg_evt_id = None
         self._subscribeConfEvents()
