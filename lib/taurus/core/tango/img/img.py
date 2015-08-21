@@ -27,7 +27,7 @@
 2D detectors"""
 
 __all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
-           'CCDPVCAM', 'ImgBeamAnalyzer', 'Falcon']
+           'CCDPVCAM', 'ImgBeamAnalyzer', 'Falcon', 'LimaCCDs']
 
 __docformat__ = 'restructuredtext'
 
@@ -35,6 +35,7 @@ __docformat__ = 'restructuredtext'
 from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.core.tango import TangoDevice
 from taurus.core.util.containers import CaselessDict, CaselessList
+from threading import RLock
 
 class ImageDevice(TangoDevice):
     """A class encapsulating a generic image device"""
@@ -143,4 +144,26 @@ class ImgBeamAnalyzer(ImageCounterDevice):
     
     def __init__(self, name, image_name='roiimage', **kw):
         self.call__init__(ImageCounterDevice, name, image_name, **kw)
-    
+
+class LimaCCDs(ImageCounterDevice):
+
+    def __init__(self, name, image_name='video_last_image', **kw):
+        self.call__init__(ImageCounterDevice, name, image_name, **kw)
+        self.rlock = RLock()
+        self.processing = False
+
+    def getImageIDAttrName(self):
+        return 'video_last_image_counter'
+
+    def eventReceived(self, evt_src, evt_type, evt_value):
+        if evt_src == self._image_id_attr and self.processing == False:
+            if evt_type == TaurusEventType.Change:
+                with self.rlock:
+                    self.processing = True
+                    attr_image = self.getAttribute('video_last_image')
+                    evt_value = attr_image.read(False)
+                    attr_image.fireEvent(evt_type, evt_value)
+                    self.processing = False
+
+        else:
+            ImageCounterDevice.eventReceived(self, evt_src, evt_type, evt_value)

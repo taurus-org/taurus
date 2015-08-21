@@ -239,6 +239,36 @@ panel-crowded applications.
 Also note that you can find a button in the application toolbar for
 showing/hiding each synoptic panel.
 
+.. _externalapps:
+
+External Application Launchers
+------------------------------
+
+TaurusGui-based applications allow you to add and remove launchers for
+"external applications". An external application is some other program
+already installed in the system which will be launched as an independent
+process (i.e., the TaurusGui just provides a convenience launcher for some
+related but independent program).
+
+External application launchers may be pre-defined in the application and new
+ones can be added and removed at any moment by using the corresponding
+option of the `Tools->External Applications` menu.
+
+.. figure:: /_static/taurusgui-extapp.png
+  :align: center
+
+  External application editor. You can associate  a command, a text and
+  an icon to a new launcher
+
+Just as with the `custom panels <panelcreation>`, when you close the application
+(or when you save a :ref:`perspective <perspectives>`), a dialog will be
+shown if you have created any custom launchers. In this dialog you can choose
+which of the custom launchers you want to keep for future use and which are
+only meant for the current session.
+
+.. tip:: You may find external application launchers useful for launching some
+         arbitrary python script that automates some task related to the
+         purpose of the GUI.
 
 .. _macrostuff:
 

@@ -31,10 +31,9 @@ __docformat__ = 'restructuredtext'
 
 import os
 import math
+import numpy
 
 from taurus.external.qt import Qt
-
-#from taurus.qt.qtgui.resource.qrc_extra_icons import *
 
 class _ArrowButton(Qt.QPushButton):
     """Private class to be used by QWheelEdit for an arrow button"""
@@ -201,14 +200,12 @@ class QWheelEdit(Qt.QFrame):
         self._previous_value = 0
         self._value = 0
         self._value_str = '0'
-        self._minValue = float('-inf')
-        self._maxValue = float('+inf')
+        self._minValue = numpy.finfo('d').min # -inf
+        self._maxValue = numpy.finfo('d').max # inf
         self._editor = None
         self._editing = False
         self._showArrowButtons = True
         self._setDigits(QWheelEdit.DefaultIntDigitCount, QWheelEdit.DefaultDecDigitCount)
-
-        self._setMinMax( self._getMinPossibleValue(), self._getMaxPossibleValue())
         self._setValue(0)
         
         self._build()
@@ -259,7 +256,7 @@ class QWheelEdit(Qt.QFrame):
         
         signLabel = _DigitLabel('+')
         signLabel.setFocusPolicy(Qt.Qt.NoFocus)
-        signLabel.setAlignment(Qt.Qt.AlignRight)
+        signLabel.setAlignment(Qt.Qt.AlignRight|Qt.Qt.AlignVCenter)
         self._digitLabels.append(signLabel)
         l.addWidget(signLabel, 1, 0)
         l.setRowMinimumHeight(1, signLabel.minimumSizeHint().height())
@@ -371,24 +368,33 @@ class QWheelEdit(Qt.QFrame):
     
     def _setDigits(self, int_nb=None, dec_nb=None):
         """_setDigits(self, int_nb=None, dec_nb=None) -> None
-        
-        Sets the number of digits that this widget shows.
-        
+
+        Sets the number of digits that this widget shows. It will ensure that
+        the current value can be displayed (i.e., int_nb will be forced to be
+        large enough for displaying the integer representation of the value)
+
         @param[in] int_nb (int) number of integer digits (optional, default is
                    None, meaning use the existing number of integer digits
         @param[in] dec_nb (int) number of decimal digits (optional, default is
                    None, meaning use the existing number of decimal digits
         """
+
         if not int_nb is None:
             self._intDigitCount = int_nb
         if not dec_nb is None:
             self._decDigitCount = dec_nb
+
+        # make sure that the current value can be displayed
+        self._intDigitCount = max(self._intDigitCount, len("%d" % self._value))
+
         self._digitCount = self._intDigitCount + self._decDigitCount
         total_chars = self._digitCount
         total_chars += 1 # for sign
         if self._decDigitCount > 0:
             total_chars += 1 # for dot
         self._valueFormat = '%%+0%d.%df' % (total_chars, self._decDigitCount)
+        self._setMinMax( self._getMinPossibleValue(),
+                         self._getMaxPossibleValue())
         # we call setValue to update the self._value_str
         self._setValue(self.getValue())
         
@@ -403,10 +409,11 @@ class QWheelEdit(Qt.QFrame):
         @return (str) a proper string representation of the given value
         """
         if v is None:
-            return (self._valueFormat % 0).replace('0', '-')
-        ret = self._valueFormat % v
-        if ret.endswith('nan'):
-            ret = ret.replace('0',' ')
+            ret = (self._valueFormat % 0).replace('0', '-')
+        else:
+            ret = self._valueFormat % v
+            if ret.endswith('nan'):
+                ret = ret.replace('0',' ')
         self._value_str = ret
         return ret
     
@@ -739,7 +746,7 @@ class QWheelEdit(Qt.QFrame):
         rect = Qt.QRect(l.cellRect(1, 0).topLeft(), l.cellRect(1,
                             l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
-        ed.setAlignment(Qt.Qt.AlignRight);
+        ed.setAlignment(Qt.Qt.AlignRight)
         ed.setMaxLength(self.getDigitCount() + 2)
         ed.setText(self.getValueStr())
         ed.selectAll()
@@ -888,8 +895,8 @@ def main():
     button_layout.addWidget(resetbutton)
     isb.setValue(arrowWidget.getIntDigitCount())
     dsb.setValue(arrowWidget.getDecDigitCount())
-    minv.setRange(float('-inf'), float('+inf'))
-    maxv.setRange(float('-inf'), float('+inf'))
+    minv.setRange(numpy.finfo('d').min, numpy.finfo('d').max)
+    maxv.setRange(numpy.finfo('d').min, numpy.finfo('d').max)
     minv.setValue(arrowWidget.getMinValue())
     maxv.setValue(arrowWidget.getMaxValue())
     showarrowbutton.setChecked(arrowWidget.getShowArrowButtons())

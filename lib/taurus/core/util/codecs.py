@@ -86,6 +86,8 @@ class Codec(Logger):
         """Constructor"""
         Logger.__init__(self, self.__class__.__name__)
     
+    # TODO: similar code exists in encode and decode methods from different
+    # codecs. It should be implemented in this base class 'Codec'.
     def encode(self, data, *args, **kwargs):
         """encodes the given data. This method is abstract an therefore must
         be implemented in the subclass.
@@ -123,7 +125,10 @@ class NullCodec(Codec):
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
-        return data
+        format = 'null'
+        if len(data[0]):
+            format += '_%s' % data[0]
+        return format, data[1]
     
     def decode(self, data, *args, **kwargs):
         """decodes with Null encoder. Just returns the given data
@@ -131,7 +136,10 @@ class NullCodec(Codec):
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
         
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
-        return data
+        if not data[0].startswith('null'):
+            return data
+        format = data[0].partition('_')[2]
+        return format, data[1]
 
 
 class ZIPCodec(Codec):
@@ -744,7 +752,7 @@ class CodecPipeline(Codec, list):
         
         Codec.__init__(self)
         list.__init__(self)
-        
+
         f = CodecFactory()
         for i in format.split('_'):
             codec = f.getCodec(i)

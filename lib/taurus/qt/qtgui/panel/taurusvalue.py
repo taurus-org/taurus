@@ -326,7 +326,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         used, it returns the switcher's writeWidget instead of None.
         '''
         if followCompact and self.isCompact():
-            return self._readWidget.writeWidget
+            return getattr(self._readWidget,'writeWidget', None)
         return self._writeWidget
     
     def unitsWidget(self):

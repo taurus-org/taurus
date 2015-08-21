@@ -1418,7 +1418,7 @@ class TaurusTrend(TaurusPlot):
             'icon'      : ':/designer/qwtplot.png',
             'container' : False }
                 
-    def setEventFilters(self, filters=None, tsetnames=None):
+    def setEventFilters(self, filters=None, tsetnames=None, preqt=False):
         '''propagates a list of taurus filters to the trendsets given by tsetnames.
         See :meth:`TaurusBaseComponent.setEventFilters`
         '''
@@ -1426,7 +1426,7 @@ class TaurusTrend(TaurusPlot):
         self.curves_lock.acquire()
         try:
             for name in tsetnames:
-                self.trendSets[name].setEventFilters(filters)
+                self.trendSets[name].setEventFilters(filters, preqt=preqt)
         finally:
             self.curves_lock.release()
              
