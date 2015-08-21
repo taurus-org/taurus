@@ -64,64 +64,65 @@ class TangoSchemeTest(Device):
     # READ ONLY ATTRIBUTES
     # SCALARS
     boolean_scalar_ro = attribute(access=AttrWriteType.READ,
-                                **attrs['bool_scalar'])
+                                  **attrs['bool_scalar'])
     short_scalar_ro = attribute(access=AttrWriteType.READ,
                                 **attrs['short_scalar'])
     short_scalar_ro_nu = attribute(access=AttrWriteType.READ,
-                                **attrs['short_scalar_nu'])
+                                   **attrs['short_scalar_nu'])
     float_scalar_ro = attribute(access=AttrWriteType.READ,
                                 **attrs['float_scalar'])
     string_scalar_ro = attribute(access=AttrWriteType.READ,
-                                **attrs['string_scalar'])
+                                 **attrs['string_scalar'])
     # SPECTRUMS
     boolean_spectrum_ro = attribute(access=AttrWriteType.READ,
-                                  **attrs['bool_spectrum'])
+                                    **attrs['bool_spectrum'])
     short_spectrum_ro = attribute(access=AttrWriteType.READ,
                                   **attrs['short_spectrum'])
     float_spectrum_ro = attribute(access=AttrWriteType.READ,
                                   **attrs['float_spectrum'])
     string_spectrum_ro = attribute(access=AttrWriteType.READ,
-                                  **attrs['string_spectrum'])
+                                   **attrs['string_spectrum'])
     # IMAGES
     boolean_image_ro = attribute(access=AttrWriteType.READ,
-                                  **attrs['bool_image'])
+                                 **attrs['bool_image'])
     short_image_ro = attribute(access=AttrWriteType.READ,
-                                  **attrs['short_image'])
+                               **attrs['short_image'])
     float_image_ro = attribute(access=AttrWriteType.READ,
-                                  **attrs['float_image'])
+                               **attrs['float_image'])
     string_image_ro = attribute(access=AttrWriteType.READ,
-                                  **attrs['string_image'])
+                                **attrs['string_image'])
 
     # READ/WRITE ATTRIBUTES
     # SCALARS
     boolean_scalar = attribute(access=AttrWriteType.READ_WRITE,
-                                **attrs['bool_scalar'])
+                               **attrs['bool_scalar'])
     short_scalar = attribute(access=AttrWriteType.READ_WRITE,
-                                **attrs['short_scalar'])
+                             **attrs['short_scalar'])
     short_scalar_nu = attribute(access=AttrWriteType.READ_WRITE,
                                 **attrs['short_scalar_nu'])
     float_scalar = attribute(access=AttrWriteType.READ_WRITE,
-                                **attrs['float_scalar'])
+                             **attrs['float_scalar'])
     string_scalar = attribute(access=AttrWriteType.READ_WRITE,
-                                **attrs['string_scalar'])
+                              **attrs['string_scalar'])
     # SPECTRUM
     boolean_spectrum = attribute(access=AttrWriteType.READ_WRITE,
-                               **attrs['bool_spectrum'])
+                              **attrs['bool_spectrum'])
     short_spectrum = attribute(access=AttrWriteType.READ_WRITE,
-                               **attrs['short_spectrum'])
+                            **attrs['short_spectrum'])
     float_spectrum = attribute(access=AttrWriteType.READ_WRITE,
-                               **attrs['float_spectrum'])
+                            **attrs['float_spectrum'])
     string_spectrum = attribute(access=AttrWriteType.READ_WRITE,
-                               **attrs['string_spectrum'])
+                             **attrs['string_spectrum'])
+
     # IMAGES
-    boolean_image = attribute(access=AttrWriteType.READ,
-                                  **attrs['bool_image'])
-    short_image = attribute(access=AttrWriteType.READ,
-                                  **attrs['short_image'])
-    float_image = attribute(access=AttrWriteType.READ,
-                                  **attrs['float_image'])
-    string_image = attribute(access=AttrWriteType.READ,
-                                  **attrs['string_image'])
+    boolean_image = attribute(access=AttrWriteType.READ_WRITE,
+                              **attrs['bool_image'])
+    short_image = attribute(access=AttrWriteType.READ_WRITE,
+                            **attrs['short_image'])
+    float_image = attribute(access=AttrWriteType.READ_WRITE,
+                            **attrs['float_image'])
+    string_image = attribute(access=AttrWriteType.READ_WRITE,
+                             **attrs['string_image'])
 
     # READ ONLY METHODS
     # SCALARS
@@ -222,7 +223,7 @@ class TangoSchemeTest(Device):
 
     def read_string_spectrum(self):
         return getattr(self, '_string_spectrum',
-                       [self.default_read['str']] * self.DIMX)
+                       [self.default_read['string']] * self.DIMX)
 
     def write_string_spectrum(self, v):
         self._string_spectrum = v
