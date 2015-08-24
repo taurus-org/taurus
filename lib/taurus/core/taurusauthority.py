@@ -84,9 +84,6 @@ class TaurusAuthority(TaurusModel):
                 self._descr = self._getDefaultDescription()
         return self._descr
 
-    def getDisplayValue(self,cache=True):
-        return self.getDisplayDescription(cache)
-
     def getDisplayDescription(self,cache=True):
         return self.getFullName()
     

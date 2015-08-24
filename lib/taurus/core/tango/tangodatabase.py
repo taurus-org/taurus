@@ -38,8 +38,9 @@ import weakref
 from PyTango import (Database, DeviceProxy, DevFailed, ApiUtil)
 
 from taurus.core.taurusbasetypes import TaurusSWDevHealth
-from taurus.core.util.containers import CaselessDict
 from taurus.core.taurusauthority import TaurusAuthority
+from taurus.core.util.containers import CaselessDict
+from taurus.core.util.log import tep14_deprecation
 
 InvalidAlias = "nada"
 
@@ -674,7 +675,11 @@ class TangoAuthority(TaurusAuthority):
     
     def getValueObj(self,cache=True):
         return self.dbObj
-    
+
+    @tep14_deprecation(alt='getFullName')
+    def getDisplayValue(self,cache=True):
+        return self.getDisplayDescription(cache)
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Query capabilities built on top of a cache
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
