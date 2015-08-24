@@ -263,14 +263,15 @@ class TangoAttribute(TaurusAttribute):
         self.calarms = [self.no_min_value, self.no_max_value]
         self.cwarnings = [self.no_min_warning, self.no_max_warning]
         self.cranges = [self.no_min_value, self.no_min_alarm,
-                        self.no_.min_warning, self.no_max_warning,
+                        self.no_min_warning, self.no_max_warning,
                         self.no_max_alarm, self.no_max_value]
         self.max_dim = 1, 0
         dis_level = PyTango.DispLevel.OPERATOR
         self.display_level = display_level_from_tango(dis_level)
         self.tango_writable = PyTango.AttrWriteType.READ
         self.format = '7.2f'
-        self._units = unit_from_tango(self.no_units)
+        # TODO This call is not valid unit_from_tango(self.no_units)
+        self._units = None
 
         # decode the Tango configuration attribute (adds extra members)
         self._pytango_attrinfoex = None
