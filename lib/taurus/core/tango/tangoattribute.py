@@ -249,6 +249,29 @@ class TangoAttribute(TaurusAttribute):
                 # if PyTango could not connect to the dev
                 attr_info = None
 
+        # Set default values in case the attrinfoex is None
+        self.name = self.getSimpleName()
+        self.writable = False
+        self.label = self.name
+        self.data_format = data_format_from_tango(PyTango.AttrDataFormat.SCALAR)
+        self.description = 'No description'
+        self.range = [self.no_min_value, self.no_max_value]
+        self.warning = [self.no_min_warning, self.no_max_warning]
+        self.alarm = [self.no_min_alarm, self.no_max_alarm]
+        self.type = data_type_from_tango(PyTango.DevShort)
+        self.climits = [self.no_min_value, self.no_max_value]
+        self.calarms = [self.no_min_value, self.no_max_value]
+        self.cwarnings = [self.no_min_warning, self.no_max_warning]
+        self.cranges = [self.no_min_value, self.no_min_alarm,
+                        self.no_.min_warning, self.no_max_warning,
+                        self.no_max_alarm, self.no_max_value]
+        self.max_dim = 1, 0
+        dis_level = PyTango.DispLevel.OPERATOR
+        self.display_level = display_level_from_tango(dis_level)
+        self.tango_writable = PyTango.AttrWriteType.READ
+        self.format = '7.2f'
+        self._units = unit_from_tango(self.no_units)
+
         # decode the Tango configuration attribute (adds extra members)
         self._pytango_attrinfoex = None
         self._decodeAttrInfoEx(attr_info)
