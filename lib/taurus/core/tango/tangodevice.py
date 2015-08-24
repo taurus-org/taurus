@@ -34,7 +34,7 @@ from PyTango import (DeviceProxy, DevFailed, LockerInfo, DeviceAttribute)
 from taurus import Factory
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusbasetypes import TaurusSWDevState, TaurusLockInfo, LockStatus
-
+from taurus.core.util.log import tep14_deprecation
 
 DFT_TANGO_DEVICE_DESCRIPTION = "A TANGO device"
 
@@ -57,6 +57,10 @@ class TangoDevice(TaurusDevice):
         """Object initialization."""
         self.call__init__(TaurusDevice, name, **kw)
 
+    @tep14_deprecation()
+    def getDisplayValue(self,cache=True):
+        return TaurusSWDevState.whatis(self.getValueObj(cache).rvalue)
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusDevice necessary overwrite
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -66,7 +70,8 @@ class TangoDevice(TaurusDevice):
         except DevFailed, e:
             self.warning('Could not create HW object: %s' % (e[0].desc))
             self.traceback()
-            
+
+    @tep14_deprecation()
     def isValidDev(self):
         '''see: :meth:`TaurusDevice.isValid`'''
         return self._deviceObj is not None

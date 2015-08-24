@@ -33,6 +33,7 @@ from .taurusbasetypes import TaurusSWDevState, TaurusEventType, \
     TaurusLockInfo, TaurusElementType
 from .taurusmodel import TaurusModel
 from .taurushelper import Factory
+from taurus.core.util.log import tep14_deprecation
 
 DFT_DEVICE_DESCRIPTION = "A device"
 
@@ -133,16 +134,6 @@ class TaurusDevice(TaurusModel):
         import taurusattribute
         return self.factory().getObject(taurusattribute.TaurusAttribute,attrname)
 
-    def isValidDev(self):
-        """returns True if the device is in "working conditions
-
-        The default implementation always returns True. Reimplement it in
-        subclasses if there are cases in which the device cannot be queried
-        (e.g. in Tango, the TangoDevice object may exist even if there is not a real
-        hardware device associated, in which case this method should return False)
-        """
-        return True
-
     def getLockInfo(self, cache=False):
         return self._lock_info
 
@@ -201,9 +192,6 @@ class TaurusDevice(TaurusModel):
             self._deviceSwState = self.decode(v)
         return self._deviceSwState
 
-    def getDisplayValue(self,cache=True):
-        return TaurusSWDevState.whatis(self.getValueObj(cache).rvalue)
-
     def getDisplayDescrObj(self,cache=True):
         obj = []
         obj.append(('name', self.getDisplayName(cache=cache)))
@@ -211,7 +199,8 @@ class TaurusDevice(TaurusModel):
         if descr.lower() != self._getDefaultDescription().lower():
             obj.append(('description', descr))
         obj.append(('device state', self.getStateObj().getDisplayValue()) or self.getNoneValue())
-        obj.append(('SW state', self.getDisplayValue()))
+        sw_state = TaurusSWDevState.whatis(self.getValueObj(cache).rvalue)
+        obj.append('SW state', sw_state)
         return obj
 
     def getDescription(self,cache=True):
