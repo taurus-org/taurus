@@ -247,8 +247,8 @@ class TaurusDevice(TaurusModel):
     def getChildObj(self, child_name):
         if child_name is None or len(child_name) == 0:
             return None
-        return self.factory().findObject("%s%s" % (self.getFullName(), child_name))
-        return self.getAttribute(child_name)
+        obj_name = "%s%s" % (self.getFullName(), child_name)
+        return self.factory().findObject(obj_name)
 
     def eventReceived(self, event_src, event_type, event_value):
         if event_type == TaurusEventType.Config:
