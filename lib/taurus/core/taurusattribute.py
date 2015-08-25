@@ -410,19 +410,6 @@ class TaurusAttribute(TaurusModel):
         v = self.read(cache)
         return isinstance(v.rvalue, bool)
 
-    def _get_unit(self):
-        '''for backwards compat with taurus < 4'''
-        return self.getUnit(True)
-
-    @tep14_deprecation(alt='.rvalue.units')
-    def _set_unit(self, value):
-        '''for backwards compat with taurus < 4'''
-        extra_msg = 'Ignoring setting of units of %s to %r' % (self.name,
-                                                               value )
-        self.debug(extra_msg)
-
-    unit = property(_get_unit, _set_unit)
-
 
 class TaurusStateAttribute(TaurusAttribute):
     """ """

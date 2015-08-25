@@ -888,13 +888,6 @@ class TangoAttribute(TaurusAttribute):
         return self.displayValue(v)
 
     @tep14_deprecation(alt='.rvalue.units')
-    def getUnit(self, cache=True):
-        try:
-            return str(self.getValueObj(cache).rvalue.units)
-        except:
-            return None
-
-    @tep14_deprecation(alt='.rvalue.units')
     def getStandardUnit(self, cache=True):
         try:
             return str(self.getValueObj(cache).rvalue.units)
@@ -975,6 +968,26 @@ class TangoAttribute(TaurusAttribute):
     def getConfig(self):
         """ Returns the current configuration of the attribute."""
         return weakref.proxy(self)
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def getUnit(self, cache=True):
+        try:
+            return str(self.getValueObj(cache).rvalue.units)
+        except:
+            return None
+
+    def _get_unit(self):
+        '''for backwards compat with taurus < 4'''
+        return self.getUnit(True)
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def _set_unit(self, value):
+        '''for backwards compat with taurus < 4'''
+        extra_msg = 'Ignoring setting of units of %s to %r' % (self.name,
+                                                               value )
+        self.debug(extra_msg)
+
+    unit = property(_get_unit, _set_unit)
 
 
 class TangoStateAttribute(TangoAttribute, TaurusStateAttribute):
