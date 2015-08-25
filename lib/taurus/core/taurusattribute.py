@@ -58,31 +58,31 @@ class TaurusAttribute(TaurusModel):
     def __init__(self, name, parent, **kwargs):
         self.call__init__(TaurusModel, name, parent)
 
-        self.__parentDevice = parent # just to keep it alive
-        
+        # just to keep it alive
+        self.__parentDevice = parent
+
         # User enabled/disabled polling
-        self.__enable_polling = kwargs.get('enablePolling', True) 
-        
-        # attribute should be polled. The attribute is in fact polled only if the polling is also enabled 
+        self.__enable_polling = kwargs.get('enablePolling', True)
+
+        # attribute should be polled.
+        # The attribute is polled only if the polling is also enabled
         self.__activate_polling = False
-        
-        # efectively tells if the attribute is being polled periodically
-        # in summary: polled = enable_polling and activate_polling
+
+        # Indicates if the attribute is being polled periodically
+        # In summary: polled = enable_polling and activate_polling
         self.__polled = False
-        
+
         # current polling period
         self.__polling_period = kwargs.get("pollingPeriod", 3000)
-        
+
         # stores if polling has been forced by user API
         self.__forced_polling = False
-        
-        # Everything went ok so now we are sure we can store the object
+
+        # If everything went well, the object is stored
         storeCallback = kwargs.get("storeCallback", None)
         if not storeCallback is None:
             storeCallback(self)
 
-        ########################################################################
-        # From TaurusConfigValue attributes
         self.name = None
         self.writable = None
         self.data_format = None
@@ -114,14 +114,14 @@ class TaurusAttribute(TaurusModel):
             
     @classmethod
     def buildModelName(cls, parent_model, relative_name):
-        """build an 'absolute' model name from the parent model and the 'relative'
-        name. 
+        """build an 'absolute' model name from the parent model and the
+        'relative' name.
         - If parent_model is a TaurusDevice, the return is a composition of
         the database model name and its device name
         - If parent_model is a TaurusAttribute, the relative name is ignored and
         the parent name is returned
         
-        Note: This is a basic implementation. You may need to reimplement this 
+        Note: This is a basic implementation. You may need to reimplement this
               for a specific scheme if it supports "useParentModel". 
         """
         if parent_model is None:
@@ -141,46 +141,43 @@ class TaurusAttribute(TaurusModel):
     # Necessary to overwrite in subclass
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     def isNumeric(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" \
+        raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.isNumeric")
-        
-#    def isBoolean(self):
-#        raise NotImplementedError("Not allowed to call AbstractClass TaurusAttribute.isBoolean")
-    
+
     def isState(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" \
+        raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.isState")
 
     def encode(self, value):
-        raise NotImplementedError("Not allowed to call AbstractClass" \
+        raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.encode")
 
     def decode(self, attr_value):
-        raise NotImplementedError("Not allowed to call AbstractClass" \
+        raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.decode")
 
     def write(self, value, with_read=True):
-        raise NotImplementedError("Not allowed to call AbstractClass" \
+        raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.write")
 
     def read(self, cache=True):
-        raise NotImplementedError("Not allowed to call AbstractClass" \
+        raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.read")
 
     def poll(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" \
+        raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.poll")
 
     def _subscribeEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" \
+        raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute._subscribeEvents")
 
     def _unsubscribeEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" \
+        raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute._unsubscribeEvents")
 
     def isUsingEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" \
+        raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.isUsingEvents")
         
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -202,7 +199,7 @@ class TaurusAttribute(TaurusModel):
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     def hasEvents(self):
         self.deprecated("Don't use this anymore. Use isUsingEvents instead")
@@ -292,16 +289,12 @@ class TaurusAttribute(TaurusModel):
         """returns the polling period """
         return self.__polling_period
 
-    # The following are deprecated and maintained only for compatibility
-
     def activatePolling(self, period, unsubscribe_evts=False, force=False):
         """activate polling for attribute.
 
            :param period: polling period (in miliseconds)
            :type period: int
         """
-        ## REENABLED, used to solve problems with ID GUI's and other systems where event independency is needed.
-        #self.deprecated("use changePollingPeriod(). Not exactly the same functionality. Only activates polling if necessary")
         self.changePollingPeriod(period)
         self.enablePolling(force=force)
 
@@ -310,9 +303,6 @@ class TaurusAttribute(TaurusModel):
         self.deprecated("use disablePolling()")
         self.disablePolling()
 
-    ##########################################################################
-    # TaurusConfiguration Methods
-    
     def __str__(self):
         return self.getFullName()
 
@@ -324,13 +314,16 @@ class TaurusAttribute(TaurusModel):
         obj = [('name', name)]
         descr = self.getDescription(cache=cache)
         if descr and descr != self.no_description:
-            obj.append(('description',descr.replace("<","&lt;").replace(">","&gt;")))
+            _descr = descr.replace("<", "&lt;").replace(">", "&gt;")
+            obj.append(('description', _descr))
 
         limits = self.getRange(cache=cache)
         if limits and (limits[0] != self.no_min_value or \
                        limits[1] != self.no_max_value):
-            if limits[0] == self.no_min_value: limits[0] = self.no_cfg_value
-            if limits[1] == self.no_max_value: limits[1] = self.no_cfg_value
+            if limits[0] == self.no_min_value:
+                limits[0] = self.no_cfg_value
+            if limits[1] == self.no_max_value:
+                limits[1] = self.no_cfg_value
             obj.append(('limits', "[%s, %s]" % (limits[0],limits[1])))
 
         alarms = self.getAlarms(cache=cache)
@@ -343,8 +336,10 @@ class TaurusAttribute(TaurusModel):
         warnings = self.getWarnings(cache=cache)
         if warnings and (warnings[0] != self.no_min_warning or \
                          warnings[1] != self.no_max_warning):
-            if warnings[0] == self.no_min_warning: warnings[0] = self.no_cfg_value
-            if warnings[1] == self.no_max_warning: warnings[1] = self.no_cfg_value
+            if warnings[0] == self.no_min_warning:
+                warnings[0] = self.no_cfg_value
+            if warnings[1] == self.no_max_warning:
+                warnings[1] = self.no_cfg_value
             obj.append(('warnings', "[%s, %s]" % (warnings[0],warnings[1])))
 
         return obj
