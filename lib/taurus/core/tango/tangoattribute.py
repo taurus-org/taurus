@@ -158,7 +158,6 @@ class TangoAttrValue(TaurusAttrValue):
             else:
                 self.rvalue = value
         elif hasattr(self.rvalue, 'units'): # we do have it and is a Quantity
-            from taurus.external.pint import Quantity
             self.rvalue = Quantity(value, units = self.rvalue.units)
         else: # we do have a previous value and is not a quantity
             self.rvalue = value
@@ -188,7 +187,6 @@ class TangoAttrValue(TaurusAttrValue):
             else:
                 self.wvalue=value
         elif hasattr(self.wvalue, 'units'): # we do have it and is a Quantity
-            from taurus.external.pint import Quantity
             self.wvalue = Quantity(value, units = self.wvalue.units)
         else: # we do have a previous value and is not a quantity
             self.wvalue=value
@@ -326,60 +324,15 @@ class TangoAttribute(TaurusAttribute):
         tgtype = self._tango_data_type
         return tgtype == PyTango.CmdArgType.DevState
 
-    @tep14_deprecation(dbg_msg='Deprecated method')
-    def displayValue(self, value):
-        return str(value)
-
-    @tep14_deprecation(alt='getLabel')
-    def getDisplayValue(self, cache=True):
-        attrvalue = self.getValueObj(cache=cache)
-        if not attrvalue:
-            return None
-        v = attrvalue.rvalue
-
-        return self.displayValue(v)
-
-    @tep14_deprecation(alt='.rvalue.units')
-    def getUnit(self, cache=True):
-        try:
-            return str(self.getValueObj(cache).rvalue.units)
-        except:
-            return None
-
-    @tep14_deprecation(alt='.rvalue.units')
-    def getStandardUnit(self, cache=True):
-        try:
-            return str(self.getValueObj(cache).rvalue.units)
-        except:
-            return None
-
-    @tep14_deprecation(alt='.rvalue.units')
-    def getDisplayUnit(self, cache=True):
-        try:
-            return str(self.getValueObj(cache).rvalue.units)
-        except:
-            return None
-
     def getFormat(self, cache=True):
         return self.format
 
     def setFormat(self, fmt):
         self.format = fmt
 
-    @tep14_deprecation(dbg_msg='Do not use')
-    def getDisplayWriteValue(self,cache=True):
-         raise NotImplementedError("Not available since Taurus4")
-
     def encode(self, value):
         """Translates the given value into a tango compatible value according to
         the attribute data type"""
-
-        attrvalue = None
-#        cfg = self._getRealConfig()
-#        if cfg is None:
-#            self.warning("attribute does not contain information")
-#            return value
-        
         try:
             magnitude = value.magnitude
             units = value.units
@@ -406,7 +359,6 @@ class TangoAttribute(TaurusAttribute):
                 # see: http://sf.net/p/sardana/tickets/162
                 attrvalue = float(numpy.float32(magnitude))
             elif PyTango.is_int_type(tgtype):
-                #attrvalue = int(magnitude)
                 attrvalue = long(magnitude)  #changed as a partial workaround to a problem in PyTango writing to DevULong64 attributes (see ALBA RT#29793)
             elif tgtype == PyTango.CmdArgType.DevBoolean:
                 try:
@@ -532,7 +484,6 @@ class TangoAttribute(TaurusAttribute):
                 raise e
         elif self.__subscription_state in (SubscriptionState.Subscribing, SubscriptionState.PendingSubscribe):
             self.__subscription_event.wait()
-
 
         if self.__attr_err is not None:
             raise self.__attr_err
@@ -767,13 +718,6 @@ class TangoAttribute(TaurusAttribute):
     def isInformDeviceOfErrors(self):
         return False
 
-    ###########################################################################
-    # TangoConfiguration
-
-    @tep14_deprecation(alt='isWritable')
-    def getWritable(self, cache=True):
-        return self.isWritable(cache)
-
     def isWrite(self, cache=True):
         return self.getTangoWritable(cache) == PyTango.AttrWriteType.WRITE
 
@@ -787,65 +731,6 @@ class TangoAttribute(TaurusAttribute):
         '''like TaurusConfiguration.getWritable, but it returns a
          PyTango.AttrWriteType instead of a bool'''
         return self.tango_writable
-
-#    def encode(self, value):
-#        """Translates the given value into a tango compatible value according to
-#        the attribute data type
-#        value must be a valid """
-#        return value
-
-    #===========================================================================
-    # Some methods reimplemented from TaurusConfiguration
-    #===========================================================================
-
-#    def getMaxDimX(self, cache=True):
-#        return self.max_dim_x
-
-#    def getMaxDimY(self, cache=True):
-#        return self.max_dim_y
-
-#    def getType(self, cache=True):
-#        return self.data_type
-
-    @tep14_deprecation(alt='self.data_format')
-    def isScalar(self):
-        return self.data_format == DataFormat._0D
-
-    @tep14_deprecation(alt='self.data_format')
-    def isSpectrum(self):
-        return self.data_format == DataFormat._1D
-
-    @tep14_deprecation(alt='self.data_format')
-    def isImage(self):
-        return self.data_format == DataFormat._2D
-
-    def getMaxDim(self, cache=True):
-        return self.max_dim
-
-    @tep14_deprecation(alt='getMaxDim')
-    def getMaxDimX(self, cache=True):
-        dim = self.getMaxDim(cache)
-        if dim:
-            return dim[0]
-        else:
-            return None
-
-    @tep14_deprecation(alt='getMaxDim')
-    def getMaxDimY(self, cache=True):
-        dim = self.getMaxDim(cache)
-        if dim:
-            return dim[1]
-        else:
-            return None
-
-    @tep14_deprecation(dbg_msg='Deprecated method')
-    def getShape(self, cache=True):
-        if self.isScalar(cache):
-            return ()
-        elif self.isSpectrum():
-            return (self.getMaxDimX(),)
-        else:
-            return self.getMaxDim()
 
     def getRange(self, cache=True):
         return self.getLimits(cache=cache)
@@ -874,23 +759,8 @@ class TangoAttribute(TaurusAttribute):
     def getWarnings(self, cache=True):
         return list(self.cwarnings)
 
-    @tep14_deprecation(alt='getattr')
-    def getParam(self, param_name):
-        # TODO not well implemented
-        if param_name.endswith('warning') or param_name.endswith('alarm'):
-            attr = self.alarms
-        try:
-            return getattr(attr, param_name)
-        except:
-            return None
-
-    @tep14_deprecation(alt='setattr')
-    def setParam(self, param_name, value):
-        # TODO not well implemented
-        if param_name.endswith('warning') or param_name.endswith('alarm'):
-            attr = self.alarms
-        setattr(attr, param_name, value)
-        self._applyConfig()
+    def getMaxDim(self, cache=True):
+        return self.max_dim
 
     def setLimits(self,low, high):
         l_str, h_str = str(low), str(high)
@@ -941,14 +811,6 @@ class TangoAttribute(TaurusAttribute):
         config = self._pytango_attrinfoex
         self.setConfigEx(config)
 
-    @tep14_deprecation(alt='self')
-    def getConfig(self):
-        """ Returns the current configuration of the attribute."""
-        return weakref.proxy(self)
-
-    ###########################################################################
-    # TangoConfValue methods
-    # it is the old constructor
     def _decodeAttrInfoEx(self, pytango_attrinfoex=None):
         if  pytango_attrinfoex is None:
             self._pytango_attrinfoex = PyTango.AttributeInfoEx()
@@ -958,16 +820,13 @@ class TangoAttribute(TaurusAttribute):
             self.name = i.name
             self.writable = i.writable != PyTango.AttrWriteType.READ
             self.label = i.label
-
             self.data_format = data_format_from_tango(i.data_format)
             self.description = description_from_tango(i.description)
-
-            units = unit_from_tango(i.unit )
-            #disp_fmt = display_format_from_tango(i.data_type, i.format)
-
+            self.type = data_type_from_tango(i.data_type)
             ###############################################################
             # changed in taurus4: range, alarm and warning now return
             # quantities if appropriate
+            units = unit_from_tango(i.unit)
             if PyTango.is_numerical_type(i.data_type, inc_array=True):
                 Q_ = partial(quantity_from_tango_str, units=units,
                              dtype=i.data_type)
@@ -982,45 +841,139 @@ class TangoAttribute(TaurusAttribute):
             self.range = [min_value, max_value]
             self.warning = [min_warning, max_warning]
             self.alarm = [min_alarm, max_alarm]
-            #
             ###############################################################
-            self.type = data_type_from_tango(i.data_type)
-
-            #################################################
+            # The following members will be accessed via __getattr__
+            # self.standard_unit
+            # self.display_unit
+            # self.disp_level
+            ###############################################################
             # Tango-specific extension of TaurusConfigValue
-
-
             self.climits = [i.min_value, i.max_value]
             self.calarms = [i.min_alarm, i.max_alarm]
             self.cwarnings = [i.alarms.min_warning, i.alarms.max_warning]
             self.cranges = [i.min_value, i.min_alarm, i.alarms.min_warning,
                         i.alarms.max_warning, i.max_alarm, i.max_value]
             self.max_dim = 1, 1
-
             self.display_level = display_level_from_tango(i.disp_level)
             self.tango_writable = i.writable
-            #################################################
-
+            ###############################################################
             self.format = standard_display_format_from_tango(i.data_type,
                                                              i.format)
-
             # self._units and self._display_format is to be used by
             # TangoAttrValue for performance reasons. Do not rely on it in other
             # code
             self._units = units
-            #self._display_format = disp_fmt
-
-            #################################################
-            # The following members will be accessed via __getattr__
-            # self.standard_unit
-            # self.display_unit
-            # self.disp_level
-            #################################################
 
     @property
     def _tango_data_type(self):
         '''returns the *tango* (not Taurus) data type'''
         return self._pytango_attrinfoex.data_type
+
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # Deprecated methods
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+    @tep14_deprecation(dbg_msg='Deprecated method')
+    def displayValue(self, value):
+        return str(value)
+
+    @tep14_deprecation(alt='getLabel')
+    def getDisplayValue(self, cache=True):
+        attrvalue = self.getValueObj(cache=cache)
+        if not attrvalue:
+            return None
+        v = attrvalue.rvalue
+
+        return self.displayValue(v)
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def getUnit(self, cache=True):
+        try:
+            return str(self.getValueObj(cache).rvalue.units)
+        except:
+            return None
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def getStandardUnit(self, cache=True):
+        try:
+            return str(self.getValueObj(cache).rvalue.units)
+        except:
+            return None
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def getDisplayUnit(self, cache=True):
+        try:
+            return str(self.getValueObj(cache).rvalue.units)
+        except:
+            return None
+
+    @tep14_deprecation(dbg_msg='Do not use')
+    def getDisplayWriteValue(self,cache=True):
+         raise NotImplementedError("Not available since Taurus4")
+
+    @tep14_deprecation(alt='isWritable')
+    def getWritable(self, cache=True):
+        return self.isWritable(cache)
+
+    @tep14_deprecation(alt='self.data_format')
+    def isScalar(self):
+        return self.data_format == DataFormat._0D
+
+    @tep14_deprecation(alt='self.data_format')
+    def isSpectrum(self):
+        return self.data_format == DataFormat._1D
+
+    @tep14_deprecation(alt='self.data_format')
+    def isImage(self):
+        return self.data_format == DataFormat._2D
+
+    @tep14_deprecation(alt='getMaxDim')
+    def getMaxDimX(self, cache=True):
+        dim = self.getMaxDim(cache)
+        if dim:
+            return dim[0]
+        else:
+            return None
+
+    @tep14_deprecation(alt='getMaxDim')
+    def getMaxDimY(self, cache=True):
+        dim = self.getMaxDim(cache)
+        if dim:
+            return dim[1]
+        else:
+            return None
+
+    @tep14_deprecation(dbg_msg='Deprecated method')
+    def getShape(self, cache=True):
+        if self.isScalar(cache):
+            return ()
+        elif self.isSpectrum():
+            return (self.getMaxDimX(),)
+        else:
+            return self.getMaxDim()
+
+    @tep14_deprecation(alt='getattr')
+    def getParam(self, param_name):
+        # TODO not well implemented
+        if param_name.endswith('warning') or param_name.endswith('alarm'):
+            attr = self.alarms
+        try:
+            return getattr(attr, param_name)
+        except:
+            return None
+
+    @tep14_deprecation(alt='setattr')
+    def setParam(self, param_name, value):
+        # TODO not well implemented
+        if param_name.endswith('warning') or param_name.endswith('alarm'):
+            attr = self.alarms
+        setattr(attr, param_name, value)
+        self._applyConfig()
+
+    @tep14_deprecation(alt='self')
+    def getConfig(self):
+        """ Returns the current configuration of the attribute."""
+        return weakref.proxy(self)
 
 
 class TangoStateAttribute(TangoAttribute, TaurusStateAttribute):
@@ -1045,7 +998,6 @@ class TangoAttributeEventListener(EventListener):
         if t not in (TaurusEventType.Change, TaurusEventType.Periodic):
             return
         self.fireEvent(v.value)
-
 
 
 def test1():
