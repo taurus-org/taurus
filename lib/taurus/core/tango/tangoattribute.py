@@ -715,9 +715,6 @@ class TangoAttribute(TaurusAttribute):
                 self.fireEvent(TaurusEventType.Error, self.__attr_err,
                                listeners=listeners)
 
-    def isInformDeviceOfErrors(self):
-        return False
-
     def isWrite(self, cache=True):
         return self.getTangoWritable(cache) == PyTango.AttrWriteType.WRITE
 
@@ -872,6 +869,10 @@ class TangoAttribute(TaurusAttribute):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Deprecated methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+    @tep14_deprecation()
+    def isInformDeviceOfErrors(self):
+        return False
 
     @tep14_deprecation(dbg_msg='Deprecated method')
     def displayValue(self, value):
