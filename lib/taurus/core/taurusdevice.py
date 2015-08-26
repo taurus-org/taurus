@@ -55,7 +55,6 @@ class TaurusDevice(TaurusModel):
         self.call__init__(TaurusModel, name, parent)
 
         self._deviceStateObj = None
-        self._lock_info = TaurusLockInfo()
         self._descr = None
         self._deviceSwState = self.decode(TaurusSWDevState.Uninitialized)
 
@@ -120,15 +119,6 @@ class TaurusDevice(TaurusModel):
             attrname = "%s%s" % (self.getFullName(), attrname)
         import taurusattribute
         return self.factory().getObject(taurusattribute.TaurusAttribute,attrname)
-
-    def getLockInfo(self, cache=False):
-        return self._lock_info
-
-    def lock(self, force=False):
-        pass
-
-    def unlock(self, force=False):
-        pass
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation

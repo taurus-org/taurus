@@ -59,6 +59,7 @@ class TangoDevice(TaurusDevice):
         """Object initialization."""
         self.call__init__(TaurusDevice, name, **kw)
         self._deviceObj = self._createHWObject()
+        self._lock_info = TaurusLockInfo()
 
     # Export the DeviceProxy interface into this object.
     # This way we can call for example read_attribute on an object of this class
