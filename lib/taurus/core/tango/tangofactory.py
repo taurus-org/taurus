@@ -271,7 +271,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                             Database will be used
            :param create_if_needed: (bool) If True, the Device is created if it 
                                     did not exist previously. If False, it 
-                                    return None if it did not exist
+                                    returns None if it did not exist
              
            :return: (taurus.core.tango.TangoDevice) a device object 
            :raise: (taurus.core.taurusexception.TaurusException) if the given 
@@ -320,9 +320,9 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            is returned. Otherwise a new instance is stored and returned.
 
            :param attr_name: (str) a valid attribute name URI
-           :param create_if_needed: (bool) If True, the Device is created if it 
-                                    did not exist previously. If False, it 
-                                    return None if it did not exist
+           :param create_if_needed: (bool) If True, the Attribute is created if
+                                    it did not already exist. If False,
+                                    None is returned if it did not exist
            :return: (taurus.core.tangoattribute.TangoAttribute) attribute object
            :raise: (taurus.core.taurusexception.TaurusException) if the given
                    alias is invalid.
