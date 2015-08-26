@@ -53,7 +53,6 @@ class TaurusDevice(TaurusModel):
         self.__dict__.update(kw)
         self.call__init__(TaurusModel, name, parent)
 
-        self._deviceObj = self._createHWObject()
         self._deviceStateObj = None
         self._lock_info = TaurusLockInfo()
         self._descr = None
@@ -64,7 +63,6 @@ class TaurusDevice(TaurusModel):
 
     def cleanUp(self):
         self.trace("[TaurusDevice] cleanUp")
-        self._deviceObj = None
         self._descr = None
         #self._deviceSwObj
         if not self._deviceStateObj is None:
@@ -78,36 +76,24 @@ class TaurusDevice(TaurusModel):
             cls._factory = Factory(scheme=cls._scheme)
         return cls._factory
 
-    # Export the DeviceProxy interface into this object.
-    # This way we can call for example read_attribute on an object of this class
-    def __getattr__(self, name):
-        if '_deviceObj' in self.__dict__ and self._deviceObj is not None:
-            return getattr(self._deviceObj, name)
-        cls_name = self.__class__.__name__
-        raise AttributeError("'%s' has no attribute '%s'" % (cls_name, name))
-
-    #def __setattr__(self, name, value):
-    #    if '_deviceObj' in self.__dict__ and self._deviceObj is not None:
-    #        return setattr(self._deviceObj, name, value)
-    #    super(TaurusDevice, self).__setattr__(name, value)
-
-    # Export the 'act like dictionary' feature of PyTango.DeviceProxy
     def __getitem__(self, key):
+        """read attribute value using key-indexing syntax (e.g. as in a dict)
+        on the device"""
         attr = self.getAttribute(key)
         return attr.read()
 
     def __setitem__(self, key, value):
+        """set attribute value using key-indexing syntax (e.g. as in a dict)
+        on the device"""
         attr = self.getAttribute(key)
         return attr.write(value)
 
     def __contains__(self, key):
-        hw = self.getHWObj()
-        if hw is None:
-            return False
-        return hw.__contains__(key)
-
-    def getHWObj(self):
-        return self._deviceObj
+        """Reimplement in schemes if you want to support membership testing for
+        attributes of the device
+        """
+        raise TypeError("'%s' does not support membership testing" %
+                        self.__class__.__name__)
 
     def getStateObj(self):
         if self._deviceStateObj is None:
@@ -142,13 +128,6 @@ class TaurusDevice(TaurusModel):
 
     def unlock(self, force=False):
         pass
-
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # Mandatory implementation in sub class
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
-    def _createHWObject(self):
-        raise NotImplementedError
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation

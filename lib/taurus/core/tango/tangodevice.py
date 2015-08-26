@@ -56,20 +56,45 @@ class TangoDevice(TaurusDevice):
     def __init__(self, name, **kw):
         """Object initialization."""
         self.call__init__(TaurusDevice, name, **kw)
+        self._deviceObj = self._createHWObject()
+
+    # Export the DeviceProxy interface into this object.
+    # This way we can call for example read_attribute on an object of this class
+    def __getattr__(self, name):
+        if self._deviceObj is not None:
+            return getattr(self._deviceObj, name)
+        cls_name = self.__class__.__name__
+        raise AttributeError("'%s' has no attribute '%s'" % (cls_name, name))
+
+    # def __setattr__(self, name, value):
+    #     if '_deviceObj' in self.__dict__ and self._deviceObj is not None:
+    #         return setattr(self._deviceObj, name, value)
+    #     super(TaurusDevice, self).__setattr__(name, value)
+
+    def __contains__(self, key):
+        """delegate the contains interface to the device proxy"""
+        hw = self.getHWObj()
+        if hw is None:
+            return False
+        return hw.__contains__(key)
+
+    def cleanUp(self):
+        self._deviceObj = None
+        TaurusDevice.cleanUp(self)
 
     @tep14_deprecation()
     def getDisplayValue(self,cache=True):
         return TaurusSWDevState.whatis(self.getValueObj(cache).rvalue)
 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # TaurusDevice necessary overwrite
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     def _createHWObject(self):
         try:
             return DeviceProxy(self.getFullName())
         except DevFailed, e:
             self.warning('Could not create HW object: %s' % (e[0].desc))
             self.traceback()
+
+    def getHWObj(self):
+        return self._deviceObj
 
     @tep14_deprecation()
     def isValidDev(self):
