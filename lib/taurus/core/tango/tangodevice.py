@@ -48,6 +48,8 @@ class _TangoInfo(object):
         self.server_version = 1
                 
 class TangoDevice(TaurusDevice):
+    """A Device object representing an abstraction of the PyTango.DeviceProxy
+       object in the taurus.core.tango scheme"""
 
     # helper class property that stores a reference to the corresponding factory
     _factory = None

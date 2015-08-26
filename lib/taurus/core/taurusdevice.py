@@ -43,8 +43,9 @@ class TaurusDevice(TaurusModel):
     SHUTDOWNS = (TaurusSWDevState.Shutdown, TaurusSWDevState.Crash,
                  TaurusSWDevState.EventSystemShutdown)
 
-    """A Device object representing an abstraction of the PyTango.DeviceProxy
-       object in the taurus.core layer"""
+    """A Device object. Different schemes may assign different roles, but
+       in general it is a parent of Taurus Attribute objects and a child
+       of a Taurus Authority"""
 
     def __init__(self, name, **kw):
         """Object initialization."""
