@@ -975,10 +975,6 @@ class TangoAttribute(TaurusAttribute):
         except:
             return None
 
-    def _get_unit(self):
-        '''for backwards compat with taurus < 4'''
-        return self.getUnit(True)
-
     @tep14_deprecation(alt='.rvalue.units')
     def _set_unit(self, value):
         '''for backwards compat with taurus < 4'''
@@ -986,7 +982,8 @@ class TangoAttribute(TaurusAttribute):
                                                                value )
         self.debug(extra_msg)
 
-    unit = property(_get_unit, _set_unit)
+    # deprecated property!
+    unit = property(getUnit, _set_unit)
 
 
 class TangoAttributeEventListener(EventListener):
