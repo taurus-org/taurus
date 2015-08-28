@@ -25,7 +25,7 @@
 
 """This module contains the base class for a taurus attribute"""
 
-__all__ = ["TaurusAttribute", "TaurusStateAttribute"]
+__all__ = ["TaurusAttribute"]
 
 __docformat__ = "restructuredtext"
 
@@ -405,13 +405,4 @@ class TaurusAttribute(TaurusModel):
         v = self.read(cache)
         return isinstance(v.rvalue, bool)
 
-
-class TaurusStateAttribute(TaurusAttribute):
-    """ """
-    
-    def __init__(self, name, parent, **kwargs):
-        self.call__init__(TaurusAttribute, name, parent, **kwargs)
-        
-    def isInformDeviceOfErrors(self):
-        return True
 

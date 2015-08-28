@@ -49,12 +49,11 @@ from taurus.core.util.singleton import Singleton
 from taurus.core.util.containers import CaselessWeakValueDict, CaselessDict
 
 from .tangodatabase import TangoAuthority
-from .tangoattribute import TangoAttribute, TangoStateAttribute
+from .tangoattribute import TangoAttribute
 from .tangodevice import TangoDevice
 
 _Authority = TangoAuthority
 _Attribute = TangoAttribute
-_StateAttribute = TangoStateAttribute
 _Device = TangoDevice
 
 class TangoFactory(Singleton, TaurusFactory, Logger):
@@ -127,7 +126,6 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         
         # Plugin attribute classes
         self.tango_attr_klasses = CaselessDict()
-        self.tango_attr_klasses["state"] = _StateAttribute
 
     def cleanUp(self):
         """Cleanup the singleton instance"""

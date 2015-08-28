@@ -25,8 +25,7 @@
 
 """This module contains all taurus tango attribute"""
 
-__all__ = ["TangoAttribute", "TangoStateAttribute", 
-           "TangoAttributeEventListener", "TangoAttrValue"]
+__all__ = ["TangoAttribute", "TangoAttributeEventListener", "TangoAttrValue"]
 
 __docformat__ = "restructuredtext"
 
@@ -41,7 +40,7 @@ from functools import partial
 from taurus import Manager
 from taurus.external.pint import Quantity
 
-from taurus.core.taurusattribute import TaurusAttribute, TaurusStateAttribute
+from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import (TaurusEventType,
                                          TaurusSerializationMode,
                                          SubscriptionState, TaurusAttrValue,
@@ -988,12 +987,6 @@ class TangoAttribute(TaurusAttribute):
         self.debug(extra_msg)
 
     unit = property(_get_unit, _set_unit)
-
-
-class TangoStateAttribute(TangoAttribute, TaurusStateAttribute):
-    def __init__(self, name, parent, **kwargs):
-        self.call__init__(TangoAttribute, name, parent, **kwargs)
-        self.call__init__(TaurusStateAttribute, name, parent, **kwargs)
 
 
 class TangoAttributeEventListener(EventListener):
