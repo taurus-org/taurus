@@ -81,6 +81,30 @@ class TangoDevice(TaurusDevice):
             return False
         return hw.__contains__(key)
 
+    def __getitem__(self, key):
+        """read attribute value using key-indexing syntax (e.g. as in a dict)
+        on the device"""
+        attr = self.getAttribute(key)
+        return attr.read()
+
+    def __setitem__(self, key, value):
+        """set attribute value using key-indexing syntax (e.g. as in a dict)
+        on the device"""
+        attr = self.getAttribute(key)
+        return attr.write(value)
+
+    def getAttribute(self, attrname):
+        """Returns the attribute object given its name"""
+
+        slashnb = attrname.count('/')
+        if slashnb == 0:
+            attrname = "%s/%s" % (self.getFullName(), attrname)
+        elif attrname[0] == '/':
+            attrname = "%s%s" % (self.getFullName(), attrname)
+        import taurusattribute
+        return self.factory().getObject(taurusattribute.TaurusAttribute,
+                                        attrname)
+
     def cleanUp(self):
         self._deviceObj = None
         TaurusDevice.cleanUp(self)

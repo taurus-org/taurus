@@ -76,18 +76,6 @@ class TaurusDevice(TaurusModel):
             cls._factory = Factory(scheme=cls._scheme)
         return cls._factory
 
-    def __getitem__(self, key):
-        """read attribute value using key-indexing syntax (e.g. as in a dict)
-        on the device"""
-        attr = self.getAttribute(key)
-        return attr.read()
-
-    def __setitem__(self, key, value):
-        """set attribute value using key-indexing syntax (e.g. as in a dict)
-        on the device"""
-        attr = self.getAttribute(key)
-        return attr.write(value)
-
     def __contains__(self, key):
         """Reimplement in schemes if you want to support membership testing for
         attributes of the device
@@ -108,17 +96,6 @@ class TaurusDevice(TaurusModel):
 
     def getSWState(self, cache=True):
         return self.getValueObj(cache=cache).rvalue
-
-    def getAttribute(self, attrname):
-        """Returns the attribute object given its name"""
-
-        slashnb = attrname.count('/')
-        if slashnb == 0:
-            attrname = "%s/%s" % (self.getFullName(), attrname)
-        elif attrname[0] == '/':
-            attrname = "%s%s" % (self.getFullName(), attrname)
-        import taurusattribute
-        return self.factory().getObject(taurusattribute.TaurusAttribute,attrname)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
