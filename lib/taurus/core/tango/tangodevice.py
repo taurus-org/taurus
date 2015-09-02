@@ -31,9 +31,10 @@ __docformat__ = "restructuredtext"
 
 import time
 from PyTango import (DeviceProxy, DevFailed, LockerInfo, DeviceAttribute)
-from taurus import Factory
+
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusbasetypes import TaurusSWDevState, TaurusLockInfo, LockStatus
+from taurus.core.taurusbasetypes import (TaurusSWDevState, TaurusLockInfo,
+                                         LockStatus, TaurusEventType)
 from taurus.core.util.log import tep14_deprecation
 
 DFT_TANGO_DEVICE_DESCRIPTION = "A TANGO device"
@@ -245,7 +246,42 @@ class TangoDevice(TaurusDevice):
         elif reason == 'API_EventChannelNotExported':
             new_sw_state = TaurusSWDevState.EventSystemShutdown
         return new_sw_state
-    
+
+    def removeListener(self, listener):
+        ret = TaurusDevice.removeListener(self, listener)
+        if not ret or self.hasListeners():
+            return ret # False, None or True
+        return self.getStateObj().removeListener(self)
+
+    def addListener(self, listener):
+        weWereListening = self.hasListeners()
+        ret = TaurusDevice.addListener(self, listener)
+        if not ret:
+            return ret
+
+        # We are only listening to State if someone is listening to us
+        if weWereListening:
+            # We were listening already, so we must fake an event to the new
+            # subscribed listener with the current value
+            self.fireEvent(TaurusEventType.Change, self.getValueObj(), hasattr(listener,'__iter__') and listener or [listener])
+        else:
+            # We were not listening to events, but now we have to
+            self.getStateObj().addListener(self)
+        return ret
+
+    def eventReceived(self, event_src, event_type, event_value):
+        if event_type == TaurusEventType.Config:
+            return
+        value = self.decode(event_value)
+
+        if value.rvalue != self._deviceSwState.rvalue:
+            msg = "SW Device State changed %s -> %s" %\
+                  (TaurusSWDevState.whatis(self._deviceSwState.rvalue),
+                   TaurusSWDevState.whatis(value.rvalue))
+            self.debug(msg)
+            self._deviceSwState = value
+            self.fireEvent(TaurusEventType.Change, value)
+
     def _getDefaultDescription(self):
         return DFT_TANGO_DEVICE_DESCRIPTION
 

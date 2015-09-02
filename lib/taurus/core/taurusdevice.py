@@ -29,11 +29,9 @@ __all__ = ["TaurusDevice"]
 
 __docformat__ = "restructuredtext"
 
-from .taurusbasetypes import TaurusSWDevState, TaurusEventType, \
-    TaurusLockInfo, TaurusElementType
+from .taurusbasetypes import TaurusSWDevState, TaurusElementType
 from .taurusmodel import TaurusModel
 from .taurushelper import Factory
-from taurus.core.util.log import tep14_deprecation
 
 DFT_DEVICE_DESCRIPTION = "A device"
 
@@ -158,46 +156,11 @@ class TaurusDevice(TaurusModel):
                 self._descr = self._getDefaultDescription()
         return self._descr
 
-    def removeListener(self, listener):
-        ret = TaurusModel.removeListener(self, listener)
-        if not ret or self.hasListeners():
-            return ret # False, None or True
-        return self.getStateObj().removeListener(self)
-
-    def addListener(self, listener):
-        weWereListening = self.hasListeners()
-        ret = TaurusModel.addListener(self, listener)
-        if not ret:
-            return ret
-
-        # We are only listening to State if someone is listening to us
-        if weWereListening:
-            # We were listening already, so we must fake an event to the new
-            # subscribed listener with the current value
-            self.fireEvent(TaurusEventType.Change, self.getValueObj(), hasattr(listener,'__iter__') and listener or [listener])
-        else:
-            # We were not listening to events, but now we have to
-            self.getStateObj().addListener(self)
-        return ret
-
     def getChildObj(self, child_name):
         if child_name is None or len(child_name) == 0:
             return None
         obj_name = "%s%s" % (self.getFullName(), child_name)
         return self.factory().findObject(obj_name)
-
-    def eventReceived(self, event_src, event_type, event_value):
-        if event_type == TaurusEventType.Config:
-            return
-        value = self.decode(event_value)
-
-        if value.rvalue != self._deviceSwState.rvalue:
-            msg = "SW Device State changed %s -> %s" %\
-                  (TaurusSWDevState.whatis(self._deviceSwState.rvalue), 
-                   TaurusSWDevState.whatis(value.rvalue))
-            self.debug(msg)
-            self._deviceSwState = value
-            self.fireEvent(TaurusEventType.Change, value)
 
     def _getDefaultDescription(self):
         return DFT_DEVICE_DESCRIPTION
