@@ -76,7 +76,7 @@ class TangoDevice(TaurusDevice):
 
     def __contains__(self, key):
         """delegate the contains interface to the device proxy"""
-        hw = self.getHWObj()
+        hw = self.getDeviceProxy()
         if hw is None:
             return False
         return hw.__contains__(key)
@@ -120,7 +120,11 @@ class TangoDevice(TaurusDevice):
             self.warning('Could not create HW object: %s' % (e[0].desc))
             self.traceback()
 
+    @tep14_deprecation(alt="getDeviceProxy()")
     def getHWObj(self):
+        return self.getDeviceProxy()
+
+    def getDeviceProxy(self):
         return self._deviceObj
 
     @tep14_deprecation()
@@ -133,17 +137,17 @@ class TangoDevice(TaurusDevice):
         if force:
             if self.getLockInfo().status == TaurusLockInfo.Locked:
                 self.unlock(force=True)
-        return self.getHWObj().lock()
+        return self.getDeviceProxy().lock()
 
     def unlock(self, force=False):
-        return self.getHWObj().unlock(force)
+        return self.getDeviceProxy().unlock(force)
     
     def getLockInfo(self, cache=False):
         lock_info = self._lock_info
         if cache and lock_info.status != LockStatus.Unknown:
             return lock_info
         try:
-            dev = self.getHWObj()
+            dev = self.getDeviceProxy()
             li = LockerInfo()
             locked = dev.get_locker(li)
             msg = "%s " % self.getSimpleName()
@@ -298,7 +302,7 @@ class TangoDevice(TaurusDevice):
     
     def _repr_html_(self):
         try:
-            info = self.getHWObj().info()
+            info = self.getDeviceProxy().info()
         except:
             info = _TangoInfo()
         txt = """\
