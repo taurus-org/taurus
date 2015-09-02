@@ -2268,6 +2268,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.error('Exception while gathering curves configuration info'+str(e))
         finally:
             self.curves_lock.release()
+        curvenames = CaselessList(curvenames)
         model = CaselessList([m for m in self.getModel() if m in curvenames])
         configdict={"Axes":axesdict, "Misc":miscdict, "RawData":rawdatadict,
                     "TangoCurves":tangodict, "CurveProp":propdict,
