@@ -104,6 +104,16 @@ class TangoDevice(TaurusDevice):
             attrname = "%s%s" % (self.getFullName(), attrname)
         return self.factory().getAttribute(attrname)
 
+    def getState(self, cache=True):
+        stateAttrValue = self.getStateObj().getValueObj(cache=cache)
+        if not stateAttrValue is None:
+            return stateAttrValue.rvalue
+        return None
+
+    @tep14_deprecation(alt="getState()")
+    def getSWState(self, cache=True):
+        return self.getState(cache)
+
     def cleanUp(self):
         self._deviceObj = None
         TaurusDevice.cleanUp(self)

@@ -87,13 +87,7 @@ class TaurusDevice(TaurusModel):
         return self._deviceStateObj
 
     def getState(self, cache=True):
-        stateAttrValue = self.getStateObj().getValueObj(cache=cache)
-        if not stateAttrValue is None:
-            return stateAttrValue.rvalue
-        return None
-
-    def getSWState(self, cache=True):
-        return self.getValueObj(cache=cache).rvalue
+        return TaurusSWDevState.Running
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
