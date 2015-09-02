@@ -146,7 +146,7 @@ class TangoDevInfo(TangoInfo):
                 return False
             self._alivePending = True
             try:
-                dev = self.getHWObj()
+                dev = self.getDeviceProxy()
                 _ = dev.state()
                 self._alive = True
             except:
@@ -184,14 +184,18 @@ class TangoDevInfo(TangoInfo):
     
     def setAttributes(self, attributes):
         self._attributes = attributes
-    
+
+    @tep14_deprecation(alt="getDeviceProxy()")
     def getHWObj(self):
+        return self.getDeviceProxy()
+
+    def getDeviceProxy(self):
         db = self.container().db
         name = self.name()
         full_name = db.getFullName() + "/" + name
         dev = None
         try:
-            dev = db.factory().getDevice(full_name).getHWObj()
+            dev = db.factory().getDevice(full_name).getDeviceProxy()
         except:
             pass
         return dev
@@ -199,7 +203,7 @@ class TangoDevInfo(TangoInfo):
     def refreshAttributes(self):
         attrs = []
         try:
-            dev = self.getHWObj()
+            dev = self.getDeviceProxy()
             if dev is None:
                 raise DevFailed() # @todo: check if this is the right exception to throw
             attr_info_list = dev.attribute_list_query_ex()
@@ -368,7 +372,7 @@ class TangoDatabaseCache(object):
             if taurus_dev is None:
                 dev = DeviceProxy(full_name)
             else:
-                dev = taurus_dev.getHWObj()
+                dev = taurus_dev.getDeviceProxy()
             attr_info_list = dev.attribute_list_query_ex()
             for attr_info in attr_info_list:
                 full_attr_name = "%s/%s" % (full_name, attr_info.name)
