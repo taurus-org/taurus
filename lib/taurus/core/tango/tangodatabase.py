@@ -686,7 +686,7 @@ class TangoAuthority(TaurusAuthority):
         ret = TaurusAuthority.addListener(self, listener)
         if not ret:
             return ret
-        self.fireEvent(TaurusEventType.Change, self.getDisplayValue(), listener)
+        self.fireEvent(TaurusEventType.Change, self.getFullName(), listener)
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
