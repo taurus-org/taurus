@@ -30,7 +30,7 @@ __all__ = ["TangoDevice"]
 __docformat__ = "restructuredtext"
 
 import time
-from PyTango import (DeviceProxy, DevFailed, LockerInfo, DeviceAttribute)
+from PyTango import (DeviceProxy, DevFailed, LockerInfo)
 
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusbasetypes import (TaurusSWDevState, TaurusLockInfo,
@@ -102,9 +102,7 @@ class TangoDevice(TaurusDevice):
             attrname = "%s/%s" % (self.getFullName(), attrname)
         elif attrname[0] == '/':
             attrname = "%s%s" % (self.getFullName(), attrname)
-        import taurusattribute
-        return self.factory().getObject(taurusattribute.TaurusAttribute,
-                                        attrname)
+        return self.factory().getAttribute(attrname)
 
     def cleanUp(self):
         self._deviceObj = None
