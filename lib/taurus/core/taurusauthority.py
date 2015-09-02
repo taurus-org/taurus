@@ -30,7 +30,7 @@ __all__ = ["TaurusAuthority"]
 __docformat__ = "restructuredtext"
 
 
-from .taurusbasetypes import TaurusEventType, TaurusElementType
+from .taurusbasetypes import TaurusElementType
 from .taurusmodel import TaurusModel
 from .taurushelper import Factory
 
@@ -93,13 +93,6 @@ class TaurusAuthority(TaurusModel):
         descr = self.getDescription(cache=cache)
         obj.append(('description', descr))
         return obj
-    
-    def addListener(self, listener):
-        ret = TaurusModel.addListener(self, listener)
-        if not ret:
-            return ret
-        self.fireEvent(TaurusEventType.Change, self.getDisplayValue(), listener)
-        return ret
 
     def getChildObj(self,child_name):
         if not child_name:
