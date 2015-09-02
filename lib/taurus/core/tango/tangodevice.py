@@ -114,6 +114,17 @@ class TangoDevice(TaurusDevice):
     def getSWState(self, cache=True):
         return self.getState(cache)
 
+    def getDisplayDescrObj(self,cache=True):
+        obj = []
+        obj.append(('name', self.getDisplayName(cache=cache)))
+        descr = self.getDescription(cache=cache)
+        if descr.lower() != self._getDefaultDescription().lower():
+            obj.append(('description', descr))
+        obj.append(('device state', self.getStateObj().getDisplayValue()) or self.getNoneValue())
+        sw_state = TaurusSWDevState.whatis(self.getValueObj(cache).rvalue)
+        obj.append('SW state', sw_state)
+        return obj
+
     def cleanUp(self):
         self._deviceObj = None
         TaurusDevice.cleanUp(self)

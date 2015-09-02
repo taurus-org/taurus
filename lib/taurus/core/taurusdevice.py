@@ -134,12 +134,9 @@ class TaurusDevice(TaurusModel):
     def getDisplayDescrObj(self,cache=True):
         obj = []
         obj.append(('name', self.getDisplayName(cache=cache)))
-        descr = self.getDescription(cache=cache)
-        if descr.lower() != self._getDefaultDescription().lower():
-            obj.append(('description', descr))
-        obj.append(('device state', self.getStateObj().getDisplayValue()) or self.getNoneValue())
-        sw_state = TaurusSWDevState.whatis(self.getValueObj(cache).rvalue)
-        obj.append('SW state', sw_state)
+        obj.append(('description', self.getDescription(cache=cache)))
+        obj.append(('device state', str(self.getState())))
+        # TODO: when using Enum, change prev line with "self.getState().name"
         return obj
 
     def getDescription(self,cache=True):
