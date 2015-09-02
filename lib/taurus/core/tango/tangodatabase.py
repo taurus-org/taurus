@@ -677,8 +677,12 @@ class TangoAuthority(TaurusAuthority):
         if not self.dbObj is None: 
             return getattr(self.dbObj,name)
         return None
-    
-    def getValueObj(self,cache=True):
+
+    @tep14_deprecation(alt='getTangoDB')
+    def getValueObj(self, cache=True):
+        return self.getTangoDB()
+
+    def getTangoDB(self):
         return self.dbObj
 
     @tep14_deprecation(alt='getFullName')
@@ -768,7 +772,7 @@ class TangoAuthority(TaurusAuthority):
     def getElementAlias(self, full_name):
         '''return the alias of an element from its full name'''
         try:
-            alias = self.getValueObj().get_alias(full_name)
+            alias = self.getTangoDB().get_alias(full_name)
             if alias and alias.lower() == InvalidAlias:
                 alias = None 
         except:
@@ -778,10 +782,10 @@ class TangoAuthority(TaurusAuthority):
     def getElementFullName(self, alias):
         '''return the full name of an element from its alias'''
         try: # PyTango v>=8.1.0
-            return self.getValueObj().get_device_from_alias(alias)
+            return self.getTangoDB().get_device_from_alias(alias)
         except AttributeError:
             try: # PyTango v<8.1.0
-                return self.getValueObj().get_device_alias(alias)
+                return self.getTangoDB().get_device_alias(alias)
             except:
                 return None
         except:

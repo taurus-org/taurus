@@ -122,15 +122,6 @@ class TaurusDevice(TaurusModel):
     def getNameValidator(cls):
         return cls.factory().getDeviceNameValidator()
 
-    def getValueObj(self, cache=True):
-        if not self.hasListeners() or not cache:
-            try:
-                v = self.getStateObj().read(cache=cache)
-            except Exception as e:
-                v = e
-            self._deviceSwState = self.decode(v)
-        return self._deviceSwState
-
     def getDisplayDescrObj(self,cache=True):
         obj = []
         obj.append(('name', self.getDisplayName(cache=cache)))

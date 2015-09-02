@@ -110,9 +110,19 @@ class TangoDevice(TaurusDevice):
             return stateAttrValue.rvalue
         return None
 
-    @tep14_deprecation(alt="getState()")
+    @tep14_deprecation(alt="getState")
     def getSWState(self, cache=True):
         return self.getState(cache)
+
+    @tep14_deprecation(alt="getState")
+    def getValueObj(self, cache=True):
+        if not self.hasListeners() or not cache:
+            try:
+                v = self.getStateObj().read(cache=cache)
+            except Exception as e:
+                v = e
+            self._deviceSwState = self.decode(v)
+        return self._deviceSwState
 
     def getDisplayDescrObj(self,cache=True):
         obj = []

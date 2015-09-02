@@ -148,10 +148,7 @@ class TaurusModel(Logger):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for value access 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    
-    def getValueObj(self,cache=True):
-        raise NotImplementedError("TaurusModel.getValueObj cannot be called")
-    
+
     def getDisplayValue(self,cache=True):
         raise NotImplementedError("TaurusModel.getDisplayValue cannot be" \
                                   " called")
