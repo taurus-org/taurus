@@ -31,6 +31,7 @@ __all__ = ["TangoObjectType", "EVENT_TO_POLLING_EXCEPTIONS",
 __docformat__ = "restructuredtext"
 
 from taurus.core.util.enumeration import Enumeration
+from taurus.external.enum import Enum
 
 TangoObjectType = Enumeration("TangoObjectType", 
                               ["Authority", "Server", "Class", "Device", 
@@ -94,3 +95,21 @@ FROM_TANGO_TO_STR_TYPE = {
    PyTango.DevDouble : 'float64',
    PyTango.DevFloat : 'float32',
 }
+
+
+class DevState(Enum):
+    ON = 0
+    OFF = 1
+    CLOSE = 2
+    OPEN = 3
+    INSERT = 4
+    EXTRACT = 5
+    MOVING = 6
+    STANDBY = 7
+    FAULT = 8
+    INIT = 9
+    RUNNING = 10
+    ALARM = 11
+    DISABLE = 12
+    UNKNOWN = 13
+

@@ -192,25 +192,20 @@ ManagerState =  Enumeration(
     'UNINITIALIZED', 
     'INITED', 
     'CLEANED'
-)) 
-
-DevState =  Enumeration(
-'DevState', (
-    'ON',
-    'OFF',
-    'CLOSE',
-    'OPEN',
-    'INSERT',
-    'EXTRACT',
-    'MOVING',
-    'STANDBY',
-    'FAULT',
-    'INIT',
-    'RUNNING',
-    'ALARM',
-    'DISABLE',
-    'UNKNOWN'
 ))
+
+class deprecatedEnum(object):
+    def __init__(self, name, alt):
+        self.__name = name
+        self.__alt = alt
+
+    def __getattr__(self, name):
+        raise RuntimeError('%s enumeration was removed. Use %s instead' %
+                           (self.__name, self.__alt))
+
+
+DevState = deprecatedEnum('taurus.core.DevState',
+                          'taurus.core.tango.util.DevState')
 
 class TaurusTimeVal(object):
     def __init__(self):
