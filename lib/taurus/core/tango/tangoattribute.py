@@ -49,7 +49,8 @@ from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
 from taurus.core.util.log import debug, tep14_deprecation
 
-from .enums import EVENT_TO_POLLING_EXCEPTIONS, FROM_TANGO_TO_NUMPY_TYPE
+from .enums import (EVENT_TO_POLLING_EXCEPTIONS, FROM_TANGO_TO_NUMPY_TYPE,
+                    DevState)
 
 from .util.tango_taurus import (description_from_tango,
                                 display_level_from_tango,
@@ -110,6 +111,8 @@ class TangoAttrValue(TaurusAttrValue):
                 rvalue = Quantity(rvalue, units=units)
             if wvalue is not None:
                 wvalue = Quantity(wvalue, units=units)
+        if isinstance(rvalue, PyTango._PyTango.DevState):
+            rvalue = DevState[str(rvalue)]
 
         self.rvalue = rvalue
         self.wvalue = wvalue
@@ -573,7 +576,7 @@ class TangoAttribute(TaurusAttribute):
             if dev is None:
                 self.debug("failed to subscribe to chg events: device is None")
                 return
-            self.__dev_hw_obj = dev.getHWObj()
+            self.__dev_hw_obj = dev.getDeviceProxy()
             if self.__dev_hw_obj is None:
                 self.debug("failed to subscribe to chg events: HW is None")
                 return
@@ -623,7 +626,7 @@ class TangoAttribute(TaurusAttribute):
             if dev is None:
                 self.debug("failed to subscribe to cfg events: device is None")
                 return
-            self.__dev_hw_obj = dev.getHWObj()
+            self.__dev_hw_obj = dev.getDeviceProxy()
             if self.__dev_hw_obj is None:
                 self.debug("failed to subscribe to cfg events: HW is None")
                 return
