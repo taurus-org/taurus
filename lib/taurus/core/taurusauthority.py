@@ -38,10 +38,9 @@ from .taurushelper import Factory
 
 class TaurusAuthority(TaurusModel):
     
-    default_description = "A Taurus Authority"
+    _description = "A Taurus Authority"
     
     def __init__(self, complete_name, parent=None):
-        self._descr = None
         self.call__init__(TaurusModel, complete_name, parent)
     
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -75,14 +74,6 @@ class TaurusAuthority(TaurusModel):
     @classmethod
     def getNameValidator(cls):
         return cls.factory().getAuthorityNameValidator()
-    
-    def getDescription(self,cache=True):
-        if self._descr is None or not cache:
-            try:
-                self._descr = self.info()
-            except:
-                self._descr = self._getDefaultDescription()
-        return self._descr
 
     def getDisplayDescription(self,cache=True):
         return self.getFullName()
@@ -90,8 +81,7 @@ class TaurusAuthority(TaurusModel):
     def getDisplayDescrObj(self,cache=True):
         obj = []
         obj.append(('name', self.getDisplayName(cache=cache)))
-        descr = self.getDescription(cache=cache)
-        obj.append(('description', descr))
+        obj.append(('description', self.description))
         return obj
 
     def getChildObj(self,child_name):
@@ -99,9 +89,6 @@ class TaurusAuthority(TaurusModel):
             return None
         return self.getDevice(child_name)
 
-    def _getDefaultDescription(self):
-        return self.default_description
-    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Device access method
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-    
@@ -111,6 +98,9 @@ class TaurusAuthority(TaurusModel):
         import taurusdevice
         return self.factory().getObject(taurusdevice.TaurusDevice, devname)
 
+    @property
+    def description(self):
+        return self._description
 
 # For backwards compatibility, we make an alias for TaurusAuthority.
 # Note that no warning is issued!

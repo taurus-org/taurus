@@ -624,6 +624,7 @@ class TangoAuthority(TaurusAuthority):
     # helper class property that stores a reference to the corresponding factory
     _factory = None
     _scheme = 'tango'
+    _description = 'A Tango Authority'
 
     def __init__(self,host=None,port=None,parent=None):
         pars = ()
@@ -790,7 +791,11 @@ class TangoAuthority(TaurusAuthority):
                 return None
         except:
             return None
-        
+
+    @tep14_deprecation(alt=".description")
+    def getDescription(self, cache=True):
+        return self.description
+
 
 #Declare this alias for backwards compatibility
 TangoDatabase = TangoAuthority
