@@ -217,6 +217,7 @@ class TangoAttribute(TaurusAttribute):
     # helper class property that stores a reference to the corresponding factory
     _factory = None
     _scheme = 'tango'
+    _description = 'A Tango Attribute'
 
     def __init__(self, name, parent, **kwargs):
 
@@ -254,7 +255,6 @@ class TangoAttribute(TaurusAttribute):
         self.writable = False
         self.label = self.name
         self.data_format = data_format_from_tango(PyTango.AttrDataFormat.SCALAR)
-        self.description = 'No description'
         self.range = [self.no_min_value, self.no_max_value]
         self.warning = [self.no_min_warning, self.no_max_warning]
         self.alarm = [self.no_min_alarm, self.no_max_alarm]
@@ -786,10 +786,6 @@ class TangoAttribute(TaurusAttribute):
         TaurusAttribute.setFormat(self, fmt)
         self._applyConfig()
 
-    def setDescription(self, descr):
-        TaurusAttribute.setDescription(self, descr)
-        self._applyConfig()
-
     def setLabel(self, lbl):
         TaurusAttribute.setLabel(self, lbl)
         self._applyConfig()
@@ -820,7 +816,9 @@ class TangoAttribute(TaurusAttribute):
             self.writable = i.writable != PyTango.AttrWriteType.READ
             self.label = i.label
             self.data_format = data_format_from_tango(i.data_format)
-            self.description = description_from_tango(i.description)
+            desc = description_from_tango(i.description)
+            if desc != "":
+                self._description = desc
             self.type = data_type_from_tango(i.data_type)
             ###############################################################
             # changed in taurus4: range, alarm and warning now return
@@ -871,6 +869,14 @@ class TangoAttribute(TaurusAttribute):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Deprecated methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+    @tep14_deprecation(alt=".description")
+    def getDescription(self, cache=True):
+        return self.description
+
+    @tep14_deprecation(alt=".description")
+    def setDescription(self, descr):
+        self.description = descr
 
     @tep14_deprecation()
     def isInformDeviceOfErrors(self):
@@ -988,6 +994,17 @@ class TangoAttribute(TaurusAttribute):
     # deprecated property!
     unit = property(getUnit, _set_unit)
 
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, descr):
+        if descr != self._description:
+            if descr == '':
+                descr = 'A Tango Attribute'
+            self._description = descr
+            self._applyConfig()
 
 class TangoAttributeEventListener(EventListener):
     """A class that listens for an event with a specific value

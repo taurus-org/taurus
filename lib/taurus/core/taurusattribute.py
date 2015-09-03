@@ -33,7 +33,6 @@ import weakref
 
 from .taurushelper import Factory
 from .taurusmodel import TaurusModel
-from .util.log import tep14_deprecation
 from taurus.core.taurusbasetypes import TaurusElementType, DataFormat
 
 
@@ -54,6 +53,7 @@ class TaurusAttribute(TaurusModel):
     no_archive_period = not_specified
 
     DftTimeToLive = 10000 # 10s
+    _description = "A Taurus Attribute"
 
     def __init__(self, name, parent, **kwargs):
         self.call__init__(TaurusModel, name, parent)
@@ -88,7 +88,6 @@ class TaurusAttribute(TaurusModel):
         self.data_format = None
         self.label = None
         self.type = None
-        self.description = None
         self.range = float('-inf'), float('inf')
         self.alarm = float('-inf'), float('inf')
         self.warning = float('-inf'), float('inf')
@@ -306,13 +305,13 @@ class TaurusAttribute(TaurusModel):
     def __str__(self):
         return self.getFullName()
 
-    def getDisplayDescription(self,cache=True):
-        return self.getDescription(cache)
+    def getDisplayDescription(self, cache=True):
+        return self.description
 
-    def getDisplayDescrObj(self,cache=True):
+    def getDisplayDescrObj(self, cache=True):
         name = self.getLabel(cache=cache)
         obj = [('name', name)]
-        descr = self.getDescription(cache=cache)
+        descr = self.description
         if descr and descr != self.no_description:
             _descr = descr.replace("<", "&lt;").replace(">", "&gt;")
             obj.append(('description', _descr))
@@ -353,9 +352,6 @@ class TaurusAttribute(TaurusModel):
     def getDataFormat(self, cache=True):
         return self.data_format
 
-    def getDescription(self, cache=True):
-        return self.description
-
     def getLabel(self, cache=True):
         return self.label
 
@@ -386,9 +382,6 @@ class TaurusAttribute(TaurusModel):
     def getWarnings(self, cache=True):
         return self.warning
 
-    def setDescription(self, descr):
-        self.description = descr
-
     def setLabel(self, lbl):
         self.label = lbl
 
@@ -405,4 +398,10 @@ class TaurusAttribute(TaurusModel):
         v = self.read(cache)
         return isinstance(v.rvalue, bool)
 
+    @property
+    def description(self):
+        return self._description
 
+    @description.setter
+    def description(self, descr):
+        self._description = descr
