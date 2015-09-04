@@ -52,21 +52,10 @@ class TaurusDevice(TaurusModel):
         self.__dict__.update(kw)
         self.call__init__(TaurusModel, name, parent)
 
-        self._deviceStateObj = None
         self._descr = None
-        self._deviceSwState = self.decode(TaurusSWDevState.Uninitialized)
 
         if storeCallback:
             storeCallback(self)
-
-    def cleanUp(self):
-        self.trace("[TaurusDevice] cleanUp")
-        self._descr = None
-        #self._deviceSwObj
-        if not self._deviceStateObj is None:
-            self._deviceStateObj.removeListener(self)
-        self._deviceStateObj = None
-        TaurusModel.cleanUp(self)
 
     @classmethod
     def factory(cls):
@@ -81,12 +70,7 @@ class TaurusDevice(TaurusModel):
         raise TypeError("'%s' does not support membership testing" %
                         self.__class__.__name__)
 
-    def getStateObj(self):
-        if self._deviceStateObj is None:
-            self._deviceStateObj = self.factory().getAttribute("%s/state" % self.getFullName()) # tango-centric!
-        return self._deviceStateObj
-
-    def getState(self, cache=True):
+    def getDevState(self):
         return TaurusSWDevState.Running
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -126,7 +110,7 @@ class TaurusDevice(TaurusModel):
         obj = []
         obj.append(('name', self.getDisplayName(cache=cache)))
         obj.append(('description', self.getDescription(cache=cache)))
-        obj.append(('device state', str(self.getState())))
+        obj.append(('device state', str(self.getDevState())))
         # TODO: when using Enum, change prev line with "self.getState().name"
         return obj
 

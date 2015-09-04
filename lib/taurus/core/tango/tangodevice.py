@@ -30,7 +30,7 @@ __all__ = ["TangoDevice"]
 __docformat__ = "restructuredtext"
 
 import time
-from PyTango import (DeviceProxy, DevFailed, LockerInfo)
+from PyTango import (DeviceProxy, DevFailed, LockerInfo, DevState)
 
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusbasetypes import (TaurusSWDevState, TaurusLockInfo,
@@ -61,6 +61,9 @@ class TangoDevice(TaurusDevice):
         self.call__init__(TaurusDevice, name, **kw)
         self._deviceObj = self._createHWObject()
         self._lock_info = TaurusLockInfo()
+        self._deviceStateObj = None
+        # TODO reimplement using the new codification
+        self._deviceSwState = self.__decode(TaurusSWDevState.Uninitialized)
 
     # Export the DeviceProxy interface into this object.
     # This way we can call for example read_attribute on an object of this class
@@ -96,7 +99,6 @@ class TangoDevice(TaurusDevice):
 
     def getAttribute(self, attrname):
         """Returns the attribute object given its name"""
-
         slashnb = attrname.count('/')
         if slashnb == 0:
             attrname = "%s/%s" % (self.getFullName(), attrname)
@@ -104,38 +106,60 @@ class TangoDevice(TaurusDevice):
             attrname = "%s%s" % (self.getFullName(), attrname)
         return self.factory().getAttribute(attrname)
 
+    @tep14_deprecation(alt='.stateObj.read().rvalue [Tango] or ' +
+                           'getDevState [agnostic]')
     def getState(self, cache=True):
-        stateAttrValue = self.getStateObj().getValueObj(cache=cache)
+        stateAttrValue = self.stateObj.read(cache=cache)
         if not stateAttrValue is None:
-            return stateAttrValue.rvalue
+            state_rvalue = stateAttrValue.rvalue
+            return DevState.values[state_rvalue.value]
         return None
 
-    @tep14_deprecation(alt="getState")
-    def getSWState(self, cache=True):
-        return self.getState(cache)
+    @tep14_deprecation(alt='.stateObj [Tango] or ' +
+                           '.factory.getAttribute(state_full_name) [agnostic]')
+    def getStateObj(self):
+        return self.stateObj
 
-    @tep14_deprecation(alt="getState")
+    @tep14_deprecation(alt="getDevState")
+    def getSWState(self, cache=True):
+        # TODO: reimplement to raise an exception when TaurusSWState goes away
+        return self.getValueObj().rvalue
+
+    def getDevState(self):
+        # TODO reimplement using the new codification collapsing the
+        # TangoDevice state attribute value
+        #return TaurusDevice.getDevState()
+        tg_state = self.stateObj.read().rvalue.name
+        return tg_state
+
+    @tep14_deprecation(alt="getDevState")
     def getValueObj(self, cache=True):
         if not self.hasListeners() or not cache:
             try:
-                v = self.getStateObj().read(cache=cache)
+                v = self.stateObj.read(cache=cache)
             except Exception as e:
                 v = e
-            self._deviceSwState = self.decode(v)
+            self._deviceSwState = self.__decode(v)
         return self._deviceSwState
 
-    def getDisplayDescrObj(self,cache=True):
-        obj = []
-        obj.append(('name', self.getDisplayName(cache=cache)))
-        descr = self.getDescription(cache=cache)
-        if descr.lower() != self._getDefaultDescription().lower():
-            obj.append(('description', descr))
-        obj.append(('device state', self.getStateObj().getDisplayValue()) or self.getNoneValue())
-        sw_state = TaurusSWDevState.whatis(self.getValueObj(cache).rvalue)
-        obj.append('SW state', sw_state)
-        return obj
+    def getDisplayDescrObj(self, cache=True):
+        desc_obj = super(TangoDevice, self).getDisplayDescrObj(cache)
+        # extend the info on dev state
+        ret = []
+        for name, value in desc_obj:
+            if name.lower() == 'device state':
+                tg_state = self.stateObj.read(cache).rvalue.name
+                value = "%s (%s)" % (value, tg_state)
+            ret.append((name,value))
+        return ret
 
     def cleanUp(self):
+        self.trace("[TangoDevice] cleanUp")
+        self._descr = None
+
+        if not self._deviceStateObj is None:
+            self._deviceStateObj.removeListener(self)
+        self._deviceStateObj = None
         self._deviceObj = None
         TaurusDevice.cleanUp(self)
 
@@ -224,7 +248,9 @@ class TangoDevice(TaurusDevice):
                 state = TaurusSWDevState.Shutdown
         return state
         
-    def decode(self, event_value):
+    def __decode(self, event_value):
+        """ Private method for bck-comp to get the Taurus device state
+        """
         from taurus.core.tango.tangoattribute import TangoAttrValue 
         if isinstance(event_value, TangoAttrValue):
             new_sw_state = TaurusSWDevState.Running
@@ -250,7 +276,7 @@ class TangoDevice(TaurusDevice):
         # 1 - the server where the device is running shuts down/crashes
         # 2 - the notifd shuts down/crashes
         if reason == 'API_EventTimeout':
-            if not self._deviceSwState in self.SHUTDOWNS:
+            if not self._deviceSwState.rvalue in self.SHUTDOWNS:
                 serv_state = self._server_state()
                 # if the device is running it means that it must have been 
                 # the event system that failed
@@ -260,13 +286,13 @@ class TangoDevice(TaurusDevice):
                     new_sw_state = serv_state
             else:
                 # Keep the old state
-                new_sw_state = self._deviceSwState
+                new_sw_state = self._deviceSwState.rvalue
                 
         # API_BadConfigurationProperty happens when: 
         # 1 - at client startup the server where the device is is not 
         #     running.
         elif reason == 'API_BadConfigurationProperty':
-            assert(self._deviceSwState != TaurusSWDevState.Running)
+            assert(self._deviceSwState.rvalue != TaurusSWDevState.Running)
             new_sw_state = TaurusSWDevState.Shutdown
         
         # API_EventChannelNotExported happens when:
@@ -276,12 +302,14 @@ class TangoDevice(TaurusDevice):
             new_sw_state = TaurusSWDevState.EventSystemShutdown
         return new_sw_state
 
+    @tep14_deprecation(alt=".stateObj.removeListener()")
     def removeListener(self, listener):
         ret = TaurusDevice.removeListener(self, listener)
         if not ret or self.hasListeners():
             return ret # False, None or True
-        return self.getStateObj().removeListener(self)
+        return self.stateObj.removeListener(self)
 
+    @tep14_deprecation(alt=".stateObj.addListener()")
     def addListener(self, listener):
         weWereListening = self.hasListeners()
         ret = TaurusDevice.addListener(self, listener)
@@ -292,16 +320,19 @@ class TangoDevice(TaurusDevice):
         if weWereListening:
             # We were listening already, so we must fake an event to the new
             # subscribed listener with the current value
-            self.fireEvent(TaurusEventType.Change, self.getValueObj(), hasattr(listener,'__iter__') and listener or [listener])
+            self.fireEvent(TaurusEventType.Change, self.stateObj.read(),
+                           hasattr(listener,'__iter__') and listener or
+                           [listener])
         else:
             # We were not listening to events, but now we have to
-            self.getStateObj().addListener(self)
+            self.stateObj.addListener(self)
         return ret
 
     def eventReceived(self, event_src, event_type, event_value):
         if event_type == TaurusEventType.Config:
             return
-        value = self.decode(event_value)
+        # TODO: reimplement with the new codification
+        value = self.__decode(event_value)
 
         if value.rvalue != self._deviceSwState.rvalue:
             msg = "SW Device State changed %s -> %s" %\
@@ -383,3 +414,9 @@ class TangoDevice(TaurusDevice):
            full_name=self.getFullName(), dev_class=info.dev_class,
            server_id=info.server_id, doc_url=info.doc_url)
         return txt
+
+    @property
+    def stateObj(self):
+        if self._deviceStateObj is None:
+            self._deviceStateObj = self.getAttribute("state")
+        return self._deviceStateObj
