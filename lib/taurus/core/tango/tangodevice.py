@@ -37,7 +37,6 @@ from taurus.core.taurusbasetypes import (TaurusSWDevState, TaurusLockInfo,
                                          LockStatus, TaurusEventType)
 from taurus.core.util.log import tep14_deprecation
 
-DFT_TANGO_DEVICE_DESCRIPTION = "A TANGO device"
 
 class _TangoInfo(object):
 
@@ -55,6 +54,7 @@ class TangoDevice(TaurusDevice):
     # helper class property that stores a reference to the corresponding factory
     _factory = None
     _scheme = 'tango'
+    _description = "A Tango Device"
 
     def __init__(self, name, **kw):
         """Object initialization."""
@@ -342,9 +342,6 @@ class TangoDevice(TaurusDevice):
             self._deviceSwState = value
             self.fireEvent(TaurusEventType.Change, value)
 
-    def _getDefaultDescription(self):
-        return DFT_TANGO_DEVICE_DESCRIPTION
-
     def __pollResult(self, attrs, ts, result, error=False):
         if error:
             for attr in attrs.values():
@@ -414,6 +411,18 @@ class TangoDevice(TaurusDevice):
            full_name=self.getFullName(), dev_class=info.dev_class,
            server_id=info.server_id, doc_url=info.doc_url)
         return txt
+
+    @tep14_deprecation(alt=".description")
+    def getDescription(self, cache=True):
+        return self.description
+
+    @property
+    def description(self):
+        try:
+            self._description = self.getDeviceProxy().description()
+        except:
+            pass
+        return self._description
 
     @property
     def stateObj(self):

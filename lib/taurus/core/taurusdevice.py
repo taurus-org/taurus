@@ -33,8 +33,6 @@ from .taurusbasetypes import TaurusSWDevState, TaurusElementType
 from .taurusmodel import TaurusModel
 from .taurushelper import Factory
 
-DFT_DEVICE_DESCRIPTION = "A device"
-
 
 class TaurusDevice(TaurusModel):
 
@@ -45,14 +43,14 @@ class TaurusDevice(TaurusModel):
        in general it is a parent of Taurus Attribute objects and a child
        of a Taurus Authority"""
 
+    _description = "A Taurus Device"
+
     def __init__(self, name, **kw):
         """Object initialization."""
         parent = kw.pop('parent', None)
         storeCallback = kw.pop('storeCallback', None)
         self.__dict__.update(kw)
         self.call__init__(TaurusModel, name, parent)
-
-        self._descr = None
 
         if storeCallback:
             storeCallback(self)
@@ -106,30 +104,19 @@ class TaurusDevice(TaurusModel):
     def getNameValidator(cls):
         return cls.factory().getDeviceNameValidator()
 
-    def getDisplayDescrObj(self,cache=True):
+    def getDisplayDescrObj(self, cache=True):
         obj = []
         obj.append(('name', self.getDisplayName(cache=cache)))
-        obj.append(('description', self.getDescription(cache=cache)))
+        obj.append(('description', self.description))
         obj.append(('device state', str(self.getDevState())))
         # TODO: when using Enum, change prev line with "self.getState().name"
         return obj
-
-    def getDescription(self,cache=True):
-        if self._descr is None or not cache:
-            try:
-                self._descr = self.description()
-            except:
-                self._descr = self._getDefaultDescription()
-        return self._descr
 
     def getChildObj(self, child_name):
         if child_name is None or len(child_name) == 0:
             return None
         obj_name = "%s%s" % (self.getFullName(), child_name)
         return self.factory().findObject(obj_name)
-
-    def _getDefaultDescription(self):
-        return DFT_DEVICE_DESCRIPTION
 
     def poll(self, attrs, asynch=False, req_id=None):
         '''Polling certain attributes of the device. This default
@@ -142,3 +129,7 @@ class TaurusDevice(TaurusModel):
             return 1
         for attr in attrs.values():
             attr.poll()
+
+    @property
+    def description(self):
+        return self._description
