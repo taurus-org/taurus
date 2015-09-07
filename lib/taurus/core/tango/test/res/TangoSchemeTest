@@ -39,11 +39,14 @@ class TangoSchemeTest(Device):
              'short_scalar': dict(unit="mm", dtype=numpy.int16),
              'short_scalar_nu': dict(dtype=numpy.int16),
              'float_scalar': dict(unit="mm", dtype=numpy.float32),
+             'double_scalar': dict(unit="mm", dtype=numpy.float64),
              'string_scalar': dict(dtype=str),
              'bool_spectrum': dict(dtype=(bool,), max_dim_x=MAXDIMX),
              'short_spectrum': dict(unit="mm", dtype=(numpy.int16,),
                                     max_dim_x=MAXDIMX),
              'float_spectrum': dict(unit="mm", dtype=(numpy.float32,),
+                                    max_dim_x=MAXDIMX),
+             'double_spectrum': dict(unit="mm", dtype=(numpy.float64,),
                                     max_dim_x=MAXDIMX),
              'string_spectrum': dict(dtype=(str,), max_dim_x=MAXDIMX),
              'bool_image': dict(dtype=[(bool,)], max_dim_x=MAXDIMX,
@@ -51,6 +54,8 @@ class TangoSchemeTest(Device):
              'short_image': dict(unit="mm", dtype=[(numpy.int16,)],
                                     max_dim_x=MAXDIMX, max_dim_y=MAXDIMY),
              'float_image': dict(unit="mm", dtype=[(numpy.float32,)],
+                                    max_dim_x=MAXDIMX, max_dim_y=MAXDIMY),
+             'double_image': dict(unit="mm", dtype=[(numpy.float64,)],
                                     max_dim_x=MAXDIMX, max_dim_y=MAXDIMY),
              'string_image': dict(dtype=[(str,)], max_dim_x=MAXDIMX,
                                   max_dim_y=MAXDIMY),
@@ -102,6 +107,8 @@ class TangoSchemeTest(Device):
                                 **attrs['short_scalar_nu'])
     float_scalar = attribute(access=AttrWriteType.READ_WRITE,
                              **attrs['float_scalar'])
+    double_scalar = attribute(access=AttrWriteType.READ_WRITE,
+                             **attrs['double_scalar'])
     string_scalar = attribute(access=AttrWriteType.READ_WRITE,
                               **attrs['string_scalar'])
     # SPECTRUM
@@ -111,9 +118,10 @@ class TangoSchemeTest(Device):
                             **attrs['short_spectrum'])
     float_spectrum = attribute(access=AttrWriteType.READ_WRITE,
                             **attrs['float_spectrum'])
+    double_spectrum = attribute(access=AttrWriteType.READ_WRITE,
+                            **attrs['double_spectrum'])
     string_spectrum = attribute(access=AttrWriteType.READ_WRITE,
                              **attrs['string_spectrum'])
-
     # IMAGES
     boolean_image = attribute(access=AttrWriteType.READ_WRITE,
                               **attrs['bool_image'])
@@ -121,6 +129,8 @@ class TangoSchemeTest(Device):
                             **attrs['short_image'])
     float_image = attribute(access=AttrWriteType.READ_WRITE,
                             **attrs['float_image'])
+    double_image = attribute(access=AttrWriteType.READ_WRITE,
+                            **attrs['double_image'])
     string_image = attribute(access=AttrWriteType.READ_WRITE,
                              **attrs['string_image'])
 
@@ -138,6 +148,9 @@ class TangoSchemeTest(Device):
     def read_float_scalar_ro(self):
         return self.default_read['float']
 
+    def read_double_scalar_ro(self):
+        return self.default_read['float']
+
     def read_string_scalar_ro(self):
         return self.default_read['string']
 
@@ -151,6 +164,9 @@ class TangoSchemeTest(Device):
     def read_float_spectrum_ro(self):
         return [self.default_read['float']] * self.DIMX
 
+    def read_double_spectrum_ro(self):
+        return [self.default_read['float']] * self.DIMX
+
     def read_string_spectrum_ro(self):
         return [self.default_read['string']] * self.DIMX
 
@@ -162,6 +178,9 @@ class TangoSchemeTest(Device):
         return [[self.default_read['int']] * self.DIMX] * self.DIMY
 
     def read_float_image_ro(self):
+        return [[self.default_read['float']] * self.DIMX] * self.DIMY
+
+    def read_double_image_ro(self):
         return [[self.default_read['float']] * self.DIMX] * self.DIMY
 
     def read_string_image_ro(self):
@@ -193,6 +212,12 @@ class TangoSchemeTest(Device):
     def write_float_scalar(self, v):
         self._float_scalar = v
 
+    def read_double_scalar(self):
+        return getattr(self, '_double_scalar', self.default_read['float'])
+
+    def write_double_scalar(self, v):
+        self._double_scalar = v
+
     def read_string_scalar(self):
         return getattr(self, '_string_scalar', self.default_read['string'])
 
@@ -220,6 +245,13 @@ class TangoSchemeTest(Device):
 
     def write_float_spectrum(self, v):
         self._float_spectrum = v
+
+    def read_double_spectrum(self):
+        return getattr(self, '_double_spectrum',
+                       [self.default_read['float']] * self.DIMX)
+
+    def write_double_spectrum(self, v):
+        self._double_spectrum = v
 
     def read_string_spectrum(self):
         return getattr(self, '_string_spectrum',
@@ -249,6 +281,13 @@ class TangoSchemeTest(Device):
 
     def write_float_image(self, v):
         self._float_image = v
+
+    def read_double_image(self):
+        return getattr(self, '_double_image',
+                       [[self.default_read['float']] * self.DIMX] * self.DIMY)
+
+    def write_double_image(self, v):
+        self._double_image = v
 
     def read_string_image(self):
         return getattr(self, '_string_image',
@@ -285,10 +324,12 @@ class TangoSchemeTest(Device):
         self._short_scalar = self.default_read['int']
         self._short_scalar_nu = self.default_read['int']
         self._float_scalar = self.default_read['float']
+        self._double_scalar = self.default_read['float']
         self._string_scalar = self.default_read['string']
         self._boolean_spectrum = [self.default_read['bool']] * self.DIMX
         self._short_spectrum = [self.default_read['int']] * self.DIMX
         self._float_spectrum = [self.default_read['float']] * self.DIMX
+        self._double_spectrum = [self.default_read['float']] * self.DIMX
         self._string_spectrum = [self.default_read['string']] * self.DIMX
         v = [[self.default_read['bool']] * self.DIMX] * self.DIMY
         self._boolean_image = v
@@ -296,6 +337,8 @@ class TangoSchemeTest(Device):
         self._short_image = v
         v = [[self.default_read['float']] * self.DIMX] * self.DIMY
         self._float_image = v
+        v = [[self.default_read['float']] * self.DIMX] * self.DIMY
+        self._double_image = v
         v = [[self.default_read['string']] * self.DIMX] * self.DIMY
         self._string_image = v
 
