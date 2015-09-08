@@ -31,7 +31,8 @@ import functools
 
 
 def insertTest(klass=None, helper_name=None, test_method_name=None,
-               test_method_doc=None, tested_name=None, **helper_kwargs):
+               test_method_doc=None, tested_name=None, test_skip=None,
+               **helper_kwargs):
     """Decorator that inserts test methods from a helper method that accepts
     arguments.
     `insertTest` provides a very economic API for creating new tests for a given
@@ -52,6 +53,10 @@ def insertTest(klass=None, helper_name=None, test_method_name=None,
       - tested_name (str): Optional. The name of the class or feature being 
                            tested (if given, it will be used in default method 
                            names and docstrings).
+
+      - test_skip (str): Optional. A reason for skipping the test. If None
+                         given, the test will not be skipped
+
       - \*\*helper_kwargs: All remaining keyword arguments are passed to the
                            helper.
     
@@ -73,7 +78,9 @@ def insertTest(klass=None, helper_name=None, test_method_name=None,
         return functools.partial(insertTest, helper_name=helper_name,
                                  test_method_name=test_method_name,
                                  test_method_doc=test_method_doc,
-                                 tested_name=tested_name, **helper_kwargs)
+                                 tested_name=tested_name,
+                                 test_skip=test_skip,
+                                 **helper_kwargs)
     
     # Check arguments and provide defaults
     if helper_name is None:
@@ -107,6 +114,11 @@ def insertTest(klass=None, helper_name=None, test_method_name=None,
     
     # Add the custom docstring
     newTest.__doc__ = test_method_doc
+
+    # Skip the test if the test_skip kwarg was passed
+    if test_skip is not None:
+        import unittest
+        newTest = unittest.skip(test_skip)(newTest)
     
     # Add the new test method with the new implementation
     setattr(klass, test_method_name, newTest)
