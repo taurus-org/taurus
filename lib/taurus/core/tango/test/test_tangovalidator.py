@@ -130,7 +130,12 @@ class TangoDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name = 'tango:alias/attr#')
 @valid(name = 'tango:alias/attr#label')
 @valid(name = 'tango://a/b/c/d?configuration', strict=False)
-@valid(name = 'tango://a/b/c/d?configuration=label', strict=False)
+@valid(name = 'tango://a/b/c/d?configuration=label', strict=False,
+       groups={'devname':'a/b/c',
+               'attrname': 'a/b/c/d',
+               '_shortattrname': 'd',
+               'cfgkey': 'label',
+               'fragment': 'label'}) # fragment=cfgkey (in non-strict mode)
 @invalid(name = 'tango://a/b/c/d#')
 @invalid(name = 'tango://a/b/c/d?foo', strict=False)
 @invalid(name = 'tango://a/b/c/d?foo=label', strict=False)

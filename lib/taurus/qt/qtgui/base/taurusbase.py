@@ -484,6 +484,14 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         self._detach()
         self.modelName = modelName
         self._attach()
+
+        # update modelFragment
+        try:
+            v = self.modelObj.getNameValidator()
+            self.modelFragment = v.getUriGoups(self.modelName)['fragment']
+        except AttributeError:
+            self.modelFragment = None
+
     
     def getModelName(self):
         """Returns the current model name.
@@ -590,7 +598,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             ret += '<TR><TD WIDTH="80" ALIGN="RIGHT" VALIGN="MIDDLE"><B>%s:</B></TD><TD>%s</TD></TR>' % (id.capitalize(), value)
         ret += '</TABLE>'
         return ret
-    
+
     def displayValue(self, v):
         """Returns a string representation of the given value
         
@@ -604,19 +612,34 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         if ret is None: ret = self.getNoneValue()
         return ret
         
-    def getDisplayValue(self, cache=True):
+    def getDisplayValue(self, cache=True, fragment=None):
         """Returns a string representation of the model value associated with
         this component.
             
-        :param cache: (bool) if set to True (default) use the cache value. If set to 
-                      False will force a connection to the server.
+        :param cache: (bool) if set to True (default) use the cache value.
+                      If set to False will force a connection to the server.
+        :param fragment: (str or None) the returned value will correspond to
+                         the given fragment. If None passed, self.modelFragment
+                         will be used. Pass an empty string to force
+                         "no fragment" independently of self.modelFragment
 
         :return: (str) a string representation of the model value.
-        """        
+        """
         if self.modelObj is None:
             return self.getNoneValue()
-        
-        ret = self.modelObj.getDisplayValue(cache)
+
+        if fragment is None:
+            fragment = self.modelFragment or ''
+
+        if fragment:
+            try:
+                v = getattr(self.modelObj.getValueObj(cache=cache), fragment)
+            except AttributeError:
+                return self.getNoneValue()
+        else:
+
+
+        #ret = self.modelObj.getDisplayValue(cache)
         if ret is None:
             return self.getNoneValue()
         return ret
@@ -705,7 +728,8 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     
     def _attach(self):
         """Attaches the component to the taurus model.
-        In general it should not be necessary to overwrite this method in a subclass.
+        In general it should not be necessary to overwrite this method in a
+        subclass.
         
         :return: (bool) True if success in attachment or False otherwise.
         """
@@ -734,7 +758,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
                 self._attached = False
                 self.debug("Exception occured while trying to attach '%s'" % self.modelName)
                 self.traceback()
-                
+
         self.postAttach()
         return self._attached
     
