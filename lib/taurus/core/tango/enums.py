@@ -26,7 +26,7 @@
 """This module contains all basic tango enumerations"""
 
 __all__ = ["TangoObjectType", "EVENT_TO_POLLING_EXCEPTIONS",
-           "FROM_TANGO_TO_NUMPY_TYPE", "FROM_TANGO_TO_STR_TYPE"]
+           "FROM_TANGO_TO_NUMPY_TYPE", "FROM_TANGO_TO_STR_TYPE", "DevState"]
 
 __docformat__ = "restructuredtext"
 
