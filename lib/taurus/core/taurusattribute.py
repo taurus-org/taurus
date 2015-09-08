@@ -54,6 +54,7 @@ class TaurusAttribute(TaurusModel):
 
     DftTimeToLive = 10000 # 10s
     _description = "A Taurus Attribute"
+    defaultFragment = "rvalue" # fragment to be used if none is specified
 
     def __init__(self, name, parent, **kwargs):
         self.call__init__(TaurusModel, name, parent)
@@ -405,3 +406,23 @@ class TaurusAttribute(TaurusModel):
     @description.setter
     def description(self, descr):
         self._description = descr
+
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # API to provide access to the TaurusAttributeValue-related fragments
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+    @property
+    def rvalue(self, cache=True):
+        return self.read(cache).rvalue
+
+    @property
+    def wvalue(self, cache=True):
+        return self.read(cache).wvalue
+
+    @property
+    def time(self, cache=True):
+        return self.read(cache).time
+
+    @property
+    def quality(self, cache=True):
+        return self.read(cache).quality
