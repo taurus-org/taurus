@@ -31,7 +31,8 @@ from taurus.external.qt import Qt
 
 from taurus.core.util.colors import ColorPalette, \
     DEVICE_STATE_DATA, ATTRIBUTE_QUALITY_DATA
-from taurus.core.taurusbasetypes import DevState, AttrQuality
+from taurus.core.taurusbasetypes import AttrQuality
+from taurus.core.tango import DevState # TODO: Tango-centric
 
 class QtColorPalette(ColorPalette):
 

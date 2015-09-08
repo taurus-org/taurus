@@ -1236,7 +1236,7 @@ class TaurusTreeNode(Qt.QTreeWidgetItem, TaurusBaseComponent):
         state2color = lambda state: Qt.QColor(DEVICE_STATE_PALETTE.number(state))
         quality2color = lambda attr: Qt.QColor(ATTRIBUTE_QUALITY_PALETTE.number(attr))
         v = self.getModelValueObj()
-        if isinstance(v,PyTango.DevState):
+        if isinstance(v,PyTango.DevState):  # TODO: maybe change to Taurus.tango.DevState
             node.setBackground(0,Qt.QBrush(state2color(v))) #@TODO: node is undefined. Check code
         if hasattr(v,'quality'):
             self.setForeground(0,Qt.QBrush(quality2color(v.quality)))

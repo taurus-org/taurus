@@ -35,7 +35,8 @@ import operator
 
 from taurus.external.qt import Qt
 
-from taurus.core import DevState, DataFormat, AttrQuality
+from taurus.core import DataFormat, AttrQuality
+from taurus.core.tango import DevState
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from qled import QLed

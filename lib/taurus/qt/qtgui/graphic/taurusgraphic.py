@@ -40,13 +40,16 @@ import types
 import Queue
 
 from taurus import Manager
-from taurus.core import AttrQuality, DevState, DataType
+from taurus.core import AttrQuality, DataType
 from taurus.core.util.containers import CaselessDefaultDict
 from taurus.core.util.log import Logger
-from taurus.core.tango.tangovalidator import TangoDeviceNameValidator, TangoAttributeNameValidator
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.util.enumeration import Enumeration
+# TODO: tango-centric!
+from taurus.core.tango import DevState
+from taurus.core.tango.tangovalidator import (TangoDeviceNameValidator,
+                                              TangoAttributeNameValidator)
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
@@ -1058,18 +1061,12 @@ class TaurusGraphicsStateItem(TaurusGraphicsItem):
             except:
                 self.warning('In TaurusGraphicsStateItem(%s).updateStyle(%s): colors failed!'%(self._name,self._currText))
                 self.warning(traceback.format_exc())
-                
-        states = {
-            'ON':0,'OFF':1,'CLOSE':2,'OPEN':3,
-            'INSERT':4,'EXTRACT':5,'MOVING':6,
-            'STANDBY':7,'FAULT':8,'INIT':9,
-            'RUNNING':10,'ALARM':11,'DISABLE':12,
-            'UNKNOWN':13
-            }
+
         #Parsing _map to manage visibility (a list of values for which the item is visible or not)
-        if v and not self._map is None and self._currText in states:
+        if (v and not self._map is None and
+                    self._currText in DevState.__members__):
             #self.debug('In TaurusGraphicsStateItem.updateStyle(): mapping %s'%self._currText)
-            if states[self._currText] == self._map[1]:
+            if DevState[self._currText] == self._map[1]:
                 self.setVisible(self._map[2])
                 self._visible = self._map[2]
             else:
