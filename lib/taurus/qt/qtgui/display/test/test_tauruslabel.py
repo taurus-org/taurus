@@ -26,6 +26,7 @@
 """Unit tests for Taurus Label"""
 
 from taurus.external import unittest
+from taurus.test import insertTest
 from taurus.qt.qtgui.test import GenericWidgetTestCase, BaseWidgetTestCase
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.container import TaurusWidget
@@ -79,6 +80,29 @@ class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
             msg = ('getModelClass() inconsistency:\n expected: %s\n got: %s' % 
                    (self._expectedModelClass, mc))
             self.assertEqual(self._expectedModelClass, mc, msg)
+
+
+@insertTest(helper_name='text',
+            model='tango:sys/tg_test/1/double_scalar#label',
+            expected='double_scalar')
+class TaurusLabelTest2(BaseWidgetTestCase, unittest.TestCase):
+    '''
+    Specific tests for TaurusLabel
+    '''
+    _klass = TaurusLabel
+
+    def text(self, model=None, expected=None):
+        '''Check that the label text'''
+        self._widget.setModel(model)
+        self._app.processEvents()
+        got = self._widget.getDisplayValue()
+        msg = ('wrong display value for "%s":\n expected: %s\n got: %s' %
+                   (model, expected, got))
+        self.assertEqual(got, expected, msg)
+        got = str(self._widget.text())
+        msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
+                   (model, expected, got))
+        self.assertEqual(got, expected, msg)
 
 
 #
