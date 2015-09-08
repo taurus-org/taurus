@@ -31,7 +31,7 @@ __all__ = ["TangoObjectType", "EVENT_TO_POLLING_EXCEPTIONS",
 __docformat__ = "restructuredtext"
 
 from taurus.core.util.enumeration import Enumeration
-from taurus.external.enum import Enum
+from taurus.external.enum import IntEnum
 
 TangoObjectType = Enumeration("TangoObjectType", 
                               ["Authority", "Server", "Class", "Device", 
@@ -97,7 +97,22 @@ FROM_TANGO_TO_STR_TYPE = {
 }
 
 
-class DevState(Enum):
+class DevState(IntEnum):
+    """ This is the taurus.core.tango equivalent to PyTango.DevState.
+    It defines the same members and uses the same numerical values internally,
+    allowing equality comparisons with :class:`PyTango.DevState` (but not
+    identity checks!)::
+
+        from taurus.core.tango import DevState as D1
+        from PyTango import DevState as D2
+
+        D1.OPEN == D2.OPEN          # --> True
+        D1.OPEN in (D2.ON, D2.OPEN) # --> True
+        D1.OPEN == 3                # --> True
+        D1.OPEN is 3                # --> False
+        D1.OPEN is D2.OPEN          # --> False
+
+     """
     ON = 0
     OFF = 1
     CLOSE = 2
