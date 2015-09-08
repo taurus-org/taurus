@@ -149,10 +149,6 @@ class TaurusModel(Logger):
     # API for value access 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    def getDisplayValue(self,cache=True):
-        raise NotImplementedError("TaurusModel.getDisplayValue cannot be" \
-                                  " called")
-    
     def getDisplayDescrObj(self,cache=True):
         """A brief description of the model. Can be used as tooltip, for example"""
         raise NotImplementedError("TaurusModel.getDisplayDescrObj cannot be" \
