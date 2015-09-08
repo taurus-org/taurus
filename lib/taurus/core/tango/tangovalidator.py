@@ -203,20 +203,22 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
 
     @property
     def nonStrictNamePattern(self):
-        '''In non-strict mode, allow double-slash even if there is no Authority.
-        Also use old style "?configuration[=cfgkey]" instead of fragment-based.
-        (e.g., "tango://a/b/c/d?configuration=units" passes this non-strict
-        form)
-        '''
+        """In non-strict mode, allow double-slash even if there is no Authority.
+        Also allow old-style "?configuration[=cfgkey]" instead of fragment.
+        If cfgkey is present, it is also stored in the "fragment" named group.
+        For example,  "tango://a/b/c/d?configuration=label" passes this
+        non-strict form, and the named group "fragment" would contain "label"
+        """
 
-        pattern = r'^(?P<scheme>%(scheme)s)://' + \
+        # allow for *optional* double-slashes and *optional* ?configuration...
+        pattern = r'^(?P<scheme>%(scheme)s):(//)?' + \
                   r'((?P<authority>%(authority)s)(?=/))?' + \
                   r'(?P<path>%(path)s)' + \
                   r'(\?(?P<query>%(query)s))?' + \
-                  r'(#(?P<fragment>%(fragment)s))?$'
+                  r'(#%(fragment)s)?$'
 
         return pattern % dict(scheme=self.scheme,
                               authority='(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})',
                               path=self.path,
-                              query= 'configuration(=(?P<cfgkey>[^# ]+))?',
+                              query= 'configuration(=(?P<fragment>(?P<cfgkey>[^# ]+)))?',
                               fragment= '(?!)')
