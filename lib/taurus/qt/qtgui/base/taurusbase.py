@@ -492,7 +492,6 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             v = self.modelObj.getNameValidator()
             self.modelFragment = v.getUriGroups(self.modelName)['fragment']
         except AttributeError:
-            raise
             self.modelFragment = None
     
     def getModelName(self):
