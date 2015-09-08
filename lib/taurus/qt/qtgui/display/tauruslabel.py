@@ -265,9 +265,13 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
             ctrl_map = _DESIGNER_CONTROLLER_MAP
             
         model_type = self.getModelType()
+        # ugly workaround to adapt TaurusLabel to tep14 without refactoring
+        # TODO: proper refactoring of TaurusValue to supress the Conf API
+        if model_type == TaurusModelType.Attribute and self.modelFragment:
+            model_type = TaurusModelType.Configuration
         ctrl_klass = ctrl_map.get(model_type, TaurusLabelController)
         return ctrl_klass
-    
+
     def controller(self):
         ctrl = self._controller
         # if there is a controller object and it is not the base controller...

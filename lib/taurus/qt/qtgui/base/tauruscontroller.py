@@ -202,17 +202,12 @@ class TaurusScalarAttributeControllerHelper(TaurusAttributeControllerHelper):
         
     def _getDisplayValue(self, widget, valueObj, idx, write):
         try:
-            if write: value = valueObj.w_value
-            else: value = valueObj.value
+            if write: value = valueObj.wvalue
+            else: value = valueObj.rvalue
             if idx is not None and len(idx):
                 for i in idx: value = value[i]
-            
             if self._last_config_value is None or value is None:
-                return self.modelObj().displayValue(value)
-            else:
-                #TODO: last_config_value object to format the value
-                return self.modelObj().displayValue(value)
-                
+                return widget.displayValue(value)
         except Exception, e:
             return widget.getNoneValue()
 
