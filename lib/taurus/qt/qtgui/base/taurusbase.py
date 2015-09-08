@@ -37,6 +37,7 @@ import threading
 import PyTango
 
 from taurus.external.qt import Qt
+from taurus.external.enum import Enum
 
 import taurus
 from taurus.core.util import eventfilters
@@ -73,6 +74,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         """Initialization of TaurusBaseComponent"""
         self.modelObj = None
         self.modelName = ''
+        self.modelFragment = None
         self.noneValue = DefaultNoneValue
         self._designMode = designMode
         self.call__init__(TaurusListener, name, parent)
@@ -478,7 +480,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         modelName = str(modelName)
         if parent:
             modelClass = self.getModelClass()
-            if not modelClass is None:
+            if modelClass is not None:
                 parent_model = self.getParentModelObj()
                 modelName = modelClass.buildModelName(parent_model, modelName)
         self._detach()
@@ -488,10 +490,10 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         # update modelFragment
         try:
             v = self.modelObj.getNameValidator()
-            self.modelFragment = v.getUriGoups(self.modelName)['fragment']
+            self.modelFragment = v.getUriGroups(self.modelName)['fragment']
         except AttributeError:
+            raise
             self.modelFragment = None
-
     
     def getModelName(self):
         """Returns the current model name.
@@ -606,11 +608,9 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         
         :return: (str) a string representing the given value
         """
-        if self.modelObj is None:
-            return str(v)
-        ret = self.modelObj.displayValue(v)
-        if ret is None: ret = self.getNoneValue()
-        return ret
+        if isinstance(v, Enum):
+            return v.name
+        return str(v)
         
     def getDisplayValue(self, cache=True, fragment=None):
         """Returns a string representation of the model value associated with
@@ -620,29 +620,23 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
                       If set to False will force a connection to the server.
         :param fragment: (str or None) the returned value will correspond to
                          the given fragment. If None passed, self.modelFragment
-                         will be used. Pass an empty string to force
-                         "no fragment" independently of self.modelFragment
+                         will be used, and if None is set, the defaultFragment
+                         of the model will be used instead.
 
         :return: (str) a string representation of the model value.
         """
         if self.modelObj is None:
             return self.getNoneValue()
-
-        if fragment is None:
-            fragment = self.modelFragment or ''
-
-        if fragment:
-            try:
-                v = getattr(self.modelObj.getValueObj(cache=cache), fragment)
-            except AttributeError:
-                return self.getNoneValue()
-        else:
-
-
-        #ret = self.modelObj.getDisplayValue(cache)
-        if ret is None:
+        if fragment is None: # no fragment passed in kwargs
+            fragment = self.modelFragment
+        if fragment is None: # no fragment in the model name
+            fragment = self.modelObj.defaultFragment
+        try:
+            v = getattr(self.modelObj, fragment)
+        except:
             return self.getNoneValue()
-        return ret
+        return self.displayValue(v)
+
 
     def setNoneValue(self, v):
         """Sets the new string representation when no model or no model value exists.
