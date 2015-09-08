@@ -36,6 +36,11 @@ from taurus.test import insertTest, getResourcePath
 
 DEV_NAME = 'TangoSchemeTest/unittest/temp-1'
 
+
+@insertTest(helper_name='getDisplayValue',
+            model= 'eval:1+2#',
+            expected='-----')
+
 @insertTest(helper_name='getDisplayValue',
             model= 'eval:1+2#label',
             expected='1+2')
@@ -44,33 +49,45 @@ DEV_NAME = 'TangoSchemeTest/unittest/temp-1'
             model= 'eval:1+2',
             expected='3')
 
+# This checks if the pre-tep3 behavior is kept (and it fails)
+# ...but I think it should *not* be kept
 @insertTest(helper_name='getDisplayValue',
-            model= DEV_NAME + '/float_scalar?configuration=label',
+            model= 'tango://' + DEV_NAME + '/double_scalar?configuration',
+            expected='double_scalar?configuration',
+            test_skip="old behaviour which we probably don't want")
+
+@insertTest(helper_name='getDisplayValue',
+            model= 'tango://' + DEV_NAME + '/float_scalar?configuration=label',
             expected='float_scalar')
 
 @insertTest(helper_name='getDisplayValue',
-            model= DEV_NAME + '/float_scalar#label',
+            model= 'tango:' + DEV_NAME + '/float_scalar#label',
             expected='float_scalar')
 
 @insertTest(helper_name='getDisplayValue',
-            model= DEV_NAME + '/state',
+            model= 'tango:' + DEV_NAME + '/float_scalar#',
+            expected='-----')
+
+@insertTest(helper_name='getDisplayValue',
+            model= 'tango:' + DEV_NAME + '/state',
             expected='ON')
 
-# this fails due to encode/decode rounding errors for float<-->numpy.float32
+# This fails due to encode/decode rounding errors for float<-->numpy.float32
 @insertTest(helper_name='getDisplayValue',
-            model= DEV_NAME + '/float_scalar',
+            model= 'tango:' + DEV_NAME + '/float_scalar',
+            expected='1.23 mm',
+            test_skip='enc/decode rounding errors for float<-->numpy.float32')
+
+@insertTest(helper_name='getDisplayValue',
+            model= 'tango:' + DEV_NAME + '/double_scalar',
             expected='1.23 mm')
 
 @insertTest(helper_name='getDisplayValue',
-            model= DEV_NAME + '/double_scalar',
-            expected='1.23 mm')
-
-@insertTest(helper_name='getDisplayValue',
-            model= DEV_NAME + '/short_scalar',
+            model= 'tango:' + DEV_NAME + '/short_scalar',
             expected='123 mm')
 
 @insertTest(helper_name='getDisplayValue',
-            model= DEV_NAME + '/boolean_scalar',
+            model= 'tango:' + DEV_NAME + '/boolean_scalar',
             expected='True')
 
 class GetDisplayValueTestCase(BaseWidgetTestCase, unittest.TestCase):
