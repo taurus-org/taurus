@@ -29,15 +29,12 @@ __all__ = ["TaurusDevice"]
 
 __docformat__ = "restructuredtext"
 
-from .taurusbasetypes import TaurusSWDevState, TaurusElementType
+from .taurusbasetypes import TaurusDevState, TaurusElementType
 from .taurusmodel import TaurusModel
 from .taurushelper import Factory
 
 
 class TaurusDevice(TaurusModel):
-
-    SHUTDOWNS = (TaurusSWDevState.Shutdown, TaurusSWDevState.Crash,
-                 TaurusSWDevState.EventSystemShutdown)
 
     """A Device object. Different schemes may assign different roles, but
        in general it is a parent of Taurus Attribute objects and a child
@@ -69,7 +66,12 @@ class TaurusDevice(TaurusModel):
                         self.__class__.__name__)
 
     def getDevState(self):
-        return TaurusSWDevState.Running
+        """Returns a scheme-agnostic representation of the state of a Taurus
+        device. This default implementation returns always TaurusDevState.Ready
+
+        :return: (TaurusDevState)
+        """
+        return TaurusDevState.Ready
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
@@ -108,8 +110,7 @@ class TaurusDevice(TaurusModel):
         obj = []
         obj.append(('name', self.getDisplayName(cache=cache)))
         obj.append(('description', self.description))
-        obj.append(('device state', str(self.getDevState())))
-        # TODO: when using Enum, change prev line with "self.getState().name"
+        obj.append(('device state', self.getDevState().name))
         return obj
 
     def getChildObj(self, child_name):

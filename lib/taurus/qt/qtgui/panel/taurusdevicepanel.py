@@ -35,7 +35,7 @@ import re,traceback
 from taurus.external.qt import Qt
 
 import taurus.qt.qtgui.resource
-from taurus.core.taurusbasetypes import TaurusSWDevState, TaurusElementType
+from taurus.core.taurusbasetypes import TaurusDevState, TaurusElementType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
@@ -503,16 +503,17 @@ class TaurusDevPanel(TaurusMainWindow):
         self.setModel(devname)
         dev = self.getModelObj()
         dev.state()
-        state = dev.getSWState()
+        state = dev.getDevState()
         #test the connection
-        if state == TaurusSWDevState.Running:
+        if state == TaurusDevState.Ready:
             msg = 'Connected to "%s"'%devname
             self.statusBar().showMessage(msg)
             self._ui.attrDW.setWindowTitle('Attributes - %s'%devname)
             self._ui.commandsDW.setWindowTitle('Commands - %s'%devname)
         else:
             #reset the model if the connection failed
-            msg = 'Connection to "%s" failed (state = %s)' % (devname, TaurusSWDevState.whatis(state))
+            msg = 'Connection to "%s" failed (state = %s)' % (devname,
+                                                              state.name)
             self.statusBar().showMessage(msg)
             self.info(msg)
             Qt.QMessageBox.warning(self, "Device unreachable", msg)

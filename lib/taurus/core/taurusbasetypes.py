@@ -31,7 +31,7 @@ __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "MatchLevel", "TaurusElementType", "LockStatus", "DataFormat",
            "AttrQuality", "AttrAccess", "DisplayLevel", "ManagerState",
            "TaurusTimeVal", "TaurusAttrValue", "TaurusConfigValue", "DataType",
-           "TaurusLockInfo", "DevState"]
+           "TaurusLockInfo", "DevState", "TaurusDevState"]
 
 __docformat__ = "restructuredtext"
 
@@ -39,15 +39,15 @@ import datetime
 
 from .util.enumeration import Enumeration
 from .util.log import tep14_deprecation
+from taurus.external.enum import IntEnum
 
-TaurusSWDevState = Enumeration(
-'TaurusSWDevState', (
-    'Uninitialized',
-    'Running', 
-    'Shutdown', 
-    'Crash', 
-    'EventSystemShutdown'
-))
+class TaurusDevState(IntEnum):
+    """Enumeration of possible states of :class:`taurus.core.TaurusDevice`
+    objects, as returned by :meth:`TaurusDevice.getDevState`."""
+    # TODO: it could be extended for more detailed description using bit masks
+    Ready = 1
+    NotReady = 2
+    Undefined = 4
 
 TaurusSWDevHealth = Enumeration(
 'TaurusSWDevHealth', (
@@ -129,6 +129,9 @@ DataFormat = Enumeration(
     '_2D'
 ))
 
+# TODO: Consider adding  Enum and Quantity to DataType enumeration ...
+# TODO: ... and also to __PYTHON_TYPE_TO_TAURUS_DATATYPE
+
 DataType = Enumeration(
 'DataType', (
     'Integer', # Can be used in scheme-agnostic code
@@ -194,7 +197,7 @@ ManagerState =  Enumeration(
     'CLEANED'
 ))
 
-class deprecatedEnum(object):
+class DeprecatedEnum(object):
     def __init__(self, name, alt):
         self.__name = name
         self.__alt = alt
@@ -204,8 +207,9 @@ class deprecatedEnum(object):
                            (self.__name, self.__alt))
 
 
-DevState = deprecatedEnum('taurus.core.DevState',
+DevState = DeprecatedEnum('taurus.core.DevState',
                           'taurus.core.tango.util.DevState')
+TaurusSWDevState = DeprecatedEnum('TaurusSWDevState', 'TaurusDevState')
 
 class TaurusTimeVal(object):
     def __init__(self):

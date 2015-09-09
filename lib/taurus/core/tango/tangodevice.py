@@ -33,7 +33,7 @@ import time
 from PyTango import (DeviceProxy, DevFailed, LockerInfo, DevState)
 
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusbasetypes import (TaurusSWDevState, TaurusLockInfo,
+from taurus.core.taurusbasetypes import (TaurusDevState, TaurusLockInfo,
                                          LockStatus, TaurusEventType)
 from taurus.core.util.log import tep14_deprecation
 
@@ -63,7 +63,7 @@ class TangoDevice(TaurusDevice):
         self._lock_info = TaurusLockInfo()
         self._deviceStateObj = None
         # TODO reimplement using the new codification
-        self._deviceSwState = self.__decode(TaurusSWDevState.Uninitialized)
+        self._deviceState = TaurusDevState.Undefined
 
     # Export the DeviceProxy interface into this object.
     # This way we can call for example read_attribute on an object of this class
@@ -122,25 +122,45 @@ class TangoDevice(TaurusDevice):
 
     @tep14_deprecation(alt="getDevState")
     def getSWState(self, cache=True):
-        # TODO: reimplement to raise an exception when TaurusSWState goes away
-        return self.getValueObj().rvalue
+        raise Exception('getSWState has been removed. Use getDevState instead')
+        #return self.getValueObj().rvalue
 
-    def getDevState(self):
-        # TODO reimplement using the new codification collapsing the
-        # TangoDevice state attribute value
-        #return TaurusDevice.getDevState()
-        tg_state = self.stateObj.read().rvalue.name
-        return tg_state
+    def getDevState(self, cache=True):
+        """Reimplemented from :class:`TaurusDevice` to use Tango's state
+        attribute for diagnosis of the current state. It supports a "cache"
+        kwarg
 
-    @tep14_deprecation(alt="getDevState")
-    def getValueObj(self, cache=True):
-        if not self.hasListeners() or not cache:
+        :param cache: (bool) If True (default), cache will be used when reading
+                      the state attribute of this device
+
+        :return: (TaurusDevState)
+        """
+        try:
+            self.stateObj.read(cache)
+            state = TaurusDevState.Ready
+        except:
             try:
-                v = self.stateObj.read(cache=cache)
-            except Exception as e:
-                v = e
-            self._deviceSwState = self.__decode(v)
-        return self._deviceSwState
+                if self.getDeviceProxy().import_info().exported:
+                    state = TaurusDevState.Undefined
+                else:
+                    state = TaurusDevState.NotReady
+            except:
+                state = TaurusDevState.NotReady
+        self._deviceState = state
+        return state
+
+    @tep14_deprecation(alt="getDevState [agnostic] or stateObj.read [Tango]")
+    def getValueObj(self, cache=True):
+        """ Deprecated by TEP14.
+        ..warning::
+            this bck-compat implementation is not perfect because the
+            rvalue of the returned TangoAttributeValue is now a member of
+            TaurusDevState instead of TaurusSWDevState
+        """
+        from taurus.core.tango.tangoattribute import TangoAttrValue
+        ret = TangoAttrValue()
+        ret.rvalue = self.getDevState(cache)
+        return ret
 
     def getDisplayDescrObj(self, cache=True):
         desc_obj = super(TangoDevice, self).getDisplayDescrObj(cache)
@@ -165,7 +185,7 @@ class TangoDevice(TaurusDevice):
 
     @tep14_deprecation()
     def getDisplayValue(self,cache=True):
-        return TaurusSWDevState.whatis(self.getValueObj(cache).rvalue)
+        return self.getDevState(cache).name
 
     def _createHWObject(self):
         try:
@@ -181,7 +201,7 @@ class TangoDevice(TaurusDevice):
     def getDeviceProxy(self):
         return self._deviceObj
 
-    @tep14_deprecation()
+    @tep14_deprecation(alt='TaurusDevice.isValid')
     def isValidDev(self):
         '''see: :meth:`TaurusDevice.isValid`'''
         return self._deviceObj is not None
@@ -233,75 +253,6 @@ class TangoDevice(TaurusDevice):
     # Protected implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    def _server_state(self):
-        state = None
-        try:
-            self.dev.ping()
-            state = TaurusSWDevState.Running
-        except:
-            try:
-                if self.dev.import_info().exported:
-                    state = TaurusSWDevState.Crash
-                else:
-                    state = TaurusSWDevState.Shutdown
-            except:
-                state = TaurusSWDevState.Shutdown
-        return state
-        
-    def __decode(self, event_value):
-        """ Private method for bck-comp to get the Taurus device state
-        """
-        from taurus.core.tango.tangoattribute import TangoAttrValue 
-        if isinstance(event_value, TangoAttrValue):
-            new_sw_state = TaurusSWDevState.Running
-        elif isinstance(event_value, DevFailed):
-            new_sw_state = self._handleExceptionEvent(event_value)
-        elif isinstance(event_value, int): # TaurusSWDevState
-            new_sw_state = event_value
-        else:
-            self.info("Unexpected value to decode: %s" % str(event_value))
-            new_sw_state = TaurusSWDevState.Crash
-            
-        value = TangoAttrValue()
-        value.rvalue = new_sw_state
-        
-        return value
-        
-    def _handleExceptionEvent(self, event_value):
-        """Handles the tango error event and returns the proper SW state."""
-        
-        new_sw_state = TaurusSWDevState.Uninitialized
-        reason = event_value[0].reason
-        # API_EventTimeout happens when: 
-        # 1 - the server where the device is running shuts down/crashes
-        # 2 - the notifd shuts down/crashes
-        if reason == 'API_EventTimeout':
-            if not self._deviceSwState.rvalue in self.SHUTDOWNS:
-                serv_state = self._server_state()
-                # if the device is running it means that it must have been 
-                # the event system that failed
-                if serv_state == TaurusSWDevState.Running:
-                    new_sw_state = TaurusSWDevState.EventSystemShutdown
-                else:
-                    new_sw_state = serv_state
-            else:
-                # Keep the old state
-                new_sw_state = self._deviceSwState.rvalue
-                
-        # API_BadConfigurationProperty happens when: 
-        # 1 - at client startup the server where the device is is not 
-        #     running.
-        elif reason == 'API_BadConfigurationProperty':
-            assert(self._deviceSwState.rvalue != TaurusSWDevState.Running)
-            new_sw_state = TaurusSWDevState.Shutdown
-        
-        # API_EventChannelNotExported happens when:
-        # 1 - at client startup the server is running but the notifd
-        #     is not
-        elif reason == 'API_EventChannelNotExported':
-            new_sw_state = TaurusSWDevState.EventSystemShutdown
-        return new_sw_state
-
     @tep14_deprecation(alt=".stateObj.removeListener()")
     def removeListener(self, listener):
         ret = TaurusDevice.removeListener(self, listener)
@@ -331,15 +282,22 @@ class TangoDevice(TaurusDevice):
     def eventReceived(self, event_src, event_type, event_value):
         if event_type == TaurusEventType.Config:
             return
-        # TODO: reimplement with the new codification
-        value = self.__decode(event_value)
+        from taurus.core.tango.tangoattribute import TangoAttrValue
+        if isinstance(event_value, TangoAttrValue): # for change events (&co)
+            new_state = TaurusDevState.Ready
+        elif isinstance(event_value, DevFailed): # for error events
+            new_state = TaurusDevState.NotReady
+        else:
+            self.info("Unexpected event value: %r", event_value)
+            new_state = TaurusDevState.Undefined
 
-        if value.rvalue != self._deviceSwState.rvalue:
-            msg = "SW Device State changed %s -> %s" %\
-                  (TaurusSWDevState.whatis(self._deviceSwState.rvalue),
-                   TaurusSWDevState.whatis(value.rvalue))
+        if new_state != self._deviceState:
+            msg = "Device State changed %s -> %s" %  (self._deviceState.name,
+                                                      new_state.name)
             self.debug(msg)
-            self._deviceSwState = value
+            self._deviceState = new_state
+            value = TangoAttrValue()
+            value.rvalue = new_state
             self.fireEvent(TaurusEventType.Change, value)
 
     def __pollResult(self, attrs, ts, result, error=False):

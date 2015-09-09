@@ -35,6 +35,7 @@ from taurus.external.qt import Qt
 import PyTango
 
 import taurus.core
+from taurus.core import TaurusDevState
 
 from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, 
                                        TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_MODEL_MIME_TYPE)
@@ -591,7 +592,7 @@ class TaurusCommandsForm(TaurusWidget):
         '''
         #self.debug('In TaurusCommandsForm._updateCommandWidgets())')
         dev = self.getModelObj()
-        if dev is None or dev.getSWState() != taurus.core.taurusbasetypes.TaurusSWDevState.Running:
+        if dev is None or dev.getDevState() != TaurusDevState.Ready:
             self.debug('Cannot connect to device')
             self._clearFrame()
             return
@@ -767,7 +768,7 @@ class TaurusAttrForm(TaurusWidget):
         '''Populates the form with an item for each of the attributes shown
         '''
         dev = self.getModelObj()
-        if dev is None or dev.getSWState() != taurus.core.taurusbasetypes.TaurusSWDevState.Running:
+        if dev is None or dev.getDevState() != TaurusDevState.Ready:
             self.debug('Cannot connect to device')
             self._form.setModel([])
             return

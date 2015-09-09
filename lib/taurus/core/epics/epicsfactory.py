@@ -39,7 +39,7 @@ from taurus import Factory
 from taurus.core.taurusexception import TaurusException, DoubleRegistration
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.log import Logger
-from taurus.core.taurusbasetypes import MatchLevel, TaurusSWDevState, \
+from taurus.core.taurusbasetypes import MatchLevel, TaurusDevState, \
     SubscriptionState, TaurusEventType, TaurusAttrValue, TaurusTimeVal, \
     AttrQuality
 from taurus.core.taurusfactory import TaurusFactory
@@ -259,7 +259,7 @@ class EpicsDevice(TaurusDevice):
             new_sw_state = event_value
         else:
             self.info("Unexpected value to decode: %s" % str(event_value))
-            new_sw_state = TaurusSWDevState.Crash
+            new_sw_state = TaurusDevState.NotReady
         value = TaurusAttrValue() 
         value.value = new_sw_state
         return value

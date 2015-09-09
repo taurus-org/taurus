@@ -27,7 +27,7 @@ __all__ = ['EvaluationDevice']
 from taurus import Factory
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.util.safeeval import SafeEvaluator
-from taurus.core.taurusbasetypes import TaurusSWDevState, TaurusAttrValue
+from taurus.core.taurusbasetypes import TaurusDevState, TaurusAttrValue
 
 class EvaluationDevice(TaurusDevice, SafeEvaluator):
     '''
@@ -72,7 +72,7 @@ class EvaluationDevice(TaurusDevice, SafeEvaluator):
             new_sw_state = event_value
         else:
             self.info("Unexpected value to decode: %s" % str(event_value))
-            new_sw_state = TaurusSWDevState.Crash
+            new_sw_state = TaurusDevState.NotReady
         value = TaurusAttrValue() 
         value.rvalue = new_sw_state
         return value

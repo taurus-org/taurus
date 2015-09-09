@@ -24,7 +24,7 @@
 #############################################################################
 __all__ = ["SpecDevice"]
 
-from taurus.core.taurusbasetypes import TaurusAttrValue, TaurusSWDevState
+from taurus.core.taurusbasetypes import TaurusAttrValue, TaurusDevState
 from taurus.core.taurusdevice import TaurusDevice
 from taurus import Factory
 
@@ -77,7 +77,7 @@ class SpecDevice(TaurusDevice):
             new_sw_state = event_value
         else:
             self.info("Unexpected value to decode: %s" % str(event_value))
-            new_sw_state = TaurusSWDevState.Crash
+            new_sw_state = TaurusDevState.NotReady
         value = TaurusAttrValue() 
         value.value = new_sw_state
         return value
