@@ -37,7 +37,7 @@ import weakref
 
 from PyTango import (Database, DeviceProxy, DevFailed, ApiUtil)
 
-from taurus.core.taurusbasetypes import TaurusSWDevHealth, TaurusEventType
+from taurus.core.taurusbasetypes import TaurusDevState, TaurusEventType
 from taurus.core.taurusauthority import TaurusAuthority
 from taurus.core.util.containers import CaselessDict
 from taurus.core.util.log import tep14_deprecation
@@ -112,7 +112,7 @@ class TangoDevInfo(TangoInfo):
         self._klass = weakref.ref(klass)
         self._exported = bool(int(exported))
         self._alive = None
-        self._health = None
+        self._state = None
         self._host = host
         self._domain, self._family, self._member = map(str.upper, 
                                                        name.split("/", 2))
@@ -154,18 +154,18 @@ class TangoDevInfo(TangoInfo):
             self._alivePending = False
         return self._alive
     
-    def health(self):
-        """Overwrite health so it doesn't call 'alive()' since it can take
+    def state(self):
+        """Overwrite state so it doesn't call 'alive()' since it can take
         a long time for devices that are declared as exported but are in fact
-        not running (crached, network error, power cut, etc)"""
-        if not self._health is None:
-            return self._health
+        not running (crashed, network error, power cut, etc)"""
+        if not self._state is None:
+            return self._state
         exported = self.exported()
         if exported:
-            self._health = TaurusSWDevHealth.Exported
+            self._state = TaurusDevState.Ready
         else:
-            self._health = TaurusSWDevHealth.NotExported
-        return self._health
+            self._state = TaurusDevState.NotReady
+        return self._state
         
     def host(self):
         return self._host
@@ -215,8 +215,7 @@ class TangoDevInfo(TangoInfo):
                 attrs.append(attr_obj)
             attrs = sorted(attrs, key=lambda attr : attr.name())
         except DevFailed as df:
-            if self.health() == TaurusSWDevHealth.Exported:
-                self._health = TaurusSWDevHealth.ExportedNotAlive
+            self._state = TaurusDevState.NotReady
         self.setAttributes(attrs)
 
 
@@ -250,17 +249,11 @@ class TangoServInfo(TangoInfo):
     def exported(self):
         return self._exported
 
-    def health(self):
+    def state(self):
         exported = self.exported()
         if exported:
-            alive = self.alive()
-            if alive == True:
-                return TaurusSWDevHealth.ExportedAlive
-            elif alive == False:
-                return TaurusSWDevHealth.ExportedNotAlive
-            else:
-                return TaurusSWDevHealth.Exported
-        return TaurusSWDevHealth.NotExported
+            return TaurusDevState.Ready
+        return TaurusDevState.NotReady
     
     def host(self):
         return self._host

@@ -28,7 +28,7 @@
 __all__ = ['getPixmap', 'getThemePixmap', 'getIcon', 'getThemeIcon', 'getStandardIcon',
            'getElementTypeToolTip', 'getElementTypeIconName', 'getElementTypeIcon',
            'getElementTypePixmap', 'getElementTypeSize',
-           'getSWDevHealthToolTip', 'getSWDevHealthIcon', 'getSWDevHealthPixmap',
+           'getDevStateToolTip',  'getDevStateIcon', 'getDevStatePixmap',
            'getThemeMembers' ]
 
 __docformat__ = 'restructuredtext'
@@ -37,13 +37,12 @@ import os
 
 from taurus.external.qt import Qt
 
-from taurus.core.taurusbasetypes import TaurusElementType, TaurusSWDevHealth
-from taurus.core.util.log import Logger
+from taurus.core.taurusbasetypes import TaurusElementType, TaurusDevState
+from taurus.core.util.log import Logger, tep14_deprecation
 
 __LOGGER = Logger(__name__)
 
 ElemType = TaurusElementType
-DevHealth = TaurusSWDevHealth
 Size = Qt.QSize
 
 __INITIALIZED = False
@@ -228,7 +227,7 @@ _ELEM_TYPE_MAP = { ElemType.Name : ("folder", __3DQS, None),
        ElemType.DeviceClass : ("text-x-script", Size(140, __DH), "Tango class name"),
           ElemType.Exported : ("start-here", Size(60, __DH), "Alive/not alive"),
               ElemType.Host : ("network-server", Size(100, __DH), "Host machine were last ran"),
-         ElemType.Attribute : ("format-text-bold", Size(100, __DH), "Attribute name"), }
+         ElemType.Attribute : (":/actions/format-text-bold.svg", Size(100, __DH), "Attribute name"), }
 
 def getElementTypeToolTip(elemType):
     data = _ELEM_TYPE_MAP.get(elemType)
@@ -271,7 +270,7 @@ def getElementTypeIcon(elemType, fallback=None):
     :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`"""
 
     themeIconName = getElementTypeIconName(elemType)
-    icon = getThemeIcon(themeIconName)
+    icon = getIcon(themeIconName)
     if icon.isNull() and fallback is not None:
         icon = fallback
     return icon
@@ -283,7 +282,8 @@ def getElementTypePixmap(elemType, size=None):
     fallback is returned.
     
     :param elemType: (TaurusElementType) the taurus element type
-    :param fallback: (PyQt4.QtGui.QPixmap) the fallback pixmap. Default is None.
+    :param size: (int) the pixmap size in pixels (will get a square pixmap). 
+                 Default is None meaning it will return the original size.
     
     :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`"""
 
@@ -296,57 +296,72 @@ def getElementTypePixmap(elemType, size=None):
     return getThemePixmap(themeName, size)
 
 # Indexes for the map below
-__IDX_HEALTH_ICON, __IDX_HEALTH_TOOLTIP = range(2)
+__IDX_STATE_ICON, __IDX_STATE_TOOLTIP = range(2)
 
-_HEALTH_MAP = { DevHealth.Exported   : ("face-smile", "Element reported to be alive") ,
-            DevHealth.ExportedAlive  : ("face-smile-big", "Element confirmed to be alive"),
-          DevHealth.ExportedNotAlive : ("face-surprise", "Element reported to be alive but there is no connection!"),
-             DevHealth.NotExported   : ("face-sad", "Element reported to be shutdown"),
-         DevHealth.NotExportedAlive  : ("face-plain", "Element reported to be shutdown but there is a connection!"),
-       DevHealth.NotExportedNotAlive : ("face-sad", "Element reported to be shutdown") }
+_STATE_MAP = { 
+    TaurusDevState.Ready:(":/status/available.svg",
+                          "Element ready") ,
+    TaurusDevState.NotReady:(":/status/not-available.svg",
+                             "Element not ready"),
+    TaurusDevState.Undefined:(":/status/not-known.svg",
+                                          "Element state undefined") 
+}
 
-def getSWDevHealthToolTip(elemHealth):
-    data = _HEALTH_MAP.get(elemHealth)
+@tep14_deprecation(alt='getDevStateToolTip')
+def getSWDevHealthToolTip(state):
+    return getDevStateToolTip(state)
+
+def getDevStateToolTip(state):   
+    data = _STATE_MAP.get(state)
     if data is None:
         return
-    return data[__IDX_HEALTH_TOOLTIP]
+    return data[__IDX_STATE_TOOLTIP]
 
-def getSWDevHealthIcon(elemHealth, fallback=None):
-    """Gets a PyQt4.QtGui.QIcon object for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`.
+@tep14_deprecation(alt='getDevStateIcon')
+def getSWDevHealthIcon(state, fallback=None):
+    return getDevStateIcon(state, fallback=fallback)
+
+def getDevStateIcon(state, fallback=None):
+    """Gets a PyQt4.QtGui.QIcon object for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`.
     
-    If an icon cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`,
+    If an icon cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`,
     fallback is returned.
     
-    :param elemHealth: (TaurusSWDevHealth) the taurus software device health status
+    :param state: (TaurusDevState) the taurus device state
     :param fallback: (PyQt4.QtGui.QIcon) the fallback icon. Default is None.
     
-    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`"""
-    if elemHealth is None:
+    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`"""
+    if state is None:
         return
-    data = _HEALTH_MAP.get(elemHealth)
+    data = _STATE_MAP.get(state)
     if data is None:
         return
-    themeIconName = data[__IDX_HEALTH_ICON]
+    name = data[__IDX_STATE_ICON]
     
-    icon = getThemeIcon(themeIconName)
+    icon = getIcon(name)
     if icon.isNull() and fallback is not None:
         icon = fallback
     return icon
 
-def getSWDevHealthPixmap(elemHealth, size=None):
-    """Gets a PyQt4.QtGui.QPixmap object for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`.
+@tep14_deprecation(alt='getDevStatePixmap')
+def getSWDevHealthPixmap(state, fallback=None):
+    return getDevStatePixmap(state, fallback=fallback)
+
+def getDevStatePixmap(state, size=None):
+    """Gets a PyQt4.QtGui.QPixmap object for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`.
     
-    If a pixmap cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`,
+    If a pixmap cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`,
     fallback is returned.
     
-    :param elemHealth: (TaurusSWDevHealth) the taurus software device health status
-    :param fallback: (PyQt4.QtGui.QPixmap) the fallback icon. Default is None.
+    :param state: (TaurusDevState) the taurus software device state
+    :param size: (int) the pixmap size in pixels (will get a square pixmap). 
+                 Default is None meaning it will return the original size.
     
-    :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.taurusbasetypes.TaurusSWDevHealth`"""
-    if elemHealth is None:
+    :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`"""
+    if state is None:
         return
-    data = _HEALTH_MAP.get(elemHealth)
+    data = _STATE_MAP.get(state)
     if data is None:
         return
-    themeName = data[__IDX_HEALTH_ICON]
-    return getThemePixmap(themeName, size)
+    name = data[__IDX_STATE_ICON]
+    return getPixmap(name, size)

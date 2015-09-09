@@ -49,16 +49,6 @@ class TaurusDevState(IntEnum):
     NotReady = 2
     Undefined = 4
 
-TaurusSWDevHealth = Enumeration(
-'TaurusSWDevHealth', (
-    'Exported',           # device reported exported
-    'ExportedAlive',      # device reported exported and confirmed connection
-    'ExportedNotAlive',   # device reported exported but connection failed!!
-    'NotExported',        # device didn't report exported
-    'NotExportedAlive',   # device didn't report exported but connection confirmed!
-    'NotExportedNotAlive' # device didn't report exported and connection failed
-))
-
 # Deprecated enumeration. 
 # According with TEP3, the logic of the OperationMode should be in the widgets
 OperationMode = Enumeration(
@@ -210,6 +200,7 @@ class DeprecatedEnum(object):
 DevState = DeprecatedEnum('taurus.core.DevState',
                           'taurus.core.tango.util.DevState')
 TaurusSWDevState = DeprecatedEnum('TaurusSWDevState', 'TaurusDevState')
+TaurusSWDevHealth = DeprecatedEnum('TaurusSWDevHealth', 'TaurusDevState')
 
 class TaurusTimeVal(object):
     def __init__(self):
