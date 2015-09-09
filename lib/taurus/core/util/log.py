@@ -49,6 +49,28 @@ from object import Object
 from wrap import wraps
 from excepthook import BaseExceptHook
 
+# ------------------------------------------------------------------------------
+# TODO: substitute this ugly hack (below) by a more general mechanism
+from collections import defaultdict
+class _DeprecationCounter(defaultdict):
+    def __init__(self):
+        defaultdict.__init__(self, int)
+
+    def getTotal(self):
+        c = 0
+        for v in self.itervalues():
+            c += v
+        return c
+
+    def pretty(self):
+        from operator import itemgetter
+        sorted_items = sorted(self.iteritems(), key=itemgetter(1), reverse=True)
+        ret = '\n'.join(['\t%d * "%s"' % (v,k) for k,v in sorted_items])
+        return  "< Deprecation Counts (%d):\n%s >" % (self.getTotal(), ret)
+
+_DEPRECATION_COUNT = _DeprecationCounter()
+# ------------------------------------------------------------------------------
+
 TRACE = 5
 logging.addLevelName(TRACE, "TRACE")
 
@@ -814,7 +836,11 @@ class Logger(Object):
                 msg += ' (from %s)' % rel
             if alt is not None:
                 msg += '. Use %s instead' % alt
-                
+
+        # count the number of calls (classified by msg)
+        # TODO: substitute this ugly hack (below) by a more general mechanism
+        _DEPRECATION_COUNT[msg] += 1
+
         if _callerinfo is None:
             _callerinfo = self.log_obj.findCaller()
         filename, lineno, _ = _callerinfo

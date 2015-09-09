@@ -341,3 +341,15 @@ class TaurusApplication(Qt.QApplication, Logger):
                          log_file_name)
             self.debug("Error description", exc_info=1)
 
+    @staticmethod
+    def exec_(*args, **kwargs):
+        # TODO: substitute this ugly hack by some more general mechanism
+        try:
+            ret = Qt.QApplication.exec_(*args, **kwargs)
+        except TypeError:
+            ret = Qt.QApplication.exec_(*args)
+        from taurus.core.util.log import _DEPRECATION_COUNT
+        from taurus import info
+        info('\n*********************\n%s', _DEPRECATION_COUNT.pretty())
+        return ret
+
