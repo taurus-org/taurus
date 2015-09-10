@@ -59,6 +59,10 @@ class BaseWidgetTestCase(object):
         
         """
         unittest.TestCase.setUp(self)
+
+        from taurus.core.util.log import _DEPRECATION_COUNT
+        self._depCounter = _DEPRECATION_COUNT
+        self._originalDepCount = self._depCounter.getTotal()
         
         app = TaurusApplication.instance()
         if app is None:
@@ -67,6 +71,17 @@ class BaseWidgetTestCase(object):
         
         if self._klass is not None:
             self._widget = self._klass(*self.initargs, **self.initkwargs)
+
+    def assertMaxDeprecations(self, maximum, msg=None):
+        """Assertion method that checks that the number of deprecations issued
+        during the current test is equal to or below a given maximum
+
+        :param maximum: (int) maximum number of deprecation warnings allowed
+        """
+        diff = self._depCounter.getTotal() - self._originalDepCount
+        if msg is None:
+            msg = '%d deprecation warnings issued (max=%d)' % (diff, maximum)
+        self.assertTrue(diff<=maximum, msg)
 
 
 @skipUnlessGui()
@@ -122,6 +137,7 @@ class GenericWidgetTestCase(BaseWidgetTestCase):
     def test00_Instantiation(self):
         '''Check that the widget instantiates correctly'''
         self.assertIsInstance(self._widget, self._klass)
+        self.assertMaxDeprecations(0)
 
     def test10_SetModelsSequentially(self):
         '''Check that we can set several models sequentially'''
@@ -138,6 +154,7 @@ class GenericWidgetTestCase(BaseWidgetTestCase):
                 self.assertIs(modelobj, model,
                               'failed to set model "%s" for %s' %
                              (name, self._klass.__name__))
+        self.assertMaxDeprecations(0)
 
 #    def test10_ModelProperty(self):
 #        pass
