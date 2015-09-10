@@ -166,7 +166,36 @@ class TaurusModel(Logger):
         else:
             ret = full_name.upper()
         return ret
-            
+
+    def getFragmentObj(self, fragmentName=None):
+        """Returns a fragment object of the model. A fragment of a model is a
+        python attribute of the model object.
+
+        Fragment names including dots will be used to recursively get fragments
+        of fragments.
+
+        For a simple fragmentName (no dots), this is roughly equivalent to
+        getattr(self, fragmentName)
+
+        If the model does not have the fragment, :class:`AttributeError` is
+        raised
+
+        :param fragmentName: (str or None) the returned value will correspond to
+                         the given fragmentName. If None is passed the
+                         defaultFragmentName will be used instead.
+
+        :return: (obj) the member of the modelObj referred by the fragment.
+        """
+        if fragmentName is None:
+            fragmentName = self.defaultFragmentName
+        obj = self
+        for fn in fragmentName.split('.'):
+            if fn == '':
+                # avoid a generic Exception, make it AttributeError instead
+                raise AttributeError('Cannot get empty fragment')
+            obj = getattr(obj, fn)
+        return obj
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

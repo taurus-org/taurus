@@ -54,7 +54,7 @@ class TaurusAttribute(TaurusModel):
 
     DftTimeToLive = 10000 # 10s
     _description = "A Taurus Attribute"
-    defaultFragment = "rvalue" # fragment to be used if none is specified
+    defaultFragmentName = "rvalue" # fragment to be used if none is specified
 
     def __init__(self, name, parent, **kwargs):
         self.call__init__(TaurusModel, name, parent)

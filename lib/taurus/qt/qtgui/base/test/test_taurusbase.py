@@ -61,6 +61,10 @@ DEV_NAME = 'TangoSchemeTest/unittest/temp-1'
             expected='float_scalar')
 
 @insertTest(helper_name='getDisplayValue',
+            model= 'tango:' + DEV_NAME + '/double_scalar#rvalue.magnitude',
+            expected='1.23')
+
+@insertTest(helper_name='getDisplayValue',
             model= 'tango:' + DEV_NAME + '/float_scalar#label',
             expected='float_scalar')
 
@@ -130,5 +134,6 @@ class GetDisplayValueTestCase(BaseWidgetTestCase, unittest.TestCase):
         msg = ('getDisplayValue for "%s" should be %r (got %r)' %
                (model, expected, got))
         self.assertEqual(expected, got, msg)
+        self.assertMaxDeprecations(0)
 
 

@@ -74,7 +74,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         """Initialization of TaurusBaseComponent"""
         self.modelObj = None
         self.modelName = ''
-        self.modelFragment = None
+        self.modelFragmentName = None
         self.noneValue = DefaultNoneValue
         self._designMode = designMode
         self.call__init__(TaurusListener, name, parent)
@@ -487,12 +487,12 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         self.modelName = modelName
         self._attach()
 
-        # update modelFragment
+        # update modelFragmentName
         try:
             v = self.modelObj.getNameValidator()
-            self.modelFragment = v.getUriGroups(self.modelName)['fragment']
+            self.modelFragmentName = v.getUriGroups(self.modelName)['fragment']
         except AttributeError:
-            self.modelFragment = None
+            self.modelFragmentName = None
     
     def getModelName(self):
         """Returns the current model name.
@@ -570,7 +570,33 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         if self.modelObj is None:
             return None
         return self.modelObj.getValueObj(cache=cache)
-        
+
+    def getModelFragmentObj(self, fragmentName=None):
+        """Returns a fragment object of the model. A fragment of a model is a
+        python attribute of the model object.
+
+        Fragment names including dots will be used to recursively get fragments
+        of fragments.
+
+        For a simple fragmentName (no dots), this is roughly equivalent to
+        getattr(self.getModelObj(), fragmentName)
+
+        If the model does not have that fragment, :class:`AttributeError` is
+        raised (other exceptions may be raised when accessing the fragment as
+        well)
+
+        :param fragmentName: (str or None) the returned value will correspond to
+                         the given fragmentName. If None passed,
+                         self.modelFragmentName will be used, and if None is
+                         set, the defaultFragmentName of the model will be used
+                         instead.
+
+        :return: (obj) the member of the modelObj referred by the fragment.
+        """
+        if fragmentName is None: # no fragmentName passed in kwargs
+            fragmentName = self.modelFragmentName
+        return self.modelObj.getFragmentObj(fragmentName)
+
     def getFormatedToolTip(self,cache=True):
         """Returns a string with contents to be displayed in a tooltip.
             
@@ -611,31 +637,26 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             return v.name
         return str(v)
         
-    def getDisplayValue(self, cache=True, fragment=None):
+    def getDisplayValue(self, cache=True, fragmentName=None):
         """Returns a string representation of the model value associated with
         this component.
             
-        :param cache: (bool) if set to True (default) use the cache value.
-                      If set to False will force a connection to the server.
-        :param fragment: (str or None) the returned value will correspond to
-                         the given fragment. If None passed, self.modelFragment
-                         will be used, and if None is set, the defaultFragment
-                         of the model will be used instead.
+        :param cache: (bool) (ignored, just for bck-compat).
+        :param fragmentName: (str or None) the returned value will correspond to
+                         the given fragmentName. If None passed,
+                         self.modelFragmentName will be used, and if None is
+                         set, the defaultFragmentName of the model will be used
+                         instead.
 
         :return: (str) a string representation of the model value.
         """
         if self.modelObj is None:
             return self.getNoneValue()
-        if fragment is None: # no fragment passed in kwargs
-            fragment = self.modelFragment
-        if fragment is None: # no fragment in the model name
-            fragment = self.modelObj.defaultFragment
         try:
-            v = getattr(self.modelObj, fragment)
+            v = self.getModelFragmentObj(fragmentName=fragmentName)
         except:
             return self.getNoneValue()
         return self.displayValue(v)
-
 
     def setNoneValue(self, v):
         """Sets the new string representation when no model or no model value exists.
