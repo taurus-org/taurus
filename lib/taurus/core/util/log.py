@@ -840,6 +840,9 @@ class Logger(Object):
         # count the number of calls (classified by msg)
         # TODO: substitute this ugly hack (below) by a more general mechanism
         _DEPRECATION_COUNT[msg] += 1
+        # limit the output to 1 deprecation message of each type
+        if _DEPRECATION_COUNT[msg] > 1:
+            return
 
         if _callerinfo is None:
             _callerinfo = self.log_obj.findCaller()
