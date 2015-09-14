@@ -62,7 +62,7 @@ class BaseWidgetTestCase(object):
 
         from taurus.core.util.log import _DEPRECATION_COUNT
         self._depCounter = _DEPRECATION_COUNT
-        self._originalDepCount = self._depCounter.getTotal()
+        self._depCounter.clear()
         
         app = TaurusApplication.instance()
         if app is None:
@@ -78,10 +78,11 @@ class BaseWidgetTestCase(object):
 
         :param maximum: (int) maximum number of deprecation warnings allowed
         """
-        diff = self._depCounter.getTotal() - self._originalDepCount
+        deps = self._depCounter.getTotal()
         if msg is None:
-            msg = '%d deprecation warnings issued (max=%d)' % (diff, maximum)
-        self.assertTrue(diff<=maximum, msg)
+            msg = ('%d deprecation warnings issued (max=%d):\n%s' %
+                   (deps, maximum, self._depCounter.pretty()))
+        self.assertTrue(deps<=maximum, msg)
 
 
 @skipUnlessGui()
