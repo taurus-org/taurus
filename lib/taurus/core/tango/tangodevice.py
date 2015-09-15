@@ -266,14 +266,13 @@ class TangoDevice(TaurusDevice):
         ret = TaurusDevice.addListener(self, listener)
         if not ret:
             return ret
-
         # We are only listening to State if someone is listening to us
         if weWereListening:
             # We were listening already, so we must fake an event to the new
             # subscribed listener with the current value
-            self.fireEvent(TaurusEventType.Change, self.stateObj.read(),
-                           hasattr(listener,'__iter__') and listener or
-                           [listener])
+            evt_value = self.__decode(self.stateObj.read())
+            listeners = hasattr(listener,'__iter__') and listener or  [listener]
+            self.fireEvent(TaurusEventType.Change, evt_value, listeners)
         else:
             # We were not listening to events, but now we have to
             self.stateObj.addListener(self)
@@ -282,6 +281,18 @@ class TangoDevice(TaurusDevice):
     def eventReceived(self, event_src, event_type, event_value):
         if event_type == TaurusEventType.Config:
             return
+        value = self.__decode(event_value)
+        new_state = value.rvalue
+        if new_state != self._deviceState:
+            msg = "Device State changed %s -> %s" %  (self._deviceState.name,
+                                                      new_state.name)
+            self.debug(msg)
+            self._deviceState = new_state
+            self.fireEvent(TaurusEventType.Change, value)
+
+    def __decode(self, event_value):
+        """Decode events from the state attribute into TangoAttrValues whose
+        rvalue is the Device state"""
         from taurus.core.tango.tangoattribute import TangoAttrValue
         if isinstance(event_value, TangoAttrValue): # for change events (&co)
             new_state = TaurusDevState.Ready
@@ -290,15 +301,10 @@ class TangoDevice(TaurusDevice):
         else:
             self.info("Unexpected event value: %r", event_value)
             new_state = TaurusDevState.Undefined
-
-        if new_state != self._deviceState:
-            msg = "Device State changed %s -> %s" %  (self._deviceState.name,
-                                                      new_state.name)
-            self.debug(msg)
-            self._deviceState = new_state
-            value = TangoAttrValue()
-            value.rvalue = new_state
-            self.fireEvent(TaurusEventType.Change, value)
+        from taurus.core.taurusbasetypes import TaurusModelValue
+        value = TaurusModelValue()
+        value.rvalue = new_state
+        return value
 
     def __pollResult(self, attrs, ts, result, error=False):
         if error:
