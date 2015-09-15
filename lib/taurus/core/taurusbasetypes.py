@@ -31,7 +31,7 @@ __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "MatchLevel", "TaurusElementType", "LockStatus", "DataFormat",
            "AttrQuality", "AttrAccess", "DisplayLevel", "ManagerState",
            "TaurusTimeVal", "TaurusAttrValue", "TaurusConfigValue", "DataType",
-           "TaurusLockInfo", "DevState", "TaurusDevState"]
+           "TaurusLockInfo", "DevState", "TaurusDevState", "TaurusModelValue"]
 
 __docformat__ = "restructuredtext"
 
@@ -246,16 +246,21 @@ class TaurusTimeVal(object):
         return TaurusTimeVal.fromdatetime(datetime.datetime.now())    
          
 
-class TaurusAttrValue(object):
+class TaurusModelValue(object):
     def __init__(self):
         self.rvalue = None
+
+    def __repr__(self):
+        return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
+
+
+class TaurusAttrValue(TaurusModelValue):
+    def __init__(self):
+        TaurusModelValue.__init__(self)
         self.wvalue = None
         self.time = None
         self.quality = AttrQuality.ATTR_VALID
         self.error = None
-    
-    def __repr__(self):
-        return "%s%s"%(self.__class__.__name__, repr(self.__dict__))
 
 
 class TaurusConfigValue(object):
