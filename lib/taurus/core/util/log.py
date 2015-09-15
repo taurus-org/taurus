@@ -841,8 +841,15 @@ class Logger(Object):
         # TODO: substitute this ugly hack (below) by a more general mechanism
         _DEPRECATION_COUNT[msg] += 1
         # limit the output to 1 deprecation message of each type
-        if _DEPRECATION_COUNT[msg] > 1:
-            return
+        from taurus import tauruscustomsettings
+        _MAX_DEPRECATIONS_LOGGED = getattr(tauruscustomsettings,
+                                           '_MAX_DEPRECATIONS_LOGGED', None)
+        if _MAX_DEPRECATIONS_LOGGED is not None:
+            if _MAX_DEPRECATIONS_LOGGED < 0:
+                self.stack(self.Warning)
+                raise Exception(msg)
+            if _DEPRECATION_COUNT[msg] > _MAX_DEPRECATIONS_LOGGED:
+                return
 
         if _callerinfo is None:
             _callerinfo = self.log_obj.findCaller()

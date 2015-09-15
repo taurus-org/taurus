@@ -121,3 +121,15 @@ QT_AUTO_INIT_RES = DEFAULT_QT_AUTO_INIT_RES
 
 #: Remove input hook (only valid for PyQt4)
 QT_AUTO_REMOVE_INPUTHOOK = DEFAULT_QT_AUTO_REMOVE_INPUTHOOK
+
+
+# ----------------------------------------------------------------------------
+# Deprecation handling:
+# Note: this API is still experimental and may be subject to change
+# (hence the "_" in the options)
+# ----------------------------------------------------------------------------
+
+# set the maximum number of same-message deprecations to be logged.
+# None (or not set) indicates no limit. -1 indicates that an exception should
+# be raised instead of logging the message (useful for finding obsolete code)
+_MAX_DEPRECATIONS_LOGGED = 1
