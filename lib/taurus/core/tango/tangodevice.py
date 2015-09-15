@@ -253,14 +253,12 @@ class TangoDevice(TaurusDevice):
     # Protected implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    @tep14_deprecation(alt=".stateObj.removeListener()")
     def removeListener(self, listener):
         ret = TaurusDevice.removeListener(self, listener)
         if not ret or self.hasListeners():
             return ret # False, None or True
         return self.stateObj.removeListener(self)
 
-    @tep14_deprecation(alt=".stateObj.addListener()")
     def addListener(self, listener):
         weWereListening = self.hasListeners()
         ret = TaurusDevice.addListener(self, listener)
