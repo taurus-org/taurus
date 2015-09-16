@@ -85,14 +85,14 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         
         # a button that launches a TaurusAttrForm when clicked
         button =  TaurusLauncherButton(widget = TaurusAttrForm())
-        button.setModel('a/b/c') #a device name, which will be given to the TaurusAttrForm when clicking
+        button.setModel('a/b/c') #a device name, which will be set at the TaurusAttrForm when clicking
         
-        # a button that launches a taurusValueLabel (whose model is an attribute: 'a/b/c/attrname')
-        button =  TaurusLauncherButton(widget = TaurusValueLabel())
-        button.setModel('a/b/c/attrname') #a device name, which will be given to the TaurusValueLabel when clicking
+        # a button that launches a taurusLabel (whose model is an attribute: 'a/b/c/attrname')
+        button =  TaurusLauncherButton(widget = TaurusLabel())
+        button.setModel('a/b/c/attrname') # attr name, which will be set at the TaurusLabel when clicking
         
         #same as the previous one, but using the parent model and putting a custom text and icon:
-        button =  TaurusLauncherButton(widget = TaurusValueLabel(), text='click me', icon=':/taurus.png')
+        button =  TaurusLauncherButton(widget = TaurusLabel(), text='click me', icon=':/taurus.png')
         button.setUseParentModel(True)  #let's assume that the button's parent has a model of type "/a/b/c"
         button.setModel('/attrname')
     
@@ -119,25 +119,23 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QPushButton, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
+        self._dialog = _ButtonDialog(self)
         if icon is None and self._icon is not None:
             icon = getIcon(self._icon)
         if icon is not None: 
             self.setIcon(Qt.QIcon(icon))
-        if text is None: text = self._text
-        self._text = text
-        self.setText(self.getDisplayValue())
-        self._dialog = _ButtonDialog(self)
-        if widget is None:
-            pass
-        elif isinstance(widget, Qt.QWidget):
+        if text is not None:
+            self._text = text
+        if isinstance(widget, Qt.QWidget):
             self._deleteWidgetOnClose = False # we cannot be sure on recreating the same widget again
             self.setWidget(widget)
-        else:
-            self.setWidgetClassName(widget)
+        elif widget is not None:
+            self._widgetClassName = widget
         self.connect(self, Qt.SIGNAL('clicked()'), self.onClicked)
         self.setDefault(False)
         self.setAutoDefault(False)
         self.insertEventFilter(eventfilters.IGNORE_CHANGE_AND_PERIODIC) #no need to listen to change events!
+        self._updateText()
         
     def getModelClass(self):
         '''see :meth:`TaurusBaseComponent.getModelClass`. Note that in the case of
@@ -159,8 +157,11 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         
     def setWidgetClassName(self, className, args=None, kwargs=None):
         self._widgetClassName = str(className)
-        if args is not None: self._args = args
-        if kwargs is not None: self._kwargs = kwargs
+        if args is not None:
+            self._args = args
+        if kwargs is not None:
+            self._kwargs = kwargs
+        self._updateText()
         
     def resetWidgetClassName(self, className, args=None, kwargs=None):
         self.setWidgetClassName(self.__class__._widgetClassName)
@@ -185,28 +186,24 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         :param widget: (Qt.QWidget)
         '''
         self._dialog.setWidget(widget)
-        if self._text is None and self.widget() is not None:
-            self._text = self.widget().__class__.__name__
+        self._updateText()
         
     def displayValue(self,v):
         '''see :meth:`TaurusBaseComponent.displayValue`'''
-        if self._text is not None: return self._text #make sure the text is not changed once set
+        if self._text is not None:
+            return self._text # make sure the text is not changed once set
         TaurusBaseWidget.displayValue(self,v)
         
     def getDisplayValue(self):
         '''see :meth:`TaurusBaseComponent.getDisplayValue`'''
-        if self._text is not None: return self._text
-        modelobj = self.getModelObj()
-        if modelobj is None:
-            return '---'
-        config = modelobj.getConfig()
-        if config.isSpectrum():
-            return 'Spect[%i]' % modelobj.read().value.shape[0]
-        elif config.isImage():
-            return 'Imag[%ix%i]'%(modelobj.read().value.shape)
-        else:
-            self.debug('Unknown model type for TaurusLauncherButton')
-            return '---'
+        if self._text is not None:
+            return self._text
+        if self.widget() is not None:
+            return self.widget().__class__.__name__
+        return self._widgetClassName or '---'
+
+    def _updateText(self):
+        Qt.QPushButton.setText(self, self.getDisplayValue())
         
     def onClicked(self):
         '''
@@ -643,20 +640,23 @@ def launcherButtonMain():
     app = TaurusApplication()
     
     #Creating button giving the widget
-#    from taurus.qt.qtgui.plot import TaurusPlot
-#    w=TaurusPlot()
-#    form = TaurusLauncherButton(parent=None, designMode=False, widget = w, icon=':/taurus.png', text = 'show')
-#    
+    # from taurus.qt.qtgui.plot import TaurusPlot
+    # w = TaurusPlot()
+    # form = TaurusLauncherButton(parent=None, designMode=False, widget=w,
+    #                             icon=':/taurus.png'), text='show')
+
     #Creating button giving the widget class name
-#    form = TaurusLauncherButton(parent=None, designMode=False, widget = 'TaurusPlot', icon=':/taurus.png', text = 'show')
+    # form = TaurusLauncherButton(parent=None, designMode=False,
+    #                             widget='TaurusPlot', icon=':/taurus.png',
+    #                             text='show')
     
     #Creating button using a derived class with the name widget class hardcoded
     class MyButton(TaurusLauncherButton):
-        _widgetClassName = 'TaurusPlot'   
+        _widgetClassName = 'TaurusPlot'
         _icon = ':/taurus.png'
         _text = 'show'
     form = MyButton()
-    
+
     form.setModel('sys/tg_test/1/wave')
     form.show()
     sys.exit(app.exec_())
