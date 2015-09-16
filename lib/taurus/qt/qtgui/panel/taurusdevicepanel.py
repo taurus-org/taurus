@@ -58,14 +58,14 @@ IMAGE_SIZE=(200,100) #(width,height)
 
 # Helper methods
 
-def matchCl(m,k):
+def matchCl(m,k):# TODO: Tango-centric
     return re.match(m.lower(),k.lower())
 
-def searchCl(m,k):
+def searchCl(m,k):# TODO: Tango-centric
     if m.startswith('^') or m.startswith('(^') or '(?!^' in m: return matchCl(m,k)
     return re.search(m.lower(),k.lower())
 
-def get_regexp_dict(dct,key,default=None):
+def get_regexp_dict(dct,key,default=None):# TODO: Tango-centric
     for k,v in dct.items(): #Trying regular expression match
         if matchCl(k,key):
             return v
@@ -75,13 +75,13 @@ def get_regexp_dict(dct,key,default=None):
     if default is not None: return default
     else: raise Exception('KeyNotFound:%s'%k)
     
-def get_eqtype(dev):
+def get_eqtype(dev):# TODO: Tango-centric
     ''' It extracts the eqtype from a device name like domain/family/eqtype-serial'''
     try: eq = str(dev).split('/')[-1].split('-',1)[0].upper()
     except: eq = ''
     return eq
     
-def str_to_filter(seq):
+def str_to_filter(seq):# TODO: Tango-centric
     try: f = eval(seq)
     except: f = seq
     if isinstance(f,basestring): return {'.*':[f]}
@@ -120,7 +120,8 @@ def get_White_palette():
 # TaurusDevicePanel class
 
 class TaurusDevicePanel(TaurusWidget):
-    
+     # TODO: Tango-centric (This whole class should be called TangoDevicePanel)
+     # TODO: a scheme-agnostic base class should be implemented
     READ_ONLY = False
     _attribute_filter = {} #A dictionary like {device_regexp:[attribute_regexps]}
     _command_filter = {} #A dictionary like {device_regexp:[(command_regexp,default_args)]}
@@ -271,12 +272,12 @@ class TaurusDevicePanel(TaurusWidget):
             return
         elif issubclass(modelclass, TaurusAttribute):
             #if model.lower().endswith('/state'): 
-            model = model.rsplit('/',1)[0]
+            model = model.rsplit('/',1)[0] # TODO: Tango-centric
         elif not issubclass(modelclass, TaurusDevice):
             self.warning('TaurusDevicePanel accepts only Device models')
             return
         try:
-            taurus.Device(model).ping()
+            taurus.Device(model).ping() # TODO: Tango-centric
             if self.getModel(): self.detach() #Do not dettach previous model before pinging the new one (fail message will be shown at except: clause)
             TaurusWidget.setModel(self,model)
             self.setWindowTitle(str(model).upper())
@@ -298,9 +299,9 @@ class TaurusDevicePanel(TaurusWidget):
                 qpixmap = taurus.qt.qtgui.resource.getPixmap(':/logo.png')
             
             self._image.setPixmap(qpixmap)
-            self._state.setModel(model+'/state')
-            if hasattr(self,'_statelabel'): self._statelabel.setModel(model+'/state')
-            self._status.setModel(model+'/status')
+            self._state.setModel(model+'/state') # TODO: Tango-centric
+            if hasattr(self,'_statelabel'): self._statelabel.setModel(model+'/state') # TODO: Tango-centric
+            self._status.setModel(model+'/status') # TODO: Tango-centric
             try:
                 self._attrsframe.clear()
                 filters = get_regexp_dict(TaurusDevicePanel._attribute_filter,model,['.*'])
@@ -435,7 +436,7 @@ class TaurusDevPanel(TaurusMainWindow):
         TaurusDbTreeWidget = taurus.qt.qtgui.tree.TaurusDbTreeWidget
 
         self.deviceTree = TaurusDbTreeWidget(perspective=TaurusElementType.Device)
-        self.deviceTree.getQModel().setSelectables([TaurusElementType.Member])
+        self.deviceTree.getQModel().setSelectables([TaurusElementType.Member]) # TODO: Tango-centric
         #self.deviceTree.insertFilter(filterNonExported)
         self.setCentralWidget(self.deviceTree)        
         
@@ -481,7 +482,7 @@ class TaurusDevPanel(TaurusMainWindow):
         
     def onItemSelectionChanged(self, current, previous):
         itemData = current.itemData()
-        if isinstance(itemData, TangoDevInfo):
+        if isinstance(itemData, TangoDevInfo): # TODO: Tango-centric
             self.onDeviceSelected(itemData)
         
     def onDeviceSelected(self, devinfo):
@@ -489,7 +490,7 @@ class TaurusDevPanel(TaurusMainWindow):
         msg = 'Connecting to "%s"...'%devname
         self.statusBar().showMessage(msg)
         #abort if the device is not exported
-        if not devinfo.exported():
+        if not devinfo.exported(): # TODO: Tango-centric
             msg = 'Connection to "%s" failed (not exported)'%devname
             self.statusBar().showMessage(msg)
             self.info(msg)
