@@ -175,9 +175,10 @@ class TaurusBaseController(object):
 class TaurusAttributeControllerHelper(object):
     
     def configObj(self):
-        attrObj = self.attrObj()
-        if attrObj is None: return None
-        return attrObj.getConfig()
+        return self.attrObj() # they are the same object since tep14
+        # attrObj = self.attrObj()
+        # if attrObj is None: return None
+        # return attrObj.getConfig()
     
     def deviceObj(self):
         attrObj = self.attrObj()
@@ -239,9 +240,10 @@ class TaurusConfigurationControllerHelper(object):
         self._configParam = None
 
     def attrObj(self):
-        configObj = self.configObj()
-        if configObj is None: return None
-        return configObj.getParentObj()
+        return self.configObj()  # they are the same object since tep14
+        # configObj = self.configObj()
+        # if configObj is None: return None
+        # return configObj.getParentObj()
         
     def deviceObj(self):
         attrObj = self.attrObj()
@@ -251,16 +253,7 @@ class TaurusConfigurationControllerHelper(object):
     @property
     def configParam(self):
         if self._configParam is None:
-            modelName = self.widget().getModelName()
-            try:
-                f = self.widget().getTaurusFactory()
-                v = f.getAttributeNameValidator()
-                groups = v.getUriGroups(modelName)
-                self._configParam = groups.get('cfgkey')
-            except Exception, e:
-                import taurus
-                taurus.warning("Cannot get cfgkey. Reason: %s", e)
-                self._configParam = ''
+            self._configParam = self.widget().getModelFragmentName() or ''
         return self._configParam
 
     def getDisplayValue(self, write=False):
@@ -270,7 +263,7 @@ class TaurusConfigurationControllerHelper(object):
             return widget.getNoneValue()
         param = self.configParam
         try:
-            val = getattr(model, param)
+            val = widget.getModelFragmentObj()
             try:
                 no_val = getattr(model, "no_" + param)
                 if val.lower() == no_val.lower():
