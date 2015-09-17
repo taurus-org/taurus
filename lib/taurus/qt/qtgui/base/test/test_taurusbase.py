@@ -29,13 +29,10 @@
 from taurus.external import unittest
 from taurus.test import insertTest
 from taurus.qt.qtgui.test import BaseWidgetTestCase
+from taurus.core.tango.test import TangoSchemeTestLauncher
 from taurus.qt.qtgui.container import TaurusWidget
-from taurus.core.tango.starter import ProcessStarter
-from taurus.test import insertTest, getResourcePath
 
-
-DEV_NAME = 'TangoSchemeTest/unittest/temp-1'
-
+DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
 
 @insertTest(helper_name='getDisplayValue',
             model= 'eval:1+2#',
@@ -94,32 +91,11 @@ DEV_NAME = 'TangoSchemeTest/unittest/temp-1'
             model= 'tango:' + DEV_NAME + '/boolean_scalar',
             expected='True')
 
-class GetDisplayValueTestCase(BaseWidgetTestCase, unittest.TestCase):
+class GetDisplayValueTestCase(TangoSchemeTestLauncher, BaseWidgetTestCase,
+                              unittest.TestCase):
     """Check TaurusBaseComponent.getDisplayValue
     """
     _klass = TaurusWidget
-
-    @classmethod
-    def setUpClass(cls):
-        """ Create and run a TangoSchemeTest device server
-        """
-        # get path to DS and executable
-        device = getResourcePath('taurus.core.tango.test.res',
-                                 'TangoSchemeTest')
-        # create starter for the device server
-        cls._starter = ProcessStarter(device, 'TangoSchemeTest/unittest')
-        # register   #TODO: guarantee that devname is not in use
-        cls._starter.addNewDevice(DEV_NAME, klass='TangoSchemeTest')
-        # start device server
-        cls._starter.startDs()
-
-    @classmethod
-    def tearDownClass(cls):
-        """ Stop the device server and undo changes to the database
-        """
-        cls._starter.stopDs(hard_kill=True)
-        # remove server
-        cls._starter.cleanDb(force=True)
 
     def setUp(self):
         BaseWidgetTestCase.setUp(self)

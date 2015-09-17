@@ -35,8 +35,8 @@ from taurus.external.pint import Quantity
 import taurus
 from taurus.core import DataType
 from taurus.core.tango.tangoattribute import TangoAttrValue
-from taurus.core.tango.starter import ProcessStarter
-from taurus.test import insertTest, getResourcePath
+from taurus.core.tango.test import TangoSchemeTestLauncher
+from taurus.test import insertTest
 
 _INT_IMG = numpy.arange(2*3, dtype='int16').reshape((2,3))
 _INT_SPE = _INT_IMG[1, :]
@@ -314,40 +314,14 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                           type=DataType.Integer))
 
 
-class AttributeTestCase(unittest.TestCase):
+class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
     """TestCase for the taurus.Attribute helper"""
-
-    DSName = 'TangoSchemeTest'
-
-    @classmethod
-    def setUpClass(cls):
-        """ Create and run a TangoSchemeTest device server
-        """
-        # get path to DS and executable
-        device = getResourcePath('taurus.core.tango.test.res',
-                                 cls.DSName)
-        # create starter for the device server
-        deviceserver_name = '%s/%s' % (cls.DSName, 'unittest')
-        cls._starter = ProcessStarter(device, deviceserver_name)
-        # register   #TODO: guarantee that devname is not in use
-        cls.dev_name = '%s/%s' % (deviceserver_name, 'temp-1')
-        cls._starter.addNewDevice(cls.dev_name, klass=cls.DSName)
-        # start device server
-        cls._starter.startDs()
-
-    @classmethod
-    def tearDownClass(cls):
-        """ Stop the device server and undo changes to the database
-        """
-        cls._starter.stopDs(hard_kill=True)
-        # remove server
-        cls._starter.cleanDb(force=True)
 
     def write_read_attr(self, attrname=None, setvalue=None, expected=None,
                         expectedshape=None):
         """check creation and correct write-and-read of an attribute"""
 
-        name = '%s/%s' % (self.dev_name, attrname)
+        name = '%s/%s' % (self.DEV_NAME, attrname)
         a = taurus.Attribute(name)
 
         if setvalue is None:
