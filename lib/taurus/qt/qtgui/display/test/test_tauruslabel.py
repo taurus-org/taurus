@@ -30,6 +30,10 @@ from taurus.test import insertTest
 from taurus.qt.qtgui.test import GenericWidgetTestCase, BaseWidgetTestCase
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.container import TaurusWidget
+from taurus.core.tango.test import TangoSchemeTestLauncher
+import functools
+
+DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
 
 
 class TaurusLabelTest(GenericWidgetTestCase, unittest.TestCase):
@@ -84,28 +88,52 @@ class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
         self.assertMaxDeprecations(0)
 
 
+
+# ------------------------------------------------------------------------------
+# Check bck-compat with pre-tep14  FgRoles: value, w_value, state, quality, none
+testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
+                                   model='tango:' + DEV_NAME + '/double_scalar')
+
+@testOldFgroles(fgRole='value', expected='1.23 mm')
+@testOldFgroles(fgRole='w_value', expected='0.0 mm')
+@testOldFgroles(fgRole='state', expected='Ready')
+@testOldFgroles(fgRole='quality', expected='ATTR_VALID')
+@testOldFgroles(fgRole='none', expected='')
+# ------------------------------------------------------------------------------
+
 @insertTest(helper_name='text',
-            model='tango:sys/tg_test/1/double_scalar#label',
+            model='tango:' + DEV_NAME + '/double_scalar#state',
+            expected='Ready')
+
+@insertTest(helper_name='text',
+            model='tango:' + DEV_NAME + '/double_scalar#rvalue',
+            fgRole='label',
             expected='double_scalar')
-class TaurusLabelTest2(BaseWidgetTestCase, unittest.TestCase):
+@insertTest(helper_name='text',
+            model='tango:' + DEV_NAME + '/double_scalar',
+            fgRole='label',
+            expected='double_scalar')
+@insertTest(helper_name='text',
+            model='tango:' + DEV_NAME + '/double_scalar#label',
+            expected='double_scalar')
+class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
+                       unittest.TestCase):
     '''
     Specific tests for TaurusLabel
     '''
     _klass = TaurusLabel
 
-    def text(self, model=None, expected=None):
+    def text(self, model=None, expected=None, fgRole=None, maxdepr=0):
         '''Check that the label text'''
         self._widget.setModel(model)
+        if fgRole is not None:
+            self._widget.setFgRole(fgRole)
         self._app.processEvents()
-        got = self._widget.getDisplayValue()
-        msg = ('wrong display value for "%s":\n expected: %s\n got: %s' %
-                   (model, expected, got))
-        self.assertEqual(got, expected, msg)
         got = str(self._widget.text())
         msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
                    (model, expected, got))
         self.assertEqual(got, expected, msg)
-        self.assertMaxDeprecations(0)
+        self.assertMaxDeprecations(maxdepr)
 
 
 
