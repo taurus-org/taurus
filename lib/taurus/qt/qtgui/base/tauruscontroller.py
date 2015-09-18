@@ -62,9 +62,6 @@ class TaurusBaseController(object):
     
     def widget(self):
         return self._widget()
-
-    def stateObj(self):
-        return self._stateObj
     
     def modelObj(self):
         return self.widget().getModelObj()
@@ -80,16 +77,11 @@ class TaurusBaseController(object):
             value = modelObj.getValueObj()
         return value
     
-    def stateValueObj(self):
-        stateObj = self.stateObj()
-        if stateObj is None: return None
-        return stateObj.getValueObj()
-    
     def value(self):
         valueObj = self.valueObj()
         return getattr(valueObj, "value", None)
 
-    def w_value(self):
+    def w_value(self): # TODO: adapt to tep14
         valueObj = self.valueObj()
         return getattr(valueObj, "w_value", None)
     
@@ -98,8 +90,7 @@ class TaurusBaseController(object):
         return getattr(valueObj, "quality", None)
 
     def state(self):
-        stateValueObj = self.stateValueObj()
-        return getattr(stateValueObj, "value", None)
+        return self._stateObj.state
     
     def getDisplayValue(self, write=False):
         return self.widget().getDisplayValue()
@@ -108,7 +99,7 @@ class TaurusBaseController(object):
         if evt_src == self.modelObj(): #update the "_last" values only if the event source is the model (it could be the background...) 
             if evt_type == TaurusEventType.Change or evt_type == TaurusEventType.Periodic:
                 self._last_value = evt_value
-            elif evt_type == TaurusEventType.Config:
+            elif evt_type == TaurusEventType.Config: # TODO: adapt to tep14
                 self._last_config_value = evt_value
             else:
                 self._last_error_value = evt_value
@@ -141,16 +132,10 @@ class TaurusBaseController(object):
     def _needsStateConnection(self):
         return False
     
-    def _findStateObj(self):
-        devObj = self.deviceObj()
-        if devObj is None:
-            return None
-        return devObj.getStateObj()
-    
     def _updateConnections(self, widget):
-        stateObj, newStateObj = self.stateObj(), None
+        stateObj, newStateObj = self._stateObj, None
         if self._needsStateConnection():
-            newStateObj = self._findStateObj()
+            newStateObj = self.deviceObj()
             if stateObj != newStateObj:
                 if stateObj is not None:
                     stateObj.removeListener(self)
@@ -241,9 +226,6 @@ class TaurusConfigurationControllerHelper(object):
 
     def attrObj(self):
         return self.configObj()  # they are the same object since tep14
-        # configObj = self.configObj()
-        # if configObj is None: return None
-        # return configObj.getParentObj()
         
     def deviceObj(self):
         attrObj = self.attrObj()

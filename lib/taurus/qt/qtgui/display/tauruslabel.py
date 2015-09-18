@@ -84,26 +84,15 @@ class TaurusLabelController(TaurusBaseController):
         return ret
     
     def _updateForeground(self, label):
-        fgRole, value = label.fgRole, ""
-        if fgRole == 'value':
-            value += self.getDisplayValue()
-        elif fgRole == 'w_value':
-            value += self.getDisplayValue(True)
-        elif fgRole == 'state':
-            stateObj = self.stateObj()
-            value += stateObj and stateObj.getDisplayValue() or label.getNoneValue()
-        elif fgRole == 'quality':
-            quality = self.quality()
-            if quality is None:
-                value += label.getNoneValue()
-            else:
-                value += str(quality)
-        elif fgRole in ('', 'none'):
+        fgRole, value = label.fgRole, ''
+
+        # handle special cases (that are not covered with fragment)
+        if fgRole.lower() == 'state':
+            value = self.state().name
+        elif fgRole.lower() in ('', 'none'):
             pass
         else:
-            label.setText("undef")
-            return
-        
+            value = label.getDisplayValue(fragmentName=fgRole)
         self._text = text = label.prefixText + value + label.suffixText
 
         # Checks that the display fits in the widget and sets it to "..." if
@@ -111,10 +100,8 @@ class TaurusLabelController(TaurusBaseController):
         self._trimmedText = self._shouldTrim(label, text)
         if self._trimmedText:
             text = "<a href='...'>...</a>"
-
         label.setText(text)
 
-    
     def _shouldTrim(self, label, text):
         if not label.autoTrim:
             return False
@@ -229,12 +216,13 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     DefaultPrefix = ''
     DefaultSuffix = ''
     DefaultBgRole = 'quality'
-    DefaultFgRole = 'value'
+    DefaultFgRole = 'rvalue'
     DefaultShowText = True
     DefaultModelIndex = None
     DefaultAutoTrim = True
     DefaultAlignment = Qt.Qt.AlignRight | Qt.Qt.AlignVCenter
 
+    _deprecatedRoles = dict(value='rvalue', w_value='wvalue')
     def __init__(self, parent=None, designMode=False):
         self._prefix = self.DefaultPrefix
         self._suffix = self.DefaultSuffix
@@ -323,6 +311,8 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         #force to build another controller
         self._controller = None
         TaurusBaseWidget.setModel(self, m)
+        if self.modelFragmentName:
+            self.setFgRole(self.modelFragmentName)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT property definition
@@ -373,7 +363,12 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         return self._fgRole
     
     def setFgRole(self, fgRole):
-        self._fgRole = str(fgRole).lower()
+        # warn about deprecated roles
+        role = self._deprecatedRoles.get(fgRole, fgRole)
+        if fgRole != role:
+            self.deprecated(rel='tep14', dep='setFgRole(%s)'%fgRole,
+                            alt='setFgRole(%s)'%role)
+        self._fgRole = str(role)
         self.controllerUpdate()
 
     def resetFgRole(self):
