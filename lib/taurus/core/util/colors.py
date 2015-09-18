@@ -142,14 +142,14 @@ class _DevStatePalette(ColorPalette):
     def _decoder(self, elem):
         if type(elem) == types.IntType or type(elem) == types.LongType:
             from taurus.core.taurusbasetypes import DevState
-            elem = DevState.get(elem)
+            elem = DevState.get(elem) # TODO: Adapt to tep14
         return str(elem)
 
 class _AttrQualityPalette(ColorPalette):
     def _decoder(self, elem):
         if type(elem) == types.IntType or type(elem) == types.LongType:
             from taurus.core.taurusbasetypes import AttrQuality
-            elem = AttrQuality.get(elem)
+            elem = AttrQuality.get(elem) # TODO: Adapt to tep14
         return str(elem)
 
 DEVICE_STATE_PALETTE = _DevStatePalette(DEVICE_STATE_DATA)
