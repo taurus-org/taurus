@@ -43,7 +43,7 @@ from taurus.external.enum import IntEnum
 
 class TaurusDevState(IntEnum):
     """Enumeration of possible states of :class:`taurus.core.TaurusDevice`
-    objects, as returned by :meth:`TaurusDevice.getDevState`."""
+    objects, as returned by :meth:`TaurusDevice.state`."""
     # TODO: it could be extended for more detailed description using bit masks
     Ready = 1
     NotReady = 2

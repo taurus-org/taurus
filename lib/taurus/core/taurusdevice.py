@@ -65,7 +65,8 @@ class TaurusDevice(TaurusModel):
         raise TypeError("'%s' does not support membership testing" %
                         self.__class__.__name__)
 
-    def getDevState(self):
+    @property
+    def state(self):
         """Returns a scheme-agnostic representation of the state of a Taurus
         device. This default implementation returns always TaurusDevState.Ready
 
@@ -110,7 +111,7 @@ class TaurusDevice(TaurusModel):
         obj = []
         obj.append(('name', self.getDisplayName(cache=cache)))
         obj.append(('description', self.description))
-        obj.append(('device state', self.getDevState().name))
+        obj.append(('device state', self.state.name))
         return obj
 
     def getChildObj(self, child_name):

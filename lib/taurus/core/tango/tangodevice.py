@@ -107,7 +107,7 @@ class TangoDevice(TaurusDevice):
         return self.factory().getAttribute(attrname)
 
     @tep14_deprecation(alt='.stateObj.read().rvalue [Tango] or ' +
-                           'getDevState [agnostic]')
+                           '.state [agnostic]')
     def getState(self, cache=True):
         stateAttrValue = self.stateObj.read(cache=cache)
         if not stateAttrValue is None:
@@ -120,12 +120,13 @@ class TangoDevice(TaurusDevice):
     def getStateObj(self):
         return self.stateObj
 
-    @tep14_deprecation(alt="getDevState")
+    @tep14_deprecation(alt="state")
     def getSWState(self, cache=True):
-        raise Exception('getSWState has been removed. Use getDevState instead')
+        raise Exception('getSWState has been removed. Use state instead')
         #return self.getValueObj().rvalue
 
-    def getDevState(self, cache=True):
+    @property
+    def state(self, cache=True):
         """Reimplemented from :class:`TaurusDevice` to use Tango's state
         attribute for diagnosis of the current state. It supports a "cache"
         kwarg
@@ -137,7 +138,7 @@ class TangoDevice(TaurusDevice):
         """
         try:
             self.stateObj.read(cache)
-            state = TaurusDevState.Ready
+            state = TaurusDevState.Ready # Ready if the state attr can be read
         except:
             try:
                 if self.getDeviceProxy().import_info().exported:
@@ -149,7 +150,7 @@ class TangoDevice(TaurusDevice):
         self._deviceState = state
         return state
 
-    @tep14_deprecation(alt="getDevState [agnostic] or stateObj.read [Tango]")
+    @tep14_deprecation(alt="state [agnostic] or stateObj.read [Tango]")
     def getValueObj(self, cache=True):
         """ Deprecated by TEP14.
         ..warning::
@@ -159,7 +160,7 @@ class TangoDevice(TaurusDevice):
         """
         from taurus.core.tango.tangoattribute import TangoAttrValue
         ret = TangoAttrValue()
-        ret.rvalue = self.getDevState(cache)
+        ret.rvalue = self.state(cache)
         return ret
 
     def getDisplayDescrObj(self, cache=True):
@@ -185,7 +186,7 @@ class TangoDevice(TaurusDevice):
 
     @tep14_deprecation()
     def getDisplayValue(self,cache=True):
-        return self.getDevState(cache).name
+        return self.state(cache).name
 
     def _createHWObject(self):
         try:

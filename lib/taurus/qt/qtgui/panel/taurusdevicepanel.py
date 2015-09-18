@@ -503,8 +503,7 @@ class TaurusDevPanel(TaurusMainWindow):
         #try to connect with the device
         self.setModel(devname)
         dev = self.getModelObj()
-        dev.state()
-        state = dev.getDevState()
+        state = dev.state()
         #test the connection
         if state == TaurusDevState.Ready:
             msg = 'Connected to "%s"'%devname
