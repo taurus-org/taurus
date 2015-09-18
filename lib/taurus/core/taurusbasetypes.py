@@ -155,15 +155,30 @@ SubscriptionState = Enumeration(
     "PendingSubscribe"
 ))
 
+class AttrQuality(IntEnum):
+    """Enumeration of quality states for Taurus attributes. based on
+    This is the Taurus equivalent to PyTango.AttrQuality.
+    The members present in PyTango are also defined here with the same values,
+    allowing equality comparisons with :class:`PyTango.AttrQuality` (but not
+    identity checks!)::
 
-AttrQuality = Enumeration(
-'AttrQuality', (
-    'ATTR_VALID', 
-    'ATTR_INVALID', 
-    'ATTR_ALARM',
-    'ATTR_CHANGING',
-    'ATTR_WARNING'
-))
+        from taurus.core import AttrQuality as Q1
+        from PyTango import AttrQuality as Q2
+
+        Q1.ATTR_ALARM == Q2.ATTR_ALARM                  # --> True
+        Q1.ATTR_ALARM in (Q2.ATTR_ALARM, Q2.ATTR_ALARM) # --> True
+        Q1.ATTR_ALARM == 2                              # --> True
+        Q1.ATTR_ALARM is 2                              # --> False
+        Q1.ATTR_ALARM is Q2.ATTR_ALARM                  # --> False
+    """
+    ATTR_VALID = 0
+    ATTR_INVALID = 1
+    ATTR_ALARM = 2
+    ATTR_CHANGING = 3
+    ATTR_WARNING = 4
+
+    def __str__(self):
+        return self.name
 
 AttrAccess = Enumeration(
 'AttrAccess', (
