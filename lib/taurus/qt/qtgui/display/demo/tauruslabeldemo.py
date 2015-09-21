@@ -87,7 +87,9 @@ def demo():
             panel_l.addWidget(display_panel)
             panel_l.addWidget(control_panel)
 
-            fg_widget.addItems(["value", "w_value", "state", "quality", "none"])
+            fg_widget.addItems(["", "rvalue", "rvalue.magnitude",
+                                "rvalue.units", "wvalue", "wvalue.magnitude",
+                                "wvalue.units", "state", "quality", "none"])
             bg_widget.addItems(["quality", "state", "none"])
             
             Qt.QObject.connect(model_widget, Qt.SIGNAL("textChanged(const QString &)"), w.setModel)
@@ -99,6 +101,7 @@ def demo():
             
             model_widget.setText("sys/tg_test/1/double_scalar")
             fg_widget.setCurrentIndex(0)
+            fg_widget.setEditable(True)
             bg_widget.setCurrentIndex(0)
             
             self.w_label = w
