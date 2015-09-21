@@ -763,7 +763,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         else:
             try:
                 self.modelObj = taurus.Manager().getObject(cls, self.modelName)
-                if not self.modelObj is None:
+                if self.modelObj is not None:
                     self.modelObj.addListener(self)
                     self._attached = True
                     self.changeLogName(self.log_name + "." + self.modelName)
