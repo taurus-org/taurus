@@ -31,6 +31,13 @@ __all__ = ["DEVICE_STATE_DATA", "ATTRIBUTE_QUALITY_DATA", "ColorPalette",
 import types
 
 DEVICE_STATE_DATA = {
+    # map for TaurusDevState states (used for agnostic TaurusDevice.state)
+    "TaurusDevState.Ready": ("Green", 0, 255, 0, 0),
+    "TaurusDevState.NotReady" : ("Red", 255, 0, 0, 0),
+    "TaurusDevState.Undefined" : ("Gray", 128, 128, 128, 0),
+
+    # The following is a bck-compat map for taurus.core.tango.DevState
+    # (i.e. PyTango.DevState). Used for "state" TangoAttribute rvalues
     "ON": ("Dead Frog Green", 0, 255, 0, 0),
     "OFF": ('White', 255, 255, 255, 0),
     "CLOSE": ("White", 255, 255, 255, 3),
