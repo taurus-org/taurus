@@ -26,12 +26,14 @@
 """Unit tests for Taurus Label"""
 
 from taurus.external import unittest
+from taurus.external.qt import Qt
 from taurus.test import insertTest
 from taurus.qt.qtgui.test import GenericWidgetTestCase, BaseWidgetTestCase
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.core.tango.test import TangoSchemeTestLauncher
 import functools
+from taurus.core.util.colors import ATTRIBUTE_QUALITY_DATA, DEVICE_STATE_DATA
 
 DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
 
@@ -88,7 +90,6 @@ class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
         self.assertMaxDeprecations(0)
 
 
-
 # ------------------------------------------------------------------------------
 # Check bck-compat with pre-tep14  FgRoles: value, w_value, state, quality, none
 testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
@@ -116,6 +117,29 @@ testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
 @insertTest(helper_name='text',
             model='tango:' + DEV_NAME + '/double_scalar#label',
             expected='double_scalar')
+
+# ------------------------------------------------------------------------------
+# Check bck-compat with pre-tep14  BgRoles: state, quality, none
+
+@insertTest(helper_name='bgRole',
+            model='tango:' + DEV_NAME + '/double_scalar',
+            bgRole='none',
+            expected=Qt.QColor(Qt.Qt.transparent).getRgb()[:3])
+
+@insertTest(helper_name='bgRole',
+            model='tango:' + DEV_NAME + '/double_scalar',
+            bgRole='state',
+            expected=DEVICE_STATE_DATA["TaurusDevState.Ready"][1:4])
+
+@insertTest(helper_name='bgRole',
+            model='tango:' + DEV_NAME + '/double_scalar',
+            bgRole='quality',
+            expected=ATTRIBUTE_QUALITY_DATA["ATTR_VALID"][1:4])
+
+@insertTest(helper_name='bgRole',
+            model='tango:' + DEV_NAME + '/double_scalar',
+            expected=ATTRIBUTE_QUALITY_DATA["ATTR_VALID"][1:4])
+
 class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
                        unittest.TestCase):
     '''
@@ -131,6 +155,19 @@ class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
         self._app.processEvents()
         got = str(self._widget.text())
         msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
+                   (model, expected, got))
+        self.assertEqual(got, expected, msg)
+        self.assertMaxDeprecations(maxdepr)
+
+    def bgRole(self, model=None, expected=None, bgRole=None, maxdepr=0):
+        '''Check that the label text'''
+        self._widget.setModel(model)
+        self._app.processEvents()
+        if bgRole is not None:
+            self._widget.setBgRole(bgRole)
+        p = self._widget.palette()
+        got = p.color(p.Background).getRgb()[:3] # RGB value of the background
+        msg = ('wrong background RGB for "%s":\n expected: %s\n got: %s' %
                    (model, expected, got))
         self.assertEqual(got, expected, msg)
         self.assertMaxDeprecations(maxdepr)
