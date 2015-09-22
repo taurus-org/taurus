@@ -827,17 +827,17 @@ class TangoAttribute(TaurusAttribute):
             if PyTango.is_numerical_type(i.data_type, inc_array=True):
                 Q_ = partial(quantity_from_tango_str, units=units,
                              dtype=i.data_type)
-            else:
-                Q_ = partial(str_2_obj, tg_type=i.data_type)
-            min_value = Q_(i.min_value)
-            max_value = Q_(i.max_value)
-            min_alarm = Q_(i.min_alarm)
-            max_alarm = Q_(i.max_alarm)
-            min_warning = Q_(i.alarms.min_warning)
-            max_warning = Q_(i.alarms.max_warning)
-            self.range = [min_value, max_value]
-            self.warning = [min_warning, max_warning]
-            self.alarm = [min_alarm, max_alarm]
+                ninf, inf = float('-inf'), float('inf')
+                min_value = Q_(i.min_value) or Quantity(ninf, units)
+                max_value = Q_(i.max_value) or Quantity(inf, units)
+                min_alarm = Q_(i.min_alarm) or Quantity(ninf, units)
+                max_alarm = Q_(i.max_alarm) or Quantity(inf, units)
+                min_warning = Q_(i.alarms.min_warning) or Quantity(ninf, units)
+                max_warning = Q_(i.alarms.max_warning) or Quantity(inf, units)
+                self.range = [min_value, max_value]
+                self.warning = [min_warning, max_warning]
+                self.alarm = [min_alarm, max_alarm]
+
             ###############################################################
             # The following members will be accessed via __getattr__
             # self.standard_unit

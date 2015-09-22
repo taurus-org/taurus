@@ -89,9 +89,9 @@ class TaurusAttribute(TaurusModel):
         self.data_format = None
         self.label = None
         self.type = None
-        self.range = float('-inf'), float('inf')
-        self.alarm = float('-inf'), float('inf')
-        self.warning = float('-inf'), float('inf')
+        self.range = [None, None]
+        self.alarm = [None, None]
+        self.warning = [None, None]
 
     def cleanUp(self):
         self.trace("[TaurusAttribute] cleanUp")
