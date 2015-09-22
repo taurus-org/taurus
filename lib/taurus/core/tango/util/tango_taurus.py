@@ -109,6 +109,7 @@ def quantity_from_tango_str(value_str, dtype=None, units=None, fmt=None,
     except ValueError:
         if not ignore_exception:
             raise
+        return None
 
 def unit_from_tango(unit):
     if unit == PyTango.constants.UnitNotSpec or unit is None:
