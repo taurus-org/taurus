@@ -33,7 +33,7 @@ import numpy
 from taurus.external import unittest
 from taurus.external.pint import Quantity
 import taurus
-from taurus.core import DataType
+from taurus.core import DataType, DataFormat
 from taurus.core.tango.tangoattribute import TangoAttrValue
 from taurus.core.tango.test import TangoSchemeTestLauncher
 from taurus.test import insertTest
@@ -311,8 +311,29 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                           value=123,
                           wvalue=None,
                           w_value=None,
-                          type=DataType.Integer))
+                          type=DataType.Integer)
+            )
 
+@insertTest(helper_name='write_read_attr',
+            attrname='short_scalar_ro',
+            expected=dict(rvalue=Quantity(123, 'mm'),
+                          value=123,
+                          wvalue=None,
+                          w_value=None,
+                          # attrs from TangoAttribute:
+                          name='short_scalar_ro',
+                          label='short_scalar_ro',
+                          type=DataType.Integer,
+                          data_format=DataFormat._0D,
+                          writable=False,
+                          range=[Quantity(float('-inf'), 'mm'),
+                                 Quantity(float('inf'), 'mm')],
+                          alarm=[Quantity(float('-inf'), 'mm'),
+                                 Quantity(float('inf'), 'mm')],
+                          warning=[Quantity(float('-inf'), 'mm'),
+                                   Quantity(float('inf'), 'mm')]
+                          ),
+            )
 
 class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
     """TestCase for the taurus.Attribute helper"""
@@ -338,6 +359,7 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
         msg = ('read() for "%s" did not return a TangoAttrValue (got a %s)' %
                (attrname, read_value.__class__.__name__))
         self.assertTrue(isinstance(read_value, TangoAttrValue), msg)
+
         for k, exp in expected.iteritems():
             try:
                 got = getattr(read_value, k)
@@ -358,7 +380,7 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
             try:
                 # for those values that can be handled by numpy.allclose()
                 chk = numpy.allclose(got, exp)
-            except TypeError:
+            except:
                 # for the rest
                 chk = bool(got == exp)
 
@@ -368,7 +390,6 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
             msg = ('rvalue.shape for %s should be %r (got %r)' %
                    (attrname, expectedshape, read_value.rvalue.shape))
             self.assertEqual(read_value.value.shape, expectedshape, msg)
-
 
 
 if __name__ == '__main__':
