@@ -40,8 +40,6 @@ from taurus.core.util.containers import CaselessDict, CaselessList, ArrayBuffer
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.plot import TaurusPlot
 
-import PyTango
-
 def getArchivedTrendValues(*args, **kwargs):
     try:
         import PyTangoArchiving
@@ -262,11 +260,11 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         '''see :meth:`TaurusBaseComponent.unregisterDataChanged`'''
         listener.disconnect(self, Qt.SIGNAL("dataChanged(const QString &)"), meth)
 
-    def _updateHistory(self,model, value):
+    def _updateHistory(self, model, value):
         '''Update the history data buffers using the latest value from the event
         
         :param model: (str) the source of the event (needed to retrieve data from archiving)
-        :param value: (PyTango.DeviceAttribute) the value from the event
+        :param value: (TaurusAttrValue) the value from the event
         
         :return: (tuple<numpy.ndarray, numpy.ndarray>) Tuple of two arrays
                  containing the X data and Y data, respectively, from the
@@ -282,7 +280,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         where X.shape=(10,) and Y.shape=(10,8); X.dtype = Y.dtype = <dtype('float64')>
         '''
         if value is not None:
-            v = value.value
+            v = value.rvalue.magnitude # TODO: check unit consistency
             if numpy.isscalar(v):
                 ntrends = 1
             else:
@@ -304,14 +302,12 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._xBuffer = ArrayBuffer(numpy.zeros(min(128,self._maxBufferSize), dtype='d'), maxSize=self._maxBufferSize )
         if self._yBuffer is None:
             self._yBuffer = ArrayBuffer(numpy.zeros((min(128,self._maxBufferSize), ntrends),dtype='d'), maxSize=self._maxBufferSize )
-            
-        #self.trace('_updateHistory(%s,%s(...))' % (model,type(value.value)))
         if value is not None: 
             try:
-                self._yBuffer.append(value.value)
+                self._yBuffer.append(value.rvalue.magnitude)
             except Exception,e: 
                 self.warning('Problem updating history (%s=%s):%s', 
-                             model, value.value, e)
+                             model, value.rvalue.magnitude, e)
                 value = None
         
         if self.parent().getXIsTime():
@@ -377,12 +373,12 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                 if not self.parent().getUseArchiving(): return
                 else: value = None
             else:
-                value = evt_value if isinstance(evt_value, (taurus.core.taurusbasetypes.TaurusAttrValue, PyTango.DeviceAttribute)) else self.getModelValueObj()
-                if value is None or value.value is None: 
+                value = evt_value if isinstance(evt_value, taurus.core.taurusbasetypes.TaurusAttrValue) else self.getModelValueObj()
+                if value is None or value.rvalue is None:
                     self._onDroppedEvent(reason='invalid value')
                     if not self.parent().getUseArchiving(): return
                 else:
-                    self._checkDataDimensions(value.value)
+                    self._checkDataDimensions(value.rvalue.magnitude)
 
         #get the data from the event
         try:
@@ -810,7 +806,7 @@ class TaurusTrend(TaurusPlot):
     You can also see some code that exemplifies the use of TaurusTrend in :ref:`the
     TaurusTrend coding examples <examples_taurustrend>`
     
-    Note: if you pass a model that is a Tango SPECTRUM attribute (instead of a
+    Note: if you pass a model that is a 1D attribute (instead of a
     scalar), TaurusTrend will interpret it as a collection of scalar values and
     will plot a separate trend line for each.
     
@@ -1050,8 +1046,8 @@ class TaurusTrend(TaurusPlot):
         '''Defines the curves that need to be plotted. For a TaurusTrend, the
         models can refer to:
         
-        - PyTango.SCALARS: they are to be plotted in a trend
-        - PyTango.SPECTRUM: each element of the spectrum is considered
+        - scalar data: they are to be plotted in a trend
+        - on-dimensional data: each element of the spectrum is considered
           independently 
         
         Note that passing an attribute for X values makes no sense in this case
@@ -1337,11 +1333,11 @@ class TaurusTrend(TaurusPlot):
     def createConfig(self, tsnames=None, **kwargs):
         '''Returns a pickable dictionary containing all relevant information
         about the current plot.
-        For Tango attributes it stores the attribute name and the curve properties
+        For Taurus attributes it stores the attribute name and the curve properties
         For raw data curves, it stores the data as well.
         
         Hint: The following code allows you to serialize the configuration
-        dictionary as a string (which you can store as a QSetting, or as a Tango
+        dictionary as a string (which you can store as a QSetting, or as a Taurus
         Attribute)::
         
             import pickle
