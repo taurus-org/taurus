@@ -403,11 +403,11 @@ class TangoAttribute(TaurusAttribute):
                             break
                     else:
                         raise df
-                #result = self.decode(result) #TODO: make sure this is not needed
                 self.poll(single=False, value=result, time=time.time())
-                return result
+                return self.decode(result)
             else:
                 dev.write_attribute(name, value)
+                return None
         except PyTango.DevFailed, df:
             err = df[0]
             self.error("[Tango] write failed (%s): %s" % (err.reason, err.desc))
