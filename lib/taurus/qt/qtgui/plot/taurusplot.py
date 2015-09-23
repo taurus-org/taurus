@@ -35,9 +35,8 @@ import time
 import numpy
 from taurus.external.qt import Qt, Qwt5
 
-import PyTango
-
 import taurus.core
+from taurus.core.taurusbasetypes import DataFormat
 from taurus.core.util.containers import LoopList, CaselessDict, CaselessList
 from taurus.core.util.safeeval import SafeEvaluator
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
@@ -167,7 +166,7 @@ class TaurusXValues(TaurusBaseComponent):
             return
 
         format = getattr(val, 'data_format', model.getDataFormat())
-        if format == PyTango.AttrDataFormat.SPECTRUM:
+        if format == DataFormat._1D:
             value =  val if val is not None else self.getModelValueObj()
             if value:
                 self._xValues = numpy.array(value.value)
@@ -368,7 +367,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         self.itemChanged()
 
     def compileTitleText(self, titletext):
-        '''Substitutes the known placeholders by the current equivalent values
+        """Substitutes the known placeholders by the current equivalent values
         for a titleText.
 
         *Note*: Some placeholders may not make sense for certain curves (e.g.
@@ -382,41 +381,48 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                             - <label> the attribute label (default)
                             - <model> the model name
                             - <attr_name> attribute name
-                            - <attr_fullname> full attribute name (for backwards compatibility, <attr_full_name> is also accepted)
+                            - <attr_fullname> full attribute name (for backwards
+                              compatibility, <attr_full_name> is also accepted)
                             - <dev_alias> device alias
                             - <dev_name> device name
-                            - <dev_fullname> full device name (for backwards compatibility, <dev_full_name> is also accepted)
+                            - <dev_fullname> full device name (for backwards
+                              compatibility, <dev_full_name> is also accepted)
                             - <current_title> The current title
 
         :return: (str) a title string where the placeholders have been
                  substituted by their corresponding values
-        '''
-        #All TaurusCurves can deal with at least these placeholders
-        titletext = titletext.replace('<current_title>',str(self.title().text()))
+        """
+        # All TaurusCurves can deal with at least these placeholders
+        titletext = titletext.replace('<current_title>',
+                                      str(self.title().text()))
         titletext = titletext.replace('<model>',self.getModel())
         attr = self.getModelObj()
         if attr is None:
             return titletext
-        #TaurusCurves for which we can get the Attribute...
-        titletext = titletext.replace('<label>',attr.label or '---')
-        titletext = titletext.replace('<attr_name>',attr.name or '---')
-        titletext = titletext.replace('<attr_fullname>',attr.getFullName() or '---')
-        titletext = titletext.replace('<attr_full_name>',attr.getFullName() or '---')
-        titletext = titletext.replace('<dev_alias>',attr.dev_alias or '---')
-        titletext = titletext.replace('<dev_name>',attr.dev_name or '---')
+        # TaurusCurves for which we can get the Attribute...
+        titletext = titletext.replace('<label>', attr.label or '---')
+        titletext = titletext.replace('<attr_name>', attr.name or '---')
+        titletext = titletext.replace('<attr_fullname>',
+                                      attr.getFullName() or '---')
+        titletext = titletext.replace('<attr_full_name>',
+                                      attr.getFullName() or '---')
 
         dev = attr.getParentObj()
-        if dev is None:
-            return titletext
-        #TaurusCurves for which we can get the Device object...
-        titletext = titletext.replace('<dev_fullname>',dev.getFullName() or '---')
-        titletext = titletext.replace('<dev_full_name>',dev.getFullName() or '---')
+        if dev is not None:
+            # TaurusCurves for which we can get the Device object...
+            titletext = titletext.replace('<dev_alias>',
+                                          dev.getSimpleName() or '---')
+            titletext = titletext.replace('<dev_name>',
+                                  dev.getNormalName() or '---')
+            titletext = titletext.replace('<dev_fullname>',
+                                          dev.getFullName() or '---')
+            titletext = titletext.replace('<dev_full_name>',
+                                          dev.getFullName() or '---')
         return titletext
 
-
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     # Convenience attach/detach methods
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
     def attachMarkers(self, plot):
         '''attach markers to the plot
@@ -555,9 +561,9 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             self.updateTitle()
 
-        value = val if isinstance(val, (PyTango.DeviceAttribute, taurus.core.taurusbasetypes.TaurusAttrValue)) else self.getModelValueObj()
-        if not isinstance(value, (PyTango.DeviceAttribute, taurus.core.taurusbasetypes.TaurusAttrValue)):
-            self._onDroppedEvent(reason="Could not get DeviceAttribute value")
+        value = val if isinstance(val, taurus.core.taurusbasetypes.TaurusAttrValue) else self.getModelValueObj()
+        if not isinstance(value, taurus.core.taurusbasetypes.TaurusAttrValue):
+            self._onDroppedEvent(reason="Could not get attribute value")
             return
         try:
             self.setXYFromModel(value)
@@ -638,17 +644,22 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         given model. This method can be reimplemented by subclasses of Taurusplot
         that behave differently (e.g. TaurusTrend)
 
-        :param value: (PyTango.DeviceAttribute) the value object from the model
+        :param value: (TaurusAttrValue) the value object from the model
         """
-        if value.data_format == PyTango.AttrDataFormat.SPECTRUM:
+        attr = self.getModelObj()
+        if attr.data_format == DataFormat._1D:
+            # TODO: Adapt all values to be plotted to the same Unit
             if value:
-                self._yValues = numpy.array(value.value)
+                self._yValues = numpy.array(value.rvalue.magnitude)
             else:
                 self._yValues = numpy.zeros(0)
             self._xValues = self.getXValues()
         else:
-            raise ValueError("""TaurusCurve only supports SPECTRUM attributes(a %s was passed).
-                             \n Note: if you want a trend plot, use TaurusTrendCurve instead of TaurusCurve."""%str(value.data_format))
+            raise ValueError('TaurusCurve only supports SPECTRUM attributes '
+                             '(a %s was passed). \n'
+                             'Note: if you want a trend plot, use '
+                             'TaurusTrendCurve instead of ' 
+                             'TaurusCurve.'%str(DataFormat[attr.data_format]))
 
     def setPaused(self, paused = True):
         '''Pauses itself and other listeners depending on it
@@ -2268,6 +2279,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.error('Exception while gathering curves configuration info'+str(e))
         finally:
             self.curves_lock.release()
+        curvenames = CaselessList(curvenames)
         model = CaselessList([m for m in self.getModel() if m in curvenames])
         configdict={"Axes":axesdict, "Misc":miscdict, "RawData":rawdatadict,
                     "TangoCurves":tangodict, "CurveProp":propdict,
