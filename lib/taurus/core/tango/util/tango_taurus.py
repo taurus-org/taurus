@@ -113,13 +113,13 @@ def quantity_from_tango_str(value_str, dtype=None, units=None, fmt=None,
 
 def unit_from_tango(unit):
     if unit == PyTango.constants.UnitNotSpec or unit is None:
-        return None
+        return ''
     try:
         return Quantity(unit).units
     except UndefinedUnitError:
         from taurus import warning
-        warning('Unknown unit "%s"', unit)
-        return None
+        warning('Unknown unit "%s (will be treated as dimensionless)"', unit)
+        return ''
 
 def ndim_from_tango(data_format):
     return int(data_format)

@@ -270,8 +270,7 @@ class TangoAttribute(TaurusAttribute):
         self.display_level = display_level_from_tango(dis_level)
         self.tango_writable = PyTango.AttrWriteType.READ
         self.format = '7.2f'
-        # TODO This call is not valid unit_from_tango(self.no_units)
-        self._units = None
+        self._units = unit_from_tango(PyTango.constants.UnitNotSpec)
 
         # decode the Tango configuration attribute (adds extra members)
         self._pytango_attrinfoex = None
@@ -334,22 +333,16 @@ class TangoAttribute(TaurusAttribute):
 
     def encode(self, value):
         """Translates the given value into a tango compatible value according to
-        the attribute data type"""
-        try:
-            magnitude = value.magnitude
-            units = value.units
-        except AttributeError:
+        the attribute data type.
+
+        Raises `pint.DimensionalityError` if value is a Quantity and it
+        cannot be expressed in the units of the attribute set in the DB
+        """
+        if isinstance(value, Quantity):
+            # convert to units of the attr in the DB (or raise an exception)
+            magnitude = value.to(self._units).magnitude
+        else:
             magnitude = value
-            units = None
-            
-        # convert the magnitude to the units of the server
-        if units:
-            if self._units:
-                magnitude = value.to(self._units).magnitude
-            else:
-                msg = ( 'Attempt to encode a value with units (%s)' +
-                        ' for an attribute without configured units') % units
-                raise ValueError(msg)
 
         fmt = self.getDataFormat()
         tgtype = self._tango_data_type
