@@ -27,7 +27,7 @@
 
 import PyTango
 
-from taurus.external.pint import Quantity, UndefinedUnitError
+from taurus.external.pint import Quantity, UndefinedUnitError, UR
 from taurus.core.taurusbasetypes import (AttrQuality, DisplayLevel,
                                           TaurusAttrValue, DataType, DataFormat)
 
@@ -112,14 +112,15 @@ def quantity_from_tango_str(value_str, dtype=None, units=None, fmt=None,
         return None
 
 def unit_from_tango(unit):
-    if unit == PyTango.constants.UnitNotSpec or unit is None:
-        return ''
+    if unit == PyTango.constants.UnitNotSpec:
+        unit = None
     try:
-        return Quantity(unit).units
+        return UR.parse_units(unit)
     except UndefinedUnitError:
+        # TODO: Maybe we could dynamically register the unit in the UR
         from taurus import warning
         warning('Unknown unit "%s (will be treated as dimensionless)"', unit)
-        return ''
+        return UR.parse_units(None)
 
 def ndim_from_tango(data_format):
     return int(data_format)
