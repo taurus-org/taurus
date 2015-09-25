@@ -33,7 +33,8 @@ import weakref
 
 from .taurushelper import Factory
 from .taurusmodel import TaurusModel
-from taurus.core.taurusbasetypes import TaurusElementType, DataFormat
+from taurus.core.taurusbasetypes import TaurusElementType, DataType
+from taurus.external.pint import Quantity, UR
 
 
 class TaurusAttribute(TaurusModel):
@@ -386,13 +387,25 @@ class TaurusAttribute(TaurusModel):
     def setLabel(self, lbl):
         self.label = lbl
 
+    def __assertsValidLimits(self, low, high):
+        assert isinstance(self.rvalue, Quantity), "rvalue is not a Quantity"
+        assert isinstance(low, Quantity), "low is not a Quantity"
+        assert isinstance(high, Quantity), "high is not a Quantity"
+        assert self.rvalue.dimensionality == low.dimensionality, \
+            "low and rvalue have different dimensionality"
+        assert self.rvalue.dimensionality == high.dimensionality, \
+            "high and rvalue have different dimensionality"
+
     def setRange(self, low, high):
+        self.__assertsValidLimits(low, high)
         self.range = [low, high]
 
     def setWarnings(self, low, high):
+        self.__assertsValidLimits(low, high)
         self.warning = [low, high]
 
     def setAlarms(self, low, high):
+        self.__assertsValidLimits(low, high)
         self.alarm = [low, high]
 
     def isBoolean(self, cache=True):
