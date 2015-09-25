@@ -29,6 +29,7 @@ __all__ = ['TangoSchemeTestLauncher']
 
 __docformat__ = 'restructuredtext'
 
+import PyTango
 
 from taurus.core.tango.starter import ProcessStarter
 from taurus.test import getResourcePath
@@ -62,6 +63,9 @@ class TangoSchemeTestLauncher(object):
         # remove server
         cls._starter.cleanDb(force=True)
 
+    def tearDown(self):
+        d = PyTango.DeviceProxy(self.DEV_NAME)
+        d.Reset()
 
 if __name__ == '__main__':
     pass
