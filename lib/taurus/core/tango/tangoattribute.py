@@ -255,9 +255,6 @@ class TangoAttribute(TaurusAttribute):
         self.writable = False
         self.label = self.name
         self.data_format = data_format_from_tango(PyTango.AttrDataFormat.SCALAR)
-        self.range = [self.no_min_value, self.no_max_value]
-        self.warning = [self.no_min_warning, self.no_max_warning]
-        self.alarm = [self.no_min_alarm, self.no_max_alarm]
         self.type = data_type_from_tango(PyTango.DevShort)
         self.climits = [self.no_min_value, self.no_max_value]
         self.calarms = [self.no_min_value, self.no_max_value]
