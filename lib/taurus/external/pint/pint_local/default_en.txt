@@ -10,7 +10,7 @@ atto- =  1e-18 = a-
 femto- = 1e-15 = f-
 pico- =  1e-12 = p-
 nano- =  1e-9  = n-
-micro- = 1e-6  = u-
+micro- = 1e-6  = u- = µ-
 milli- = 1e-3  = m-
 centi- = 1e-2  = c-
 deci- =  1e-1  = d-
@@ -66,17 +66,18 @@ barn = 1e-28 * m ** 2 = b
 cmil = 5.067075e-10 * m ** 2 = circular_mils
 darcy = 9.869233e-13 * m ** 2
 acre = 4046.8564224 * m ** 2 = international_acre
+hectare = 100 * are = ha
 US_survey_acre = 160 * rod ** 2
 
 # EM
 esu = 1 * erg**0.5 * centimeter**0.5 = statcoulombs = statC = franklin = Fr
 esu_per_second = 1 * esu / second = statampere
 ampere_turn = 1 * A
-gilbert = 10 / (4 * pi ) * ampere_turn = G
+gilbert = 10 / (4 * pi ) * ampere_turn
 coulomb = ampere * second = C
 volt = joule / coulomb = V
 farad = coulomb / volt = F
-ohm = volt / ampere
+ohm = volt / ampere = Ω
 siemens = ampere / volt = S = mho
 weber = volt * second = Wb
 tesla = weber / meter ** 2 = T
@@ -102,13 +103,14 @@ joule = newton * meter = J
 erg = dyne * centimeter
 btu = 1.05505585262e3 * joule = Btu = BTU = british_thermal_unit
 electron_volt = 1.60217653e-19 * J = eV
+quadrillion_btu = 10**15 * btu = quad
 thm = 100000 * BTU = therm = EC_therm
 cal = 4.184 * joule = calorie = thermochemical_calorie
 international_steam_table_calorie = 4.1868 * joule
 ton_TNT = 4.184e9 * joule = tTNT
 US_therm = 1.054804e8 * joule
 watt_hour = watt * hour = Wh = watthour
-E_h = 4.35974394e-18 * joule = hartree = hartree_energy
+hartree = 4.35974394e-18 * joule = E_h = hartree_energy
 
 # Force
 [force] = [mass] * [acceleration]
@@ -137,8 +139,12 @@ counts_per_second = count / second = cps
 byte = 8 * bit = Bo = octet
 baud = bit / second = Bd = bps
 
+# Irradiance
+peak_sun_hour = 1000 * watt_hour / meter**2 = PSH
+langley = thermochemical_calorie / centimeter**2 = Langley
+
 # Length
-angstrom = 1e-10 * meter
+angstrom = 1e-10 * meter = Å = ångström = Å
 inch = 2.54 * centimeter = in = international_inch = inches = international_inches
 foot = 12 * inch = ft = international_foot = feet = international_feet
 mile = 5280 * foot = mi = international_mile
@@ -173,11 +179,11 @@ short_hundredweight = 100 * lb
 metric_ton = 1000 * kilogram = t = tonne
 pennyweight = 24 * gram = dwt
 slug = 14.59390 * kilogram
-troy_ounce = 480 * gram = toz = apounce = apothecary_ounce
+troy_ounce = 480 * grain = toz = apounce = apothecary_ounce
 troy_pound = 12 * toz = tlb = appound = apothecary_pound
-drachm = 60 * gram = apdram = apothecary_dram
+drachm = 60 * grain = apdram = apothecary_dram
 atomic_mass_unit = 1.660538782e-27 * kilogram =  u = amu = dalton = Da
-scruple = 20 * gram
+scruple = 20 * grain
 bag = 94 * lb
 ton = 2000 * lb = short_ton
 
@@ -185,6 +191,10 @@ ton = 2000 * lb = short_ton
 denier =  gram / (9000 * meter)
 tex = gram/ (1000 * meter)
 dtex = decitex
+
+# Photometry
+lumen = candela * steradian = lm
+lux = lumen / meter ** 2 = lx
 
 # Power
 [power] = [energy] / [time]
@@ -210,7 +220,7 @@ technical_atmosphere = kilogram * gravity / centimeter ** 2 = at
 torr = atm / 760
 psi = pound * gravity / inch ** 2 = pound_force_per_square_inch
 ksi = kip / inch ** 2 = kip_per_square_inch
-barye = 0.1 * newton / meter ** 2 = barie = barad = barad = barrie = baryd = Ba
+barye = 0.1 * newton / meter ** 2 = barie = barad = barrie = baryd = Ba
 mmHg = millimeter * Hg = mm_Hg = millimeter_Hg = millimeter_Hg_0C
 cmHg = centimeter * Hg = cm_Hg = centimeter_Hg
 inHg = inch * Hg = in_Hg = inch_Hg = inch_Hg_32F
@@ -232,9 +242,9 @@ rads = 1e-2 * gray
 roentgen = 2.58e-4 * coulomb / kilogram
 
 # Temperature
-degR = 9 / 5 * kelvin; offset: 0 = rankine
 degC = kelvin; offset: 273.15 = celsius
-degF = 9 / 5 * kelvin; offset: 255.372222 = fahrenheit
+degR = 5 / 9 * kelvin; offset: 0 = rankine
+degF = 5 / 9 * kelvin; offset: 255.372222 = fahrenheit
 
 # Time
 minute = 60 * second = min
@@ -253,7 +263,6 @@ sidereal_year = 366.25636042 * sidereal_day
 sidereal_month = 27.321661 * sidereal_day
 tropical_month = 27.321661 * day
 synodic_month = 29.530589 * day = lunar_month
-tropical_month = 27.321661 * day
 common_year = 365 * day
 leap_year = 366 * day
 julian_year = 365.25 * day
@@ -292,7 +301,7 @@ quart = gallon / 4 = liquid_quart = US_liquid_quart
 pint = quart / 2 = pt = liquid_pint = US_liquid_pint
 cup = pint / 2 = liquid_cup = US_liquid_cup
 gill = cup / 2 = liquid_gill = US_liquid_gill
-floz = gill / 4 = fluid_ounce = US_fluid_ounce = US_liquid_ounce
+fluid_ounce = gill / 4 = floz = US_fluid_ounce = US_liquid_ounce
 imperial_bushel = 36.36872 * liter = UK_bushel
 imperial_gallon = imperial_bushel / 8 = UK_gallon
 imperial_quart = imperial_gallon / 4 = UK_quart
@@ -300,7 +309,7 @@ imperial_pint = imperial_quart / 2 = UK_pint
 imperial_cup = imperial_pint / 2 = UK_cup
 imperial_gill = imperial_cup / 2 = UK_gill
 imperial_floz = imperial_gill / 5 = UK_fluid_ounce = imperial_fluid_ounce
-barrel = 42 * gallon = bbl = US_liquid_gallon
+barrel = 42 * gallon = bbl
 tablespoon = floz / 2 = tbsp = Tbsp = Tblsp = tblsp = tbs = Tbl
 teaspoon = tablespoon / 3 = tsp
 peck = bushel / 4 = pk
@@ -318,4 +327,51 @@ firkin = barrel / 4
 @context boltzmann
     [temperature] -> [energy]: boltzmann_constant * value
     [energy] -> [temperature]: value / boltzmann_constant
+@end
+
+@context(mw=0,volume=0,solvent_mass=0) chemistry = chem
+    # mw is the molecular weight of the species
+    # volume is the volume of the solution
+    # solvent_mass is the mass of solvent in the solution
+
+    # moles -> mass require the molecular weight
+    [substance] -> [mass]: value * mw
+    [mass] -> [substance]: value / mw
+
+    # moles/volume -> mass/volume and moles/mass -> mass / mass
+    # require the  molecular weight
+    [substance] / [volume] -> [mass] / [volume]: value * mw
+    [mass] / [volume] -> [substance] / [volume]: value / mw
+    [substance] / [mass] -> [mass] / [mass]: value * mw
+    [mass] / [mass] -> [substance] / [mass]: value / mw
+
+    # moles/volume -> moles requires the solution volume
+    [substance] / [volume] -> [substance]: value * volume
+    [substance] -> [substance] / [volume]: value / volume
+
+    # moles/mass -> moles requires the solvent (usually water) mass
+    [substance] / [mass] -> [substance]: value * solvent_mass
+    [substance] -> [substance] / [mass]: value / solvent_mass
+
+    # moles/mass -> moles/volume require the solvent mass and the volume
+    [substance] / [mass] -> [substance]/[volume]: value * solvent_mass / volume
+    [substance] / [volume] -> [substance] / [mass]: value / solvent_mass * volume
+
+@end
+
+@system mks
+    meter
+    kilogram
+    second
+@end
+
+@system cgs
+    centimeter
+    gram
+    second
+@end
+
+@system imperial
+    yard
+    pound
 @end

@@ -15,27 +15,16 @@ from __future__ import division, unicode_literals, print_function, absolute_impo
 import re
 from collections import defaultdict
 import weakref
+
 from .compat import ChainMap
-from .util import ParserHelper, string_types
+from .util import (ParserHelper, UnitsContainer, string_types,
+                   to_units_container)
 
 #: Regex to match the header parts of a context.
 _header_re = re.compile('@context\s*(?P<defaults>\(.*\))?\s+(?P<name>\w+)\s*(=(?P<aliases>.*))*')
 
-#: Reqex to match the different parts of a relation definition.
-_def_re = re.compile('\s*(\w+)\s*=\s*([\w\d+-/*()]+)\s*')
-
 #: Regex to match variable names in an equation.
 _varname_re = re.compile('[A-Za-z_][A-Za-z0-9_]*')
-
-
-def _freeze(d):
-    """Return a hashable view of dict.
-    """
-    if isinstance(d, string_types):
-        d = ParserHelper.from_string(d)
-    if isinstance(d, frozenset):
-        return d
-    return frozenset(d.items())
 
 
 def _expression_to_function(eq):
@@ -45,8 +34,8 @@ def _expression_to_function(eq):
 
 
 class Context(object):
-    """A specialized container that defines transformation functions from
-    one dimension to another. Each Dimension are specified using a UnitsContainer.
+    """A specialized container that defines transformation functions from one
+    dimension to another. Each Dimension are specified using a UnitsContainer.
     Simple transformation are given with a function taking a single parameter.
 
         >>> timedim = UnitsContainer({'[time]': 1})
@@ -59,8 +48,8 @@ class Context(object):
         >>> c.transform(timedim, spacedim, 2)
         6
 
-    Conversion functions may take optional keyword arguments and the context can
-    have default values for these arguments.
+    Conversion functions may take optional keyword arguments and the context
+    can have default values for these arguments.
 
         >>> def f(time, n):
         ...     'Time to length converter, n is the index of refraction of the material'
@@ -89,9 +78,9 @@ class Context(object):
 
     @classmethod
     def from_context(cls, context, **defaults):
-        """Creates a new context that shares the funcs dictionary with the original
-        context. The default values are copied from the original context and updated
-        with the new defaults.
+        """Creates a new context that shares the funcs dictionary with the
+        original context. The default values are copied from the original
+        context and updated with the new defaults.
 
         If defaults is empty, return the same context.
         """
@@ -123,8 +112,15 @@ class Context(object):
                 if not val.imag:
                     return val.real
                 return val
-            defaults = dict((str(k), to_num(v))
-                            for k, v in _def_re.findall(defaults.strip('()')))
+
+            try:
+                _txt = defaults
+                defaults = (part.split('=') for part in defaults.strip('()').split(','))
+                defaults = dict((str(k).strip(), to_num(v))
+                                for k, v in defaults)
+            except (ValueError, TypeError):
+                raise ValueError('Could not parse Context definition defaults: %s', _txt)
+
             ctx = cls(name, aliases, defaults)
         else:
             ctx = cls(name, aliases)
@@ -141,14 +137,16 @@ class Context(object):
             func = _expression_to_function(eq)
 
             if '<->' in rel:
-                src, dst = (ParserHelper.from_string(s) for s in rel.split('<->'))
+                src, dst = (ParserHelper.from_string(s)
+                            for s in rel.split('<->'))
                 if to_base_func:
                     src = to_base_func(src)
                     dst = to_base_func(dst)
                 ctx.add_transformation(src, dst, func)
                 ctx.add_transformation(dst, src, func)
             elif '->' in rel:
-                src, dst = (ParserHelper.from_string(s) for s in rel.split('->'))
+                src, dst = (ParserHelper.from_string(s)
+                            for s in rel.split('->'))
                 if to_base_func:
                     src = to_base_func(src)
                     dst = to_base_func(dst)
@@ -179,7 +177,7 @@ class Context(object):
 
     @staticmethod
     def __keytransform__(src, dst):
-        return _freeze(src), _freeze(dst)
+        return to_units_container(src), to_units_container(dst)
 
     def transform(self, src, dst, registry, value):
         """Transform a value.
