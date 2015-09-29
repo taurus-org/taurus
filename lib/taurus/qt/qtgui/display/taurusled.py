@@ -81,10 +81,10 @@ class _TaurusLedController(object):
         widget, obj = self.widget(), self.valueObj()
         fgRole = widget.fgRole
         value = None
-        if fgRole == 'value':
-            value = obj.value
-        elif fgRole == 'w_value':
-            value = obj.w_value
+        if fgRole == 'rvalue':
+            value = obj.rvalue
+        elif fgRole == 'wvalue':
+            value = obj.wvalue
         elif fgRole == 'quality':
             return obj.quality
         
@@ -194,10 +194,12 @@ class TaurusLed(QLed, TaurusBaseWidget):
     the value of a boolean attribute or the quality of an attribute."""
     
     DefaultModelIndex = None
-    DefaultFgRole = 'value'
+    DefaultFgRole = 'rvalue'
     DefaultOnColor = "green"
     DefaultOffColor = "black"
-    
+
+    _deprecatedRoles = dict(value='rvalue', w_value='wvalue')
+
     def __init__(self, parent = None, designMode = False):
         name = self.__class__.__name__
         self._designMode = designMode
@@ -266,7 +268,11 @@ class TaurusLed(QLed, TaurusBaseWidget):
         return self._fgRole
     
     def setFgRole(self, fgRole):
-        self._fgRole = str(fgRole).lower()
+        role = self._deprecatedRoles.get(fgRole, fgRole)
+        if fgRole != role:
+            self.deprecated(rel='tep14', dep='setFgRole(%s)'%fgRole,
+                            alt='setFgRole(%s)'%role)
+        self._fgRole = str(role)
         self.controller().update()
 
     def resetFgRole(self):
