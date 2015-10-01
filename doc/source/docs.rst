@@ -3,9 +3,9 @@
 
 .. _docs:
 
-====================
-Taurus documentation
-====================
+==============================
+Taurus |version| documentation
+==============================
 Taurus is a free, open source, multi-platform pure Python module for creating 
 and supporting Graphical User Interfaces for experiment control and data 
 acquisition.

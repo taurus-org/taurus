@@ -43,7 +43,7 @@ Projects related to Taurus
     docs
 
 :Last Update: |today|
-
+:Release: |release|
 
 .. _Tango: http://www.tango-controls.org/
 .. _PyTango: http://packages.python.org/PyTango/
