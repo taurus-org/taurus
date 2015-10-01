@@ -10,6 +10,39 @@ Getting started
 Installing
 ----------
 
+Installing with pip (platform-independent)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Using pip is the simplest approach. The following command will automatically
+download and install the latest release of Taurus::
+
+       pip install taurus --egg
+
+You can test the installation by running::
+
+       python -c "import taurus; print taurus.Release.version"
+
+Note 1: the `--egg` parameter is necessary (see `this ticket
+<https://sourceforge.net/p/tauruslib/tickets/194/>`__). You can also add other
+parameters (e.g. `--user`)
+
+Note 2: pip is already included in python>2.7.9 (or python 3.4.0 for the 3.x series)
+
+Installing from PyPI manually (platform-independent)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You may alternatively install from a downloaded release package:
+
+#. Download the latest release of taurus from http://pypi.python.org/pypi/taurus
+#. Extract the downloaded source into a temporary directory
+#. type::
+
+       python setup.py install
+
+#. test the installation::
+
+       python -c "import taurus; print taurus.Release.version"
+
 Linux (Debian-based)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -22,19 +55,6 @@ doing (as root)::
 (see more detailed instructions in `this step-by-step howto
 <https://sourceforge.net/p/sardana/wiki/Howto-SardanaFromScratch/>`__)
 
-
-Linux (generic)
-~~~~~~~~~~~~~~~
-
-#. Download the latest version of taurus from http://pypi.python.org/pypi/taurus
-#. Extract the downloaded tar.gz into a temporary directory
-#. type::
-       
-       python setup.py build
-       python setup.py install
-#. test the installation::
-       
-       python -c "import taurus; print taurus.Release.version"
     
 Windows
 ~~~~~~~
@@ -57,7 +77,7 @@ necessary to run taurus on your windows machine
 
 #. from scratch:
     #. Download and install `PyQwt`_ < 6.0 from `PyQwt downdoad page <http://pyqwt.sourceforge.net/download.html>`_
-        #. Download and install compatible python with from link in the same `PyQwt`_ page
+        #. Download and install compatible python from link in the same `PyQwt`_ page
         #. Download and install compatible `numpy`_ from link in the same `PyQwt`_ page.
         #. Download and install compatible `PyQt`_ from link in the same `PyQwt`_ page.
 
@@ -66,8 +86,8 @@ necessary to run taurus on your windows machine
     #. Download and install latest `PyTango`_ from `PyTango downdoad page <http://pypi.python.org/pypi/PyTango>`_
     #. Download and install latest taurus from `Taurus downdoad page <http://pypi.python.org/pypi/taurus>`_
 
-Working from Git
-----------------
+Working from Git source without installing
+------------------------------------------
 
 Sometimes it is convenient to work directly from the git source without 
 installing. 
