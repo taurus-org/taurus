@@ -88,11 +88,11 @@ class TaurusAttribute(TaurusModel):
         self.name = None
         self.writable = None
         self.data_format = None
-        self.label = None
+        self._label = None
         self.type = None
-        self.range = [None, None]
-        self.alarm = [None, None]
-        self.warning = [None, None]
+        self._range = [None, None]
+        self._alarm = [None, None]
+        self._warning = [None, None]
 
     def cleanUp(self):
         self.trace("[TaurusAttribute] cleanUp")
@@ -355,25 +355,25 @@ class TaurusAttribute(TaurusModel):
         return self.data_format
 
     def getLabel(self, cache=True):
-        return self.label
+        return self._label
 
-    def getMinValue(self, cache=True):
+    def getMinRange(self, cache=True):
         return self.range[0]
 
-    def getMaxValue(self, cache=True):
+    def getMaxRange(self, cache=True):
         return self.range[1]
 
     def getRange(self, cache=True):
         return self.range
 
     def getMinAlarm(self, cache=True):
-        return self.alarm[0]
+        return self._alarm[0]
 
     def getMaxAlarm(self, cache=True):
-        return self.alarm[1]
+        return self._alarm[1]
 
     def getAlarms(self, cache=True):
-        return list(self.alarm)
+        return self._alarm
 
     def getMinWarning(self, cache=True):
         return self.warning[0]
@@ -385,28 +385,36 @@ class TaurusAttribute(TaurusModel):
         return self.warning
 
     def setLabel(self, lbl):
-        self.label = lbl
+        self._label = lbl
 
-    def __assertsValidLimits(self, low, high):
+    def __assertsValidLimits(self, limits):
+        assert len(limits) == 2, "The limits must be two values, low and high"
+        low, high = limits
         assert isinstance(self.rvalue, Quantity), "rvalue is not a Quantity"
         assert isinstance(low, Quantity), "low is not a Quantity"
-        assert isinstance(high, Quantity), "high is not a Quantity"
+        assert isinstance(high, Quantity), "igh is not a Quantity"
         assert self.rvalue.dimensionality == low.dimensionality, \
             "low and rvalue have different dimensionality"
         assert self.rvalue.dimensionality == high.dimensionality, \
             "high and rvalue have different dimensionality"
 
-    def setRange(self, low, high):
-        self.__assertsValidLimits(low, high)
-        self.range = [low, high]
+    def setRange(self, *limits):
+        if isinstance(limits[0], list):
+            limits = limits[0]
+        self.__assertsValidLimits(limits)
+        self._range = limits
 
-    def setWarnings(self, low, high):
-        self.__assertsValidLimits(low, high)
-        self.warning = [low, high]
+    def setWarnings(self, *limits):
+        if isinstance(limits[0], list):
+            limits = limits[0]
+        self.__assertsValidLimits(limits)
+        self._warning = limits
 
-    def setAlarms(self, low, high):
-        self.__assertsValidLimits(low, high)
-        self.alarm = [low, high]
+    def setAlarms(self, *limits):
+        if isinstance(limits[0], list):
+            limits = limits[0]
+        self.__assertsValidLimits(limits)
+        self._alarm = limits
 
     def isBoolean(self, cache=True):
         v = self.read(cache)
@@ -439,3 +447,8 @@ class TaurusAttribute(TaurusModel):
     @property
     def quality(self, cache=True):
         return self.read(cache).quality
+
+    label = property(getLabel, setLabel)
+    range = property(getRange, setRange)
+    warning = property(getWarnings, setWarnings)
+    alarm = property(getAlarms, setAlarms)
