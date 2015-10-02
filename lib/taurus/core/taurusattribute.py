@@ -318,31 +318,35 @@ class TaurusAttribute(TaurusModel):
             _descr = descr.replace("<", "&lt;").replace(">", "&gt;")
             obj.append(('description', _descr))
 
-        limits = self.getRange(cache=cache)
-        if limits and (limits[0] != self.no_min_value or \
-                       limits[1] != self.no_max_value):
-            if limits[0] == self.no_min_value:
-                limits[0] = self.no_cfg_value
-            if limits[1] == self.no_max_value:
-                limits[1] = self.no_cfg_value
-            obj.append(('limits', "[%s, %s]" % (limits[0],limits[1])))
-
-        alarms = self.getAlarms(cache=cache)
-        if alarms and (alarms[0] != self.no_min_alarm or \
-                       alarms[1] != self.no_max_alarm):
-            if alarms[0] == self.no_min_alarm: alarms[0] = self.no_cfg_value
-            if alarms[1] == self.no_max_alarm: alarms[1] = self.no_cfg_value
-            obj.append(('alarms', "[%s, %s]" % (alarms[0],alarms[1])))
-
-        warnings = self.getWarnings(cache=cache)
-        if warnings and (warnings[0] != self.no_min_warning or \
-                         warnings[1] != self.no_max_warning):
-            if warnings[0] == self.no_min_warning:
-                warnings[0] = self.no_cfg_value
-            if warnings[1] == self.no_max_warning:
-                warnings[1] = self.no_cfg_value
-            obj.append(('warnings', "[%s, %s]" % (warnings[0],warnings[1])))
-
+        if isinstance(self.rvalue, Quantity):
+            idDimensionless = self.rvalue.dimensionless
+            range = self._range
+            alarm = self._alarm
+            warning = self._warning
+            if range != [None, None]:
+                if not idDimensionless:
+                    low = range[0]
+                    high = range[1]
+                else:
+                    low = range[0].magnitude
+                    high = range[1].magnitude
+                obj.append(('range', "[%s, %s]" % (low, high)))
+            if alarm != [None, None]:
+                if not idDimensionless:
+                    low = alarm[0]
+                    high = alarm[1]
+                else:
+                    low = alarm[0].magnitude
+                    high = alarm[1].magnitude
+                obj.append(('alarm', "[%s, %s]" % (low, high)))
+            if warning != [None, None]:
+                if not idDimensionless:
+                    low = warning[0]
+                    high = warning[1]
+                else:
+                    low = warning[0].magnitude
+                    high = warning[1].magnitude
+                obj.append(('warning', "[%s, %s]" % (low, high)))
         return obj
 
     def isWritable(self, cache=True):
