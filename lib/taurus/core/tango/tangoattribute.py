@@ -939,24 +939,30 @@ class TangoAttribute(TaurusAttribute):
         else:
             return self.getMaxDim()
 
-    @tep14_deprecation(alt='getattr')
+    @tep14_deprecation(alt='getAttributeInfoEx')
     def getParam(self, param_name):
+        """ Get attributes of AttributeInfoEx (PyTango)
+        """
         try:
-            return getattr(self, param_name)
+            return getattr(self._pytango_attrinfoex, param_name)
         except:
             return None
 
-    @tep14_deprecation(alt='setattr')
+    @tep14_deprecation(alt='PyTango')
     def setParam(self, param_name, value):
-        setattr(self, param_name, value)
-        if hasattr(self._pytango_dev_attr, param_name):
-            setattr(self._pytango_dev_attr, param_name, str(value))
+        """ Set attributes of AttributeInfoEx (PyTango)
+        """
+        if hasattr(self._pytango_attrinfoex, param_name):
+            setattr(self._pytango_attrinfoex, param_name, str(value))
         self._applyConfig()
 
     @tep14_deprecation(alt='self')
     def getConfig(self):
         """ Returns the current configuration of the attribute."""
         return weakref.proxy(self)
+
+    def getAttributeInfoEx(self):
+        return self._pytango_attrinfoex
 
     @tep14_deprecation(alt='.rvalue.units')
     def getUnit(self, cache=True):
@@ -969,7 +975,7 @@ class TangoAttribute(TaurusAttribute):
     def _set_unit(self, value):
         '''for backwards compat with taurus < 4'''
         extra_msg = 'Ignoring setting of units of %s to %r' % (self.name,
-                                                               value )
+                                                               value)
         self.debug(extra_msg)
 
     @tep14_deprecation(alt='getMinRange')
