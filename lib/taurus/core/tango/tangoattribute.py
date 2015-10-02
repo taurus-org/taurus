@@ -255,21 +255,10 @@ class TangoAttribute(TaurusAttribute):
         self.name = self.getSimpleName()
         self.writable = False
         self._label = self.name
-        self.data_format = data_format_from_tango(PyTango.AttrDataFormat.SCALAR)
-        self.type = data_type_from_tango(PyTango.DevShort)
-        self.climits = [self.no_min_value, self.no_max_value]
-        self.calarms = [self.no_min_value, self.no_max_value]
-        self.cwarnings = [self.no_min_warning, self.no_max_warning]
-        self.cranges = [self.no_min_value, self.no_min_alarm,
-                        self.no_min_warning, self.no_max_warning,
-                        self.no_max_alarm, self.no_max_value]
-        self.max_dim = 1, 0
         dis_level = PyTango.DispLevel.OPERATOR
         self.display_level = display_level_from_tango(dis_level)
         self.tango_writable = PyTango.AttrWriteType.READ
-        self.format = '7.2f'
         self._units = unit_from_tango(PyTango.constants.UnitNotSpec)
-
         # decode the Tango configuration attribute (adds extra members)
         self._pytango_attrinfoex = None
         self._decodeAttrInfoEx(attr_info)
@@ -846,15 +835,9 @@ class TangoAttribute(TaurusAttribute):
             # self.disp_level
             ###############################################################
             # Tango-specific extension of TaurusConfigValue
-            self.climits = [i.min_value, i.max_value]
-            self.calarms = [i.min_alarm, i.max_alarm]
-            self.cwarnings = [i.alarms.min_warning, i.alarms.max_warning]
-            self.cranges = [i.min_value, i.min_alarm, i.alarms.min_warning,
-                        i.alarms.max_warning, i.max_alarm, i.max_value]
-            self.max_dim = 1, 1
             self.display_level = display_level_from_tango(i.disp_level)
             self.tango_writable = i.writable
-
+            self.max_dim = i.max_dim_x, i.max_dim_y
             ###############################################################
             self.format = standard_display_format_from_tango(i.data_type,
                                                              i.format)
@@ -997,8 +980,55 @@ class TangoAttribute(TaurusAttribute):
     def getMaxValue(self, cache=True):
         return self.getMaxRange()
 
+    @tep14_deprecation(alt='getRange')
+    def getCLimits(self):
+        if self._pytango_attrinfoex is not None:
+            value = [self._pytango_attrinfoex.min_value,
+                     self._pytango_attrinfoex.max_value]
+        else:
+            value = [self.not_specified, self.not_specified]
+        return value
+
+    @tep14_deprecation(alt='getAlarms')
+    def getCAlarms(self):
+        if self._pytango_attrinfoex is not None:
+            value = [self._pytango_attrinfoex.min_alarm,
+                     self._pytango_attrinfoex.max_alarm]
+        else:
+            value = [self.not_specified, self.not_specified]
+        return value
+
+    @tep14_deprecation(alt='getWarnings')
+    def getCWarnings(self):
+        if self._pytango_attrinfoex is not None:
+            value = [self._pytango_attrinfoex.alarms.min_warning,
+                     self._pytango_attrinfoex.alarms.max_warning]
+        else:
+            value = [self.not_specified, self.not_specified]
+        return value
+
+    @tep14_deprecation(alt='getRange + getAlarms + getWarnings')
+    def getCRanges(self):
+        if self._pytango_attrinfoex is not None:
+            value = [self._pytango_attrinfoex.min_value,
+                     self._pytango_attrinfoex.min_alarm,
+                     self._pytango_attrinfoex.alarms.min_warning,
+                     self._pytango_attrinfoex.alarms.max_warning,
+                     self._pytango_attrinfoex.max_alarm,
+                     self._pytango_attrinfoex.max_value]
+        else:
+            value = [self.not_specified, self.not_specified,
+                     self.not_specified, self.not_specified,
+                     self.not_specified, self.not_specified]
+        return value
+
     # deprecated property!
     unit = property(getUnit, _set_unit)
+    climits = property(getCLimits)
+    calarms = property(getCAlarms)
+    cwarnings = property(getCAlarms)
+    cranges = property(getCRanges)
+
     # properties
     label = property(getLabel, setLabel)
     range = property(getRange, setRange)
