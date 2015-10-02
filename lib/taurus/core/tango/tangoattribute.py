@@ -215,6 +215,20 @@ class TangoAttrValue(TaurusAttrValue):
 
 class TangoAttribute(TaurusAttribute):
 
+    no_cfg_value = '-----'
+    no_unit = 'No unit'
+    no_standard_unit = 'No standard unit'
+    no_display_unit = 'No display unit'
+    no_description = 'No description'
+    not_specified = 'Not specified'
+    no_min_value = no_max_value = not_specified
+    no_min_alarm = no_max_alarm = not_specified
+    no_min_warning = no_max_warning = not_specified
+    no_delta_t = no_delta_val = not_specified
+    no_rel_change = no_abs_change = not_specified
+    no_archive_rel_change = no_archive_abs_change = not_specified
+    no_archive_period = not_specified
+
     # helper class property that stores a reference to the corresponding factory
     _factory = None
     _scheme = 'tango'
