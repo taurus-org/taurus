@@ -49,8 +49,9 @@ from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
 from taurus.core.util.log import debug, tep14_deprecation
 
-from .enums import (EVENT_TO_POLLING_EXCEPTIONS, FROM_TANGO_TO_NUMPY_TYPE,
-                    DevState)
+from taurus.core.tango.enums import (EVENT_TO_POLLING_EXCEPTIONS,
+                                     FROM_TANGO_TO_NUMPY_TYPE,
+                                     DevState)
 
 from .util.tango_taurus import (description_from_tango,
                                 display_level_from_tango,
@@ -61,7 +62,7 @@ from .util.tango_taurus import (description_from_tango,
                                 data_type_from_tango)
 
 class TangoAttrValue(TaurusAttrValue):
-    '''A TaurusAttrValue specialization to decode PyTango.DeviceAttribute 
+    '''A TaurusAttrValue specialization to decode PyTango.DeviceAttribute
     objects'''
 
     def __init__(self, attr=None, pytango_dev_attr=None, config=None):
@@ -253,7 +254,7 @@ class TangoAttribute(TaurusAttribute):
         # Set default values in case the attrinfoex is None
         self.name = self.getSimpleName()
         self.writable = False
-        self.label = self.name
+        self._label = self.name
         self.data_format = data_format_from_tango(PyTango.AttrDataFormat.SCALAR)
         self.type = data_type_from_tango(PyTango.DevShort)
         self.climits = [self.no_min_value, self.no_max_value]
@@ -325,9 +326,6 @@ class TangoAttribute(TaurusAttribute):
     def getFormat(self, cache=True):
         return self.format
 
-    def setFormat(self, fmt):
-        self.format = fmt
-
     def encode(self, value):
         """Translates the given value into a tango compatible value according to
         the attribute data type.
@@ -366,7 +364,7 @@ class TangoAttribute(TaurusAttribute):
                 attrvalue = str(magnitude)
         elif fmt in (DataFormat._1D, DataFormat._2D):
             if PyTango.is_int_type(tgtype):
-                # cast to integer because the magnitude conversion gives floats 
+                # cast to integer because the magnitude conversion gives floats
                 magnitude = magnitude.astype('int64')
             attrvalue = magnitude
         else:
@@ -374,7 +372,7 @@ class TangoAttribute(TaurusAttribute):
         return attrvalue
 
     def decode(self, attr_value):
-        """Decodes a value that was received from PyTango into the expected 
+        """Decodes a value that was received from PyTango into the expected
         representation"""
         # TODO decode of the configuration
         value = TangoAttrValue(pytango_dev_attr=attr_value, attr=self)
@@ -442,7 +440,7 @@ class TangoAttribute(TaurusAttribute):
 
     def read(self, cache=True):
         """ Returns the current value of the attribute.
-            if cache is set to True (default) or the attribute has events 
+            if cache is set to True (default) or the attribute has events
             active then it will return the local cached value. Otherwise it will
             read the attribute value from the tango device."""
         curr_time = time.time()
@@ -498,7 +496,7 @@ class TangoAttribute(TaurusAttribute):
 
     def addListener(self, listener):
         """ Add a TaurusListener object in the listeners list.
-            If it is the first element and Polling is enabled starts the 
+            If it is the first element and Polling is enabled starts the
             polling mechanism.
             If the listener is already registered nothing happens."""
 
@@ -524,7 +522,7 @@ class TangoAttribute(TaurusAttribute):
         return ret
 
     def removeListener(self, listener):
-        """ Remove a TaurusListener from the listeners list. If polling enabled 
+        """ Remove a TaurusListener from the listeners list. If polling enabled
             and it is the last element the stop the polling timer.
             If the listener is not registered nothing happens."""
         ret = TaurusAttribute.removeListener(self, listener)
@@ -558,7 +556,7 @@ class TangoAttribute(TaurusAttribute):
         pass
 
     def _subscribeEvents(self):
-        """ Enable subscription to the attribute events. If change events are 
+        """ Enable subscription to the attribute events. If change events are
             not supported polling is activated """
 
         if self.__dev_hw_obj is None:
@@ -721,75 +719,88 @@ class TangoAttribute(TaurusAttribute):
          PyTango.AttrWriteType instead of a bool'''
         return self.tango_writable
 
+    def getLabel(self, cache=True):
+        return self._label
+
     def getRange(self, cache=True):
-        return self.getLimits(cache=cache)
+        return self._range
 
     def getLimits(self, cache=True):
-        return self.climits
+        return self.getRange(cache)
 
     def getRanges(self, cache=True):
-        return list(self.cranges)
-
-    def getMinAlarm(self, cache=True):
-        return self.min_alarm
-
-    def getMaxAlarm(self, cache=True):
-        return self.max_alarm
+        return self.getRange()
 
     def getAlarms(self, cache=True):
-        return list(self.calarms)
-
-    def getMinWarning(self, cache=True):
-        return self.alarms.min_warning
-
-    def getMaxWarning(self, cache=True):
-        return self.alarms.max_warning
+        return self._alarm
 
     def getWarnings(self, cache=True):
-        return list(self.cwarnings)
+        return self._warning
 
     def getMaxDim(self, cache=True):
-        return self.max_dim
+        return self.max_dim_x, self.max_dim_y
 
-    def setLimits(self,low, high):
-        l_str, h_str = str(low), str(high)
-        self.cranges[0] = self.min_value = l_str
-        self.cranges[5] = self.max_value = h_str
-        self.climits = [l_str, h_str]
-        self._applyConfig()
-
-    def setWarnings(self,low, high):
-        l_str, h_str = str(low), str(high)
-        self.cranges[2] = self.alarms.min_warning = l_str
-        self.cranges[3] = self.alarms.max_warning = h_str
-        self.cwarnings = [l_str, h_str]
-        self._applyConfig()
-
-    def setAlarms(self,low, high):
-        l_str, h_str = str(low), str(high)
-        self.cranges[1] = self.min_alarm = self.alarms.min_alarm = l_str
-        self.cranges[4] = self.max_alarm = self.alarms.max_alarm = h_str
-        self.calarms = [l_str, h_str]
-        self._applyConfig()
-
-    def setFormat(self, fmt):
-        TaurusAttribute.setFormat(self, fmt)
-        self._applyConfig()
+    def setLimits(self, low, high):
+        self.setRange([low, high])
 
     def setLabel(self, lbl):
         TaurusAttribute.setLabel(self, lbl)
+        infoex = self._pytango_attrinfoex
+        infoex.label = lbl
         self._applyConfig()
 
-    def setRange(self, low, high):
-        TaurusAttribute.setRange(self, low, high)
+    def setRange(self, *limits):
+        if isinstance(limits[0], list):
+            limits = limits[0]
+        low, high = limits
+        low = Quantity(low)
+        high = Quantity(high)
+        TaurusAttribute.setRange(self, [low, high])
+        infoex = self._pytango_attrinfoex
+        if low.magnitude != float('-inf'):
+            infoex.min_value = str(low.to(self._units).magnitude)
+        else:
+            infoex.min_value = 'Not specified'
+        if high.magnitude != float('inf'):
+            infoex.max_value = str(high.to(self._units).magnitude)
+        else:
+            infoex.max_value = 'Not specified'
         self._applyConfig()
 
-    def setWarnings(self, low, high):
-        TaurusAttribute.setWarnings(self, low, high)
+    def setWarnings(self, *limits):
+        if isinstance(limits[0], list):
+            limits = limits[0]
+        low, high = limits
+        low = Quantity(low)
+        high = Quantity(high)
+        TaurusAttribute.setWarnings(self, [low, high])
+        infoex = self._pytango_attrinfoex
+        if low.magnitude != float('-inf'):
+            infoex.alarms.min_warning = str(low.to(self._units).magnitude)
+        else:
+            infoex.alarms.min_warning = 'Not specified'
+        if high.magnitude != float('inf'):
+            infoex.alarms.max_warning = str(high.to(self._units).magnitude)
+        else:
+            infoex.alarms.max_warning = 'Not specified'
         self._applyConfig()
 
-    def setAlarms(self, low, high):
-        TaurusAttribute.setAlarms(self, low, high)
+    def setAlarms(self, *limits):
+        if isinstance(limits[0], list):
+            limits = limits[0]
+        low, high = limits
+        low = Quantity(low)
+        high = Quantity(high)
+        TaurusAttribute.setAlarms(self, [low, high])
+        infoex = self._pytango_attrinfoex
+        if low.magnitude != float('-inf'):
+            infoex.alarms.min_alarm = str(low.to(self._units).magnitude)
+        else:
+            infoex.alarms.min_alarm = 'Not specified'
+        if high.magnitude != float('inf'):
+            infoex.alarms.max_alarm = str(high.to(self._units).magnitude)
+        else:
+            infoex.alarms.max_alarm = 'Not specified'
         self._applyConfig()
 
     def _applyConfig(self):
@@ -804,7 +815,7 @@ class TangoAttribute(TaurusAttribute):
 
             self.name = i.name
             self.writable = i.writable != PyTango.AttrWriteType.READ
-            self.label = i.label
+            self._label = i.label
             self.data_format = data_format_from_tango(i.data_format)
             desc = description_from_tango(i.description)
             if desc != "":
@@ -820,13 +831,13 @@ class TangoAttribute(TaurusAttribute):
                 ninf, inf = float('-inf'), float('inf')
                 min_value = Q_(i.min_value) or Quantity(ninf, units)
                 max_value = Q_(i.max_value) or Quantity(inf, units)
-                min_alarm = Q_(i.min_alarm) or Quantity(ninf, units)
-                max_alarm = Q_(i.max_alarm) or Quantity(inf, units)
+                min_alarm = Q_(i.alarms.min_alarm) or Quantity(ninf, units)
+                max_alarm = Q_(i.alarms.max_alarm) or Quantity(inf, units)
                 min_warning = Q_(i.alarms.min_warning) or Quantity(ninf, units)
                 max_warning = Q_(i.alarms.max_warning) or Quantity(inf, units)
-                self.range = [min_value, max_value]
-                self.warning = [min_warning, max_warning]
-                self.alarm = [min_alarm, max_alarm]
+                self._range = [min_value, max_value]
+                self._warning = [min_warning, max_warning]
+                self._alarm = [min_alarm, max_alarm]
 
             ###############################################################
             # The following members will be accessed via __getattr__
@@ -843,6 +854,7 @@ class TangoAttribute(TaurusAttribute):
             self.max_dim = 1, 1
             self.display_level = display_level_from_tango(i.disp_level)
             self.tango_writable = i.writable
+
             ###############################################################
             self.format = standard_display_format_from_tango(i.data_type,
                                                              i.format)
@@ -946,20 +958,16 @@ class TangoAttribute(TaurusAttribute):
 
     @tep14_deprecation(alt='getattr')
     def getParam(self, param_name):
-        # TODO not well implemented
-        if param_name.endswith('warning') or param_name.endswith('alarm'):
-            attr = self.alarms
         try:
-            return getattr(attr, param_name)
+            return getattr(self, param_name)
         except:
             return None
 
     @tep14_deprecation(alt='setattr')
     def setParam(self, param_name, value):
-        # TODO not well implemented
-        if param_name.endswith('warning') or param_name.endswith('alarm'):
-            attr = self.alarms
-        setattr(attr, param_name, value)
+        setattr(self, param_name, value)
+        if hasattr(self._pytango_dev_attr, param_name):
+            setattr(self._pytango_dev_attr, param_name, str(value))
         self._applyConfig()
 
     @tep14_deprecation(alt='self')
@@ -981,8 +989,21 @@ class TangoAttribute(TaurusAttribute):
                                                                value )
         self.debug(extra_msg)
 
+    @tep14_deprecation(alt='getMinRange')
+    def getMinValue(self, cache=True):
+        return self.getMinRange()
+
+    @tep14_deprecation(alt='getMaxRange')
+    def getMaxValue(self, cache=True):
+        return self.getMaxRange()
+
     # deprecated property!
     unit = property(getUnit, _set_unit)
+    # properties
+    label = property(getLabel, setLabel)
+    range = property(getRange, setRange)
+    warning = property(getWarnings, setWarnings)
+    alarm = property(getAlarms, setAlarms)
 
     @property
     def description(self):
@@ -998,7 +1019,7 @@ class TangoAttribute(TaurusAttribute):
 
 class TangoAttributeEventListener(EventListener):
     """A class that listens for an event with a specific value
-    
+
     Note: Since this class stores for each event value the last timestamp when
     it occured, it should only be used for events for which the event value
     domain (possible values) is limited and well known (ex: an enum)"""
