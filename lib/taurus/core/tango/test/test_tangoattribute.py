@@ -3,21 +3,21 @@
 #############################################################################
 ##
 ## This file is part of Taurus
-## 
+##
 ## http://taurus-scada.org
 ##
 ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
+##
 ## Taurus is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-## 
+##
 ## Taurus is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ## GNU Lesser General Public License for more details.
-## 
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
@@ -30,6 +30,7 @@
 __docformat__ = 'restructuredtext'
 
 import numpy
+import PyTango
 from taurus.external import unittest
 from taurus.external.pint import Quantity
 import taurus
@@ -38,6 +39,7 @@ from taurus.core.tango.tangoattribute import TangoAttrValue
 from taurus.core.tango.test import TangoSchemeTestLauncher
 from taurus.test import insertTest
 from taurus.core.taurusbasetypes import AttrQuality
+from taurus.core.tango.util.tango_taurus import unit_from_tango
 
 _INT_IMG = numpy.arange(2*3, dtype='int16').reshape((2,3))
 _INT_SPE = _INT_IMG[1, :]
@@ -55,34 +57,34 @@ _STR = 'foo BAR |-+#@!?_[]{}'
             setvalue=Quantity(numpy.empty(0, dtype='int16'), 'km'),
             expected=dict(rvalue=Quantity([], 'mm'),
                           type=DataType.Integer,
-                          unit="millimeter"
+                          unit="mm"
                           ),
             expected_attrv=dict(rvalue=Quantity([], 'mm'),
                                 type=DataType.Integer,
-                                unit="millimeter"
+                                unit="mm"
                                 ),
-            expectedshape=(0,))
-
+            expectedshape=(0,)
+            )
 @insertTest(helper_name='write_read_attr',
             attrname='short_image',
             setvalue=Quantity(numpy.empty((0, 0), dtype='int16'), 'mm'),
             expected=dict(rvalue=Quantity([], 'mm'),
                           type=DataType.Integer
                           ),
-            expectedshape=(0, 0))
-
+            expectedshape=(0, 0)
+            )
 @insertTest(helper_name='write_read_attr',
             attrname='boolean_spectrum',
             setvalue=numpy.empty(0, dtype='bool8'),
             expected=dict(type=DataType.Boolean),
-            expectedshape=(0,))
-
+            expectedshape=(0,)
+            )
 @insertTest(helper_name='write_read_attr',
             attrname='boolean_image',
             setvalue=numpy.empty((0, 0), dtype='bool8'),
             expected=dict(type=DataType.Boolean),
-            expectedshape=(0, 0))
-
+            expectedshape=(0, 0)
+            )
 # # Cannot test: Tango ignores writes of empty list for string attributes.
 # @insertTest(helper_name='write_read_attr',
 #             attrname='string_spectrum',
@@ -115,7 +117,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='string_spectrum',
             setvalue=(_STR,)*3,
@@ -132,7 +133,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='string_scalar',
             setvalue=_STR,
@@ -149,7 +149,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='boolean_image',
             setvalue=_BOOL_IMG,
@@ -166,7 +165,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='boolean_spectrum',
             setvalue=_BOOL_SPE,
@@ -182,7 +180,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='boolean_scalar',
             setvalue=False,
@@ -229,7 +226,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 ),
             expectedshape=numpy.shape(_FLOAT_IMG)
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='float_spectrum',
             setvalue=Quantity(_FLOAT_SPE, 'm'),
@@ -244,8 +240,8 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 w_value=1000*_FLOAT_SPE,
                                 quality=AttrQuality.ATTR_VALID
                                 ),
-            expectedshape=numpy.shape(_FLOAT_SPE))
-
+            expectedshape=numpy.shape(_FLOAT_SPE)
+            )
 @insertTest(helper_name='write_read_attr',
             attrname='float_scalar',
             setvalue=Quantity(0.01, 'm'),
@@ -267,7 +263,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_ALARM
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='float_scalar',
             setvalue=Quantity(0.004, 'm'),
@@ -279,7 +274,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_WARNING
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='float_scalar',
             setvalue=Quantity(3, 'mm'),
@@ -292,7 +286,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='double_scalar',
             setvalue=Quantity(0.01, 'm'),
@@ -314,7 +307,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_ALARM
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='double_scalar',
             setvalue=Quantity(0.004, 'm'),
@@ -326,7 +318,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_WARNING
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='double_scalar',
             setvalue=Quantity(3, 'mm'),
@@ -339,7 +330,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='short_image',
             setvalue=Quantity(_INT_IMG, 'm'),
@@ -355,7 +345,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 ),
             expectedshape=numpy.shape(_INT_IMG)
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='short_spectrum',
             setvalue=Quantity(_INT_SPE, 'm'),
@@ -367,7 +356,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 w_value=1000*_INT_SPE
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='short_scalar',
             setvalue=Quantity(1, 'm'),
@@ -405,7 +393,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 ),
             expectedshape=(3, 3)
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='string_spectrum_ro',
             expected=dict(rvalue=('hello world',)*3,
@@ -417,7 +404,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 ),
             expectedshape=(3,)
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='string_scalar_ro',
             expected=dict(rvalue='hello world',
@@ -429,7 +415,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 ),
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='boolean_image_ro',
             expected=dict(rvalue=numpy.ones((3,3), dtype='b'),
@@ -441,7 +426,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 ),
             expectedshape=(3,3))
-
 @insertTest(helper_name='write_read_attr',
             attrname='boolean_spectrum_ro',
             expected=dict(rvalue=numpy.array([True]*3),
@@ -454,7 +438,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 ),
             expectedshape=(3,))
-
 @insertTest(helper_name='write_read_attr',
             attrname='boolean_scalar_ro',
             expected=dict(rvalue=True,
@@ -471,7 +454,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 ),
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='float_image_ro',
             expected=dict(rvalue=Quantity([[1.23]*3]*3, 'mm'),
@@ -483,7 +465,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID,
                                 wvalue=None),
             expectedshape=(3,3))
-
 @insertTest(helper_name='write_read_attr',
             attrname='float_spectrum_ro',
             expected=dict(rvalue=Quantity([1.23]*3, 'mm'),
@@ -496,7 +477,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 ),
             expectedshape=(3,)
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='float_scalar_ro',
             expected=dict(rvalue=Quantity(1.23, 'mm'),
@@ -515,7 +495,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 quality=AttrQuality.ATTR_VALID
                                 ),
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='short_image_ro',
             expected=dict(rvalue=Quantity([[123]*3]*3, 'mm'),
@@ -529,7 +508,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 w_value=None),
             expectedshape=(3,3)
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='short_spectrum_ro',
             expected=dict(rvalue=Quantity([123]*3, 'mm'),
@@ -545,7 +523,6 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 w_value=None),
             expectedshape=(3,)
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='short_scalar_ro',
             expected=dict(rvalue=Quantity(123, 'mm'),
@@ -566,9 +543,101 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                                 wvalue=None,
                                 w_value=None)
             )
-
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='range', value=[float('-inf'), float('inf')],
+            expected=[Quantity(float('-inf')), Quantity(float('inf'))]
+            )
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='range', value=[Quantity(float('-inf')),
+                                Quantity(float('inf'))],
+            expected=[Quantity(float('-inf')), Quantity(float('inf'))])
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='range', value=[100, 300],
+            expected=[Quantity(100), Quantity(300)])
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='range', value=[Quantity(100), Quantity(300)],
+            expected=[Quantity(100), Quantity(300)])
+@insertTest(helper_name='write_read_conf', attr_name='float_scalar',
+            cfg='range', value=[Quantity(-5, 'mm'), Quantity(5, 'mm')],
+            expected=[Quantity(-0.005, 'm'), Quantity(5, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='short_spectrum',
+            cfg='label', value='Just a Test',
+            expected='Just a Test')
+@insertTest(helper_name='write_read_conf', attr_name='boolean_spectrum',
+            cfg='label', value='Just_a_Test',
+            expected='Just_a_Test')
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar',
+            cfg='warning', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
+            expected=[Quantity(-2, 'mm'), Quantity(0.002, 'm')])
+@insertTest(helper_name='write_read_conf', attr_name='short_image',
+            cfg='warning', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
+            expected=[Quantity(-0.002, 'm'), Quantity(2, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='float_image',
+            cfg='warning', value=[Quantity(-0.75, 'mm'), Quantity(0.75, 'mm')],
+            expected=[Quantity(-0.00075, 'm'), Quantity(0.75, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='warning', value=[100, 300],
+            expected=[Quantity(100), Quantity(300)])
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar',
+            cfg='alarm', value=[Quantity(-50, 'mm'), Quantity(50, 'mm')],
+            expected=[Quantity(-50, 'mm'), Quantity(50, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='short_image',
+            cfg='alarm', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
+            expected=[Quantity(-0.002, 'm'), Quantity(2, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='float_image',
+            cfg='alarm', value=[Quantity(-0.75, 'mm'), Quantity(0.75, 'mm')],
+            expected=[Quantity(-0.00075, 'm'), Quantity(0.75, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='alarm', value=[100, 300],
+            expected=[Quantity(100), Quantity(300)])
 class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
     """TestCase for the taurus.Attribute helper"""
+
+    def _getDecodePyTangoAttr(self, attr_name, cfg):
+        """Helper for decode the PyTango attribute infoex
+        """
+        dev = PyTango.DeviceProxy(self.DEV_NAME)
+        infoex = dev.get_attribute_config_ex(attr_name)[0]
+        unit = unit_from_tango(infoex.unit)
+        if cfg in ['range', 'alarm', 'warning']:
+            if cfg == 'range':
+                low = infoex.min_value
+                high = infoex.max_value
+            elif cfg == 'alarm':
+                low = infoex.alarms.min_alarm
+                high = infoex.alarms.max_alarm
+            elif cfg == 'warning':
+                low = infoex.alarms.min_warning
+                high = infoex.alarms.max_warning
+            if low == 'Not specified':
+                low = '-inf'
+            if high == 'Not specified':
+                high = 'inf'
+            return [Quantity(float(low), unit),
+                    Quantity(float(high), unit)]
+        elif cfg == 'label':
+            return infoex.label
+        else:
+            return None
+
+    def write_read_conf(self, attr_name, cfg, value, expected):
+        """ Helper for checking the write-and-read read/write the Tango
+        attribute configuration (existing in Taurus).
+        """
+        attr_fullname = '%s/%s' % (self.DEV_NAME, attr_name)
+        attr = taurus.Attribute(attr_fullname)
+        # write the property
+        setattr(attr, cfg, value)
+        # read the property
+        got = getattr(attr, cfg)
+        msg = '%s.%s from Taurus do not mach, expected %s read %s' %\
+              (attr_name, cfg, expected, got)
+        map(self.__assertValidValue, got, expected, msg)
+
+        msg = '%s.%s from Tango do not mach, expected %s read %s' %\
+              (attr_name, cfg, expected, got)
+        tangovalue = self._getDecodePyTangoAttr(attr_name, cfg)
+        map(self.__assertValidValue, got, tangovalue, msg)
 
     def write_read_attr(self, attrname=None, setvalue=None, expected={},
                         expected_attrv={}, expectedshape=None):
@@ -597,7 +666,9 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
                 msg = ('The attribute, "%s" does not provide info on %s' %
                        (attrname, k))
                 self.fail(msg)
-            self.__assert(attrname, k, exp, got)
+            msg = ('%s for "%s" should be %r (got %r)' %\
+                   (attrname, k,  exp, got))
+            self.__assertValidValue(exp, got, msg)
 
         # Test attribute value
         for k, exp in expected_attrv.iteritems():
@@ -607,15 +678,16 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
                 msg = ('The read value for "%s" does not provide info on %s' %
                        (attrname, k))
                 self.fail(msg)
-            self.__assert(attrname, k, exp, got)
+            msg = ('%s for "%s" should be %r (got %r)' %\
+                   (attrname, k,  exp, got))
+            self.__assertValidValue(exp, got, msg)
 
         if expectedshape is not None:
-            msg = ('rvalue.shape for %s should be %r (got %r)' %
+            msg = ('rvalue.shape for %s should be %r (got %r)' %\
                    (attrname, expectedshape, read_value.rvalue.shape))
             self.assertEqual(read_value.value.shape, expectedshape, msg)
 
-    def __assert(self, attrname, attr, exp, got):
-        msg = ('%s for "%s" should be %r (got %r)' %(attr, attrname, exp, got))
+    def __assertValidValue(self, exp, got, msg):
         # if we are dealing with quantities, use the magnitude for comparing
         if isinstance(got, Quantity):
             got = got.to(Quantity(exp).units).magnitude
