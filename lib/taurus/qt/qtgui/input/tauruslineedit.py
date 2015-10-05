@@ -29,15 +29,82 @@ __all__ = ["TaurusValueLineEdit", "TaurusConfigLineEdit"]
 
 __docformat__ = 'restructuredtext'
 
-import sys, PyTango, taurus.core
+import sys, taurus.core
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseWritableWidget
+from taurus.external.pint import Quantity, DimensionalityError
+from taurus.qt.qtgui.base import TaurusBaseWritableWidget
+from taurus.core import DataType
+
 
 _String = str
 try:
     _String = Qt.QString
 except AttributeError:
     _String = str
+
+class _PintValidator(Qt.QValidator):
+    """A QValidator for pint Quantities"""
+    _top = None
+    _bottom = None
+
+    @property
+    def top(self):
+        """
+        :return: (Quantity or None) maximum acceptable or None if it should not
+                 be enforced
+        """
+        return self._top
+
+    def setTop(self, top):
+        """
+        Set maximum limit
+        :param q: (Quantity or None) maximum acceptable value value
+        """
+        self._top = Quantity(top)
+
+    @property
+    def bottom(self):
+        """
+        :return: (Quantity or None) minimum acceptable or None if it should not
+                 be enforced
+        """
+        return self._bottom
+
+    def setBottom(self, bottom):
+        """
+        Set minimum limit
+        :param q: (Quantity or None) minimum acceptable value value
+        """
+        self._bottom = Quantity(bottom)
+
+    def _validate(self, input, pos):
+        """Reimplemented from :class:`QValidator` to validate if the input
+        string is a representation of a quantity within the set bottom and top
+        limits
+        """
+        try:
+            q = Quantity(input)
+        except:
+            return Qt.QValidator.Intermediate, input, pos
+        try:
+            if self.bottom is not None and q < self.bottom:
+                return Qt.QValidator.Invalid, input, pos
+            if self.top is not None and q > self.top:
+                return Qt.QValidator.Invalid, input, pos
+        except DimensionalityError:
+            return Qt.QValidator.Invalid, input, pos
+        return Qt.QValidator.Acceptable, input, pos
+
+    def _validate_oldQt(self, input, pos):
+        """Old Qt (v4.4.) -compatible implementation of validate"""
+        state, _, pos =  self._validate(input, pos)
+        return state,pos
+
+    # select the appropriate implementation of validate. See:
+    # https://www.mail-archive.com/pyqt@riverbankcomputing.com/msg26344.html
+    validate = Qt.PYQT_QSTRING_API_1 and _validate_oldQt or _validate
+
+
 
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
@@ -61,27 +128,15 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.connect(self, Qt.SIGNAL('valueChanged'), self.updatePendingOperations)
         self.connect(self, Qt.SIGNAL('editingFinished()'), self._onEditingFinished)
 
-    def _updateValidator(self, attrinfo):
-        '''This method sets a validator depending on the data type
-        attrinfo is an AttributeInfoEx object'''
-        if PyTango.is_int_type(attrinfo.data_type):
-            validator = Qt.QIntValidator(self) #initial range is -2147483648 to 2147483647 (and cannot be set larger)
-            if validator.bottom() < self.__minLimit < validator.top():
-                validator.setBottom(int(self.__minLimit))
-            if validator.bottom() < self.__maxLimit < validator.top():
-                validator.setTop(int(self.__maxLimit))
-            self.setValidator(validator)
-            self.debug("IntValidator set with limits=[%d,%d]"%(validator.bottom(), validator.top()))
-        elif PyTango.is_float_type(attrinfo.data_type):
-            validator= Qt.QDoubleValidator(self)
+    def _updateValidator(self, value):
+        '''This method sets a validator depending on the data type'''
+        if value.type in (DataType.Integer,DataType.Float):
+            validator= _PintValidator(self)
             validator.setBottom(self.__minLimit)
             validator.setTop(self.__maxLimit)
-            #I removed the validation of decimal digits because it was not practical when editing values
-#            decimalDigits = self.__decimalDigits(attrinfo.format) 
-#            if decimalDigits is not None:
-#                validator.setDecimals(decimalDigits)
             self.setValidator(validator)
-            self.debug("DoubleValidator set with limits=[%f,%f]"%(self.__minLimit, self.__maxLimit))
+            self.debug("_PintValidator set with limits=[%f,%f]",
+                       self.__minLimit, self.__maxLimit)
         else: #@TODO Other validators can be configured for other types (e.g. with string lengths, tango names,...)
             self.setValidator(None)
             self.debug("Validator disabled")
@@ -111,22 +166,9 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
-            if evt_value.min_alarm != taurus.core.taurusconfiguration.TaurusConfiguration.no_min_alarm:
-                self.__minAlarm = float(evt_value.min_alarm)
-            else:
-                self.__minAlarm = -float("inf")
-            if evt_value.max_alarm != taurus.core.taurusconfiguration.TaurusConfiguration.no_max_alarm:
-                self.__maxAlarm = float(evt_value.max_alarm)
-            else:
-                self.__maxAlarm = float("inf")
-            if evt_value.min_value != taurus.core.taurusconfiguration.TaurusConfiguration.no_min_value:
-                self.__minLimit = float(evt_value.min_value)
-            else:
-                self.__minLimit = -float("inf")
-            if evt_value.max_value != taurus.core.taurusconfiguration.TaurusConfiguration.no_max_value:
-                self.__maxLimit = float(evt_value.max_value)
-            else:
-                self.__maxLimit = float("inf")
+            attr = self.getModelObj()
+            self.__minAlarm, self.__maxAlarm = attr.alarm
+            self.__minLimit, self.__maxLimit = attr.range
 
             self._updateValidator(evt_value)
         TaurusBaseWritableWidget.handleEvent(self, evt_src, evt_type, evt_value)
@@ -213,7 +255,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         v_qstr = self.text()
         model = self.getModelObj()
         try:
-            return model.encode(v_qstr)
+            return model.encode(v_qstr) # TODO: Maybe this encode should disapear?
         except:
             return None
 
@@ -341,17 +383,21 @@ class TaurusConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
 def main():
     import sys
-    attr_name = sys.argv[1]
-    a = Qt.QApplication([])
-    panel = Qt.QWidget()
-    l = Qt.QGridLayout()
-    w1 = TaurusConfigLineEdit()
-    #w1 = TaurusValueLineEdit()
-    w1.setModel(attr_name)
-    l.addWidget(w1,0,0)
-    panel.setLayout(l)
-    panel.setVisible(True)
-    return a.exec_()
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication()
+
+    form = Qt.QWidget()
+    layout = Qt.QVBoxLayout()
+    form.setLayout(layout)
+    for m in ('sys/tg_test/1/double_scalar',
+              'sys/tg_test/1/double_scalar'
+              ):
+        w = TaurusValueLineEdit()
+        w.setModel(m)
+        layout.addWidget(w)
+    form.show()
+    sys.exit(app.exec_())
 
 if __name__ == "__main__":
     sys.exit(main())
