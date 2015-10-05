@@ -72,13 +72,8 @@ class _TaurusLedController(object):
     def modelObj(self):
         return self.widget().getModelObj()
 
-    def valueObj(self):
-        modelObj = self.modelObj()
-        if modelObj is None: return None
-        return modelObj.getValueObj()
-    
     def value(self):
-        widget, obj = self.widget(), self.valueObj()
+        widget, obj = self.widget(), self.modelObj()
         fgRole = widget.fgRole
         value = None
         if fgRole == 'rvalue':
@@ -89,7 +84,8 @@ class _TaurusLedController(object):
             return obj.quality
         
         # handle 1D and 2D values
-        if obj.data_format == DataFormat.SCALAR: return value
+        if obj.data_format == DataFormat._0D:
+            return value
         
         idx = widget.getModelIndexValue()
         if idx is None or len(idx) == 0:
