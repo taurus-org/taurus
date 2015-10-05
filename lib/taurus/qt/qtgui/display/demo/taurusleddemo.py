@@ -85,7 +85,7 @@ def demo():
             panel_l.addWidget(display_panel, 1)
             panel_l.addWidget(control_panel, 0)
             
-            fg_widget.addItems(["value", "w_value", "quality"])
+            fg_widget.addItems(["rvalue", "wvalue", "quality"])
             colors = ["green", "blue", "orange", "red", "yellow", "magenta", "grenoble", "black"]
             on_color_widget.addItems(colors)
             off_color_widget.addItems(colors)
