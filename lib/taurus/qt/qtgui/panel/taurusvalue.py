@@ -146,6 +146,7 @@ class ExpandingLabel(TaurusLabel):
     def __init__(self,*args):
         TaurusLabel.__init__(self,*args)
         self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Preferred)
+        self.setFgRole('rvalue.magnitude') # hide the units
 
 
 class CenteredLed(TaurusLed):
