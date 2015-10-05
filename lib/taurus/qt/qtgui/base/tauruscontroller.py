@@ -247,7 +247,7 @@ class TaurusConfigurationControllerHelper(object):
         try:
             val = widget.getModelFragmentObj()
             try:
-                no_val = getattr(model, "no_" + param)
+                no_val = getattr(model, "no_" + param) # TODO: Tango-centric
                 if val.lower() == no_val.lower():
                     val = widget.getNoneValue()
             except:
