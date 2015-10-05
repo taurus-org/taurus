@@ -1876,7 +1876,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
                 toolTip += '<hr/>Displayed value (%s) differs from applied value (%s)' % (v_str, model_v_str)
             self.setToolTip(toolTip)
 
-    def _updateValidator(self, evt_value):
+    def _updateValidator(self, evt_value): #TODO: Remove this method
         #re-set the validator ranges if applicable
         if evt_value is None: return
         v = self.validator()
