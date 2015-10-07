@@ -71,7 +71,6 @@ class TaurusAttribute(TaurusModel):
         if not storeCallback is None:
             storeCallback(self)
 
-        self.name = None
         self.writable = None
         self.data_format = None
         self._label = None

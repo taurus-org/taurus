@@ -266,9 +266,7 @@ class TangoAttribute(TaurusAttribute):
                 attr_info = None
 
         # Set default values in case the attrinfoex is None
-        self.name = self.getSimpleName()
         self.writable = False
-        self._label = self.name
         dis_level = PyTango.DispLevel.OPERATOR
         self.display_level = display_level_from_tango(dis_level)
         self.tango_writable = PyTango.AttrWriteType.READ
@@ -816,7 +814,6 @@ class TangoAttribute(TaurusAttribute):
         else:
             self._pytango_attrinfoex = i = pytango_attrinfoex
 
-            self.name = i.name
             self.writable = i.writable != PyTango.AttrWriteType.READ
             self._label = i.label
             self.data_format = data_format_from_tango(i.data_format)

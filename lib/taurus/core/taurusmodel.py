@@ -285,4 +285,11 @@ class TaurusModel(Logger):
             
     def isWritable(self):
         return False
-        
+
+    @property
+    def name(self):
+        return self._simp_name
+
+    @property
+    def fullname(self):
+        return self._full_name
