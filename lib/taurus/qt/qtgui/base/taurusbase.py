@@ -34,8 +34,6 @@ __docformat__ = 'restructuredtext'
 import sys
 import threading
 
-import PyTango
-
 from taurus.external.qt import Qt
 from taurus.external.enum import Enum
 
@@ -731,7 +729,6 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         try: Qt.QObject.disconnect(self.getSignaller(), Qt.SIGNAL('taurusEvent'), self.filterEvent)
         except: pass #self.error("In %s.preDetach() ... failed!" % str(type(self)))
 
-        
     def postDetach(self):
         """Called inside self.detach() after actual deattach is performed.
         Default implementation does not do anything.
@@ -1265,7 +1262,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
             if self.getShowText():
                 if isinstance(evt_src, TaurusAttribute):
                     if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
-                        text = self.displayValue(evt_value.value)
+                        text = self.displayValue(evt_value.rvalue)
                     elif evt_type == TaurusEventType.Error:
                         text = self.getNoneValue()
                     elif evt_type == TaurusEventType.Config:
@@ -1801,7 +1798,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         TaurusBaseWidget.postAttach(self)
         if self.isAttached():
             try:
-                v = self.getModelValueObj().w_value
+                v = self.getModelValueObj().wvalue
             except:
                 v = None
             self.setValue(v)
@@ -1814,7 +1811,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         if self.isAttached():
             try:
-                v = self.getModelValueObj().w_value
+                v = self.getModelValueObj().wvalue
             except:
                 v = None
             self.setValue(v)
@@ -1825,7 +1822,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         model = self.getModelObj()
         try:
-            model_value = model.getValueObj().w_value
+            model_value = model.getValueObj().wvalue
             wigdet_value = self.getValue()
             if model.areStrValuesEqual(model_value, wigdet_value):
                 self._operations = []
@@ -1872,7 +1869,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
             toolTip = self.getFormatedToolTip()
             if self.hasPendingOperations():
                 v_str = str(self.getValue())
-                model_v_str = getattr(self.getModelValueObj(),'w_value', '-----')
+                model_v_str = getattr(self.getModelValueObj(),'wvalue', '-----')
                 toolTip += '<hr/>Displayed value (%s) differs from applied value (%s)' % (v_str, model_v_str)
             self.setToolTip(toolTip)
 
