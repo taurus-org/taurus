@@ -76,6 +76,7 @@ class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
     def tearDown(self):
         '''Set Model to None'''
         self._widget.setModel(None)
+        TangoSchemeTestLauncher.tearDown(self)
         unittest.TestCase.tearDown(self)
 
 if __name__ == '__main__':
