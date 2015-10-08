@@ -31,7 +31,8 @@ __docformat__ = 'restructuredtext'
 
 import sys, taurus.core
 from taurus.external.qt import Qt
-from taurus.external.pint import Quantity, DimensionalityError
+from taurus.external.pint import (Quantity, DimensionalityError,
+                                  UndefinedUnitError)
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from taurus.core import DataType
 
@@ -46,6 +47,7 @@ class _PintValidator(Qt.QValidator):
     """A QValidator for pint Quantities"""
     _top = None
     _bottom = None
+    _unit = None
 
     @property
     def top(self):
@@ -58,9 +60,24 @@ class _PintValidator(Qt.QValidator):
     def setTop(self, top):
         """
         Set maximum limit
-        :param q: (Quantity or None) maximum acceptable value value
+        :param top: (Quantity or None) maximum acceptable value
         """
         self._top = Quantity(top)
+
+    @property
+    def unit(self):
+        """
+        :return: (str or None) base units or None if it should not
+                 be enforced
+        """
+        return self._top
+
+    def setUnit(self, unit):
+        """
+        Set base unit
+        :param unit: (str or None) str unit representation.
+        """
+        self._unit = unit
 
     @property
     def bottom(self):
@@ -73,7 +90,7 @@ class _PintValidator(Qt.QValidator):
     def setBottom(self, bottom):
         """
         Set minimum limit
-        :param q: (Quantity or None) minimum acceptable value value
+        :param bottom: (Quantity or None) minimum acceptable value
         """
         self._bottom = Quantity(bottom)
 
@@ -82,10 +99,19 @@ class _PintValidator(Qt.QValidator):
         string is a representation of a quantity within the set bottom and top
         limits
         """
+        if input is None or input == '':
+            return Qt.QValidator.Intermediate, input, pos
         try:
-            q = Quantity(input)
+            value = float(input)
+        except ValueError:
+            value = input
+        try:
+            q = Quantity(value)
         except:
             return Qt.QValidator.Intermediate, input, pos
+        #     return Qt.QValidator.Intermediate, input, pos
+        if q.dimensionless and self._unit is not None:
+            q = Quantity(value, self._unit)
         try:
             if self.bottom is not None and q < self.bottom:
                 return Qt.QValidator.Invalid, input, pos
@@ -98,7 +124,7 @@ class _PintValidator(Qt.QValidator):
     def _validate_oldQt(self, input, pos):
         """Old Qt (v4.4.) -compatible implementation of validate"""
         state, _, pos =  self._validate(input, pos)
-        return state,pos
+        return state, pos
 
     # select the appropriate implementation of validate. See:
     # https://www.mail-archive.com/pyqt@riverbankcomputing.com/msg26344.html
@@ -115,10 +141,11 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.call__init__wo_kw(Qt.QLineEdit, qt_parent)
         self.call__init__(TaurusBaseWritableWidget, name, designMode=designMode)
         self._enableWheelEvent = False
-        self.__minAlarm = -float("inf")
-        self.__maxAlarm = float("inf")
-        self.__minLimit = -float("inf")
-        self.__maxLimit = float("inf")
+        self.__minAlarm = None
+        self.__maxAlarm = None
+        self.__minLimit = None
+        self.__maxLimit = None
+        self.__unit = ''
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
@@ -130,10 +157,12 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def _updateValidator(self, value):
         '''This method sets a validator depending on the data type'''
-        if value.type in (DataType.Integer,DataType.Float):
-            validator= _PintValidator(self)
+        if isinstance(value.wvalue, Quantity):
+            self.__unit = value.wvalue.units
+            validator = _PintValidator(self)
             validator.setBottom(self.__minLimit)
             validator.setTop(self.__maxLimit)
+            validator.setUnit(self.__unit)
             self.setValidator(validator)
             self.debug("_PintValidator set with limits=[%f,%f]",
                        self.__minLimit, self.__maxLimit)
@@ -169,35 +198,60 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             attr = self.getModelObj()
             self.__minAlarm, self.__maxAlarm = attr.alarm
             self.__minLimit, self.__maxLimit = attr.range
-
             self._updateValidator(evt_value)
         TaurusBaseWritableWidget.handleEvent(self, evt_src, evt_type, evt_value)
 
+    def __getQuantity(self, v):
+        if v is None or v == '':
+            return None
+        try:
+            value = float(v)
+        except ValueError:
+            value = v
+        try:
+            q = Quantity(value)
+        except:
+            q = Quantity(float('NaN'))
+        if q.dimensionless:
+            q = Quantity(value, self.__unit)
+        return q
+
     def _inAlarm(self, v):
-        try: return not(self.__minAlarm < float(v) < self.__maxAlarm)
-        except: return False #this will return false for non-numerical values
+        try:
+            return v <= self.__minAlarm or v >= self.__maxAlarm
+        except:
+            return True
 
     def _outOfRange(self, v):
-        validator = self.validator()
-        if validator:
-            return validator.validate(_String(str(v)), 0)[0] != validator.Acceptable
-        else: #fallback, only for numeric typess (returns False for other types)
-            try: return not(self.__minLimit <= float(v) <=  self.__maxLimit)
-            except: return False
+        try:
+            return self.__minLimit > v or self.__maxLimit < v
+        except:
+            return True
 
     def updateStyle(self):
         TaurusBaseWritableWidget.updateStyle(self)
-        color, weight = 'black', 'normal' #default case: the value is in normal range with no pending changes
+        #default case: the value is in normal range with no pending changes
+        color, weight = 'black', 'normal'
         v = self.getValue()
-        if self._outOfRange(v): #the value is invalid and can't be applied
-            color = 'gray'
-        elif self._inAlarm(v): #the value is valid but in alarm range...
-            color = 'orange'
-            if self.hasPendingOperations(): #...and some change is pending
-                weight = 'bold'
-        elif self.hasPendingOperations(): #the value is in valid range with pending changes
+        modelObj = self.getModelObj()
+        if modelObj is None:
+            return
+        if modelObj.type in [DataType.Integer, DataType.Float]:
+            _q = self.__getQuantity(self.text())
+            if self._outOfRange(_q):
+                #the value is invalid and can't be applied
+                color = 'gray'
+            elif self._inAlarm(_q):
+                #the value is valid but in alarm range...
+                color = 'orange'
+                if self.hasPendingOperations():
+                #...and some change is pending
+                    weight = 'bold'
+        elif self.hasPendingOperations():
+            #the value is in valid range with pending changes
             color, weight= 'blue','bold'
-        self.setStyleSheet('TaurusValueLineEdit {color: %s; font-weight: %s}'%(color,weight))
+        self.setStyleSheet('TaurusValueLineEdit {color: %s; font-weight: %s}' %\
+                           (color,weight))
 
     def wheelEvent(self, evt):
         if not self.getEnableWheelEvent() or Qt.QLineEdit.isReadOnly(self):
@@ -247,15 +301,19 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         if model is None:
             v_str = str(v)
         else:
-            v_str = str(model.displayValue(v))
+            v_str = str(self.displayValue(v))
         v_str = v_str.strip()
         self.setText(v_str)
 
     def getValue(self):
-        v_qstr = self.text()
-        model = self.getModelObj()
+        value = self.text()
+        model_obj = self.getModelObj()
         try:
-            return model.encode(v_qstr) # TODO: Maybe this encode should disapear?
+            if model_obj.type in [DataType.Integer, DataType.Float]:
+                value = self.__getQuantity(value)
+                if value is not None:
+                    value = value.to(self.__unit)
+            return model_obj.encode(value)
         except:
             return None
 
