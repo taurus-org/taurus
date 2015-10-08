@@ -33,10 +33,10 @@ __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox", "De
 
 __docformat__ = 'restructuredtext'
 
-import weakref
+import weakref, re
 from taurus.external.qt import Qt
 import taurus.core
-from taurus.core import DataType
+from taurus.core import DataType, DataFormat
 
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
@@ -81,15 +81,17 @@ class DefaultLabelWidget(TaurusLabel):
         self.setStyleSheet('DefaultLabelWidget {border-style: solid; border-width: 1px; border-color: transparent; border-radius: 4px;}')
     
     def setModel(self, model):
-        if model is None or model=='': 
+        if model is None or model=='':
             return TaurusLabel.setModel(self, None)
-        try: config = self.taurusValueBuddy().getLabelConfig()
-        except Exception: config = 'label'
+        try:
+            config = self.taurusValueBuddy().getLabelConfig()
+        except Exception:
+            config = 'label'
         elementtype = self.taurusValueBuddy().getModelType()
         fullname = self.taurusValueBuddy().getModelObj().getFullName()
         if elementtype == TaurusElementType.Attribute:
             config = self.taurusValueBuddy().getLabelConfig()
-            TaurusLabel.setModel(self, '%s#%s'%(fullname,config))
+            TaurusLabel.setModel(self, '%s#%s'%(fullname, config))
         elif elementtype == TaurusElementType.Device:
             ## @TODO: tango-centric!
             # TaurusLabel.setModel(self, '%s/state#dev_alias'%fullname) 
@@ -99,21 +101,54 @@ class DefaultLabelWidget(TaurusLabel):
             devName = self.taurusValueBuddy().getModelObj().getSimpleName()
             TaurusLabel.setModel(self, None)
             self.setText(devName)
-    
+
+    def getDisplayValue(self, cache=True, fragmentName=None):
+        if self.modelObj is None or fragmentName is None:
+            return self.getNoneValue()
+        fragmentName = self._parseLabel(fragmentName)
+        attr = self.getModelObj()
+        dev = attr.getParent()
+        return fragmentName.format(dev=dev, attr=attr)
+
+    def _parseLabel(self, label):
+        fragments = re.findall('<.+>', label)
+        attr = self.getModelObj()
+        dev = attr.getParent()
+        if label.find('{dev.alias}') != -1:
+            self.deprecated(dep='{dev.alias}', alt='{dev.name}')
+            label = label.replace('{dev.alias}', '{dev.name}')
+        for fragment in fragments:
+            if fragment == '<attr_name>':
+                label = label.replace('<attr_name>', '{attr.name}')
+            elif fragment == '<attr_fullname>':
+                label = label.replace('<attr_fullname>', '{attr.fullname}')
+            elif fragment == '<dev_alias>':
+                self.deprecated(dep='<dev_alias>', alt='{dev.name}')
+                label = label.replace('<dev_alias>', '{dev.name}')
+            elif fragment == '<dev_name>':
+                label = label.replace('<dev_name>', '{dev.name}')
+            elif fragment == '<dev_fullname>':
+                label = label.replace('<dev_fullname>', '{dev.fullname}')
+            else:
+                label = label.replace(fragment,
+                                      '{attr.%s}' %(fragment.strip('<>')))
+        return label
+
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
     
-    def contextMenuEvent(self,event):   
+    def contextMenuEvent(self, event):
         """ The label widget will be used for handling the actions of the whole TaurusValue
         
         see :meth:`QWidget.contextMenuEvent`"""
-        menu = Qt.QMenu(self)  
+        menu = Qt.QMenu(self)
         menu.addMenu(ConfigurationMenu(self.taurusValueBuddy())) #@todo: This should be done more Taurus-ish 
         if hasattr(self.taurusValueBuddy().writeWidget(followCompact=True), 'resetPendingOperations'):
             r_action = menu.addAction("reset write value",self.taurusValueBuddy().writeWidget(followCompact=True).resetPendingOperations)
             r_action.setEnabled(self.taurusValueBuddy().hasPendingOperations())
         if self.taurusValueBuddy().isModifiableByUser():
-            menu.addAction("Change label",self.taurusValueBuddy().onChangeLabelConfig)
+            menu.addAction("Change label",
+                           self.taurusValueBuddy().onChangeLabelConfig)
             menu.addAction("Change Read Widget",self.taurusValueBuddy().onChangeReadWidget)
             cw_action = menu.addAction("Change Write Widget",self.taurusValueBuddy().onChangeWriteWidget)
             cw_action.setEnabled(not self.taurusValueBuddy().isReadOnly()) #disable the action if the taurusValue is readonly
@@ -121,8 +156,6 @@ class DefaultLabelWidget(TaurusLabel):
             cm_action.setCheckable(True)
             cm_action.setChecked(self.taurusValueBuddy().isCompact())
             self.connect(cm_action, Qt.SIGNAL("toggled(bool)"), self.taurusValueBuddy().setCompact)
-            
-            
         menu.exec_(event.globalPos())
         event.accept()
         
@@ -140,13 +173,12 @@ class DefaultLabelWidget(TaurusLabel):
     def getQtDesignerPluginInfo(cls):
         return None
 
-
 class ExpandingLabel(TaurusLabel):
     '''just a expanding TaurusLabel'''
-    def __init__(self,*args):
-        TaurusLabel.__init__(self,*args)
+    def __init__(self, *args):
+        TaurusLabel.__init__(self, *args)
         self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Preferred)
-        self.setFgRole('rvalue.magnitude') # hide the units
+        self.setFgRole('rvalue')
 
 
 class CenteredLed(TaurusLed):
@@ -293,7 +325,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         
         self._allowWrite = True
         self._minimumHeight = None
-        self._labelConfig = 'label'
+        self._labelConfig = '{attr.label}'
         self.setModifiableByUser(False)
         
         if parent is not None:
@@ -404,7 +436,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     
     def getDefaultLabelWidgetClass(self):
         return DefaultLabelWidget
-     
+
     def getDefaultReadWidgetClass(self, returnAll=False):
         '''
         Returns the default class (or classes) to use as read widget for the
@@ -427,31 +459,29 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         modeltype = self.getModelType()
         if  modeltype == TaurusElementType.Attribute:
             ##The model is an attribute
-            config = modelobj.getConfig()
+            config = modelobj
             #print "---------ATTRIBUTE OBJECT:----------\n",modelobj.read()
-            try: configType = config.getType()
-            except: configType = None
             try:
-                if config.isBoolean():
+                if modelobj.isBoolean():
                     result = [CenteredLed, ExpandingLabel]
             except:
                 pass
-            if config.isScalar():
-                if  configType == DataType.Boolean:
+            if modelobj.data_format == DataFormat._0D:
+                if  modelobj.type == DataType.Boolean:
                     result = [CenteredLed, ExpandingLabel]
-                elif configType == DataType.DevState:
+                elif modelobj.type == DataType.DevState:
                     result = [CenteredLed, ExpandingLabel]
                 elif str(self.getModel()).lower().endswith('/status'): #@todo: tango-centric!!
                     result = [TaurusStatusLabel, ExpandingLabel]
                 else:
                     result = [ExpandingLabel]
             elif config.isSpectrum():
-                if configType in (DataType.Float, DataType.Integer): 
+                if modelobj.type in (DataType.Float, DataType.Integer):
                     result = [TaurusPlotButton, TaurusValuesTableButton, ExpandingLabel]
                 else:
                     result = [TaurusValuesTableButton, ExpandingLabel]
             elif config.isImage():
-                if configType in (DataType.Float, DataType.Integer):
+                if modelobj.type in (DataType.Float, DataType.Integer):
                     try: 
                         from taurus.qt.qtgui.extra_guiqwt import TaurusImageDialog #unused import but useful to determine if TaurusImageButton should be added
                         result = [TaurusImageButton, TaurusValuesTableButton, ExpandingLabel]
@@ -460,7 +490,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 else:
                     result = [TaurusValuesTableButton, ExpandingLabel]
             else:
-                self.warning('Unsupported attribute type %s'%configType)
+                self.warning('Unsupported attribute type %s' % modelobj.type)
                 result = None
 
         elif modeltype == TaurusElementType.Device:
@@ -494,25 +524,26 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             else: return None
         modelobj = self.getModelObj()
         if modelobj is None:
-            if returnAll: return [TaurusValueLineEdit]
-            else: return TaurusValueLineEdit
-        config = modelobj.getConfig()
-        if config.isScalar():
-            configType = config.getType() 
-            if configType == DataType.Boolean:
+            if returnAll:
+                return [TaurusValueLineEdit]
+            else:
+                return TaurusValueLineEdit
+        modelType = modelobj.getType()
+        if modelobj.data_format == DataFormat._0D:
+            if modelType == DataType.Boolean:
                 result = [DefaultTaurusValueCheckBox, TaurusValueLineEdit]
             else:
                 result = [TaurusValueLineEdit, TaurusValueSpinBox, TaurusWheelEdit]
-        elif config.isSpectrum():
-            configType = config.getType()
-            if configType in (DataType.Float, DataType.Integer):
+        elif modelobj.data_format == DataFormat._1D:
+            if modelType in (DataType.Float, DataType.Integer):
                 result = [TaurusArrayEditorButton, TaurusValuesTableButton_W, TaurusValueLineEdit]
             else:
                 result = [TaurusValuesTableButton_W, TaurusValueLineEdit]
-        elif config.isImage():
+        elif modelobj.data_format == DataFormat._2D:
             result = [TaurusValuesTableButton_W]
         else:
-            self.debug('Unsupported attribute type for writing: %s'% str(config.getType()))
+            self.debug('Unsupported attribute type for writing: %s' %\
+                       str(DataType.whatis(modelType)))
             result = [None]
             
         if returnAll: return result
@@ -555,7 +586,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         return self._customWidgetMap
      
     def onChangeLabelConfig(self):
-        keys = ['label', 'attr_name', 'attr_fullname', 'dev_alias', 'dev_name', 'dev_fullname']
+        keys = ['{attr.label}', '{attr.name}', '{attr.fullname}', '{dev.name}',
+                '{dev.fullname}']
         try:
             current = keys.index(self.labelConfig)
         except:
@@ -563,13 +595,16 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             keys.append(self.labelConfig)
             
         msg = 'Choose new source for the label. \n'+\
-              'You can also write a more complex text\n'+\
-              'using any of the proposed sources as a\n'+\
-              'placeholder by enclosing it in "< >" brackets'
-        labelConfig, ok = Qt.QInputDialog.getItem(self, 'Change Label', msg, keys, current, True)
+              'You can also write a more complex text using Python format ' \
+              'string syntax. Where "dev." is the string that represent the ' \
+              'access point of the TaurusDevice, and "attr." is used for ' \
+              'the TaurusAttribute'
+
+        labelConfig, ok = Qt.QInputDialog.getItem(self, 'Change Label', msg,
+                                                  keys, current, True)
         if ok:
-            self.labelConfig=str(labelConfig)  
-             
+            self.labelConfig = str(labelConfig)
+
     def onChangeReadWidget(self):
         classnames = ['None', 'Auto']+[c.__name__ for c in self.getDefaultReadWidgetClass(returnAll=True)]
         cname, ok = Qt.QInputDialog.getItem(self, 'Change Read Widget', 'Choose a new read widget class', classnames, 1, True)
@@ -1075,7 +1110,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.updateLabelWidget()
         
     def resetLabelConfig(self):
-        self._labelConfig = 'label'
+        self._labelConfig = '{attr.label}'
         self.updateLabelWidget()
         
     def getSwitcherClass(self):
