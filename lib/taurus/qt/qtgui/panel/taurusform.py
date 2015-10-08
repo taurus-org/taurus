@@ -468,16 +468,19 @@ class TaurusForm(TaurusWidget):
 
     def onChangeLabelsAction(self):
         '''changes the labelConfig of all its items'''
-        keys = ['label', 'attr_name', 'attr_fullname', 'dev_alias', 'dev_name', 'dev_fullname']
+        keys = ['{attr.label}', '{attr.name}', '{attr.fullname}', '{dev.name}',
+                '{dev.fullname}']
             
         msg = 'Choose new source for the label. \n'+\
-              'You can also write a more complex text\n'+\
-              'using any of the proposed sources as a\n'+\
-              'placeholder by enclosing it in "< >" brackets'
-        labelConfig, ok = Qt.QInputDialog.getItem(self, 'Change Label', msg, keys, 0, True)
+              'You can also write a more complex text using Python format ' \
+              'string syntax. Where "dev." is the string that represent the ' \
+              'access point of the TaurusDevice, and "attr." is used for ' \
+              'the TaurusAttribute'
+        labelConfig, ok = Qt.QInputDialog.getItem(self, 'Change Label', msg,
+                                                  keys, 0, True)
         if ok:
             for item in self.getItems():
-                item.labelConfig=str(labelConfig)
+                item.labelConfig = (str(labelConfig))
 
     @Qt.pyqtSignature("apply()")        
     def apply(self):
