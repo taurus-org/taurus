@@ -31,7 +31,7 @@ __docformat__ = 'restructuredtext'
 
 import sys, taurus.core
 from taurus.external.qt import Qt
-from taurus.external.pint import (Quantity, DimensionalityError,
+from taurus.external.pint import (Quantity, DimensionalityError, UR,
                                   UndefinedUnitError)
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from taurus.core import DataType
@@ -47,7 +47,8 @@ class _PintValidator(Qt.QValidator):
     """A QValidator for pint Quantities"""
     _top = None
     _bottom = None
-    _unit = None
+    _unit = UR.parse_units('')
+    _implicit = True
 
     @property
     def top(self):
@@ -70,7 +71,7 @@ class _PintValidator(Qt.QValidator):
         :return: (str or None) base units or None if it should not
                  be enforced
         """
-        return self._top
+        return self._unit
 
     def setUnit(self, unit):
         """
@@ -99,26 +100,21 @@ class _PintValidator(Qt.QValidator):
         string is a representation of a quantity within the set bottom and top
         limits
         """
-        if input is None or input == '':
-            return Qt.QValidator.Intermediate, input, pos
         try:
-            value = float(input)
-        except ValueError:
-            value = input
-        try:
-            q = Quantity(value)
+            q = Quantity(input)
         except:
             return Qt.QValidator.Intermediate, input, pos
-        #     return Qt.QValidator.Intermediate, input, pos
-        if q.dimensionless and self._unit is not None:
-            q = Quantity(value, self._unit)
+        if q.dimensionless and self._implicit:
+            q = Quantity(q.magnitude, self._unit)
+        if self._unit.dimensionality != q.dimensionality:
+            return Qt.QValidator.Intermediate, input, pos
         try:
             if self.bottom is not None and q < self.bottom:
-                return Qt.QValidator.Invalid, input, pos
+                return Qt.QValidator.Intermediate, input, pos
             if self.top is not None and q > self.top:
-                return Qt.QValidator.Invalid, input, pos
+                return Qt.QValidator.Intermediate, input, pos
         except DimensionalityError:
-            return Qt.QValidator.Invalid, input, pos
+            return Qt.QValidator.Intermediate, input, pos
         return Qt.QValidator.Acceptable, input, pos
 
     def _validate_oldQt(self, input, pos):
@@ -202,18 +198,15 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         TaurusBaseWritableWidget.handleEvent(self, evt_src, evt_type, evt_value)
 
     def __getQuantity(self, v):
-        if v is None or v == '':
+        validator = self.validator()
+        if validator.validate(_String(str(v)), 0)[0] != validator.Acceptable:
             return None
         try:
-            value = float(v)
-        except ValueError:
-            value = v
-        try:
-            q = Quantity(value)
+            q = Quantity(v)
         except:
-            q = Quantity(float('NaN'))
+            return None
         if q.dimensionless:
-            q = Quantity(value, self.__unit)
+            q = Quantity(q.magnitude, self.__unit)
         return q
 
     def _inAlarm(self, v):
@@ -234,7 +227,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         color, weight = 'black', 'normal'
         v = self.getValue()
         modelObj = self.getModelObj()
-        if modelObj is None:
+        if modelObj is None or v is None:
             return
         if modelObj.type in [DataType.Integer, DataType.Float]:
             _q = self.__getQuantity(self.text())
