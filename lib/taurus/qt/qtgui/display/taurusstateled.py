@@ -33,7 +33,7 @@ __docformat__ = 'restructuredtext'
 # ugly
 import PyTango
 
-from taurus.core.taurusbasetypes import TaurusEventType
+from taurus.core.taurusbasetypes import TaurusEventType, DataFormat
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from qled import LedStatus, LedColor
@@ -106,11 +106,12 @@ class TaurusStateLed(QLed, TaurusBaseWidget):
             self.updateStyle()
             return
         self._setProblemsBackground(False)
-    
-        v = getattr(evt_value, 'value',                                  
-                    getattr(self.getModelValueObj(), 'value', None)) #tries to get the value from the event itself, and asks if not
+        # try to get the rvalue from the event itself, and ask if not
+        v = getattr(evt_value, 'rvalue',
+                    getattr(self.getModelValueObj(), 'rvalue', None))
 
-        if evt_value.data_format == PyTango.AttrDataFormat.SPECTRUM:
+        model_obj = self.getModelObj()
+        if model_obj.data_format == DataFormat._1D:
             v = v[self.boolIndex]
 
         onOff,state = TaurusStateLed.DEVICE_STATE_DATA[v]
