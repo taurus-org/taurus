@@ -196,9 +196,10 @@ class DefaultUnitsWidget(TaurusLabel):
         self.setAlignment(Qt.Qt.AlignLeft)
         
     def setModel(self, model):
-        if model is None or model=='': 
+        if model is None or model == '':
             return TaurusLabel.setModel(self, None)
-        TaurusLabel.setModel(self, model + "#unit") 
+        TaurusLabel.setModel(self, model + "#rvalue.units")
+
     def sizeHint(self):
         #print "UNITSSIZEHINT:",Qt.QLabel.sizeHint(self).width(), self.minimumSizeHint().width(), Qt.QLabel.minimumSizeHint(self).width()
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 24)
