@@ -460,7 +460,6 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         modeltype = self.getModelType()
         if  modeltype == TaurusElementType.Attribute:
             ##The model is an attribute
-            config = modelobj
             #print "---------ATTRIBUTE OBJECT:----------\n",modelobj.read()
             try:
                 if modelobj.isBoolean():
@@ -476,12 +475,12 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                     result = [TaurusStatusLabel, ExpandingLabel]
                 else:
                     result = [ExpandingLabel]
-            elif config.isSpectrum():
+            elif modelobj.data_format == DataFormat._1D:
                 if modelobj.type in (DataType.Float, DataType.Integer):
                     result = [TaurusPlotButton, TaurusValuesTableButton, ExpandingLabel]
                 else:
                     result = [TaurusValuesTableButton, ExpandingLabel]
-            elif config.isImage():
+            elif modelobj.data_format == DataFormat._2D:
                 if modelobj.type in (DataType.Float, DataType.Integer):
                     try: 
                         from taurus.qt.qtgui.extra_guiqwt import TaurusImageDialog #unused import but useful to determine if TaurusImageButton should be added
@@ -497,7 +496,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         elif modeltype == TaurusElementType.Device:
             result = [TaurusDevButton]
         else:
-            msg = "Unsupported model type ('%s')"%modeltype
+            msg = "Unsupported model type ('%s')" % modeltype
             self.warning(msg)
             raise ValueError(msg)
 
@@ -560,7 +559,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if modelclass and modelclass.getTaurusElementType() != TaurusElementType.Device:
             return None
         try:
-            key = self.getModelObj().getHWObj().info().dev_class  # TODO: Tango-centric
+            key = self.getModelObj().getDeviceProxy().info().dev_class  # TODO: Tango-centric
         except:
             return None
         return self.getCustomWidgetMap().get(key, None)
