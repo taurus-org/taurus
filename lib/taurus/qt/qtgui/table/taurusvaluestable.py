@@ -28,9 +28,9 @@ __all__ = ["TaurusValuesTable"]
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
-import numpy
+from taurus.external.pint import Quantity
 
-import sys
+import numpy
 
 import taurus.core
 from taurus.core.taurusbasetypes import DataFormat
@@ -143,8 +143,10 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         :param attr: (DeviceAttribute)
         '''
         self._attr = attr
-        values = numpy.array(attr.value)
-        wvalues = numpy.array(attr.w_value)
+        rvalue = attr.rvalue
+        if isinstance(rvalue, Quantity):
+            rvalue = rvalue.magnitude
+        values = numpy.array(rvalue)
         #reshape the table
         if attr.data_format == DataFormat._1D:
             rows, columns = values.size, 1
@@ -294,7 +296,10 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         self._writeMode = isWrite
         if isWrite and not self.isDirty():
             #refresh the write data (unless it is dirty)
-            wvalues=numpy.array(self._attr.w_value)
+            wvalue = self._attr.wvalue
+            if isinstance(wvalue, Quantity):
+                wvalue = wvalue.magnitude
+            wvalues = numpy.array(wvalue)
             #reshape the table
             if self._attr.data_format == DataFormat._1D:
                 rows, columns = wvalues.size, 1
@@ -582,7 +587,7 @@ class TaurusValuesTable(TaurusWidget):
             try: 
                 dim_x,dim_y = value.dim_x, value.dim_y #@this is tango-centric. dim_x and dim_y attribute is not present in TaurusConfiguration
             except:
-                v = numpy.array(value.value)
+                v = numpy.array(value.rvalue)
                 if v.ndim == 1:
                     dim_x, dim_y = v.shape[0], 1
                 elif v.ndim == 2:
@@ -600,11 +605,11 @@ class TaurusValuesTable(TaurusWidget):
         if model is None:
             return
         if evt_type in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic) and evt_value is not None:            
-            model.setAttr(evt_value)
+            model.setAttr(self.getModelObj())
             self._tableView.resizeColumnsToContents()
         elif evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             #force a read to set an attr
-            model.setAttr(self.getModelValueObj())
+            model.setAttr(self.getModelObj())
             model.setConfig(evt_src)
             writable = bool(evt_value.writable)
             self.resetWriteMode()
@@ -693,12 +698,12 @@ class TaurusValuesTable(TaurusWidget):
         
         if isWrite:
             valueObj = self.getModelValueObj()
-            w_value = valueObj.w_value
-            value = valueObj.value
+            w_value = valueObj.wvalue
+            value = valueObj.rvalue
             if numpy.array(w_value).shape != numpy.array(value).shape:
                 ta = self.getModelObj()
                 v = ta.read()
-                ta.write(v.value) #@fixme: this is ugly! we should not be writing into the attribute without asking first...
+                ta.write(v.rvalue) #@fixme: this is ugly! we should not be writing into the attribute without asking first...
                 
         self._tableView.model().setWriteMode(isWrite)
         self._label.setVisible(isWrite)
