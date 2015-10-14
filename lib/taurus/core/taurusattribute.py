@@ -423,11 +423,19 @@ class TaurusAttribute(TaurusModel):
 
     @property
     def rvalue(self, cache=True):
-        return self.read(cache).rvalue
+        valueObj = self.getValueObj()
+        if valueObj is None:
+            return None
+        else:
+            return valueObj.rvalue
 
     @property
     def wvalue(self, cache=True):
-        return self.read(cache).wvalue
+        valueObj = self.getValueObj()
+        if valueObj is None:
+            return None
+        else:
+            return valueObj.wvalue
 
     @property
     def time(self, cache=True):
