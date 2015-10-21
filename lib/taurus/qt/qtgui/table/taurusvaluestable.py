@@ -638,14 +638,15 @@ class TaurusValuesTable(TaurusWidget):
             hh.setResizeMode(Qt.QHeaderView.Stretch)
             vh = self._tableView.verticalHeader()
             vh.setResizeMode(Qt.QHeaderView.Stretch)
-            model._editable = attr.writable
-            writable = bool(attr.isWritable())
+            writable =  attr.isWritable()
+            model._editable = writable
             self._rwModeCB.setVisible(writable)
         elif evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             #force a read to set an attr
-            model.setAttr(self.getModelObj())
-            writable = bool(evt_value.writable)
-            self.resetWriteMode()
+            attr = self.getModelObj()
+            model.setAttr(attr)
+            writable =  attr.isWritable()
+            model._editable = writable
             self._rwModeCB.setVisible(writable)
     
     def contextMenuEvent(self, event):
