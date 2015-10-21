@@ -31,9 +31,9 @@ __docformat__ = 'restructuredtext'
 
 import sys, taurus.core
 from taurus.external.qt import Qt
-from taurus.external.pint import (Quantity, DimensionalityError, UR,
-                                  UndefinedUnitError)
+from taurus.external.pint import Quantity
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
+from taurus.qt.qtgui.util import PintValidator
 from taurus.core import DataType
 
 
@@ -42,91 +42,6 @@ try:
     _String = Qt.QString
 except AttributeError:
     _String = str
-
-class _PintValidator(Qt.QValidator):
-    """A QValidator for pint Quantities"""
-    _top = None
-    _bottom = None
-    _unit = UR.parse_units('')
-    _implicit = True
-
-    @property
-    def top(self):
-        """
-        :return: (Quantity or None) maximum acceptable or None if it should not
-                 be enforced
-        """
-        return self._top
-
-    def setTop(self, top):
-        """
-        Set maximum limit
-        :param top: (Quantity or None) maximum acceptable value
-        """
-        self._top = Quantity(top)
-
-    @property
-    def unit(self):
-        """
-        :return: (str or None) base units or None if it should not
-                 be enforced
-        """
-        return self._unit
-
-    def setUnit(self, unit):
-        """
-        Set base unit
-        :param unit: (str or None) str unit representation.
-        """
-        self._unit = unit
-
-    @property
-    def bottom(self):
-        """
-        :return: (Quantity or None) minimum acceptable or None if it should not
-                 be enforced
-        """
-        return self._bottom
-
-    def setBottom(self, bottom):
-        """
-        Set minimum limit
-        :param bottom: (Quantity or None) minimum acceptable value
-        """
-        self._bottom = Quantity(bottom)
-
-    def _validate(self, input, pos):
-        """Reimplemented from :class:`QValidator` to validate if the input
-        string is a representation of a quantity within the set bottom and top
-        limits
-        """
-        try:
-            q = Quantity(input)
-        except:
-            return Qt.QValidator.Intermediate, input, pos
-        if q.dimensionless and self._implicit:
-            q = Quantity(q.magnitude, self._unit)
-        if self._unit.dimensionality != q.dimensionality:
-            return Qt.QValidator.Intermediate, input, pos
-        try:
-            if self.bottom is not None and q < self.bottom:
-                return Qt.QValidator.Intermediate, input, pos
-            if self.top is not None and q > self.top:
-                return Qt.QValidator.Intermediate, input, pos
-        except DimensionalityError:
-            return Qt.QValidator.Intermediate, input, pos
-        return Qt.QValidator.Acceptable, input, pos
-
-    def _validate_oldQt(self, input, pos):
-        """Old Qt (v4.4.) -compatible implementation of validate"""
-        state, _, pos =  self._validate(input, pos)
-        return state, pos
-
-    # select the appropriate implementation of validate. See:
-    # https://www.mail-archive.com/pyqt@riverbankcomputing.com/msg26344.html
-    validate = Qt.PYQT_QSTRING_API_1 and _validate_oldQt or _validate
-
-
 
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
@@ -155,12 +70,12 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         '''This method sets a validator depending on the data type'''
         if isinstance(value.wvalue, Quantity):
             self.__unit = value.wvalue.units
-            validator = _PintValidator(self)
+            validator = PintValidator(self)
             validator.setBottom(self.__minLimit)
             validator.setTop(self.__maxLimit)
             validator.setUnit(self.__unit)
             self.setValidator(validator)
-            self.debug("_PintValidator set with limits=[%f,%f]",
+            self.debug("PintValidator set with limits=[%f, %f]",
                        self.__minLimit, self.__maxLimit)
         else: #@TODO Other validators can be configured for other types (e.g. with string lengths, tango names,...)
             self.setValidator(None)

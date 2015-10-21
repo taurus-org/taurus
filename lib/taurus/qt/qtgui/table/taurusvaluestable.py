@@ -35,7 +35,7 @@ import numpy
 import taurus.core
 from taurus.core.taurusbasetypes import (DataFormat, DataType, TaurusEventType,
                                          TaurusElementType)
-from taurus.qt.qtgui.base import _PintValidator
+from taurus.qt.qtgui.util import PintValidator
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.resource import getThemeIcon, getThemePixmap
 from taurus.qt.qtgui.container import TaurusWidget
@@ -546,7 +546,7 @@ class TableInlineEdit(Qt.QLineEdit):
             self._min_alarm, self._max_alarm = attr.alarm_range
             self._default_unit = attr.wvalue.units
 
-            validator = _PintValidator()
+            validator = PintValidator()
             validator.setBottom(self._min_range)
             validator.setTop(self._max_range)
             validator.setUnit(self._default_unit)

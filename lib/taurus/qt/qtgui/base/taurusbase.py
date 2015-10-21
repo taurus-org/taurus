@@ -27,7 +27,8 @@
 """This module provides the set of base classes from which the Qt taurus widgets
 should inherit to be considered valid taurus widgets."""
 
-__all__ = ["TaurusBaseComponent", "TaurusBaseWidget", "TaurusBaseWritableWidget"]
+__all__ = ["TaurusBaseComponent", "TaurusBaseWidget",
+           "TaurusBaseWritableWidget"]
 
 __docformat__ = 'restructuredtext'
 
