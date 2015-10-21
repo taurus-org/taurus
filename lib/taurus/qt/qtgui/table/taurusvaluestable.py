@@ -33,14 +33,26 @@ from taurus.external.pint import Quantity
 import numpy
 
 import taurus.core
-from taurus.core.taurusbasetypes import DataFormat
-from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseWritableWidget
+from taurus.core.taurusbasetypes import DataFormat, DataType
+from taurus.qt.qtgui.base import _PintValidator
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.resource import getThemeIcon, getThemePixmap
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.core.util.enumeration import Enumeration
 
 TableRWState = Enumeration("TableRWState", ("Read", "Write"))
+
+
+def value2Quantity(value, units):
+    '''
+    :param value: string or float for create the quantity
+    :param units: Base units Quantity.units
+    :return: Quantity
+    '''
+    q = Quantity(value)
+    if q.dimensionless:
+        q = Quantity(q, units)
+    return q
 
 class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
     typeCastingMap = {'f':float, 'b':bool, 'u':int, 'i':int, 'S':str, 'U':unicode}
@@ -53,7 +65,6 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         self._columnCount = size[1]
         self._modifiedDict = {}
         self._attr = None
-        self._attrConfig = None
         self.editedIndex = None
         self._editable = False
         self._writeMode = False
@@ -95,18 +106,23 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             return Qt.QVariant(value)
         elif role == Qt.Qt.DecorationRole:
             status = self.getStatus(index)
-            if (self._modifiedDict.has_key((index.row(), index.column()))) and (self._writeMode):
-                float_data = Qt.from_qvariant(self._modifiedDict[(index.row(), index.column())], float)
-                if self.inAlarmRange(float_data):
-                    icon = getThemeIcon('document-save')
-                    #return Qt.QVariant(Qt.QColor('blue'))
+            if (self._modifiedDict.has_key((index.row(), index.column()))) and\
+                    (self._writeMode):
+                if self.getAttr().getType in [DataType.Integer, DataType.Float]:
+                    units = self.getAttr().rvalue.units
+                    value = self._modifiedDict[(index.row(), index.column())]
+                    q = value2Quantity(value, units)
+                    if not self.inAlarmRange(q):
+                        icon = getThemeIcon('document-save')
+                    else:
+                        icon = getThemeIcon('emblem-important')
                 else:
-                    icon = getThemeIcon('emblem-important')
-                    #return Qt.QVariant(Qt.QColor('orange'))
+                    icon = getThemeIcon('document-save')
                 return Qt.QVariant(icon)
         elif role == Qt.Qt.EditRole:
             value = None
-            if self._modifiedDict.has_key((index.row(), index.column())) and (self._writeMode):
+            if self._modifiedDict.has_key((index.row(), index.column())) and\
+                    (self._writeMode):
                 value = self._modifiedDict[(index.row(), index.column())]
             else:
                 value = tabledata[index.row(),index.column()]
@@ -119,23 +135,38 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             else:
                 return Qt.QVariant(Qt.QColor('white'))
         elif role == Qt.Qt.ForegroundRole:
-            if self._modifiedDict.has_key((index.row(), index.column())) and (self._writeMode):
-                float_data = Qt.from_qvariant(self._modifiedDict[(index.row(), index.column())], float)
-                if self.inAlarmRange(float_data):
-                    return Qt.QVariant(Qt.QColor('blue'))
+            if self._modifiedDict.has_key((index.row(), index.column())) and\
+                    (self._writeMode):
+                if self.getAttr().getType in [DataType.Integer, DataType.Float]:
+                    units = self.getAttr().rvalue.units
+                    value = self._modifiedDict[(index.row(), index.column())]
+                    q = value2Quantity(value, units)
+                    if not self.inAlarmRange(q):
+                        return Qt.QVariant(Qt.QColor('blue'))
+                    else:
+                        return Qt.QVariant(Qt.QColor('orange'))
                 else:
-                    return Qt.QVariant(Qt.QColor('orange'))
+                    return Qt.QVariant(Qt.QColor('blue'))
             return Qt.QVariant(Qt.QColor('black'))
         elif role == Qt.Qt.FontRole:
-            if self._modifiedDict.has_key((index.row(), index.column())) and (self._writeMode):
+            if self._modifiedDict.has_key((index.row(), index.column())) and\
+                    (self._writeMode):
                 return Qt.QVariant(Qt.QFont("Arial", 10, Qt.QFont.Bold))
         elif role == Qt.Qt.ToolTipRole:
-            if self._modifiedDict.has_key((index.row(), index.column())) and (self._writeMode):
-                float_data = Qt.from_qvariant(self._modifiedDict[index.row(), index.column()], float)
-                return Qt.QVariant('Original value: %d.\nNew value that will be saved: %d' 
-                                   %(tabledata[index.row(), index.column()], float_data))
+            if self._modifiedDict.has_key((index.row(), index.column())) and\
+                    (self._writeMode):
+                units = self.getAttr().rvalue.units
+                value = self._modifiedDict[(index.row(), index.column())]
+                q = value2Quantity(value, units)
+                value = q.to(units).magnitude
+                msg = 'Original value: %d.\nNew value that will be saved: %d' %\
+                      (tabledata[index.row(), index.column()], value)
+                return Qt.QVariant(msg)
         return Qt.QVariant()
-    
+
+    def getAttr(self):
+        return self._attr
+
     def setAttr(self, attr):
         '''
         Updated the internal table data from an attribute value
@@ -160,27 +191,11 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         
         self._rowCount = rows
         self._columnCount = columns
-        values = values.reshape(rows,columns) #make sure it is in matrix form (not a vector)
-        self._rtabledata = values            
+        values = values.reshape(rows, columns) #make sure it is in matrix form (not a vector)
+        self._rtabledata = values
+        self._editable = False
         self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),self.createIndex(0,0), self.createIndex(rows-1,columns-1))
-    
-    def setConfig(self, config):
-        '''
-        Handles configuration events
-        
-        :param attr: (TaurusConfiguration)
-        '''
-        self._attrConfig = config
-        self._editable = config.isWritable()
-        
-    def getConfig(self):
-        '''
-        Returns the configuration object for the data
-        
-        :returns:  (taurus.core.taurusconfiguration.TaurusConfiguration)
-        '''
-        return self._attrConfig
-    
+
     def getStatus(self, index):
         '''
         Returns Status of the variable
@@ -236,12 +251,17 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             for (r,c),v in self._modifiedDict.items():
                 table[r][c] = Qt.from_qvariant(v, str)
             table = numpy.array(table)
-        else:        
+        else:
+            if self._attr.getType() in [DataType.Integer, DataType.Float]:
+                units = self._attr.rvalue.units
             for k,v in self._modifiedDict.items():
-                if kind == 'f':
-                    table[k] = Qt.from_qvariant(v, float)
-                elif kind in 'iu':
-                    table[k] = Qt.from_qvariant(v, int)
+                if kind in ['f', 'i', 'u']:
+                    q = value2Quantity(v, units)
+                    # get the quantity in the base unit
+                    qvalue = q.to(units).magnitude
+                    #TODO With the quantity and the convertion to the base
+                    #  magnitude we lost the integer values.
+                    table[k] = qvalue
                 elif kind == 'b':
                     table[k] = Qt.from_qvariant(v, bool)
                 else:
@@ -260,12 +280,13 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         '''
         Checkes if value is in alarm range.
            
-        :param value:  (float/int) user entered value
+        :param value:  Quantity value
         :returns:  (bool) True if value in alarm range, False if valid
             
         '''
         try:
-            if float(self._attrConfig.getMinAlarm()) <= value <= float(self._attrConfig.getMaxAlarm()):
+            min_alarm, max_alarm = self._attr.alarm
+            if min_alarm >= value or value >= max_alarm:
                 return True
             else:
                 return False
@@ -276,12 +297,13 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         '''
         Checks if value is in range.
            
-        :param value:  (float/int) user entered value
+        :param value:  Quantity value
         :returns:  (bool) True if value in range, False if valid
             
         '''
         try:
-            if float(self._attrConfig.getMinValue()) <= value <= float(self._attrConfig.getMaxValue()):
+            min_range, max_range = self._attr.range
+            if min_range <= value <= max_range:
                 return True
             else:
                 return False
@@ -338,7 +360,6 @@ class TaurusValuesIOTable(Qt.QTableView):
         self._attr = None
         self._value = None
         self.setSelectionMode(Qt.QAbstractItemView.SingleSelection)
-        self.horizontalHeader().setResizeMode(Qt.QHeaderView.Stretch)
         itemDelegate = TaurusValuesIOTableDelegate(self)
         self.setItemDelegate(itemDelegate)
         #self.setStyleSheet('TaurusValuesIOTable { selection-background-color: violet;} ')
@@ -405,7 +426,7 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
             editor = Qt.QComboBox(parent)
         else:
             editor = TableInlineEdit(parent)
-            editor._updateValidator(index.model().getConfig(), index.model().getType())
+            editor._updateValidator(index.model().getAttr())
         self.emit(Qt.SIGNAL('editorCreated'))
         return editor
     
@@ -433,7 +454,9 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         '''
         #if editor text changed, then don't mark as updated.
         try:
-            if not model.inRange(float(editor.text())):
+            units = model.getAttr().rvalue.units
+            q = value2Quantity(editor.text(), units)
+            if not model.inRange(q):
                 return
         except:
             pass
@@ -441,10 +464,15 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
             text = editor.currentText()
         else:
             text = editor.text()
-            
+
+        text = str(text)
         if(text != self._initialText) & (text != ""):
             model.addValue(index, Qt.QVariant(text))
-            self.parent().resizeColumnsToContents()
+            hh = self.parent().horizontalHeader()
+            hh.setResizeMode(Qt.QHeaderView.Stretch)
+            vh = self.parent().verticalHeader()
+            vh.setResizeMode(Qt.QHeaderView.Stretch)
+
         index.model().editedIndex = None
                     
                     
@@ -456,12 +484,12 @@ class TableInlineEdit(Qt.QLineEdit):
         super(Qt.QLineEdit, self).__init__(parent)
         self.connect(self, Qt.SIGNAL('textEdited(const QString &)'), self.textEdited)
         self.connect(self, Qt.SIGNAL('focusLost(const QString &)'), self.textEdited)
-        self._attrConfig = None
-        self.__minAlarm = -float("inf")
-        self.__maxAlarm = float("inf")
-        self.__minLimit = -float("inf")
-        self.__maxLimit = float("inf")
         self.setValidator(None)
+        self._min_range = None
+        self._max_range = None
+        self._min_alarm = None
+        self._max_alarm = None
+        self._default_unit = None
 
     def textEdited (self):
         '''
@@ -469,43 +497,47 @@ class TableInlineEdit(Qt.QLineEdit):
         
         see :meth:`Qt.QLineEdit.textEdited`
         '''
-        color, weight = 'gray', 'normal' #default case: the value is in normal range with no pending changes
+        #default case: the value is in normal range with no pending changes
+        color, weight = 'gray', 'normal'
+        min
         try:
-            v = float(self.displayText())
+            value = self.displayText()
+            q = value2Quantity(value, self._default_unit)
         except:
-            v = 0.0
+            q = 0.0
         try:
-            if float(self._attrConfig.getMinAlarm()) <= v <= float(self._attrConfig.getMaxAlarm()): #the value is invalid and can't be applied
+            if self._min_alarm < q < self._max_alarm:
                 color = 'blue'
-            elif float(self._attrConfig.getMinValue()) <= v <= float(self._attrConfig.getMaxValue()): #the value is valid but in alarm range...
+            if self._min_range <= q <= self._max_range:
+                #the value is valid but in alarm range...
                 color = 'orange'
+            else:
+                #the value is invalid and can't be applied
+                color = 'gray'
         except:
-            color = 'orange'
+            color = 'gray'
 
         weight = 'bold'
-        self.setStyleSheet('TableInlineEdit {color: %s; font-weight: %s}'%(color,weight))
+        self.setStyleSheet('TableInlineEdit {color: %s; font-weight: %s}' %\
+                           (color, weight))
 
-    
-    def _updateValidator(self, attrinfo, datatype):
+    def _updateValidator(self, attr):
         '''This method sets a validator depending on the data type
         
-        :param attrinfo: (AttributeInfoEx)
-        :datatype: (numpy.dtype) type of the data being edited
+        :param attr: TaurusAttribute
         '''
-        self._attrConfig = attrinfo
-        if numpy.issubdtype(datatype, int):
-            validator = Qt.QIntValidator(self) #initial range is -2147483648 to 2147483647 (and cannot be set larger)
-            if validator.bottom() < self.__minLimit < validator.top(): 
-                validator.setBottom(int(self.__minLimit))
-            if validator.bottom() < self.__maxLimit < validator.top():
-                validator.setTop(int(self.__maxLimit))
+        data_type = attr.getType()
+        if data_type in [DataType.Integer, DataType.Float]:
+            self._min_range, self._max_range = attr.range
+            self._min_alarm, self._max_alarm = attr.alarm
+            self._default_unit = attr.wvalue.units
+
+            validator = _PintValidator()
+            validator.setBottom(self._min_range)
+            validator.setTop(self._max_range)
+            validator.setUnit(self._default_unit)
             self.setValidator(validator)
-        elif numpy.issubdtype(datatype, float):
-            validator= Qt.QDoubleValidator(self)
-            validator.setBottom(self.__minLimit)
-            validator.setTop(self.__maxLimit)
-            self.setValidator(validator)
-        else: 
+        else:
             self.setValidator(None)
     
     def __decimalDigits(self, fmt):
@@ -582,19 +614,13 @@ class TaurusValuesTable(TaurusWidget):
     def setModel(self, model):
         '''Reimplemented from :meth:`TaurusWidget.setModel`'''
         TaurusWidget.setModel(self, model)
-        value = self.getModelValueObj()
-        if value is not None:
-            try: 
-                dim_x,dim_y = value.dim_x, value.dim_y #@this is tango-centric. dim_x and dim_y attribute is not present in TaurusConfiguration
-            except:
-                v = numpy.array(value.rvalue)
-                if v.ndim == 1:
-                    dim_x, dim_y = v.shape[0], 1
-                elif v.ndim == 2:
-                    dim_x,dim_y = v.shape
-                else:
-                    self.error('Cannot display %i-dimensional data', v.ndim)
-                    return
+        model_obj = self.getModelObj()
+        if model_obj is not None:
+            if isinstance(model_obj.rvalue, Quantity):
+                v = numpy.array(model_obj.rvalue.magnitude)
+            else:
+                v = numpy.array(model_obj.rvalue)
+            dim_x, dim_y = v.shape
             self._tableView.setModel([dim_x, dim_y]) 
         self._label.setModel(model)
 
@@ -604,13 +630,20 @@ class TaurusValuesTable(TaurusWidget):
         model = self._tableView.model()
         if model is None:
             return
-        if evt_type in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic) and evt_value is not None:            
-            model.setAttr(self.getModelObj())
-            self._tableView.resizeColumnsToContents()
+        if evt_type in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic) and evt_value is not None:
+            attr = self.getModelObj()
+            model.setAttr(attr)
+
+            hh = self._tableView.horizontalHeader()
+            hh.setResizeMode(Qt.QHeaderView.Stretch)
+            vh = self._tableView.verticalHeader()
+            vh.setResizeMode(Qt.QHeaderView.Stretch)
+            model._editable = attr.writable
+            writable = bool(attr.isWritable())
+            self._rwModeCB.setVisible(writable)
         elif evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             #force a read to set an attr
             model.setAttr(self.getModelObj())
-            model.setConfig(evt_src)
             writable = bool(evt_value.writable)
             self.resetWriteMode()
             self._rwModeCB.setVisible(writable)
@@ -630,21 +663,25 @@ class TaurusValuesTable(TaurusWidget):
                     menu.addSeparator()
                 menu.addAction(getThemeIcon('process-stop'), "Reset all table", self.askCancel)
                 menu.addSeparator()
-                menu.addAction(getThemeIcon('help-browser') ,"Help", self._tableView.showHelp)
+                menu.addAction(getThemeIcon('help-browser'), "Help", self._tableView.showHelp)
         menu.exec_(globalPos)
-        event.accept()       
-    
+        event.accept()
+
     def applyChanges(self):        
         '''
         Writes table modifications to the device server.
         '''
         tab = self._tableView.model().getModifiedWriteData()
         attr = self.getModelObj()
-        #attr.write(tab)
-        attr.write(tab.tolist()) #@fixme If I don't convert this to a list it segfaults when writing arrays of strings 
+        tab_values = tab.tolist() #@fixme If I don't convert this to a list it segfaults when writing arrays of strings
+        if attr.getType() in [DataType.Integer, DataType.Float]:
+            units = attr.rvalue.units
+            wvalue = Quantity(tab_values, units)
+        else:
+            wvalue = tab_values
+        attr.write(wvalue)
         self._tableView.model().clearChanges()
-    
-        
+
     def okClicked(self):
         """This is a SLOT that is being triggered when ACCEPT button is clicked.
         
@@ -695,9 +732,8 @@ class TaurusValuesTable(TaurusWidget):
         '''
         if isWrite == self._writeMode: return
         self._writeMode = isWrite
-        
-        if isWrite:
-            valueObj = self.getModelValueObj()
+        valueObj = self.getModelValueObj()
+        if isWrite and valueObj is not None:
             w_value = valueObj.wvalue
             value = valueObj.rvalue
             if numpy.array(w_value).shape != numpy.array(value).shape:
@@ -705,7 +741,7 @@ class TaurusValuesTable(TaurusWidget):
                 v = ta.read()
                 ta.write(v.rvalue) #@fixme: this is ugly! we should not be writing into the attribute without asking first...
                 
-        self._tableView.model().setWriteMode(isWrite)
+            self._tableView.model().setWriteMode(isWrite)
         self._label.setVisible(isWrite)
         self._applyBT.setVisible(isWrite)
         self._cancelBT.setVisible(isWrite)
@@ -769,7 +805,7 @@ def taurusTableMain():
     dialog = TaurusValuesTable()
     dialog.setModifiableByUser(True)
     dialog.setWindowTitle(app.applicationName())
-    
+
     #set a model list from the command line or launch the chooser  
     if len(args)==1:
         model=args[0]
