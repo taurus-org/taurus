@@ -40,7 +40,7 @@ from guiqwt.config import _
 from guiqwt.baseplot import BasePlot
 from guiqwt.histogram import lut_range_threshold
 import numpy
-
+from taurus.external.pint import Quantity
 
 class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
     '''extension of :class:`guiqwt.builder.PlotItemBuilder` to provide tauruscurve and taurusimage items'''
@@ -115,8 +115,12 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
                 from taurus import Attribute
                 attr = Attribute(taurusmodel)
                 valueobj = attr.read()
-                attrdata = getattr(valueobj, 'value', numpy.zeros((1,1)))
-                xmin, xmax, ymin, ymax = self.compute_bounds(attrdata, pixel_size)
+                data = getattr(valueobj, 'rvalue', numpy.zeros((1,1)))
+                attrdata = data
+                if isinstance(data, Quantity):
+                    attrdata = data.magnitude
+                xmin, xmax, ymin, ymax = self.compute_bounds(attrdata,
+                                                             pixel_size)
             
             self.set_image_param(param, title, alpha_mask, alpha, interpolation,
                                    background=background_color,
@@ -129,13 +133,14 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
             else:
                 from taurus import Attribute
                 from taurus.core import DataType
-                if Attribute(taurusmodel).read().type == DataType.DevEncoded:
+                if Attribute(taurusmodel).getType() == DataType.DevEncoded:
                     image = TaurusEncodedImageItem(param)
                 else:
                     image = TaurusImageItem(param)
             image.setModel(taurusmodel)
             if eliminate_outliers is not None:
-                image.set_lut_range(lut_range_threshold(image, 256, eliminate_outliers))
+                image.set_lut_range(lut_range_threshold(image, 256,
+                                                        eliminate_outliers))
                 
         return image
     

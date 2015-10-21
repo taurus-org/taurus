@@ -30,6 +30,7 @@ __all__=["TaurusImageItem","TaurusRGBImageItem","TaurusTrend2DItem",
          "TaurusTrend2DScanItem","TaurusEncodedImageItem",
          "TaurusEncodedRGBImageItem"]
 
+from taurus.external.pint import Quantity
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 import taurus.core
@@ -63,10 +64,13 @@ class TaurusBaseImageItem(TaurusBaseComponent):
             pass
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_value is None or getattr(evt_value,'value', None) is None:
+        if evt_value is None or getattr(evt_value, 'rvalue', None) is None:
             self.debug('Ignoring event from %s'%repr(evt_src))
             return
-        v = evt_value.value
+        v = evt_value.rvalue
+        if isinstance(v, Quantity):
+            v = v.magnitude
+            # TODO: units should be used for setting some title in the colorbar
         try:
             v = self.filterData(v)
         except Exception, e:
@@ -253,14 +257,14 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
             pass
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_value is None or getattr(evt_value,'value', None) is None:
+        if evt_value is None or getattr(evt_value,'rvalue', None) is None:
             self.debug('Ignoring event from %s'%repr(evt_src))
             return
         
         plot = self.plot()
             
         #initialization
-        ySize = len(evt_value.value)
+        ySize = len(evt_value.rvalue)
         if self._yValues is None:
             self._yValues = numpy.arange(ySize,dtype='d')
         if self._xBuffer is None:
@@ -300,7 +304,11 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
                 plot.set_axis_unit('bottom', '')
         
         #update z
-        self._zBuffer.append(evt_value.value)
+        rvalue = evt_value.rvalue
+        if isinstance(evt_value.rvalue, Quantity):
+            rvalue =  evt_value.rvalue.magnitude
+            # TODO: units should be checked for coherence with previous values
+        self._zBuffer.append(rvalue)
         
         #check if there is enough data to start plotting
         if len(self._xBuffer)<2:
