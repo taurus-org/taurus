@@ -126,9 +126,9 @@ class TaurusArrayEditor(TaurusWidget):
         '''
         if self._yAttr is None: return False #@TODO: launch a dialog for choosing the x and y attributes
         try:      
-            y=numpy.array(self._yAttr.read().value)
+            y=numpy.array(self._yAttr.read().rvalue)
             if self._xAttr is None: x = numpy.arange(y.size)
-            else: x = numpy.array(self._xAttr.read().value)
+            else: x = numpy.array(self._xAttr.read().rvalue)
         except Exception,e:
             self.error('Error reading from attribute(s): %s'%(str(e)))
             if not quiet:
@@ -153,9 +153,9 @@ class TaurusArrayEditor(TaurusWidget):
             self._yAttr.write(y)
             if self._xAttr is not None: self._xAttr.write(x)
             #checking that the write was actually ok (this should be changed when taurus provides a mechanism for this)
-            if numpy.any(self._yAttr.read(cache=False).w_value != y):
+            if numpy.any(self._yAttr.read(cache=False).wvalue != y):
                 raise IOError('Unexpected Write error: %s'%self._yAttr.getFullName())
-            if  self._xAttr is not None and numpy.any(self._xAttr.read(cache=False).w_value != x):
+            if  self._xAttr is not None and numpy.any(self._xAttr.read(cache=False).wvalue != x):
                 raise IOError('Unexpected Write error: %s'%self._xAttr.getFullName())
         except Exception,e:
             self.error('Error writing to attribute(s): %s'%(str(e)))
