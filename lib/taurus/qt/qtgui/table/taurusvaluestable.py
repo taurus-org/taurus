@@ -218,7 +218,16 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         :param index: (QModelIndex) table index
         :param value: (object)
         '''
-        self._modifiedDict[(index.row(), index.column())] = value
+        rtable_value = self._rtabledata[index.row()][index.column()]
+        if self._attr.getType() in [DataType.Float, DataType.Integer]:
+            units = self._attr.rvalue.units
+            rvalue = value2Quantity(rtable_value, units)
+            wvalue = value2Quantity(value, units).to(units)
+            equals = numpy.allclose(rvalue, wvalue)
+        else:
+            equals = bool(rtable_value == value)
+        if not equals:
+            self._modifiedDict[(index.row(), index.column())] = value
         
     def removeValue(self, index):
         '''
