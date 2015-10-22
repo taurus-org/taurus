@@ -325,7 +325,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         :param isWrite: (bool)
         '''
         self._writeMode = isWrite
-        if isWrite and not self.isDirty():
+        if isWrite and not self.isDirty() and self._attr is not None:
             #refresh the write data (unless it is dirty)
             wvalue = self._attr.wvalue
             if isinstance(wvalue, Quantity):
@@ -337,11 +337,14 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             elif self._attr.data_format == DataFormat._2D:
                 rows, columns = wvalues.shape
             else:
-                self.warning('unsupported data format %s'%str(val.data_format))
+                self.warning('unsupported data format %s' %\
+                             str(wvalue.data_format))
             wvalues = wvalues.reshape(rows,columns)
             #In version 4.6 of Qt when whole table is updated it is recommended to use beginReset()
             self._wtabledata = wvalues
-        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),self.createIndex(0,0), self.createIndex(self.rowCount()-1,self.columnCount()-1))
+        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                  self.createIndex(0,0), self.createIndex(self.rowCount()-1,
+                                                          self.columnCount()-1))
     
     def getModifiedDict(self):
         '''
@@ -568,30 +571,34 @@ class TaurusValuesTable(TaurusWidget):
     _showQuality = False
     _writeMode = False
     
-    def __init__(self, parent = None, designMode = False, defaultWriteMode=None):
+    def __init__(self, parent = None, designMode = False,
+                 defaultWriteMode=None):
         TaurusWidget.__init__(self, parent = parent, designMode = designMode)
         self._tableView = TaurusValuesIOTable()
         l = Qt.QGridLayout()
         l.addWidget(self._tableView,1,0)
-        self.connect(self._tableView.itemDelegate(), Qt.SIGNAL("editorCreated"), self._onEditorCreated)
-        
+        self.connect(self._tableView.itemDelegate(), Qt.SIGNAL("editorCreated"),
+                     self._onEditorCreated)
+
         if defaultWriteMode is None:
             self.defaultWriteMode = self._writeMode
         else:
             self.defaultWriteMode = defaultWriteMode
-        
+            self._writeMode = defaultWriteMode
+
         self._label = TaurusLabel()
         self._label.setBgRole('quality')
         self._label.setFgRole('quality')
         
         self._applyBT = Qt.QPushButton('Apply')
         self._cancelBT = Qt.QPushButton('Cancel')
-        self.connect(self._applyBT,Qt.SIGNAL("clicked()"),self.okClicked)
-        self.connect(self._cancelBT,Qt.SIGNAL("clicked()"),self.cancelClicked)
+        self.connect(self._applyBT,Qt.SIGNAL("clicked()"), self.okClicked)
+        self.connect(self._cancelBT,Qt.SIGNAL("clicked()"), self.cancelClicked)
         
         self._rwModeCB = Qt.QCheckBox()
         self._rwModeCB.setText('Write mode')
-        self.connect(self._rwModeCB, Qt.SIGNAL("toggled(bool)"),self.setWriteMode)
+        self.connect(self._rwModeCB, Qt.SIGNAL("toggled(bool)"),
+                     self.setWriteMode)
         
         l.addWidget(self._label,2,0)
         l.addWidget(self._rwModeCB,0,0)
@@ -600,6 +607,7 @@ class TaurusValuesTable(TaurusWidget):
         lv.addWidget(self._cancelBT)
         l.addLayout(lv,3,0)
         self.setLayout(l)
+        self.setWriteMode(self.defaultWriteMode)
         self._initActions()
         
     def _initActions(self):
@@ -639,24 +647,24 @@ class TaurusValuesTable(TaurusWidget):
         model = self._tableView.model()
         if model is None:
             return
-        if evt_type in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic) and evt_value is not None:
+        if evt_type in (taurus.core.taurusbasetypes.TaurusEventType.Change,
+                        taurus.core.taurusbasetypes.TaurusEventType.Periodic)\
+                and evt_value is not None:
             attr = self.getModelObj()
             model.setAttr(attr)
+            model.setWriteMode(self._writeMode)
 
             hh = self._tableView.horizontalHeader()
             hh.setResizeMode(Qt.QHeaderView.Stretch)
             vh = self._tableView.verticalHeader()
             vh.setResizeMode(Qt.QHeaderView.Stretch)
-            writable =  attr.isWritable()
-            model._editable = writable
-            self._rwModeCB.setVisible(writable)
+            writable = self.defaultWriteMode and self._writeMode and\
+                       attr.isWritable()
+            self.setWriteMode(writable)
         elif evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             #force a read to set an attr
             attr = self.getModelObj()
             model.setAttr(attr)
-            writable =  attr.isWritable()
-            model._editable = writable
-            self._rwModeCB.setVisible(writable)
     
     def contextMenuEvent(self, event):
         '''Reimplemented from :meth:`QWidget.contextMenuEvent`'''
@@ -726,7 +734,7 @@ class TaurusValuesTable(TaurusWidget):
     
     def _onEditorCreated(self):
         '''slot called when an editor has been created'''
-        self.setWriteMode(True)
+        self.setWriteMode(self._writeMode)
     
     def getWriteMode(self):
         '''whether the widget is showing the read or write values
@@ -740,6 +748,15 @@ class TaurusValuesTable(TaurusWidget):
         
         :param isWrite: (bool)
         '''
+        self._label.setVisible(isWrite)
+        self._applyBT.setVisible(isWrite)
+        self._cancelBT.setVisible(isWrite)
+        self._rwModeCB.setChecked(isWrite)
+        self._rwModeCB.setVisible(self.defaultWriteMode)
+        table_view_model = self._tableView.model()
+        if table_view_model is not None:
+            table_view_model.setWriteMode(isWrite)
+            table_view_model._editable = isWrite
         if isWrite == self._writeMode: return
         self._writeMode = isWrite
         valueObj = self.getModelValueObj()
@@ -750,12 +767,6 @@ class TaurusValuesTable(TaurusWidget):
                 ta = self.getModelObj()
                 v = ta.read()
                 ta.write(v.rvalue) #@fixme: this is ugly! we should not be writing into the attribute without asking first...
-                
-            self._tableView.model().setWriteMode(isWrite)
-        self._label.setVisible(isWrite)
-        self._applyBT.setVisible(isWrite)
-        self._cancelBT.setVisible(isWrite)
-        self._rwModeCB.setChecked(isWrite)
     
     def resetWriteMode(self):
         '''equivalent to self.setWriteMode(self.defaultWriteMode)'''       
@@ -831,6 +842,3 @@ def taurusTableMain():
 
 if __name__ == '__main__':
     taurusTableMain()
-    
-    
-    
