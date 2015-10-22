@@ -74,10 +74,10 @@ class TaurusModelItem(object):
         if src == '':
             self.display, self.icon, self.ok = '(Empty)', Qt.QIcon(),True
             return
-        #for tango devices
+        # TODO tango-centric. For tango devices
         try:
             dev = taurus.Device(src)
-            if dev.isValidDev():
+            if dev.getDeviceProxy() is not None:
                 self.display, self.icon, self.ok = dev.getSimpleName(), getElementTypeIcon(TaurusElementType.Device), True
                 return
             else:
@@ -94,7 +94,7 @@ class TaurusModelItem(object):
             except Exception: #@todo: this catchall except is here as an emergency bugfix, but should probably be narrowed to PyTango DevFailed. 
                 self.display, self.icon, self.ok = src, getThemeIcon('network-error'),False
                 return
-            if not dev.isValidDev():
+            if dev.getDeviceProxy() is None:
                 self.display, self.icon, self.ok = src, getThemeIcon('network-error'),False
                 return
             self.display, self.icon, self.ok = attr.getSimpleName(), getElementTypeIcon(TaurusElementType.Attribute),True
