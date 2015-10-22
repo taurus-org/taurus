@@ -517,7 +517,7 @@ class TableInlineEdit(Qt.QLineEdit):
         try:
             if self._min_alarm < q < self._max_alarm:
                 color = 'blue'
-            if self._min_range <= q <= self._max_range:
+            elif self._min_range <= q <= self._max_range:
                 #the value is valid but in alarm range...
                 color = 'orange'
             else:
