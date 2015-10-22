@@ -202,7 +202,7 @@ class TangoDevice(TaurusDevice):
     def getDeviceProxy(self):
         return self._deviceObj
 
-    @tep14_deprecation(alt='TaurusDevice.isValid')
+    @tep14_deprecation(alt='.getDeviceProxy() is not None')
     def isValidDev(self):
         '''see: :meth:`TaurusDevice.isValid`'''
         return self._deviceObj is not None
