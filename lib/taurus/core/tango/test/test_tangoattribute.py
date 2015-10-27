@@ -685,7 +685,7 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
         if expectedshape is not None:
             msg = ('rvalue.shape for %s should be %r (got %r)' %\
                    (attrname, expectedshape, read_value.rvalue.shape))
-            self.assertEqual(read_value.value.shape, expectedshape, msg)
+            self.assertEqual(read_value.rvalue.shape, expectedshape, msg)
 
     def __assertValidValue(self, exp, got, msg):
         # if we are dealing with quantities, use the magnitude for comparing
