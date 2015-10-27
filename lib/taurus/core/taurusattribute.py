@@ -299,7 +299,7 @@ class TaurusAttribute(TaurusModel):
         name = self.getLabel(cache=cache)
         obj = [('name', name)]
         descr = self.description
-        if descr and descr != self.no_description:
+        if descr:
             _descr = descr.replace("<", "&lt;").replace(">", "&gt;")
             obj.append(('description', _descr))
 
