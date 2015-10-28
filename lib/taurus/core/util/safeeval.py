@@ -32,7 +32,7 @@ __all__ = ["SafeEvaluator"]
 __docformat__ = "restructuredtext"
 
 
-class SafeEvaluator:
+class SafeEvaluator(object):
     """This class provides a safe eval replacement. 
     
     The method eval() will only evaluate the expressions considered safe (whitelisted).
@@ -61,6 +61,14 @@ class SafeEvaluator:
             self.safe_dict['len'] = len
             self.safe_dict['int'] = int
             self.safe_dict['float'] = float
+            self.safe_dict['bool'] = bool
+            self.safe_dict['str'] = str
+            self.safe_dict['bytes'] = bytes
+            self.safe_dict['list'] = list
+            self.safe_dict['range'] = range
+            self.safe_dict['True'] = True
+            self.safe_dict['False'] = False
+            self.safe_dict['None'] = None
             for n in self._default_numpy:
                 self.safe_dict[n] = getattr(numpy, n)
             for n in self._default_numpy_random:
