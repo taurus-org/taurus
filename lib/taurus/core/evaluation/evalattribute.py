@@ -27,6 +27,7 @@ __all__ = ['EvaluationAttribute']
 import numpy, re
 import weakref
 
+from taurus.external.pint import Quantity
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import SubscriptionState, TaurusEventType, \
     TaurusAttrValue, TaurusTimeVal, AttrQuality, DataType
@@ -93,7 +94,6 @@ class EvaluationAttrValue(TaurusAttrValue):
             else:
                 self.rvalue = value
         elif hasattr(self.rvalue, 'units'): # we do have it and is a Quantity
-            from taurus.external.pint import Quantity
             self.rvalue = Quantity(value, units = self.rvalue.units)
         else: # we do have a previous value and is not a quantity
             self.rvalue = value
@@ -123,7 +123,6 @@ class EvaluationAttrValue(TaurusAttrValue):
             else:
                 self.wvalue=value
         elif hasattr(self.wvalue, 'units'): # we do have it and is a Quantity
-            from taurus.external.pint import Quantity
             self.wvalue = Quantity(value, units = self.wvalue.units)
         else: # we do have a previous value and is not a quantity
             self.wvalue=value
@@ -167,13 +166,11 @@ class EvaluationAttribute(TaurusAttribute):
     def __init__(self, name, parent, storeCallback = None):
         self.call__init__(TaurusAttribute, name, parent,
                             storeCallback=storeCallback)
-        
         self._value = EvaluationAttrValue(attr=self)
 
         #Evaluation Attributes are always read-only (at least for now)
+        self._label = self.getSimpleName()
         self.writable = False
-        self.label = self.getSimpleName()
-        self.name = self.label
         self._references = []
         self._validator = self.getNameValidator()
         self._transformation = None
@@ -181,13 +178,13 @@ class EvaluationAttribute(TaurusAttribute):
 
         #This should never be None because the init already ran the validator
         trstring = self._validator.getExpandedExpr(str(name))
-       
+
         trstring, ok = self.preProcessTransformation(trstring)
-        
+
         if ok:
             self._transformation = trstring
             self.applyTransformation()
-    
+
     @staticmethod
     def getId(obj, idFormat=r'_V%i_'):
         '''returns an id string for the given object which has the following 
@@ -241,6 +238,7 @@ class EvaluationAttribute(TaurusAttribute):
 
         #If all went ok, enable/disable polling based on whether 
         #there are references or not
+        # TODO: Should we activate polling only if explicit in the expression?
         wantpolling = not self.isUsingEvents()
         haspolling = self.isPollingEnabled()
         if wantpolling:
@@ -278,7 +276,7 @@ class EvaluationAttribute(TaurusAttribute):
             evaluator = self.getParentObj()
             v = refobj.read().rvalue
             # add its rvalue to the evaluator symbols
-            evaluator.addSafe({self.getId(refobj) : v})
+            evaluator.addSafe({self.getId(refobj): v})
             #add the object to the reference list 
             self._references.append(refobj)             
         return refobj        
@@ -291,35 +289,40 @@ class EvaluationAttribute(TaurusAttribute):
             return
         #update the corresponding value
         evaluator = self.getParentObj()
-        evaluator.addSafe({self.getId(evt_src) : v})
+        evaluator.addSafe({self.getId(evt_src): v})
         #re-evaluate
         self.applyTransformation()
         #notify listeners that the value changed
-
         if self.isUsingEvents():
             self.fireEvent(evt_type, self._value)
         
     def applyTransformation(self):
-        if self._transformation is None: return
+        if self._transformation is None:
+            return
         try:
-            evaluator = self.getParentObj() 
-            self._value.rvalue = evaluator.eval(self._transformation)
+            evaluator = self.getParentObj()
+            rvalue = evaluator.eval(self._transformation)
+            value_dimension = len(numpy.shape(rvalue))
+            value_dformat = DataFormat(value_dimension)
+            self.data_format = value_dformat
+            self.type = self._encodeType(rvalue, value_dformat)
+            if self.type is None:
+                raise TypeError("Unsupported returned type, %r" % rvalue)
+            if self.type in [DataType.Integer, DataType.Float] and\
+                    not isinstance(rvalue, Quantity):
+                self.debug("Transformation converted to Quantity")
+                rvalue = Quantity(rvalue)
+            elif self.type == DataType.Boolean and value_dimension > 1:
+                self.debug("Transformation converted to numpy.array")
+                rvalue = numpy.array(rvalue)
+            self._value.rvalue = rvalue
             self._value.time = TaurusTimeVal.now()
             self._value.quality = AttrQuality.ATTR_VALID
-            value_dimension = len(numpy.shape(self._value.rvalue))            
-            value_dformat = DataFormat(value_dimension)
-            # TODO: this logic is related to the configuration class
-            # in the future we could move it there
-            self.data_format = value_dformat
-            self.type = self._encodeType(self._value.rvalue,
-                                         value_dformat)
         except Exception, e:
             self._value.quality = AttrQuality.ATTR_INVALID
             msg = " the function '%s' could not be evaluated. Reason: %s" \
                     %( self._transformation, repr(e))
             self.warning(msg)
-            #import taurus
-            #self.traceback(taurus.Debug)
 
     def _encodeType(self, value, dformat):
         ''' Encode the value type into Taurus data type. In case of non-zero 
@@ -331,6 +334,7 @@ class EvaluationAttribute(TaurusAttribute):
 
         :return: (taurus.DataType)
         '''
+        # TODO: Should we fall back to DataType.Object instead of None?
         try: # handle Quantities
             value = value.magnitude
         except AttributeError:
@@ -351,7 +355,7 @@ class EvaluationAttribute(TaurusAttribute):
     # Necessary to overwrite from TaurusAttribute
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     def isNumeric(self):
-        return True
+        return self.type in [DataType.Integer, DataType.Float]
         
     def isBoolean(self):
         return isinstance(self._value.rvalue, bool)
