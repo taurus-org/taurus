@@ -35,9 +35,11 @@ import time
 import numpy
 from taurus.external.qt import Qt, Qwt5
 
+import taurus
 import taurus.core
+from taurus.core.taurusmanager import getSchemeFromName
 from taurus.core.taurusbasetypes import DataFormat
-from taurus.core.util.containers import LoopList, CaselessDict, CaselessList
+from taurus.core.util.containers import LoopList, CaselessDict, CaselessList # TODO: Tango-centric
 from taurus.core.util.safeeval import SafeEvaluator
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
@@ -1035,7 +1037,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.setAcceptDrops(True)
 
         # book-keeping of attached tauruscurves
-        self.curves = CaselessDict()
+        self.curves = CaselessDict() # TODO: Tango-centric
         #self.curves_lock = threading.RLock()
         self.curves_lock = DummyLock()
 
@@ -1872,7 +1874,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         try:
             xnames, ynames = [], []
             for name in names:
-                name = name.lower()
                 n = name.split("|")
                 yname = n[-1]
                 xname = None
@@ -2267,7 +2268,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         miscdict = self._createMiscDict()
         self.curves_lock.acquire()
         try:
-            if curvenames is None: curvenames=self.curves.keys()
+            if curvenames is None:
+                curvenames=self.curves.keys()
+            curvenames = self._lowerIfInsensitive(curvenames)
             for name in curvenames:
                 curve = self.curves.get(name)
                 propdict[name]=copy.deepcopy(curve.getAppearanceProperties())
@@ -3067,7 +3070,19 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             modelNames = str(modelNames).replace(',',' ')
             modelNames = modelNames.split()
         return modelNames
-    
+
+    def _lowerIfInsensitive(self, modelNames):
+        """filter a model name list converting to lowercase the names belonging
+         to case-insensitive schemes"""
+        models = []
+        for m in modelNames:
+            scheme = getSchemeFromName(m)
+            if taurus.Factory(scheme).caseSensitive:
+                models.append(str(m))
+            else:
+                models.append(str(m).lower())
+        return models
+
     @Qt.pyqtSignature("setModel(QStringList)")
     def setModel(self, modelNames):
         '''sets the models of the Tango attributes that should be displayed in
@@ -3084,7 +3099,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if modelNames is None:
             modelNames = []
         modelNames = self._splitModel(modelNames)
-        self._modelNames = CaselessList([str(n) for n in modelNames])
+        self._modelNames = self._lowerIfInsensitive(modelNames)
         self.updateCurves(self._modelNames)
         self.emit(Qt.SIGNAL("modelChanged()"))
         #update the modelchooser list
@@ -3113,7 +3128,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         .. seealso:: :meth:`setModels`, :meth:`removeModels`
         '''
-        modelNames = self._splitModel(modelNames)
+        modelNames = self._lowerIfInsensitive(self._splitModel(modelNames))
         modelNames = [str(m) for m in modelNames if m not in self._modelNames]
         self.setModel(self._modelNames+modelNames)
 
@@ -3126,7 +3141,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         .. seealso:: :meth:`setModels`, :meth:`addModels`
         '''
-        modelNames = self._splitModel(modelNames)
+        modelNames = self._lowerIfInsensitive(self._splitModel(modelNames))
         for name in modelNames:
             try: self._modelNames.remove(name)
             except: self.warning("'%s' not in model list"%name)
@@ -3502,12 +3517,12 @@ def main():
         sys.exit(1)    
 
     models = args
-    
     w = TaurusPlot()
     w.setWindowTitle(options.window_name)
     
     w.setXIsTime(options.x_axis_mode.lower() == 't')
     if options.config_file is not None: w.loadConfig(options.config_file)
+
     if models: w.setModel(models)
     if options.export_file is not None:
         curves = dict.fromkeys(w.trendSets.keys(),0)        
