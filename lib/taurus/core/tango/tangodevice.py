@@ -200,6 +200,8 @@ class TangoDevice(TaurusDevice):
         return self.getDeviceProxy()
 
     def getDeviceProxy(self):
+        if self._deviceObj is None:
+            self._deviceObj = self._createHWObject()
         return self._deviceObj
 
     @tep14_deprecation(alt='.getDeviceProxy() is not None')
