@@ -154,33 +154,33 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @names(name='eval:@Foo/1', out=('eval://localhost/@Foo/1', '@Foo/1', '1'))
 
 @names(name='eval:a={tango:a/b/c/d};x=2;a*x', 
-       out=('eval://localhost/@DefaultEvaluator/{tango:a/b/c/d}*2',
+       out=('eval://localhost/@DefaultEvaluator/a={tango:a/b/c/d};x=2;a*x',
             'a={tango:a/b/c/d};x=2;a*x',
             'a*x') )
 
 @names(name='eval:@Foo/c=1;cos(0)+c', 
-       out=('eval://localhost/@Foo/cos(0)+1',
+       out=('eval://localhost/@Foo/c=1;cos(0)+c',
             '@Foo/c=1;cos(0)+c',
             'cos(0)+c'))
 
 @names(name='eval:x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}', 
        out=('eval://localhost/@DefaultEvaluator/' + \
-            '0+0-0*0/0+cos(0)-xxx*xy+yx+yxz+0+{w/x/y/x}*0*{eval:x}',
             'x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}',
-            'x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}') )
+            'x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}',
+            'x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+x*x*x') )
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=foo;x*y?x=2;y=3', 
-       out=('eval://localhost/@foo/2*3',
+       out=('eval://localhost/@foo/x=2;y=3;x*y',
             '@foo/x=2;y=3;x*y',
             'x*y'))
 
 #old syntax gets transformed into new one!
 @names(name='eval://x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}?x=0', 
        out=('eval://localhost/@DefaultEvaluator/' + \
-            '0+0-0*0/0+cos(0)-xxx*xy+yx+yxz+0+{w/x/y/x}*0*{eval:x}',
             'x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}',
-            'x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}') )
+            'x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}',
+            'x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+x*x*x') )
 
 @valid(name='eval:1*{eval:x=3;x}')
 @valid(name='eval:1*{eval:2*{eval:3}}')
@@ -197,7 +197,7 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 #===============================================================================
 
 @valid(name='eval:1#')
-@valid(name='eval:1#units' , groups={'cfgkey':'units'})
+@valid(name='eval:1#units', groups={'cfgkey': 'units'})
 @valid(name='eval:{tango:a/b/c/d}*2#')
 @valid(name='eval:{tango:a/b/c/d}*2#label')
 @valid(name='eval:k=2;a={tango:a/b/c/d};a*k#units')
@@ -211,7 +211,7 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
             '1', 'units'))
 
 @names(name='eval:@Foo/a={tango:a/b/c/d};x=2;a*x#',
-       out=('eval://localhost/@Foo/{tango:a/b/c/d}*2',
+       out=('eval://localhost/@Foo/a={tango:a/b/c/d};x=2;a*x',
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
             'a*x', ''))
 
@@ -223,13 +223,13 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration',
-       out=('eval://localhost/@Foo/{tango:a/b/c/d}*2',
+       out=('eval://localhost/@Foo/a={tango:a/b/c/d};x=2;a*x',
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
             'a*x', ''))
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration=label',
-       out=('eval://localhost/@Foo/{tango:a/b/c/d}*2',
+       out=('eval://localhost/@Foo/a={tango:a/b/c/d};x=2;a*x',
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
             'a*x', 'label'))
 class EvaluationAttrValidatorTestCase(AbstractNameValidatorTestCase,
