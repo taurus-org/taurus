@@ -340,9 +340,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         if devname is None:
             groups['devname'] = devname = f_or_fklass.DEFAULT_DEVICE
 
-        expandedAttr = self.getExpandedExpr(fullname)
-
-        complete = 'eval:%s/%s/%s' % (authority, devname, expandedAttr)
+        complete = 'eval:%s/%s/%s' % (authority, devname, groups['attrname'])
 
         normal = groups['attrname']
         if devname != f_or_fklass.DEFAULT_DEVICE:
