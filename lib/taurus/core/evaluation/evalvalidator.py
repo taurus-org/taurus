@@ -28,6 +28,7 @@ __all__ = ['EvaluationDeviceNameValidator',
 import re
 import hashlib
 
+import taurus
 from taurus import isValidName, debug
 from taurus.core import TaurusElementType
 
@@ -308,7 +309,20 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             return None
         
         return groups
-    
+
+    def _getSimpleNameFromExpression(self, expression):
+        """Get the simple name of an evaluationAttribute from an expression"""
+        name = expression
+        for exp in self.getRefs(expression):
+
+            manager = taurus.core.TaurusManager()
+            scheme = manager.getScheme(exp)
+            _f = taurus.Factory(scheme)
+            attrNameValidator = _f.getAttributeNameValidator()
+            _, _, simple_name = attrNameValidator.getNames(exp)
+            name = name.replace('{%s}' %exp, simple_name)
+        return name
+
     def getNames(self, fullname, factory=None, cfgkey=False):
         '''reimplemented from :class:`TaurusDeviceNameValidator`'''
         from evalfactory import EvaluationFactory
@@ -325,16 +339,17 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         devname = groups.get('devname')
         if devname is None:
             groups['devname'] = devname = f_or_fklass.DEFAULT_DEVICE
-        
+
         expandedAttr = self.getExpandedExpr(fullname)
-        
+
         complete = 'eval:%s/%s/%s' % (authority, devname, expandedAttr)
+
         normal = groups['attrname']
         if devname != f_or_fklass.DEFAULT_DEVICE:
             normal = '%s/%s' % (devname, normal)
         if authority != f_or_fklass.DEFAULT_AUTHORITY:
             normal = '%s/%s' % (authority, normal) 
-        short = groups['_expr']
+        short = self._getSimpleNameFromExpression(groups['_expr'])
 
         # return fragment if cfgkey
         if cfgkey:
