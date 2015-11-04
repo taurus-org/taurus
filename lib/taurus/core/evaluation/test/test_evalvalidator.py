@@ -104,7 +104,7 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 # attrname
 @valid(name='eval:/1', groups={'path':'/1', 'attrname':'1'}) 
 #===============================================================================
-@valid(name='eval:1/') # "1/" is wrong math, but valid as an attr name! 
+@valid(name='eval:1/') # "1/" is wrong math, but valid as an attr name!
 @valid(name='eval:1/3')
 @valid(name='eval:@foo/1')
 @valid(name='eval:@mymod.Myclass/1.2', 
@@ -122,13 +122,29 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='eval://dev=foo;1/3', strict=False)
 @valid(name='eval://1/3', strict=False)
 @valid(name='eval://dev=foo;x*y?x=2;y=3', strict=False)
+@valid(name='eval://x+y+z?x=1;y=2;z=3', strict=False)
 @valid(name='eval://a*x?a={tango://a/b/c/d};x=2', strict=False)
 
 @invalid(name='eval://dev=foo;1')
 @invalid(name='eval://dev=foo;1/3')
 @invalid(name='eval://1/3')
 @invalid(name='eval://dev=foo;x*y?x=2;y=3')
+@invalid(name='eval://x+y+z?x=1;y=2;z=3')
 @invalid(name='eval://a*x?a={tango://a/b/c/d};x=2')
+
+@valid(name='eval://configuration?configuration=1', strict=False) #TODO #1 maybe we can check if the sustitutions can be done
+@valid(name='eval://config?config=1', strict=False)
+@valid(name='eval://configurationfoo?configurationfoo=1', strict=False)
+@valid(name='eval://foo?bar=1', strict=False) #TODO #1
+@valid(name='eval:bar=1;foo', strict=False) #TODO #1
+@invalid(name='eval://?configurationfoo=1', strict=False)
+@invalid(name='eval://?configuration=1', strict=False)
+@valid(name='eval://1?configuration=foo1', strict=False)
+@valid(name='eval://a?a=1?configuration=label', strict=False)
+@valid(name='eval://a+b?a=1;b=2?configuration=label', strict=False)
+@valid(name='eval://1?a=1?configuration=label', strict=False)
+@valid(name='eval://1?configuration', strict=False)
+@valid(name='eval://1?configuration=', strict=False)
 
 @invalid(name='eval://@foo/1')
 @valid(name='eval:/@foo/1', groups={'path':'/@foo/1', 'attrname':'1'})
@@ -223,6 +239,12 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration',
+       out=('eval://localhost/@Foo/a={tango:a/b/c/d};x=2;a*x',
+            '@Foo/a={tango:a/b/c/d};x=2;a*x',
+            'a*x', None))
+
+#old syntax gets transformed into new one!
+@names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration=',
        out=('eval://localhost/@Foo/a={tango:a/b/c/d};x=2;a*x',
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
             'a*x', ''))
