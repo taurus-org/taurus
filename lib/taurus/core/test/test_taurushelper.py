@@ -29,6 +29,7 @@
 
 __docformat__ = 'restructuredtext'
 
+import numpy
 import functools
 from taurus.external import unittest
 from taurus.external.pint import Quantity
@@ -277,20 +278,20 @@ class DeviceTestCase(unittest.TestCase):
 
 @insertTest(helper_name='read_attr',
             name='eval:2*{eval:x=2;x}',
-            expected=dict(label='2*{eval:x=2;x}', data_format=DataFormat._0D,
+            expected=dict(label='2*x', data_format=DataFormat._0D,
                           type=DataType.Integer))
 @insertTest(helper_name='read_attr',
             name='eval:x=-1;x+{eval:x=2;x}+{eval:x=10;x}',
             expected=dict(data_format=DataFormat._0D, wvalue=None, w_value=None,
-                          label='-1+{eval:x=2;x}+{eval:x=10;x}',
+                          label='x+x+x',
                           type=DataType.Integer))
 @insertTest(helper_name='read_attr', name='eval://2*{eval://1.0}+{eval://2.0}',
             expected=dict(data_format=DataFormat._0D, type=DataType.Float,
-                          label='2*{eval://1.0}+{eval://2.0}'))
+                          label='2*1.0+2.0'))
 @insertTest(helper_name='read_attr',
             name='eval:2*{tango:sys/tg_test/1/short_scalar}',
             expected=dict(data_format=DataFormat._0D, type=DataType.Integer,
-                          label='2*{tango:sys/tg_test/1/short_scalar}'))
+                          label='2*short_scalar'))
 @insertTest(helper_name='read_attr',
             name='eval:1==1',
             expected=dict(data_format=DataFormat._0D, type=DataType.Boolean,
@@ -324,23 +325,23 @@ class DeviceTestCase(unittest.TestCase):
                           type=DataType.Float, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:x=3;x+1',
             expected=dict(rvalue=4, value=4, wvalue=None, w_value=None,
-                          label='3+1',
+                          label='x+1',
                           type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:2*{eval:3}',
-            expected=dict(rvalue=6, value=6, label='2*{eval:3}',
+            expected=dict(rvalue=6, value=6, label='2*3',
                           wvalue=None, w_value=None,
                           type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:2*{eval:3*{eval:4}}',
-            expected=dict(rvalue=24,value=24, label='2*{eval:3*{eval:4}}',
+            expected=dict(rvalue=24,value=24, label='2*3*4',
                           wvalue=None, w_value=None, type=DataType.Integer,
                           data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:1*{eval:2*{eval:3*{eval:4}}}',
             expected=dict(rvalue=24, value=24,
-                          label='1*{eval:2*{eval:3*{eval:4}}}',
+                          label='1*2*3*4',
                           wvalue=None, w_value=None, type=DataType.Integer,
                           data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:{eval:1}+{eval:9}',
-            expected=dict(rvalue=10, value=10, label='{eval:1}+{eval:9}',
+            expected=dict(rvalue=10, value=10, label='1+9',
                           wvalue=None, w_value=None, type=DataType.Integer,
                           data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:"aaa"+"bbb"',
@@ -350,10 +351,10 @@ class DeviceTestCase(unittest.TestCase):
 @insertTest(helper_name='read_attr', name='eval:{eval:"aaa"}+{eval:"bbb"}',
             expected=dict(rvalue="aaabbb", value="aaabbb",
                           wvalue=None, w_value=None,
-                          label='{eval:"aaa"}+{eval:"bbb"}',
+                          label='"aaa"+"bbb"',
                           type=DataType.String, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:{eval:"a"}*3',
-            expected=dict(rvalue="aaa", value="aaa", label='{eval:"a"}*3',
+            expected=dict(rvalue="aaa", value="aaa", label='"a"*3',
                           wvalue=None, w_value=None, type=DataType.String,
                           data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:len("abc")',
@@ -363,8 +364,8 @@ class DeviceTestCase(unittest.TestCase):
 @insertTest(helper_name='read_attr', name='eval:"a.b.c".split(".")',
             expected=dict(rvalue=['a', 'b', 'c'], value=['a', 'b', 'c'],
                           wvalue=None, w_value=None,
-                          label='"a.b.c".split(".")', type=DataType.String
-                          , data_format=DataFormat._1D))
+                          label='"a.b.c".split(".")', type=DataType.String,
+                          data_format=DataFormat._1D))
 @insertTest(helper_name='read_attr', name='eval:[1,1,1].count(1)',
             expected=dict(rvalue=3, wvalue=None, value=3, w_value=None,
                           type=DataType.Integer, data_format=DataFormat._0D))
@@ -395,7 +396,7 @@ class DeviceTestCase(unittest.TestCase):
 @insertTest(helper_name='read_attr', name='eval:Q("1m")*3+{eval:Q(3,"dm")}',
             expected=dict(rvalue=Quantity("3.3m"), value=3.3,
                           wvalue=None, w_value=None,
-                          label='Q("1m")*3+{eval:Q(3,"dm")}',
+                          label='Q("1m")*3+Q(3,"dm")',
                           type=DataType.Float))
 @insertTest(helper_name='read_attr', name='eval:Q("1km").to("mm").magnitude',
             expected=dict(rvalue=1e6, value=1e6, wvalue=None, w_value=None,
@@ -439,8 +440,22 @@ class AttributeTestCase(unittest.TestCase):
                 msg = ('The read value for "%s" does not provide info on %s' % 
                        (name, k))
                 self.fail(msg) 
-            msg = ('Expected %s=%r for "%s" (got %r)' % (k, exp, name, got)) 
-            self.assertEqual(got, exp, msg)
+            msg = ('Expected %s=%r for "%s" (got %r)' % (k, exp, name, got))
+
+            try:
+                self.assertEqual(got, exp, msg)
+            except ValueError:
+                # Validate the arrays
+                try:
+                    # for those values that can be handled by numpy.allclose()
+                    chk = numpy.allclose(got, exp)
+                except:
+                    # for the rest
+                    if isinstance(got, numpy.ndarray):
+                        got = got.tolist()
+                    chk = bool(got == exp)
+
+                self.assertTrue(chk, msg)
   
 
 if __name__ == '__main__':
