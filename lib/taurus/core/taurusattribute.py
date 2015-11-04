@@ -365,13 +365,13 @@ class TaurusAttribute(TaurusModel):
         return self._alarm
 
     def getMinWarning(self, cache=True):
-        return self.warning[0]
+        return self._warning[0]
 
     def getMaxWarning(self, cache=True):
-        return self.warning[1]
+        return self._warning[1]
 
     def getWarnings(self, cache=True):
-        return self.warning
+        return self._warning
 
     def setLabel(self, lbl):
         self._label = lbl
@@ -447,5 +447,5 @@ class TaurusAttribute(TaurusModel):
 
     label = property(getLabel, setLabel)
     range = property(getRange, setRange)
-    warning = property(getWarnings, setWarnings)
-    alarm = property(getAlarms, setAlarms)
+    warning_range = property(getWarnings, setWarnings)
+    alarm_range = property(getAlarms, setAlarms)

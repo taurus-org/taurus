@@ -294,7 +294,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             
         '''
         try:
-            min_alarm, max_alarm = self._attr.alarm
+            min_alarm, max_alarm = self._attr.alarm_range
             if min_alarm >= value or value >= max_alarm:
                 return True
             else:
@@ -541,7 +541,7 @@ class TableInlineEdit(Qt.QLineEdit):
         data_type = attr.getType()
         if data_type in [DataType.Integer, DataType.Float]:
             self._min_range, self._max_range = attr.range
-            self._min_alarm, self._max_alarm = attr.alarm
+            self._min_alarm, self._max_alarm = attr.alarm_range
             self._default_unit = attr.wvalue.units
 
             validator = _PintValidator()

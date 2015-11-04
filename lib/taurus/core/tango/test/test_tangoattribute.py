@@ -188,8 +188,8 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                           type=DataType.Boolean,
                           writable=True,
                           range=[None, None],
-                          alarm=[None, None],
-                          warning=[None, None]
+                          alarm_range=[None, None],
+                          warning_range=[None, None]
                           ),
             expected_attrv=dict(rvalue=False,
                                 value=False,
@@ -213,10 +213,10 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                           label='float_image',
                           range=[Quantity(float('-inf'), 'mm'),
                                  Quantity(float('inf'), 'mm')],
-                          alarm=[Quantity(float('-inf'), 'mm'),
-                                 Quantity(float('inf'), 'mm')],
-                          warning=[Quantity(float('-inf'), 'mm'),
-                                   Quantity(float('inf'), 'mm')]
+                          alarm_range=[Quantity(float('-inf'), 'mm'),
+                                       Quantity(float('inf'), 'mm')],
+                          warning_range=[Quantity(float('-inf'), 'mm'),
+                                         Quantity(float('inf'), 'mm')]
                           ),
             expected_attrv=dict(rvalue=Quantity(_FLOAT_IMG, 'm'),
                                 value=1000*_FLOAT_IMG,
@@ -251,9 +251,9 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                           name='float_scalar',
                           range=[Quantity(-12.30, 'mm'),
                                  Quantity(12.30, 'mm')],
-                          alarm=[Quantity(-6.15, 'mm'),
-                                 Quantity(6.15, 'mm')],
-                          warning=[Quantity(-3.69, 'mm'),
+                          alarm_range=[Quantity(-6.15, 'mm'),
+                                       Quantity(6.15, 'mm')],
+                          warning_range=[Quantity(-3.69, 'mm'),
                                    Quantity(3.69, 'mm')]
                           ),
             expected_attrv=dict(value=10,
@@ -295,10 +295,10 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                           name="double_scalar",
                           range=[Quantity(-12.30, 'mm'),
                                  Quantity(12.30, 'mm')],
-                          alarm=[Quantity(-6.15, 'mm'),
-                                 Quantity(6.15, 'mm')],
-                          warning=[Quantity(-3.69, 'mm'),
-                                   Quantity(3.69, 'mm')]
+                          alarm_range=[Quantity(-6.15, 'mm'),
+                                       Quantity(6.15, 'mm')],
+                          warning_range=[Quantity(-3.69, 'mm'),
+                                         Quantity(3.69, 'mm')]
                           ),
             expected_attrv=dict(value=10,
                                 rvalue=Quantity(0.01, 'm'),
@@ -367,10 +367,10 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                           writable=True,
                           range=[Quantity(-1230, 'mm'),
                                  Quantity(1230, 'mm')],
-                          alarm=[Quantity(-615, 'mm'),
-                                 Quantity(615, 'mm')],
-                          warning=[Quantity(-369, 'mm'),
-                                   Quantity(369, 'mm')]
+                          alarm_range=[Quantity(-615, 'mm'),
+                                       Quantity(615, 'mm')],
+                          warning_range=[Quantity(-369, 'mm'),
+                                         Quantity(369, 'mm')]
                           ),
             expected_attrv=dict(value=1000,
                                 w_value=1000,
@@ -444,8 +444,8 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                           wvalue=None,
                           type=DataType.Boolean,
                           range=[None, None],
-                          alarm=[None, None],
-                          warning=[None, None],
+                          alarm_range=[None, None],
+                          warning_range=[None, None],
                           data_format=DataFormat._0D,
                           writable=False
                           ),
@@ -485,10 +485,10 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                           writable=False,
                           range=[Quantity(float('-inf'), 'mm'),
                                  Quantity(float('inf'), 'mm')],
-                          alarm=[Quantity(float('-inf'), 'mm'),
-                                 Quantity(float('inf'), 'mm')],
-                          warning=[Quantity(float('-inf'), 'mm'),
-                                   Quantity(float('inf'), 'mm')]
+                          alarm_range=[Quantity(float('-inf'), 'mm'),
+                                       Quantity(float('inf'), 'mm')],
+                          warning_range=[Quantity(float('-inf'), 'mm'),
+                                         Quantity(float('inf'), 'mm')]
                           ),
             expected_attrv=dict(value=1.23,
                                 w_value=None,
@@ -532,10 +532,10 @@ _STR = 'foo BAR |-+#@!?_[]{}'
                           writable=False,
                           range=[Quantity(float('-inf'), 'mm'),
                                  Quantity(float('inf'), 'mm')],
-                          alarm=[Quantity(float('-inf'), 'mm'),
-                                 Quantity(float('inf'), 'mm')],
-                          warning=[Quantity(float('-inf'), 'mm'),
-                                   Quantity(float('inf'), 'mm')]
+                          alarm_range=[Quantity(float('-inf'), 'mm'),
+                                       Quantity(float('inf'), 'mm')],
+                          warning_range=[Quantity(float('-inf'), 'mm'),
+                                         Quantity(float('inf'), 'mm')]
                           ),
             expected_attrv=dict(rvalue=Quantity(123, 'mm'),
                                 value=123,
@@ -567,28 +567,29 @@ _STR = 'foo BAR |-+#@!?_[]{}'
             cfg='label', value='Just_a_Test',
             expected='Just_a_Test')
 @insertTest(helper_name='write_read_conf', attr_name='short_scalar',
-            cfg='warning', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
+            cfg='warning_range', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
             expected=[Quantity(-2, 'mm'), Quantity(0.002, 'm')])
 @insertTest(helper_name='write_read_conf', attr_name='short_image',
-            cfg='warning', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
+            cfg='warning_range', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
             expected=[Quantity(-0.002, 'm'), Quantity(2, 'mm')])
 @insertTest(helper_name='write_read_conf', attr_name='float_image',
-            cfg='warning', value=[Quantity(-0.75, 'mm'), Quantity(0.75, 'mm')],
+            cfg='warning_range', value=[Quantity(-0.75, 'mm'),
+                                        Quantity(0.75, 'mm')],
             expected=[Quantity(-0.00075, 'm'), Quantity(0.75, 'mm')])
 @insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
-            cfg='warning', value=[100, 300],
+            cfg='warning_range', value=[100, 300],
             expected=[Quantity(100), Quantity(300)])
 @insertTest(helper_name='write_read_conf', attr_name='short_scalar',
-            cfg='alarm', value=[Quantity(-50, 'mm'), Quantity(50, 'mm')],
+            cfg='alarm_range', value=[Quantity(-50, 'mm'), Quantity(50, 'mm')],
             expected=[Quantity(-50, 'mm'), Quantity(50, 'mm')])
 @insertTest(helper_name='write_read_conf', attr_name='short_image',
-            cfg='alarm', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
+            cfg='alarm_range', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
             expected=[Quantity(-0.002, 'm'), Quantity(2, 'mm')])
 @insertTest(helper_name='write_read_conf', attr_name='float_image',
-            cfg='alarm', value=[Quantity(-0.75, 'mm'), Quantity(0.75, 'mm')],
+            cfg='alarm_range', value=[Quantity(-0.75, 'mm'), Quantity(0.75, 'mm')],
             expected=[Quantity(-0.00075, 'm'), Quantity(0.75, 'mm')])
 @insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
-            cfg='alarm', value=[100, 300],
+            cfg='alarm_range', value=[100, 300],
             expected=[Quantity(100), Quantity(300)])
 class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
     """TestCase for the taurus.Attribute helper"""
@@ -599,14 +600,14 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
         dev = PyTango.DeviceProxy(self.DEV_NAME)
         infoex = dev.get_attribute_config_ex(attr_name)[0]
         unit = unit_from_tango(infoex.unit)
-        if cfg in ['range', 'alarm', 'warning']:
+        if cfg in ['range', 'alarm_range', 'warning_range']:
             if cfg == 'range':
                 low = infoex.min_value
                 high = infoex.max_value
-            elif cfg == 'alarm':
+            elif cfg == 'alarm_range':
                 low = infoex.alarms.min_alarm
                 high = infoex.alarms.max_alarm
-            elif cfg == 'warning':
+            elif cfg == 'warning_range':
                 low = infoex.alarms.min_warning
                 high = infoex.alarms.max_warning
             if low == 'Not specified':
