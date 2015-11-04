@@ -362,8 +362,9 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         p = r'^(?P<scheme>eval|evaluation)://(db=(?P<_dbname>[^?#;]+);)?' + \
             r'(dev=(?P<_old_devname>[^?#;]+);)?' + \
             r'(?P<_expr>[^?#;]+)' + \
-            r'(?P<_substquery>\?(?!configuration=)(?P<_subst>[^#?]*))?' + \
-            r'(\?(?P<query>configuration=?(?P<cfgkey>[^#?]*)))?$'
+            r'(\?(?P<_substquery>(?!configuration=)(?P<_subst>%s(;%s)*)))?' % \
+            (K_EQUALS_V, K_EQUALS_V) + \
+            r'(\?(?P<query>configuration(=(?P<cfgkey>[^#?]*))?))?$'
         return p
     
     def getExpandedExpr(self, name):
