@@ -683,7 +683,6 @@ class TangoAuthority(TaurusAuthority):
     def getDisplayValue(self,cache=True):
         return self.getDisplayDescription(cache)
 
-    @tep14_deprecation()
     def addListener(self, listener):
         ret = TaurusAuthority.addListener(self, listener)
         if not ret:
