@@ -33,7 +33,8 @@ from taurus.external.pint import Quantity
 import numpy
 
 import taurus.core
-from taurus.core.taurusbasetypes import DataFormat, DataType
+from taurus.core.taurusbasetypes import (DataFormat, DataType, TaurusEventType,
+                                         TaurusElementType)
 from taurus.qt.qtgui.base import _PintValidator
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.resource import getThemeIcon, getThemePixmap
@@ -43,11 +44,14 @@ from taurus.core.util.enumeration import Enumeration
 TableRWState = Enumeration("TableRWState", ("Read", "Write"))
 
 
-def value2Quantity(value, units):
+def _value2Quantity(value, units):
     '''
-    :param value: string or float for create the quantity
-    :param units: Base units Quantity.units
-    :return: Quantity
+    Creates a Quantity from value and forces units if the vaule is dimensionless
+
+    :param value: (int, float or str) a number or a string from which a quantity
+                  can be created
+    :param units: (str or Pint units) Units to use if the value is dimensionless
+    :return: (Quantity)
     '''
     q = Quantity(value)
     if q.dimensionless:
@@ -111,7 +115,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 if self.getAttr().getType in [DataType.Integer, DataType.Float]:
                     units = self.getAttr().rvalue.units
                     value = self._modifiedDict[(index.row(), index.column())]
-                    q = value2Quantity(value, units)
+                    q = _value2Quantity(value, units)
                     if not self.inAlarmRange(q):
                         icon = getThemeIcon('document-save')
                     else:
@@ -140,7 +144,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 if self.getAttr().getType in [DataType.Integer, DataType.Float]:
                     units = self.getAttr().rvalue.units
                     value = self._modifiedDict[(index.row(), index.column())]
-                    q = value2Quantity(value, units)
+                    q = _value2Quantity(value, units)
                     if not self.inAlarmRange(q):
                         return Qt.QVariant(Qt.QColor('blue'))
                     else:
@@ -157,7 +161,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                     (self._writeMode):
                 units = self.getAttr().rvalue.units
                 value = self._modifiedDict[(index.row(), index.column())]
-                q = value2Quantity(value, units)
+                q = _value2Quantity(value, units)
                 value = q.to(units).magnitude
                 msg = 'Original value: %d.\nNew value that will be saved: %d' %\
                       (tabledata[index.row(), index.column()], value)
@@ -221,8 +225,8 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         rtable_value = self._rtabledata[index.row()][index.column()]
         if self._attr.getType() in [DataType.Float, DataType.Integer]:
             units = self._attr.rvalue.units
-            rvalue = value2Quantity(rtable_value, units)
-            wvalue = value2Quantity(value, units).to(units)
+            rvalue = _value2Quantity(rtable_value, units)
+            wvalue = _value2Quantity(value, units).to(units)
             equals = numpy.allclose(rvalue, wvalue)
         else:
             equals = bool(rtable_value == value)
@@ -265,7 +269,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 units = self._attr.rvalue.units
             for k,v in self._modifiedDict.items():
                 if kind in ['f', 'i', 'u']:
-                    q = value2Quantity(v, units)
+                    q = _value2Quantity(v, units)
                     # get the quantity in the base unit
                     qvalue = q.to(units).magnitude
                     #TODO With the quantity and the convertion to the base
@@ -467,7 +471,7 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         #if editor text changed, then don't mark as updated.
         try:
             units = model.getAttr().rvalue.units
-            q = value2Quantity(editor.text(), units)
+            q = _value2Quantity(editor.text(), units)
             if not model.inRange(q):
                 return
         except:
@@ -514,7 +518,7 @@ class TableInlineEdit(Qt.QLineEdit):
         min
         try:
             value = self.displayText()
-            q = value2Quantity(value, self._default_unit)
+            q = _value2Quantity(value, self._default_unit)
         except:
             q = 0.0
         try:
@@ -647,8 +651,8 @@ class TaurusValuesTable(TaurusWidget):
         model = self._tableView.model()
         if model is None:
             return
-        if evt_type in (taurus.core.taurusbasetypes.TaurusEventType.Change,
-                        taurus.core.taurusbasetypes.TaurusEventType.Periodic)\
+        if evt_type in (TaurusEventType.Change,
+                        TaurusEventType.Periodic)\
                 and evt_value is not None:
             attr = self.getModelObj()
             model.setAttr(attr)
@@ -661,7 +665,7 @@ class TaurusValuesTable(TaurusWidget):
             writable = self.defaultWriteMode and self._writeMode and\
                        attr.isWritable()
             self.setWriteMode(writable)
-        elif evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
+        elif evt_type == TaurusEventType.Config:
             #force a read to set an attr
             attr = self.getModelObj()
             model.setAttr(attr)
@@ -784,7 +788,7 @@ class TaurusValuesTable(TaurusWidget):
     def chooseModel(self):
         '''shows a model chooser'''
         from taurus.qt.qtgui.panel import  TaurusModelChooser
-        selectables=[taurus.core.taurusbasetypes.TaurusElementType.Attribute]
+        selectables=[TaurusElementType.Attribute]
         models, ok = TaurusModelChooser.modelChooserDlg(selectables=selectables, singleModel=True)
         if ok and len(models)==1:
             self.setModel(models[0])
