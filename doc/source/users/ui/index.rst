@@ -19,6 +19,7 @@ User's Interface
     Synoptics <synoptics>
     Macros <macros/index>
     TaurusGui <taurusgui>
+    TaurusDemo <taurusdemo>
     Configurations <configurations>
     Experiment Configuration <experimentconfiguration>
     Sardana Editor <sardanaeditor>
