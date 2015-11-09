@@ -20,6 +20,7 @@ User's Interface
     Macros <macros/index>
     TaurusGui <taurusgui>
     TaurusDemo <taurusdemo>
+    Logs <logs>
     Configurations <configurations>
     Experiment Configuration <experimentconfiguration>
     Sardana Editor <sardanaeditor>
