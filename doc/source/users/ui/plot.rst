@@ -9,7 +9,7 @@ TaurusPlot User's Interface
 .. contents::
 
 
-The standard way for Tau application to show one-dimensional data is by
+The standard way for Taurus applications to show one-dimensional data is by
 using a :class:`TaurusPlot` widget.
     
 :class:`TaurusPlot` is shown as an area with X and Y axes where curves (data sets)
@@ -35,40 +35,29 @@ stand-alone :class:`TaurusPlot` with the following command::
 
     taurusplot [options] [<model_list>]
 	
-Options::
+Run the following command for more details::
 
-  -h, --help            show this help message and exit
-  -x t|n, --x-axis-mode=t|n
-                        interprete X values as either timestamps (t) or
-                        numbers (n). Accepted values: t|n (e is also accepted
-                        as a synonim of n)
-  --config=CONFIG_FILE, --config-file=CONFIG_FILE
-                        use the given config file for initialization
-  --export=EXPORT_FILE, --export-file=EXPORT_FILE
-                        use the given file to as output instead of showing the
-                        plot
-  --version             show program's version number and exit
-
-  Taurus Options:
-    Basic options present in any taurus application
-
-    --taurus-log-level=LEVEL
-                        taurus log level. Allowed values are (case
-                        insensitive): critical, error, warning/warn, info,
-                        debug, trace
-    --taurus-polling-period=MILLISEC
-                        taurus global polling period in milliseconds
-    --taurus-serialization-mode=SERIAL
-                        taurus serialization mode. Allowed values are (case
-                        insensitive): serial, concurrent (default)
-    --tango-host=TANGO_HOST
-                        Tango host name
-
-
+    taurusplot --help
 
 The <model_list> is a space-separated list of models for :class:`TaurusPlot`. Valid models are:
 SPECTRUM attribute names or alias, and `Xattrname|Yattrname` constructions for indicating X-Y scatter plots.
 See :class:`TaurusPlot` API for more information about valid models
+
+
+TaurusCurve as a Stand-alone application
+----------------------------------------
+
+In order to display attributes from the control system, the tauruscurve
+stand-alone application can also be used.
+This application is based on :class:`TaurusCurveDialog`.
+
+For launching it, use the following command::
+
+    tauruscurve [options] [<model_list>]
+
+Run the following command for more details::
+
+    tauruscurve --help
 
 
 Working with two Y scales
