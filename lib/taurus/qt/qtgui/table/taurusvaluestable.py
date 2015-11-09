@@ -752,7 +752,6 @@ class TaurusValuesTable(TaurusWidget):
         
         :param isWrite: (bool)
         '''
-        self._label.setVisible(isWrite)
         self._applyBT.setVisible(isWrite)
         self._cancelBT.setVisible(isWrite)
         self._rwModeCB.setChecked(isWrite)
