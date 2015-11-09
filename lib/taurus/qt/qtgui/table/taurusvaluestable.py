@@ -593,7 +593,9 @@ class TaurusValuesTable(TaurusWidget):
         self._label = TaurusLabel()
         self._label.setBgRole('quality')
         self._label.setFgRole('quality')
-        
+
+        self._units = Qt.QComboBox()
+
         self._applyBT = Qt.QPushButton('Apply')
         self._cancelBT = Qt.QPushButton('Cancel')
         self.connect(self._applyBT,Qt.SIGNAL("clicked()"), self.okClicked)
@@ -603,9 +605,12 @@ class TaurusValuesTable(TaurusWidget):
         self._rwModeCB.setText('Write mode')
         self.connect(self._rwModeCB, Qt.SIGNAL("toggled(bool)"),
                      self.setWriteMode)
-        
-        l.addWidget(self._label,2,0)
-        l.addWidget(self._rwModeCB,0,0)
+
+        lv = Qt.QHBoxLayout()
+        lv.addWidget(self._label)
+        lv.addWidget(self._units)
+        l.addLayout(lv, 2, 0)
+        l.addWidget(self._rwModeCB, 0, 0)
         lv = Qt.QHBoxLayout()
         lv.addWidget(self._applyBT)
         lv.addWidget(self._cancelBT)
@@ -639,10 +644,14 @@ class TaurusValuesTable(TaurusWidget):
         if model_obj is not None:
             if isinstance(model_obj.rvalue, Quantity):
                 v = numpy.array(model_obj.rvalue.magnitude)
+                self._units.addItem("%s" % str(model_obj.rvalue.units))
             else:
                 v = numpy.array(model_obj.rvalue)
+                self._units.setVisible(False)
             dim_x, dim_y = v.shape
-            self._tableView.setModel([dim_x, dim_y]) 
+            self._tableView.setModel([dim_x, dim_y])
+        self._units.setCurrentIndex(0)
+        self._units.setEnabled(False)
         self._label.setModel(model)
 
     def handleEvent(self, evt_src, evt_type, evt_value):
