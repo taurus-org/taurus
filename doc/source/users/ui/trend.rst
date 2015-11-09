@@ -39,34 +39,36 @@ with the following command::
 
     taurustrend [options] [<model_list>]
 	
-Options::
+Run the following command for more details::
 
-  -h, --help            show this help message and exit
-  -x t|e, --x-axis-mode=t|e
-                        interprete X values as either timestamps (t) or event
-                        numbers (e). Accepted values: t|e
-  --config=CONFIG_FILE, --config-file=CONFIG_FILE
-                        use the given config file for initialization
-  --export=EXPORT_FILE, --export-file=EXPORT_FILE
-                        use the given file to as output instead of showing the
-                        plot
-  -r PERIOD, --forced-read=PERIOD
-                        force Tautrend to re-read the attributes every PERIOD
-                        milliseconds
-  -a, --use-archiving   enable archiving lookups. 
-  --taurus-log-level=LEVEL
-                        taurus log level. Allowed values are (case
-                        insensitive): critical, error, warning/warn, info,
-                        debug, trace
-  --taurus-polling-period=MILISEC
-                        taurus global polling period in miliseconds
-  --tango-host=TANGO_HOST
-                        Tango host name
+    taurustrend --help
 
     
 The model list is optional and is a space-separated list of models for TaurusTrend. 
 Valid models are: SCALAR or SPECTRUM attribute names or alias (spectra will be treated 
 as collections of scalars). See :class:`TaurusTrend` API for more information about valid models   
+
+TaurusTrend2D as a stand-alone application
+------------------------------------------
+
+The taurustrend2d is a Taurus application which uses the
+:class:`TaurusTrend2DDialog` widget for plotting trends of arrays (also
+known as spectrograms).
+
+In this plot the time is represented in the X axis while the array is
+represented in the Y axis. The values of the array for a given instant of
+time are represented in colors.
+
+You can launch the stand-alone TaurusTrend2D with the following command::
+
+	taurustrend2d <array_attribute_name>
+
+Run the following command for more details::
+
+    taurustrend2d --help
+
+.. figure:: /_static/taurustrend2d.png
+  :align: center
 
 
 Timestamp VS "event number" mode
