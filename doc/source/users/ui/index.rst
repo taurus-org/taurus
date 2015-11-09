@@ -9,7 +9,7 @@ User's Interface
     :maxdepth: 2
     
     Color meaning <ui_colors>
-    Forms <forms>
+    Forms and Panels <forms>
     Attribute Chooser <attributechooser>
     Model Chooser <modelchooser>
     Plots <plot>
@@ -30,4 +30,3 @@ with taurus. This is done from the GUI user point of view (not for developers).
 For a detailed list of features of each widget, please refer to the
 :ref:`developers-guide-index`
 
-    
