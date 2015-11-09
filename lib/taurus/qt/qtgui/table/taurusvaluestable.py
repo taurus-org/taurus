@@ -41,8 +41,6 @@ from taurus.qt.qtgui.resource import getThemeIcon, getThemePixmap
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.core.util.enumeration import Enumeration
 
-TableRWState = Enumeration("TableRWState", ("Read", "Write"))
-
 
 def _value2Quantity(value, units):
     '''
@@ -585,10 +583,9 @@ class TaurusValuesTable(TaurusWidget):
                      self._onEditorCreated)
 
         if defaultWriteMode is None:
-            self.defaultWriteMode = self._writeMode
+            self.defaultWriteMode = "rw"
         else:
             self.defaultWriteMode = defaultWriteMode
-            self._writeMode = defaultWriteMode
 
         self._label = TaurusLabel()
         self._label.setBgRole('quality')
@@ -616,7 +613,11 @@ class TaurusValuesTable(TaurusWidget):
         lv.addWidget(self._cancelBT)
         l.addLayout(lv,3,0)
         self.setLayout(l)
-        self.setWriteMode(self.defaultWriteMode)
+        if self.defaultWriteMode == "r":
+            self._writeMode = False
+        else:
+            self._writeMode = True
+        self.setWriteMode(self._writeMode)
         self._initActions()
         
     def _initActions(self):
@@ -671,7 +672,11 @@ class TaurusValuesTable(TaurusWidget):
             hh.setResizeMode(Qt.QHeaderView.Stretch)
             vh = self._tableView.verticalHeader()
             vh.setResizeMode(Qt.QHeaderView.Stretch)
-            writable = self.defaultWriteMode and self._writeMode and\
+            if self.defaultWriteMode == "r":
+                isWritable = False
+            else:
+                isWritable = True
+            writable = isWritable and self._writeMode and\
                        attr.isWritable()
             self.setWriteMode(writable)
         elif evt_type == TaurusEventType.Config:
@@ -764,7 +769,11 @@ class TaurusValuesTable(TaurusWidget):
         self._applyBT.setVisible(isWrite)
         self._cancelBT.setVisible(isWrite)
         self._rwModeCB.setChecked(isWrite)
-        self._rwModeCB.setVisible(self.defaultWriteMode)
+        if self.defaultWriteMode in ("rw", "wr"):
+            self._rwModeCB.setVisible(True)
+        else:
+            self._rwModeCB.setVisible(False)
+
         table_view_model = self._tableView.model()
         if table_view_model is not None:
             table_view_model.setWriteMode(isWrite)
@@ -781,8 +790,12 @@ class TaurusValuesTable(TaurusWidget):
                 ta.write(v.rvalue) #@fixme: this is ugly! we should not be writing into the attribute without asking first...
     
     def resetWriteMode(self):
-        '''equivalent to self.setWriteMode(self.defaultWriteMode)'''       
-        self.setWriteMode(self.defaultWriteMode)
+        '''equivalent to self.setWriteMode(self.defaultWriteMode)'''
+        if self.defaultWriteMode == "r":
+            isWritable = False
+        else:
+            isWritable = True
+        self.setWriteMode(isWritable)
         
     @classmethod
     def getQtDesignerPluginInfo(cls):
