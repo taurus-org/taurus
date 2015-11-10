@@ -244,12 +244,12 @@ class TaurusValuesTableButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusValuesTable'''
     _widgetClassName = 'TaurusValuesTable'
     _icon  = ':/designer/table.png'
-
+    _kwargs={'defaultWriteMode': 'r'}
 
 class TaurusValuesTableButton_W(TaurusValuesTableButton):
     '''A button that launches a TaurusValuesTable'''
     _text = 'Edit'
-    _kwargs={'defaultWriteMode':True}
+    _kwargs={'defaultWriteMode': 'w'}
 
 
 class TaurusDevButton(_AbstractTaurusValueButton):
