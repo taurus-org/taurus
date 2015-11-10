@@ -57,33 +57,6 @@ The model list is optional and is a space-separated list of models for
 TaurusForm. Valid models are: attribute names, device names or alias. See
 :class:`TaurusForm` API for more information about valid models.
 
-TaurusPanel as a stand-alone application
-----------------------------------------
-
-Taurus Application which shows the commands and attributes of a given device.
-It is based on :class:`TaurusDevPanel`. It Provides a Device selector,
-a trend and a panel for displaying information from the selected device.
-You can launch the stand-alone TaurusDevicePanel with the following command::
-
-    tauruspanel [options] [<device_name>]
-
-Run the following command for more details::
-
-    tauruspanel --help
-
-TaurusDevicePanel as a stand-alone application
-----------------------------------------------
-
-Taurus Application which shows the commands and attributes of a given device.
-It is based on :class:`TaurusDevicePanel`.
-You can launch the stand-alone TaurusDevicePanel with the following command::
-
-    taurusdevicepanel [options] [<device_name>]
-
-Run the following command for more details::
-
-    taurusdevicepanel --help
-
 The widgets used for different types of attributes and devices
 ---------------------------------------------------------------
 

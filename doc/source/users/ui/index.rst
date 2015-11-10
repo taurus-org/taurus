@@ -9,7 +9,7 @@ User's Interface
     :maxdepth: 2
     
     Color meaning <ui_colors>
-    Forms and Panels <forms>
+    Forms <forms>
     Attribute Chooser <attributechooser>
     Model Chooser <modelchooser>
     Plots <plot>
@@ -17,6 +17,7 @@ User's Interface
     Images <taurusimage>
     Array Editor <arrayeditor>
     Synoptics <synoptics>
+    TaurusPanel & TaurusDevicePanel <devpanels>
     Macros <macros/index>
     TaurusGui <taurusgui>
     TaurusDemo <taurusdemo>

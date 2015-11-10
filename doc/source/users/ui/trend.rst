@@ -48,28 +48,6 @@ The model list is optional and is a space-separated list of models for TaurusTre
 Valid models are: SCALAR or SPECTRUM attribute names or alias (spectra will be treated 
 as collections of scalars). See :class:`TaurusTrend` API for more information about valid models   
 
-TaurusTrend2D as a stand-alone application
-------------------------------------------
-
-The taurustrend2d is a Taurus application which uses the
-:class:`TaurusTrend2DDialog` widget for plotting trends of arrays (also
-known as spectrograms).
-
-In this plot the time is represented in the X axis while the array is
-represented in the Y axis. The values of the array for a given instant of
-time are represented in colors.
-
-You can launch the stand-alone TaurusTrend2D with the following command::
-
-	taurustrend2d <array_attribute_name>
-
-Run the following command for more details::
-
-    taurustrend2d --help
-
-.. figure:: /_static/taurustrend2d.png
-  :align: center
-
 
 Timestamp VS "event number" mode
 ---------------------------------
@@ -207,7 +185,35 @@ of the corresponding internal clocks. In such a case, keeping all machines
 synchronized is highly recommended (e.g., using NTP_, accuracy should not be 
 worse than 0.1s).
 
+.. _trend2d_ui:
+
+========================
+Spectrograms (2D trends)
+========================
+
+The :class:`TaurusTrend2DDialog` widget is the standard way for Taurus 
+applications to graphically show the evolution of a one-dimensional 
+attribute. The representation is done as a *spectrogram*: the time (or 
+event number) is represented in the X axis while values of the array 
+are color-coded along the Y axis.
 
 
+.. figure:: /_static/taurustrend2d.png
+  :align: center
 
+Several tools from the standard guiqwt_ toolkit for images are available,
+and zooming and panning are possible using the standard mechanisms of 
+guiqwt_.
+
+The :class:`TaurusTrend2DDialog` widget can be launched as a 
+stand-alone application with the following command::
+
+	taurustrend2d <array_attribute_name>
+
+Run the following command for more details::
+
+    taurustrend2d --help
+
+
+.. _guiqwt: https://pypi.python.org/pypi/guiqwt
 .. _NTP: http://en.wikipedia.org/wiki/Network_Time_Protocol

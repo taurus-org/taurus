@@ -43,23 +43,6 @@ The <model_list> is a space-separated list of models for :class:`TaurusPlot`. Va
 SPECTRUM attribute names or alias, and `Xattrname|Yattrname` constructions for indicating X-Y scatter plots.
 See :class:`TaurusPlot` API for more information about valid models
 
-
-TaurusCurve as a Stand-alone application
-----------------------------------------
-
-In order to display attributes from the control system, the tauruscurve
-stand-alone application can also be used.
-This application is based on :class:`TaurusCurveDialog`.
-
-For launching it, use the following command::
-
-    tauruscurve [options] [<model_list>]
-
-Run the following command for more details::
-
-    tauruscurve --help
-
-
 Working with two Y scales
 -------------------------
 
@@ -300,9 +283,27 @@ Here are some tips for entering valid date/time values:
     - also, the keyword "now" (case-insensitive) can be used as a synonym of
       "+0s".
       
+.. _tauruscurve:
+
+TaurusCurveDialog
+=================
+
+Taurus also offers an alternative widget for plotting one-dimensional data: 
+:class:`TaurusCurveDialog`. This widget is based on the guiqwt_ library and 
+is currently less developed and tested than :class`TaurusPlot`.
+
+The :class:`TaurusCurveDialog` widget can be launched as a stand-alone 
+application with the following command::
+
+    tauruscurve [options] [<model_list>]
+
+Run the following command for more details::
+
+    tauruscurve --help
 
 .. references
 .. _numpy: http://numpy.scipy.org/
+.. _guiqwt: http://pypi.python.org/pypi/guiqwt
 
 
 .. |inspector_icon| image:: /_static/whatsthiscursor.png

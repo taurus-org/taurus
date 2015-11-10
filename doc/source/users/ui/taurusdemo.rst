@@ -8,14 +8,14 @@ Taurus Demo User's Interface
 
 .. contents::
 
-Taurus Demo is a GUI providing many of the Taurus Widgets for a
-demonstration purpose.
+Taurus Demo is a GUI providing a launcher of many of the Taurus Widgets for
+demonstration purposes.
 
 
 Taurus Demo Application
 -----------------------
 
-taurusdemo is an application that allows to have an overview of the different
+taurusdemo is an application that gives an overview of some of the
 widgets available in Taurus. taurusdemo can be launched with the following
 command::
 
@@ -25,9 +25,7 @@ Run the following command for more details::
 
     taurusdemo --help
 
-
-The figure below shows the taurusdemo application and the series of widgets
-that can be visualized using it.
-
 .. figure:: /_static/taurusdemo.png
   :align: center
+  
+  Taurusdemo application.

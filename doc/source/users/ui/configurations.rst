@@ -8,21 +8,20 @@ Taurus Configuration Browser User's Interface
 
 .. contents::
 
-Taurus provides a user interface that allows to browse, visualize and
-delete some branch of the different perspectives of a Taurus GUI.
-The panels and instruments are organized in branches inside the perspectives.
-The file storing the perspective configuration information is a file with
-the .ini extension and it can be opened thanks to the taurusconfigbrowser
-application.
-
+Taurus provides an user interface for browsing TaurusMainWindow setting 
+files (.ini files), allowing a power user to visualize and edit the 
+different perspectives of a Taurus GUI.
+The configuration tree is organized in branches, with the perspective 
+at the root.
 
 Taurus Configuration Browser Application
 ----------------------------------------
 
-You may browse the configuration of a certain Taurus  GUI by launching
-the taurusconfigbrowser application with the following command::
+You may browse the configuration of a TaurusMainWindow-based application
+(e.g. any TaurusGUI) by launching the taurusconfigbrowser application 
+with the following command::
 
-	taurusconfigbrowser <configuration.ini>
+	taurusconfigbrowser [<configuration.ini>]
 
 Run the following command for more details::
 
@@ -30,13 +29,12 @@ Run the following command for more details::
 
 In the figure below the taurusconfigbrowser application shows a taurus
 configuration .ini file containing three perspectives: 'LAST',
-'second_perspective' and 'third_perspective'. 'LAST' is a perspective stored
-just before the closure of the Taurus GUI; it reflects the state of the GUI
-just before the last closure. The other two perspectives have been stored
-intentionally during the Taurus GUI execution.
-
-In the figure the 'second_perspective' is unfolded and the panels contained
-in this perspective can be visualized.
+'second_perspective' and 'third_perspective'. 'LAST' is an special perspective
+automatically stored just before the closing of the Taurus GUI; it reflects 
+the state of the GUI just before the last closing. The other two perspectives
+were saved explicitly during the Taurus GUI execution.
 
 .. figure:: /_static/taurusconfigbrowser.png
   :align: center
+
+  taurusconfigbrowser with a perspective unfolded to show the panel entries
