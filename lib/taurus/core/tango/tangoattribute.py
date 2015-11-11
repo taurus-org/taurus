@@ -1049,8 +1049,8 @@ class TangoAttribute(TaurusAttribute):
     # properties
     label = property(getLabel, setLabel)
     range = property(getRange, setRange)
-    warning_range = property(getWarnings, setWarnings)
-    alarm_range = property(getAlarms, setAlarms)
+    warnings = property(getWarnings, setWarnings)
+    alarms = property(getAlarms, setAlarms)
 
     @property
     def description(self):

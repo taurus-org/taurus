@@ -107,7 +107,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             attr = self.getModelObj()
-            self.__minAlarm, self.__maxAlarm = attr.alarm_range
+            self.__minAlarm, self.__maxAlarm = attr.alarms
             self.__minLimit, self.__maxLimit = attr.range
             self._updateValidator(evt_value)
         TaurusBaseWritableWidget.handleEvent(self, evt_src, evt_type, evt_value)
