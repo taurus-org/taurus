@@ -29,19 +29,15 @@ __all__ = ["TaurusValueLineEdit", "TaurusConfigLineEdit"]
 
 __docformat__ = 'restructuredtext'
 
-import sys, taurus.core
+import sys
+import numpy
 from taurus.external.qt import Qt
 from taurus.external.pint import Quantity
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from taurus.qt.qtgui.util import PintValidator
-from taurus.core import DataType
+from taurus.core import DataType, DataFormat, TaurusEventType
+from taurus.core.taurusattribute import TaurusAttribute
 
-
-_String = str
-try:
-    _String = Qt.QString
-except AttributeError:
-    _String = str
 
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
@@ -105,7 +101,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.emitValueChanged()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
+        if evt_type == TaurusEventType.Config:
             attr = self.getModelObj()
             self.__minAlarm, self.__maxAlarm = attr.alarms
             self.__minLimit, self.__maxLimit = attr.range
@@ -114,7 +110,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def __getQuantity(self, v):
         validator = self.validator()
-        if validator.validate(_String(str(v)), 0)[0] != validator.Acceptable:
+        if validator.validate(str(v), 0)[0] != validator.Acceptable:
             return None
         try:
             q = Quantity(v)
@@ -143,8 +139,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         v = self.getValue()
         modelObj = self.getModelObj()
         if modelObj is None or v is None:
-            return
-        if modelObj.type in [DataType.Integer, DataType.Float]:
+            color = 'gray'
+        elif modelObj.type in [DataType.Integer, DataType.Float]:
             _q = self.__getQuantity(self.text())
             if self._outOfRange(_q):
                 #the value is invalid and can't be applied
@@ -157,9 +153,11 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                     weight = 'bold'
         elif self.hasPendingOperations():
             #the value is in valid range with pending changes
-            color, weight= 'blue','bold'
-        self.setStyleSheet('TaurusValueLineEdit {color: %s; font-weight: %s}' %\
-                           (color,weight))
+            color, weight= 'blue', 'bold'
+
+        style = 'TaurusValueLineEdit {color: %s; font-weight: %s}' %\
+                (color, weight)
+        self.setStyleSheet(style)
 
     def wheelEvent(self, evt):
         if not self.getEnableWheelEvent() or Qt.QLineEdit.isReadOnly(self):
@@ -174,7 +172,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         modifiers = evt.modifiers()
         if modifiers & Qt.Qt.ControlModifier:
             numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.isFloat():
+        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
             numSteps *= .1
         self._stepBy(numSteps)
 
@@ -197,12 +195,13 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         modifiers = evt.modifiers()
         if modifiers & Qt.Qt.ControlModifier:
             numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.isFloat():
+        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
             numSteps *= .1
         self._stepBy(numSteps)
 
     def _stepBy(self, v):
-        self.setValue(self.getValue() + v)
+        value = self.getValue()
+        self.setValue(value + Quantity(v, value.units))
 
     def setValue(self, v):
         model = self.getModelObj()
@@ -216,14 +215,31 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def getValue(self):
         value = self.text()
         model_obj = self.getModelObj()
-        try:
-            if model_obj.type in [DataType.Integer, DataType.Float]:
-                value = self.__getQuantity(value)
-                if value is not None:
-                    value = value.to(self.__unit)
-            return model_obj.encode(value)
-        except:
+        if model_obj is None:
             return None
+        try:
+            model_type = model_obj.type
+            model_format = model_obj.data_format
+            if model_type in [DataType.Integer, DataType.Float]:
+                value = self.__getQuantity(value)
+            elif model_type == DataType.Boolean:
+                if model_format == DataFormat._0D:
+                    value = bool(int(eval(value)))
+                else:
+                    value = numpy.array(eval(value), dtype=int).astype(bool)
+            elif model_type == DataType.String:
+                if model_format == DataFormat._0D:
+                    value = str(value)
+                else:
+                    value = numpy.array(eval(value), dtype=str).tolist()
+            elif model_type == DataType.Bytes:
+                value = bytes(value)
+            else:
+                self.debug('Unsupported model type "%s"', model_type)
+                value = None
+        except:
+            value = None
+        return value
 
     def setEnableWheelEvent(self, b):
         self._enableWheelEvent = b
@@ -284,7 +300,7 @@ class TaurusConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.valueChanged()
 
     def getModelClass(self):
-        return taurus.core.taurusconfiguration.TaurusConfiguration
+        return TaurusAttribute
 
     def setValue(self, v):
         model = self.getModelObj()
