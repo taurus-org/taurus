@@ -314,13 +314,27 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         """Get the simple name of an evaluationAttribute from an expression"""
         name = expression
         for exp in self.getRefs(expression):
-
             manager = taurus.core.TaurusManager()
             scheme = manager.getScheme(exp)
             _f = taurus.Factory(scheme)
             attrNameValidator = _f.getAttributeNameValidator()
             _, _, simple_name = attrNameValidator.getNames(exp)
-            name = name.replace('{%s}' %exp, simple_name)
+            name = name.replace('{%s}' % exp, simple_name)
+        return name
+
+    def _expandRefNames(self, attrname):
+        """Expand the refs in an eval name to their full names"""
+        name = attrname
+        for ref in self.getRefs(attrname):
+            manager = taurus.core.TaurusManager()
+            scheme = manager.getScheme(ref)
+            _f = taurus.Factory(scheme)
+            attrNameValidator = _f.getAttributeNameValidator()
+            full_name, _, _ = attrNameValidator.getNames(ref)
+            if full_name is None:
+                debug('Cannot expand the fullname of %s' % ref)
+                return None
+            name = name.replace('{%s}' % ref, '{%s}' % full_name)
         return name
 
     def getNames(self, fullname, factory=None, cfgkey=False):
@@ -341,6 +355,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             groups['devname'] = devname = f_or_fklass.DEFAULT_DEVICE
 
         complete = 'eval:%s/%s/%s' % (authority, devname, groups['attrname'])
+        complete = self._expandRefNames(complete)
 
         normal = groups['attrname']
         if devname != f_or_fklass.DEFAULT_DEVICE:

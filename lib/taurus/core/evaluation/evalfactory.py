@@ -160,7 +160,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
         if a is None: #if not, try with the full name
             validator = self.getAttributeNameValidator()
             names = validator.getNames(attr_name)
-            if names is None:
+            if names is None or names[0] is None:
                 raise TaurusException("Invalid evaluation attribute name %s" % attr_name)
             fullname = names[0]
             a = self.eval_attrs.get(fullname, None)
