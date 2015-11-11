@@ -28,7 +28,7 @@
 
 __docformat__ = 'restructuredtext'
 
-
+import taurus
 from taurus.external import unittest
 from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)
@@ -36,7 +36,13 @@ from taurus.core.evaluation.evalvalidator import (EvaluationAuthorityNameValidat
                                                   EvaluationDeviceNameValidator,
                                                   EvaluationAttributeNameValidator)
 
- 
+try:
+    authority = taurus.Factory('tango').getAuthority()
+    default_tango_authority = authority.getSimpleName()
+    reason = None
+except:
+    default_tango_authority = None
+    reason = "Tango scheme is not available"
 #===============================================================================
 # Tests for Eval Authority  name validation
 #===============================================================================
@@ -170,20 +176,41 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @names(name='eval:@Foo/1', out=('eval://localhost/@Foo/1', '@Foo/1', '1'))
 
 @names(name='eval:a={tango:a/b/c/d};x=2;a*x', 
-       out=('eval://localhost/@DefaultEvaluator/a={tango:a/b/c/d};x=2;a*x',
+       out=('eval://localhost/@DefaultEvaluator/' +\
+            'a={tango://%s/a/b/c/d};x=2;a*x' % default_tango_authority,
             'a={tango:a/b/c/d};x=2;a*x',
-            'a*x') )
+            'a*x'), test_skip=reason)
 
 @names(name='eval:@Foo/c=1;cos(0)+c', 
        out=('eval://localhost/@Foo/c=1;cos(0)+c',
             '@Foo/c=1;cos(0)+c',
             'cos(0)+c'))
 
-@names(name='eval:x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}', 
-       out=('eval://localhost/@DefaultEvaluator/' + \
+@names(name='eval:@Foo/{NonExistingAlias/foo}+5',
+       out=(None,
+            '@Foo/{NonExistingAlias/foo}+5',
+            'foo+5'))
+
+@names(name='eval:{eval:1}+{eval:2}',
+       out=('eval://localhost/@DefaultEvaluator/' +\
+            '{eval://localhost/@DefaultEvaluator/1}+' +\
+            '{eval://localhost/@DefaultEvaluator/2}',
+            '{eval:1}+{eval:2}',
+            '1+2'))
+
+@names(name='eval:{eval:{eval:foo=1;foo}}',
+       out=('eval://localhost/@DefaultEvaluator/{eval://localhost/' +\
+            '@DefaultEvaluator/{eval://localhost/@DefaultEvaluator/foo=1;foo}}',
+            '{eval:{eval:foo=1;foo}}',
+            'foo'))
+
+@names(name='eval:x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}',
+       out=('eval://localhost/@DefaultEvaluator/' +\
+            'x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+' +\
+            '{tango://%s/w/x/y/x}*x*' % default_tango_authority +\
+            '{eval://localhost/@DefaultEvaluator/x}',
             'x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}',
-            'x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}',
-            'x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+x*x*x') )
+            'x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+x*x*x'), test_skip=reason)
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=foo;x*y?x=2;y=3', 
@@ -193,10 +220,12 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 
 #old syntax gets transformed into new one!
 @names(name='eval://x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}?x=0', 
-       out=('eval://localhost/@DefaultEvaluator/' + \
+       out=('eval://localhost/@DefaultEvaluator/' +\
+            'x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+' +\
+            '{tango://%s/w/x/y/x}*x*' % default_tango_authority +\
+            '{eval://localhost/@DefaultEvaluator/x}',
             'x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}',
-            'x=0;x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+{w/x/y/x}*x*{eval:x}',
-            'x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+x*x*x') )
+            'x+x-x*x/x+cos(x)-xxx*xy+yx+yxz+x+x*x*x'), test_skip=reason)
 
 @valid(name='eval:1*{eval:x=3;x}')
 @valid(name='eval:1*{eval:2*{eval:3}}')
@@ -227,9 +256,10 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
             '1', 'units'))
 
 @names(name='eval:@Foo/a={tango:a/b/c/d};x=2;a*x#',
-       out=('eval://localhost/@Foo/a={tango:a/b/c/d};x=2;a*x',
+       out=('eval://localhost/@Foo/a={tango://%s/a/b/c/d};x=2;a*x' %\
+            default_tango_authority,
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
-            'a*x', ''))
+            'a*x', ''), test_skip=reason)
 
 #old syntax gets transformed into new one!
 @names(name='eval://1?configuration=units',
@@ -239,21 +269,24 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration',
-       out=('eval://localhost/@Foo/a={tango:a/b/c/d};x=2;a*x',
+       out=('eval://localhost/@Foo/a={tango://%s/a/b/c/d};x=2;a*x' %\
+            default_tango_authority,
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
-            'a*x', None))
+            'a*x', None), test_skip=reason)
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration=',
-       out=('eval://localhost/@Foo/a={tango:a/b/c/d};x=2;a*x',
+       out=('eval://localhost/@Foo/a={tango://%s/a/b/c/d};x=2;a*x' %\
+            default_tango_authority,
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
-            'a*x', ''))
+            'a*x', ''), test_skip=reason)
 
 #old syntax gets transformed into new one!
 @names(name='eval://dev=Foo;a*x?a={tango:a/b/c/d};x=2?configuration=label',
-       out=('eval://localhost/@Foo/a={tango:a/b/c/d};x=2;a*x',
+       out=('eval://localhost/@Foo/a={tango://%s/a/b/c/d};x=2;a*x' %\
+            default_tango_authority,
             '@Foo/a={tango:a/b/c/d};x=2;a*x',
-            'a*x', 'label'))
+            'a*x', 'label'), test_skip=reason)
 class EvaluationAttrValidatorTestCase(AbstractNameValidatorTestCase,
                                       unittest.TestCase):
     validator = EvaluationAttributeNameValidator
