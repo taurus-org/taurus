@@ -235,9 +235,10 @@ executable_data = [
 # before running setup to avoid license issues)
 if os.path.isdir(abspath('lib', 'taurus', 'external', 'enum', 'enum')):
     packages.append('taurus.external.enum.enum')
-if os.path.isdir(abspath('lib', 'taurus', 'external', 'pint', 'pint')):
-    packages.append('taurus.external.pint.pint')
-    package_data['taurus.external.pint.pint'] = ['*.txt']
+if os.path.isdir(abspath('lib', 'taurus', 'external', 'pint', 'pint_local')):
+    packages.append('taurus.external.pint.pint_local')
+    packages.append('taurus.external.pint.pint_local.compat')
+    package_data['taurus.external.pint.pint_local'] = ['*.txt']
     
 
 def get_script_files():
