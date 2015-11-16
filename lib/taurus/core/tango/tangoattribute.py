@@ -1039,12 +1039,65 @@ class TangoAttribute(TaurusAttribute):
                      self.not_specified, self.not_specified]
         return value
 
+    @tep14_deprecation(alt='.alarms[0]')
+    def getMinAlarm(self):
+        if self._pytango_attrinfoex is None:
+            return None
+        return self._pytango_attrinfoex.alarms.min_alarm
+
+    @tep14_deprecation(alt='.alarms[1]')
+    def getMaxAlarm(self):
+        if self._pytango_attrinfoex is None:
+            return None
+        return self._pytango_attrinfoex.alarms.max_alarm
+
+    @tep14_deprecation(alt='.warnings[0]')
+    def getMinWarning(self):
+        if self._pytango_attrinfoex is None:
+            return None
+        return self._pytango_attrinfoex.alarms.min_warning
+
+    @tep14_deprecation(alt='.warnings[1]')
+    def getMaxWarning(self):
+        if self._pytango_attrinfoex is None:
+            return None
+        return self._pytango_attrinfoex.alarms.max_warning
+
+    @tep14_deprecation(alt='.alarms')
+    def setMinAlarm(self, value):
+        if self._pytango_attrinfoex is None:
+            self._pytango_attrinfoex.alarms.min_alarm = str(value)
+            self._applyConfig()
+
+    @tep14_deprecation(alt='.alarms')
+    def setMaxAlarm(self, value):
+        if self._pytango_attrinfoex is None:
+            self._pytango_attrinfoex.alarms.max_alarm = str(value)
+            self._applyConfig()
+
+    @tep14_deprecation(alt='.warnings')
+    def setMinWarning(self, value):
+        if self._pytango_attrinfoex is None:
+            self._pytango_attrinfoex.alarms.min_warning = str(value)
+            self._applyConfig()
+
+    @tep14_deprecation(alt='.warnings')
+    def setMaxWarning(self, value):
+        if self._pytango_attrinfoex is None:
+            self._pytango_attrinfoex.alarms.max_warning = str(value)
+            self._applyConfig()
+
     # deprecated property!
     unit = property(getUnit, _set_unit)
     climits = property(getCLimits)
     calarms = property(getCAlarms)
     cwarnings = property(getCAlarms)
     cranges = property(getCRanges)
+
+    min_alarm = property(getMinAlarm, setMinAlarm)
+    max_alarm = property(getMaxAlarm, setMaxAlarm)
+    min_warning = property(getMinWarning, setMinWarning)
+    max_warning = property(getMaxWarning, setMaxWarning)
 
     # properties
     label = property(getLabel, setLabel)
