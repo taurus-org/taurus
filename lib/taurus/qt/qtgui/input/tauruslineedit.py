@@ -25,7 +25,7 @@
 
 """This module provides a set of basic taurus widgets based on QLineEdit"""
 
-__all__ = ["TaurusValueLineEdit", "TaurusConfigLineEdit"]
+__all__ = ["TaurusValueLineEdit"]
 
 __docformat__ = 'restructuredtext'
 
@@ -36,7 +36,6 @@ from taurus.external.pint import Quantity
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from taurus.qt.qtgui.util import PintValidator
 from taurus.core import DataType, DataFormat, TaurusEventType
-from taurus.core.taurusattribute import TaurusAttribute
 
 
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
@@ -138,6 +137,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         color, weight = 'black', 'normal'
         v = self.getValue()
         modelObj = self.getModelObj()
+
         if modelObj is None or v is None:
             color = 'gray'
         elif modelObj.type in [DataType.Integer, DataType.Float]:
@@ -281,87 +281,6 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                                        setEnableWheelEvent,
                                        resetEnableWheelEvent)
 
-
-
-class TaurusConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
-    def __init__(self, qt_parent = None, designMode = False):
-        name = self.__class__.__name__
-        self.call__init__wo_kw(Qt.QLineEdit, qt_parent)
-        self.call__init__(TaurusBaseWritableWidget, name, designMode=designMode)
-
-        self.connect(self, Qt.SIGNAL('textChanged(const QString &)'), self.valueChanged)
-        self.connect(self, Qt.SIGNAL('returnPressed()'), self.writeValue)
-        self.connect(self, Qt.SIGNAL('editingFinished()'), self._onEditingFinished)
-
-    def _onEditingFinished(self):
-        if self._autoApply: self.writeValue()
-
-    def handleEvent(self, evt_src, evt_type, evt_value):
-        self.valueChanged()
-
-    def getModelClass(self):
-        return TaurusAttribute
-
-    def setValue(self, v):
-        model = self.getModelObj()
-        cfg = self._configParam
-        if model is None or not cfg:
-            v_str = str(v)
-        else:
-            v_str = str(model.getParam(cfg))
-        self.blockSignals(True)
-        self.setText(v_str.strip())
-        self.blockSignals(False)
-
-    def getValue(self):
-        v_qstr = self.text()
-        model = self.getModelObj()
-        try:
-            return model.encode(v_qstr)
-        except:
-            return None
-
-    def setModel(self, model):
-        model = str(model)
-        try:
-            self._configParam = model[model.rfind('=')+1:].lower()
-        except:
-            self._configParam = ''
-        TaurusBaseWritableWidget.setModel(self,model)
-
-    def valueChanged(self):
-        model = self.getModelObj()
-        if self.getValue() != str(model.getParam(self._configParam)):
-            self.setStyleSheet('TaurusConfigLineEdit {color: %s; font-weight: %s}'%('blue','bold'))
-        else:
-            self.setStyleSheet('TaurusConfigLineEdit {color: %s; font-weight: %s}'%('black','normal'))
-
-    def writeValue(self):
-        model = self.getModelObj()
-        model.setParam(str(self._configParam), str(self.text()))
-        self.setStyleSheet('TaurusConfigLineEdit {color: %s; font-weight: %s}'%('black','normal'))
-
-    @classmethod
-    def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWritableWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.input'
-        ret['icon'] = ":/designer/lineedit.png"
-        return ret
-
-#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # QT properties
-#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
-    model = Qt.pyqtProperty("QString", TaurusBaseWritableWidget.getModel,
-                            setModel, TaurusBaseWritableWidget.resetModel)
-
-    autoApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getAutoApply,
-                                TaurusBaseWritableWidget.setAutoApply,
-                                TaurusBaseWritableWidget.resetAutoApply)
-
-    forcedApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getForcedApply,
-                                  TaurusBaseWritableWidget.setForcedApply,
-                                  TaurusBaseWritableWidget.resetForcedApply)
 
 def main():
     import sys
