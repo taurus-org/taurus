@@ -484,14 +484,15 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
                 modelName = modelClass.buildModelName(parent_model, modelName)
         self._detach()
         self.modelName = modelName
-        self._attach()
-
         # update modelFragmentName
         try:
-            v = self.modelObj.getNameValidator()
+            scheme = self.getTaurusManager().getScheme(modelName)
+            factory = taurus.Factory(scheme)
+            v = factory.getAttributeNameValidator()
             self.modelFragmentName = v.getUriGroups(self.modelName)['fragment']
-        except AttributeError:
+        except (AttributeError, TypeError):
             self.modelFragmentName = None
+        self._attach()
     
     def getModelName(self):
         """Returns the current model name.
