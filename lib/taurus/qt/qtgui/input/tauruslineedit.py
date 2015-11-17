@@ -47,11 +47,6 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.call__init__wo_kw(Qt.QLineEdit, qt_parent)
         self.call__init__(TaurusBaseWritableWidget, name, designMode=designMode)
         self._enableWheelEvent = False
-        self.__minAlarm = None
-        self.__maxAlarm = None
-        self.__minLimit = None
-        self.__maxLimit = None
-        self.__unit = ''
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
@@ -64,14 +59,20 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def _updateValidator(self, value):
         '''This method sets a validator depending on the data type'''
         if isinstance(value.wvalue, Quantity):
-            self.__unit = value.wvalue.units
-            validator = PintValidator(self)
-            validator.setBottom(self.__minLimit)
-            validator.setTop(self.__maxLimit)
-            validator.setUnit(self.__unit)
-            self.setValidator(validator)
-            self.debug("PintValidator set with limits=[%f, %f]",
-                       self.__minLimit, self.__maxLimit)
+            val = self.validator()
+            if not isinstance(val, PintValidator):
+                val = PintValidator(self)
+                self.setValidator(val)
+            attr = self.getModelObj()
+            bottom, top = attr.range
+            if bottom != val.bottom:
+                val.setBottom(bottom)
+            if top != val.top:
+                val.setTop(top)
+            units = value.wvalue.units
+            if units != val.units:
+                val.setUnit(units)
+
         else: #@TODO Other validators can be configured for other types (e.g. with string lengths, tango names,...)
             self.setValidator(None)
             self.debug("Validator disabled")
@@ -100,61 +101,30 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.emitValueChanged()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type == TaurusEventType.Config:
-            attr = self.getModelObj()
-            self.__minAlarm, self.__maxAlarm = attr.alarms
-            self.__minLimit, self.__maxLimit = attr.range
+        if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self._updateValidator(evt_value)
         TaurusBaseWritableWidget.handleEvent(self, evt_src, evt_type, evt_value)
 
-    def __getQuantity(self, v):
-        validator = self.validator()
-        if validator.validate(str(v), 0)[0] != validator.Acceptable:
-            return None
-        try:
-            q = Quantity(v)
-        except:
-            return None
-        if q.dimensionless:
-            q = Quantity(q.magnitude, self.__unit)
-        return q
-
-    def _inAlarm(self, v):
-        try:
-            return v <= self.__minAlarm or v >= self.__maxAlarm
-        except:
-            return True
-
-    def _outOfRange(self, v):
-        try:
-            return self.__minLimit > v or self.__maxLimit < v
-        except:
-            return True
-
     def updateStyle(self):
         TaurusBaseWritableWidget.updateStyle(self)
-        #default case: the value is in normal range with no pending changes
-        color, weight = 'black', 'normal'
-        v = self.getValue()
-        modelObj = self.getModelObj()
 
-        if modelObj is None or v is None:
-            color = 'gray'
-        elif modelObj.type in [DataType.Integer, DataType.Float]:
-            _q = self.__getQuantity(self.text())
-            if self._outOfRange(_q):
-                #the value is invalid and can't be applied
-                color = 'gray'
-            elif self._inAlarm(_q):
-                #the value is valid but in alarm range...
-                color = 'orange'
-                if self.hasPendingOperations():
-                #...and some change is pending
-                    weight = 'bold'
-        elif self.hasPendingOperations():
-            #the value is in valid range with pending changes
-            color, weight= 'blue', 'bold'
-
+        value = self.getValue()
+        if value is None:
+            #invalid value
+            color, weight = 'gray', 'normal'
+        else:
+            # check if there are pending operations
+            if self.hasPendingOperations():
+                color, weight= 'blue', 'bold'
+            else:
+                color, weight = 'black', 'normal'
+            # also check alarms (if applicable)
+            modelObj = self.getModelObj()
+            if modelObj and modelObj.type in [DataType.Integer, DataType.Float]:
+                min_, max_ = modelObj.alarms
+                if value < min_ or value > max_:
+                    color = 'orange'
+        # apply style
         style = 'TaurusValueLineEdit {color: %s; font-weight: %s}' %\
                 (color, weight)
         self.setStyleSheet(style)
@@ -213,33 +183,39 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.setText(v_str)
 
     def getValue(self):
-        value = self.text()
+        text = self.text()
         model_obj = self.getModelObj()
         if model_obj is None:
+            return None
+        val = self.validator()
+        if val is None or val.validate(str(text), 0)[0] != val.Acceptable:
             return None
         try:
             model_type = model_obj.type
             model_format = model_obj.data_format
             if model_type in [DataType.Integer, DataType.Float]:
-                value = self.__getQuantity(value)
+                q = Quantity(text)
+                # allow implicit units (assume wvalue.units implicitly)
+                if q.dimensionless:
+                    q = Quantity(q.magnitude, val.unit)
+                return q
             elif model_type == DataType.Boolean:
                 if model_format == DataFormat._0D:
-                    value = bool(int(eval(value)))
+                    return bool(int(eval(text)))
                 else:
-                    value = numpy.array(eval(value), dtype=int).astype(bool)
+                    return numpy.array(eval(text), dtype=int).astype(bool)
             elif model_type == DataType.String:
                 if model_format == DataFormat._0D:
-                    value = str(value)
+                    return str(text)
                 else:
-                    value = numpy.array(eval(value), dtype=str).tolist()
+                    return numpy.array(eval(text), dtype=str).tolist()
             elif model_type == DataType.Bytes:
-                value = bytes(value)
+                return bytes(text)
             else:
-                self.debug('Unsupported model type "%s"', model_type)
-                value = None
-        except:
-            value = None
-        return value
+                raise TypeError('Unsupported model type "%s"', model_type)
+        except Exception, e:
+            self.warning('Cannot return value for "%s". Reason: %r', text, e)
+            return None
 
     def setEnableWheelEvent(self, b):
         self._enableWheelEvent = b
