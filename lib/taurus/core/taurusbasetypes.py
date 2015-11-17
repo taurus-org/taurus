@@ -66,7 +66,7 @@ TaurusSerializationMode = Enumeration(
 TaurusEventType = Enumeration(
 'TaurusEventType', (
     'Change',
-    'Config',
+    'Config', # Deprecated in Taurus >=4
     'Periodic',
     'Error'
 ))

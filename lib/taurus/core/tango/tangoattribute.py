@@ -490,6 +490,8 @@ class TangoAttribute(TaurusAttribute):
             v = self.read()
             # note: it may seem redundant, but some widgets may only react to
             # one or another type, so we should send both for bck-compat
+            # Taurus4 widgets should never use config events since the same info
+            # is always emitted in a change event
             self.fireEvent(TaurusEventType.Config, v, listener)
             self.fireEvent(TaurusEventType.Change, v, listener)
         except:
