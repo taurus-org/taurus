@@ -71,7 +71,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 val.setTop(top)
             units = value.wvalue.units
             if units != val.units:
-                val.setUnit(units)
+                val.setUnits(units)
 
         else: #@TODO Other validators can be configured for other types (e.g. with string lengths, tango names,...)
             self.setValidator(None)
@@ -197,7 +197,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 q = Quantity(text)
                 # allow implicit units (assume wvalue.units implicitly)
                 if q.dimensionless:
-                    q = Quantity(q.magnitude, val.unit)
+                    q = Quantity(q.magnitude, val.units)
                 return q
             elif model_type == DataType.Boolean:
                 if model_format == DataFormat._0D:

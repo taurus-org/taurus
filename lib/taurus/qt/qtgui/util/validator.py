@@ -30,51 +30,59 @@ class PintValidator(Qt.QValidator):
     """A QValidator for pint Quantities"""
     _top = None
     _bottom = None
-    _unit = UR.parse_units('')
-    _implicit = True
+    _implicit_units = None
 
     @property
     def top(self):
         """
-        :return: (Quantity or None) maximum acceptable or None if it should not
-                 be enforced
+        :return: (Quantity or None) maximum accepted or None if it is not
+                 enforced
         """
         return self._top
 
     def setTop(self, top):
         """
         Set maximum limit
-        :param top: (Quantity or None) maximum acceptable value
+
+        :param top: (Quantity or None) maximum acceptable value or None if it is
+                    not to be enforced
         """
         self._top = Quantity(top)
 
     @property
-    def unit(self):
+    def units(self):
         """
-        :return: (str or None) base units or None if it should not
+        :return: (pint.Unit or None) base units or None if it should not
                  be enforced
         """
-        return self._unit
+        return self._implicit_units
 
-    def setUnit(self, unit):
+    def setUnits(self, units):
         """
-        Set base unit
-        :param unit: (str or None) str unit representation.
+        Set implicit units. They will be assumed when the text does not explicit
+        the unit. They will also be used for dimensionality coherence checks.
+
+        :param units: (pint.Unit or None). The implicit unit. If None, implicit
+                      dimension is "dimensionless" and no dimensionality checks
+                      will be performed (other than those inherent to range
+                      enforcement)
         """
-        self._unit = unit
+        self._implicit_units = units
 
     @property
     def bottom(self):
         """
-        :return: (Quantity or None) minimum acceptable or None if it should not
-                 be enforced
+        :return: (Quantity or None) minimum accepted or None if it is not
+                 enforced
         """
         return self._bottom
 
     def setBottom(self, bottom):
         """
         Set minimum limit
-        :param bottom: (Quantity or None) minimum acceptable value
+
+        :param bottom: (Quantity or None) minimum acceptable value or None if it
+                       is not to be enforced
         """
         self._bottom = Quantity(bottom)
 
@@ -87,10 +95,13 @@ class PintValidator(Qt.QValidator):
             q = Quantity(input)
         except:
             return Qt.QValidator.Intermediate, input, pos
-        if q.dimensionless and self._implicit:
-            q = Quantity(q.magnitude, self._unit)
-        if self._unit.dimensionality != q.dimensionality:
-            return Qt.QValidator.Intermediate, input, pos
+        if self._implicit_units is not None:
+            if q.dimensionless:
+                # "cast" to implicit units
+                q = Quantity(q.magnitude, self.units)
+            # check coherence with implicit units
+            elif self._implicit_units.dimensionality != q.dimensionality:
+                return Qt.QValidator.Intermediate, input, pos
         try:
             if self.bottom is not None and q < self.bottom:
                 return Qt.QValidator.Intermediate, input, pos

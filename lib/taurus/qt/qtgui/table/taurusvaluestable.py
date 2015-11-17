@@ -549,7 +549,7 @@ class TableInlineEdit(Qt.QLineEdit):
             validator = PintValidator()
             validator.setBottom(self._min_range)
             validator.setTop(self._max_range)
-            validator.setUnit(self._default_unit)
+            validator.setUnits(self._default_unit)
             self.setValidator(validator)
         else:
             self.setValidator(None)
