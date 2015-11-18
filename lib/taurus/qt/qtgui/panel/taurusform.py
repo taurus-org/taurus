@@ -471,11 +471,10 @@ class TaurusForm(TaurusWidget):
         keys = ['{attr.label}', '{attr.name}', '{attr.fullname}', '{dev.name}',
                 '{dev.fullname}']
             
-        msg = 'Choose new source for the label. \n'+\
-              'You can also write a more complex text using Python format ' \
-              'string syntax. Where "dev." is the string that represent the ' \
-              'access point of the TaurusDevice, and "attr." is used for ' \
-              'the TaurusAttribute'
+        msg = 'Choose the label format. \n'+ \
+              'You may use Python format() syntax. The TaurusDevice object\n'+ \
+              'can be referenced as "dev" and the TaurusAttribute object\n'+ \
+              'as "attr"'
         labelConfig, ok = Qt.QInputDialog.getItem(self, 'Change Label', msg,
                                                   keys, 0, True)
         if ok:

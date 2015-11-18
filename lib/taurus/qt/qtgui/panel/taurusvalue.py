@@ -102,37 +102,23 @@ class DefaultLabelWidget(TaurusLabel):
             TaurusLabel.setModel(self, None)
             self.setText(devName)
 
+    _BCK_COMPAT_TAGS = {'<attr_name>':'{attr.name}',
+                        '<attr_fullname>':'{attr.fullname}',
+                        '<dev_alias>':'{dev.name}',
+                        '<dev_name>':'{dev_name}',
+                        '<dev_fullname>':'{dev.fullname}',
+                        }
     def getDisplayValue(self, cache=True, fragmentName=None):
         if self.modelObj is None or fragmentName is None:
             return self.getNoneValue()
-        fragmentName = self._parseLabel(fragmentName)
+        # support bck-compat tags
+        for old in re.findall('<.+?>', fragmentName):
+            new = self._BCK_COMPAT_TAGS.get(old, '{attr.%s}' % old)
+            self.deprecated(dep=old, alt=new)
+            fragmentName = fragmentName.replace(old, new)
         attr = self.getModelObj()
         dev = attr.getParent()
         return fragmentName.format(dev=dev, attr=attr)
-
-    def _parseLabel(self, label):
-        fragments = re.findall('<.+>', label)
-        attr = self.getModelObj()
-        dev = attr.getParent()
-        if label.find('{dev.alias}') != -1:
-            self.deprecated(dep='{dev.alias}', alt='{dev.name}')
-            label = label.replace('{dev.alias}', '{dev.name}')
-        for fragment in fragments:
-            if fragment == '<attr_name>':
-                label = label.replace('<attr_name>', '{attr.name}')
-            elif fragment == '<attr_fullname>':
-                label = label.replace('<attr_fullname>', '{attr.fullname}')
-            elif fragment == '<dev_alias>':
-                self.deprecated(dep='<dev_alias>', alt='{dev.name}')
-                label = label.replace('<dev_alias>', '{dev.name}')
-            elif fragment == '<dev_name>':
-                label = label.replace('<dev_name>', '{dev.name}')
-            elif fragment == '<dev_fullname>':
-                label = label.replace('<dev_fullname>', '{dev.fullname}')
-            else:
-                label = label.replace(fragment,
-                                      '{attr.%s}' %(fragment.strip('<>')))
-        return label
 
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
@@ -605,11 +591,10 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             current= len(keys)
             keys.append(self.labelConfig)
             
-        msg = 'Choose new source for the label. \n'+\
-              'You can also write a more complex text using Python format ' \
-              'string syntax. Where "dev." is the string that represent the ' \
-              'access point of the TaurusDevice, and "attr." is used for ' \
-              'the TaurusAttribute'
+        msg = 'Choose the label format. \n'+ \
+              'You may use Python format() syntax. The TaurusDevice object\n'+ \
+              'can be referenced as "dev" and the TaurusAttribute object\n'+ \
+              'as "attr"'
 
         labelConfig, ok = Qt.QInputDialog.getItem(self, 'Change Label', msg,
                                                   keys, current, True)
