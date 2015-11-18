@@ -120,8 +120,15 @@ def get_White_palette():
 # TaurusDevicePanel class
 
 class TaurusDevicePanel(TaurusWidget):
-     # TODO: Tango-centric (This whole class should be called TangoDevicePanel)
-     # TODO: a scheme-agnostic base class should be implemented
+    '''
+    TaurusDevPanel is a Taurus Application inspired in Jive and Atk Panel.
+
+    It Provides a Device selector and a panel for displaying information from
+    the selected device.
+    '''
+    # TODO: Tango-centric (This whole class should be called TangoDevicePanel)
+    # TODO: a scheme-agnostic base class should be implemented
+    
     READ_ONLY = False
     _attribute_filter = {} #A dictionary like {device_regexp:[attribute_regexps]}
     _command_filter = {} #A dictionary like {device_regexp:[(command_regexp,default_args)]}

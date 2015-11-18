@@ -41,7 +41,7 @@ at Taurus installation time.
 .. _standalonetaurusform:
 
 TaurusForm as a stand-alone application
------------------------------------------
+---------------------------------------
 
 You may also use TaurusForm as a stand-alone application for controlling some 
 attributes or devices from the control system. You can launch the stand-alone TaurusForm
@@ -49,29 +49,13 @@ with the following command::
 
     taurusform [options] [<model_list>]
     
-Options::
+Run the following command for more details::
 
-  -h, --help            show this help message and exit
-  --version             show program's version number and exit
-
-  Taurus Options:
-    Basic options present in any taurus application
-
-    --taurus-log-level=LEVEL
-                        taurus log level. Allowed values are (case
-                        insensitive): critical, error, warning/warn, info,
-                        debug, trace
-    --taurus-polling-period=MILLISEC
-                        taurus global polling period in milliseconds
-    --taurus-serialization-mode=SERIAL
-                        taurus serialization mode. Allowed values are (case
-                        insensitive): serial, concurrent (default)
-    --tango-host=TANGO_HOST
-                        Tango host name
+    taurusform --help
 
 The model list is optional and is a space-separated list of models for
 TaurusForm. Valid models are: attribute names, device names or alias. See
-:class:`TaurusForm` API for more information about valid models
+:class:`TaurusForm` API for more information about valid models.
 
 The widgets used for different types of attributes and devices
 ---------------------------------------------------------------
@@ -104,7 +88,6 @@ that device.
 For an example on how a custom widget can be used for a certain type of device,
 see the :class:`taurus.qt.qtgui.extra_pool.PoolChannelTV` or
 :class:`taurus.qt.qtgui.extra_pool.PoolMotorTV` widgets.
-
 
 Changing the contents of a form
 -------------------------------

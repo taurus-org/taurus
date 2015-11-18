@@ -56,7 +56,7 @@ ORGANIZATION = 'Taurus'
 # You can provide an URI for a manual in html format
 # (comment out or make MANUAL_URI=None to skip creating a Manual panel) 
 #===============================================================================
-MANUAL_URI = 'http://packages.python.org/taurus'
+MANUAL_URI = 'http://www.taurus-scada.org'
 
 #===============================================================================
 # If you want to have a main synoptic panel, set the SYNOPTIC variable

@@ -17,8 +17,12 @@ User's Interface
     Images <taurusimage>
     Array Editor <arrayeditor>
     Synoptics <synoptics>
+    TaurusPanel & TaurusDevicePanel <devpanels>
     Macros <macros/index>
     TaurusGui <taurusgui>
+    TaurusDemo <taurusdemo>
+    Logs <logs>
+    Configurations <configurations>
     Experiment Configuration <experimentconfiguration>
     Sardana Editor <sardanaeditor>
     
@@ -30,4 +34,3 @@ with taurus. This is done from the GUI user point of view (not for developers).
 For a detailed list of features of each widget, please refer to the
 :ref:`developers-guide-index`
 
-    

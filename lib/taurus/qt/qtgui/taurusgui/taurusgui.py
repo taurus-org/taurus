@@ -995,11 +995,13 @@ class TaurusGui(TaurusMainWindow):
 
 
         #manual panel
-        MANUAL_URI = getattr(conf, 'MANUAL_URI', self.__getVarFromXML(xmlroot, "MANUAL_URI", None))
-        if MANUAL_URI is not None:
-            self.setHelpManualURI(MANUAL_URI)
-            self.createPanel(self.helpManualBrowser, 'Manual', permanent=True,
-                             icon=getThemeIcon('help-browser'))
+        MANUAL_URI = getattr(conf, 'MANUAL_URI',
+                             self.__getVarFromXML(xmlroot, "MANUAL_URI",
+                                                  taurus.Release.url))
+        self.setHelpManualURI(MANUAL_URI)
+
+        self.createPanel(self.helpManualBrowser, 'Manual', permanent=True,
+                         icon=getThemeIcon('help-browser'))
 
         #configure the macro infrastructure
         MACROSERVER_NAME = getattr(conf, 'MACROSERVER_NAME', self.__getVarFromXML(xmlroot, "MACROSERVER_NAME", None))
