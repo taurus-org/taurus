@@ -439,11 +439,19 @@ class TaurusAttribute(TaurusModel):
 
     @property
     def time(self, cache=True):
-        return self.read(cache).time
+        valueObj = self.getValueObj()
+        if valueObj is None:
+            return None
+        else:
+            return valueObj.time
 
     @property
     def quality(self, cache=True):
-        return self.read(cache).quality
+        valueObj = self.getValueObj()
+        if valueObj is None:
+            return None
+        else:
+            return valueObj.quality
 
     label = property(getLabel, setLabel)
     range = property(getRange, setRange)
