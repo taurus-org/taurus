@@ -178,7 +178,18 @@ class ExpandingLabel(TaurusLabel):
     def __init__(self, *args):
         TaurusLabel.__init__(self, *args)
         self.setSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Preferred)
-        self.setFgRole('rvalue')
+
+class DefaultReadWidgetLabel(ExpandingLabel):
+    """A customised label for the read widget"""
+    def setModel(self, m):
+        TaurusLabel.setModel(self, m)
+        fgrole = 'rvalue'
+        model_obj = self.getModelObj()
+        if model_obj is None:
+            return
+        if model_obj.getType() in (DataType.Integer,DataType.Float):
+            fgrole += '.magnitude'
+        self.setFgRole(fgrole)
 
 
 class CenteredLed(TaurusLed):
@@ -454,8 +465,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         '''
         modelobj = self.getModelObj()
         if modelobj is None: 
-            if returnAll: return [ExpandingLabel]
-            else: return ExpandingLabel
+            if returnAll: return [DefaultReadWidgetLabel]
+            else: return DefaultReadWidgetLabel
         
         modeltype = self.getModelType()
         if  modeltype == TaurusElementType.Attribute:
@@ -463,32 +474,32 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             #print "---------ATTRIBUTE OBJECT:----------\n",modelobj.read()
             try:
                 if modelobj.isBoolean():
-                    result = [CenteredLed, ExpandingLabel]
+                    result = [CenteredLed, DefaultReadWidgetLabel]
             except:
                 pass
             if modelobj.data_format == DataFormat._0D:
                 if  modelobj.type == DataType.Boolean:
-                    result = [CenteredLed, ExpandingLabel]
+                    result = [CenteredLed, DefaultReadWidgetLabel]
                 elif modelobj.type == DataType.DevState:
-                    result = [CenteredLed, ExpandingLabel]
+                    result = [CenteredLed, DefaultReadWidgetLabel]
                 elif str(self.getModel()).lower().endswith('/status'): #@todo: tango-centric!!
-                    result = [TaurusStatusLabel, ExpandingLabel]
+                    result = [TaurusStatusLabel, DefaultReadWidgetLabel]
                 else:
-                    result = [ExpandingLabel]
+                    result = [DefaultReadWidgetLabel]
             elif modelobj.data_format == DataFormat._1D:
                 if modelobj.type in (DataType.Float, DataType.Integer):
-                    result = [TaurusPlotButton, TaurusValuesTableButton, ExpandingLabel]
+                    result = [TaurusPlotButton, TaurusValuesTableButton, DefaultReadWidgetLabel]
                 else:
-                    result = [TaurusValuesTableButton, ExpandingLabel]
+                    result = [TaurusValuesTableButton, DefaultReadWidgetLabel]
             elif modelobj.data_format == DataFormat._2D:
                 if modelobj.type in (DataType.Float, DataType.Integer):
                     try: 
                         from taurus.qt.qtgui.extra_guiqwt import TaurusImageDialog #unused import but useful to determine if TaurusImageButton should be added
-                        result = [TaurusImageButton, TaurusValuesTableButton, ExpandingLabel]
+                        result = [TaurusImageButton, TaurusValuesTableButton, DefaultReadWidgetLabel]
                     except ImportError:
-                        result = [TaurusValuesTableButton, ExpandingLabel]
+                        result = [TaurusValuesTableButton, DefaultReadWidgetLabel]
                 else:
-                    result = [TaurusValuesTableButton, ExpandingLabel]
+                    result = [TaurusValuesTableButton, DefaultReadWidgetLabel]
             else:
                 self.warning('Unsupported attribute type %s' % modelobj.type)
                 result = None
