@@ -62,8 +62,6 @@ def get_release_info():
 
 Release = get_release_info()
 
-author = Release.authors['Tiago']
-maintainer = Release.authors['Pascual-Izarra']
 
 package_dir = { 'taurus' : abspath('lib', 'taurus') }
 
@@ -1128,10 +1126,9 @@ def main():
           version=Release.version,
           description=Release.description,
           long_description=Release.long_description,
-          author=author[0],
-          author_email=author[1],
-          maintainer=maintainer[0],
-          maintainer_email=maintainer[1],
+          author=Release.authors['Tiago_et_al'][0],
+          maintainer=Release.authors['Community'][0],
+          maintainer_email=Release.authors['Community'][1],
           url=Release.url,
           download_url=Release.download_url,
           platforms=Release.platforms,

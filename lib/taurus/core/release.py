@@ -43,7 +43,7 @@ Release data for the taurus project. It contains the following members:
 
 
 
-# Name of the package for release purposes.  This is the name which labels
+# Name of the package for release purposes. This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'taurus'
 
@@ -66,9 +66,10 @@ New control system libraries can be integrated through plugins."""
 
 license = 'LGPL'
 
-authors = {'Tiago'          : ('Tiago Coutinho','tiago.coutinho@esrf.fr'),
-           'Pascual-Izarra' : ('Carlos Pascual-Izarra','cpascual@cells.es'),
-           'Reszela'        : ('Zbigniew Reszela','zreszela@cells.es') }
+authors = {'Tiago_et_al': ('Tiago Coutinho et al.', ''),
+           'Community': ('Taurus Community',
+                         'tauruslib-devel@lists.sourceforge.net'),
+           }
             
 
 url = 'http://www.taurus-scada.org'
