@@ -189,11 +189,12 @@ requires = [
     #########################################################################
     # TODO: if using setuptools, the following can be moved to extra_requires 
     'PyTango (>=7.1)', # [Taurus-Tango]
-    'PyQt4 (>=4.4)', # [Taurus-Qt]
+    'PyQt4 (>=4.8)', # [Taurus-Qt]
     'PyQt4.Qwt5 (>=5.2.0)',  # [Taurus-Qt-Plot]
     'ply (>=2.3)', # [Taurus-Qt-Synoptic]
     'lxml (>=2.1)', #  [Taurus-TaurusGUI]
     'spyder (>=2.2)', # [Taurus-Editor] --> or maybe move it to sardana
+    # Consider also guiqwt, guidata, PyMca,...
     #
     #########################################################################
 ]
@@ -277,6 +278,7 @@ classifiers = [
     'Operating System :: Unix',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
+    'Programming Language :: Python :: 2.7',
     'Topic :: Scientific/Engineering',
     'Topic :: Software Development :: Libraries',
     'Topic :: Software Development :: User Interfaces',
