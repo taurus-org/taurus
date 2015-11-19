@@ -39,8 +39,8 @@ from taurus.core.taurusbasetypes import TaurusDevState, TaurusElementType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
-from taurus.qt.qtgui.display import TaurusValueLabel as LABEL_CLASS #@todo: TaurusValueLabel is deprecated. Use TaurusLabel instead
-from taurus.qt.qtgui.display import TaurusStateLed as LED_CLASS #@todo: TaurusStateLed is deprecated. Use TaurusLed instead
+from taurus.qt.qtgui.display import TaurusLabel
+from taurus.qt.qtgui.display import TaurusLed
 from taurus.qt.qtgui.panel.taurusform import TaurusForm
 from taurus.qt.qtgui.panel.taurusform import TaurusCommandsForm
 from taurus.qt.qtgui.util.ui import UILoadable
@@ -192,18 +192,17 @@ class TaurusDevicePanel(TaurusWidget):
         self._stateframe = TaurusWidget(self)
         self._stateframe.setLayout(Qt.QGridLayout())
         self._stateframe.layout().addWidget(Qt.QLabel('State'),0,0,Qt.Qt.AlignCenter)
-        self._statelabel = LABEL_CLASS(self._stateframe)
+        self._statelabel = TaurusLabel(self._stateframe)
         self._statelabel.setMinimumWidth(100)        
-        self._statelabel.setShowQuality(False)
-        self._statelabel.setShowState(True)
+        self._statelabel.setBgRole('state')
         self._stateframe.layout().addWidget(self._statelabel,0,1,Qt.Qt.AlignCenter)
-        self._state = LED_CLASS(self._stateframe)
+        self._state = TaurusLed(self._stateframe)
         self._state.setShowQuality(False)
         self._stateframe.layout().addWidget(self._state,0,2,Qt.Qt.AlignCenter)        
         
         self._statusframe = Qt.QScrollArea(self)
-        self._status = LABEL_CLASS(self._statusframe)
-        self._status.setShowQuality(False)
+        self._status = TaurusLabel(self._statusframe)
+        self._status.setBgRole('none')
         self._status.setAlignment(Qt.Qt.AlignLeft)
         self._status.setFixedHeight(2000)
         self._status.setFixedWidth(5000)
@@ -453,7 +452,7 @@ class TaurusDevPanel(TaurusMainWindow):
         self._ui.taurusCommandsForm.recheckTaurusParent()
         
         #Add StateLed to statusBar
-#        self.devStateLed = TaurusStateLed()
+#        self.devStateLed = TaurusLed()
 #        self.statusbar.addPermanentWidget(self.devStateLed)
 #        self.devStateLed.setModel('/state')
 #        self.devStateLed.setUseParentModel(True)

@@ -31,7 +31,7 @@ __all__ = ["TaurusLabelEditRW", "TaurusLabelEditRW"]
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.display import TaurusLabel, TaurusBoolLed
+from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
 from taurus.qt.qtgui.input import TaurusValueLineEdit, TaurusValueCheckBox
 from abstractswitcher import TaurusReadWriteSwitcher
 
@@ -41,8 +41,8 @@ class TaurusLabelEditRW(TaurusReadWriteSwitcher):
     writeWClass = TaurusValueLineEdit 
         
 class TaurusBoolRW(TaurusReadWriteSwitcher):
-    '''A Switcher combining a TaurusBoolLed and a TaurusValueCheckBox'''
-    readWClass = TaurusBoolLed
+    '''A Switcher combining a TaurusLed and a TaurusValueCheckBox'''
+    readWClass = TaurusLed
     writeWClass = TaurusValueCheckBox
     
     def setWriteWidget(self, widget):

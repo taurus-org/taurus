@@ -11,7 +11,7 @@ You can do it right after calling the setupUi method.
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
-from taurus.qt.qtgui.display import TaurusValueLabel
+from taurus.qt.qtgui.display import TaurusLabel
 import sys
 
 app = Qt.QApplication(sys.argv)
@@ -25,7 +25,7 @@ app = Qt.QApplication(sys.argv)
 
 p = TaurusWidget()     #Taurus parent
 m = Qt.QWidget()    #midle widget (non Taurus)
-c = TaurusValueLabel() #Taurus child
+c = TaurusLabel() #Taurus child
 
 ##here we call setUseParentModel before the parent is known!
 

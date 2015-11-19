@@ -1,16 +1,16 @@
 import sys
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
-from taurus.qt.qtgui.display import TaurusValueLabel, TaurusConfigLabel
+from taurus.qt.qtgui.display import TaurusLabel
 
 app = Qt.QApplication(sys.argv)
 panel = TaurusWidget()
 layout = Qt.QVBoxLayout()
 panel.setLayout(layout)
 panel.setModel('sys/taurustest/1')
-w1 = TaurusValueLabel()
-w2 = TaurusValueLabel()
-w3 = TaurusValueLabel()
+w1 = TaurusLabel()
+w2 = TaurusLabel()
+w3 = TaurusLabel()
 w1.setUseParentModel(True)
 w2.setUseParentModel(True)
 w3.setUseParentModel(True)

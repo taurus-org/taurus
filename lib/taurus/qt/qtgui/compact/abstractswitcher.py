@@ -349,7 +349,7 @@ def demo3():
     
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.display import TaurusLabel, TaurusBoolLed
+    from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
     from taurus.qt.qtgui.input import TaurusValueLineEdit, TaurusValueCheckBox
     
     app = TaurusApplication()
@@ -358,7 +358,7 @@ def demo3():
                                 writeWClass=TaurusValueLineEdit)
     w1.model = "sys/tg_test/1/long_scalar"
     
-    w2 = TaurusReadWriteSwitcher(readWClass=TaurusBoolLed, 
+    w2 = TaurusReadWriteSwitcher(readWClass=TaurusLed,
                                 writeWClass=TaurusValueCheckBox)
     w2.model = "sys/tg_test/1/boolean_scalar"
     

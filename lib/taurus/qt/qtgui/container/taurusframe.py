@@ -44,10 +44,10 @@ class TaurusFrame(Qt.QFrame, TaurusBaseContainer):
         from taurus.qt.qtgui.display import *
         
         widget = TaurusFrame()
-        layout = Qt.QBoxLayout()
+        layout = Qt.QVBoxLayout()
         widget.setLayout(layout)
         widget.model = 'sys/database/2'
-        stateWidget = TaurusValueLabel()
+        stateWidget = TaurusLabel()
         layout.addWidget(stateWidget)
         stateWidget.useParentModel = True
         stateWidget.model = '/state'"""

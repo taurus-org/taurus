@@ -35,10 +35,5 @@ from .qled import *
 from .qlogo import *
 from .qsevensegment import *
 from .tauruslabel import *
-from .taurusvaluelabel import * # deprecated
-from .taurusconfiglabel import * # deprecated
 from .taurusled import *
-from .taurusboolled import * # deprecated
-from .taurusstateled import * # deprecated
 from .tauruslcd import *
-from .tauruslcdvalue import * # deprecated

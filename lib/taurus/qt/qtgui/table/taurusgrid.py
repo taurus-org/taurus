@@ -51,8 +51,6 @@ from taurus.core.taurusmanager import TaurusManager
 from taurus.core.util.log import Logger
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.panel import TaurusValue
-from taurus.qt.qtgui.display import TaurusValueLabel,TaurusStateLabel
-from taurus.qt.qtgui.input import TaurusValueLineEdit
 
 metachars = re.compile('([.][*])|([.][^*])|([$^+\-?{}\[\]|()])')
 
