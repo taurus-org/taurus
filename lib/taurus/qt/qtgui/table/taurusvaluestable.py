@@ -61,6 +61,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
     # Need to have an array
     def __init__(self, size, parent=None):
         Qt.QAbstractTableModel.__init__(self, parent)
+        self._parent = parent
         self._rtabledata = []
         self._wtabledata = []
         self._rowCount = size [0]
@@ -88,7 +89,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             self._columnCount = 1
         return self._columnCount
     
-    def data(self, index, role = Qt.Qt.DisplayRole):
+    def data(self, index, role=Qt.Qt.DisplayRole):
         '''see :meth:`Qt.QAbstractTableModel.data`'''
         if self._writeMode == False:
             tabledata = self._rtabledata
@@ -100,21 +101,23 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             value = None
             rc = (index.row(), index.column())
             if self._writeMode and rc in self._modifiedDict:
-                return self._modifiedDict[rc]
+                if self.getAttr().type in [DataType.Integer, DataType.Float]:
+                    return str(self._modifiedDict[rc])
+                else:
+                    return self._modifiedDict[rc]
             else:
                 value = tabledata[rc]
+                if isinstance(value, Quantity):
+                    value = value.magnitude
             #cast the value to a standard python type
             value = self.typeCastingMap[tabledata.dtype.kind](value)
             return Qt.QVariant(value)
         elif role == Qt.Qt.DecorationRole:
-            status = self.getStatus(index)
             if (self._modifiedDict.has_key((index.row(), index.column()))) and\
                     (self._writeMode):
-                if self.getAttr().getType in [DataType.Integer, DataType.Float]:
-                    units = self.getAttr().rvalue.units
+                if self.getAttr().type in [DataType.Integer, DataType.Float]:
                     value = self._modifiedDict[(index.row(), index.column())]
-                    q = _value2Quantity(value, units)
-                    if not self.inAlarmRange(q):
+                    if not self.inAlarmRange(value):
                         icon = getThemeIcon('document-save')
                     else:
                         icon = getThemeIcon('emblem-important')
@@ -127,7 +130,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                     (self._writeMode):
                 value = self._modifiedDict[(index.row(), index.column())]
             else:
-                value = tabledata[index.row(),index.column()]
+                value = tabledata[index.row(), index.column()]
                 if tabledata.dtype == bool:
                     value = bool(value)
             return Qt.QVariant(value)
@@ -139,11 +142,9 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         elif role == Qt.Qt.ForegroundRole:
             if self._modifiedDict.has_key((index.row(), index.column())) and\
                     (self._writeMode):
-                if self.getAttr().getType in [DataType.Integer, DataType.Float]:
-                    units = self.getAttr().rvalue.units
+                if self.getAttr().type in [DataType.Integer, DataType.Float]:
                     value = self._modifiedDict[(index.row(), index.column())]
-                    q = _value2Quantity(value, units)
-                    if not self.inAlarmRange(q):
+                    if not self.inAlarmRange(value):
                         return Qt.QVariant(Qt.QColor('blue'))
                     else:
                         return Qt.QVariant(Qt.QColor('orange'))
@@ -157,12 +158,9 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         elif role == Qt.Qt.ToolTipRole:
             if self._modifiedDict.has_key((index.row(), index.column())) and\
                     (self._writeMode):
-                units = self.getAttr().rvalue.units
-                value = self._modifiedDict[(index.row(), index.column())]
-                q = _value2Quantity(value, units)
-                value = q.to(units).magnitude
-                msg = 'Original value: %d.\nNew value that will be saved: %d' %\
-                      (tabledata[index.row(), index.column()], value)
+                value = str(self._modifiedDict[(index.row(), index.column())])
+                msg = 'Original value: %s.\nNew value that will be saved: %s' %\
+                      (str(tabledata[index.row(), index.column()]), value)
                 return Qt.QVariant(msg)
         return Qt.QVariant()
 
@@ -177,14 +175,13 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         '''
         self._attr = attr
         rvalue = attr.rvalue
-        if isinstance(rvalue, Quantity):
-            rvalue = rvalue.magnitude
-        values = numpy.array(rvalue)
+        if attr.type not in [DataType.Float, DataType.Integer]:
+            rvalue = numpy.array(attr.rvalue)
         #reshape the table
         if attr.data_format == DataFormat._1D:
-            rows, columns = values.size, 1
+            rows, columns = len(rvalue), 1
         elif attr.data_format == DataFormat._2D:
-            rows, columns = values.shape
+            rows, columns = numpy.shape(rvalue)
         else:
             raise TypeError('Unsupported data format "%s"'%repr(attr.data_format))
         
@@ -193,10 +190,11 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         
         self._rowCount = rows
         self._columnCount = columns
-        values = values.reshape(rows, columns) #make sure it is in matrix form (not a vector)
-        self._rtabledata = values
+        rvalue = rvalue.reshape(rows, columns)
+        self._rtabledata = rvalue
         self._editable = False
-        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),self.createIndex(0,0), self.createIndex(rows-1,columns-1))
+        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                  self.createIndex(0, 0), self.createIndex(rows-1, columns-1))
 
     def getStatus(self, index):
         '''
@@ -222,15 +220,16 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         '''
         rtable_value = self._rtabledata[index.row()][index.column()]
         if self._attr.getType() in [DataType.Float, DataType.Integer]:
-            units = self._attr.rvalue.units
-            rvalue = _value2Quantity(rtable_value, units)
-            wvalue = _value2Quantity(value, units).to(units)
-            equals = numpy.allclose(rvalue, wvalue)
+            units = self._parent.getCurrentUnits()
+            value = _value2Quantity(value, units)
+            equals = numpy.allclose(rtable_value, value.to(units))
         else:
             equals = bool(rtable_value == value)
         if not equals:
             self._modifiedDict[(index.row(), index.column())] = value
-        
+        else:
+            self.removeValue(index)
+
     def removeValue(self, index):
         '''
         Removes index from dictionary
@@ -263,18 +262,17 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 table[r][c] = Qt.from_qvariant(v, str)
             table = numpy.array(table)
         else:
-            if self._attr.getType() in [DataType.Integer, DataType.Float]:
-                units = self._attr.rvalue.units
             for k,v in self._modifiedDict.items():
                 if kind in ['f', 'i', 'u']:
+                    units = self._parent.getCurrentUnits()
                     q = _value2Quantity(v, units)
-                    # get the quantity in the base unit
-                    qvalue = q.to(units).magnitude
-                    #TODO With the quantity and the convertion to the base
-                    #  magnitude we lost the integer values.
-                    table[k] = qvalue
+                    table[k] = q
                 elif kind == 'b':
-                    table[k] = Qt.from_qvariant(v, bool)
+                    # TODO: This does not work Qt.from_qvariant(v, bool)
+                    if str(v) == "true":
+                        table[k] = True
+                    else:
+                        table[k] = False
                 else:
                     raise TypeError('Unknown data type "%s"'%kind)
         #reshape if needed
@@ -330,22 +328,30 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         if isWrite and not self.isDirty() and self._attr is not None:
             #refresh the write data (unless it is dirty)
             wvalue = self._attr.wvalue
-            if isinstance(wvalue, Quantity):
-                wvalue = wvalue.magnitude
-            wvalues = numpy.array(wvalue)
             #reshape the table
+            if self._attr.type == DataType.String:
+                wvalue = numpy.array(wvalue)
             if self._attr.data_format == DataFormat._1D:
-                rows, columns = wvalues.size, 1
+                rows, columns = numpy.shape(wvalue)[0], 1
+                if rows == 0:
+                    # TODO: Ask to the user for a default shape
+                    rows = 3
             elif self._attr.data_format == DataFormat._2D:
-                rows, columns = wvalues.shape
+                try:
+                    rows, columns = numpy.shape(wvalue)
+                except ValueError:
+                    # TODO: Ask to the user for a default shape
+                    rows = 3
+                    columns = 3
+                    wvalue = numpy.array((rows, columns))
             else:
                 self.warning('unsupported data format %s' %\
                              str(wvalue.data_format))
-            wvalues = wvalues.reshape(rows,columns)
+            wvalue = wvalue.reshape(rows, columns)
             #In version 4.6 of Qt when whole table is updated it is recommended to use beginReset()
-            self._wtabledata = wvalues
+            self._wtabledata = wvalue
         self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  self.createIndex(0,0), self.createIndex(self.rowCount()-1,
+                  self.createIndex(0, 0), self.createIndex(self.rowCount()-1,
                                                           self.columnCount()-1))
     
     def getModifiedDict(self):
@@ -367,7 +373,8 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
 
 
 class TaurusValuesIOTable(Qt.QTableView):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
+        self._parent = parent
         name = self.__class__.__name__
         Qt.QTableView.__init__(self, parent)
         self._showQuality = True
@@ -382,7 +389,7 @@ class TaurusValuesIOTable(Qt.QTableView):
     # TaurusBaseWidget overwriting
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
         
-    def setModel(self,shape):
+    def setModel(self, shape):
         '''
         Creates an instance of QTableModel and sets a QT model.
            
@@ -421,12 +428,18 @@ class TaurusValuesIOTable(Qt.QTableView):
         buttonBox.layout().addWidget(l,1,0)
         buttonBox.layout().addWidget(Qt.QLabel('- value is in alarm range and will be saved if changes will be accepted'),1,1)
         buttonBox.exec_()
-    
+
+    def getCurrentUnits(self):
+        try:
+            return str(self._parent._units.currentText())
+        except:
+            return ''
 
 class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         Qt.QStyledItemDelegate.__init__(self, parent)
+        self._parent = parent
         self._initialText = ""
     
     def createEditor(self,parent,option,index):
@@ -456,20 +469,23 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
             editor.addItems(['true', 'false'])
             a = str(Qt.from_qvariant(index.data(), bool)).lower()
             self._initialText = a
+
             editor.setCurrentIndex(editor.findText(a))
         else:
             data = index.model().data(index, Qt.Qt.EditRole)
             self._initialText = Qt.from_qvariant(data, str)
             editor.setText(str(self._initialText))
-    
-    def setModelData(self, editor, model,index):
+
+    def setModelData(self, editor, model, index):
         '''
         see :meth:`Qt.QStyledItemDelegate.setModelData`
         '''
         #if editor text changed, then don't mark as updated.
+        isNumeric = False
         try:
-            units = model.getAttr().rvalue.units
+            units = self._parent.getCurrentUnits()
             q = _value2Quantity(editor.text(), units)
+            isNumeric = True
             if not model.inRange(q):
                 return
         except:
@@ -477,9 +493,11 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         if index.model().getType() == bool:
             text = editor.currentText()
         else:
-            text = editor.text()
-
-        text = str(text)
+            if isNumeric:
+                text = q
+            else:
+                text = editor.text()
+            text = str(text)
         if(text != self._initialText) & (text != ""):
             model.addValue(index, Qt.QVariant(text))
             hh = self.parent().horizontalHeader()
@@ -545,7 +563,6 @@ class TableInlineEdit(Qt.QLineEdit):
             self._min_range, self._max_range = attr.range
             self._min_alarm, self._max_alarm = attr.alarms
             self._default_unit = attr.wvalue.units
-
             validator = PintValidator()
             validator.setBottom(self._min_range)
             validator.setTop(self._max_range)
@@ -556,7 +573,7 @@ class TableInlineEdit(Qt.QLineEdit):
     
     def __decimalDigits(self, fmt):
         '''returns the number of decimal digits from a format string
-        (or None if they are not defined)''' 
+        (or None if they are not defined)'''
         try:
             if fmt[-1].lower() in ['f','g'] and '.' in fmt:
                 return int(fmt[:-1].split('.')[-1])
@@ -576,7 +593,7 @@ class TaurusValuesTable(TaurusWidget):
     def __init__(self, parent = None, designMode = False,
                  defaultWriteMode=None):
         TaurusWidget.__init__(self, parent = parent, designMode = designMode)
-        self._tableView = TaurusValuesIOTable()
+        self._tableView = TaurusValuesIOTable(self)
         l = Qt.QGridLayout()
         l.addWidget(self._tableView,1,0)
         self.connect(self._tableView.itemDelegate(), Qt.SIGNAL("editorCreated"),
@@ -612,12 +629,8 @@ class TaurusValuesTable(TaurusWidget):
         lv.addWidget(self._applyBT)
         lv.addWidget(self._cancelBT)
         l.addLayout(lv,3,0)
+        self._writeMode = False
         self.setLayout(l)
-        if self.defaultWriteMode == "r":
-            self._writeMode = False
-        else:
-            self._writeMode = True
-        self.setWriteMode(self._writeMode)
         self._initActions()
         
     def _initActions(self):
@@ -642,17 +655,44 @@ class TaurusValuesTable(TaurusWidget):
         '''Reimplemented from :meth:`TaurusWidget.setModel`'''
         TaurusWidget.setModel(self, model)
         model_obj = self.getModelObj()
+
+        if model_obj.isWritable() and self.defaultWriteMode != "r":
+            self._writeMode = True
+        else:
+            self.defaultWriteMode = "r"
+
         if model_obj is not None:
-            if isinstance(model_obj.rvalue, Quantity):
-                v = numpy.array(model_obj.rvalue.magnitude)
-                self._units.addItem("%s" % str(model_obj.rvalue.units))
+            if model_obj.type in [DataType.Integer, DataType.Float]:
+                if self._writeMode:
+                    try:
+                        default_unit = str(model_obj.wvalue.units)
+                    except AttributeError:
+                        default_unit = ''
+                else:
+                    default_unit = str(model_obj.rvalue.units)
+                # TODO: fill the combobox with the compatible units
+                self._units.addItem("%s" % default_unit)
+                self._units.setCurrentIndex(self._units.findText(default_unit))
+                self._units.setEnabled(False)
             else:
-                v = numpy.array(model_obj.rvalue)
                 self._units.setVisible(False)
-            dim_x, dim_y = v.shape
+            raiseException = False
+            if model_obj.data_format == DataFormat._2D:
+                try:
+                    dim_x, dim_y = numpy.shape(model_obj.rvalue)
+                except ValueError:
+                    raiseException = True
+            elif model_obj.data_format == DataFormat._1D:
+                try:
+                    dim_x, dim_y = len(model_obj.rvalue), 1
+                except ValueError:
+                    raiseException = True
+            else:
+                raiseException = True
+            if raiseException:
+                raise Exception('rvalue is invalid')
             self._tableView.setModel([dim_x, dim_y])
-        self._units.setCurrentIndex(0)
-        self._units.setEnabled(False)
+        self.setWriteMode(self._writeMode)
         self._label.setModel(model)
 
     def handleEvent(self, evt_src, evt_type, evt_value):
@@ -709,13 +749,10 @@ class TaurusValuesTable(TaurusWidget):
         '''
         tab = self._tableView.model().getModifiedWriteData()
         attr = self.getModelObj()
-        tab_values = tab.tolist() #@fixme If I don't convert this to a list it segfaults when writing arrays of strings
-        if attr.getType() in [DataType.Integer, DataType.Float]:
-            units = attr.rvalue.units
-            wvalue = Quantity(tab_values, units)
-        else:
-            wvalue = tab_values
-        attr.write(wvalue)
+        if attr.type == DataType.String:
+            # String arrays has to be converted to a list
+            tab = tab.tolist()
+        attr.write(tab)
         self._tableView.model().clearChanges()
 
     def okClicked(self):
@@ -858,9 +895,14 @@ def taurusTableMain():
         dialog.setModel(model)
     else:
         dialog.chooseModel()
-        #model = 'sys/tg_test/1/string_spectrum'
-        #model = 'sys/tg_test/1/wave'
-        #dialog.setModel(model)
+        #model = 'sys/tg_test/1/boolean_spectrum'
+        # model = 'sys/tg_test/1/boolean_image'
+        # model = 'sys/tg_test/1/string_spectrum'
+        # model = 'sys/tg_test/1/float_image'
+        # model = 'sys/tg_test/1/double_image'
+        # model = 'sys/tg_test/1/double_image_ro'
+        # model = 'sys/tg_test/1/wave'
+        # dialog.setModel(model)
 
     dialog.show()
     sys.exit(app.exec_())
