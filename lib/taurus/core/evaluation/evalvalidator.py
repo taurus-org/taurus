@@ -379,7 +379,9 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             r'(?P<_expr>[^?#;]+)' + \
             r'(\?(?P<_substquery>(?!configuration=)(?P<_subst>%s(;%s)*)))?' % \
             (K_EQUALS_V, K_EQUALS_V) + \
-            r'(\?(?P<query>configuration(=(?P<cfgkey>[^#?]*))?))?$'
+            r'(\?(?P<query>configuration(=' +\
+            '(?P<fragment>(?P<cfgkey>[^#?]*)))?))?$'
+
         return p
     
     def getExpandedExpr(self, name):
