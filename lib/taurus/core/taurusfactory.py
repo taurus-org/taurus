@@ -61,6 +61,7 @@ __all__ = ["TaurusFactory"]
 
 __docformat__ = "restructuredtext"
 
+import atexit
 from taurusbasetypes import TaurusElementType
 from taurusauthority import TaurusAuthority
 from taurusdevice import TaurusDevice
@@ -76,6 +77,7 @@ class TaurusFactory(object):
     DefaultPollingPeriod = 3000
     
     def __init__(self):
+        atexit.register(self.cleanUp)
         self._polling_period = self.DefaultPollingPeriod
         self.polling_timers = {}
         self._polling_enabled = True    
@@ -83,6 +85,15 @@ class TaurusFactory(object):
         import taurusmanager
         manager = taurusmanager.TaurusManager()
         self._serialization_mode = manager.getSerializationMode()
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # API for cleanUp at exit
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+    def cleanUp(self):
+        """Reimplement if you need to execute code on program execution exit.
+        Default implementation does nothing.
+        """
+        pass
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for serialization
