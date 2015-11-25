@@ -101,6 +101,7 @@ packages = [
     'taurus.core.tango.img',
     'taurus.core.tango.util',
     'taurus.core.tango.test',
+    'taurus.core.tango.test.res',
 
     'taurus.console',
     'taurus.console.util',
@@ -123,6 +124,7 @@ packages = [
     'taurus.qt.qtgui.test',
     'taurus.qt.qtgui.application',
     'taurus.qt.qtgui.base',
+    'taurus.qt.qtgui.base.test',
     'taurus.qt.qtgui.button',
     'taurus.qt.qtgui.button.test',
     'taurus.qt.qtgui.button.test.res',
@@ -204,6 +206,8 @@ package_data = {
     # 'taurus.core.spec'         : ['__taurus_plugin__'],
     'taurus.core.tango'        : ['__taurus_plugin__'],
 
+    'taurus.core.tango.test': ['res/*'],
+
     'taurus.qt.qtgui.resource' : ['*.rcc'],
     'taurus.qt.qtgui.util'     : ['tauruswidget_template',
                                   'tauruswidget_qtdesignerplugin_template'],
@@ -222,11 +226,11 @@ package_data = {
     'taurus.qt.qtgui.util.test.test_ui.mywidget3' : ['ui/*.ui'],
 }
 
-
 # The files listed here will be made executable when installed.
 # The file names are relative to the dir containing setup.py
 # Note: They must also be listed in packages or package_data
 executable_data = [
+    'taurus/core/tango/test/res/TangoSchemeTest',
     'taurus/qt/qtgui/button/test/res/Timeout',
 ]
 
