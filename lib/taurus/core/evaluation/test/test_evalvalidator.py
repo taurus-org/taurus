@@ -115,6 +115,57 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='eval:@foo/1')
 @valid(name='eval:@mymod.Myclass/1.2', 
        groups={'attrname':'1.2', 'devname':'@mymod.Myclass'})
+@valid(name='eval://linspace(-1, 1, 256)',
+       groups={'attrname': 'linspace(-1, 1, 256)',
+               '_expr': 'linspace(-1, 1, 256)',
+               '_subst': None,
+               'fragment': None,
+               '__STRICT__': False,
+               'cfgkey': None}, strict=False)
+@valid(name="eval://rand(256, 128)",
+       groups={'attrname': 'rand(256, 128)',
+               '_expr': 'rand(256, 128)',
+               '_subst': None,
+               'fragment': None,
+               '__STRICT__': False,
+               'cfgkey': None}, strict=False)
+@valid(name="eval:rand(256, 128)",
+       groups={'attrname': 'rand(256, 128)',
+               '_expr': 'rand(256, 128)',
+               '_subst': None,
+               'fragment': None,
+               '__STRICT__': True,
+               'cfgkey': None}, strict=True)
+@valid(name="eval:rand(256, 128)#label",
+       groups={'attrname': 'rand(256, 128)',
+               '_expr': 'rand(256, 128)',
+               '_subst': None,
+               'fragment': 'label',
+               '__STRICT__': True,
+               'cfgkey': 'label'}, strict=True)
+@valid(name="eval:foo=10;rand(256, 128)+foo#label",
+       groups={'attrname': 'foo=10;rand(256, 128)+foo',
+               '_expr': 'rand(256, 128)+foo',
+               '_subst': 'foo=10;',
+               'fragment': 'label',
+               '__STRICT__': True,
+               'cfgkey': 'label'}, strict=True)
+@valid(name="eval://rand(256, 128)?configuration=label",
+       groups={'attrname': 'rand(256, 128)',
+               '_expr': 'rand(256, 128)',
+               '_subst': None,
+               'query': 'configuration=label',
+               'fragment': 'label',
+               '__STRICT__': False,
+               'cfgkey': 'label'}, strict=False)
+@valid(name="eval:foo=1;bar=2;tar=3;foo+bar+tar#label",
+       groups={'attrname': 'foo=1;bar=2;tar=3;foo+bar+tar',
+               '_expr': 'foo+bar+tar',
+               '_subst': 'foo=1;bar=2;tar=3;',
+               'query': None,
+               'fragment': 'label',
+               '__STRICT__': True,
+               'cfgkey': 'label'}, strict=True)
 @valid(name='eval:@foo/1/3')
 @valid(name='eval:x=2;y=3;x*y')
 @valid(name='eval:@foo/x=2;y=3;x*y')
@@ -122,8 +173,8 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='eval:a={tango:a/b/c/d};x=2;a*x', 
        groups={'attrname':'a={tango:a/b/c/d};x=2;a*x',
                '_expr':'a*x',
-               '_subst':'a={tango:a/b/c/d};x=2;'})
-
+               '_subst':'a={tango:a/b/c/d};x=2;',
+               'fragment': None})
 @valid(name='eval://dev=foo;1', strict=False)
 @valid(name='eval://dev=foo;1/3', strict=False)
 @valid(name='eval://1/3', strict=False)
