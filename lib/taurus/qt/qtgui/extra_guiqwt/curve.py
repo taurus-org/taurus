@@ -84,7 +84,7 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
         return self.taurusparam.xModel, self.taurusparam.yModel
         
     def handleEvent(self, evt_src, ect_type, evt_value):
-        if evt_value is None or getattr(evt_value,'value', None) is None:
+        if evt_value is None or getattr(evt_value,'rvalue', None) is None:
             self.debug('Ignoring event from %s'%repr(evt_src))
             return
         if evt_src is self._xcomp or evt_src is self._ycomp:
@@ -92,13 +92,15 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
             self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
         
     def onCurveDataChanged(self):
-        try: yvalue = self._ycomp.read().value
+        # TODO: Take units into account for displaying curves, axis, etc.
+        try: yvalue = self._ycomp.read().rvalue.magnitude
         except: yvalue = None
         
         if yvalue is None:
-            return        
-        
-        try: xvalue = self._xcomp.read().value
+            return    
+    
+        # TODO: Take units into account for displaying curves, axis, etc.
+        try: xvalue = self._xcomp.read().rvalue.magnitude
         except: xvalue = None
         
         if xvalue is None:
@@ -173,7 +175,7 @@ class TaurusTrendItem(CurveItem, TaurusBaseComponent):
             pass
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_value is None or getattr(evt_value,'value', None) is None:
+        if evt_value is None or getattr(evt_value,'rvalue', None) is None:
             self.debug('Ignoring event from %s'%repr(evt_src))
             return
         
@@ -214,7 +216,8 @@ class TaurusTrendItem(CurveItem, TaurusBaseComponent):
                     plot.set_axis_unit('bottom', '')
         
         #update y
-        self.__yBuffer.append(evt_value.value)
+	# TODO: Take units into account for displaying curves, axis, etc.
+        self.__yBuffer.append(evt_value.rvalue.magnitude)
         
         #update the plot data
         x,y = self.__xBuffer.contents(), self.__yBuffer.contents()
