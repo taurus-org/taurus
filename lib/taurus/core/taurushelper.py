@@ -527,6 +527,7 @@ def Configuration(attr_or_conf_name, conf_name=None):
     :rtype: :class:`taurus.core.taurusconfiguration.TaurusConfiguration`"""
     return Attribute(attr_or_conf_name)
 
+@tep14_deprecation(alt='Authority')
 def Database(name=None):
     '''Database() is deprecated. Use Authority instead'''
     return Authority(name=name)
