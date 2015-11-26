@@ -607,6 +607,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def labelWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultLabelWidgetClass()
         else: return TaurusWidgetFactory().getWidgetClass(classID)
@@ -614,7 +615,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def readWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
-        
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): ret = classID
         elif str(classID) == 'Auto': ret = self.getDefaultReadWidgetClass()
         else: ret = TaurusWidgetFactory().getWidgetClass(classID)
@@ -634,6 +635,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
         if self._compact and not ignoreCompact: return None
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultWriteWidgetClass()
         else: return TaurusWidgetFactory().getWidgetClass(classID)
@@ -641,12 +643,14 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def unitsWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultUnitsWidgetClass()
         else: return TaurusWidgetFactory().getWidgetClass(classID)
         
     def customWidgetClassFactory(self, classID):
         if classID is None or classID == 'None': return None
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultCustomWidgetClass()
         else: return TaurusWidgetFactory().getWidgetClass(classID)
@@ -654,6 +658,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def extraWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultExtraWidgetClass()
         else: return TaurusWidgetFactory().getWidgetClass(classID)
