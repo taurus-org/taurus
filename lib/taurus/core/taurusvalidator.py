@@ -146,7 +146,7 @@ class _TaurusBaseValidator(Singleton):
         groups['devicename'] = groups.get('devname')
         groups['devalias'] = groups.get('_devalias')
         groups['attributename'] = groups.get('_shortattrname')
-        groups['configparam'] = groups.get('cfgkey')
+        groups['configparam'] = groups.get('fragment')
         return groups
     
     def getNames(self, fullname, factory=None):
@@ -309,7 +309,7 @@ if __name__ == '__main__':
         authority = '[^?#/]+'
         path = '[^?#]+'
         query = '(?!)'
-        fragment = '(?P<cfgkey>[^?#]+)'
+        fragment = '[^?#]*'
     
     v = FooAttributeNameValidator()
     name = 'foo://bar#label'

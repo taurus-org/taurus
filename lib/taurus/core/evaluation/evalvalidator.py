@@ -178,7 +178,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
     '''Validator for Evaluation attribute names. Apart from the standard named 
     groups (scheme, authority, path, query and fragment), the following named 
     groups are created:
-    
+
      - attrname: attribute name. same as concatenating _subst with _expr 
      - _expr: a mathematical expression
      - [_subst]: a semicolon-separated repetition of key=value (for replacing 
@@ -188,7 +188,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
      - [_evalclass]: evaluator class name (if dotted name given)
      - [_old_devname]: devname without "@". Only in non-strict mode
      - [_dbname] and [_subst]: unused. Only if non-strict mode
-     
+     - [cfgkey] same as fragment (for bck-compat use only)
      
     Note: brackets on the group name indicate that this group will only contain
     a string if the URI contains it.
@@ -337,7 +337,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             name = name.replace('{%s}' % ref, '{%s}' % full_name)
         return name
 
-    def getNames(self, fullname, factory=None, cfgkey=False):
+    def getNames(self, fullname, factory=None, fragment=False):
         '''reimplemented from :class:`TaurusDeviceNameValidator`'''
         from evalfactory import EvaluationFactory
         groups = self.getUriGroups(fullname) 
@@ -364,9 +364,9 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             normal = '%s/%s' % (authority, normal) 
         short = self._getSimpleNameFromExpression(groups['_expr'])
 
-        # return fragment if cfgkey
-        if cfgkey:
-            key = groups.get('cfgkey', None)
+        # return fragment if requested
+        if fragment:
+            key = groups.get('fragment', None)
             return complete, normal, short, key
         return complete, normal, short
 
@@ -379,7 +379,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             r'(?P<_expr>[^?#;]+)' + \
             r'(\?(?P<_substquery>(?!configuration=)(?P<_subst>%s(;%s)*)))?' % \
             (K_EQUALS_V, K_EQUALS_V) + \
-            r'(\?(?P<query>configuration(=' +\
+            r'(\?(?P<query>configuration(=' + \
             '(?P<fragment>(?P<cfgkey>[^#?]*)))?))?$'
 
         return p

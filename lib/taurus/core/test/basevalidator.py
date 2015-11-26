@@ -70,8 +70,8 @@ class AbstractNameValidatorTestCase(object):
     def getNames(self, name=None, out=None):
         v = self.validator()
         if isinstance(v, TaurusAttributeNameValidator):
-            cfgkey = len(out) > 3
-            names = v.getNames(name, cfgkey=cfgkey)
+            fragment = len(out) > 3
+            names = v.getNames(name, fragment=fragment)
         else:
             names = v.getNames(name)
         self.assertEqual(names, out)

@@ -62,13 +62,13 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     TangoConfiguration) 
       
     Tango model names are URI based See https://tools.ietf.org/html/rfc3986.
-    For example, a TangoConfiguration would be::
+    For example, a TangoAttribute would be::
         
         tango://foo.org:1234/a/b/c/d#label
         \___/   \_____/ \__/ \_____/ \___/ 
           |        |     |      |      |     
-          |    hostname port  attr   cfgkey
-          |   \____________/\______/ \_____/
+          |    hostname port  attr     |
+          |   \____________/\______/   |
           |         |           |      |
         scheme   authority     path  fragment
 
@@ -79,11 +79,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         - The 'path' is the Tango object, which can be a Device or Attribute.
           For device it must have the format _/_/_ or alias 
           For attribute it must have the format _/_/_/_ or devalias/_
-        - The 'fragment' is valid when the 'path' corresponds to an Attribute.
-          Valid fragments must either be empty or consist on a  <cfgkey>. Valid 
-          configuration keys are: label, format, description, unit, display_unit, 
-          standard_unit, max_value, min_value, max_alarm, min_alarm, 
-          max_warning, min_warning. In this case the Tango object is a Configuration
+        - The 'fragment' is optional and it refers to an attribute of the model
+          object, thus not being part of the model name itself
     """
     
     #: the list of schemes that this factory supports. For this factory: 'tango' 

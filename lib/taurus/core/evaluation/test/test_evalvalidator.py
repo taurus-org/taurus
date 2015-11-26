@@ -289,11 +289,11 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='eval:{tango://a/b/c/d}', strict=False) # but valid with old syntax
 
 #===============================================================================
-# Tests for eval attribute  name validation (when passing cfgkey)
+# Tests for eval attribute  name validation (when passing fragment / cfgkey)
 #===============================================================================
 
 @valid(name='eval:1#')
-@valid(name='eval:1#units', groups={'cfgkey': 'units'})
+@valid(name='eval:1#units', groups={'fragment': 'units'})
 @valid(name='eval:{tango:a/b/c/d}*2#')
 @valid(name='eval:{tango:a/b/c/d}*2#label')
 @valid(name='eval:k=2;a={tango:a/b/c/d};a*k#units')

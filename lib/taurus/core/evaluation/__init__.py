@@ -39,22 +39,17 @@ naming for referring to attributes (:class:`EvaluationAttribute`):
 
     `eval:[//<authority>][@<evaluator>/][<subst>;]<expr>`
     
-    or the following for referring to evaluation devices 
-    (:class:`EvaluationDevice`):
+or the following for referring to evaluation devices
+(:class:`EvaluationDevice`):
     
     `eval:[//<authority>]@<evaluator>`
     
-    or the following for referring to an evaluation authority
-    (:class:`EvaluationAuthority`):
+or the following for referring to an evaluation authority
+(:class:`EvaluationAuthority`):
     
     `eval://<authority>`
-    
-    or, finally, the following for referring to an attribute configuration 
-    (:class:`EvaluationConfiguration`) item:
-    
-    `eval:[//<authority>][@<evaluator>/][<subst>;]<expr>#<cfgkey>` 
   
-    where:
+where:
     
     - The `<authority>` segment is optional (except when referring to an
       EvaluationDatabase). At this point, only `//localhost` is supported.
@@ -65,7 +60,7 @@ naming for referring to attributes (:class:`EvaluationAttribute`):
     - `<expr>` is a mathematical expression (using python syntax)
       that may have references to other taurus **attributes** by enclosing them
       between `{` and `}`. Expressions will be evaluated by the evaluator device
-      to which the attribute is assigned. 
+      to which the attribute is assigned.
       
     - The evaluator device inherits from :class:`SafeEvaluator` which by default 
       includes a large subset of mathematical functions from the :mod:`numpy`
@@ -89,13 +84,6 @@ naming for referring to attributes (:class:`EvaluationAttribute`):
         
     - The optional `<subst>` segment is used to provide substitution symbols. 
       `<subst>` is a semicolon-separated string of `<key>=<value>` strings.
-      Before evaluation, the `<math_expression>` string will be searched for
-      occurrences of `<key>` which will be replaced by the corresponding
-      `<value>` string. 
-      
-    - `<cfgkey>` is a configuration item key (e.g., `label, `unit`,...) used
-      to identify a given item from the `:class:EvaluationConfiguration` object
-      
       
 
 Some examples of valid evaluation models are:
@@ -137,7 +125,7 @@ Some examples of valid evaluation models are:
           This syntax is now deprecated and should not be used. Taurus will 
           issue warnings if detected.
 """
-#raise NotImplementedError()
+
 from evalfactory import EvaluationFactory
 from evalattribute import EvaluationAttribute
 from evalauthority import EvaluationAuthority

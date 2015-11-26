@@ -156,7 +156,6 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
     groups (scheme, authority, path, query and fragment), the following named 
     groups are created:
 
-     - [cfgkey]: configuration key (e.g., "label", "units",... It also be "")
      - attrname: attribute name including device name
      - _shortattrname: attribute name excluding device name
      - devname: as in :class:`TangoDeviceNameValidator`
@@ -164,6 +163,7 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
      - [_devslashname]: as in :class:`TangoDeviceNameValidator`
      - [host] as in :class:`TangoAuthorityNameValidator`
      - [port] as in :class:`TangoAuthorityNameValidator`
+     - [cfgkey] same as fragment (for bck-compat use only)
      
     Note: brackets on the group name indicate that this group will only contain
     a string if the URI contains it.
@@ -175,7 +175,7 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
     query = '(?!)'
     fragment = '(?P<cfgkey>[^# ]*)'
 
-    def getNames(self, fullname, factory=None, queryAuth=True, cfgkey=False):
+    def getNames(self, fullname, factory=None, queryAuth=True, fragment=False):
         """Returns the complete and short names"""
 
         groups = self.getUriGroups(fullname)
@@ -194,9 +194,9 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
         if devnormal is not None:
             normal = '%s/%s'%(devnormal, short)
 
-        # return fragment if cfgkey
-        if cfgkey:
-            key = groups.get('cfgkey', None)
+        # return fragment if requested
+        if fragment:
+            key = groups.get('fragment', None)
             return complete, normal, short, key
 
         return complete, normal, short
