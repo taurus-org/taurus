@@ -172,14 +172,13 @@ class TaurusAttributeControllerHelper(object):
 
 
 class TaurusScalarAttributeControllerHelper(TaurusAttributeControllerHelper):
-    
     def getDisplayValue(self, write=False):
         valueObj = self.valueObj()
         widget = self.widget()
-        if valueObj is None or valueObj.value is None:
+        if valueObj is None or valueObj.rvalue is None:
             return widget.getDisplayValue()
 
-        format, value = valueObj.data_format, valueObj.value
+        format = self.attrObj().data_format
         if format == DataFormat._0D:
             return self._getDisplayValue(widget, valueObj, None, write)
         

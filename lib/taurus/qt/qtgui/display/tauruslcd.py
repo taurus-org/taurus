@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""This module provides a set of basic Taurus widgets based on QLabel"""
+"""This module provides a Taurus widget based on QLCDNumber"""
 
 __all__ = ["TaurusLCD"]
 
@@ -96,11 +96,17 @@ class TaurusLCDController(TaurusBaseController):
         except:
             pass
         lcd.setNumDigits(n)
-        
+
     def _updateValue(self, lcd):
         fgRole, value = lcd.fgRole, ""
         if fgRole == 'value':
-            value += self.getDisplayValue()
+            w = self.getDisplayValue()
+            # @todo: sometimes getDisplayValue called but self.widget() is None.
+            # For the moment it is just protected by substituting the following
+            # line by the ones after it.
+            # value += self.getDisplayValue()
+            if w is not None:
+                value += self.getDisplayValue()
         elif fgRole == 'w_value':
             value += self.getDisplayValue(True)
         elif fgRole in ('', 'none'):
@@ -109,7 +115,7 @@ class TaurusLCDController(TaurusBaseController):
             lcd.display("udef")
             return
         lcd.display(value)
-    
+
     _updateBackground = updateLabelBackground
 
 
@@ -118,6 +124,17 @@ class TaurusLCDControllerAttribute(TaurusScalarAttributeControllerHelper, Taurus
     def __init__(self, lcd):
         TaurusScalarAttributeControllerHelper.__init__(self)
         TaurusLCDController.__init__(self, lcd)
+
+    def _getDisplayValue(self, widget, valueObj, idx, write):
+        try:
+            if write: value = valueObj.wvalue.magnitude
+            else: value = valueObj.rvalue.magnitude
+            if idx is not None and len(idx):
+                for i in idx: value = value[i]
+            if self._last_config_value is None or value is None:
+                return widget.displayValue(value)
+        except Exception, e:
+            return widget.getNoneValue()
 
 
 class TaurusLCDControllerConfiguration(TaurusConfigurationControllerHelper, TaurusLCDController):
@@ -204,6 +221,9 @@ def Controller(lcd):
 
 
 class TaurusLCD(Qt.QLCDNumber, TaurusBaseWidget):
+    """ A Taurus-enabled :class:`Qt.QLCDNumber` widget. Its text can represent
+    either the rvalue or wvalue *magnitude* (or nothing), and the background
+    can colour-code the attribute quality or the device state (or nothing)"""
     
     DefaultBgRole = 'quality'
     DefaultFgRole = 'value'
