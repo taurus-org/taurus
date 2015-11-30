@@ -191,6 +191,9 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         self._rowCount = rows
         self._columnCount = columns
         rvalue = rvalue.reshape(rows, columns)
+        if attr.type in [DataType.Integer, DataType.Float]:
+            units = self._parent.getCurrentUnits()
+            rvalue = rvalue.to(units)
         self._rtabledata = rvalue
         self._editable = False
         self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
@@ -260,7 +263,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             table = table.tolist() #we want to allow the strings to be larger than the original ones
             for (r,c),v in self._modifiedDict.items():
                 table[r][c] = Qt.from_qvariant(v, str)
-            table = numpy.array(table)
+            table = numpy.array(table, dtype=str)
         else:
             for k,v in self._modifiedDict.items():
                 if kind in ['f', 'i', 'u']:
@@ -328,9 +331,13 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         if isWrite and not self.isDirty() and self._attr is not None:
             #refresh the write data (unless it is dirty)
             wvalue = self._attr.wvalue
+
             #reshape the table
             if self._attr.type == DataType.String:
                 wvalue = numpy.array(wvalue)
+            elif self._attr.type in [DataType.Integer, DataType.Float]:
+                units = self._parent.getCurrentUnits()
+                wvalue = wvalue.to(units)
             if self._attr.data_format == DataFormat._1D:
                 rows, columns = numpy.shape(wvalue)[0], 1
                 if rows == 0:
@@ -482,14 +489,12 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         '''
         #if editor text changed, then don't mark as updated.
         isNumeric = False
-        try:
+        if self._parent._attr.type in [DataType.Integer, DataType.Float]:
             units = self._parent.getCurrentUnits()
             q = _value2Quantity(editor.text(), units)
             isNumeric = True
             if not model.inRange(q):
                 return
-        except:
-            pass
         if index.model().getType() == bool:
             text = editor.currentText()
         else:
@@ -501,9 +506,9 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         if(text != self._initialText) & (text != ""):
             model.addValue(index, Qt.QVariant(text))
             hh = self.parent().horizontalHeader()
-            hh.setResizeMode(Qt.QHeaderView.Stretch)
+            hh.setResizeMode(Qt.QHeaderView.Fixed)
             vh = self.parent().verticalHeader()
-            vh.setResizeMode(Qt.QHeaderView.Stretch)
+            vh.setResizeMode(Qt.QHeaderView.Fixed)
 
         index.model().editedIndex = None
                     
@@ -662,6 +667,7 @@ class TaurusValuesTable(TaurusWidget):
             self.defaultWriteMode = "r"
 
         if model_obj is not None:
+            self._tableView._attr = model_obj
             if model_obj.type in [DataType.Integer, DataType.Float]:
                 if self._writeMode:
                     try:
@@ -709,9 +715,9 @@ class TaurusValuesTable(TaurusWidget):
             model.setWriteMode(self._writeMode)
 
             hh = self._tableView.horizontalHeader()
-            hh.setResizeMode(Qt.QHeaderView.Stretch)
+            hh.setResizeMode(Qt.QHeaderView.Fixed)
             vh = self._tableView.verticalHeader()
-            vh.setResizeMode(Qt.QHeaderView.Stretch)
+            vh.setResizeMode(Qt.QHeaderView.Fixed)
             if self.defaultWriteMode == "r":
                 isWritable = False
             else:
