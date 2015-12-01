@@ -56,153 +56,6 @@ except ImportError: #note that if epics is not installed the factory will not be
     debug('cannot import epics module. Taurus will not support the "epics" scheme')
     #raise
 
-class AbstractEpicsNameValidator(Singleton):
-    #@todo: provide a mechanism to make base_sep configurable at installation time. 
-    base_sep = ':' #the following characters need to be escaped with "\":  ^$()<>[{\|.*+?
-    name_pattern = ''
-    
-    def __init__(self):
-        """ Initialization. Nothing to be done here for now."""
-        pass
-    
-    def init(self, *args, **kwargs):
-        """Singleton instance initialization."""
-        self.name_re = re.compile(self.name_pattern)
-        
-    def isValid(self,s, matchLevel = MatchLevel.ANY):
-        return self.name_re.match(s) is not None
-        
-    def getParams(self, s):
-        m = self.attrname_re.match(s)
-        if m is None:
-            return None
-        return m.groupdict()
-
-    def getNames(self, s, factory=None):
-        """Returns the full, normal and simple names for this object, or None if there is no match'''
-        """
-        raise NotImplementedError('abstract. Needs being implemented')
-    
-    def getDeviceName(self, s, full=True):
-        '''
-        returns the device name for the given attribute name. 
-        The "full" argument is ignored since the DB is never included in the epics models
-        '''
-        m = self.name_re.match(s)
-        if m is None:
-            return None
-        devname = m.group('devname') or EpicsFactory.DEFAULT_DEVICE
-        return 'epics://%s%s'%(devname,m.group('base_sep') or self.base_sep )
-    
-    def getDBName(self, s):
-        '''returns the full data base name for the given attribute name.
-        Note: the DB name is not a valid epics URI because the epics scheme does not implement a DB model'''
-        dbname = EpicsFactory.DEFAULT_DATABASE
-        return dbname
-    
-
-class EpicsAttributeNameValidator(AbstractEpicsNameValidator):
-    #The groups in a match object using the regexp below are:
-    #    1: scheme; named as 'scheme'
-    #    2: EPICS PV name (in the case of attribute names) or same as $3 (in the case of device names) 
-    #    3: device name including the trailing base_sep; optional
-    #    4: device name; optional; named as 'devname'
-    #    5: base separator if it appears on the URI; named as 'base_sep'
-    #    6: attribute name;optional; named as 'attrname'
-    #
-    #    Reconstructing the names
-    #    attrname= $6
-    #    devname= $4 or EpicsFactory.DEFAULT_DEVICE
-    #    fullname= "epics://%s"%($2)
-    # 
-    #                1                   2             34                  5                 6
-    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]*)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+))$'%(AbstractEpicsNameValidator.base_sep, AbstractEpicsNameValidator.base_sep)
-    
-#    def isValid(self,s, matchLevel = MatchLevel.ANY):
-#        m = self.name_re.match(s)
-#        return m is not None and m.group('attrname') #the model contains an attrname 
-    
-    def getNames(self, s, factory=None):
-        """Returns the complete, normal and short names.
-        
-        For example::
-        
-            >>> EpicsDeviceNameValidator.getNames("epics://foo:bar:baz")
-            >>> ("epics://foo:bar:baz", "foo:bar:baz", "baz")
-        
-        """
-        m = self.name_re.match(s)
-        if m is None:
-            return None
-        #The following comments are for an example name like: "epics://foo:bar:baz"
-        attr_name = m.group('attrname') # attr_name = "baz"
-        normal_name = m.group('epicsname')  #normal_name = "foo:bar:baz"
-        fullname = "%s://%s"%(m.group('scheme'),normal_name) #fullname = "epics://foo:bar:baz"
-        return fullname, normal_name, attr_name
-        
-
-class EpicsDeviceNameValidator(AbstractEpicsNameValidator):
-    '''A validator of names for :class:`EpicsDevice`. By taurus convention, 
-    the model name for an epics device name *must* end with the base separator
-    (in order to distinguish device names from attribute names)'''
-    
-    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]*)(?P<base_sep>%s)))$'%(AbstractEpicsNameValidator.base_sep)
-    
-#    def isValid(self,s, matchLevel = MatchLevel.ANY):
-#        m = self.name_re.match(s)
-#        return m is not None and not m.group('attrname') #to be a device it must not contain an attribute
-    
-    def getNames(self, s, factory=None):
-        """Returns the complete, normal and short names. (note: complete=normal)
-        
-        :param s: (str) input string describing the device
-        :param factory: (TaurusFactory) [Unused]
-        
-        :return: (tuple<str,str,str> or None) A tuple of complete, normal and
-                 short names, or None if s is an invalid device name
-        """
-        m = self.name_re.match(s)
-        if m is None:
-            return None
-        #The following comments are for a name of the type: "epics://foo:bar:" 
-        devname = m.group('devname')  # foo:bar
-        normal_name = m.group('epicsname') #foo:bar:
-        full_name = self.getDeviceName(s, full=True) #epics://foo:bar:
-        return full_name, normal_name, devname
-
-
-class EpicsConfigurationNameValidator(AbstractEpicsNameValidator):
-    '''A validator of names for :class:`EpicsConfiguration`'''
-    # The groups in a match object using the regexp below are the 
-    # same as for the AbstractEpicsNameValidator plus:
-    #   +1: configuration extension
-    #   +2: configuration key;optional; named as 'cfgkey'
-    
-    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]*)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+)\?configuration=?(?P<cfgkey>[^#?]*))$'%(AbstractEpicsNameValidator.base_sep, AbstractEpicsNameValidator.base_sep)
-        
-    def getNames(self, s, factory=None):
-        """Returns the complete, normal and short names"""
-        m = self.name_re.match(s)
-        if m is None:
-            return None
-        #The following comments are for an example name like: "epics://foo:bar:baz?configuration=label"
-        cfg_key = m.group('cfgkey') # cfg_key = "label"
-        full_name = s               # "epics://foo:bar:baz?configuration=label"
-        normal_name = full_name     # "epics://foo:bar:baz?configuration=label"
-        return full_name, normal_name, cfg_key
-    
-    def getAttrName(self, s):
-        names = self.getNames(s)
-        if names is None: return None
-        return names[0].rsplit('?configuration')[0]#remove the "?configuration..." substring from the fullname 
-
-
-class EpicsDataBaseNameValidator(AbstractEpicsNameValidator):
-    '''A validator of names for :class:`EpicsDatabase`. 
-    Note that the epics scheme does not implement a model for DataBase and 
-    hence only the default database name is valid'''
-    name_pattern = "^%s$" % EpicsFactory.DEFAULT_DATABASE
-    
 
 class EpicsDatabase(TaurusAuthority):
     '''
@@ -671,6 +524,152 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
         if p:
             del self.polling_timers[period]
             
+class AbstractEpicsNameValidator(Singleton):
+    #@todo: provide a mechanism to make base_sep configurable at installation time.
+    base_sep = ':' #the following characters need to be escaped with "\":  ^$()<>[{\|.*+?
+    name_pattern = ''
+
+    def __init__(self):
+        """ Initialization. Nothing to be done here for now."""
+        pass
+
+    def init(self, *args, **kwargs):
+        """Singleton instance initialization."""
+        self.name_re = re.compile(self.name_pattern)
+
+    def isValid(self,s, matchLevel = MatchLevel.ANY):
+        return self.name_re.match(s) is not None
+
+    def getParams(self, s):
+        m = self.attrname_re.match(s)
+        if m is None:
+            return None
+        return m.groupdict()
+
+    def getNames(self, s, factory=None):
+        """Returns the full, normal and simple names for this object, or None if there is no match'''
+        """
+        raise NotImplementedError('abstract. Needs being implemented')
+
+    def getDeviceName(self, s, full=True):
+        '''
+        returns the device name for the given attribute name.
+        The "full" argument is ignored since the DB is never included in the epics models
+        '''
+        m = self.name_re.match(s)
+        if m is None:
+            return None
+        devname = m.group('devname') or EpicsFactory.DEFAULT_DEVICE
+        return 'epics://%s%s'%(devname,m.group('base_sep') or self.base_sep )
+
+    def getDBName(self, s):
+        '''returns the full data base name for the given attribute name.
+        Note: the DB name is not a valid epics URI because the epics scheme does not implement a DB model'''
+        dbname = EpicsFactory.DEFAULT_DATABASE
+        return dbname
+
+
+class EpicsAttributeNameValidator(AbstractEpicsNameValidator):
+    #The groups in a match object using the regexp below are:
+    #    1: scheme; named as 'scheme'
+    #    2: EPICS PV name (in the case of attribute names) or same as $3 (in the case of device names)
+    #    3: device name including the trailing base_sep; optional
+    #    4: device name; optional; named as 'devname'
+    #    5: base separator if it appears on the URI; named as 'base_sep'
+    #    6: attribute name;optional; named as 'attrname'
+    #
+    #    Reconstructing the names
+    #    attrname= $6
+    #    devname= $4 or EpicsFactory.DEFAULT_DEVICE
+    #    fullname= "epics://%s"%($2)
+    #
+    #                1                   2             34                  5                 6
+    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]*)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+))$'%(AbstractEpicsNameValidator.base_sep, AbstractEpicsNameValidator.base_sep)
+
+#    def isValid(self,s, matchLevel = MatchLevel.ANY):
+#        m = self.name_re.match(s)
+#        return m is not None and m.group('attrname') #the model contains an attrname
+
+    def getNames(self, s, factory=None):
+        """Returns the complete, normal and short names.
+
+        For example::
+
+            >>> EpicsDeviceNameValidator.getNames("epics://foo:bar:baz")
+            >>> ("epics://foo:bar:baz", "foo:bar:baz", "baz")
+
+        """
+        m = self.name_re.match(s)
+        if m is None:
+            return None
+        #The following comments are for an example name like: "epics://foo:bar:baz"
+        attr_name = m.group('attrname') # attr_name = "baz"
+        normal_name = m.group('epicsname')  #normal_name = "foo:bar:baz"
+        fullname = "%s://%s"%(m.group('scheme'),normal_name) #fullname = "epics://foo:bar:baz"
+        return fullname, normal_name, attr_name
+
+
+class EpicsDeviceNameValidator(AbstractEpicsNameValidator):
+    '''A validator of names for :class:`EpicsDevice`. By taurus convention,
+    the model name for an epics device name *must* end with the base separator
+    (in order to distinguish device names from attribute names)'''
+
+    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]*)(?P<base_sep>%s)))$'%(AbstractEpicsNameValidator.base_sep)
+
+#    def isValid(self,s, matchLevel = MatchLevel.ANY):
+#        m = self.name_re.match(s)
+#        return m is not None and not m.group('attrname') #to be a device it must not contain an attribute
+
+    def getNames(self, s, factory=None):
+        """Returns the complete, normal and short names. (note: complete=normal)
+
+        :param s: (str) input string describing the device
+        :param factory: (TaurusFactory) [Unused]
+
+        :return: (tuple<str,str,str> or None) A tuple of complete, normal and
+                 short names, or None if s is an invalid device name
+        """
+        m = self.name_re.match(s)
+        if m is None:
+            return None
+        #The following comments are for a name of the type: "epics://foo:bar:"
+        devname = m.group('devname')  # foo:bar
+        normal_name = m.group('epicsname') #foo:bar:
+        full_name = self.getDeviceName(s, full=True) #epics://foo:bar:
+        return full_name, normal_name, devname
+
+
+class EpicsConfigurationNameValidator(AbstractEpicsNameValidator):
+    '''A validator of names for :class:`EpicsConfiguration`'''
+    # The groups in a match object using the regexp below are the
+    # same as for the AbstractEpicsNameValidator plus:
+    #   +1: configuration extension
+    #   +2: configuration key;optional; named as 'cfgkey'
+
+    name_pattern = '^(?P<scheme>epics)://(?P<epicsname>((?P<devname>[^?#]*)(?P<base_sep>%s))?(?P<attrname>[^?#%s]+)\?configuration=?(?P<cfgkey>[^#?]*))$'%(AbstractEpicsNameValidator.base_sep, AbstractEpicsNameValidator.base_sep)
+
+    def getNames(self, s, factory=None):
+        """Returns the complete, normal and short names"""
+        m = self.name_re.match(s)
+        if m is None:
+            return None
+        #The following comments are for an example name like: "epics://foo:bar:baz?configuration=label"
+        cfg_key = m.group('cfgkey') # cfg_key = "label"
+        full_name = s               # "epics://foo:bar:baz?configuration=label"
+        normal_name = full_name     # "epics://foo:bar:baz?configuration=label"
+        return full_name, normal_name, cfg_key
+
+    def getAttrName(self, s):
+        names = self.getNames(s)
+        if names is None: return None
+        return names[0].rsplit('?configuration')[0]#remove the "?configuration..." substring from the fullname
+
+
+class EpicsDataBaseNameValidator(AbstractEpicsNameValidator):
+    '''A validator of names for :class:`EpicsDatabase`.
+    Note that the epics scheme does not implement a model for DataBase and
+    hence only the default database name is valid'''
+    name_pattern = "^%s$" % EpicsFactory.DEFAULT_DATABASE
 
   
 
