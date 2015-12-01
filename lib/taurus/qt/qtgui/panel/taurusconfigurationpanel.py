@@ -166,6 +166,10 @@ class TaurusConfigLineEdit(TangoConfigLineEdit):
     def __init__(self, qt_parent=None, designMode=False):
         TangoConfigLineEdit.__init__(self, qt_parent=None, designMode=False)
 
+    @classmethod
+    def getQtDesignerPluginInfo(cls):
+        return None
+
 @UILoadable(with_ui='_ui')
 class TaurusConfigurationPanel(Qt.QWidget):
     def __init__(self, parent=None, designMode=False):
