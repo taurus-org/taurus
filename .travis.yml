@@ -1,0 +1,23 @@
+language: python
+
+sudo: required
+
+services:
+  - docker
+
+python:
+  - "2.7"
+
+branches:
+  only:
+    - taurus4-preview
+
+before_install:
+  # run reszelaz/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
+  - docker pull reszelaz/taurus-test
+  - docker run -d --name=taurus-test -e HOSTNAME=taurus-test -e PYTHONPATH=/taurus/lib -e PATH=/taurus/scripts:$PATH --volume=`pwd`:/taurus reszelaz/taurus-test
+  - sleep 10
+
+script:
+  # launch testsuite from git check-out
+  - docker exec taurus-test python /taurus/lib/taurus/test/testsuite.py
