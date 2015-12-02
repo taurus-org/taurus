@@ -106,14 +106,21 @@ class TangoAttrValue(TaurusAttrValue):
 
         rvalue = p.value
         wvalue = p.w_value
-        units = self._attrRef._units
         if numerical:
+            units = self._attrRef._units
             if rvalue is not None:
                 rvalue = Quantity(rvalue, units=units)
             if wvalue is not None:
                 wvalue = Quantity(wvalue, units=units)
-        if isinstance(rvalue, PyTango._PyTango.DevState):
+        elif isinstance(rvalue, PyTango._PyTango.DevState):
             rvalue = DevState[str(rvalue)]
+        elif p.type == PyTango.CmdArgType.DevUChar:
+            if self._attrRef.data_format == DataFormat._0D:
+                rvalue = chr(rvalue)
+                wvalue = chr(wvalue)
+            else:
+                rvalue = rvalue.view('S1')
+                wvalue = wvalue.view('S1')
 
         self.rvalue = rvalue
         self.wvalue = wvalue
@@ -357,7 +364,12 @@ class TangoAttribute(TaurusAttribute):
                 except:
                     attrvalue = str(magnitude).lower() == 'true'
             elif tgtype == PyTango.CmdArgType.DevUChar:
-                attrvalue = chr(magnitude)
+                try:
+                    # assume value to be a 1-character string repr of a byte
+                    attrvalue = ord(magnitude)
+                except TypeError:
+                    # but also support uint8 values (use ord-chr to make sure)
+                    attrvalue = ord(chr(magnitude))
             elif tgtype in (PyTango.CmdArgType.DevState,
                             PyTango.CmdArgType.DevEncoded):
                 attrvalue = magnitude
@@ -366,8 +378,11 @@ class TangoAttribute(TaurusAttribute):
         elif fmt in (DataFormat._1D, DataFormat._2D):
             if PyTango.is_int_type(tgtype):
                 # cast to integer because the magnitude conversion gives floats
-                magnitude = magnitude.astype('int64')
-            attrvalue = magnitude
+                attrvalue = magnitude.astype('int64')
+            elif tgtype == PyTango.CmdArgType.DevUChar:
+                attrvalue = magnitude.view('uint8')
+            else:
+                attrvalue = magnitude
         else:
             attrvalue = str(magnitude)
         return attrvalue

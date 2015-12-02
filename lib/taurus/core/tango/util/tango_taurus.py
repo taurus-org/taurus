@@ -60,7 +60,7 @@ FROM_TANGO_TO_TAURUS_TYPE = {PyTango.CmdArgType.DevVoid:None,
         PyTango.CmdArgType.DevState:DataType.DevState,
         PyTango.CmdArgType.ConstDevString:DataType.String,
         PyTango.CmdArgType.DevVarBooleanArray:DataType.Boolean,
-        PyTango.CmdArgType.DevUChar:DataType.Integer, # maybe should be Bytes?
+        PyTango.CmdArgType.DevUChar:DataType.Bytes,
         PyTango.CmdArgType.DevLong64:DataType.Integer,
         PyTango.CmdArgType.DevULong64:DataType.Integer,
         PyTango.CmdArgType.DevVarLong64Array:DataType.Integer,

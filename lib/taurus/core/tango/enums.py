@@ -70,7 +70,7 @@ EVENT_TO_POLLING_EXCEPTIONS = ('API_AttributePollingNotStarted',
 
 FROM_TANGO_TO_NUMPY_TYPE = {
    PyTango.DevBoolean : numpy.bool8,
-   PyTango.DevUChar : numpy.ubyte,
+   PyTango.DevUChar : numpy.uint8,
    PyTango.DevShort : numpy.short,
    PyTango.DevUShort : numpy.ushort,
    PyTango.DevLong : numpy.int32,
@@ -84,7 +84,7 @@ FROM_TANGO_TO_NUMPY_TYPE = {
 
 FROM_TANGO_TO_STR_TYPE = {
    PyTango.DevBoolean : 'bool8',
-   PyTango.DevUChar : 'ubyte',
+   PyTango.DevUChar : 'uint8',
    PyTango.DevShort : 'short',
    PyTango.DevUShort : 'ushort',
    PyTango.DevLong : 'int32',
