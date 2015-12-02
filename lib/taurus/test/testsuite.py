@@ -40,7 +40,7 @@ import taurus
 
 
 def run(disableLogger=True):
-    '''Runs all tests for the taurus package'''
+    """Runs all tests for the taurus package"""
     # disable logging messages
     if disableLogger:
         taurus.disableLogOutput()
@@ -50,9 +50,11 @@ def run(disableLogger=True):
     # use the basic text test runner that outputs to sys.stderr
     runner = unittest.TextTestRunner(descriptions=True, verbosity=2)
     # run the test suite
-    runner.run(suite)
+    return runner.run(suite)
+
 
 if __name__ == '__main__':
+    import sys
     from taurus.external import argparse
     parser = argparse.ArgumentParser(description=
                                      'Main test suite for Taurus')
@@ -64,4 +66,11 @@ if __name__ == '__main__':
     if args.skip_gui:
         import taurus.test.skip
         taurus.test.skip.GUI_TESTS_ENABLED = False
-    run()
+    ret = run()
+
+    # calculate exit code (0 if OK and 1 otherwise)
+    if ret.wasSuccessful():
+        exit_code = 0
+    else:
+        exit_code = 1
+    sys.exit(exit_code)
