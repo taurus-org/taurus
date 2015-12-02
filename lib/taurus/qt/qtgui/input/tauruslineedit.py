@@ -188,12 +188,13 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         if model_obj is None:
             return None
         val = self.validator()
-        if val is None or val.validate(str(text), 0)[0] != val.Acceptable:
-            return None
         try:
             model_type = model_obj.type
             model_format = model_obj.data_format
             if model_type in [DataType.Integer, DataType.Float]:
+                if val is None or \
+                                val.validate(str(text), 0)[0] != val.Acceptable:
+                    return None
                 q = Quantity(text)
                 # allow implicit units (assume wvalue.units implicitly)
                 if q.dimensionless:
