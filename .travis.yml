@@ -7,6 +7,10 @@ services:
 
 python:
   - "2.7"
+  
+env:
+  - INSTALL="Y"
+  - INSTALL="N"
 
 branches:
   only:
@@ -15,9 +19,11 @@ branches:
 before_install:
   # run reszelaz/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
   - docker pull reszelaz/taurus-test
-  - docker run -d --name=taurus-test -e HOSTNAME=taurus-test -e PYTHONPATH=/taurus/lib -e PATH=/taurus/scripts:$PATH --volume=`pwd`:/taurus reszelaz/taurus-test
+  - if [ $INSTALL == "Y" ]; then docker run -d --name=taurus-test -e HOSTNAME=taurus-test --volume=`pwd`:/taurus reszelaz/taurus-test; fi
+  - if [ $INSTALL == "N" ]; then docker run -d --name=taurus-test -e HOSTNAME=taurus-test -e PYTHONPATH=/taurus/lib -e PATH=/taurus/scripts:$PATH --volume=`pwd`:/taurus reszelaz/taurus-test; fi
   - sleep 10
-
+  
 script:
-  # launch testsuite from git check-out
+  - if [ $INSTALL == "Y" ]; then docker exec taurus-test python /taurus/setup.py install; fi
+  - if [ $INSTALL == "N" ]; then docker exec taurus-test python /taurus/setup.py build_resources; fi
   - docker exec taurus-test python /taurus/lib/taurus/test/testsuite.py
