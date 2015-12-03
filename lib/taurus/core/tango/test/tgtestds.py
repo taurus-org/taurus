@@ -59,6 +59,8 @@ class TangoSchemeTestLauncher(object):
     def tearDownClass(cls):
         """ Stop the device server and undo changes to the database
         """
+        d = PyTango.DeviceProxy(cls.DEV_NAME)
+        d.Reset()
         cls._starter.stopDs(hard_kill=True)
         # remove server
         cls._starter.cleanDb(force=True)
