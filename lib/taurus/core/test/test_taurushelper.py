@@ -92,7 +92,7 @@ DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
 @isValidAttr(name='tango://foo:10000/a/b/c/d')
 @isValidAttr(name='tango:a/b/c/d')
 @isValidAttr(name='tango://a/b/c/d', strict=False)
-@isValidAttr(name='epics://my:example.RBV')
+# @isValidAttr(name='epics://my:example.RBV') disabled till bug #215 is fixed
 @isValidAttr(name='tango:a/b  /c/d')
 @isInvalidAttr(name='tango:a/b/c/d/')
 @isInvalidAttr(name='tango:a/b/c')
