@@ -44,7 +44,7 @@ DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
 
 @insertTest(helper_name='getDisplayValue',
             model= 'eval:1+2',
-            expected='3')
+            expected='3 ') # @TODO: change to '3' if/when pint supports it
 
 # This checks if the pre-tep3 behavior is kept (and it fails)
 # ...but I think it should *not* be kept
