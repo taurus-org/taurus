@@ -27,20 +27,20 @@
 taurusdevicepropertytable.py: 
 """
 
-#todo: tango-centric
+# todo: tango-centric
 
 __all__ = ["TaurusPropTable"]
 
 from taurus.external.qt import Qt, QtCore, QtGui
 from taurus.qt.qtgui.base import TaurusBaseWidget
-import taurus.core
-import PyTango
+from taurus.core.taurusdevice import TaurusDevice
 
 class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
     ''' 
     This widget will show a list of properties of device and the list of values.
     @todo add a frame for Add, Delete and Refresh buttons!
     '''
+    # TODO This widget is Tango-centric
     __pyqtSignals__ = ("modelChanged(const QString &)",)
 
     def __init__(self, parent=None, designMode = False):
@@ -51,9 +51,8 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
             self.call__init__wo_kw(QtGui.QTableWidget, parent)
             self.call__init__(TaurusBaseWidget, name, designMode=designMode)
             self.setObjectName(name)
-            #self.setItemDelegate(Delegate(self))
-            #self.setModelCheck('controls01:10000') 
             self.defineStyle()
+            self.db = None
             
         except Exception,e:
             self.traceback()
@@ -61,6 +60,24 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget over writing methods 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    def setModel(self, model):
+        TaurusBaseWidget.setModel(self, model)
+        # Update the table
+        modelObj = self.getModelObj()
+        if modelObj is None:
+            dev_name = None
+            self.db = None
+        else:
+            validator = modelObj.getNameValidator()
+            groups = validator.getUriGroups(modelObj.getFullName())
+            dev_name = groups['devname']
+            # -----------------------------------------------------------------
+            # Workaround for bug-256
+            # (use next line instead of the other one when bug-256 is fixed)
+            # self.db = modelObj.getParentObj() # use this instead
+            self.db = modelObj.factory().getAuthority(groups['authority'])
+            # -----------------------------------------------------------------
+        self.setTable(dev_name)
 
     def sizeHint(self):
         return QtGui.QTableWidget.sizeHint(self)
@@ -69,7 +86,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         return QtGui.QTableWidget.minimumSizeHint(self)
 
     def getModelClass(self):
-        return taurus.core.taurusauthority.TaurusAuthority
+        return TaurusDevice
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -84,7 +101,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     model = QtCore.pyqtProperty("QString", TaurusBaseWidget.getModel, 
-                                TaurusBaseWidget.setModel, 
+                                setModel,
                                 TaurusBaseWidget.resetModel)
     
     useParentModel = QtCore.pyqtProperty("bool", 
@@ -97,30 +114,38 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     
     @QtCore.pyqtSignature("setTable(QString)")  
-    def setTable(self,dev_name):
-        ''' 
-        This method is used to connect TaurusPropTable widget with TaurusClassTable widget
-        This method fill the table with the names of properties and values for the device selected in the TaurusClassTable
-        '''
-        QtCore.QObject.disconnect(self,QtCore.SIGNAL("cellChanged(int,int)"),self.valueChanged)
-        self.db = PyTango.Database()
+    def setTable(self, dev_name):
+        """
+        Fills the table with the names of properties and their values for the
+        given device.
+        """
+        if dev_name is None:
+            return # TODO: the table should be cleaned
+
+        elif self.db is None:
+            self.warning('Model must be set before calling setTable')
+            return
+        QtCore.QObject.disconnect(self, QtCore.SIGNAL("cellChanged(int, int)"),
+                                  self.valueChanged)
         dev_name = str(dev_name)
-        self.list_prop = list(self.db.get_device_property_list(dev_name,'*'))
+        self.list_prop = list(self.db.get_device_property_list(dev_name, '*'))
         self.setRowCount(len(self.list_prop))
         for i in range(0,len(self.list_prop)):
             elem = self.list_prop[i]
             self.setText(elem,i,0)
-            self.dictionary=self.db.get_device_property(dev_name,self.list_prop)
-            self.debug('Getting %s properties: %s -> %s'%(dev_name,self.list_prop,self.dictionary))
+            self.dictionary= self.db.get_device_property(dev_name,
+                                                         self.list_prop)
+            self.debug('Getting %s properties: %s -> %s',
+                       dev_name, self.list_prop, self.dictionary)
             value=self.dictionary[elem]
-            self.debug('TaurusPropsTable: property %s is type %s'%(elem,type(value)))
-            USE_TABLES=False
+            self.debug('TaurusPropsTable: property %s is type %s',
+                       elem, type(value))
+            USE_TABLES= False
             if USE_TABLES: self.setPropertyValue(value,i,1)
             else:
                 if not isinstance(value,str): #not something like an string
-                    #if isinstance(value,list):#type(value) is list: 
-                    heigh1 = len(value)
-                    value = '\n'.join(str(v) for v in value) # adding new lines in between elements in the list
+                    # adding new lines in between elements in the list
+                    value = '\n'.join(str(v) for v in value)
                 self.setText(str(value),i,1)
         
         self.updateStyle()
@@ -173,13 +198,14 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         menu.exec_(event.globalPos())
         del menu        
 
-    def setText(self,value,i,j):
+    def setText(self,value,i=None,j=None):
         item = QtGui.QTableWidgetItem()
         item.setFlags(Qt.Qt.ItemIsEnabled)
         item.setText(QtGui.QApplication.translate("PLCTabWidget", value, None, QtGui.QApplication.UnicodeUTF8))
-        self.setItem(i,j,item)
-        return
-    
+        if i is not None and j is not None:
+            self.setItem(i, j, item)
+        #TODO: the info does not change with the events.
+
     def valueDoubleClicked(self,x,y):
         self.info('TaurusPropTable.valueDoubleClicked(%s,%s)' % (x,y))
         ## opens a dialog for multiline edition
@@ -374,12 +400,15 @@ class Delegate(QtGui.QItemDelegate):
         return size       
     
 if __name__ == '__main__':
-    import sys,os
-    app = QtGui.QApplication([])
+    import sys
+    from  taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(app_name="TaurusDevice property table")
     widget = TaurusPropTable()
-    args = sys.argv[1:]
-    if not args: args = ['tango/admin/%s'%(os.environ['TANGO_HOST'].split(':')[0])] 
-    widget.setTable(sys.args)
+    args = sys.argv
+    if len(args) == 1:
+        model = 'sys/tg_test/1'
+    else:
+        model = str(args[1])
+    widget.setModel(model)
     widget.show()
     app.exec_()
-		
