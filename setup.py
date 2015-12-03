@@ -257,7 +257,7 @@ def get_script_files():
         # avoid files that have any extension
         if len(os.path.splitext(abs_item)[1]) > 0:
             continue
-        scripts.append('scripts/' + item)
+        scripts.append(os.path.join(scripts_dir, item))
     return scripts
 
 scripts = get_script_files()
