@@ -198,7 +198,7 @@ class ModuleExplorer(object):
         return minfo, ModuleExplorer.getAll(minfo, 'warnings')
 
 
-def main(modulename='taurus', exclude_patterns=('.*/ui')):
+def main(modulename='taurus', exclude_patterns=(r'taurus.qt.qtgui.extra_.*',)):
     moduleinfo, allw = ModuleExplorer.explore(
         modulename, exclude_patterns=exclude_patterns, verbose=True)
     print '\n\n' + '*' * 50

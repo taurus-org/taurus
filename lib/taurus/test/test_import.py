@@ -46,7 +46,9 @@ class TaurusImportTestCase(unittest.TestCase):
         Expected Results: It is expected to get no warning message
         on module importing
         """
-        moduleinfo, wrn = self.explore('taurus', verbose=False)
+        exclude_patterns = (r'taurus.qt.qtgui.extra_.*',)
+        moduleinfo, wrn = self.explore('taurus', verbose=False,
+                                       exclude_patterns=exclude_patterns)
         msg = None
         if wrn:
             msg = '\n%s' % '\n'.join(zip(*wrn)[1])
