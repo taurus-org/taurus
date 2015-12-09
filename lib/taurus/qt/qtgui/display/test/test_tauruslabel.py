@@ -122,22 +122,22 @@ testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
 # Check bck-compat with pre-tep14  BgRoles: state, quality, none
 
 @insertTest(helper_name='bgRole',
-            model='tango:' + DEV_NAME + '/double_scalar',
+            model='tango:' + DEV_NAME + '/float_scalar_ro',
             bgRole='none',
             expected=Qt.QColor(Qt.Qt.transparent).getRgb()[:3])
 
 @insertTest(helper_name='bgRole',
-            model='tango:' + DEV_NAME + '/double_scalar',
+            model='tango:' + DEV_NAME + '/float_scalar_ro',
             bgRole='state',
             expected=DEVICE_STATE_DATA["TaurusDevState.Ready"][1:4])
 
 @insertTest(helper_name='bgRole',
-            model='tango:' + DEV_NAME + '/double_scalar',
+            model='tango:' + DEV_NAME + '/float_scalar_ro',
             bgRole='quality',
             expected=ATTRIBUTE_QUALITY_DATA["ATTR_VALID"][1:4])
 
 @insertTest(helper_name='bgRole',
-            model='tango:' + DEV_NAME + '/double_scalar',
+            model='tango:' + DEV_NAME + '/float_scalar_ro',
             expected=ATTRIBUTE_QUALITY_DATA["ATTR_VALID"][1:4])
 
 class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
