@@ -54,6 +54,9 @@ class QtTestCase(unittest.TestCase):
         self.opt_mods = ("QtDesigner", "QtNetwork", "Qt", "QtSvg",
                          "QtUiTools", "QtWebKit", "Qwt5", "uic")
 
+        # store a "snapshot" of the currently loaded modules
+        self._orig_mods = set(sys.modules.keys())
+
         # auto initialize Qt by taurus using forcibly the self.QtAPI
         tauruscustomsettings.QT_AUTO_INIT = True
         tauruscustomsettings.QT_AUTO_API = self.QtAPI
@@ -64,7 +67,7 @@ class QtTestCase(unittest.TestCase):
         self.__qt = Qt
 
     def test_qt_base_import(self):
-        mods = sys.modules
+        mods = set(sys.modules.keys())
 
         other_apis = set(_QtAPIs)
         other_apis.remove(self.QtAPI)
@@ -81,7 +84,7 @@ class QtTestCase(unittest.TestCase):
 
         for opt_mod in self.opt_mods:
             mod = "{0}.{1}".format(self.QtAPI, opt_mod)
-            self.assertFalse(mod in mods, mod + " is loaded")
+            self.assertFalse(mod in mods-self._orig_mods, mod + " is loaded")
 
     def __test_qt_module(self, qt_mod_name):
         taurus_qt_mod_name = "taurus.external.qt.{0}".format(qt_mod_name)
