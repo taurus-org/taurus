@@ -19,8 +19,8 @@ branches:
 before_install:
   # run reszelaz/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
   - docker pull reszelaz/taurus-test
-  - if [ $INSTALL == "Y" ]; then docker run -d --name=taurus-test -e HOSTNAME=taurus-test -e USER=root --volume=`pwd`:/taurus reszelaz/taurus-test; fi
-  - if [ $INSTALL == "N" ]; then docker run -d --name=taurus-test -e HOSTNAME=taurus-test -e USER=root -e PYTHONPATH=/taurus/lib -e PATH=/taurus/scripts:$PATH --volume=`pwd`:/taurus reszelaz/taurus-test; fi
+  - if [ $INSTALL == "Y" ]; then docker run -d --name=taurus-test -e HOSTNAME=taurus-test --volume=`pwd`:/taurus cpascual/taurus-test; fi
+  - if [ $INSTALL == "N" ]; then docker run -d --name=taurus-test -e HOSTNAME=taurus-test -e PYTHONPATH=/taurus/lib -e PATH=/taurus/scripts:$PATH --volume=`pwd`:/taurus cpascual/taurus-test; fi
   - sleep 10
   
 script:
