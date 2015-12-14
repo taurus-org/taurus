@@ -213,6 +213,8 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 # @invalid(name='eval:1?configuration')
 # @invalid(name='eval:1?configuration=foo')
 
+@invalid(name='eval:@foo') # invalid because is a device URI
+@invalid(name='eval:{tango:a/b/c}') # invalid because is a device URI
 #===============================================================================
 
 #

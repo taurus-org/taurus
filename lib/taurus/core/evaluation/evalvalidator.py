@@ -196,7 +196,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
     scheme = 'eval'
     authority = EvaluationAuthorityNameValidator.authority
     path = ((r'(?!//)/?(%s/)?' +
-            r'(?P<attrname>(?P<_subst>(%s;)+)?(?P<_expr>[^?#]+))') %
+            r'(?P<attrname>(?P<_subst>(%s;)+)?(?P<_expr>[^@?#]+))') %
             (EvaluationDeviceNameValidator.devname, K_EQUALS_V)
             )
     query = '(?!)'
