@@ -17,8 +17,8 @@ branches:
     - taurus4-preview
 
 before_install:
-  # run reszelaz/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
-  - docker pull reszelaz/taurus-test
+  # run cpascual/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
+  - docker pull cpascual/taurus-test
   - if [ $INSTALL == "Y" ]; then docker run -d --name=taurus-test -e HOSTNAME=taurus-test --volume=`pwd`:/taurus cpascual/taurus-test; fi
   - if [ $INSTALL == "N" ]; then docker run -d --name=taurus-test -e HOSTNAME=taurus-test -e PYTHONPATH=/taurus/lib -e PATH=/taurus/scripts:$PATH --volume=`pwd`:/taurus cpascual/taurus-test; fi
   - sleep 10
