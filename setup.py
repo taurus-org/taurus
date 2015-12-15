@@ -88,6 +88,8 @@ packages = [
     'taurus.core.util.test',
 
     'taurus.core.resource',
+    'taurus.core.resource.test',
+    'taurus.core.resource.test.res',
 
     # 'taurus.core.spec',
     
@@ -206,6 +208,7 @@ package_data = {
     'taurus.core.tango'        : ['__taurus_plugin__'],
 
     'taurus.core.tango.test': ['res/*'],
+    'taurus.core.resource.test': ['res/*'],
 
     'taurus.qt.qtgui.resource' : ['*.rcc'],
     'taurus.qt.qtgui.util'     : ['tauruswidget_template',
