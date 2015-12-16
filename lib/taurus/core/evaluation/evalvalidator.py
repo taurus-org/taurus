@@ -280,10 +280,26 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
     def getUriGroups(self, name, strict=None):
         '''reimplemented from :class:`TaurusAttributeNameValidator` to provide 
         backwards compatibility with old syntax'''
-        groups = TaurusAttributeNameValidator.getUriGroups(self, name, 
-                                                           strict=strict)
-        if groups is None:
+
+        # mangle refs before matching the pattern to sanitize them
+        refs = self.getRefs(name)
+        refs_dict = {}
+        _name = name
+        for i,ref in enumerate(refs):
+            refs_dict['__EVALREF_%d__' % i] = '{%s}' % ref
+            _name = _name.replace('{%s}'%ref, '{__EVALREF_%d__}' %i, 1)
+
+        _groups = TaurusAttributeNameValidator.getUriGroups(self, _name,
+                                                            strict=strict)
+        if _groups is None:
             return None
+
+        # create the groups dict with unmangled refs in its values
+        groups = {}
+        for n, g in _groups.items():
+            if isinstance(g, str): # avoid None or boolean values
+                g = g.format(**refs_dict)
+            groups[n] = g
         
         if not groups['__STRICT__']:
             #adapt attrname to what would be in strict mode

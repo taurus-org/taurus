@@ -234,10 +234,19 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
             'a={tango:a/b/c/d};x=2;a*x',
             'a*x'), test_skip=reason)
 
-@names(name='eval:@Foo/c=1;cos(0)+c', 
+@names(name='eval:@Foo/c=1;cos(0)+c',
        out=('eval://localhost/@Foo/c=1;cos(0)+c',
             '@Foo/c=1;cos(0)+c',
             'cos(0)+c'))
+
+@names(name='eval:a={eval:"a"};{eval:0}*a*{eval:1+{eval:a=2;a*a}}',
+       out=('eval://localhost/@DefaultEvaluator/' +
+            'a={eval://localhost/@DefaultEvaluator/"a"};' +
+            '{eval://localhost/@DefaultEvaluator/0}*a*' +
+            '{eval://localhost/@DefaultEvaluator/1+' +
+            '{eval://localhost/@DefaultEvaluator/a=2;a*a}}',
+            'a={eval:"a"};{eval:0}*a*{eval:1+{eval:a=2;a*a}}',
+            '0*a*1+a*a'))
 
 @names(name='eval:@Foo/{NonExistingAlias/foo}+5',
        out=(None,
@@ -282,6 +291,8 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 
 @valid(name='eval:1*{eval:x=3;x}')
 @valid(name='eval:1*{eval:2*{eval:3}}')
+@valid(name='eval:{eval:@foo/3}')
+@valid(name='eval:a={tango:a/b/c/d};{eval:0}+a+{eval:1+{eval:a=2;a*a}}')
 @invalid(name='eval:1*{eval:2*{eval://3}}') # invalid because of non-strict ref
 @valid(name='eval:1*{eval:2*{eval://3}}', strict=False)
 @invalid(name='eval:{tango:a/b/c}') # invalid:  ref is not an attr!
