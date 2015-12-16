@@ -24,22 +24,17 @@
 #############################################################################
 
 """
-simfactory.py: 
+resfactory.py:
 """
 
 import os, imp, operator, types
 
-from taurus import Factory, Authority, Manager
-from taurus.core.taurusexception import TaurusException
-from taurus.core.taurusbasetypes import OperationMode, MatchLevel, \
-    TaurusAttrValue, TaurusEventType
+from taurus.core.taurushelper import Manager
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.log import Logger
 from taurus.core.taurusfactory import TaurusFactory
-from taurus.core.taurusattribute import TaurusAttribute
-from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusauthority import TaurusAuthority
-from taurus.core.taurusconfiguration import TaurusConfiguration
+from taurus.core.taurusexception import TaurusException
+
 
 class ModuleDict(dict):
     def __init__(self, mod):
@@ -71,7 +66,9 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
         name = self.__class__.__name__
         self.call__init__(Logger, name)
         self.call__init__(TaurusFactory)
-        
+        self.clear()
+
+    def clear(self):
         self._resource_map = {}
         self._resource_priority = {}
         self._resource_priority_keys = []
@@ -146,34 +143,6 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
         
         return full_name, m
     
-    def __get(self, alias):
-        if self._resource_count == 0:
-            self.reloadResource(priority = ResourcesFactory.DftResourcePriority)
-        
-        # optimization: many applications contain only one resource: in that
-        # case avoid the loop
-        if self._resource_count == 1:
-            return self._first_resource[alias]
-            
-        for p in self._resource_priority_keys:
-            for resource_name in self._resource_priority[p]:
-                resource = self._resource_map[resource_name]
-                try: return resource[alias]
-                except: pass
-    
-    def __splitResourceName(self, alias):
-        for i, c in enumerate(alias):
-            if not c.isalnum():
-                return i, c, alias.split(c, 1)
-        return None, '', [alias]
-    
-    def __splitScheme(self, alias):
-        try:
-            i = alias.index('://')
-            return alias[:i], alias[i+3:]
-        except:
-            return '', alias
-    
     def getValue(self, key):
         """Returns the value for a given key
            
@@ -181,12 +150,19 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
            
            :return: (str) the value for the given key
         """
-        alias = self.__splitScheme(key)
-        if alias[0] and not alias[0] in ResourcesFactory.schemes:
-            return None
-        i, c, alias = self.__splitResourceName(alias[1])
-        alias[0] = self.__get(alias[0]) or ''
-        return c.join(alias)
+        if self._resource_count == 0:
+            self.reloadResource(priority = ResourcesFactory.DftResourcePriority)
+
+        # optimization: many applications contain only one resource: in that
+        # case avoid the loop
+        if self._resource_count == 1:
+            return self._first_resource.get(key, None)
+
+        for p in self._resource_priority_keys:
+            for resource_name in self._resource_priority[p]:
+                resource = self._resource_map[resource_name]
+                try: return resource[key]
+                except: pass
     
     def findObjectClass(self, absolute_name):
         """
@@ -194,84 +170,81 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
            
         :param absolute_name: (str) the object absolute name string
 
-        :return: (taurus.core.taurusmodel.TaurusModel) a class object that should be a subclass of a taurus.core.taurusmodel.TaurusModel
-        :raise: (taurus.core.taurusexception.TaurusException) if the given name is invalid.
+        :return: (taurus.core.taurusmodel.TaurusModel or None) the class
+                 for the model object mapped by absolute_name, or None if
+                 absolute_name is invalid.
         """
-        objType = None
+        validators =  (self.getAttributeNameValidator(),
+                       self.getDeviceNameValidator(),
+                       self.getAuthorityNameValidator())
 
-        return objType
+        for v in validators:
+            try:
+                value = self.getValue(v.getUriGroups(absolute_name)['_resname'])
+                return Manager().findObjectClass(value)
+            except:
+                pass
+        return None
 
-    def getAuthority(self, alias=None):
+    def getAuthority(self, name=None):
         """
-        Obtain the object corresponding to the given authority name or the 
-        default authority if alias is None.
-        If the corresponding Authority object already exists, the existing 
-        instance is returned. Otherwise a new instance is stored and returned.
+        Obtain the authority model object referenced by name.
            
-        :param alias: (str) authority name string alias. If None, the 
-                     default Authority is used
+        :param name: (str) name
                            
         :return: (taurus.core.taurusauthority.TaurusAuthority) authority object
-        :raise: (NameError) if the alias does not exist
-        :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
+        :raise: (taurus.core.taurusexception.TaurusException) if name is invalid
         """
-        if alias is None:
-            return Authority()
-        
-        alias = self.getValue(alias)
-        if not alias:
-            raise NameError(alias)
-        
-        return Manager().getAuthority(alias)
+        groups = self.getAuthorityNameValidator().getUriGroups(name)
+        if groups is None:
+            raise TaurusException('Invalid name "%s"' % name)
+        res_name = groups['_resname']
+        value = self.getValue(res_name)
+        return Manager().getAuthority(value)
 
-    def getDevice(self, alias):
+    def getDevice(self, name):
         """
-        Obtain the object corresponding to the given device name. If the 
-        corresponding device already exists, the existing instance is returned. 
-        Otherwise a new instance is stored and returned.
-           
-        :param alias: device name string alias.
-        
+        Obtain the device model object referenced by name.
+
+        :param name: (str) name
+
         :return: (taurus.core.taurusdevice.TaurusDevice) device object
-        :raise: (NameError) if the alias does not exist
-        :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
+        :raise: (taurus.core.taurusexception.TaurusException) if name is invalid
         """
-        alias = self.getValue(alias)
-        if not alias:
-            raise NameError(alias)
-        return Manager().getDevice(alias)
-        
-    def getAttribute(self, alias):
-        """
-        Obtain the object corresponding to the given attribute name.
-        If the corresponding attribute already exists, the existing instance
-        is returned. Otherwise a new instance is stored and returned.
+        groups = self.getDeviceNameValidator().getUriGroups(name)
+        if groups is None:
+            raise TaurusException('Invalid name "%s"' % name)
+        res_name = groups['_resname']
+        value = self.getValue(res_name)
+        return Manager().getDevice(value)
 
-        :param alias: (str) attribute name string alias
-             
+    def getAttribute(self, name):
+        """
+        Obtain the attribute model object referenced by name.
+
+        :param name: (str) name
+
         :return: (taurus.core.taurusattribute.TaurusAttribute) attribute object
-        :raise: (NameError) if the alias does not exist
-        :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
+        :raise: (taurus.core.taurusexception.TaurusException) if name is invalid
         """
-        alias = self.getValue(alias)
-        if not alias:
-            raise NameError(alias)
-        return Manager().getAttribute(alias)
+        groups = self.getAttributeNameValidator().getUriGroups(name)
+        if groups is None:
+            raise TaurusException('Invalid name "%s"' % name)
+        res_name = groups['_resname']
+        value = self.getValue(res_name)
+        return Manager().getAttribute(value)
 
-    def getConfiguration(self, alias):
-        """
-        Obtain the object corresponding to the given attribute or full name.
-        If the corresponding configuration already exists, the existing instance
-        is returned. Otherwise a new instance is stored and returned.
+    def getAuthorityNameValidator(self):
+        """Return ResourceAuthorityNameValidator"""
+        import resvalidator
+        return resvalidator.ResourceAuthorityNameValidator()
 
-        :param alias: (str) configuration name string alias
-             
-        :return: (taurus.core.taurusconfiguration.TaurusConfiguration) configuration object
-        :raise: (NameError) if the alias does not exist
-        :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
-        """
-        alias = self.getValue(alias)
-        if not alias:
-            raise NameError(alias)
-        return Manager().getConfiguration(alias)
+    def getDeviceNameValidator(self):
+        """Return ResourceDeviceNameValidator"""
+        import resvalidator
+        return resvalidator.ResourceDeviceNameValidator()
 
+    def getAttributeNameValidator(self):
+        """Return ResourceAttributeNameValidator"""
+        import resvalidator
+        return resvalidator.ResourceAttributeNameValidator()
