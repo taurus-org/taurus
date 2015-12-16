@@ -304,9 +304,9 @@ class TaurusFactory(object):
         model name (while in many cases a name may only be valid for one 
         element type, this is not necessarily true in general)
         
-        In this base implementation, name is checked first for Configuration, 
-        then for Attribute, then for Device and finally for Authority, and the 
-        return value is sorted in that same order.
+        In this base implementation, name is checked first for Attribute, then
+        for Device and finally for Authority, and the return value is sorted in
+        that same order.
         
         If a given schema requires a different ordering, reimplement this method
         
