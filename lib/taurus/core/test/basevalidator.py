@@ -57,12 +57,21 @@ class AbstractNameValidatorTestCase(object):
                                                        str(returned))
                 self.assertEqual(v, returned[k], msg=msg)
         
-    def isInvalid(self, name=None, groups=None, strict=True):
-        valid = self.validator().isValid(name, strict=strict)
-        groups = self.validator().getUriGroups(name, strict=strict)
-        msg = '%s should be invalid. Matched: %s' % (name, groups) 
-        self.assertFalse(valid, msg)
-        
+    def isInvalid(self, name=None, groups=None, strict=True,
+                  exceptionType=None):
+        try:
+            valid = self.validator().isValid(name, strict=strict)
+            groups = self.validator().getUriGroups(name, strict=strict)
+            msg = '%s should be invalid. Matched: %s' % (name, groups)
+            self.assertFalse(valid, msg)
+        except exceptionType:
+            # do not fail if the exception is expected
+            pass
+        else:
+            # there was no exception. Check if an exception was expected
+            msg = '%s should raise %s' % (name, exceptionType)
+            self.assertTrue(exceptionType is None, msg)
+
     def test_singleton(self):
         '''Check that the validator is a singleton'''
         self.assertIs(self.validator(), self.validator())
