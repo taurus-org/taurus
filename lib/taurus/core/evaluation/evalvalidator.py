@@ -181,8 +181,9 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
 
      - attrname: attribute name. same as concatenating _subst with _expr 
      - _expr: a mathematical expression
+     - _evalrefs: a list of eval refs found in the name (see :meth:`getRefs`)
      - [_subst]: a semicolon-separated repetition of key=value (for replacing 
-       them in _expr) 
+       them in _expr)
      - [devname]: as in :class:`EvaluationDeviceNameValidator`
      - [_evalname]: evaluation instance name (aka non-dotted dev name) 
      - [_evalclass]: evaluator class name (if dotted name given)
@@ -191,7 +192,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
      - [cfgkey] same as fragment (for bck-compat use only)
      
     Note: brackets on the group name indicate that this group will only contain
-    a string if the URI contains it.
+    a value if the URI contains it.
     '''
     scheme = 'eval'
     authority = EvaluationAuthorityNameValidator.authority
@@ -265,16 +266,13 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         if groups is None:
             return False
         
-        #now find the references (they can be in expr and in subst)
-        _expr = groups['_expr']
-        _subst = groups['_subst'] or ''
-        for s in (_expr, _subst):
-            for ref in self.getRefs(s):
-                if not isValidName(ref, etypes=(TaurusElementType.Attribute,), 
-                                   strict=strict):
-                    debug('"%s" is invalid because ref "%s" is not a ' + \
-                            'valid attribute', name, ref)
-                    return False
+        # now check the references
+        for ref in groups['_evalrefs']:
+            if not isValidName(ref, etypes=(TaurusElementType.Attribute,),
+                               strict=strict):
+                debug('"%s" is invalid because ref "%s" is not a ' + \
+                        'valid attribute', name, ref)
+                return False
         return True
 
     def getUriGroups(self, name, strict=None):
@@ -300,6 +298,9 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             if isinstance(g, str): # avoid None or boolean values
                 g = g.format(**refs_dict)
             groups[n] = g
+
+        # add a group containing the refs
+        groups['_evalrefs'] = refs
         
         if not groups['__STRICT__']:
             #adapt attrname to what would be in strict mode
