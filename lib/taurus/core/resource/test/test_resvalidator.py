@@ -104,7 +104,7 @@ class ResourceDeviceValidatorTestCase(_AbstractResNameValidatorTestCase,
 @valid(name='res:attr1')
 @valid(name='res:foo')
 @valid(name='res:Foo')
-@invalid(name='res:res_attr')
+@valid(name='res:res_attr')
 @invalid(name='res:1')
 @invalid(name='res:1foo')
 @invalid(name='res: foo')
@@ -129,7 +129,7 @@ class ResourceAttributeValidatorTestCase(_AbstractResNameValidatorTestCase,
                'foo': 'eval:/@Foo/True',
                '1foo': 'eval:2',
                'Foo': 'eval:False',
-               'res_attr' 'res:attr1'
+               'res_attr': 'res:attr1',
                'dev1': 'tango:a/b/c',  # invalid
                'dev2': 'eval:@foo',   # invalid
                }
