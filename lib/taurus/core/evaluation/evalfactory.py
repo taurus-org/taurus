@@ -235,7 +235,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
             del self.polling_timers[period]
 
     def getAuthorityNameValidator(self):
-        """Return EvaluationDatabaseNameValidator"""
+        """Return EvaluationAuthorityNameValidator"""
         import evalvalidator
         return evalvalidator.EvaluationAuthorityNameValidator()
                  
