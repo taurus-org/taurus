@@ -166,6 +166,14 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
                'fragment': 'label',
                '__STRICT__': True,
                'cfgkey': 'label'}, strict=True)
+@valid(name='eval:a={eval:1#f};a+{eval:2#foo}#bar',
+       groups={'attrname': 'a={eval:1#f};a+{eval:2#foo}',
+               '_expr': 'a+{eval:2#foo}',
+               '_subst': 'a={eval:1#f};',
+               'query': None,
+               'fragment': 'bar',
+               '__STRICT__': True,
+               'cfgkey': 'bar'}, strict=True)
 @valid(name='eval:@foo/1/3')
 @valid(name='eval:x=2;y=3;x*y')
 @valid(name='eval:@foo/x=2;y=3;x*y')
@@ -238,6 +246,13 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
        out=('eval://localhost/@Foo/c=1;cos(0)+c',
             '@Foo/c=1;cos(0)+c',
             'cos(0)+c'))
+
+@names(name='eval:a={eval:1#f};a+{eval:2#foo}#bar',
+       out=('eval://localhost/@DefaultEvaluator/a=' +\
+            '{eval://localhost/@DefaultEvaluator/1};a+' +\
+            '{eval://localhost/@DefaultEvaluator/2}',
+            'a={eval:1#f};a+{eval:2#foo}',
+            'a+2'))
 
 @names(name='eval:a={eval:"a"};{eval:0}*a*{eval:1+{eval:a=2;a*a}}',
        out=('eval://localhost/@DefaultEvaluator/' +
