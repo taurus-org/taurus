@@ -30,36 +30,38 @@ Epics extension for taurus core model.
 
 The epics extension provides access to Epics control system objects 
 
-.. note:: The Epics scheme is only a proof of concept. The final syntax of the models is
-          not yet set in stone and only basic functionality is implemented.  
+.. note:: The Epics scheme is only a proof of concept. The final syntax of
+          the model names is not yet set in stone and only basic functionality
+          is implemented.
 
 
 The Epics extension implements :mod:`taurus.core` objects that connect to Epics
-objects. The scheme prefix for epics objects is 'epics://'.
+PVs. The scheme name for epics models is 'epics' (this will be changed to
+ca and/or pva).
 
-You should never create objects of epics classes directly. Instead you
-should use the :class:`taurus.core.taurusmanager.TaurusManager` and 
+You should never instantiate models from epics model classes directly. Instead,
+use the :class:`taurus.core.taurusmanager.TaurusManager` and
 :class:`taurus.core.taurusmanager.TaurusFactory` APIs to access all elements.
 
-For example, to get a reference to the epics process variable (PV) "my:example.RBV" you
-should do something like::
+For example, to get a reference to the epics process variable (PV)
+"my:example.RBV" you should do something like::
 
     >>> import taurus
-    >>> myattr = taurus.Attribute('epics://my:example.RBV')
+    >>> myattr = taurus.Attribute('epics:my:example.RBV')
 
 Epics attributes (should) work just as other Taurus attributes and can be
 referred by their model name wherever a Taurus Attribute model is expected. For
 example, you can launch a `TaurusForm` with an epics attribute::
 
-    $> taurusform epics://my:example.RBV
+    $> taurusform epics:my:example.RBV
 
 Similarly, you can combine epics attributes with attributes from other schemes::
 
-    $> taurusform 'epics://my:example.RBV' 'tango://sys/tg_test/1/float_scalar'\ 
-       'eval:{epics://my:example.RBV}*{tango://sys/tg_test/1/float_scalar}'
+    $> taurusform 'epics:my:example.RBV' 'tango:sys/tg_test/1/float_scalar'\
+       'eval:{epics:my:example.RBV}*{tango:sys/tg_test/1/float_scalar}'
 
 Currently, the taurus epics scheme just supports epics PVs, implementing them as
-taurus attributes (with configuration objects as well). Other taurus classes
+taurus attributes (with configuration objects as well). Other model types
 such as the Authority, and Device classes are just convenience dummy objects in
 the epics scheme at this point. Epics records may eventually be mapped as
 Devices.
