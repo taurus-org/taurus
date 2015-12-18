@@ -150,7 +150,10 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
            :return: (str) the value for the given key
         """
         if self._resource_count == 0:
-            self.reloadResource(priority=ResourcesFactory.DftResourcePriority)
+            try:
+                self.reloadResource(priority=self.DftResourcePriority)
+            except:
+                return None
 
         # optimization: many applications contain only one resource: in that
         # case avoid the loop
