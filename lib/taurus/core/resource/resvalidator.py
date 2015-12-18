@@ -40,7 +40,7 @@ class _ResNameValidator(object):
     """
     Abstract class for all Res validators. Res Name validators should inherit
     first from it and then from the TaurusXXXNameValidator to give its methods
-    higest precedence according to the python MRO
+    highest precedence according to the python MRO
     """
     scheme = 'res'
     authority = '(?!)'
@@ -133,11 +133,11 @@ class _ResNameValidator(object):
 
 class ResourceAuthorityNameValidator(_ResNameValidator,
                                      TaurusAuthorityNameValidator):
-    '''Validator for res authority names. Apart from the named related to the
+    """Validator for res authority names. Apart from the named related to the
     mapped model value, the following named groups are created:
 
      - _resname: resource name (aka key)
-    '''
+    """
     # authority = r'(?P<_resname>%s)' % PY_VAR
     # path = '(?!)'
     _elementType = TaurusElementType.Authority
@@ -145,20 +145,20 @@ class ResourceAuthorityNameValidator(_ResNameValidator,
 
 class ResourceDeviceNameValidator(_ResNameValidator,
                                   TaurusDeviceNameValidator):
-    '''Validator for res device names. Apart from the named related to the
+    """Validator for res device names. Apart from the named related to the
     mapped model value, the following named groups are created:
 
      - _resname: resource name (aka key)
-    '''
+    """
     _elementType = TaurusElementType.Device
 
 
 class ResourceAttributeNameValidator(_ResNameValidator,
                                      TaurusAttributeNameValidator):
-    '''Validator for res attribute names. Apart from the named related to the
+    """Validator for res attribute names. Apart from the named related to the
     mapped model value, the following named groups are created:
 
      - _resname: resource name (aka key)
-    '''
+    """
     _elementType = TaurusElementType.Attribute
 

@@ -36,13 +36,6 @@ from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusexception import TaurusException
 
 
-class ModuleDict(dict):
-    def __init__(self, mod):
-        self.__mod = mod
-
-    def __getitem__(self, name):
-        return self.__mod.__getattribute__(name)
-
 class ResourcesFactory(Singleton, TaurusFactory, Logger):
     """A Singleton class designed to provide Simulation related objects."""
 
@@ -86,11 +79,16 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
            
            :return: (dict) a dictionary version of the given resource object
         """
+        if priority < 1:
+            raise ValueError('priority must be >=1')
         if operator.isMappingType(obj):
             name = name or 'DICT%02d' % priority
         elif type(obj) in types.StringTypes or obj is None:
-            name, obj = self.__reloadResource(obj)
-            obj = ModuleDict(obj)
+            name, mod = self.__reloadResource(obj)
+            obj = {}
+            for k, v in mod.__dict__.items():
+                if not k.startswith('_') and isinstance(v, basestring):
+                    obj[k] = v
         else:
             raise TypeError
         
@@ -117,7 +115,8 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
             file_name = ResourcesFactory.DftResourceName
         else:
             path, file_name = os.path.split(name)
-            if not path: path = os.path.curdir
+            if not path:
+                path = os.path.curdir
         path = os.path.abspath(path)
 
         full_name = os.path.join(path, file_name)
@@ -126,15 +125,15 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
             raise ImportError
 
         module_name, ext = os.path.splitext(file_name)
-        
-        m, file = None, None
+
+        m, file_ = None, None
         try:
-            file, pathname, desc = imp.find_module(module_name, [path])
+            file_, pathname, desc = imp.find_module(module_name, [path])
             self.info("(re)loading resource %s", pathname)
-            m = imp.load_module(module_name, file, pathname, desc)
-            if file: file.close()
+            m = imp.load_module(module_name, file_, pathname, desc)
+            if file_: file_.close()
         except Exception, e:
-            if file: file.close()
+            if file_: file_.close()
             raise e
         
         if m is None:
@@ -151,7 +150,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
            :return: (str) the value for the given key
         """
         if self._resource_count == 0:
-            self.reloadResource(priority = ResourcesFactory.DftResourcePriority)
+            self.reloadResource(priority=ResourcesFactory.DftResourcePriority)
 
         # optimization: many applications contain only one resource: in that
         # case avoid the loop
@@ -161,8 +160,10 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
         for p in self._resource_priority_keys:
             for resource_name in self._resource_priority[p]:
                 resource = self._resource_map[resource_name]
-                try: return resource[key]
-                except: pass
+                try:
+                    return resource[key]
+                except:
+                    pass
     
     def findObjectClass(self, absolute_name):
         """
@@ -174,9 +175,9 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
                  for the model object mapped by absolute_name, or None if
                  absolute_name is invalid.
         """
-        validators =  (self.getAttributeNameValidator(),
-                       self.getDeviceNameValidator(),
-                       self.getAuthorityNameValidator())
+        validators = (self.getAttributeNameValidator(),
+                      self.getDeviceNameValidator(),
+                      self.getAuthorityNameValidator())
 
         for v in validators:
             try:
