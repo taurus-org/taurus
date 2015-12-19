@@ -28,7 +28,8 @@
 
 Epics extension for taurus core model.
 
-The epics extension provides access to Epics control system objects 
+The epics extension provides access to Epics control system objects via Channel
+Access
 
 .. note:: The Epics scheme is only a proof of concept. The final syntax of
           the model names is not yet set in stone and only basic functionality
@@ -36,8 +37,8 @@ The epics extension provides access to Epics control system objects
 
 
 The Epics extension implements :mod:`taurus.core` objects that connect to Epics
-PVs. The scheme name for epics models is 'epics' (this will be changed to
-ca and/or pva).
+PVs. The scheme name for channel access epics models is 'ca' ('epics' also
+works at this moment).
 
 You should never instantiate models from epics model classes directly. Instead,
 use the :class:`taurus.core.taurusmanager.TaurusManager` and
@@ -47,18 +48,18 @@ For example, to get a reference to the epics process variable (PV)
 "my:example.RBV" you should do something like::
 
     >>> import taurus
-    >>> myattr = taurus.Attribute('epics:my:example.RBV')
+    >>> myattr = taurus.Attribute('ca:my:example.RBV')
 
 Epics attributes (should) work just as other Taurus attributes and can be
 referred by their model name wherever a Taurus Attribute model is expected. For
 example, you can launch a `TaurusForm` with an epics attribute::
 
-    $> taurusform epics:my:example.RBV
+    $> taurusform ca:my:example
 
 Similarly, you can combine epics attributes with attributes from other schemes::
 
-    $> taurusform 'epics:my:example.RBV' 'tango:sys/tg_test/1/float_scalar'\
-       'eval:{epics:my:example.RBV}*{tango:sys/tg_test/1/float_scalar}'
+    $> taurusform 'ca:my:example' 'tango:sys/tg_test/1/float_scalar'\
+       'eval:{ca:my:example}*{tango:sys/tg_test/1/float_scalar}'
 
 Currently, the taurus epics scheme just supports epics PVs, implementing them as
 taurus attributes (with configuration objects as well). Other model types

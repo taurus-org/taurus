@@ -43,14 +43,16 @@ class EpicsAuthorityNameValidator(TaurusAuthorityNameValidator):
     """Validator for Epics authority names. For now, the only supported
     authority is "//":
     """
-    scheme = 'epics'
+    scheme = '(ca|epics)'
     authority = '//'
     path = '(?!)'
     query = '(?!)'
     fragment = '(?!)'
 
     def getNames(self, fullname, factory=None):
-        return 'epics://', '//', ''
+        if self.isValid(fullname):
+            return 'ca://', '//', ''
+        return None
 
 class EpicsDeviceNameValidator(TaurusDeviceNameValidator):    
     """Validator for Epics device names. Apart from the standard named
@@ -63,7 +65,7 @@ class EpicsDeviceNameValidator(TaurusDeviceNameValidator):
     a string if the URI contains it.
     """
 
-    scheme = 'epics'
+    scheme = '(ca|epics)'
     authority = EpicsAuthorityNameValidator.authority
     devname = r'(?P<devname>)'  # (only empty string allowed for now)
     path = devname
@@ -71,7 +73,9 @@ class EpicsDeviceNameValidator(TaurusDeviceNameValidator):
     fragment = '(?!)'
 
     def getNames(self, fullname, factory=None):
-        return 'epics:///', '', ''
+        if self.isValid(fullname):
+            return 'ca:///', '', ''
+        return None
 
 
 class EpicsAttributeNameValidator(TaurusAttributeNameValidator):
@@ -84,10 +88,9 @@ class EpicsAttributeNameValidator(TaurusAttributeNameValidator):
     Note: brackets on the group name indicate that this group will only contain
     a value if the URI contains it.
     """
-    scheme = 'epics'
+    scheme = '(ca|epics)'
     authority = EpicsAuthorityNameValidator.authority
-    path = (r'(%s/)?(?P<attrname>%s+)' %
-            (EpicsDeviceNameValidator.devname, PV_CHARS))
+    path = r'(?P<attrname>%s+?(\.(?P<_field>[A-Z]+))?)' % PV_CHARS
     query = '(?!)'
     fragment = '[^# ]*'
     
@@ -98,7 +101,7 @@ class EpicsAttributeNameValidator(TaurusAttributeNameValidator):
         if groups is None:
             return None
 
-        complete = 'epics:%s' % groups['attrname']
+        complete = 'ca:%s' % groups['attrname']
         normal = groups['attrname']
         short = normal
 

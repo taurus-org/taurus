@@ -39,12 +39,13 @@ from taurus.core.epics.epicsvalidator import (EpicsAuthorityNameValidator,
 # ==============================================================================
 # Tests for Epics Authority  name validation
 # ==============================================================================
-@valid(name='epics://', groups=dict(authority='//'))
-@names(name='epics://', out=('epics://', '//', ''))
-@invalid(name='epics:')
-@invalid(name='epics:/')
-@invalid(name='epics:///')
-@invalid(name='epics://a')
+@valid(name='ca://', groups=dict(authority='//'))
+@names(name='ca://', out=('ca://', '//', ''))
+@names(name='epics://', out=('ca://', '//', ''))
+@invalid(name='ca:')
+@invalid(name='ca:/')
+@invalid(name='ca:///')
+@invalid(name='ca://a')
 class EpicsAuthValidatorTestCase(AbstractNameValidatorTestCase,
                                  unittest.TestCase):
     validator = EpicsAuthorityNameValidator
@@ -53,12 +54,13 @@ class EpicsAuthValidatorTestCase(AbstractNameValidatorTestCase,
 # ==============================================================================
 # Tests for Epics Device name validation
 # ==============================================================================
+@valid(name='ca:', groups=dict(authority=None, devname=''))
 @valid(name='epics:', groups=dict(authority=None, devname=''))
-@invalid(name='epics:/')
-@invalid(name='epics://')  # this is an auth
-@invalid(name='epics:///')
-@invalid(name='epics:foo')
-@invalid(name='epics:@foo')
+@invalid(name='ca:/')
+@invalid(name='ca://')  # this is an auth
+@invalid(name='ca:///')
+@invalid(name='ca:foo')
+@invalid(name='ca:@foo')
 class EpicsDevValidatorTestCase(AbstractNameValidatorTestCase,
                                 unittest.TestCase):
     validator = EpicsDeviceNameValidator
@@ -67,47 +69,58 @@ class EpicsDevValidatorTestCase(AbstractNameValidatorTestCase,
 # ==============================================================================
 # Tests for Epics Attribute name validation
 # ==============================================================================
-
 @valid(name='epics:XXX:sum',
-       groups={'authority': None,
-               'devname': None,
+       groups={'scheme': 'epics',
+               'authority': None,
                'attrname': 'XXX:sum',
                '__STRICT__': True,
                'fragment': None}
        )
-@valid(name='epics:/XXX:sum',
-       groups={'authority': None,
-               'devname': '',
+@valid(name='ca:XXX:sum',
+       groups={'scheme': 'ca',
+               'authority': None,
                'attrname': 'XXX:sum',
+               '_field': None,
                '__STRICT__': True,
                'fragment': None}
        )
-@invalid(name='epics://XXX:sum')
-@valid(name='epics:///XXX:sum',
-       groups={'authority': '//',
-               'devname': '',
-               'attrname': 'XXX:sum',
+@valid(name='ca:XXX:sum.RBV',
+       groups={'scheme': 'ca',
+               'authority': None,
+               'attrname': 'XXX:sum.RBV',
+               '_field': 'RBV',
                '__STRICT__': True,
                'fragment': None}
        )
-@valid(name='epics:a.b_c;d:f-e[g]<h>#i',
-       groups={'attrname': 'a.b_c;d:f-e[g]<h>',
+@valid(name='ca:XXX:sum.rbv',
+       groups={'scheme': 'ca',
+               'authority': None,
+               'attrname': 'XXX:sum.rbv',
+               '_field': None,
+               '__STRICT__': True,
+               'fragment': None}
+       )
+@invalid(name='ca://XXX:sum')  # TODO: Maybe this should be valid?
+@invalid(name='ca:///XXX:sum')  # TODO: Maybe this should be valid?
+@valid(name='ca:a.B_c1;d:f-e[g]<h>#i',
+       groups={'attrname': 'a.B_c1;d:f-e[g]<h>',
+               '_field': None,
                '__STRICT__': True,
                'fragment': 'i'}
        )
-@invalid(name='epics:a$b')
-@invalid(name='epics:a/b')
-@invalid(name=r'epics:a\b')
-@invalid(name='epics:a%b')
-@invalid(name='epics:a?b')
-@invalid(name='epics://XXX:sum')
-@invalid(name='epics://')
+@invalid(name='ca:a$b')
+@invalid(name='ca:a/b')
+@invalid(name=r'ca:a\b')
+@invalid(name='ca:a%b')
+@invalid(name='ca:a?b')
+@invalid(name='ca://XXX:sum')
+@invalid(name='ca://')
 # ==============================================================================
 # Tests for epics attribute  name validation (when passing fragment / cfgkey)
 # ==============================================================================
-@valid(name='epics:1#')
-@valid(name='epics:1#units', groups={'fragment': 'units'})
-@valid(name='epics:a')
+@valid(name='ca:1#')
+@valid(name='ca:1#units', groups={'fragment': 'units'})
+@valid(name='ca:a')
 class EpicsAttrValidatorTestCase(AbstractNameValidatorTestCase,
                                  unittest.TestCase):
     validator = EpicsAttributeNameValidator

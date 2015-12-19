@@ -53,7 +53,7 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
     A Singleton class that provides Epics related objects.
     """
 
-    schemes = ("epics",)
+    schemes = ("ca", "epics",)
     DEFAULT_DEVICE = ''
     DEFAULT_AUTHORITY = '//'
     def __init__(self):
