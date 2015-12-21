@@ -121,6 +121,7 @@ class EpicsDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='ca:1#')
 @valid(name='ca:1#units', groups={'fragment': 'units'})
 @valid(name='ca:a')
+@names(name='ca:XXX:sum', out=('ca:XXX:sum', 'XXX:sum', 'XXX:sum'))
 class EpicsAttrValidatorTestCase(AbstractNameValidatorTestCase,
                                  unittest.TestCase):
     validator = EpicsAttributeNameValidator
