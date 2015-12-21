@@ -74,7 +74,7 @@ class EpicsDeviceNameValidator(TaurusDeviceNameValidator):
 
     def getNames(self, fullname, factory=None):
         if self.isValid(fullname):
-            return 'ca:///', '', ''
+            return 'ca:', '', ''
         return None
 
 
