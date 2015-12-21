@@ -172,6 +172,7 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
                '_subst': 'a={eval:1#f};',
                'query': None,
                'fragment': 'bar',
+               '_evalrefs':['eval:1#f', 'eval:2#foo'],
                '__STRICT__': True,
                'cfgkey': 'bar'}, strict=True)
 @valid(name='eval:@foo/1/3')
@@ -182,6 +183,7 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
        groups={'attrname':'a={tango:a/b/c/d};x=2;a*x',
                '_expr':'a*x',
                '_subst':'a={tango:a/b/c/d};x=2;',
+               '_evalrefs':['tango:a/b/c/d'],
                'fragment': None})
 @valid(name='eval://dev=foo;1', strict=False)
 @valid(name='eval://dev=foo;1/3', strict=False)
@@ -307,7 +309,18 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='eval:1*{eval:x=3;x}')
 @valid(name='eval:1*{eval:2*{eval:3}}')
 @valid(name='eval:{eval:@foo/3}')
-@valid(name='eval:a={tango:a/b/c/d};{eval:0}+a+{eval:1+{eval:a=2;a*a}}')
+@valid(name='eval:a={tango:a/b/c/d};{eval:0}+a+{eval:1+{eval:a=2;a*a}}',
+       groups={'_evalrefs': ['tango:a/b/c/d','eval:0','eval:1+{eval:a=2;a*a}']})
+@valid(name='eval:a="{eval:0}";b={eval:1};a*b+"{eval:2}"*{eval:3}#{attr.label}',
+       groups={'_evalrefs': ['eval:1', 'eval:3']})
+@valid(name='eval:a="{eval:1}";b={eval:1};a*b+"{eval:3}"*{eval:3}#{attr.label}',
+       groups={'_evalrefs': ['eval:1', 'eval:3']})
+@valid(name='eval:"{eval:1}"+"{eval:1}"*{eval:1}*{eval:3}',
+       groups={'_evalrefs': ['eval:1', 'eval:3']})
+@valid(name='eval:"{eval:1}"*{eval:1}+"{eval:1}"*{eval:3}',
+       groups={'_evalrefs': ['eval:1', 'eval:3']})
+@valid(name='eval:{eval:1}*"{eval:1}"+"{eval:1}"*{eval:3}',
+       groups={'_evalrefs': ['eval:1', 'eval:3']})
 @invalid(name='eval:1*{eval:2*{eval://3}}') # invalid because of non-strict ref
 @valid(name='eval:1*{eval:2*{eval://3}}', strict=False)
 @invalid(name='eval:{tango:a/b/c}') # invalid:  ref is not an attr!

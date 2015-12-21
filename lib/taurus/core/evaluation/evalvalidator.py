@@ -49,41 +49,67 @@ QUOTED_TEXT_RE = re.compile(QUOTED_TEXT)
 
 def _findAllTokensBetweenChars(string, start, end, n=None):
     '''Finds the text between (possibly nested) delimiters in a string.
-    In case of nested delimiters, only the outermost level is 
-    returned.
-    
-    Example:: 
-      
-      _findAllTokensBetweenChars('{foo}bar{zig{zag}}boom', '{', '}') 
-      --> ['foo', 'zig{zag}']
-    
+    In case of nested delimiters, only the outermost level is
+    returned. It returns a tuple of (idx,token)
+
+    Example::
+
+      _findAllTokensBetweenChars('{foo}bar{zig{zag}}boom', '{', '}')
+      --> [(1,'foo'), (9, 'zig{zag}')]
+
 
     :param string: (str) the expression to parse
     :param start: (str) the char delimiting the start of a token
     :param end: (str) the char delimiting the end of a token
-    :param n: (int or None) If an int is passed, it sets the maximum number 
+    :param n: (int or None) If an int is passed, it sets the maximum number
               of tokens to be found
-    
-    :return: (list<str>) a list of refs (not including the brackets)
+
+    :return: (list(<int>,<str>)) a list of (idx, token) tuples. The idx is the
+    position of the token in `string`
+             (tokens d not include the delimiting chars not including the
+             brackets)
     '''
     if start == end:
         raise ValueError('star_char must be different from end_char')
     if string.count(start) != string.count(end):
-        raise ValueError('Non-matching delimiters (%i "%s" vs %i "%s")' % 
+        raise ValueError('Non-matching delimiters (%i "%s" vs %i "%s")' %
                          string.count(start), start, string.count(end), end)
     tokens = []
+    indexes = []
+    idx = 0
     rest = string
     while len(tokens) != n:
         s = rest.find(start)
         if s < 0:
-            return tokens
+            break
         e = rest.find(end)+1
         while rest[s:e].count(start) != rest[s:e].count(end):
             ne = rest[e:].find(end)
             e = e + 1 + ne
-        tokens.append(rest[s+1:e-1])
+        tokens.append((idx+s, rest[s+1:e-1]))
+        idx += e
         rest = rest[e:]
     return tokens
+
+
+def _isQuoted(string, substring, idx):
+    """returns True if position i of string is in a quoted region"""
+    bfr = string[:idx]
+    aft = string[idx + len(substring):]
+    if (bfr.count('"') % 2 or aft.count('"') % 2 or
+                bfr.count("'") % 2 or aft.count("'") % 2):
+        return True
+    else:
+        return False
+
+
+def _replacepos(string, old, new, idx):
+    """return copy of string where the occurrence of substring `old` at
+    position `pos` is replaced by `new`
+    """
+    if not string[idx:].startswith(old):
+        raise Exception('invalid')
+    return string[:idx]+new+string[idx+len(old):]
 
 
 class EvaluationAuthorityNameValidator(TaurusAuthorityNameValidator):
@@ -239,21 +265,54 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         for placeholder,s in protected.iteritems():
             ret = re.sub(placeholder, s, ret)
         return ret
-    
+
     @staticmethod
-    def getRefs(expr):
-        '''Find the attribute references (strings within brackets) in an eval 
-        expression. In case of nested references, only the outermost level is 
+    def getRefs(expr, ign_quoted=True):
+        '''Find the attribute references (strings within brackets) in an eval
+        expression. In case of nested references, only the outermost level is
         returned.
-        
-        Example: val.findRefs('{foo}bar{zig{zag}}boom') --> ['foo', 'zig{zag}']
-            
+
+        Example: val.getRefs('{foo}bar{zig{zag}}boom') --> ['foo', 'zig{zag}']
+
         :param expr: (str) the expression to parse
-        
+        :param ign_quoted: If True (default) ignore refs within quotes
+
         :return (list<str>) a list of refs (not including the brackets)
         '''
-        return _findAllTokensBetweenChars(expr, '{', '}')
-            
+        refs = _findAllTokensBetweenChars(expr, '{', '}')
+
+        # print expr
+        # print '0123456789012345678901234567890123456789'
+        # print refs
+
+        if refs and not ign_quoted:
+            _, refs = zip(*refs)
+            return refs
+
+        ret = []
+        for i, ref in refs:
+            if not _isQuoted(expr, "{"+ref+"}", i):
+                ret.append(ref)
+        return ret
+
+    @staticmethod
+    def replaceUnquotedRef(string, substring, repl):
+        """Return a copy of string where first non-quoted occurrence of
+        `substring`
+         is replaced by `repl`
+
+        :param string: (str) string to be used
+        :param substring: (str) substring to be replaced
+        :param repl: (str) replacement
+
+        :return: (str)
+
+        """
+        idx = string.find(substring)
+        while _isQuoted(string, substring, idx):
+            idx = string.find(substring, idx+1)
+        return _replacepos(string, substring, repl, idx)
+
     def isValid(self, name, matchLevel=None, strict=None):
         '''reimplemented from :class:`TaurusAttributeNameValidator` to do extra
         check on references validity (recursive) 
@@ -280,12 +339,12 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         backwards compatibility with old syntax'''
 
         # mangle refs before matching the pattern to sanitize them
-        refs = self.getRefs(name)
+        refs = self.getRefs(name, ign_quoted=False)
         refs_dict = {}
         _name = name
-        for i,ref in enumerate(refs):
+        for i, ref in enumerate(refs):
             refs_dict['__EVALREF_%d__' % i] = '{%s}' % ref
-            _name = _name.replace('{%s}'%ref, '{__EVALREF_%d__}' %i, 1)
+            _name = _name.replace('{%s}' % ref, '{__EVALREF_%d__}' % i, 1)
 
         _groups = TaurusAttributeNameValidator.getUriGroups(self, _name,
                                                             strict=strict)
@@ -299,9 +358,6 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
                 g = g.format(**refs_dict)
             groups[n] = g
 
-        # add a group containing the refs
-        groups['_evalrefs'] = refs
-        
         if not groups['__STRICT__']:
             #adapt attrname to what would be in strict mode
             _subst = groups['_subst'] or ''
@@ -320,29 +376,32 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
                 
         # check that there are not ";" in the expr (ign. quoted text and refs)
         sanitized_expr = QUOTED_TEXT_RE.sub('', groups['_expr'])
-        for ref in self.getRefs(sanitized_expr):
+        for ref in self.getRefs(sanitized_expr, ign_quoted=False):
             sanitized_expr = sanitized_expr.replace(ref, '')
         if ";" in sanitized_expr:
             return None
-        
+
+        # add a group containing refs in attrname (ign. those in quoted text)
+        groups['_evalrefs'] = self.getRefs(groups['attrname'], ign_quoted=True)
+
         return groups
 
     def _getSimpleNameFromExpression(self, expression):
         """Get the simple name of an evaluationAttribute from an expression"""
         name = expression
-        for exp in self.getRefs(expression):
+        for ref in self.getRefs(expression, ign_quoted=True):
             manager = taurus.core.TaurusManager()
-            scheme = manager.getScheme(exp)
+            scheme = manager.getScheme(ref)
             _f = taurus.Factory(scheme)
             attrNameValidator = _f.getAttributeNameValidator()
-            _, _, simple_name = attrNameValidator.getNames(exp)
-            name = name.replace('{%s}' % exp, simple_name)
+            _, _, simple_name = attrNameValidator.getNames(ref)
+            name = self.replaceUnquotedRef(name, '{%s}' % ref, simple_name)
         return name
 
     def _expandRefNames(self, attrname):
         """Expand the refs in an eval name to their full names"""
         name = attrname
-        for ref in self.getRefs(attrname):
+        for ref in self.getRefs(attrname, ign_quoted=True):
             manager = taurus.core.TaurusManager()
             scheme = manager.getScheme(ref)
             _f = taurus.Factory(scheme)
@@ -351,7 +410,8 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             if full_name is None:
                 debug('Cannot expand the fullname of %s' % ref)
                 return None
-            name = name.replace('{%s}' % ref, '{%s}' % full_name)
+            name = self.replaceUnquotedRef(name, '{%s}' % ref,
+                                           '{%s}' % full_name)
         return name
 
     def getNames(self, fullname, factory=None, fragment=False):

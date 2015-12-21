@@ -222,10 +222,11 @@ class EvaluationAttribute(TaurusAttribute):
 
         #Find references in the string, create references if needed, 
         #connect to them and substitute the references by their id
-        refs = self._validator.getRefs(trstring)
+        v = self._validator
+        refs = v.getRefs(trstring, ign_quoted=True)
         for r in refs:
             symbol = self.__ref2Id(r)
-            trstring = trstring.replace('{%s}' %r, symbol)
+            trstring = v.replaceUnquotedRef(trstring, '{%s}' % r, symbol)
 
         #validate the expression (look for missing symbols) 
         safesymbols = evaluator.getSafe().keys()        
