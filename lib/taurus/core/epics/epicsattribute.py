@@ -25,33 +25,49 @@
 '''
 Epics module. See __init__.py for more detailed documentation
 '''
-__all__ = ['EpicsFactory', 'EpicsDatabase', 'EpicsDevice', 
-           'EpicsAttribute','EpicsConfiguration', 
-           'EpicsConfigurationNameValidator', 'EpicsDeviceNameValidator', 
-           'EpicsAttributeNameValidator']
+__all__ = ['EpicsAttribute']
 
 
 
-import time, re, weakref
 import numpy
+from taurus.external.pint import Quantity
 
-from taurus.core.taurusbasetypes import MatchLevel, TaurusDevState, \
-    SubscriptionState, TaurusEventType, TaurusAttrValue, TaurusTimeVal, \
-    AttrQuality
-from taurus.core.taurusfactory import TaurusFactory
+from taurus.core.taurusbasetypes import (TaurusEventType, TaurusAttrValue,
+                                         TaurusTimeVal, AttrQuality, DataType,
+                                         DataFormat)
 from taurus.core.taurusattribute import TaurusAttribute
-from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusauthority import TaurusAuthority
-from taurus.core.taurusconfiguration import TaurusConfiguration
-from taurus.core.tauruspollingtimer import TaurusPollingTimer
 
-try:
-    import epics 
-except ImportError: #note that if epics is not installed the factory will not be available
-    from taurus.core.util.log import debug
-    debug('cannot import epics module. Taurus will not support the "epics" scheme')
-    #raise
+import epics
+from epics.ca import ChannelAccessException
+from epics import dbr
 
+# map for epics DBR types to Taurus Types.
+Dbr2TaurusType = {dbr.STRING: DataType.String,
+                  dbr.INT: DataType.Integer,
+                  dbr.SHORT: DataType.Integer,
+                  dbr.FLOAT: DataType.Float,
+                  # dbr.ENUM: DataType.Integer,  # TODO: Support enum
+                  dbr.CHAR: DataType.Bytes,
+                  dbr.LONG: DataType.Integer,
+                  dbr.DOUBLE: DataType.Float,
+                  # TODO: if a time type is added to DataType, change the next
+                  dbr.TIME_STRING: DataType.String,
+                  dbr.TIME_INT: DataType.Integer,
+                  dbr.TIME_SHORT: DataType.Integer,
+                  dbr.TIME_FLOAT: DataType.Float,
+                  # dbr.TIME_ENUM: DataType.Integer,  # TODO: Support enum
+                  dbr.TIME_CHAR: DataType.Bytes,
+                  dbr.TIME_LONG: DataType.Integer,
+                  dbr.TIME_DOUBLE: DataType.Float,
+                  dbr.CTRL_STRING: DataType.String,
+                  dbr.CTRL_INT: DataType.Integer,
+                  dbr.CTRL_SHORT: DataType.Integer,
+                  dbr.CTRL_FLOAT: DataType.Float,
+                  # dbr.CTRL_ENUM: DataType.Integer,  # TODO: Support enum
+                  dbr.CTRL_CHAR: DataType.Bytes,
+                  dbr.CTRL_LONG: DataType.Integer,
+                  dbr.CTRL_DOUBLE: DataType.Float,
+                  }
 
 
 class EpicsAttribute(TaurusAttribute):
@@ -69,51 +85,133 @@ class EpicsAttribute(TaurusAttribute):
     def __init__(self, name, parent, storeCallback = None):
         self.call__init__(TaurusAttribute, name, parent,
                           storeCallback=storeCallback)
-               
+
         self.__attr_config = None
         self.__pv = epics.PV(self.getNormalName(), callback=self.onEpicsEvent)
         connected = self.__pv.wait_for_connection()
         if connected:
             self.info('successfully connected to epics PV')
-            self._value = self.decode_pv(self.__pv)
+            self._value = self.decode(self.__pv)
         else:
             self.info('connection to epics PV failed')
             self._value = TaurusAttrValue()
-        self.scheme = 'epics'
-        
-        #print "INIT",self.__pv, connected
+
+        self.data_format = None
+        self._label = None
+        self.type = None
+        self._range = [None, None]
+        self._alarm = [None, None]
+        self._warning = [None, None]
         
     def onEpicsEvent(self, **kw):
-        '''callback for PV changes'''
-        self._value = self.decode_epics_evt(kw)
+        """callback for PV changes"""
+        # this is called from the ca thread. Consider doing the following on a
+        # different thread
+        self._value = self.decode(self.__pv)
         self.fireEvent(TaurusEventType.Change, self._value)
-    
-    def __getattr__(self,name):
-        return getattr(self._getRealConfig(), name)
-    
-    def _getRealConfig(self):
-        """ Returns the current configuration of the attribute."""
-        if self.__attr_config is None:
-            cfg_name = "%s?configuration" % self.getFullName()
-            self.__attr_config = EpicsConfiguration(cfg_name, self)
-        return self.__attr_config
-            
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # Necessary to overwrite from TaurusAttribute
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # Necessary to overwrite from TaurusAttribute
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    def isNumeric(self):
+        return self.type in (DataType.Integer, DataType.Float)
+    
+    def isState(self):
+        return False  # TODO implement generic
+
+    def encode(self, value):
+        """encodes the value passed to the write method into
+        a representation that can be written in epics"""
+        if isinstance(value, Quantity):
+            # convert to units of the PV
+            value = value.to(self.__pv.units).magnitude
+        return value
+
+    def decode(self, pv):
+        """Decodes an epics PV object a TaurusValue
+        """
+        attr_value = TaurusAttrValue()
+        if not pv.connected:
+            attr_value.error = ChannelAccessException('PV "%s" not connected' %
+                                                      pv.pvname)
+            return attr_value
+        v = pv.value
+        # type
+        try:
+            self.type = Dbr2TaurusType[pv.ftype]
+        except KeyError:
+            raise ValueError('Unsupported epics type "%s"' % pv.type)
+        # writable
+        self.writable = pv.write_access
+        # data_format
+        if numpy.isscalar(v):
+            self.data_format = DataFormat._0D
+        else:
+            self.data_format = DataFormat(v.ndim)
+        # units and limits support
+        if self.type in (DataType.Integer, DataType.Float):
+            v = Quantity(v, pv.units)
+            self._range = self.__decode_limit(pv.lower_ctrl_limit,
+                                              pv.upper_ctrl_limit)
+            self._alarm = self.__decode_limit(pv.lower_alarm_limit,
+                                              pv.upper_alarm_limit)
+            self._warning = self.__decode_limit(pv.lower_warning_limit,
+                                                pv.upper_warning_limit)
+        # rvalue
+        attr_value.rvalue = v
+        # wvalue
+        if pv.write_access:
+            attr_value.wvalue = v
+        # time
+        if pv.timestamp is None:
+            attr_value.time = TaurusTimeVal.now()
+        else:
+            attr_value.time = TaurusTimeVal.fromtimestamp(pv.timestamp)
+        # quality
+        if pv.severity > 0:
+            attr_value.quality = AttrQuality.ATTR_ALARM
+        else:
+            attr_value.quality = AttrQuality.ATTR_VALID
+        return attr_value
+
+    def __decode_limit(self, l, h):
+        units = self.__pv.units
+        if l is None or numpy.isnan(l):
+            l = None
+        else:
+            l = Quantity(l, units)
+        if l is None or numpy.isnan(h):
+            h = None
+        else:
+            h = Quantity(h, units)
+        return l, h
 
     def write(self, value, with_read=True):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute.write")
+        value = self.encode(value)
+        self.__pv.put(value)
+        if with_read:
+            return self.decode(self.__pv)
 
     def read(self, cache=True):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute.read")
+        """returns the value of the attribute.
+
+        :param cache: (bool) If True (default), the last calculated value will
+                      be returned. If False, the referenced values will be re-
+                      read and the transformation string will be re-evaluated
+
+        :return: attribute value
+        """
+        if not cache:
+            self.__pv.get(use_monitor=False)
+            self._value = self.decode(self.__pv)
+        return self._value    
 
     def poll(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute.poll")
+        v = self.read(cache=False)
+        self.fireEvent(TaurusEventType.Periodic, v)
+
+    def isUsingEvents(self):
+        return True  # TODO: implement this
 
     def _subscribeEvents(self):
         raise NotImplementedError("Not allowed to call AbstractClass" +
@@ -122,179 +220,24 @@ class EpicsAttribute(TaurusAttribute):
     def _unsubscribeEvents(self):
         raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute._unsubscribeEvents")
-
-    def isUsingEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute.isUsingEvents")
-
-
-
-
-
-
-    def isNumeric(self):
-        return True  # TODO implement generic
-        
-    def isBoolean(self):
-        return isinstance(self._value.value, bool)
-    
-    def isState(self):
-        return False  # TODO implement generic
-
-    def getDisplayValue(self, cache=True):
-        return self.__pv.get(as_string=True, use_monitor=cache) # TODO: merge with TaurusModel Impl
-
-    def encode(self, value):
-        '''encodes the value passed to the write method into 
-        a representation that can be written in epics'''
-        # TODO: support Quantities and other types
-        try:
-            typeclass = numpy.dtype(self.__pv.type).type
-            return typeclass(value) #cast the value with the python type for this PV
-        except:
-            return value
-
-    def decode (self, obj):
-        if isinstance(obj, epics.PV):
-            return self.decode_pv(obj)
-        else:
-            return self.decode_epics_evt(obj)
-
-    def decode_pv(self, pv):
-        """Decodes an epics pv into the expected taurus representation"""
-        #@todo: This is a very basic implementation, and things like quality may not be correct
-        attr_value = TaurusAttrValue()
-        attr_value.value = pv.value
-        if pv.write_access:
-            attr_value.w_value = pv.value
-        if pv.timestamp is None: 
-            attr_value.time = TaurusTimeVal.now()
-        else:
-            attr_value.time = TaurusTimeVal.fromtimestamp(pv.timestamp)
-        if pv.severity > 0:
-            attr_value.quality = AttrQuality.ATTR_ALARM
-        else:
-            attr_value.quality = AttrQuality.ATTR_VALID
-        attr_value.config.data_format = len(numpy.shape(attr_value.value))
-        return attr_value
-    
-    def decode_epics_evt(self, evt):
-        """Decodes an epics event (a callback keywords dict) into the expected taurus representation"""
-        #@todo: This is a very basic implementation, and things like quality may not be correct
-        attr_value = TaurusAttrValue()
-        attr_value.value = evt.get('value')
-        if evt.get('write_access', False):
-            attr_value.w_value = attr_value.value
-        timestamp =  evt.get('timestamp', None)
-        if timestamp is None: 
-            attr_value.time = TaurusTimeVal.now()
-        else:
-            attr_value.time = TaurusTimeVal.fromtimestamp(timestamp)
-        if evt.get('severity', 1) > 0:
-            attr_value.quality = AttrQuality.ATTR_ALARM
-        else:
-            attr_value.quality = AttrQuality.ATTR_VALID
-        attr_value.config.data_format = len(numpy.shape(attr_value.value))
-        return attr_value
-
-    def write(self, value, with_read=True):
-        value = self.encode(value)
-        self.__pv.put(value)
-        if with_read:
-            return self.decode_pv(self.__pv)
-
-    def read(self, cache=True):
-        '''returns the value of the attribute.
-        
-        :param cache: (bool) If True (default), the last calculated value will
-                      be returned. If False, the referenced values will be re-
-                      read and the transformation string will be re-evaluated
-                      
-        :return: attribute value
-        '''
-        if not cache:
-            self.__pv.get(use_monitor=False)
-            self._value = self.decode_pv(self.__pv)
-        return self._value    
-
-    def poll(self):
-        v = self.read(cache=False)
-        self.fireEvent(TaurusEventType.Periodic, v)
-
-    def isUsingEvents(self):
-        return True #@todo
-        
-#------------------------------------------------------------------------------ 
-
-    def isWritable(self, cache=True):
-        return self.__pv.write_access
-    
-    def isWrite(self, cache=True):
-        return self.__pv.write_access
-    
-    def isReadOnly(self, cache=True):
-        return self.__pv.read_access and not self.__pv.write_access
-
-    def isReadWrite(self, cache=True):
-        return self.__pv.read_access and self.__pv.write_access
-
-    def getWritable(self, cache=True):
-        return self.__pv.write_access
-
+# ------------------------------------------------------------------------------
 
     def factory(self):
+        from epicsfactory import EpicsFactory
         return EpicsFactory()
-    
+
     @classmethod
     def getNameValidator(cls):
+        from epicsvalidator import EpicsAttributeNameValidator
         return EpicsAttributeNameValidator()
 
-    
 
-class EpicsConfiguration(TaurusConfiguration):
-    '''
-    A :class:`TaurusConfiguration` 
-    
-    .. seealso:: :mod:`taurus.core.epics` 
-    
-    .. warning:: In most cases this class should not be instantiated directly.
-                 Instead it should be done via the :meth:`EpicsFactory.getConfig`
-    '''
-    def __init__(self, name, parent, storeCallback = None):
-        self.call__init__(TaurusConfiguration, name, parent, storeCallback=storeCallback)
-        
-        #fill the attr info
-        i = parent.read().config
-        a=parent
-        d=self._getDev()
-        # add dev_name, dev_alias, attr_name, attr_full_name
-        i.dev_name = d.getNormalName()
-        i.dev_alias = d.getSimpleName()
-        i.attr_name = a.getSimpleName()
-        i.attr_fullname = a.getNormalName()
-        i.label = a.getSimpleName()
-        self._attr_info = i
-        
-    def __getattr__(self, name): 
-        try:
-            return getattr(self._attr_info,name)
-        except:
-            raise AttributeError("'%s'object has no attribute '%s'"%(self.__class__.__name__, name))
-
-    @classmethod
-    def getNameValidator(cls):
-        return EpicsConfigurationNameValidator()
-        
-    def _subscribeEvents(self): 
-        pass
-    
-    def _unSubscribeEvents(self):
-        pass   
-    
-    def factory(self):
-        EpicsFactory()
-    
-    def getValueObj(self, cache=True):
-        """ Returns the current configuration for the attribute."""
-        return self._attr_info   
-
+if __name__ == '__main__':
+    a = EpicsAttribute('ca:CALC:a', None)
+    b = EpicsAttribute('ca:CALC:b', None)
+    s = EpicsAttribute('ca:CALC:sum', None)
+    print "!$!",s.read(cache=True)
+    a.write(3.)
+    b.write(4.)
+    s.read()
+    print "a,b,s", a.read().rvalue, b.read().rvalue, s.read().rvalue
