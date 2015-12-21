@@ -40,4 +40,4 @@ class EpicsDevice(TaurusDevice):
                     :meth:`EpicsFactory.getDevice`
     '''
     _factory = None
-    _scheme = 'eval'
+    _scheme = 'ca'

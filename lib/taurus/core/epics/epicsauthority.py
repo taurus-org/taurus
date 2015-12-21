@@ -40,4 +40,4 @@ class EpicsAuthority(TaurusAuthority):
                     :meth:`EpicsFactory.getAuthority`
     '''
     _factory = None
-    _scheme = 'eval'
+    _scheme = 'ca'
