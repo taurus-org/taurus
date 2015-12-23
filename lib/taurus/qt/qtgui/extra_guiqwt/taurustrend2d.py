@@ -64,6 +64,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         #add some tools
         for toolklass in (TaurusModelChooserTool,AutoScrollTool):
             self.add_tool(toolklass)
+        self.get_tool(TaurusModelChooserTool).singleModel = True
         self.setModifiableByUser(self._modifiableByUser)
         self.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
     
