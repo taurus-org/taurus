@@ -756,9 +756,14 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
         tangovalue = self._getDecodePyTangoAttr(attr_name, cfg)
         map(self.__assertValidValue, got, tangovalue, msg)
 
-    def write_read_attr(self, attrname=None, setvalue=None, expected={},
-                        expected_attrv={}, expectedshape=None):
+    def write_read_attr(self, attrname=None, setvalue=None, expected=None,
+                        expected_attrv=None, expectedshape=None):
         """check creation and correct write-and-read of an attribute"""
+
+        if expected is None:
+            expected = {}
+        if expected_attrv is None:
+            expected_attrv = {}
 
         name = '%s/%s' % (self.DEV_NAME, attrname)
         a = taurus.Attribute(name)
