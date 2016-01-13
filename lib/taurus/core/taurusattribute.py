@@ -347,13 +347,13 @@ class TaurusAttribute(TaurusModel):
         return self._label
 
     def getMinRange(self, cache=True):
-        return self.range[0]
+        return self._range[0]
 
     def getMaxRange(self, cache=True):
-        return self.range[1]
+        return self._range[1]
 
     def getRange(self, cache=True):
-        return self.range
+        return self._range
 
     def getMinAlarm(self, cache=True):
         return self._alarm[0]
