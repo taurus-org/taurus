@@ -86,29 +86,44 @@ class EpicsAttribute(TaurusAttribute):
         self.call__init__(TaurusAttribute, name, parent,
                           storeCallback=storeCallback)
 
-        self.__attr_config = None
-        self.__pv = epics.PV(self.getNormalName(), callback=self.onEpicsEvent)
-        connected = self.__pv.wait_for_connection()
-        if connected:
-            self.info('successfully connected to epics PV')
-            self._value = self.decode(self.__pv)
-        else:
-            self.info('connection to epics PV failed')
-            self._value = TaurusAttrValue()
-
+        self._label = self.getSimpleName()
+        self._value = None
         self.data_format = None
-        self._label = None
         self.type = None
         self._range = [None, None]
         self._alarm = [None, None]
         self._warning = [None, None]
+
+        self.__pv = epics.PV(self.getNormalName(), callback=self.onEpicsEvent,
+                             form='ctrl',
+                             connection_callback=self.onEpicsConnectionEvent)
+        self.__pv.wait_for_connection()
+
+
+    def getPV(self):
+        """Returns the underlying :obj:`epics.PV` object
+        """
+        return self.__pv
         
-    def onEpicsEvent(self, **kw):
+    def onEpicsEvent(self, **kwargs):
         """callback for PV changes"""
-        # this is called from the ca thread. Consider doing the following on a
-        # different thread
+        # this is called from the ca thread.
+        # TODO: Consider doing the following on a different thread
         self._value = self.decode(self.__pv)
         self.fireEvent(TaurusEventType.Change, self._value)
+
+    def onEpicsConnectionEvent(self, **kwargs):
+        """callback for PV connection changes"""
+        if kwargs['conn']:
+            self.debug('(re)connected to epics PV')
+            if  self._value is not None:
+                self._value.error = None
+        else:
+            self.warning('Connection to epics PV lost')
+            self._value.error = ChannelAccessException('PV "%s" not connected' %
+                                                        kwargs['pvname'])
+        self.fireEvent(TaurusEventType.Change, self._value)
+
 
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite from TaurusAttribute
@@ -121,14 +136,16 @@ class EpicsAttribute(TaurusAttribute):
 
     def encode(self, value):
         """encodes the value passed to the write method into
-        a representation that can be written in epics"""
+        a representation that can be written with :meth:`epics.PV.put`
+        """
         if isinstance(value, Quantity):
             # convert to units of the PV
             value = value.to(self.__pv.units).magnitude
         return value
 
     def decode(self, pv):
-        """Decodes an epics PV object a TaurusValue
+        """Decodes an epics PV object into a TaurusValue, and also updates other
+         properties of the Attribute object
         """
         attr_value = TaurusAttrValue()
         if not pv.connected:
@@ -147,7 +164,7 @@ class EpicsAttribute(TaurusAttribute):
         if numpy.isscalar(v):
             self.data_format = DataFormat._0D
         else:
-            self.data_format = DataFormat(v.ndim)
+            self.data_format = DataFormat(len(numpy.shape(v)))
         # units and limits support
         if self.type in (DataType.Integer, DataType.Float):
             v = Quantity(v, pv.units)
@@ -157,6 +174,7 @@ class EpicsAttribute(TaurusAttribute):
                                               pv.upper_alarm_limit)
             self._warning = self.__decode_limit(pv.lower_warning_limit,
                                                 pv.upper_warning_limit)
+
         # rvalue
         attr_value.rvalue = v
         # wvalue
@@ -184,11 +202,11 @@ class EpicsAttribute(TaurusAttribute):
             h = None
         else:
             h = Quantity(h, units)
-        return l, h
+        return [l, h]
 
     def write(self, value, with_read=True):
         value = self.encode(value)
-        self.__pv.put(value)
+        self.__pv.put(value, wait=True)
         if with_read:
             return self.decode(self.__pv)
 
@@ -233,11 +251,14 @@ class EpicsAttribute(TaurusAttribute):
 
 
 if __name__ == '__main__':
-    a = EpicsAttribute('ca:CALC:a', None)
-    b = EpicsAttribute('ca:CALC:b', None)
-    s = EpicsAttribute('ca:CALC:sum', None)
-    print "!$!",s.read(cache=True)
+    a = EpicsAttribute('ca:XXX:a', None)
+    b = EpicsAttribute('ca:XXX:b', None)
+    s = EpicsAttribute('ca:XXX:sum', None)
+
     a.write(3.)
     b.write(4.)
     s.read()
+
+    print "!$!",s.read(cache=False)
     print "a,b,s", a.read().rvalue, b.read().rvalue, s.read().rvalue
+    print "DF=", a.getDataFormat(), DataFormat.whatis(a.getDataFormat())
