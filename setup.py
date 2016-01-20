@@ -87,6 +87,9 @@ packages = [
     'taurus.core.util.report',
     'taurus.core.util.test',
 
+    'taurus.core.epics',
+    'taurus.core.epics.test',
+
     'taurus.core.resource',
     'taurus.core.resource.test',
     'taurus.core.resource.test.res',
@@ -201,7 +204,7 @@ requires = [
 ]
 
 package_data = {
-    # 'taurus.core.epics'        : ['__taurus_plugin__'],
+    'taurus.core.epics'        : ['__taurus_plugin__'],
     'taurus.core.evaluation'   : ['__taurus_plugin__'],
     'taurus.core.resource'     : ['__taurus_plugin__'],
     # 'taurus.core.spec'         : ['__taurus_plugin__'],
