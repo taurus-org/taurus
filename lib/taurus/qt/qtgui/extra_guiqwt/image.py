@@ -256,8 +256,10 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         if evt_value is None or getattr(evt_value,'value', None) is None:
             self.debug('Ignoring event from %s'%repr(evt_src))
             return
-        
+
         plot = self.plot()
+        if plot is None:
+            return
             
         #initialization
         ySize = len(evt_value.value)
