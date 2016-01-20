@@ -345,12 +345,12 @@ class EvaluationAttribute(TaurusAttribute):
     pyVar_RegExp = re.compile("[a-zA-Z_][a-zA-Z0-9_]*") #regexp for a variable/method name (symbol)
     cref_RegExp = re.compile("\{(.+?)\}") #regexp for references to other taurus models within operation model names
 
-    def __init__(self, name, parent, storeCallback = None):
-        self.call__init__(TaurusAttribute, name, parent, storeCallback=storeCallback)
-        
+    def __init__(self, name, parent, **kwargs):
+        self.call__init__(TaurusAttribute, name, parent, **kwargs)
+
         self._value = TaurusAttrValue()
         self._value.config.writable = False #Evaluation Attributes are always read-only (at least for now)
-        self._references = [] 
+        self._references = []
         self._validator= self.getNameValidator()
         self._transformation = None
         # reference to the configuration object
@@ -736,7 +736,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                 d = DevClass(fullname, parent=db, storeCallback=self._storeDev) #use full name
         return d
         
-    def getAttribute(self, attr_name):
+    def getAttribute(self, attr_name, **kwargs):
         """Obtain the object corresponding to the given attribute name. If the 
         corresponding attribute already exists, the existing instance is
         returned. Otherwise a new instance is stored and returned. The evaluator
@@ -759,7 +759,10 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
             a = self.eval_attrs.get(fullname, None)
             if a is None: #if the full name is not there, create one
                 dev = self.getDevice(validator.getDeviceName(attr_name))
-                a = EvaluationAttribute(fullname, parent=dev, storeCallback=self._storeAttr) #use full name
+                kwargs['storeCallback'] = self._storeAttr
+                if not kwargs.has_key('pollingPeriod'):
+                    kwargs['pollingPeriod'] = self.getDefaultPollingPeriod()
+                a = EvaluationAttribute(fullname, parent=dev, **kwargs) #use full name
         return a
 
     def getConfiguration(self, param):
