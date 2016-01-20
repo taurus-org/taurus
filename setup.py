@@ -89,6 +89,7 @@ packages = [
 
     'taurus.core.epics',
     'taurus.core.epics.test',
+    'taurus.core.epics.test.res',
 
     'taurus.core.resource',
     'taurus.core.resource.test',
@@ -211,6 +212,7 @@ package_data = {
     'taurus.core.tango'        : ['__taurus_plugin__'],
 
     'taurus.core.tango.test': ['res/*'],
+    'taurus.core.epics.test': ['res/*'],
     'taurus.core.resource.test': ['res/*'],
 
     'taurus.qt.qtgui.resource' : ['*.rcc'],
