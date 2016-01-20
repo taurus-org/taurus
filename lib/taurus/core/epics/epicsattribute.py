@@ -208,7 +208,7 @@ class EpicsAttribute(TaurusAttribute):
         value = self.encode(value)
         self.__pv.put(value, wait=True)
         if with_read:
-            return self.decode(self.__pv)
+            return self.read(cache=False)
 
     def read(self, cache=True):
         """returns the value of the attribute.
