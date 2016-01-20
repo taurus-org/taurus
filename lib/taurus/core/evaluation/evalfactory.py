@@ -142,7 +142,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                              storeCallback=self._storeDev)
         return d
         
-    def getAttribute(self, attr_name):
+    def getAttribute(self, attr_name, **kwargs):
         """Obtain the object corresponding to the given attribute name. If the 
         corresponding attribute already exists, the existing instance is
         returned. Otherwise a new instance is stored and returned. The evaluator
@@ -151,6 +151,9 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
         :param attr_name: (str) the attribute name string. See
                           :mod:`taurus.core.evaluation` for valid attribute 
                           names
+
+        Any aditional keyword arguments will be passed directly to the
+        constructor of `:class:EvaluationAttribute`
         
         :return: (EvaluationAttribute)
          
@@ -166,7 +169,10 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
             a = self.eval_attrs.get(fullname, None)
             if a is None: #if the full name is not there, create one
                 dev = self.getDevice(validator.getDeviceName(attr_name))
-                a = EvaluationAttribute(fullname, parent=dev, storeCallback=self._storeAttr) #use full name
+                kwargs['storeCallback'] = self._storeAttr
+                if not kwargs.has_key('pollingPeriod'):
+                    kwargs['pollingPeriod'] = self.getDefaultPollingPeriod()
+                a = EvaluationAttribute(fullname, parent=dev, **kwargs) 
         return a
 
     def _storeDev(self, dev):
