@@ -72,16 +72,23 @@ class SafeEvaluator:
         """safe eval"""
         return eval(expr, {"__builtins__":None}, self.safe_dict) 
     
-    def addSafe(self,safedict):
+    def addSafe(self,safedict, permanent=False):
         """The values in safedict will be evaluable (whitelisted)
         The safedict is as follows: {"eval_name":object, ...}. The evaluator will interpret eval_name as object.
         """
         self.safe_dict.update(safedict)
-    
-    def removeSafe(self, name):
+        if permanent:
+            self._originalSafeDict.update(safedict)
+
+    def removeSafe(self, name, permanent=False):
         """Removes an object from the whitelist"""
         self.safe_dict.pop(name)
-    
+        if permanent:
+            try:
+                self._originalSafeDict.pop(name)
+            except KeyError:
+                pass
+
     def resetSafe(self):
         """restores the safe dict with wich the evaluator was instantiated"""
         self.safe_dict = self._originalSafeDict.copy()
