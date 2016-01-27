@@ -231,7 +231,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                         groups = validator.getUriGroups(name)
                         if groups is None:
                             raise TaurusException("Invalid default Tango authority name %s" % name)
-                        self.dft_db = _Authority(groups['authority'])
+                        self.dft_db = _Authority(host=groups['host'],
+                                                 port=groups['port'])
                 except:
                     self.debug("Could not create Authority", exc_info=1)
                     raise
@@ -247,7 +248,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
             if not validator.isValid(name):
                 raise TaurusException("Invalid Tango authority name %s" % name)
             try:
-                ret = _Authority(groups['authority'])
+                ret = _Authority(host=groups['host'], port=groups['port'])
             except:
                 self.debug("Could not create Authority %s", groups['authority'],
                             exc_info=1)
