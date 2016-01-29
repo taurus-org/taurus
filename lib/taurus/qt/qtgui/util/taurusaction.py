@@ -233,10 +233,10 @@ class AttributeAllConfigAction(TaurusAction):
         self.setText("All...")
         
     def actionTriggered(self):
-        #raise NotImplementedError('This action is not yet implemented')
         taurus_widget = self.parent()
-        from taurus.qt.qtgui.dialog.taurusconfigurationdialog import TaurusConfigurationDialog
-        d = TaurusConfigurationDialog()
+        from taurus.qt.qtgui.dialog.taurusconfigurationdialog import (
+            TaurusConfigurationDialog)
+        d = TaurusConfigurationDialog(taurus_widget)
         d.setModel(taurus_widget.getModelName())
         d.exec_()
 
