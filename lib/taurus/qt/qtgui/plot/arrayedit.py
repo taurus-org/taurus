@@ -445,7 +445,10 @@ class ArrayEditor(Qt.QWidget):
         
         would set 4 control points with initial value 0 at x=1, 2, 8 and 9s
         '''
-        for c in self._controllers: c.setParent(None) #destroy previous controllers
+        #destroy previous controllers
+        for c in self._controllers:
+             c.setParent(None)
+             c.deleteLater()
         self._controllers = []
         if xp is None:
             xp = numpy.array((self.x[0], self.x[-1]))
