@@ -134,8 +134,8 @@ class TaurusArrayEditor(TaurusWidget):
             if not quiet:
                 Qt.QMessageBox.warning (self, 'Error Reading Attribute', 'Cannot read master curve')
             return False
-        
-        if quiet or Qt.QMessageBox.question(self, 'Read from attributes?', 'Read Master curve from attributes?'):   
+
+        if quiet or (Qt.QMessageBox.Yes == Qt.QMessageBox.question(self, 'Read from attributes?', 'Read Master curve from attributes?', Qt.QMessageBox.Yes|Qt.QMessageBox.No)):
             try:
                 self._arrayEditor.setMaster(x,y)
             except ValueError:
