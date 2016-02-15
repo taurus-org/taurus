@@ -152,6 +152,7 @@ packages = [
     'taurus.qt.qtgui.util',
     'taurus.qt.qtgui.util.test',
     'taurus.qt.qtgui.util.test.test_ui',
+    'taurus.qt.qtgui.util.test.test_ui.mywidget3',
     'taurus.qt.uic',
 ]
 
@@ -207,6 +208,7 @@ package_data = {
     'taurus.qt.qtgui.taurusgui': ['ui/*.ui'],
     'taurus.qt.qtgui.extra_guiqwt': ['ui/*.ui'],
     'taurus.qt.qtgui.util.test.test_ui' : ['ui/*.ui', 'ui/mywidget2/*.ui'],
+    'taurus.qt.qtgui.util.test.test_ui.mywidget3' : ['ui/*.ui'],
 }
 
 
