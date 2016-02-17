@@ -29,7 +29,9 @@ from __future__ import absolute_import
 
 __all__ = ["new_parser", "parse"]
 
-import os,re,traceback
+import os
+import re
+import imp
 
 from ply import lex
 from ply import yacc
@@ -266,7 +268,11 @@ def new_parser(optimize=None, debug=0, outputdir=None):
         from taurus import tauruscustomsettings
         optimize = getattr(tauruscustomsettings, 'PLY_OPTIMIZE', 1)
     if outputdir is None:
-        outputdir = os.path.dirname(os.path.realpath(__file__))
+        # use '.taurus' dir in the user "home" dir
+        outputdir = os.path.join(os.path.expanduser('~'), '.taurus')
+        # create the output dir if it didn't exist
+        if not os.path.exists(outputdir):
+            os.makedirs(outputdir)
 
     debuglog = None
     if debug:
@@ -279,15 +285,17 @@ def new_parser(optimize=None, debug=0, outputdir=None):
     if int(lex.__version__.split('.')[0]) < 3: 
         common_kwargs.pop('debuglog')
         common_kwargs.pop('errorlog')
-    
+
     try:
-        from . import jdraw_lextab
-    except ImportError:
+        _path = os.path.join(outputdir, 'jdraw_lextab.py')
+        jdraw_lextab = imp.load_source('jdraw_lextab', _path)
+    except:
         jdraw_lextab = 'jdraw_lextab'
 
     try:
-        from . import jdraw_yacctab
-    except ImportError:
+        _path = os.path.join(outputdir, 'jdraw_yacctab.py')
+        jdraw_yacctab = imp.load_source('jdraw_lextab', _path)
+    except:
         jdraw_yacctab = 'jdraw_yacctab'
 
     # Lexer
@@ -298,10 +306,9 @@ def new_parser(optimize=None, debug=0, outputdir=None):
         p = yacc.yacc(tabmodule=jdraw_yacctab, debugfile=None, write_tables=1,
                       **common_kwargs)
     except Exception, e:
-        msg = ('Error while parsing. You may solve it by:\n' + \
-               '  a) removing jdraw_lextab.* and jdraw_yacctab.* from\n' +\
-               '     %s , or...\n' % os.path.dirname(__file__) + \
-               '  b) setting PLY_OPTIMIZE=0 in tauruscustomsettings.py')
+        msg = ('Error creating jdraw parser.\n' +
+               'HINT: Try removing jdraw_lextab.* and jdraw_yacctab.* from %s' %
+               outputdir )
         raise RuntimeError(msg)
         
     return l, p

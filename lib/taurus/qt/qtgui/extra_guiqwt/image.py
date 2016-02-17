@@ -256,7 +256,6 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         if evt_value is None or getattr(evt_value,'value', None) is None:
             self.debug('Ignoring event from %s'%repr(evt_src))
             return
-
         plot = self.plot()
         if plot is None:
             return
@@ -278,28 +277,33 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         
         #update x values
         if self.stackMode == 'datetime':
+            x = evt_value.time.totime()
             if self.__timeOffset is None:
-                self.__timeOffset = evt_value.time.totime()
+                self.__timeOffset = x
                 plot.set_axis_title('bottom', 'Time')
                 plot.set_axis_unit('bottom', '')
-            self._xBuffer.append(evt_value.time.totime())
         
         elif self.stackMode == 'deltatime':
             try:
-                self._xBuffer.append(evt_value.time.totime() - self.__timeOffset)
+                x = evt_value.time.totime() - self.__timeOffset
             except TypeError: #this will happen if self.__timeOffset has not been initialized
                 self.__timeOffset = evt_value.time.totime()
-                self._xBuffer.append(0)
+                x = 0
                 plot.set_axis_title('bottom', 'Time since %s'%evt_value.time.isoformat())
                 plot.set_axis_unit('bottom', '')
         else:  
             try:
                 step = 1 # +numpy.random.randint(0,4) #for debugging we can put a variable step
-                self._xBuffer.append(self._xBuffer[-1]+step) 
+                x = self._xBuffer[-1]+step
             except IndexError: #this will happen when the x buffer is empty
-                self._xBuffer.append(0) 
+                x = 0
                 plot.set_axis_title('bottom', 'Event #')
                 plot.set_axis_unit('bottom', '')
+
+        if len(self._xBuffer) and x <= self._xBuffer[-1]:
+            self.info('Ignoring event (non-increasing x value)')
+            return
+        self._xBuffer.append(x)
         
         #update z
         self._zBuffer.append(evt_value.value)

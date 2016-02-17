@@ -152,6 +152,7 @@ packages = [
     'taurus.qt.qtgui.util',
     'taurus.qt.qtgui.util.test',
     'taurus.qt.qtgui.util.test.test_ui',
+    'taurus.qt.qtgui.util.test.test_ui.mywidget3',
     'taurus.qt.uic',
 ]
 
@@ -207,6 +208,7 @@ package_data = {
     'taurus.qt.qtgui.taurusgui': ['ui/*.ui'],
     'taurus.qt.qtgui.extra_guiqwt': ['ui/*.ui'],
     'taurus.qt.qtgui.util.test.test_ui' : ['ui/*.ui', 'ui/mywidget2/*.ui'],
+    'taurus.qt.qtgui.util.test.test_ui.mywidget3' : ['ui/*.ui'],
 }
 
 
@@ -455,7 +457,6 @@ class build(dftbuild):
 
     def run(self):
         self.build_package_data()
-        self.build_jdraw()
         dftbuild.run(self)
 
     def build_package_data(self):
@@ -465,19 +466,6 @@ class build(dftbuild):
             packages.extend(extra_packages)
         resource_package_data = self.get_extra_resource_package_data()
         package_data['taurus.qt.qtgui.resource'].extend(resource_package_data)
-
-    def build_jdraw(self):
-        print("Building jdraw grammar...", end='')
-        taurus_dir = abspath('lib')
-        sys.path.insert(0, taurus_dir)
-        try:
-            from taurus.qt.qtgui.graphic.jdraw import jdraw_parser
-            jdraw_parser.new_parser()
-            print(" [DONE]")
-        except:
-            print("[ERROR]")
-        finally:
-            sys.path.pop(0)
         
     def has_doc(self):
         if self.no_doc:
@@ -721,10 +709,6 @@ class clean(dftclean):
         garbage.extend(glob.glob(os.path.join(resource, '*.rcc')))
         garbage.extend(glob.glob(os.path.join(resource, '*.qrc')))
         garbage.append(os.path.join(resource, 'catalog.html'))
-
-        jdraw = abspath('lib', 'taurus', 'qt', 'qtgui', 'graphic', 'jdraw')
-        garbage.append(os.path.join(jdraw, 'jdraw_lextab.py'))
-        garbage.append(os.path.join(jdraw, 'jdraw_yacctab.py'))
 
         doc_devel = abspath('doc', 'source', 'devel')
         garbage.append(os.path.join(doc_devel, 'catalog.html'))
