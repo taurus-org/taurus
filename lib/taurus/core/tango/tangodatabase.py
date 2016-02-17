@@ -35,7 +35,7 @@ import os
 import PyTango
 import PyTango.utils
 
-from taurus import Factory
+from taurus import Factory, Device
 from taurus.core.taurusbasetypes import TaurusSWDevHealth
 from taurus.core.taurusdatabase import TaurusDatabaseCache, TaurusDevInfo, \
     TaurusAttrInfo, TaurusServInfo, TaurusDevClassInfo, TaurusDevTree, \
@@ -144,16 +144,34 @@ class TangoDatabaseCache(TaurusDatabaseCache):
 
     def refresh(self):
         db = self.db
-        
-        query = "SELECT name, alias, exported, host, server, class FROM device"
-        
-        r = db.command_inout("DbMySqlSelect", query)
-        row_nb, column_nb = r[0][-2], r[0][-1]
-        results, data = r[0][:-2], r[1]
-        assert row_nb == len(data) / column_nb
-        
+
+        if hasattr(Device(db.dev_name()), 'DbMySqlSelect'):
+            # optimization in case the db exposes a MySQL select API
+            query = ("SELECT name, alias, exported, host, server, class " +
+                     "FROM device")
+            r = db.command_inout("DbMySqlSelect", query)
+            row_nb, column_nb = r[0][-2:]
+            data = r[1]
+            assert row_nb == len(data) / column_nb
+        else:
+            # fallback using tango commands (slow but works with sqlite DB)
+            # see http://sf.net/p/tauruslib/tickets/148/
+            data = []
+            all_alias = {}
+            all_devs = db.get_device_name('*', '*')
+            all_exported = db.get_device_exported('*')
+            for k in db.get_device_alias_list('*'):  # Time intensive!!
+                all_alias[db.get_device_alias(k)] = k
+            for d in all_devs: # Very time intensive!!
+                _info = db.command_inout("DbGetDeviceInfo", d)[1]
+                name, ior, level, server, host, started, stopped = _info
+                klass = db.get_class_for_device(d)
+                alias = all_alias.get(d, '')
+                exported = str(int(d in all_exported))
+                data.extend((name, alias, exported, host, server, klass))
+            column_nb = 6  # len ((name, alias, exported, host, server, klass))
+
         CD = CaselessDict
-        #CD = dict
         dev_dict, serv_dict, klass_dict, alias_dict = CD(), {}, {}, CD()
 
         for i in xrange(0, len(data), column_nb):

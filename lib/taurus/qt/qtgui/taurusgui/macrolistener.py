@@ -121,6 +121,11 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
         '''
         if expconf['ActiveMntGrp'] is None:
             return
+        if expconf['ActiveMntGrp'] not in expconf['MntGrpConfigs'].keys():
+            self.warning(
+                "ActiveMntGrp '%s' is not defined" %
+                expconf['ActiveMntGrp'])
+            return
         mgconfig = expconf['MntGrpConfigs'][expconf['ActiveMntGrp']]
         channels = dict(getChannelConfigs(mgconfig, sort=False))
         

@@ -361,9 +361,10 @@ class TaurusManager(Singleton, Logger):
             o.execute()
             
     def changeDefaultPollingPeriod(self, period):
-        self.getFactory()().changeDefaultPollingPeriod(period)
-        # todo: go through all known plugin factories and change their polling
-        # period
+        plugin_classes = self._get_plugin_classes()
+        for plugin_class in plugin_classes:
+            scheme = plugin_class.schemes[0]
+            self.getFactory(scheme)().changeDefaultPollingPeriod(period)
 
     def __str__name__(self, name):
         return '{0}({1})'.format(self.__class__.__name__, name)

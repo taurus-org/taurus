@@ -947,6 +947,10 @@ def taurusFormMain():
     dialog.setModifiableByUser(True)
     dialog.setModelInConfig(True)
     dialog.setWindowTitle(options.window_name)
+
+    # Make sure the window size and position are restored
+    dialog.registerConfigProperty(dialog.saveGeometry, dialog.restoreGeometry,
+                                  'MainWindowGeometry')
             
     from taurus.qt.qtgui.resource import getThemeIcon
     quitApplicationAction =  Qt.QAction(getThemeIcon("process-stop"),'Close Form', dialog)

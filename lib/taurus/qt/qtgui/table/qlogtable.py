@@ -26,7 +26,8 @@
 """This module provides Qt table widgets which display logging messages from the
 python :mod:`logging` module"""
 
-__all__ = ["QLoggingTableModel", "QLoggingTable", "QLoggingWidget"]
+__all__ = ["QLoggingTableModel", "QLoggingTable", "QLoggingWidget",
+           "QRemoteLoggingTableModel"]
 
 __docformat__ = 'restructuredtext'
 
@@ -308,7 +309,7 @@ class _LogRecordStreamHandler(LogRecordStreamHandler):
 
 
 class QRemoteLoggingTableModel(QLoggingTableModel):
-
+    """A remote Qt table that displays the taurus logging messages"""
     def connect_logging(self, host='localhost',
                 port=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
                 handler=_LogRecordStreamHandler):

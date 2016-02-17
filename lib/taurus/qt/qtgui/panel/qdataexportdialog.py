@@ -94,7 +94,6 @@ class QDataExportDialog(Qt.QDialog):
         """
         if set is None: set=str(self.dataSetCB.currentText())
 
-        self.updateText(set)
         if ofile is None:
             if set == self.allInSingleFile:
                 name = "all.dat"

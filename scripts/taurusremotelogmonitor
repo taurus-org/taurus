@@ -46,6 +46,7 @@ def main():
                  "error, warning/warn, info, debug, trace [default: debug]."
 
     parser = optparse.OptionParser()
+    parser.set_description("Table that displays the taurus logging messages")
     parser.add_option("-g", "--gui", dest="gui", default=True,
                       action="store_true", help=help_gui)
     parser.add_option("-c", "--console", dest="gui",

@@ -48,7 +48,8 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
     the 1D array are plotted in the Y-Z plane and are stacked along the X axis.
     '''
     _modifiableByUser = True
-    def __init__(self, parent=None, designMode=False, toolbar=True, stackMode='datetime', buffersize=512, options=None, **kwargs):
+    def __init__(self, parent=None, designMode=False, toolbar=True,
+                 stackMode='deltatime', buffersize=512, options=None, **kwargs):
         '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
         defaultOptions = dict(lock_aspect_ratio=False)
         if options is not None:
@@ -64,7 +65,9 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         #add some tools
         for toolklass in (TaurusModelChooserTool,AutoScrollTool):
             self.add_tool(toolklass)
+        self.get_tool(TaurusModelChooserTool).singleModel = True
         self.setModifiableByUser(self._modifiableByUser)
+        self.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
     
     def keyPressEvent(self,event):
         if(event.key() == Qt.Qt.Key_Escape):

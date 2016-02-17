@@ -39,29 +39,9 @@ with the following command::
 
     taurustrend [options] [<model_list>]
 	
-Options::
+Run the following command for more details::
 
-  -h, --help            show this help message and exit
-  -x t|e, --x-axis-mode=t|e
-                        interprete X values as either timestamps (t) or event
-                        numbers (e). Accepted values: t|e
-  --config=CONFIG_FILE, --config-file=CONFIG_FILE
-                        use the given config file for initialization
-  --export=EXPORT_FILE, --export-file=EXPORT_FILE
-                        use the given file to as output instead of showing the
-                        plot
-  -r PERIOD, --forced-read=PERIOD
-                        force Tautrend to re-read the attributes every PERIOD
-                        milliseconds
-  -a, --use-archiving   enable archiving lookups. 
-  --taurus-log-level=LEVEL
-                        taurus log level. Allowed values are (case
-                        insensitive): critical, error, warning/warn, info,
-                        debug, trace
-  --taurus-polling-period=MILISEC
-                        taurus global polling period in miliseconds
-  --tango-host=TANGO_HOST
-                        Tango host name
+    taurustrend --help
 
     
 The model list is optional and is a space-separated list of models for TaurusTrend. 
@@ -205,7 +185,35 @@ of the corresponding internal clocks. In such a case, keeping all machines
 synchronized is highly recommended (e.g., using NTP_, accuracy should not be 
 worse than 0.1s).
 
+.. _trend2d_ui:
+
+========================
+Spectrograms (2D trends)
+========================
+
+The :class:`TaurusTrend2DDialog` widget is the standard way for Taurus 
+applications to graphically show the evolution of a one-dimensional 
+attribute. The representation is done as a *spectrogram*: the time (or 
+event number) is represented in the X axis while values of the array 
+are color-coded along the Y axis.
 
 
+.. figure:: /_static/taurustrend2d.png
+  :align: center
 
+Several tools from the standard guiqwt_ toolkit for images are available,
+and zooming and panning are possible using the standard mechanisms of 
+guiqwt_.
+
+The :class:`TaurusTrend2DDialog` widget can be launched as a 
+stand-alone application with the following command::
+
+	taurustrend2d <array_attribute_name>
+
+Run the following command for more details::
+
+    taurustrend2d --help
+
+
+.. _guiqwt: https://pypi.python.org/pypi/guiqwt
 .. _NTP: http://en.wikipedia.org/wiki/Network_Time_Protocol

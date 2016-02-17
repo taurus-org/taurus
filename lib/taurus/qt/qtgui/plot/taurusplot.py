@@ -2268,6 +2268,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.error('Exception while gathering curves configuration info'+str(e))
         finally:
             self.curves_lock.release()
+        curvenames = CaselessList(curvenames)
         model = CaselessList([m for m in self.getModel() if m in curvenames])
         configdict={"Axes":axesdict, "Misc":miscdict, "RawData":rawdatadict,
                     "TangoCurves":tangodict, "CurveProp":propdict,
@@ -2358,14 +2359,15 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.applyConfig(configdict)
         return ifile.name
 
-    def setEventFilters(self, filters=None, curvenames=None):
+    def setEventFilters(self, filters=None, curvenames=None, preqt=False):
         '''propagates a list of taurus filters to the curves given by curvenames.
         See :meth:`TaurusBaseComponent.setEventFilters`
         '''
         if curvenames is None: curvenames=self.curves.keys()
         self.curves_lock.acquire()
         try:
-            for name in curvenames: self.curves[name].setEventFilters(filters)
+            for name in curvenames: 
+                self.curves[name].setEventFilters(filters, preqt=preqt)
         finally:
             self.curves_lock.release()
 
@@ -2565,7 +2567,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         self.curves_lock.acquire()
         try:
-            if curves is None: curves=self.curves
+            if curves is None:
+                curves = self.getCurveNamesSorted()
             frozendata={}
             for k in curves:
                 frozendata[k]=self.getCurveData(k)
@@ -2576,7 +2579,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             from taurus.qt.qtgui.panel import QDataExportDialog
             klass = QDataExportDialog
         dialog = klass(parent=self, datadict=frozendata, 
-                       sortedNames=self.getCurveNamesSorted())
+                       sortedNames=curves)
         dialog.setXIsTime(self.getXIsTime())
         return dialog.exec_()
 

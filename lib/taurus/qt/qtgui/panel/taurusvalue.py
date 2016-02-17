@@ -607,6 +607,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def labelWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultLabelWidgetClass()
         else: return TaurusWidgetFactory().getWidgetClass(classID)
@@ -614,7 +615,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def readWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
-        
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): ret = classID
         elif str(classID) == 'Auto': ret = self.getDefaultReadWidgetClass()
         else: ret = TaurusWidgetFactory().getWidgetClass(classID)
@@ -634,6 +635,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
         if self._compact and not ignoreCompact: return None
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultWriteWidgetClass()
         else: return TaurusWidgetFactory().getWidgetClass(classID)
@@ -641,12 +643,14 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def unitsWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultUnitsWidgetClass()
         else: return TaurusWidgetFactory().getWidgetClass(classID)
         
     def customWidgetClassFactory(self, classID):
         if classID is None or classID == 'None': return None
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultCustomWidgetClass()
         else: return TaurusWidgetFactory().getWidgetClass(classID)
@@ -654,6 +658,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def extraWidgetClassFactory(self, classID):
         if self._customWidget is not None: return None
         if classID is None or classID == 'None': return None
+        classID = globals().get(classID, classID)
         if isinstance(classID, type): return classID
         elif str(classID) == 'Auto': return self.getDefaultExtraWidgetClass()
         else: return TaurusWidgetFactory().getWidgetClass(classID)
@@ -828,11 +833,17 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                                              1, 1, -1, alignment)
     
     def addExtraWidgetToLayout(self):
-        if self._extraWidget is not None and self.parent() is not None:
-            alignment = getattr(self._extraWidget, 'layoutAlignment', 
-                                Qt.Qt.AlignmentFlag(0))
-            self.parent().layout().addWidget(self._extraWidget, self._row,
-                                             5, 1, 1, alignment)
+        parent = self.parent()
+        if parent is not None:
+            if self._extraWidget is None:
+                # Adding this spacer is some voodoo magic to avoid bug #142
+                # See: http://sf.net/p/tauruslib/tickets/142/
+                parent.layout().addItem(Qt.QSpacerItem(0, 0), self._row, 5)
+            else:
+                alignment = getattr(self._extraWidget, 'layoutAlignment',
+                                    Qt.Qt.AlignmentFlag(0))
+                parent.layout().addWidget(self._extraWidget, self._row,
+                                            5, 1, 1, alignment)
 
     @Qt.pyqtSignature("parentModelChanged(const QString &)")
     def parentModelChanged(self, parentmodel_name):

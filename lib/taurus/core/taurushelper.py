@@ -103,7 +103,7 @@ def __get_pytango_version_number():
 def __get_pyqt_version():
     try:
         import PyQt4.Qt
-        return PyQt4.Qt.QT_VERSION_STR
+        return PyQt4.Qt.PYQT_VERSION_STR
     except:
         return None
 

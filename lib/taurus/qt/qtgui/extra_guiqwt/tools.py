@@ -100,7 +100,10 @@ class TaurusModelChooserTool(CommandTool):
         models, ok = TaurusModelChooser.modelChooserDlg(parent=plot, selectables=[TaurusElementType.Attribute], singleModel=self.singleModel)
         if ok: 
             if self.singleModel:
-                self.manager.setModel(models[0])
+                if models:
+                    self.manager.setModel(models[0])
+                else:
+                    self.manager.setModel('')
             else:
                 self.manager.setModel(models)
             
