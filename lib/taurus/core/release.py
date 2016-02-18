@@ -43,7 +43,7 @@ Release data for the taurus project. It contains the following members:
 
 
 
-# Name of the package for release purposes. This is the name which labels
+# Name of the package for release purposes.  This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'taurus'
 

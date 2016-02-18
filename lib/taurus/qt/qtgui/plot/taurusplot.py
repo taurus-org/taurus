@@ -2581,7 +2581,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         self.curves_lock.acquire()
         try:
-            if curves is None: curves=self.curves
+            if curves is None:
+                curves = self.getCurveNamesSorted()
             frozendata={}
             for k in curves:
                 frozendata[k]=self.getCurveData(k)
@@ -2592,7 +2593,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             from taurus.qt.qtgui.panel import QDataExportDialog
             klass = QDataExportDialog
         dialog = klass(parent=self, datadict=frozendata, 
-                       sortedNames=self.getCurveNamesSorted())
+                       sortedNames=curves)
         dialog.setXIsTime(self.getXIsTime())
         return dialog.exec_()
 

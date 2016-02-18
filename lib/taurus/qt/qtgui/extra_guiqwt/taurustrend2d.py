@@ -48,7 +48,8 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
     the 1D array are plotted in the Y-Z plane and are stacked along the X axis.
     '''
     _modifiableByUser = True
-    def __init__(self, parent=None, designMode=False, toolbar=True, stackMode='datetime', buffersize=512, options=None, **kwargs):
+    def __init__(self, parent=None, designMode=False, toolbar=True,
+                 stackMode='deltatime', buffersize=512, options=None, **kwargs):
         '''see :class:`guiqwt.plot.ImageDialog` for other valid initialization parameters'''
         defaultOptions = dict(lock_aspect_ratio=False)
         if options is not None:
