@@ -557,16 +557,16 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 # TODO we should skip text and things like that
                 if isinstance(s, TaurusGroupItem):
                     s = _outline(s.childItems())
-                    if s == None:
+                    if s is None:
                         continue
 
                 s = s.shape()
-                if shape != None:
+                if shape is not None:
                     shape = shape.united(s)
                 else:
                     shape = s
 
-            if shape == None:
+            if shape is None:
                 return None
 
             return Qt.QGraphicsPathItem(shape)
@@ -1236,9 +1236,9 @@ class TaurusRoundRectItem(Qt.QGraphicsPathItem):
         self.setCornerWidth(0, 0)
 
     def __updatePath(self):
-        if self.__rect == None:
+        if self.__rect is None:
             return
-        if self.__corner == None:
+        if self.__corner is None:
             return
 
         path = Qt.QPainterPath()

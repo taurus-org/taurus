@@ -106,7 +106,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         except:
             group = str(path).split(';', 1)[0]
         itemToMark = self.itemFromIndex(tmpindex.parent())
-        while(itemToMark != None):
+        while(itemToMark is not None):
             itemToMark.setData(Qt.QVariant(
                 Qt.QFont("Arial", 10, Qt.QFont.Bold)), Qt.Qt.FontRole)
             itemToMark = self.itemFromIndex(itemToMark.index().parent())
@@ -180,7 +180,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
             'Value has been changed. Old value: ' + str(changedItem.text())), Qt.Qt.ToolTipRole)
         itemToMark.setData(Qt.QVariant(getThemeIcon(
             'emblem-important')), Qt.Qt.DecorationRole)
-        while(itemToMark != None):
+        while(itemToMark is not None):
             itemToMark.setData(Qt.QVariant(
                 Qt.QFont("Arial", 10, Qt.QFont.Bold)), Qt.Qt.FontRole)
             itemToMark = self.itemFromIndex(itemToMark.index().parent())
@@ -397,7 +397,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         '''
         for index in self.markedItems:
             itemToMark = self.itemFromIndex(index)
-            while(itemToMark != None):
+            while(itemToMark is not None):
                 itemToMark.setData(Qt.QVariant(
                     Qt.QFont("Arial", 10, Qt.QFont.Normal)), Qt.Qt.FontRole)
                 itemToMark.setData(Qt.QVariant(), Qt.Qt.DecorationRole)

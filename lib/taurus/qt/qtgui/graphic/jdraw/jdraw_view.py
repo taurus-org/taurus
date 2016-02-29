@@ -442,7 +442,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
             except:
                 self.debug('invalid selectionStyle "%s"', selectionStyle)
                 return
-        if self.scene() != None:
+        if self.scene() is not None:
             self.scene().setSelectionStyle(selectionStyle)
         self._selectionStyle = selectionStyle
 

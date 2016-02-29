@@ -103,7 +103,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         self._bufferedEventsTimer = None
         self.setEventBufferPeriod(self._eventBufferPeriod)
 
-        if parent != None and hasattr(parent, "_exception_listener"):
+        if parent is not None and hasattr(parent, "_exception_listener"):
             self._exception_listener = parent._exception_listener
         else:
             self._exception_listener = set([TaurusExceptionListener()])

@@ -91,7 +91,7 @@ class TaurusForm(TaurusWidget):
                  designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
 
-        if buttons == None:
+        if buttons is None:
             buttons = Qt.QDialogButtonBox.Apply | \
                 Qt.QDialogButtonBox.Reset
         self._customWidgetMap = {}

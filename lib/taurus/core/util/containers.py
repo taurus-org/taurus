@@ -144,7 +144,7 @@ class CaselessList(list):
         minindex and maxindex are also optional arguments
         s.index(x[, i[, j]]) return smallest k such that s[k] == x and i <= k < j
         """
-        if maxindex == None:
+        if maxindex is None:
             maxindex = len(self)
         minindex = max(0, minindex) - 1
         maxindex = min(len(self), maxindex)
