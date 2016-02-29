@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -39,9 +39,9 @@ from taurus.external.pint import Quantity, UR
 
 class TaurusAttribute(TaurusModel):
 
-    DftTimeToLive = 10000 # 10s
+    DftTimeToLive = 10000  # 10s
     _description = "A Taurus Attribute"
-    defaultFragmentName = "rvalue" # fragment to be used if none is specified
+    defaultFragmentName = "rvalue"  # fragment to be used if none is specified
 
     def __init__(self, name, parent, **kwargs):
         self.call__init__(TaurusModel, name, parent)
@@ -89,7 +89,7 @@ class TaurusAttribute(TaurusModel):
         if cls._factory is None:
             cls._factory = Factory(scheme=cls._scheme)
         return cls._factory
-    
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -97,7 +97,7 @@ class TaurusAttribute(TaurusModel):
     @classmethod
     def getTaurusElementType(cls):
         return TaurusElementType.Attribute
-            
+
     @classmethod
     def buildModelName(cls, parent_model, relative_name):
         """build an 'absolute' model name from the parent model and the
@@ -106,7 +106,7 @@ class TaurusAttribute(TaurusModel):
         the database model name and its device name
         - If parent_model is a TaurusAttribute, the relative name is ignored and
         the parent name is returned
-        
+
         Note: This is a basic implementation. You may need to reimplement this
               for a specific scheme if it supports "useParentModel". 
         """
@@ -117,8 +117,8 @@ class TaurusAttribute(TaurusModel):
             return relative_name
         if isinstance(parent_model, cls):
             return parent_name
-        return '%s%s' % (parent_name,relative_name)  
-            
+        return '%s%s' % (parent_name, relative_name)
+
     @classmethod
     def getNameValidator(cls):
         return cls.factory().getAttributeNameValidator()
@@ -165,7 +165,7 @@ class TaurusAttribute(TaurusModel):
     def isUsingEvents(self):
         raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.isUsingEvents")
-        
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel necessary overwrite
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -176,9 +176,10 @@ class TaurusAttribute(TaurusModel):
         except Exception:
             return None
 
-    def areStrValuesEqual(self,v1,v2):
+    def areStrValuesEqual(self, v1, v2):
         try:
-            if "nan" == str(v1).lower() == str(v2).lower(): return True
+            if "nan" == str(v1).lower() == str(v2).lower():
+                return True
             return self.encode(v1) == self.encode(v2)
         except:
             return False
@@ -186,7 +187,7 @@ class TaurusAttribute(TaurusModel):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    
+
     def hasEvents(self):
         self.deprecated("Don't use this anymore. Use isUsingEvents instead")
         return self.isUsingEvents()
@@ -194,7 +195,7 @@ class TaurusAttribute(TaurusModel):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Polling (client side)
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    
+
     def enablePolling(self, force=False):
         '''Enable polling. See :meth:`isPollingEnabled` for clarification of
         what enabled polling means.

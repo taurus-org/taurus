@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -35,16 +35,16 @@ aspects of Taurus.
 # device_class_name:(classname_with_full_module_path, args, kwargs)
 # where the args and kwargs will be passed to the constructor of the class
 T_FORM_CUSTOM_WIDGET_MAP = \
-    {'SimuMotor':('taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
-     'Motor':('taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
-     'PseudoMotor':('taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
-     'PseudoCounter':('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'CTExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'ZeroDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'OneDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'TwoDExpChannel':('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'IORegister':('taurus.qt.qtgui.extra_pool.PoolIORegisterTV', (), {})
-    }
+    {'SimuMotor': ('taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
+     'Motor': ('taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
+     'PseudoMotor': ('taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
+     'PseudoCounter': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+     'CTExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+     'ZeroDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+     'OneDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+     'TwoDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+     'IORegister': ('taurus.qt.qtgui.extra_pool.PoolIORegisterTV', (), {})
+     }
 
 # Compact mode for widgets
 # True sets the preferred mode of TaurusForms to use "compact" widgets
@@ -61,17 +61,17 @@ STRICT_MODEL_NAMES = False
 # False (or commented out) for backwards compatibility
 LIGHTWEIGHT_IMPORTS = False
 
-# Set your default scheme (if not defined, "tango" is assumed)     
+# Set your default scheme (if not defined, "tango" is assumed)
 DEFAULT_SCHEME = "tango"
 
-# Extra Taurus schemes. You can add a list of modules to be loaded for 
+# Extra Taurus schemes. You can add a list of modules to be loaded for
 # providing support to new schemes
 # EXTRA_SCHEME_MODULES = ['myownschememodule']
 
 # ----------------------------------------------------------------------------
-# PLY (lex/yacc) optimization: 1=Active (default) , 0=disabled. 
-# Set PLY_OPTIMIZE = 0 if you are getting yacc exceptions while loading 
-# synoptics   
+# PLY (lex/yacc) optimization: 1=Active (default) , 0=disabled.
+# Set PLY_OPTIMIZE = 0 if you are getting yacc exceptions while loading
+# synoptics
 # ----------------------------------------------------------------------------
 
 PLY_OPTIMIZE = 1

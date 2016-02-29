@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -37,9 +37,10 @@ from taurus.core.tango import TangoDevice
 from taurus.core.util.containers import CaselessDict, CaselessList
 from threading import RLock
 
+
 class ImageDevice(TangoDevice):
     """A class encapsulating a generic image device"""
-    
+
     def __init__(self, name, image_name='image', **kw):
         self.call__init__(TangoDevice, name, **kw)
         self.setImageAttrName(image_name)
@@ -48,14 +49,14 @@ class ImageDevice(TangoDevice):
         if attr_name in self._image_attr_names:
             return
         self._image_attr_names.append(attr_name)
-            
+
     def setImageAttrName(self, attr_name):
         self._image_attr_names = CaselessList()
         self.addImageAttrName(attr_name)
-        
+
     def getImageAttrName(self, idx=0):
         return self._image_attr_names[0]
-    
+
     def getImageAttrNames(self):
         return self._image_attr_names
 
@@ -63,7 +64,7 @@ class ImageDevice(TangoDevice):
 class ImageCounterDevice(ImageDevice):
     """A class encapsulating a generic image device that has an image counter
     attribute"""
-    
+
     def __init__(self, name, image_name='image', **kw):
         self._image_data = CaselessDict()
         self.call__init__(ImageDevice, name, **kw)
@@ -87,7 +88,7 @@ class ImageCounterDevice(ImageDevice):
 
     def getImageIDAttrName(self):
         return 'imagecounter'
-    
+
     def eventReceived(self, evt_src, evt_type, evt_value):
         if evt_src == self._image_id_attr:
             if evt_type == TaurusEventType.Change:
@@ -95,15 +96,15 @@ class ImageCounterDevice(ImageDevice):
                 self.fireEvent(evt_type, evt_value)
         else:
             ImageDevice.eventReceived(self, evt_src, evt_type, evt_value)
-    
+
     def getImageData(self, names=None):
         if names is None:
             names = self.getImageAttrNames()
         elif isinstance(names, str):
             names = (names,)
-        
+
         fetch = self._getDirty(names)
-        
+
         try:
             data = self.read_attributes(fetch)
             for d in data:
@@ -116,14 +117,16 @@ PyImageViewer = ImageCounterDevice
 ImgGrabber = ImageCounterDevice
 CCDPVCAM = ImageCounterDevice
 
+
 class Falcon(ImageCounterDevice):
 
     def __init__(self, name, image_name='image', **kw):
         self._color = False
-        self.call__init__(ImageCounterDevice, name, image_name=image_name, **kw)
+        self.call__init__(ImageCounterDevice, name,
+                          image_name=image_name, **kw)
         self.imgFormat_Attr = self.getAttribute("imageformat")
         self.imgFormat_Attr.addListener(self)
-    
+
     def eventReceived(self, evt_src, evt_type, evt_value):
         if evt_src == self.getAttribute("imageformat"):
             if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
@@ -136,14 +139,15 @@ class Falcon(ImageCounterDevice):
         if self._color:
             for k, v in data.items():
                 s = v[1].value.shape
-                v[1].value = v[1].value.reshape((s[0], s[1]/3, 3))
+                v[1].value = v[1].value.reshape((s[0], s[1] / 3, 3))
         return data
 
 
 class ImgBeamAnalyzer(ImageCounterDevice):
-    
+
     def __init__(self, name, image_name='roiimage', **kw):
         self.call__init__(ImageCounterDevice, name, image_name, **kw)
+
 
 class LimaCCDs(ImageCounterDevice):
 
@@ -166,4 +170,5 @@ class LimaCCDs(ImageCounterDevice):
                     self.processing = False
 
         else:
-            ImageCounterDevice.eventReceived(self, evt_src, evt_type, evt_value)
+            ImageCounterDevice.eventReceived(
+                self, evt_src, evt_type, evt_value)

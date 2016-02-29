@@ -12,7 +12,7 @@ from taurus.qt.qtgui.input import TaurusValueLineEdit, TaurusValueSpinBox, Tauru
 
 w1 = TaurusLabel()
 w2 = TaurusLabel()
-w3 = TaurusValueLineEdit() # or TaurusValueSpinBox or TaurusWheelEdit
+w3 = TaurusValueLineEdit()  # or TaurusValueSpinBox or TaurusWheelEdit
 w4 = TaurusLabel()
 layout.addWidget(w1)
 layout.addWidget(w2)

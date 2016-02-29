@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -48,16 +48,22 @@ Usage::
 
 __docformat__ = "restructuredtext"
 
+
 class _consttype:
+
     class _ConstTypeError(TypeError):
         pass
+
     def __repr__(self):
         return "Constant type definitions."
+
     def __setattr__(self, name, value):
         v = self.__dict__.get(name, value)
         if type(v) is not type(value):
-            raise self._ConstTypeError, "Can't rebind %s to %s" % (type(v), type(value))
+            raise self._ConstTypeError, "Can't rebind %s to %s" % (
+                type(v), type(value))
         self.__dict__[name] = value
+
     def __del__(self):
         self.__dict__.clear()
 

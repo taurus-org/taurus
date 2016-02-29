@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -42,19 +42,23 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     __pyqtSignals__ = ("modelChanged(const QString &)",)
 
-    def __init__(self, qt_parent = None, designMode = False):
+    def __init__(self, qt_parent=None, designMode=False):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QLineEdit, qt_parent)
-        self.call__init__(TaurusBaseWritableWidget, name, designMode=designMode)
+        self.call__init__(TaurusBaseWritableWidget,
+                          name, designMode=designMode)
         self._enableWheelEvent = False
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
 
-        self.connect(self, Qt.SIGNAL('textChanged(const QString &)'), self.valueChanged)
+        self.connect(self, Qt.SIGNAL(
+            'textChanged(const QString &)'), self.valueChanged)
         self.connect(self, Qt.SIGNAL('returnPressed()'), self.writeValue)
-        self.connect(self, Qt.SIGNAL('valueChanged'), self.updatePendingOperations)
-        self.connect(self, Qt.SIGNAL('editingFinished()'), self._onEditingFinished)
+        self.connect(self, Qt.SIGNAL('valueChanged'),
+                     self.updatePendingOperations)
+        self.connect(self, Qt.SIGNAL('editingFinished()'),
+                     self._onEditingFinished)
 
     def _updateValidator(self, value):
         '''This method sets a validator depending on the data type'''
@@ -73,15 +77,16 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             if units != val.units:
                 val.setUnits(units)
 
-        else: #@TODO Other validators can be configured for other types (e.g. with string lengths, tango names,...)
+        # @TODO Other validators can be configured for other types (e.g. with string lengths, tango names,...)
+        else:
             self.setValidator(None)
             self.debug("Validator disabled")
 
     def __decimalDigits(self, fmt):
         '''returns the number of decimal digits from a format string
-        (or None if they are not defined)''' 
+        (or None if they are not defined)'''
         try:
-            if fmt[-1].lower() in ['f','g'] and '.' in fmt:
+            if fmt[-1].lower() in ['f', 'g'] and '.' in fmt:
                 return int(fmt[:-1].split('.')[-1])
             else:
                 return None
@@ -103,19 +108,20 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self._updateValidator(evt_value)
-        TaurusBaseWritableWidget.handleEvent(self, evt_src, evt_type, evt_value)
+        TaurusBaseWritableWidget.handleEvent(
+            self, evt_src, evt_type, evt_value)
 
     def updateStyle(self):
         TaurusBaseWritableWidget.updateStyle(self)
 
         value = self.getValue()
         if value is None:
-            #invalid value
+            # invalid value
             color, weight = 'gray', 'normal'
         else:
             # check if there are pending operations
             if self.hasPendingOperations():
-                color, weight= 'blue', 'bold'
+                color, weight = 'blue', 'bold'
             else:
                 color, weight = 'black', 'normal'
             # also check alarms (if applicable)
@@ -157,9 +163,12 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         if model is None or not model.isNumeric():
             return Qt.QLineEdit.keyPressEvent(self, evt)
 
-        if evt.key() == Qt.Qt.Key_Up:     numSteps = 1
-        elif evt.key() == Qt.Qt.Key_Down: numSteps = -1
-        else: return Qt.QLineEdit.keyPressEvent(self, evt)
+        if evt.key() == Qt.Qt.Key_Up:
+            numSteps = 1
+        elif evt.key() == Qt.Qt.Key_Down:
+            numSteps = -1
+        else:
+            return Qt.QLineEdit.keyPressEvent(self, evt)
 
         evt.accept()
         modifiers = evt.modifiers()
@@ -193,7 +202,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             model_format = model_obj.data_format
             if model_type in [DataType.Integer, DataType.Float]:
                 if val is None or \
-                                val.validate(str(text), 0)[0] != val.Acceptable:
+                        val.validate(str(text), 0)[0] != val.Acceptable:
                     return None
                 q = Quantity(text)
                 # allow implicit units (assume wvalue.units implicitly)

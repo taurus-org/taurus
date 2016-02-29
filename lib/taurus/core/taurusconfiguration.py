@@ -3,24 +3,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -32,6 +32,7 @@ __docformat__ = "restructuredtext"
 
 from .taurusmodel import TaurusModel
 from .util.log import tep14_deprecation
+
 
 class TaurusConfigurationProxy(object):
     """
@@ -49,12 +50,13 @@ class TaurusConfigurationProxy(object):
 
     def __getattr__(self, name):
         return getattr(self.__parent._getRealConfig(), name)
-    
+
     def getRealConfigClass(self):
         return self.__parent._getRealConfig().__class__
 
 
 class TaurusConfiguration(TaurusModel):
+
     @tep14_deprecation(alt='TaurusAttribute', dbg_msg='Do not use this class')
-    def __init__(self, name, parent, storeCallback = None):
+    def __init__(self, name, parent, storeCallback=None):
         pass

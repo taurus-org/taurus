@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -53,22 +53,22 @@ class BaseWidgetTestCase(object):
     def setUp(self):
         """
         Preconditions:
-        
+
           - A TaurusApplication must be initialized.
           - The widget must be instantiated
-        
+
         """
         unittest.TestCase.setUp(self)
 
         from taurus.core.util.log import _DEPRECATION_COUNT
         self._depCounter = _DEPRECATION_COUNT
         self._depCounter.clear()
-        
+
         app = TaurusApplication.instance()
         if app is None:
             app = TaurusApplication([])
         self._app = app
-        
+
         if self._klass is not None:
             self._widget = self._klass(*self.initargs, **self.initkwargs)
 
@@ -82,7 +82,7 @@ class BaseWidgetTestCase(object):
         if msg is None:
             msg = ('%d deprecation warnings issued (max=%d):\n%s' %
                    (deps, maximum, self._depCounter.pretty()))
-        self.assertTrue(deps<=maximum, msg)
+        self.assertTrue(deps <= maximum, msg)
 
 
 @skipUnlessGui()
@@ -106,7 +106,7 @@ class GenericWidgetTestCase(BaseWidgetTestCase):
     def setUp(self):
         """
         Preconditions:
-        
+
           - Those from :class:`BaseWidgetTestCase`
           - A list of models corresponding to the modelnames list
             should be created without using the widget being tested
@@ -114,10 +114,10 @@ class GenericWidgetTestCase(BaseWidgetTestCase):
             None should be used as a placeholder when a model cannot be created
             for a given modelname.
         """
-        #Make sure the basics are taken care of (QApplication, etc)
+        # Make sure the basics are taken care of (QApplication, etc)
         BaseWidgetTestCase.setUp(self)
 
-        #construct a list of models corresponding to the test model names
+        # construct a list of models corresponding to the test model names
         # provided by the widget
         taurusManager = taurus.core.TaurusManager()
         self._models = []
@@ -154,7 +154,7 @@ class GenericWidgetTestCase(BaseWidgetTestCase):
             else:
                 self.assertIs(modelobj, model,
                               'failed to set model "%s" for %s' %
-                             (name, self._klass.__name__))
+                              (name, self._klass.__name__))
         self.assertMaxDeprecations(0)
 
 #    def test10_ModelProperty(self):
@@ -170,5 +170,5 @@ if __name__ == "__main__":
 
     suite = unittest.defaultTestLoader.loadTestsFromTestCase(TaurusLabelTest)
     unittest.TextTestRunner(descriptions=True, verbosity=2).run(suite)
-    #unittest.main()
-    #TaurusLabelTest().run()
+    # unittest.main()
+    # TaurusLabelTest().run()

@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -47,22 +47,23 @@ class TaurusLabelTest(GenericWidgetTestCase, unittest.TestCase):
     '''
     _klass = TaurusLabel
     modelnames = ['sys/tg_test/1/wave', '', 'eval:1', None]
-    
+
+
 class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
 
     '''
     Test bug169: 
-    
+
         AttributeError: type object 'TaurusConfigurationProxy' has no attribute
         'buildModelName'.
-        
+
         See: http://sf.net/p/tauruslib/tickets/65/
-    
+
 
     .. seealso: :class:`taurus.qt.qtgui.test.base.BaseWidgetTestCase`
     '''
     _klass = TaurusLabel
-    
+
     def setUp(self):
         BaseWidgetTestCase.setUp(self)
         self._widget.setModel('sys/tg_test/1/double_scalar#label')
@@ -71,29 +72,31 @@ class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
         self._parent.setModel('sys/tg_test/1')
         self._widget.setUseParentModel(True)
         self._widget.setParent(self._parent)
-        
+
     def test_bug169(self):
-        '''Check if setModel works when using parent model''' 
+        '''Check if setModel works when using parent model'''
         self._widget.setModel('/double_scalar#label')
         self.assertMaxDeprecations(0)
-        
+
     def test_relativemodelclass(self):
         '''Check consistency in modelClass when using parent model (re: bug169)
-        ''' 
+        '''
         try:
             self._widget.setModel('/double_scalar#label')
         finally:
             mc = self._widget.getModelClass()
-            msg = ('getModelClass() inconsistency:\n expected: %s\n got: %s' % 
+            msg = ('getModelClass() inconsistency:\n expected: %s\n got: %s' %
                    (self._expectedModelClass, mc))
             self.assertEqual(self._expectedModelClass, mc, msg)
         self.assertMaxDeprecations(0)
 
 
 # ------------------------------------------------------------------------------
-# Check bck-compat with pre-tep14  FgRoles: value, w_value, state, quality, none
+# Check bck-compat with pre-tep14  FgRoles: value, w_value, state,
+# quality, none
 testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
                                    model='tango:' + DEV_NAME + '/double_scalar')
+
 
 @testOldFgroles(fgRole='value', expected='1.23 mm')
 @testOldFgroles(fgRole='w_value', expected='0.0 mm')
@@ -101,11 +104,9 @@ testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
 @testOldFgroles(fgRole='quality', expected='ATTR_VALID')
 @testOldFgroles(fgRole='none', expected='')
 # ------------------------------------------------------------------------------
-
 @insertTest(helper_name='text',
             model='tango:' + DEV_NAME + '/double_scalar#state',
             expected='Ready')
-
 @insertTest(helper_name='text',
             model='tango:' + DEV_NAME + '/double_scalar#rvalue',
             fgRole='label',
@@ -117,29 +118,23 @@ testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
 @insertTest(helper_name='text',
             model='tango:' + DEV_NAME + '/double_scalar#label',
             expected='double_scalar')
-
 # ------------------------------------------------------------------------------
 # Check bck-compat with pre-tep14  BgRoles: state, quality, none
-
 @insertTest(helper_name='bgRole',
             model='tango:' + DEV_NAME + '/float_scalar_ro',
             bgRole='none',
             expected=Qt.QColor(Qt.Qt.transparent).getRgb()[:3])
-
 @insertTest(helper_name='bgRole',
             model='tango:' + DEV_NAME + '/float_scalar_ro',
             bgRole='state',
             expected=DEVICE_STATE_DATA["TaurusDevState.Ready"][1:4])
-
 @insertTest(helper_name='bgRole',
             model='tango:' + DEV_NAME + '/float_scalar_ro',
             bgRole='quality',
             expected=ATTRIBUTE_QUALITY_DATA["ATTR_VALID"][1:4])
-
 @insertTest(helper_name='bgRole',
             model='tango:' + DEV_NAME + '/float_scalar_ro',
             expected=ATTRIBUTE_QUALITY_DATA["ATTR_VALID"][1:4])
-
 class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
                        unittest.TestCase):
     '''
@@ -155,7 +150,7 @@ class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
         self._app.processEvents()
         got = str(self._widget.text())
         msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
-                   (model, expected, got))
+               (model, expected, got))
         self.assertEqual(got, expected, msg)
         self.assertMaxDeprecations(maxdepr)
 
@@ -173,12 +168,11 @@ class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
         if bgRole is not None:
             self._widget.setBgRole(bgRole)
         p = self._widget.palette()
-        got = p.color(p.Background).getRgb()[:3] # RGB value of the background
+        got = p.color(p.Background).getRgb()[:3]  # RGB value of the background
         msg = ('wrong background RGB for "%s":\n expected: %s\n got: %s' %
-                   (model, expected, got))
+               (model, expected, got))
         self.assertEqual(got, expected, msg)
         self.assertMaxDeprecations(maxdepr)
-
 
 
 #

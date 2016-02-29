@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -31,10 +31,11 @@ __all__ = ['IcepapDriverParam']
 from taurus.core.evaluation import EvaluationDevice
 import re
 
+
 class IcepapDriverParam(EvaluationDevice):
     '''A simple example of usage of the evaluation scheme for 
     creating an icepap connection device to obtain icepap driver values.
-    
+
     Important: note that only those members listed in `_symbols` will be available
     '''
     _symbols = ['getAxisParam']
@@ -49,49 +50,51 @@ class IcepapDriverParam(EvaluationDevice):
 
         try:
             db_name = self.getNameValidator().getDBName(self._full_name)
-            db_name = db_name.replace('eval://','')
-            db_name = db_name.replace('db=','')
-            host,port = db_name.split(':')
+            db_name = db_name.replace('eval://', '')
+            db_name = db_name.replace('db=', '')
+            host, port = db_name.split(':')
             self.ipap = pyIcePAP.EthIcePAP(host, port)
             self.ipap.connect()
         except:
             pass
-        
+
     def getAxisParam(self, axis, param):
         ''' return the axis parameter value. '''
         if self.ipap is None or not self.ipap.connected:
             raise Exception('Not a valid icepap connection')
-        
+
         try:
             value = self.ipap.readParameter(axis, param)
             return float(value)
         except:
             return value
-        
 
-#===============================================================================
+
+#=========================================================================
 # Just for testing
-#===============================================================================
+#=========================================================================
 
 ATTR_IPAP_POS = 'eval://db=icepap06:5000;dev=taurus.core.evaluation.ipap_example.IcepapDriverParam;getAxisParam(1,"POS")'
+
 
 def _test1():
     import taurus.core
     a = taurus.Attribute(ATTR_IPAP_POS)
     print "axi_s pos:", a.read().value
-    
+
+
 def _test2():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.display import TaurusLabel
     app = TaurusApplication()
-    
+
     tl = TaurusLabel()
     tl.setModel(ATTR_IPAP_POS)
     tl.show()
 
     sys.exit(app.exec_())
-    
+
 if __name__ == "__main__":
     _test1()
     _test2()

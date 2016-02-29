@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -30,9 +30,9 @@ __all__ = ["TangoFactory"]
 __docformat__ = "restructuredtext"
 
 try:
-    import PyTango 
-except ImportError: 
-    #note that if PyTango is not installed the factory will not be available
+    import PyTango
+except ImportError:
+    # note that if PyTango is not installed the factory will not be available
     from taurus.core.util.log import debug
     msg = 'cannot import PyTango module. ' + \
           'Taurus will not support the "tango" scheme'
@@ -56,14 +56,15 @@ _Authority = TangoAuthority
 _Attribute = TangoAttribute
 _Device = TangoDevice
 
+
 class TangoFactory(Singleton, TaurusFactory, Logger):
     """A :class:`TaurusFactory` singleton class to provide Tango-specific
     Taurus Element objects (TangoAuthority, TangoDevice, TangoAttribute, 
     TangoConfiguration) 
-      
+
     Tango model names are URI based See https://tools.ietf.org/html/rfc3986.
     For example, a TangoAttribute would be::
-        
+
         tango://foo.org:1234/a/b/c/d#label
         \___/   \_____/ \__/ \_____/ \___/ 
           |        |     |      |      |     
@@ -73,7 +74,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         scheme   authority     path  fragment
 
     For Tango Elements:
-    
+
         - The 'scheme' must be the string "tango" (lowercase mandatory)
         - The 'authority' is the Tango database (<hostname> and <port> mandatory)
         - The 'path' is the Tango object, which can be a Device or Attribute.
@@ -82,8 +83,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         - The 'fragment' is optional and it refers to an attribute of the model
           object, thus not being part of the model name itself
     """
-    
-    #: the list of schemes that this factory supports. For this factory: 'tango' 
+
+    #: the list of schemes that this factory supports. For this factory: 'tango'
     #: is the only scheme
     schemes = ("tango",)
     caseSensitive = False
@@ -91,7 +92,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                        TaurusElementType.Device: TangoDevice,
                        TaurusElementType.Attribute: TangoAttribute
                        }
-    
+
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
         pass
@@ -117,48 +118,53 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         self.tango_dev_queries = CaselessWeakValueDict()
         self.tango_alias_devs = CaselessWeakValueDict()
         self.polling_timers = {}
-        
+
         # Plugin device classes
         self.tango_dev_klasses = {}
-        
+
         # Plugin attribute classes
         self.tango_attr_klasses = CaselessDict()
 
     def cleanUp(self):
         """Cleanup the singleton instance"""
         self.trace("[TangoFactory] cleanUp")
-        for k,v in self.tango_attrs.items():       v.cleanUp()
-        for k,v in self.tango_dev_queries.items(): v.cleanUp()
-        for k,v in self.tango_devs.items():        v.cleanUp()
+        for k, v in self.tango_attrs.items():
+            v.cleanUp()
+        for k, v in self.tango_dev_queries.items():
+            v.cleanUp()
+        for k, v in self.tango_devs.items():
+            v.cleanUp()
         self.dft_db = None
-        for k,v in self.tango_db_queries.items():  v.cleanUp()
-        for k,v in self.tango_db.items():          v.cleanUp()
+        for k, v in self.tango_db_queries.items():
+            v.cleanUp()
+        for k, v in self.tango_db.items():
+            v.cleanUp()
         self.reInit()
 
     def getExistingAttributes(self):
         """Returns a new dictionary will all registered attributes on this factory
-           
+
            :return:  dictionary will all registered attributes on this factory
            :rtype: dict"""
         return dict(self.tango_attrs)
 
     def getExistingDevices(self):
         """Returns a new dictionary will all registered devices on this factory
-           
+
            :return:  dictionary will all registered devices on this factory
            :rtype: dict"""
         return dict(self.tango_devs)
 
     def getExistingDatabases(self):
         """Returns a new dictionary will all registered databases on this factory
-           
+
            :return:  dictionary will all registered databases on this factory
            :rtype: dict"""
         return dict(self.tango_db)
 
     def set_default_tango_host(self, tango_host):
         """Sets the new default tango host.
-        
+
         :param tango_host: (str) the new tango host
         """
         self._default_tango_host = tango_host
@@ -166,37 +172,37 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
 
     def registerAttributeClass(self, attr_name, attr_klass):
         """Registers a new attribute class for the attribute name.
-           
+
            :param attr_name: (str) attribute name
            :param attr_klass: (taurus.core.tango.TangoAttribute) the new class that 
                               will handle the attribute
         """
         self.tango_attr_klasses[attr_name] = attr_klass
-    
+
     def unregisterAttributeClass(self, attr_name):
         """Unregisters the attribute class for the given attribute
            If no class was registered before for the given attribute, this call
            as no effect
-           
+
            :param attr_name: (str) attribute name
         """
         if self.tango_attr_klasses.has_key(attr_name):
             del self.tango_attr_klasses[attr_name]
-            
+
     def registerDeviceClass(self, dev_klass_name, dev_klass):
         """Registers a new python class to handle tango devices of the given tango class name
-        
+
            :param dev_klass_name: (str) tango device class name
            :param dev_klass: (taurus.core.tango.TangoDevice) the new class that will
                              handle devices of the given tango class name
         """
         self.tango_dev_klasses[dev_klass_name] = dev_klass
-    
+
     def unregisterDeviceClass(self, dev_klass_name):
         """Unregisters the class for the given tango class name
            If no class was registered before for the given attribute, this call
            as no effect
-           
+
            :param dev_klass_name: (str) tango device class name
         """
         if self.tango_dev_klasses.has_key(dev_klass_name):
@@ -205,17 +211,17 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def getDatabase(self, name=None):
         '''Deprecated. Use getAuthority instead'''
         return self.getAuthority(name=name)
-    
+
     def getAuthority(self, name=None):
         """
         Obtain the object corresponding to the given database name or the 
         default database if name is None.
         If the corresponding authority object already exists, the existing 
         instance is returned. Otherwise a new instance is stored and returned.
-           
+
         :param name: (str) database name string alias. If None, the 
                         default database is used
-                           
+
         :return: (taurus.core.tangodatabase.TangoAuthority) database object
         :raise: (taurus.core.taurusexception.TaurusException) if the given alias is invalid.
         """
@@ -230,7 +236,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                         validator = _Authority.getNameValidator()
                         groups = validator.getUriGroups(name)
                         if groups is None:
-                            raise TaurusException("Invalid default Tango authority name %s" % name)
+                            raise TaurusException(
+                                "Invalid default Tango authority name %s" % name)
                         self.dft_db = _Authority(host=groups['host'],
                                                  port=groups['port'])
                 except:
@@ -251,16 +258,16 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                 ret = _Authority(host=groups['host'], port=groups['port'])
             except:
                 self.debug("Could not create Authority %s", groups['authority'],
-                            exc_info=1)
-            
-            self.tango_db[name] = ret
-        return ret 
+                           exc_info=1)
 
-    def getDevice(self,dev_name, create_if_needed=True, **kw):
+            self.tango_db[name] = ret
+        return ret
+
+    def getDevice(self, dev_name, create_if_needed=True, **kw):
         """Obtain the object corresponding to the given tango device name.
            If the corresponding device already exists, the existing instance
            is returned. Otherwise a new instance is stored and returned.
-           
+
            :param dev_name: (str) tango device name or tango alias for the 
                             device. It must be a valid Tango device URI. 
                             If authority is not explicit, the default Tango 
@@ -268,7 +275,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            :param create_if_needed: (bool) If True, the Device is created if it 
                                     did not exist previously. If False, it 
                                     returns None if it did not exist
-             
+
            :return: (taurus.core.tango.TangoDevice) a device object 
            :raise: (taurus.core.taurusexception.TaurusException) if the given 
                    dev_name is invalid.
@@ -278,26 +285,27 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
             d = self.tango_alias_devs.get(dev_name)
         if d is not None:
             return d
-        
+
         validator = _Device.getNameValidator()
         groups = validator.getUriGroups(dev_name)
         if groups is None:
             raise TaurusException("Invalid Tango device name '%s'" % dev_name)
-        
+
         full_dev_name, _, _ = validator.getNames(dev_name)
-        
+
         if full_dev_name is None:
             raise TaurusException("Cannot find full name of '%s'" % dev_name)
-               
+
         d = self.tango_devs.get(full_dev_name)
-        
+
         if not create_if_needed:
             return d
-        
+
         if d is None:
             try:
                 db = self.getAuthority(groups.get('authority'))
-                dev_klass = self._getDeviceClass(db=db, devname=groups['devname'])
+                dev_klass = self._getDeviceClass(
+                    db=db, devname=groups['devname'])
                 kw['storeCallback'] = self._storeDevice
                 kw['parent'] = db
                 d = dev_klass(full_dev_name, **kw)
@@ -310,7 +318,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                 raise
         return d
 
-    def getAttribute(self,attr_name, create_if_needed=True, **kwargs):
+    def getAttribute(self, attr_name, create_if_needed=True, **kwargs):
         """Obtain the object corresponding to the given attribute name.
            If the corresponding attribute already exists, the existing instance
            is returned. Otherwise a new instance is stored and returned.
@@ -326,23 +334,23 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         attr = self.tango_attrs.get(attr_name)
         if attr is not None:
             return attr
-        
+
         # Simple approach did not work. Lets build a proper device name
         validator = _Attribute.getNameValidator()
         groups = validator.getUriGroups(attr_name)
         if groups is None:
-            raise TaurusException(("Invalid Tango attribute name '%s'") % 
+            raise TaurusException(("Invalid Tango attribute name '%s'") %
                                   attr_name)
-        
+
         full_attr_name, _, _ = validator.getNames(attr_name)
-                
+
         if full_attr_name is None:
             raise TaurusException("Cannot find full name of '%s'" % attr_name)
 
         attr = self.tango_attrs.get(full_attr_name)
 
         if attr is None:
-            dev_name = full_attr_name.rsplit('/',1)[0]
+            dev_name = full_attr_name.rsplit('/', 1)[0]
             try:
                 dev = self.getDevice(dev_name)
                 if dev is not None:
@@ -352,21 +360,24 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                     if attr is not None:
                         return attr
                     try:
-                        attr_klass = self._getAttributeClass(attr_name=attr_name)
+                        attr_klass = self._getAttributeClass(
+                            attr_name=attr_name)
                         kwargs['storeCallback'] = self._storeAttribute
                         if not kwargs.has_key('pollingPeriod'):
-                            kwargs['pollingPeriod'] = self.getDefaultPollingPeriod()
+                            kwargs[
+                                'pollingPeriod'] = self.getDefaultPollingPeriod()
                         attr = attr_klass(full_attr_name, dev, **kwargs)
                         # attribute objects will register themselves in this factory
                         # so there is no need to do it here
                     except DoubleRegistration:
                         attr = self.tango_attrs.get(full_attr_name)
             except:
-                self.debug("Error creating attribute %s", attr_name, exc_info=1)
+                self.debug("Error creating attribute %s",
+                           attr_name, exc_info=1)
                 raise
         return attr
 
-    def getAttributeInfo(self,full_attr_name):
+    def getAttributeInfo(self, full_attr_name):
         """Deprecated: Use :meth:`taurus.core.tango.TangoFactory.getConfiguration` instead.
 
            Obtain attribute information corresponding to the given attribute name.
@@ -374,7 +385,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            is returned. Otherwise a new information instance is stored and returned.
 
            :param full_attr_name: (str) attribute name in format: <tango device name>'/'<attribute name>
-           
+
            :return: (taurus.core.tango.TangoConfiguration) configuration object
         """
         self.deprecated("Use getConfiguration(full_attr_name) instead")
@@ -388,7 +399,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            is returned. Otherwise a new instance is stored and returned.
 
            :param param: (taurus.core.taurusattribute.TaurusAttribute or str) attribute object or full configuration name
-           
+
            :return: (taurus.core.tango.TangoAttribute) configuration object
         """
         if isinstance(param, str):
@@ -405,7 +416,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         if db is None or dev_name is None or len(self.tango_dev_klasses) == 0:
             return _Device
         else:
-            if '/' not in dev_name: # we got an alias... find the devslashname
+            if '/' not in dev_name:  # we got an alias... find the devslashname
                 dev_name = db.getElementFullName(dev_name)
             tango_dev_klass = db.get_class_for_device(dev_name)
             return self.tango_dev_klasses.get(tango_dev_klass, _Device)
@@ -421,38 +432,38 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
             self.debug(msg)
             raise DoubleRegistration(msg)
         self.tango_devs[name] = dev
-        if not alias is None and len(alias): 
+        if not alias is None and len(alias):
             self.tango_alias_devs[alias] = dev
-    
+
     def _storeAttribute(self, attr):
         name = attr.getFullName()
         exists = self.tango_attrs.get(name)
         if not exists is None:
-            if exists == attr: 
+            if exists == attr:
                 msg = "%s has already been registered before" % name
             else:
                 msg = "%s has already been registered before with a different object!" % name
             self.debug(msg)
             raise DoubleRegistration(msg)
         self.tango_attrs[name] = attr
-        
+
     def getExistingAttribute(self, attr_name):
         """Deprecated: use getAtribute with create_if_needed=False
         """
         self.warning(('getExistingAttribute is deprecated. ' +
                       'Use getDevice with create_if_needed=False'))
         return self.getAttribute(attr_name, create_if_needed=False)
-    
+
     def getExistingDevice(self, dev_name):
         """Deprecated: use getDevice with create_if_needed=False
         """
         self.warning(('getExistingDevice is deprecated. ' +
                       'Use getDevice with create_if_needed=False'))
         return self.getDevice(dev_name, create_if_needed=False)
-        
+
     def removeExistingDevice(self, dev_or_dev_name):
         """Removes a previously registered device.
-           
+
            :param dev_or_dev_name: (str or TangoDevice) device name or device object
         """
         if isinstance(dev_or_dev_name, _Device):
@@ -468,10 +479,10 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         simp_name = dev.getSimpleName()
         if self.tango_alias_devs.has_key(simp_name):
             del self.tango_alias_devs[simp_name]
-    
+
     def removeExistingAttribute(self, attr_or_attr_name):
         """Removes a previously registered attribute.
-           
+
            :param attr_or_attr_name: (str or TangoAttribute) attribute name or attribute object
         """
         if isinstance(attr_or_attr_name, _Attribute):
@@ -484,8 +495,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         full_name = attr.getFullName()
         if self.tango_attrs.has_key(full_name):
             del self.tango_attrs[full_name]
-    
-    def addAttributeToPolling(self, attribute, period, unsubscribe_evts = False):
+
+    def addAttributeToPolling(self, attribute, period, unsubscribe_evts=False):
         """Activates the polling (client side) for the given attribute with the
            given period (seconds).
 
@@ -504,7 +515,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            :param attribute: (str) attribute name.
         """
         p = None
-        for period,timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.iteritems():
             if timer.containsAttribute(attribute):
                 timer.removeAttribute(attribute)
                 if timer.getAttributeCount() == 0:
@@ -512,36 +523,36 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                 break
         if p:
             del self.polling_timers[period]
-    
+
     def isPollingEnabled(self):
         """Tells if the local tango polling is enabled
-        
+
            :return: (bool) wheter or not the polling is enabled
         """
         return self._polling_enabled
-            
+
     def disablePolling(self):
         """Disable the application tango polling"""
         if not self.isPollingEnabled():
             return
         self._polling_enabled = False
-        for period,timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.iteritems():
             timer.stop()
-            
+
     def enablePolling(self):
         """Enable the application tango polling"""
         if self.isPollingEnabled():
             return
-        for period,timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.iteritems():
             timer.start()
         self._polling_enabled = True
 
     def getDatabaseNameValidator(self):
         """Deprecated"""
-        self.warning(('getDatabaseNameValidator is deprecated.' +  
-                     'Use "Authority" instead of "Database"'))
+        self.warning(('getDatabaseNameValidator is deprecated.' +
+                      'Use "Authority" instead of "Database"'))
         return self.getAuthorityNameValidator()
-    
+
     def getAuthorityNameValidator(self):
         """Return TangoAuthorityNameValidator"""
         import tangovalidator
@@ -574,4 +585,3 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         msg = '%s is deprecated (from %s). %s' % (dep, rel, dbg_msg)
         self.deprecated(msg)
         return OperationMode.ONLINE
-    

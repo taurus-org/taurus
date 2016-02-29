@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -46,12 +46,14 @@ class _TangoInfo(object):
         self.server_host = 'Unknown'
         self.server_id = 'Unknown'
         self.server_version = 1
-                
+
+
 class TangoDevice(TaurusDevice):
     """A Device object representing an abstraction of the PyTango.DeviceProxy
        object in the taurus.core.tango scheme"""
 
-    # helper class property that stores a reference to the corresponding factory
+    # helper class property that stores a reference to the corresponding
+    # factory
     _factory = None
     _scheme = 'tango'
     _description = "A Tango Device"
@@ -66,7 +68,8 @@ class TangoDevice(TaurusDevice):
         self._deviceState = TaurusDevState.Undefined
 
     # Export the DeviceProxy interface into this object.
-    # This way we can call for example read_attribute on an object of this class
+    # This way we can call for example read_attribute on an object of this
+    # class
     def __getattr__(self, name):
         if self._deviceObj is not None:
             return getattr(self._deviceObj, name)
@@ -123,7 +126,7 @@ class TangoDevice(TaurusDevice):
     @tep14_deprecation(alt="state")
     def getSWState(self, cache=True):
         raise Exception('getSWState has been removed. Use state instead')
-        #return self.getValueObj().rvalue
+        # return self.getValueObj().rvalue
 
     @property
     def state(self, cache=True):
@@ -138,7 +141,7 @@ class TangoDevice(TaurusDevice):
         """
         try:
             self.stateObj.read(cache)
-            state = TaurusDevState.Ready # Ready if the state attr can be read
+            state = TaurusDevState.Ready  # Ready if the state attr can be read
         except:
             try:
                 if self.getDeviceProxy().import_info().exported:
@@ -171,7 +174,7 @@ class TangoDevice(TaurusDevice):
             if name.lower() == 'device state' and self.stateObj is not None:
                 tg_state = self.stateObj.read(cache).rvalue.name
                 value = "%s (%s)" % (value, tg_state)
-            ret.append((name,value))
+            ret.append((name, value))
         return ret
 
     def cleanUp(self):
@@ -185,7 +188,7 @@ class TangoDevice(TaurusDevice):
         TaurusDevice.cleanUp(self)
 
     @tep14_deprecation()
-    def getDisplayValue(self,cache=True):
+    def getDisplayValue(self, cache=True):
         return self.state(cache).name
 
     def _createHWObject(self):
@@ -218,7 +221,7 @@ class TangoDevice(TaurusDevice):
 
     def unlock(self, force=False):
         return self.getDeviceProxy().unlock(force)
-    
+
     def getLockInfo(self, cache=False):
         lock_info = self._lock_info
         if cache and lock_info.status != LockStatus.Unknown:
@@ -251,7 +254,7 @@ class TangoDevice(TaurusDevice):
         except:
             self._lock_info = lock_info = TaurusLockInfo()
         return lock_info
-    
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Protected implementation
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -259,7 +262,7 @@ class TangoDevice(TaurusDevice):
     def removeListener(self, listener):
         ret = TaurusDevice.removeListener(self, listener)
         if not ret or self.hasListeners():
-            return ret # False, None or True
+            return ret  # False, None or True
         return self.stateObj.removeListener(self)
 
     def addListener(self, listener):
@@ -272,7 +275,8 @@ class TangoDevice(TaurusDevice):
             # We were listening already, so we must fake an event to the new
             # subscribed listener with the current value
             evt_value = self.__decode(self.stateObj.read())
-            listeners = hasattr(listener,'__iter__') and listener or  [listener]
+            listeners = hasattr(listener, '__iter__') and listener or [
+                listener]
             self.fireEvent(TaurusEventType.Change, evt_value, listeners)
         else:
             # We were not listening to events, but now we have to
@@ -285,8 +289,8 @@ class TangoDevice(TaurusDevice):
         value = self.__decode(event_value)
         new_state = value.rvalue
         if new_state != self._deviceState:
-            msg = "Device State changed %s -> %s" %  (self._deviceState.name,
-                                                      new_state.name)
+            msg = "Device State changed %s -> %s" % (self._deviceState.name,
+                                                     new_state.name)
             self.debug(msg)
             self._deviceState = new_state
             self.fireEvent(TaurusEventType.Change, value)
@@ -295,9 +299,9 @@ class TangoDevice(TaurusDevice):
         """Decode events from the state attribute into TangoAttrValues whose
         rvalue is the Device state"""
         from taurus.core.tango.tangoattribute import TangoAttrValue
-        if isinstance(event_value, TangoAttrValue): # for change events (&co)
+        if isinstance(event_value, TangoAttrValue):  # for change events (&co)
             new_state = TaurusDevState.Ready
-        elif isinstance(event_value, DevFailed): # for error events
+        elif isinstance(event_value, DevFailed):  # for error events
             new_state = TaurusDevState.NotReady
         else:
             self.info("Unexpected event value: %r", event_value)
@@ -337,7 +341,7 @@ class TangoDevice(TaurusDevice):
 
         if timeout is None:
             timeout = 0
-        timeout = int(timeout*1000)
+        timeout = int(timeout * 1000)
         result = self.read_attributes_reply(req_id, timeout)
         self.__pollResult(attrs, ts, result)
 
@@ -357,7 +361,7 @@ class TangoDevice(TaurusDevice):
             error = True
             result = e
         self.__pollResult(attrs, ts, result, error=error)
-    
+
     def _repr_html_(self):
         try:
             info = self.getDeviceProxy().info()

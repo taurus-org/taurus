@@ -1,14 +1,15 @@
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.resource import getThemeIcon
 
+
 class MyGUI(Qt.QMainWindow):
-    
+
     def __init__(self, parent=None):
         Qt.QMainWindow.__init__(self, parent)
         toolbar = self.addToolBar("Tools")
         open_icon = getThemeIcon("document-open")
         toolbar.addAction(open_icon, "Open HDF5", self.open_file)
-        
+
     def open_file(self):
         fileName = Qt.QFileDialog.getOpenFileName(self, "Open HDF5", "/home/homer",
                                                   "HDF5 Files (*.h5)")

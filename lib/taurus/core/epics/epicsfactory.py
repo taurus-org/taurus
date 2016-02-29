@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -28,20 +28,19 @@ Epics module. See __init__.py for more detailed documentation
 __all__ = ['EpicsFactory']
 
 
-
 import weakref
 
 from taurus.core.taurusexception import TaurusException
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.log import Logger
-from taurus.core.taurusbasetypes import TaurusElementType 
+from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusfactory import TaurusFactory
 from epicsattribute import EpicsAttribute
 from epicsdevice import EpicsDevice
 from epicsauthority import EpicsAuthority
 
 try:
-    import epics 
+    import epics
 except ImportError:
     from taurus.core.util.log import debug
     debug('cannot import epics module. ' +
@@ -53,7 +52,7 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
     """
     A Singleton class that provides Epics related objects.
     """
-    
+
     schemes = ("ca", "epics",)
     DEFAULT_DEVICE = 'ca:'
     DEFAULT_AUTHORITY = 'ca://'
@@ -62,6 +61,7 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
                        TaurusElementType.Device: EpicsDevice,
                        TaurusElementType.Attribute: EpicsAttribute
                        }
+
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
         pass
@@ -76,29 +76,29 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
 
     def getAuthority(self, name=None):
         """Obtain the Epics (ca) authority object.
-        
+
         :param name: (str) only a dummy authority ("ca://") is supported
-                           
+
         :return: (EpicsAuthority)
         """
         if name is None:
             name = 'ca://'
-            
+
         v = self.getAuthorityNameValidator()
         if not v.isValid(name):
             raise TaurusException("Invalid ca authority name %s" % name)
-            
+
         if not hasattr(self, "_auth"):
             self._auth = EpicsAuthority(self.DEFAULT_AUTHORITY)
         return self._auth
 
     def getDevice(self, dev_name):
         """Obtain the EpicsDevice object.
-        
+
         :param dev_name: (str) only one dummy device ("") is supported
-                           
+
         :return: (EpicsDevice)
-        
+
         .. todo:: epics.Device may be wrapped as taurus device...
         """
         validator = self.getDeviceNameValidator()
@@ -107,12 +107,12 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
             raise TaurusException("Invalid epics device name %s" % dev_name)
         fullname = names[0]
         d = self.epics_devs.get(fullname, None)
-        if d is None: #if the full name is not there, create one
+        if d is None:  # if the full name is not there, create one
             auth = self.getAuthority()
         d = EpicsDevice(fullname, parent=auth)
         self.epics_devs[fullname] = d
         return d
-    
+
     def getAttribute(self, attr_name):
         """Obtain the object corresponding to the given attribute name. If the
         corresponding attribute already exists, the existing instance is
@@ -129,10 +129,11 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
         validator = self.getAttributeNameValidator()
         names = validator.getNames(attr_name)
         if names is None:
-            raise TaurusException("Invalid epics attribute name %s" % attr_name)
+            raise TaurusException(
+                "Invalid epics attribute name %s" % attr_name)
         fullname = names[0]
         a = self.epics_attrs.get(fullname, None)
-        if a is None: #if the full name is not there, create one
+        if a is None:  # if the full name is not there, create one
             a = EpicsAttribute(fullname, parent=None)  # note: no parent!
             self.epics_attrs[fullname] = a
         return a
@@ -141,7 +142,7 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
         """Return EpicsAuthorityNameValidator"""
         import epicsvalidator
         return epicsvalidator.EpicsAuthorityNameValidator()
-                 
+
     def getDeviceNameValidator(self):
         """Return EpicsDeviceNameValidator"""
         import epicsvalidator

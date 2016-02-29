@@ -1,24 +1,24 @@
 #!/usr/bin/env python
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -26,7 +26,6 @@
 Epics module. See __init__.py for more detailed documentation
 '''
 __all__ = ['EpicsAttribute']
-
 
 
 import numpy
@@ -82,7 +81,7 @@ class EpicsAttribute(TaurusAttribute):
     """
     # TODO: support non-numerical PVs
 
-    def __init__(self, name, parent, storeCallback = None):
+    def __init__(self, name, parent, storeCallback=None):
         self.call__init__(TaurusAttribute, name, parent,
                           storeCallback=storeCallback)
 
@@ -99,12 +98,11 @@ class EpicsAttribute(TaurusAttribute):
                              connection_callback=self.onEpicsConnectionEvent)
         self.__pv.wait_for_connection()
 
-
     def getPV(self):
         """Returns the underlying :obj:`epics.PV` object
         """
         return self.__pv
-        
+
     def onEpicsEvent(self, **kwargs):
         """callback for PV changes"""
         # this is called from the ca thread.
@@ -116,21 +114,20 @@ class EpicsAttribute(TaurusAttribute):
         """callback for PV connection changes"""
         if kwargs['conn']:
             self.debug('(re)connected to epics PV')
-            if  self._value is not None:
+            if self._value is not None:
                 self._value.error = None
         else:
             self.warning('Connection to epics PV lost')
             self._value.error = ChannelAccessException('PV "%s" not connected' %
-                                                        kwargs['pvname'])
+                                                       kwargs['pvname'])
         self.fireEvent(TaurusEventType.Change, self._value)
-
 
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite from TaurusAttribute
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     def isNumeric(self):
         return self.type in (DataType.Integer, DataType.Float)
-    
+
     def isState(self):
         return False  # TODO implement generic
 
@@ -222,7 +219,7 @@ class EpicsAttribute(TaurusAttribute):
         if not cache:
             self.__pv.get(use_monitor=False)
             self._value = self.decode(self.__pv)
-        return self._value    
+        return self._value
 
     def poll(self):
         v = self.read(cache=False)
@@ -259,6 +256,6 @@ if __name__ == '__main__':
     b.write(4.)
     s.read()
 
-    print "!$!",s.read(cache=False)
+    print "!$!", s.read(cache=False)
     print "a,b,s", a.read().rvalue, b.read().rvalue, s.read().rvalue
     print "DF=", a.getDataFormat(), DataFormat.whatis(a.getDataFormat())

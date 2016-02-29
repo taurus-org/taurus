@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -60,8 +60,9 @@ class AttributeTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Run the epics_test softIoc"""
-        db_name = getResourcePath('taurus.core.epics.test.res', 'epics_test.db')
-        args = ['softIoc','-m','INST=test','-d', db_name]
+        db_name = getResourcePath(
+            'taurus.core.epics.test.res', 'epics_test.db')
+        args = ['softIoc', '-m', 'INST=test', '-d', db_name]
         dev_null = open(os.devnull, 'wb')
         cls._process = subprocess.Popen(args, stdout=dev_null, stderr=dev_null)
 
@@ -89,7 +90,7 @@ class AttributeTestCase(unittest.TestCase):
             read_value = a.write(setvalue,  with_read=True)
 
         # avoid EpicsAttribute disconnection warning
-        #a.getPV().disconnect()
+        # a.getPV().disconnect()
         msg = ('read() for "%s" did not return a TaurusAttrValue (got a %s)' %
                (attrname, read_value.__class__.__name__))
         self.assertTrue(isinstance(read_value, TaurusAttrValue), msg)

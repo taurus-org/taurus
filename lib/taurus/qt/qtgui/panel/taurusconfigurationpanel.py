@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -42,17 +42,22 @@ from taurus.core.util.log import tep14_deprecation
 
 
 class TangoConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
+
     def __init__(self, qt_parent=None, designMode=False):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QLineEdit, qt_parent)
-        self.call__init__(TaurusBaseWritableWidget, name, designMode=designMode)
+        self.call__init__(TaurusBaseWritableWidget,
+                          name, designMode=designMode)
 
-        self.connect(self, Qt.SIGNAL('textChanged(const QString &)'), self.valueChanged)
+        self.connect(self, Qt.SIGNAL(
+            'textChanged(const QString &)'), self.valueChanged)
         self.connect(self, Qt.SIGNAL('returnPressed()'), self.writeValue)
-        self.connect(self, Qt.SIGNAL('editingFinished()'), self._onEditingFinished)
+        self.connect(self, Qt.SIGNAL('editingFinished()'),
+                     self._onEditingFinished)
 
     def _onEditingFinished(self):
-        if self._autoApply: self.writeValue()
+        if self._autoApply:
+            self.writeValue()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         self.valueChanged()
@@ -161,7 +166,9 @@ class TangoConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                                   TaurusBaseWritableWidget.setForcedApply,
                                   TaurusBaseWritableWidget.resetForcedApply)
 
+
 class TaurusConfigLineEdit(TangoConfigLineEdit):
+
     @tep14_deprecation(alt='TangoConfigLineEdit')
     def __init__(self, qt_parent=None, designMode=False):
         TangoConfigLineEdit.__init__(self, qt_parent=None, designMode=False)
@@ -170,16 +177,22 @@ class TaurusConfigLineEdit(TangoConfigLineEdit):
     def getQtDesignerPluginInfo(cls):
         return None
 
+
 @UILoadable(with_ui='_ui')
 class TaurusConfigurationPanel(Qt.QWidget):
+
     def __init__(self, parent=None, designMode=False):
         Qt.QWidget.__init__(self, parent)
         self.loadUi()
 
-        Qt.QObject.connect(self._ui.pushButtonOk, Qt.SIGNAL("clicked()"), self._onOk)
-        Qt.QObject.connect(self._ui.pushButtonApply, Qt.SIGNAL("clicked()"), self._onApply)
-        Qt.QObject.connect(self._ui.pushButtonCancel, Qt.SIGNAL("clicked()"), self._onCancel)
-        Qt.QObject.connect(self._ui.pushButtonRestore, Qt.SIGNAL("clicked()"), self._onRestore)
+        Qt.QObject.connect(self._ui.pushButtonOk,
+                           Qt.SIGNAL("clicked()"), self._onOk)
+        Qt.QObject.connect(self._ui.pushButtonApply,
+                           Qt.SIGNAL("clicked()"), self._onApply)
+        Qt.QObject.connect(self._ui.pushButtonCancel,
+                           Qt.SIGNAL("clicked()"), self._onCancel)
+        Qt.QObject.connect(self._ui.pushButtonRestore,
+                           Qt.SIGNAL("clicked()"), self._onRestore)
 
     def _onOk(self):
         self._onApply()
@@ -196,7 +209,7 @@ class TaurusConfigurationPanel(Qt.QWidget):
         self.close()
 
     def _onRestore(self):
-        widgets=getWidgetsOfType(self, TangoConfigLineEdit)
+        widgets = getWidgetsOfType(self, TangoConfigLineEdit)
         for w in widgets:
             param = str(w.text())
             if w.getValue() != param:
@@ -205,18 +218,18 @@ class TaurusConfigurationPanel(Qt.QWidget):
     def setModel(self, model):
         self._ui.fullNameLineEdit.setText(model)
         model += '#'
-        self._ui.labelConfig.setModel(model+'label')
-        self._ui.unitConfig.setModel(model+'unit')
-        self._ui.displayUnitConfig.setModel(model+'display_unit')
-        self._ui.standardUnitConfig.setModel(model+'standard_unit')
-        self._ui.formatConfig.setModel(model+'format')
-        self._ui.descriptionConfig.setModel(model+'description')
-        self._ui.valueMinConfig.setModel(model+'min_value')
-        self._ui.valueMaxConfig.setModel(model+'max_value')
-        self._ui.alarmMinConfig.setModel(model+'min_alarm')
-        self._ui.alarmMaxConfig.setModel(model+'max_alarm')
-        self._ui.warningMinConfig.setModel(model+'min_warning')
-        self._ui.warningMaxConfig.setModel(model+'max_warning')
+        self._ui.labelConfig.setModel(model + 'label')
+        self._ui.unitConfig.setModel(model + 'unit')
+        self._ui.displayUnitConfig.setModel(model + 'display_unit')
+        self._ui.standardUnitConfig.setModel(model + 'standard_unit')
+        self._ui.formatConfig.setModel(model + 'format')
+        self._ui.descriptionConfig.setModel(model + 'description')
+        self._ui.valueMinConfig.setModel(model + 'min_value')
+        self._ui.valueMaxConfig.setModel(model + 'max_value')
+        self._ui.alarmMinConfig.setModel(model + 'min_alarm')
+        self._ui.alarmMaxConfig.setModel(model + 'max_alarm')
+        self._ui.warningMinConfig.setModel(model + 'min_warning')
+        self._ui.warningMaxConfig.setModel(model + 'max_warning')
 
 
 def main():

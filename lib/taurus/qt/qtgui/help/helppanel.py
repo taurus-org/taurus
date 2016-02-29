@@ -2,24 +2,24 @@
 
 ##############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ##############################################################################
 
@@ -39,12 +39,12 @@ class _HelpBrowser(Qt.QTextBrowser):
         self.__help_engine = help_engine
         content_widget = help_engine.contentWidget()
         index_widget = help_engine.indexWidget()
-        content_widget.connect(content_widget, 
-                               Qt.SIGNAL('linkActivated (QUrl)'), 
+        content_widget.connect(content_widget,
+                               Qt.SIGNAL('linkActivated (QUrl)'),
                                self.setSource)
-        index_widget.connect(index_widget, 
-                               Qt.SIGNAL('linkActivated (QUrl)'), 
-                               self.setSource)
+        index_widget.connect(index_widget,
+                             Qt.SIGNAL('linkActivated (QUrl)'),
+                             self.setSource)
 
     def loadResource(self, type, url):
         if url.scheme() == "qthelp":
@@ -143,10 +143,10 @@ class HelpPanel(Qt.QWidget):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         from taurus.qt.qtgui.resource import getThemeIcon
-        return { 'group'     : 'Taurus Help',
-                 'icon'      : getThemeIcon("help"),
-                 'module'    : 'taurus.qt.qtgui.help',
-                 'container' : False }
+        return {'group': 'Taurus Help',
+                'icon': getThemeIcon("help"),
+                'module': 'taurus.qt.qtgui.help',
+                'container': False}
 
 
 def main():

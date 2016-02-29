@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -38,6 +38,7 @@ from taurus.core.util.log import Logger
 
 _LOGGER = None
 
+
 def _getLogger():
     global _LOGGER
     if _LOGGER is None:
@@ -46,7 +47,7 @@ def _getLogger():
 
 
 class GrabberThread(threading.Thread):
-    
+
     def __init__(self, widget, fileName, period):
         threading.Thread.__init__(self, name="Grabber")
         self.daemon = True
@@ -55,32 +56,32 @@ class GrabberThread(threading.Thread):
         self._period = period
         self._continue = True
         self._grabber = Grabber(widget, fileName)
-        
+
     def run(self):
         period = self._period
         while self._continue:
             self._grabber.grabTrigger()
             time.sleep(period)
-    
+
     def stop(self):
         self._continue = False
-    
+
 
 class Grabber(Qt.QObject, Logger):
-    
+
     def __init__(self, widget, fileName):
         Qt.QObject.__init__(self)
         Logger.__init__(self)
         self._widget = widget
         self._fileName = fileName
         self.connect(self, Qt.SIGNAL("grab"), self.onGrab)
-    
+
     def grabTrigger(self):
         self.emit(Qt.SIGNAL("grab"))
-        
+
     def onGrab(self):
         Grabber._grabWidget(self._widget, self._fileName)
-    
+
     @staticmethod
     def _grabWidget(widget, fileName):
         _getLogger().debug("Grabbing widget to '%s':", fileName)
@@ -90,7 +91,7 @@ class Grabber(Qt.QObject, Logger):
                 from taurus.external.qt import QtSvg
                 generator = QtSvg.QSvgGenerator()
                 generator.setFileName(fileName)
-                generator.setSize(pixmap.size());
+                generator.setSize(pixmap.size())
                 if hasattr(generator, 'setViewBox'):
                     viewBox = Qt.QRect(Qt.QPoint(0, 0), pixmap.size())
                     generator.setViewBox(viewBox)
@@ -108,13 +109,13 @@ class Grabber(Qt.QObject, Logger):
         except:
             _getLogger().warning("Could not save file into '%s':", fileName,
                                  exc_info=1)
-    
+
     @staticmethod
     def grabWidget(widget, fileName, period=None):
         """Grabs the given widget into the given image filename. If period is
         not given (or given with None) means grab immediately once and return.
         If period is given and >0 means grab the image every period seconds
-        
+
         .. warning:
             this method **MUST** be called from the same thread which created
             the widget
@@ -132,5 +133,5 @@ class Grabber(Qt.QObject, Logger):
 
 def grabWidget(widget, fileName, period=None):
     return Grabber.grabWidget(widget, fileName, period=period)
-    
+
 grabWidget.__doc__ = Grabber.grabWidget.__doc__

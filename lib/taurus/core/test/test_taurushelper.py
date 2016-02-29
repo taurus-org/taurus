@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -38,7 +38,7 @@ from taurus.test import insertTest
 from taurus.core import (TaurusElementType, TaurusAttribute, TaurusDevice,
                          TaurusAuthority, DataType, TaurusAttrValue, DataFormat)
 
-#decorators
+# decorators
 isValid = functools.partial(insertTest, helper_name='isValid')
 isInvalid = functools.partial(insertTest, helper_name='isValid',
                               expected=False)
@@ -48,10 +48,10 @@ isInvalidAuth = functools.partial(insertTest, helper_name='isValid',
                                   expected=False,
                                   elementType=TaurusElementType.Authority)
 isValidDev = functools.partial(insertTest, helper_name='isValid',
-                                elementType=TaurusElementType.Device)
+                               elementType=TaurusElementType.Device)
 isInvalidDev = functools.partial(insertTest, helper_name='isValid',
-                                  expected=False,
-                                  elementType=TaurusElementType.Device)
+                                 expected=False,
+                                 elementType=TaurusElementType.Device)
 isValidAttr = functools.partial(insertTest, helper_name='isValid',
                                 elementType=TaurusElementType.Attribute)
 isInvalidAttr = functools.partial(insertTest, helper_name='isValid',
@@ -142,7 +142,8 @@ DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
 @isValidDev(name='eval://db=foo;dev=bar', strict=False)
 @isValidDev(name='eval://dev=bar', strict=False)
 @isValidDev(name='eval://dev=bar?a=1;b=2', strict=False)
-@isValidDev(name='eval://dev=bar?configuration', strict=False) #yes, this is ok
+# yes, this is ok
+@isValidDev(name='eval://dev=bar?configuration', strict=False)
 @isInvalidDev(name='eval:dev=bar', strict=False)
 @isInvalidDev(name='eval://db=Bla/dev=bar', strict=False)
 @isValidAttr(name='eval:1')
@@ -198,6 +199,7 @@ DEFAULT_SCHEME = getattr(tauruscustomsettings, 'DEFAULT_SCHEME')
 @isValidAttr(name='eval://a+b?a=2;b=3?configuration=label', strict=False)
 class IsValidNameTestCase(unittest.TestCase):
     '''Class to test validity or invalidity of taurus URIs'''
+
     def isValid(self, name=None, expected=True, elementType=None,
                 strict=True, skip=False, skipmsg='Test explicitly disabled'):
         '''Helper method to test validity or invalidity of taurus URIs'''
@@ -231,6 +233,7 @@ class IsValidNameTestCase(unittest.TestCase):
 @insertTest(helper_name='get_object', name='eval://localhost')
 class AuthorityTestCase(unittest.TestCase):
     '''TestCase for the taurus.Authority helper'''
+
     def get_object(self, name=None, klass=None):
         '''check if Authority returns the expected type'''
         if klass is None:
@@ -243,7 +246,7 @@ class AuthorityTestCase(unittest.TestCase):
         a = taurus.Authority(name)
         msg = ('%s("%s") is not an instance of %s (it is %s)' %
                (taurus.Authority.__name__, name,
-                klass.__name__, a.__class__.__name__) )
+                klass.__name__, a.__class__.__name__))
         self.assertTrue(isinstance(a, klass), msg)
 
 
@@ -258,6 +261,7 @@ class AuthorityTestCase(unittest.TestCase):
             )
 class DeviceTestCase(unittest.TestCase):
     '''TestCase for the taurus.Device helper'''
+
     def get_object(self, name=None, klass=None):
         '''check if Device returns the expected type'''
         if klass is None:
@@ -271,7 +275,7 @@ class DeviceTestCase(unittest.TestCase):
         a = taurus.Device(name)
         msg = ('%s("%s") is not an instance of %s (it is %s)' %
                (taurus.Device.__name__, name,
-                klass.__name__, a.__class__.__name__) )
+                klass.__name__, a.__class__.__name__))
 
         self.assertTrue(isinstance(a, klass), msg)
 
@@ -332,7 +336,7 @@ class DeviceTestCase(unittest.TestCase):
                           wvalue=None, w_value=None,
                           type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:2*{eval:3*{eval:4}}',
-            expected=dict(rvalue=24,value=24, label='2*3*4',
+            expected=dict(rvalue=24, value=24, label='2*3*4',
                           wvalue=None, w_value=None, type=DataType.Integer,
                           data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:1*{eval:2*{eval:3*{eval:4}}}',
@@ -386,11 +390,11 @@ class DeviceTestCase(unittest.TestCase):
                           w_value=None, wvalue=None, label='Quantity(1.0)',
                           type=DataType.Float, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:Quantity("1km")',
-            expected=dict(rvalue=Quantity(1000,'m'), value=1,
+            expected=dict(rvalue=Quantity(1000, 'm'), value=1,
                           w_value=None, wvalue=None, label='Quantity("1km")',
                           type=DataType.Integer, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:Quantity("0.1km")',
-            expected=dict(rvalue=Quantity(100,'m'), value=0.1,
+            expected=dict(rvalue=Quantity(100, 'm'), value=0.1,
                           w_value=None, wvalue=None, label='Quantity("0.1km")',
                           type=DataType.Float, data_format=DataFormat._0D))
 @insertTest(helper_name='read_attr', name='eval:Q("1m")*3+{eval:Q(3,"dm")}',
@@ -405,6 +409,7 @@ class DeviceTestCase(unittest.TestCase):
 @insertTest(helper_name='read_attr', name='eval:1#')
 class AttributeTestCase(unittest.TestCase):
     '''TestCase for the taurus.Attribute helper'''
+
     def get_object(self, name=None, klass=None):
         '''check if Attribute returns the expected type'''
         if klass is None:
@@ -413,33 +418,33 @@ class AttributeTestCase(unittest.TestCase):
         scheme = manager.getScheme(name)
         supportedSchemes = manager.getPlugins().keys()
         if scheme not in supportedSchemes:
-            self.skipTest('"%s" scheme not supported' % scheme) 
+            self.skipTest('"%s" scheme not supported' % scheme)
         a = taurus.Attribute(name)
         msg = ('%s("%s") is not an instance of %s (it is %s)' %
                (taurus.Attribute.__name__, name,
-                klass.__name__, a.__class__.__name__) )
+                klass.__name__, a.__class__.__name__))
         self.assertTrue(isinstance(a, klass), msg)
         return a
-        
+
     def read_attr(self, name=None, expected=None, skip=False,
                   skipmsg='Test explicitly disabled'):
         '''check creation and correct reading of an attribute'''
         if skip:
             self.skipTest(skipmsg)
         if expected is None:
-            expected = {} 
-        a =  self.get_object(name)
+            expected = {}
+        a = self.get_object(name)
         readvalue = a.read()
         msg = ('read() for "%s" did not return a TaurusAttrValue (got a %s)' %
-               (name, readvalue.__class__.__name__) )
+               (name, readvalue.__class__.__name__))
         self.assertTrue(isinstance(readvalue, TaurusAttrValue), msg)
-        for k,exp in expected.iteritems():
+        for k, exp in expected.iteritems():
             try:
                 got = getattr(readvalue, k)
             except AttributeError:
-                msg = ('The read value for "%s" does not provide info on %s' % 
+                msg = ('The read value for "%s" does not provide info on %s' %
                        (name, k))
-                self.fail(msg) 
+                self.fail(msg)
             msg = ('Expected %s=%r for "%s" (got %r)' % (k, exp, name, got))
 
             try:
@@ -456,7 +461,7 @@ class AttributeTestCase(unittest.TestCase):
                     chk = bool(got == exp)
 
                 self.assertTrue(chk, msg)
-  
+
 
 if __name__ == '__main__':
     pass

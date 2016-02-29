@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -41,14 +41,14 @@ from taurus.test import insertTest
 from taurus.core.taurusbasetypes import AttrQuality
 from taurus.core.tango.util.tango_taurus import unit_from_tango
 
-_INT_IMG = numpy.arange(2*3, dtype='int16').reshape((2,3))
+_INT_IMG = numpy.arange(2 * 3, dtype='int16').reshape((2, 3))
 _INT_SPE = _INT_IMG[1, :]
 _FLOAT_IMG = _INT_IMG * .1
 _FLOAT_SPE = _INT_SPE * .1
-_BOOL_IMG = numpy.array([[True,False],[False,True]])
-_BOOL_SPE = [True,False]
+_BOOL_IMG = numpy.array([[True, False], [False, True]])
+_BOOL_SPE = [True, False]
 _STR = 'foo BAR |-+#@!?_[]{}'
-_UCHAR_IMG = numpy.array([['a','b'],['c','d']], dtype='S1')
+_UCHAR_IMG = numpy.array([['a', 'b'], ['c', 'd']], dtype='S1')
 _UCHAR_SPE = _UCHAR_IMG[1, :]
 _UINT8_IMG = _UCHAR_IMG.view('uint8')
 _UINT8_SPE = _UINT8_IMG[1, :]
@@ -111,6 +111,7 @@ _UINT8_SPE = _UINT8_IMG[1, :]
 # ==============================================================================
 # Test encode-decode of empty arrays
 
+
 @insertTest(helper_name='write_read_attr',
             attrname='short_spectrum',
             setvalue=Quantity(numpy.empty(0, dtype='int16'), 'km'),
@@ -156,10 +157,8 @@ _UINT8_SPE = _UINT8_IMG[1, :]
 #             attrname='string_image',
 #             setvalue=[[]],
 #             expected=dict(value=[[]], type=DataType.String))
-
 # ==============================================================================
 # Test encode-decode of strings, booleans and uchars
-
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_image',
             setvalue=_UCHAR_IMG,
@@ -209,7 +208,6 @@ _UINT8_SPE = _UINT8_IMG[1, :]
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_image',
             setvalue=_UINT8_IMG,
@@ -226,7 +224,6 @@ _UINT8_SPE = _UINT8_IMG[1, :]
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
-
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_spectrum',
             setvalue=_UINT8_SPE,
@@ -244,7 +241,7 @@ _UINT8_SPE = _UINT8_IMG[1, :]
             )
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_scalar',
-            setvalue= 97, # ord('a')-->97
+            setvalue=97,  # ord('a')-->97
             expected=dict(rvalue='a',
                           wvalue='a',
                           type=DataType.Bytes,
@@ -262,33 +259,33 @@ _UINT8_SPE = _UINT8_IMG[1, :]
             )
 @insertTest(helper_name='write_read_attr',
             attrname='string_image',
-            setvalue=((_STR,)*3,)*2,
-            expected=dict(rvalue=((_STR,)*3,)*2,
-                          wvalue=((_STR,)*3,)*2,
+            setvalue=((_STR,) * 3,) * 2,
+            expected=dict(rvalue=((_STR,) * 3,) * 2,
+                          wvalue=((_STR,) * 3,) * 2,
                           type=DataType.String,
                           label='string_image',
                           writable=True,
                           ),
-            expected_attrv=dict(value=((_STR,)*3,)*2,
-                                w_value=((_STR,)*3,)*2,
-                                rvalue=((_STR,)*3,)*2,
-                                wvalue=((_STR,)*3,)*2,
+            expected_attrv=dict(value=((_STR,) * 3,) * 2,
+                                w_value=((_STR,) * 3,) * 2,
+                                rvalue=((_STR,) * 3,) * 2,
+                                wvalue=((_STR,) * 3,) * 2,
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
 @insertTest(helper_name='write_read_attr',
             attrname='string_spectrum',
-            setvalue=(_STR,)*3,
-            expected=dict(rvalue=(_STR,)*3,
-                          wvalue=(_STR,)*3,
+            setvalue=(_STR,) * 3,
+            expected=dict(rvalue=(_STR,) * 3,
+                          wvalue=(_STR,) * 3,
                           type=DataType.String,
                           label='string_spectrum',
                           writable=True,
                           ),
-            expected_attrv=dict(value=(_STR,)*3,
-                                w_value=(_STR,)*3,
-                                rvalue=(_STR,)*3,
-                                wvalue=(_STR,)*3,
+            expected_attrv=dict(value=(_STR,) * 3,
+                                w_value=(_STR,) * 3,
+                                rvalue=(_STR,) * 3,
+                                wvalue=(_STR,) * 3,
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
@@ -357,10 +354,8 @@ _UINT8_SPE = _UINT8_IMG[1, :]
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
-
 # ==============================================================================
 # Test encode-decode with quantitiy conversions
-
 @insertTest(helper_name='write_read_attr',
             attrname='float_image',
             setvalue=Quantity(_FLOAT_IMG, 'm'),
@@ -378,9 +373,9 @@ _UINT8_SPE = _UINT8_IMG[1, :]
                                     Quantity(float('inf'), 'mm')]
                           ),
             expected_attrv=dict(rvalue=Quantity(_FLOAT_IMG, 'm'),
-                                value=1000*_FLOAT_IMG,
+                                value=1000 * _FLOAT_IMG,
                                 wvalue=Quantity(_FLOAT_IMG, 'm'),
-                                w_value=1000*_FLOAT_IMG,
+                                w_value=1000 * _FLOAT_IMG,
                                 quality=AttrQuality.ATTR_VALID
                                 ),
             expectedshape=numpy.shape(_FLOAT_IMG)
@@ -394,9 +389,9 @@ _UINT8_SPE = _UINT8_IMG[1, :]
                           quality=AttrQuality.ATTR_VALID
                           ),
             expected_attrv=dict(rvalue=Quantity(_FLOAT_SPE, 'm'),
-                                value=1000*_FLOAT_SPE,
+                                value=1000 * _FLOAT_SPE,
                                 wvalue=Quantity(_FLOAT_SPE, 'm'),
-                                w_value=1000*_FLOAT_SPE,
+                                w_value=1000 * _FLOAT_SPE,
                                 quality=AttrQuality.ATTR_VALID
                                 ),
             expectedshape=numpy.shape(_FLOAT_SPE)
@@ -496,10 +491,10 @@ _UINT8_SPE = _UINT8_IMG[1, :]
                           wvalue=Quantity(_INT_IMG, 'm'),
                           type=DataType.Integer
                           ),
-            expected_attrv=dict(value=1000*_INT_IMG,
+            expected_attrv=dict(value=1000 * _INT_IMG,
                                 rvalue=Quantity(_INT_IMG, 'm'),
                                 wvalue=Quantity(_INT_IMG, 'm'),
-                                w_value=1000*_INT_IMG,
+                                w_value=1000 * _INT_IMG,
                                 quality=AttrQuality.ATTR_VALID
                                 ),
             expectedshape=numpy.shape(_INT_IMG)
@@ -511,8 +506,8 @@ _UINT8_SPE = _UINT8_IMG[1, :]
                           wvalue=Quantity(_INT_SPE, 'm'),
                           type=DataType.Integer),
             expectedshape=numpy.shape(_INT_SPE),
-            expected_attrv=dict(value=1000*_INT_SPE,
-                                w_value=1000*_INT_SPE
+            expected_attrv=dict(value=1000 * _INT_SPE,
+                                w_value=1000 * _INT_SPE
                                 )
             )
 @insertTest(helper_name='write_read_attr',
@@ -536,17 +531,15 @@ _UINT8_SPE = _UINT8_IMG[1, :]
                                 quality=AttrQuality.ATTR_ALARM
                                 )
             )
-
 # ==============================================================================
 # Test read of tango attributes
-
 @insertTest(helper_name='write_read_attr',
             attrname='string_image_ro',
-            expected=dict(rvalue=(('hello world',)*3,)*3,
+            expected=dict(rvalue=(('hello world',) * 3,) * 3,
                           wvalue=None,
                           type=DataType.String
                           ),
-            expected_attrv=dict(value=(('hello world',)*3,)*3,
+            expected_attrv=dict(value=(('hello world',) * 3,) * 3,
                                 w_value=None,
                                 quality=AttrQuality.ATTR_VALID
                                 ),
@@ -555,10 +548,10 @@ _UINT8_SPE = _UINT8_IMG[1, :]
             )
 @insertTest(helper_name='write_read_attr',
             attrname='string_spectrum_ro',
-            expected=dict(rvalue=('hello world',)*3,
+            expected=dict(rvalue=('hello world',) * 3,
                           wvalue=None,
                           type=DataType.String),
-            expected_attrv=dict(value=('hello world',)*3,
+            expected_attrv=dict(value=('hello world',) * 3,
                                 w_value=None,
                                 quality=AttrQuality.ATTR_VALID
                                 ),
@@ -578,23 +571,23 @@ _UINT8_SPE = _UINT8_IMG[1, :]
             )
 @insertTest(helper_name='write_read_attr',
             attrname='boolean_image_ro',
-            expected=dict(rvalue=numpy.ones((3,3), dtype='b'),
+            expected=dict(rvalue=numpy.ones((3, 3), dtype='b'),
                           wvalue=None,
                           type=DataType.Boolean
                           ),
-            expected_attrv=dict(value= numpy.ones((3,3), dtype='b'),
+            expected_attrv=dict(value=numpy.ones((3, 3), dtype='b'),
                                 w_value=None,
                                 quality=AttrQuality.ATTR_VALID
                                 ),
-            expectedshape=(3,3))
+            expectedshape=(3, 3))
 @insertTest(helper_name='write_read_attr',
             attrname='boolean_spectrum_ro',
-            expected=dict(rvalue=numpy.array([True]*3),
+            expected=dict(rvalue=numpy.array([True] * 3),
                           wvalue=None,
                           type=DataType.Boolean,
                           label='boolean_spectrum_ro'
                           ),
-            expected_attrv=dict(value=numpy.array([True]*3),
+            expected_attrv=dict(value=numpy.array([True] * 3),
                                 w_value=None,
                                 quality=AttrQuality.ATTR_VALID
                                 ),
@@ -617,22 +610,22 @@ _UINT8_SPE = _UINT8_IMG[1, :]
             )
 @insertTest(helper_name='write_read_attr',
             attrname='float_image_ro',
-            expected=dict(rvalue=Quantity([[1.23]*3]*3, 'mm'),
+            expected=dict(rvalue=Quantity([[1.23] * 3] * 3, 'mm'),
                           wvalue=None,
                           type=DataType.Float
                           ),
-            expected_attrv=dict(value=[[1.23]*3]*3,
+            expected_attrv=dict(value=[[1.23] * 3] * 3,
                                 w_value=None,
                                 quality=AttrQuality.ATTR_VALID,
                                 wvalue=None),
-            expectedshape=(3,3))
+            expectedshape=(3, 3))
 @insertTest(helper_name='write_read_attr',
             attrname='float_spectrum_ro',
-            expected=dict(rvalue=Quantity([1.23]*3, 'mm'),
+            expected=dict(rvalue=Quantity([1.23] * 3, 'mm'),
                           wvalue=None,
                           type=DataType.Float
                           ),
-            expected_attrv=dict(value=[1.23]*3,
+            expected_attrv=dict(value=[1.23] * 3,
                                 w_value=None,
                                 quality=AttrQuality.ATTR_VALID
                                 ),
@@ -658,27 +651,27 @@ _UINT8_SPE = _UINT8_IMG[1, :]
             )
 @insertTest(helper_name='write_read_attr',
             attrname='short_image_ro',
-            expected=dict(rvalue=Quantity([[123]*3]*3, 'mm'),
+            expected=dict(rvalue=Quantity([[123] * 3] * 3, 'mm'),
                           wvalue=None,
                           type=DataType.Integer
                           ),
-            expected_attrv=dict(rvalue=Quantity([[123]*3]*3, 'mm'),
-                                value=[[123]*3]*3,
+            expected_attrv=dict(rvalue=Quantity([[123] * 3] * 3, 'mm'),
+                                value=[[123] * 3] * 3,
                                 quality=AttrQuality.ATTR_VALID,
                                 wvalue=None,
                                 w_value=None),
-            expectedshape=(3,3)
+            expectedshape=(3, 3)
             )
 @insertTest(helper_name='write_read_attr',
             attrname='short_spectrum_ro',
-            expected=dict(rvalue=Quantity([123]*3, 'mm'),
+            expected=dict(rvalue=Quantity([123] * 3, 'mm'),
                           wvalue=None,
                           type=DataType.Integer,
                           data_format=DataFormat._1D,
                           writable=False
                           ),
-            expected_attrv=dict(rvalue=Quantity([123]*3, 'mm'),
-                                value=[123]*3,
+            expected_attrv=dict(rvalue=Quantity([123] * 3, 'mm'),
+                                value=[123] * 3,
                                 quality=AttrQuality.ATTR_VALID,
                                 wvalue=None,
                                 w_value=None),
@@ -785,7 +778,7 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
                 msg = ('The attribute, "%s" does not provide info on %s' %
                        (attrname, k))
                 self.fail(msg)
-            msg = ('%s for "%s" should be %r (got %r)' %\
+            msg = ('%s for "%s" should be %r (got %r)' %
                    (k, attrname,  exp, got))
             self.__assertValidValue(exp, got, msg)
 
@@ -797,12 +790,12 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
                 msg = ('The read value for "%s" does not provide info on %s' %
                        (attrname, k))
                 self.fail(msg)
-            msg = ('%s for the value of %s should be %r (got %r)' %\
+            msg = ('%s for the value of %s should be %r (got %r)' %
                    (k, attrname,  exp, got))
             self.__assertValidValue(exp, got, msg)
 
         if expectedshape is not None:
-            msg = ('rvalue.shape for %s should be %r (got %r)' %\
+            msg = ('rvalue.shape for %s should be %r (got %r)' %
                    (attrname, expectedshape, read_value.rvalue.shape))
             self.assertEqual(read_value.rvalue.shape, expectedshape, msg)
 

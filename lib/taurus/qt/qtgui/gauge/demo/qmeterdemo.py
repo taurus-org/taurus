@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -32,6 +32,7 @@ __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 
+
 def demo():
     import sys
     import taurus.qt.qtgui.application
@@ -41,10 +42,10 @@ def demo():
     getPixmap = taurus.qt.qtgui.resource.getPixmap
     Application = taurus.qt.qtgui.application.TaurusApplication
     QManoMeter = taurus.qt.qtgui.gauge.QManoMeter
-    
+
     app = Application.instance()
     owns_app = app is None
-    
+
     if owns_app:
         import taurus.core.util.argparse
         app = Application()
@@ -52,7 +53,7 @@ def demo():
     M = 2
 
     class QManoMeterTestPanel(Qt.QWidget):
-        
+
         def __init__(self, parent=None):
             Qt.QWidget.__init__(self, parent)
             panel_l = Qt.QVBoxLayout()
@@ -90,7 +91,7 @@ def demo():
             scale_ticks_widget = Qt.QCheckBox()
             scale_text_widget = Qt.QCheckBox()
             value_text_widget = Qt.QCheckBox()
-            
+
             control_l.addRow("Value:", value_widget)
             control_l.addRow("Minimum:", minimum_widget)
             control_l.addRow("Min. alarm:", minimum_alarm_widget)
@@ -107,7 +108,7 @@ def demo():
             control_l.addRow("Scale ticks", scale_ticks_widget)
             control_l.addRow("Scale text", scale_text_widget)
             control_l.addRow("Value text", value_text_widget)
-            
+
             panel_l.addWidget(display_panel, 1)
             panel_l.addWidget(control_panel, 0)
 
@@ -139,24 +140,40 @@ def demo():
             scale_ticks_widget.setChecked(w.showScaleTicks)
             scale_text_widget.setChecked(w.showScaleText)
             value_text_widget.setChecked(w.showValueText)
-            
-            Qt.QObject.connect(value_widget, Qt.SIGNAL("valueChanged(double)"), w.setValue)
-            Qt.QObject.connect(minimum_widget, Qt.SIGNAL("valueChanged(double)"), w.setMinimum)
-            Qt.QObject.connect(minimum_alarm_widget, Qt.SIGNAL("valueChanged(double)"), w.setMinimumAlarm)
-            Qt.QObject.connect(minimum_warning_widget, Qt.SIGNAL("valueChanged(double)"), w.setMinimumWarning)
-            Qt.QObject.connect(maximum_warning_widget, Qt.SIGNAL("valueChanged(double)"), w.setMaximumWarning)
-            Qt.QObject.connect(maximum_alarm_widget, Qt.SIGNAL("valueChanged(double)"), w.setMaximumAlarm)
-            Qt.QObject.connect(maximum_widget, Qt.SIGNAL("valueChanged(double)"), w.setMaximum)
-            Qt.QObject.connect(steps_widget, Qt.SIGNAL("valueChanged(int)"), w.setSteps)
-            Qt.QObject.connect(value_offset_widget, Qt.SIGNAL("valueChanged(double)"), w.setValueOffset)
-            Qt.QObject.connect(digit_offset_widget, Qt.SIGNAL("valueChanged(double)"), w.setDigitOffset)
-            Qt.QObject.connect(frame_width_widget, Qt.SIGNAL("valueChanged(int)"), w.setFrameWidth)
-            Qt.QObject.connect(angle_widget, Qt.SIGNAL("valueChanged(double)"), w.setAngle)
-            Qt.QObject.connect(scale_color_widget, Qt.SIGNAL("toggled(bool)"), w.setShowScaleColor)
-            Qt.QObject.connect(scale_ticks_widget, Qt.SIGNAL("toggled(bool)"), w.setShowScaleTicks)
-            Qt.QObject.connect(scale_text_widget, Qt.SIGNAL("toggled(bool)"), w.setShowScaleText)
-            Qt.QObject.connect(value_text_widget, Qt.SIGNAL("toggled(bool)"), w.setShowValueText)
-            
+
+            Qt.QObject.connect(value_widget, Qt.SIGNAL(
+                "valueChanged(double)"), w.setValue)
+            Qt.QObject.connect(minimum_widget, Qt.SIGNAL(
+                "valueChanged(double)"), w.setMinimum)
+            Qt.QObject.connect(minimum_alarm_widget, Qt.SIGNAL(
+                "valueChanged(double)"), w.setMinimumAlarm)
+            Qt.QObject.connect(minimum_warning_widget, Qt.SIGNAL(
+                "valueChanged(double)"), w.setMinimumWarning)
+            Qt.QObject.connect(maximum_warning_widget, Qt.SIGNAL(
+                "valueChanged(double)"), w.setMaximumWarning)
+            Qt.QObject.connect(maximum_alarm_widget, Qt.SIGNAL(
+                "valueChanged(double)"), w.setMaximumAlarm)
+            Qt.QObject.connect(maximum_widget, Qt.SIGNAL(
+                "valueChanged(double)"), w.setMaximum)
+            Qt.QObject.connect(steps_widget, Qt.SIGNAL(
+                "valueChanged(int)"), w.setSteps)
+            Qt.QObject.connect(value_offset_widget, Qt.SIGNAL(
+                "valueChanged(double)"), w.setValueOffset)
+            Qt.QObject.connect(digit_offset_widget, Qt.SIGNAL(
+                "valueChanged(double)"), w.setDigitOffset)
+            Qt.QObject.connect(frame_width_widget, Qt.SIGNAL(
+                "valueChanged(int)"), w.setFrameWidth)
+            Qt.QObject.connect(angle_widget, Qt.SIGNAL(
+                "valueChanged(double)"), w.setAngle)
+            Qt.QObject.connect(scale_color_widget, Qt.SIGNAL(
+                "toggled(bool)"), w.setShowScaleColor)
+            Qt.QObject.connect(scale_ticks_widget, Qt.SIGNAL(
+                "toggled(bool)"), w.setShowScaleTicks)
+            Qt.QObject.connect(scale_text_widget, Qt.SIGNAL(
+                "toggled(bool)"), w.setShowScaleText)
+            Qt.QObject.connect(value_text_widget, Qt.SIGNAL(
+                "toggled(bool)"), w.setShowValueText)
+
             self.w = w
             self.w_minimum = minimum_widget
             self.w_minimum_alarm = minimum_alarm_widget
@@ -168,9 +185,9 @@ def demo():
             self.w_value_offset = value_offset_widget
             self.w_digit_offset = digit_offset_widget
             self.w_angle = angle_widget
-        
+
     panel = Qt.QWidget()
-    layout=Qt.QGridLayout()
+    layout = Qt.QGridLayout()
     panel.setLayout(layout)
     layout.setContentsMargins(M, M, M, M)
     layout.setSpacing(M)
@@ -181,7 +198,8 @@ def demo():
         sys.exit(app.exec_())
     else:
         return panel
-    
+
+
 def main():
     return demo()
 

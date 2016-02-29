@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -45,7 +45,7 @@ class ClipboardReportHandler(TaurusMessageReportHandler):
         clipboard.setText(message)
 
         Qt.QMessageBox.information(None, "Done!",
-            "Message Copied to clipboard")
+                                   "Message Copied to clipboard")
 
 
 @UILoadable(with_ui='ui')
@@ -84,7 +84,7 @@ class SendMailDialog(Qt.QDialog):
 
     def getMailInfo(self):
         return self.getFrom(), self.getTo(), self.getSubject(), \
-               self.getMessage()
+            self.getMessage()
 
 
 class SMTPReportHandler(TaurusMessageReportHandler):
@@ -107,14 +107,14 @@ class SMTPReportHandler(TaurusMessageReportHandler):
         try:
             self.sendMail(*mail_info)
             Qt.QMessageBox.information(None, "Done!",
-                "Email has been sent!")
+                                       "Email has been sent!")
         except:
             import sys
             import traceback
             einfo = sys.exc_info()[:2]
             msg = "".join(traceback.format_exception_only(*einfo))
             Qt.QMessageBox.warning(None, "Failed to send email",
-                "Failed to send email. Reason:\n\n" + msg)
+                                   "Failed to send email. Reason:\n\n" + msg)
 
     def sendMail(self, efrom, eto, subject, message):
         import smtplib

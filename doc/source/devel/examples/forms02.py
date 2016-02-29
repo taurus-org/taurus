@@ -6,11 +6,11 @@ from taurus.qt.qtgui.application import TaurusApplication
 app = TaurusApplication(sys.argv)
 
 panel = TaurusForm()
-props = [ 'state', 'status', 'position', 'velocity', 'acceleration' ]
-model = [ 'sys/taurustest/1/%s' % p for p in props ]
+props = ['state', 'status', 'position', 'velocity', 'acceleration']
+model = ['sys/taurustest/1/%s' % p for p in props]
 panel.setModel(model)
 panel[0].readWidgetClass = TaurusLabel
-panel[2].writeWidgetClass='TaurusWheelEdit'
+panel[2].writeWidgetClass = 'TaurusWheelEdit'
 
 panel.show()
 sys.exit(app.exec_())

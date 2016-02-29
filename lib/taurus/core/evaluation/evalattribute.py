@@ -1,30 +1,31 @@
 #!/usr/bin/env python
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 __all__ = ['EvaluationAttribute']
 
-import numpy, re
+import numpy
+import re
 import weakref
 
 from taurus.external.pint import Quantity
@@ -38,11 +39,13 @@ from taurus.core.util.log import debug, tep14_deprecation
 
 from taurus.core.evaluation.evalvalidator import QUOTED_TEXT_RE, PY_VAR_RE
 
+
 class EvaluationAttrValue(TaurusAttrValue):
     """Reimplementation of TaurusAttrValue to provide bck-compat via a ref
 
     """
-     # TODO: remove this class once the standard widgets are adapted to TEP14
+    # TODO: remove this class once the standard widgets are adapted to TEP14
+
     def __init__(self, attr=None, config=None):
         # config parameter is kept for backwards compatibility only
         TaurusAttrValue.__init__(self)
@@ -61,7 +64,7 @@ class EvaluationAttrValue(TaurusAttrValue):
             ret = getattr(self._attrRef, name)
         except AttributeError:
             raise AttributeError('%s has no attribute %s'
-                                 %(self.__class__.__name__, name))
+                                 % (self.__class__.__name__, name))
         # return the attr but only after warning
         from taurus.core.util.log import deprecated
         deprecated(dep='EvaluationAttrValue.%s' % name,
@@ -83,9 +86,9 @@ class EvaluationAttrValue(TaurusAttrValue):
     @tep14_deprecation(alt='.rvalue')
     def _set_value(self, value):
         '''for backwards compat with taurus < 4'''
-        debug('Setting %r to %s'%(value, self.name))
+        debug('Setting %r to %s' % (value, self.name))
 
-        if self.rvalue is None: #we do not have a previous rvalue
+        if self.rvalue is None:  # we do not have a previous rvalue
             import numpy
             dtype = numpy.array(value).dtype
             if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
@@ -93,9 +96,9 @@ class EvaluationAttrValue(TaurusAttrValue):
                 raise ValueError(msg)
             else:
                 self.rvalue = value
-        elif hasattr(self.rvalue, 'units'): # we do have it and is a Quantity
-            self.rvalue = Quantity(value, units = self.rvalue.units)
-        else: # we do have a previous value and is not a quantity
+        elif hasattr(self.rvalue, 'units'):  # we do have it and is a Quantity
+            self.rvalue = Quantity(value, units=self.rvalue.units)
+        else:  # we do have a previous value and is not a quantity
             self.rvalue = value
 
     value = property(_get_value, _set_value)
@@ -112,20 +115,20 @@ class EvaluationAttrValue(TaurusAttrValue):
     @tep14_deprecation(alt='.wvalue')
     def _set_w_value(self, value):
         '''for backwards compat with taurus < 4'''
-        debug('Setting %r to %s'%(value, self.name))
+        debug('Setting %r to %s' % (value, self.name))
 
-        if self.wvalue is None: #we do not have a previous wvalue
+        if self.wvalue is None:  # we do not have a previous wvalue
             import numpy
             dtype = numpy.array(value).dtype
             if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
                 msg = 'Refusing to set ambiguous value (deprecated .value API)'
                 raise ValueError(msg)
             else:
-                self.wvalue=value
-        elif hasattr(self.wvalue, 'units'): # we do have it and is a Quantity
-            self.wvalue = Quantity(value, units = self.wvalue.units)
-        else: # we do have a previous value and is not a quantity
-            self.wvalue=value
+                self.wvalue = value
+        elif hasattr(self.wvalue, 'units'):  # we do have it and is a Quantity
+            self.wvalue = Quantity(value, units=self.wvalue.units)
+        else:  # we do have a previous value and is not a quantity
+            self.wvalue = value
 
     w_value = property(_get_w_value, _set_w_value)
 
@@ -145,6 +148,7 @@ class EvaluationAttrValue(TaurusAttrValue):
             import numpy
             return numpy.array(value, dtype='int')
 
+
 class EvaluationAttribute(TaurusAttribute):
     '''
     A :class:`TaurusAttribute` that can be used to perform mathematical
@@ -159,7 +163,8 @@ class EvaluationAttribute(TaurusAttribute):
                  Instead it should be done via the
                     :meth:`EvaluationFactory.getAttribute`
     '''
-    # helper class property that stores a reference to the corresponding factory
+    # helper class property that stores a reference to the corresponding
+    # factory
     _factory = None
     _scheme = 'eval'
 
@@ -167,7 +172,7 @@ class EvaluationAttribute(TaurusAttribute):
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
         self._value = EvaluationAttrValue(attr=self)
 
-        #Evaluation Attributes are always read-only (at least for now)
+        # Evaluation Attributes are always read-only (at least for now)
         self._label = self.getSimpleName()
         self.writable = False
         self._references = []
@@ -175,7 +180,7 @@ class EvaluationAttribute(TaurusAttribute):
         self._transformation = None
         self.__subscription_state = SubscriptionState.Unsubscribed
 
-        #This should never be None because the init already ran the validator
+        # This should never be None because the init already ran the validator
         trstring = self._validator.getExpandedExpr(str(name))
 
         trstring, ok = self.preProcessTransformation(trstring)
@@ -190,54 +195,54 @@ class EvaluationAttribute(TaurusAttribute):
            two properties:
             - It is unique for this object during all its life
             - It is a string that can be used as a variable or method name
-        
+
         :param obj: (object) the python object whose id is requested 
         :param idFormat: (str) a format string containing a "`%i`" which,
                          when expanded must be a valid variable name 
                          (i.e. it must match
                          `[a-zA-Z_][a-zA-Z0-9_]*`). The default is `_V%i_`
         '''
-        return idFormat%id(obj)
-        
+        return idFormat % id(obj)
+
     def preProcessTransformation(self, trstring):
         """
         parses the transformation string and creates the necessary symbols for
         the evaluator. It also connects any referenced attributes so that the
         transformation gets re-evaluated if they change.
-        
+
         :param trstring: (str) a string to be pre-processed
-        
+
         :return: (tuple<str,bool>) a tuple containing the processed string 
                  and a boolean indicating if the preprocessing was successful.
                  if ok==True, the string is ready to be evaluated
         """
-        #disconnect previously referenced attributes and clean the list
+        # disconnect previously referenced attributes and clean the list
         for ref in self._references:
             ref.removeListener(self)
-        self._references = []  
-        
-        #get symbols
-        evaluator = self.getParentObj()  
+        self._references = []
 
-        #Find references in the string, create references if needed, 
-        #connect to them and substitute the references by their id
+        # get symbols
+        evaluator = self.getParentObj()
+
+        # Find references in the string, create references if needed,
+        # connect to them and substitute the references by their id
         v = self._validator
         refs = v.getRefs(trstring, ign_quoted=True)
         for r in refs:
             symbol = self.__ref2Id(r)
             trstring = v.replaceUnquotedRef(trstring, '{%s}' % r, symbol)
 
-        #validate the expression (look for missing symbols) 
-        safesymbols = evaluator.getSafe().keys()        
-        #remove literal text strings from the validation
+        # validate the expression (look for missing symbols)
+        safesymbols = evaluator.getSafe().keys()
+        # remove literal text strings from the validation
         trimmedstring = re.sub(QUOTED_TEXT_RE, '', trstring)
         for s in set(re.findall(PY_VAR_RE, trimmedstring)):
             if s not in safesymbols:
-                self.warning('Missing symbol "%s"'%s)
+                self.warning('Missing symbol "%s"' % s)
                 return trstring, False
 
-        #If all went ok, enable/disable polling based on whether 
-        #there are references or not
+        # If all went ok, enable/disable polling based on whether
+        # there are references or not
         # TODO: Should we activate polling only if explicit in the expression?
         wantpolling = not self.isUsingEvents()
         haspolling = self.isPollingEnabled()
@@ -246,8 +251,8 @@ class EvaluationAttribute(TaurusAttribute):
         elif haspolling and not wantpolling:
             self.disablePolling()
 
-        return trstring,True
-              
+        return trstring, True
+
     def __ref2Id(self, ref):
         """
         Returns the id of an
@@ -258,18 +263,18 @@ class EvaluationAttribute(TaurusAttribute):
         """
         refobj = self.__createReference(ref)
         return self.getId(refobj)
-        
+
     def __createReference(self, ref):
         '''
         Receives a taurus attribute name and creates/retrieves a reference to
         the attribute object. If the object was not already referenced, it adds
         it to the reference list and adds its id and current value to the
         symbols dictionary of the evaluator.
-        
+
         :param ref: (str) 
-        
+
         :return: (TaurusAttribute) 
-        
+
         '''
         refobj = Attribute(ref)
         if refobj not in self._references:
@@ -277,25 +282,25 @@ class EvaluationAttribute(TaurusAttribute):
             v = refobj.read().rvalue
             # add its rvalue to the evaluator symbols
             evaluator.addSafe({self.getId(refobj): v})
-            #add the object to the reference list 
-            self._references.append(refobj)             
-        return refobj        
-    
+            # add the object to the reference list
+            self._references.append(refobj)
+        return refobj
+
     def eventReceived(self, evt_src, evt_type, evt_value):
         try:
             v = evt_value.rvalue
         except AttributeError:
-            self.trace('Ignoring event from %s'%repr(evt_src))
+            self.trace('Ignoring event from %s' % repr(evt_src))
             return
-        #update the corresponding value
+        # update the corresponding value
         evaluator = self.getParentObj()
         evaluator.addSafe({self.getId(evt_src): v})
-        #re-evaluate
+        # re-evaluate
         self.applyTransformation()
-        #notify listeners that the value changed
+        # notify listeners that the value changed
         if self.isUsingEvents():
             self.fireEvent(evt_type, self._value)
-        
+
     def applyTransformation(self):
         if self._transformation is None:
             return
@@ -321,7 +326,7 @@ class EvaluationAttribute(TaurusAttribute):
         except Exception, e:
             self._value.quality = AttrQuality.ATTR_INVALID
             msg = " the function '%s' could not be evaluated. Reason: %s" \
-                    %( self._transformation, repr(e))
+                % (self._transformation, repr(e))
             self.warning(msg)
 
     def _encodeType(self, value, dformat):
@@ -335,15 +340,15 @@ class EvaluationAttribute(TaurusAttribute):
         :return: (taurus.DataType)
         '''
         # TODO: Should we fall back to DataType.Object instead of None?
-        try: # handle Quantities
+        try:  # handle Quantities
             value = value.magnitude
         except AttributeError:
             pass
-        try: # handle numpy arrays
+        try:  # handle numpy arrays
             value = value.item(0)
-        except ValueError: # for numpy arrays of shape=() 
+        except ValueError:  # for numpy arrays of shape=()
             value = value.item()
-        except AttributeError: # for bool, bytes, str, seq<str>...
+        except AttributeError:  # for bool, bytes, str, seq<str>...
             if dformat is DataFormat._1D:
                 value = value[0]
             elif dformat is DataFormat._2D:
@@ -356,14 +361,14 @@ class EvaluationAttribute(TaurusAttribute):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     def isNumeric(self):
         return self.type in [DataType.Integer, DataType.Float]
-        
+
     def isBoolean(self):
         return isinstance(self._value.rvalue, bool)
-    
+
     def isState(self):
         return False
 
-    def getDisplayValue(self,cache=True):
+    def getDisplayValue(self, cache=True):
         return str(self.read(cache=cache).rvalue)
 
     def encode(self, value):
@@ -377,76 +382,78 @@ class EvaluationAttribute(TaurusAttribute):
 
     def read(self, cache=True):
         '''returns the value of the attribute.
-        
+
         :param cache: (bool) If True (default), the last calculated value will
                       be returned. If False, the referenced values will be re-
                       read and the transformation string will be re-evaluated
-                      
+
         :return: attribute value
         '''
         if not cache:
             symbols = {}
             for ref in self._references:
                 symbols[self.getId(ref)] = ref.read(cache=False).rvalue
-            evaluator = self.getParentObj()  
+            evaluator = self.getParentObj()
             evaluator.addSafe(symbols)
             self.applyTransformation()
-        return self._value    
+        return self._value
 
     def poll(self):
         v = self.read(cache=False)
         self.fireEvent(TaurusEventType.Periodic, v)
-            
-    def _subscribeEvents(self): 
+
+    def _subscribeEvents(self):
         pass
-        
+
     def _unsubscribeEvents(self):
         pass
 
     def isUsingEvents(self):
-        #if this attributes depends from others, then we consider it uses events
-        return bool(len(self._references)) 
-        
-#------------------------------------------------------------------------------ 
+        # if this attributes depends from others, then we consider it uses
+        # events
+        return bool(len(self._references))
+
+#------------------------------------------------------------------------------
     def __fireRegisterEvent(self, listener):
-        #fire a first change event
+        # fire a first change event
         try:
             v = self.read()
             self.fireEvent(TaurusEventType.Change, v, listener)
         except:
             self.fireEvent(TaurusEventType.Error, None, listener)
-    
+
     def addListener(self, listener):
         """ Add a TaurusListener object in the listeners list.
             If it is the first listener, it triggers the subscription to
             the referenced attributes.
             If the listener is already registered nothing happens."""
         initial_subscription_state = self.__subscription_state
-        
+
         ret = TaurusAttribute.addListener(self, listener)
 
         if not ret:
             return ret
-        
+
         if self.__subscription_state == SubscriptionState.Unsubscribed:
             for refobj in self._references:
-                refobj.addListener(self) #subscribe to the referenced attributes
+                # subscribe to the referenced attributes
+                refobj.addListener(self)
             self.__subscription_state = SubscriptionState.Subscribed
 
-        assert len(self._listeners) >= 1        
-        #if initial_subscription_state == SubscriptionState.Subscribed:
+        assert len(self._listeners) >= 1
+        # if initial_subscription_state == SubscriptionState.Subscribed:
         if len(self._listeners) > 1 and \
-           (initial_subscription_state == SubscriptionState.Subscribed or \
-           self.isPollingActive()):
+           (initial_subscription_state == SubscriptionState.Subscribed or
+                self.isPollingActive()):
             Manager().addJob(self.__fireRegisterEvent, None, (listener,))
         return ret
-        
+
     def removeListener(self, listener):
         """ Remove a TaurusListener from the listeners list. If polling enabled 
             and it is the last element then stop the polling timer.
             If the listener is not registered nothing happens."""
         ret = TaurusAttribute.removeListener(self, listener)
-        
+
         if ret and not self.hasListeners():
             self._deactivatePolling()
             self.__subscription_state = SubscriptionState.Unsubscribed

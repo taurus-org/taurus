@@ -3,6 +3,7 @@ import importlib
 from sys import modules
 from taurus.core.util.singleton import Singleton
 
+
 class ModuleManager(Singleton):
     '''ModuleManager class is an helper to manager the python modules.
        This class has methods to import, reload, and block python modules. 
@@ -20,7 +21,7 @@ class ModuleManager(Singleton):
         try:
             thismod = modules[modname]
         except KeyError:
-            # This module is not imported 
+            # This module is not imported
             raise ValueError(modname)
         these_symbols = dir(thismod)
 
@@ -47,23 +48,23 @@ class ModuleManager(Singleton):
             # Delete and block submodules
             for mod in modules.keys():
                 if mod.find(modname) != -1:
-                    _mod['submod'].append((mod, modules[mod])) 
-                    self._deleteModule(mod)        
-                    modules[mod] = None 
+                    _mod['submod'].append((mod, modules[mod]))
+                    self._deleteModule(mod)
+                    modules[mod] = None
             # Delete and block the module
             self._deleteModule(modname)
-            modules[modname] = None                   
+            modules[modname] = None
             self._modules[modname] = _mod
 
     def reloadModule(self, modname):
         '''Reload the given module name.
-           
+
         :param modname: Module name
         :type modname: str
         '''
         if self._modules.get(modname) is None:
             msg = 'ModuleManager: Trying to reload a not imported module, %s'\
-                  %(modname)
+                  % (modname)
             print msg
             return
         # Reload the submodules
@@ -71,7 +72,7 @@ class ModuleManager(Singleton):
             modules[subname] = submod
         # Reload the module
         modules[modname] = self._modules[modname]['mod']
-        imp.reload(self._modules[modname]['mod'])            
+        imp.reload(self._modules[modname]['mod'])
 
     def importModule(self, modname):
         ''' Import the given module name.
@@ -85,9 +86,9 @@ class ModuleManager(Singleton):
             _mod = {}
             _mod['mod'] = mod
             _mod['submod'] = []
-            self._modules[modname] = _mod 
+            self._modules[modname] = _mod
         except ImportError:
-            print 'Imposible to import the module %s' %(modname)
+            print 'Imposible to import the module %s' % (modname)
 
     def _getModuleDict(self, modname):
         ''' Return a dictionary with the given module name and its submodels
@@ -108,12 +109,14 @@ class ModuleManager(Singleton):
 
         :return python module
         '''
-        d =  self._getModuleDict(modname)
+        d = self._getModuleDict(modname)
         if d is None:
             return None
         return d['mod']
 
-#---------------------Just 4 Test-----------------------------------------------
+#---------------------Just 4 Test-----------------------------------------
+
+
 def blockPyTango(modmanager):
     import taurus
     from taurus.core.taurusmanager import TaurusManager
@@ -124,15 +127,17 @@ def blockPyTango(modmanager):
     print '\n -- Taurus plugins'
     print tm.buildPlugins()
 
+
 def reloadPyTango(modmanager):
     import taurus
     from taurus.core.taurusmanager import TaurusManager
     tm = TaurusManager()
     print '\n-*-*-*-*-*- Reload PyTango'
     modmanager.reloadModule('PyTango')
-    taurus.check_dependencies() 
+    taurus.check_dependencies()
     print '\n -- Taurus plugins'
-    print tm.buildPlugins()  
+    print tm.buildPlugins()
+
 
 def test():
     modmanager = ModuleManager()

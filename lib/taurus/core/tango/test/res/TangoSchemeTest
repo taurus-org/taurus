@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus, a Tango User Interface Library
+# This file is part of Taurus, a Tango User Interface Library
 ##
-## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+# http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
 ##
-## Copyright 2014 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2014 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 import numpy
@@ -136,7 +136,7 @@ class TangoSchemeTest(Device):
              'string_image': dict(dtype=[(str,)], max_dim_x=MAXDIMX,
                                   max_dim_y=MAXDIMY),
              'uchar_image': dict(dtype=[(numpy.uint8,)], max_dim_x=MAXDIMX,
-                                  max_dim_y=MAXDIMY),
+                                 max_dim_y=MAXDIMY),
              }
 
     extra_cfg = {'short_scalar': dict(min_value=default_ranges['int'][0],
@@ -155,7 +155,8 @@ class TangoSchemeTest(Device):
                                        max_value=default_ranges['float'][1],
                                        min_alarm=default_alarms['float'][0],
                                        max_alarm=default_alarms['float'][1],
-                                       min_warning=default_warnings['float'][0],
+                                       min_warning=default_warnings[
+                                           'float'][0],
                                        max_warning=default_warnings['float'][1])
                  }
 
@@ -211,7 +212,7 @@ class TangoSchemeTest(Device):
     string_scalar = attribute(access=AttrWriteType.READ_WRITE,
                               **attrs['string_scalar'])
     uchar_scalar = attribute(access=AttrWriteType.READ_WRITE,
-                              **attrs['uchar_scalar'])
+                             **attrs['uchar_scalar'])
     # SPECTRUM
     boolean_spectrum = attribute(access=AttrWriteType.READ_WRITE,
                                  **attrs['bool_spectrum'])
@@ -224,7 +225,7 @@ class TangoSchemeTest(Device):
     string_spectrum = attribute(access=AttrWriteType.READ_WRITE,
                                 **attrs['string_spectrum'])
     uchar_spectrum = attribute(access=AttrWriteType.READ_WRITE,
-                                **attrs['uchar_spectrum'])
+                               **attrs['uchar_spectrum'])
     # IMAGES
     boolean_image = attribute(access=AttrWriteType.READ_WRITE,
                               **attrs['bool_image'])
@@ -237,7 +238,7 @@ class TangoSchemeTest(Device):
     string_image = attribute(access=AttrWriteType.READ_WRITE,
                              **attrs['string_image'])
     uchar_image = attribute(access=AttrWriteType.READ_WRITE,
-                             **attrs['uchar_image'])
+                            **attrs['uchar_image'])
 
     # READ ONLY METHODS
     # SCALARS
@@ -409,7 +410,7 @@ class TangoSchemeTest(Device):
 
     def read_string_image(self):
         return getattr(self, '_string_image',
-                       [[self.default_rvalue['string']] * self.DIMX] * \
+                       [[self.default_rvalue['string']] * self.DIMX] *
                        self.DIMY)
 
     def write_string_image(self, v):
@@ -417,7 +418,7 @@ class TangoSchemeTest(Device):
 
     def read_uchar_image(self):
         return getattr(self, '_uchar_image',
-                       [[self.default_rvalue['uchar']] * self.DIMX] * \
+                       [[self.default_rvalue['uchar']] * self.DIMX] *
                        self.DIMY)
 
     def write_uchar_image(self, v):

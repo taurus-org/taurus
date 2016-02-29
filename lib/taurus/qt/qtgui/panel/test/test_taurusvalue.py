@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -27,7 +27,7 @@
 
 from taurus.external import unittest
 from taurus.test import insertTest
-from taurus.qt.qtgui.test import  BaseWidgetTestCase
+from taurus.qt.qtgui.test import BaseWidgetTestCase
 from taurus.qt.qtgui.panel import TaurusValue
 from taurus.core.tango.test import TangoSchemeTestLauncher
 
@@ -41,7 +41,7 @@ DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
             # TODO: change taurusvalue's line edit to hide units
             )
 class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
-                       unittest.TestCase):
+                      unittest.TestCase):
     '''
     Specific tests for TaurusValue
     '''
@@ -50,11 +50,11 @@ class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
     def test_bug126(self):
         '''Verify that case is not lost when customizing a label (bug#126)'''
         w = self._widget
-        #self._widget.setModel('eval:1')
+        # self._widget.setModel('eval:1')
         self._widget.setModel('tango:' + DEV_NAME + '/double_scalar')
         label = 'MIXEDcase'
         w.setLabelConfig(label)
-        self._app.processEvents() #required
+        self._app.processEvents()  # required
         shownLabel = str(w.labelWidget().text())
         msg = 'Shown label ("%s") differs from set label ("%s")' % (shownLabel,
                                                                     label)
@@ -73,7 +73,7 @@ class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
                str(self._widget.unitsWidget().text()),
                )
         msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
-                   (model, expected, got))
+               (model, expected, got))
         self.assertEqual(got, expected, msg)
         self.assertMaxDeprecations(maxdepr)
 

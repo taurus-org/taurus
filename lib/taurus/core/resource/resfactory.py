@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -27,7 +27,10 @@
 resfactory.py:
 """
 
-import os, imp, operator, types
+import os
+import imp
+import operator
+import types
 
 from taurus.core.taurushelper import Manager
 from taurus.core.util.singleton import Singleton
@@ -39,16 +42,16 @@ from taurus.core.taurusexception import TaurusException
 class ResourcesFactory(Singleton, TaurusFactory, Logger):
     """A Singleton class designed to provide Simulation related objects."""
 
-    #: the list of schemes that this factory supports. For this factory: 'res' 
+    #: the list of schemes that this factory supports. For this factory: 'res'
     #: and 'resources' are the supported schemes
     schemes = ("res", "resource",)
-    
+
     #: the default resource file name
     DftResourceName = 'taurus_resources.py'
-    
+
     #: priority for the default resource
     DftResourcePriority = 10
-    
+
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
         pass
@@ -66,17 +69,17 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
         self._resource_priority = {}
         self._resource_priority_keys = []
         self._resource_count = 0
-        
+
     def reloadResource(self, obj=None, priority=1, name=None):
         """(Re)Loads the given resource.
-           
+
            :param obj: (dict or file or None) the resource object. Default is 
                        None meaning in will (re)load the default resource: 
                        taurus_resources.py from the application directory
            :param priority: (int) the resource priority. Default is 1 meaning 
                             maximum priority
            :param name: (str) an optional name to give to the resource
-           
+
            :return: (dict) a dictionary version of the given resource object
         """
         if priority < 1:
@@ -91,13 +94,13 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
                     obj[k] = v
         else:
             raise TypeError
-        
+
         if self._resource_map.get(name) is None:
             self._resource_count += 1
         self._resource_map[name] = obj
         if self._resource_count == 1:
             self._first_resource = obj
-    
+
         pl = self._resource_priority.get(priority)
         if pl is None:
             self._resource_priority[priority] = pl = []
@@ -105,10 +108,10 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
         self._resource_priority_keys = self._resource_priority.keys()
         self._resource_priority_keys.sort()
         return obj
-        
+
     loadResource = reloadResource
     loadResource.__doc__ = reloadResource.__doc__
-    
+
     def __reloadResource(self, name=None):
         path = os.path.curdir
         if name is None:
@@ -131,22 +134,24 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
             file_, pathname, desc = imp.find_module(module_name, [path])
             self.info("(re)loading resource %s", pathname)
             m = imp.load_module(module_name, file_, pathname, desc)
-            if file_: file_.close()
+            if file_:
+                file_.close()
         except Exception, e:
-            if file_: file_.close()
+            if file_:
+                file_.close()
             raise e
-        
+
         if m is None:
             self.warning("failed to (re)load resource %s" % module_name)
             raise ImportError
-        
+
         return full_name, m
-    
+
     def getValue(self, key):
         """Returns the value for a given key
-           
+
            :param key: (str) a key
-           
+
            :return: (str) the value for the given key
         """
         if self._resource_count == 0:
@@ -167,11 +172,11 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
                     return resource[key]
                 except:
                     pass
-    
+
     def findObjectClass(self, absolute_name):
         """
         Obtain the class object corresponding to the given name.
-           
+
         :param absolute_name: (str) the object absolute name string
 
         :return: (taurus.core.taurusmodel.TaurusModel or None) the class
@@ -184,7 +189,8 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
 
         for v in validators:
             try:
-                value = self.getValue(v.getUriGroups(absolute_name)['_resname'])
+                value = self.getValue(
+                    v.getUriGroups(absolute_name)['_resname'])
                 return Manager().findObjectClass(value)
             except:
                 pass
@@ -193,9 +199,9 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
     def getAuthority(self, name=None):
         """
         Obtain the authority model object referenced by name.
-           
+
         :param name: (str) name
-                           
+
         :return: (taurus.core.taurusauthority.TaurusAuthority) authority object
         :raise: (taurus.core.taurusexception.TaurusException) if name is invalid
         """

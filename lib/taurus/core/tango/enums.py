@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -33,24 +33,24 @@ __docformat__ = "restructuredtext"
 from taurus.core.util.enumeration import Enumeration
 from taurus.external.enum import IntEnum
 
-TangoObjectType = Enumeration("TangoObjectType", 
-                              ["Authority", "Server", "Class", "Device", 
-                               "Attribute","Property","Configuration",
+TangoObjectType = Enumeration("TangoObjectType",
+                              ["Authority", "Server", "Class", "Device",
+                               "Attribute", "Property", "Configuration",
                                "Object"])
-TangoObjectType.Database = TangoObjectType.Authority #backwards compatibility
+TangoObjectType.Database = TangoObjectType.Authority  # backwards compatibility
 
 import numpy
 import PyTango
 
 # The exception reasons that will force switching from events to polling
-# API_AttributePollingNotStarted - the attribute does not support events. 
+# API_AttributePollingNotStarted - the attribute does not support events.
 #                                  Don't try to resubscribe.
 # API_DSFailedRegisteringEvent - same exception then the one above but higher
 #                                in the stack
 # API_NotificationServiceFailed - Problems in notifd, it was not able to
 #                                 register the event.
 # API_EventChannelNotExported - the notifd is not running
-# API_EventTimeout - after a successfull register the the device server 
+# API_EventTimeout - after a successfull register the the device server
 #                    and/or notifd shuts down/crashes
 # API_CommandNotFound - Added on request from ESRF (Matias Guijarro). They have
 #                       a DS in java (doesn't have events) and the only way they
@@ -65,35 +65,35 @@ EVENT_TO_POLLING_EXCEPTIONS = ('API_AttributePollingNotStarted',
                                'API_EventTimeout',
                                'API_EventPropertiesNotSet',
                                'API_CommandNotFound',
-)
-#                                   'API_BadConfigurationProperty')    
+                               )
+#                                   'API_BadConfigurationProperty')
 
 FROM_TANGO_TO_NUMPY_TYPE = {
-   PyTango.DevBoolean : numpy.bool8,
-   PyTango.DevUChar : numpy.uint8,
-   PyTango.DevShort : numpy.short,
-   PyTango.DevUShort : numpy.ushort,
-   PyTango.DevLong : numpy.int32,
-   PyTango.DevULong : numpy.uint32,
-   PyTango.DevLong64 : numpy.int64,
-   PyTango.DevULong64 : numpy.uint64,
-   PyTango.DevString : numpy.str,
-   PyTango.DevDouble : numpy.float64,
-   PyTango.DevFloat : numpy.float32,
+    PyTango.DevBoolean: numpy.bool8,
+    PyTango.DevUChar: numpy.uint8,
+    PyTango.DevShort: numpy.short,
+    PyTango.DevUShort: numpy.ushort,
+    PyTango.DevLong: numpy.int32,
+    PyTango.DevULong: numpy.uint32,
+    PyTango.DevLong64: numpy.int64,
+    PyTango.DevULong64: numpy.uint64,
+    PyTango.DevString: numpy.str,
+    PyTango.DevDouble: numpy.float64,
+    PyTango.DevFloat: numpy.float32,
 }
 
 FROM_TANGO_TO_STR_TYPE = {
-   PyTango.DevBoolean : 'bool8',
-   PyTango.DevUChar : 'uint8',
-   PyTango.DevShort : 'short',
-   PyTango.DevUShort : 'ushort',
-   PyTango.DevLong : 'int32',
-   PyTango.DevULong : 'uint32',
-   PyTango.DevLong64 : 'int64',
-   PyTango.DevULong64 : 'uint64',
-   PyTango.DevString : 'str',
-   PyTango.DevDouble : 'float64',
-   PyTango.DevFloat : 'float32',
+    PyTango.DevBoolean: 'bool8',
+    PyTango.DevUChar: 'uint8',
+    PyTango.DevShort: 'short',
+    PyTango.DevUShort: 'ushort',
+    PyTango.DevLong: 'int32',
+    PyTango.DevULong: 'uint32',
+    PyTango.DevLong64: 'int64',
+    PyTango.DevULong64: 'uint64',
+    PyTango.DevString: 'str',
+    PyTango.DevDouble: 'float64',
+    PyTango.DevFloat: 'float32',
 }
 
 
@@ -127,4 +127,3 @@ class DevState(IntEnum):
     ALARM = 11
     DISABLE = 12
     UNKNOWN = 13
-

@@ -2,24 +2,24 @@
 
 ##############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ##############################################################################
 
@@ -98,7 +98,7 @@ class AboutDialog(Qt.QDialog):
         palette.setColor(Qt.QPalette.Base,
                          palette.color(Qt.QPalette.Background))
         self.text_browser.setPalette(palette)
-        self.logo_widget.setAlignment(Qt.Qt.AlignHCenter | \
+        self.logo_widget.setAlignment(Qt.Qt.AlignHCenter |
                                       Qt.Qt.AlignTop)
         name = Qt.qApp.applicationName()
         version = Qt.qApp.applicationVersion()
@@ -192,10 +192,10 @@ class AboutDialog(Qt.QDialog):
     @classmethod
     def getQtDesignerPluginInfo(cls):
         from taurus.qt.qtgui.resource import getThemeIcon
-        return { 'group'     : 'Taurus Help',
-                 'icon'      : getThemeIcon("help"),
-                 'module'    : 'taurus.qt.qtgui.help',
-                 'container' : False }
+        return {'group': 'Taurus Help',
+                'icon': getThemeIcon("help"),
+                'module': 'taurus.qt.qtgui.help',
+                'container': False}
 
     #: This property holds the current dialog pixmap
     #:
