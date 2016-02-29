@@ -39,7 +39,7 @@ class EvaluationDevice(TaurusDevice, SafeEvaluator):
     .. seealso:: :mod:`taurus.core.evaluation`
 
     .. warning:: In most cases this class should not be instantiated directly.
-                 Instead it should be done via the 
+                 Instead it should be done via the
                     :meth:`EvaluationFactory.getDevice`
     '''
     _symbols = []

@@ -33,11 +33,11 @@ from taurus.core.taurusauthority import TaurusAuthority
 
 class EpicsAuthority(TaurusAuthority):
     '''
-    Dummy authority class for Epics 
+    Dummy authority class for Epics
     (the authority concept is not yet used in the Epics scheme)
 
     .. warning:: In most cases this class should not be instantiated directly.
-                 Instead it should be done via the 
+                 Instead it should be done via the
                     :meth:`EpicsFactory.getAuthority`
     '''
     _factory = None

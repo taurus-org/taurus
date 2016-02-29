@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""This module provides a base widget that can be used to display a taurus 
+"""This module provides a base widget that can be used to display a taurus
 model in a table widget"""
 
 # todo: tango-centric!!!
@@ -42,7 +42,7 @@ from taurustable import TaurusBaseTableWidget
 
 class TaurusDbTableWidget(TaurusBaseTableWidget):
     """A class:`taurus.qt.qtgui.tree.TaurusBaseTableWidget` that connects to a
-    :class:`taurus.core.taurusauthority.TaurusAuthority` model. It can show 
+    :class:`taurus.core.taurusauthority.TaurusAuthority` model. It can show
     the list of database elements in two different perspectives:
 
     - device : a device list based perspective

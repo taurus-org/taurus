@@ -113,7 +113,7 @@ def _replacepos(string, old, new, idx):
 
 
 class EvaluationAuthorityNameValidator(TaurusAuthorityNameValidator):
-    '''Validator for Evaluation authority names. For now, the only supported 
+    '''Validator for Evaluation authority names. For now, the only supported
     authority (in strict mode) is "//localhost":
     '''
     scheme = 'eval'
@@ -125,19 +125,19 @@ class EvaluationAuthorityNameValidator(TaurusAuthorityNameValidator):
     @property
     def nonStrictNamePattern(self):
         '''implement in derived classes if a "less strict" pattern is allowed
-        (e.g. for backwards-compatibility, "tango://a/b/c" could be an accepted 
+        (e.g. for backwards-compatibility, "tango://a/b/c" could be an accepted
         device name, even if it breaks RFC3986).
         '''
         return r'^(?P<scheme>eval|evaluation)://(db=(?P<dbname>[^?#;]+))$'
 
 
 class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
-    '''Validator for Evaluation device names. Apart from the standard named 
-    groups (scheme, authority, path, query and fragment), the following named 
+    '''Validator for Evaluation device names. Apart from the standard named
+    groups (scheme, authority, path, query and fragment), the following named
     groups are created:
 
      - devname: device name (either _evalname or _evalclass)
-     - [_evalname]: evaluation instance name (aka non-dotted dev name) 
+     - [_evalname]: evaluation instance name (aka non-dotted dev name)
      - [_evalclass]: evaluator class name (if dotted name given)
      - [_old_devname]: devname without "@". Only in non-strict mode
      - [_dbname] and [_subst]: unused. Only if non-strict mode
@@ -155,7 +155,7 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
     fragment = '(?!)'
 
     def getUriGroups(self, name, strict=None):
-        '''reimplemented from :class:`TaurusDeviceNameValidator` to provide 
+        '''reimplemented from :class:`TaurusDeviceNameValidator` to provide
         backwards compatibility with ol syntax'''
         groups = TaurusDeviceNameValidator.getUriGroups(self, name,
                                                         strict=strict)
@@ -200,17 +200,17 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
 
 
 class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
-    '''Validator for Evaluation attribute names. Apart from the standard named 
-    groups (scheme, authority, path, query and fragment), the following named 
+    '''Validator for Evaluation attribute names. Apart from the standard named
+    groups (scheme, authority, path, query and fragment), the following named
     groups are created:
 
-     - attrname: attribute name. same as concatenating _subst with _expr 
+     - attrname: attribute name. same as concatenating _subst with _expr
      - _expr: a mathematical expression
      - _evalrefs: a list of eval refs found in the name (see :meth:`getRefs`)
-     - [_subst]: a semicolon-separated repetition of key=value (for replacing 
+     - [_subst]: a semicolon-separated repetition of key=value (for replacing
        them in _expr)
      - [devname]: as in :class:`EvaluationDeviceNameValidator`
-     - [_evalname]: evaluation instance name (aka non-dotted dev name) 
+     - [_evalname]: evaluation instance name (aka non-dotted dev name)
      - [_evalclass]: evaluator class name (if dotted name given)
      - [_old_devname]: devname without "@". Only in non-strict mode
      - [_dbname] and [_subst]: unused. Only if non-strict mode
@@ -231,14 +231,14 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
     @staticmethod
     def expandExpr(expr, substmap):
         '''expands expr by substituting all keys in map by their value.
-        Note that eval references in expr (i.e. text within curly brackets) 
+        Note that eval references in expr (i.e. text within curly brackets)
         is not substituted.
 
         :param expr: (str) string that may contain symbols defined in symbolMap
-        :param symbolMap: (dict or str) dictionary whose keys (strings) are 
-                          symbols to be substituted in `expr` and whose values 
-                          are the corresponding replacements. Alternatively, a 
-                          string containing a semi-colon separated list of 
+        :param symbolMap: (dict or str) dictionary whose keys (strings) are
+                          symbols to be substituted in `expr` and whose values
+                          are the corresponding replacements. Alternatively, a
+                          string containing a semi-colon separated list of
                           symbol=value pairs can also be passed.
         '''
         if isinstance(substmap, str):
@@ -315,7 +315,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
 
     def isValid(self, name, matchLevel=None, strict=None):
         '''reimplemented from :class:`TaurusAttributeNameValidator` to do extra
-        check on references validity (recursive) 
+        check on references validity (recursive)
         '''
         # Standard implementation
         if matchLevel is not None:
@@ -335,7 +335,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         return True
 
     def getUriGroups(self, name, strict=None):
-        '''reimplemented from :class:`TaurusAttributeNameValidator` to provide 
+        '''reimplemented from :class:`TaurusAttributeNameValidator` to provide
         backwards compatibility with old syntax'''
 
         # mangle refs before matching the pattern to sanitize them
@@ -467,7 +467,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
 
         :param name: (str) eval attribute URI
 
-        :return: (str) the expression (from the name )expanded with any 
+        :return: (str) the expression (from the name )expanded with any
                  substitution k,v pairs also defined in the name
         '''
         groups = self.getUriGroups(name)

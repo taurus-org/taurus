@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-taurusconfigeditor.py: 
+taurusconfigeditor.py:
 """
 
 __all__ = ["QConfigEditor"]
@@ -121,9 +121,9 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         next key (from the path) until reaches element to be deleted. After the
         element is deleted, returns updated dictionary.
 
-        :param dict: (dict) a taurus configuration dictionary. See 
+        :param dict: (dict) a taurus configuration dictionary. See
                      :class:`BaseConfigurableClass`
-        :param path: (str) a semicolon-separated string containing the 
+        :param path: (str) a semicolon-separated string containing the
                      path of the branch in the tree
 
         :returns:  (dict) the modified config dict
@@ -193,7 +193,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         element is modified, returns updated dictionary.
 
         :param cdict: a configuration dictionary.  See :class:`BaseConfigurableClass`
-        :param path: (str) a semicolon-separated string containing the 
+        :param path: (str) a semicolon-separated string containing the
                      path of the branch in the tree
         :param value: (str) the new value (a string that will be python-evaluated)
 
@@ -405,8 +405,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
 
 
 class QConfigEditor(TaurusWidget):
-    '''A widget that shows a tree view of the contents of Taurus 
-    configuration files saved by TaurusMainWindow and lets the user edit 
+    '''A widget that shows a tree view of the contents of Taurus
+    configuration files saved by TaurusMainWindow and lets the user edit
     the values of the configuration keys'''
 
     def __init__(self, parent=None, designMode=False):

@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-Finds out user inf (currently just the logged user name) for Windows and 
+Finds out user inf (currently just the logged user name) for Windows and
 Posix machines. sets a USER_NAME variable containing the logged user name
 defines a UNKNOWN_USER variable to which username falls back.
 It also provides the getSystemUserName() function"""
@@ -41,7 +41,7 @@ UNKNOWN_USER = 'UnknownUser'
 
 
 def getSystemUserName():
-    """Finds out user inf (currently just the logged user name) for Windows and 
+    """Finds out user inf (currently just the logged user name) for Windows and
     Posix machines. sets a USER_NAME variable containing the logged user name
     defines a UNKNOWN_USER variable to which username falls back.
 

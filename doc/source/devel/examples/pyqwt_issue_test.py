@@ -2,16 +2,16 @@
 This code checks if a known bug in some PyQwt versions affects your installation.
 Simply run this script and see the diagnosis in the std output.
 
-If you are affected, the solution is to install/compile a newer version of PyQwt/SIP 
+If you are affected, the solution is to install/compile a newer version of PyQwt/SIP
 
-Notably, the python-qwt5-qt4 package originally shipped with 
+Notably, the python-qwt5-qt4 package originally shipped with
 Ubuntu 10.10 and Debian 6 is affected
 
-In some systems, the bug produces a segfault while in some others it 
+In some systems, the bug produces a segfault while in some others it
 produces an Assertion error similar to the following:
 python: /build/buildd/sip4-qt3-4.10.5/siplib/siplib.c:2600: sip_api_parse_result: Assertion `assign_helper != ((void *)0)' failed.
 
-See also: 
+See also:
 https://bugs.launchpad.net/ubuntu/+source/pyqwt5/+bug/672509
 http://www.esrf.eu/mail_archives/tango/archive/msg04025.html
 '''

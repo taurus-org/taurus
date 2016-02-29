@@ -55,9 +55,9 @@ def loadUi(obj, filename=None, path=None, with_ui=None):
                  [default: None, meaning calculate path with algorithm explained
                  before]
     :type path: str
-    :param with_ui: if True, the objects defined in the ui file will be 
+    :param with_ui: if True, the objects defined in the ui file will be
                     accessible as submembers of an ui member of the widget. If
-                    False, such objects will directly be members of the widget. 
+                    False, such objects will directly be members of the widget.
     :type with_ui: bool
     """
     if path is None:
@@ -91,7 +91,7 @@ def UILoadable(klass=None, with_ui=None):
     This decorator will add a :func:`loadUi` method to the decorated class and
     optionaly a property with a name given by *with_ui* parameter.
 
-    The folowing example assumes the existence of the ui file 
+    The folowing example assumes the existence of the ui file
     :file:`<my_widget_dir>/ui/MyWidget.ui` which is a QWidget panel with *at
     least* a QPushButton with objectName *my_button* ::
 

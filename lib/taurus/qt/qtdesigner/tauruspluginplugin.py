@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-tauruspluginplugin.py: 
+tauruspluginplugin.py:
 """
 
 from taurus.external.qt import QtDesigner

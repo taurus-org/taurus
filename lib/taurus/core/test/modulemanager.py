@@ -6,7 +6,7 @@ from taurus.core.util.singleton import Singleton
 
 class ModuleManager(Singleton):
     '''ModuleManager class is an helper to manager the python modules.
-       This class has methods to import, reload, and block python modules. 
+       This class has methods to import, reload, and block python modules.
     '''
 
     def __init__(self):
@@ -33,7 +33,7 @@ class ModuleManager(Singleton):
                 pass
 
     def blockModule(self, modname):
-        ''' Remplace the given module name by None. inhibits the module. 
+        ''' Remplace the given module name by None. inhibits the module.
 
         :param modname: Module name
         :type modname: str

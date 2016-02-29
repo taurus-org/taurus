@@ -29,7 +29,7 @@
     it means when you right click on the widget in the designer, it will have
     the following additional items:
     - 'Edit model...' - opens a customized dialog for editing the widget model
-    
+
   - Property Sheet:
     it means that in the Qt Designer property sheet it will have the following
     properties customized:
@@ -124,7 +124,7 @@ class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         return self._getWidgetClassName()
 
     def group(self):
-        """ Returns the name of the group in Qt Designer's widget box that this 
+        """ Returns the name of the group in Qt Designer's widget box that this
             widget belongs to.
             It returns 'Taurus Widgets'. Overwrite if want another group."""
         return self.getWidgetInfo('group', 'Taurus Widgets')

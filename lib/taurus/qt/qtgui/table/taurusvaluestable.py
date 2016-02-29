@@ -207,7 +207,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         '''
         Returns Status of the variable
 
-        :returns:  (taurus.core.taurusbasetypes.AttrQuality) 
+        :returns:  (taurus.core.taurusbasetypes.AttrQuality)
         '''
         return self._attr.quality
 
@@ -603,7 +603,7 @@ class TableInlineEdit(Qt.QLineEdit):
 
 class TaurusValuesTable(TaurusWidget):
     '''
-    A table for displaying and/or editing 1D/2D Taurus attributes 
+    A table for displaying and/or editing 1D/2D Taurus attributes
     '''
     _showQuality = False
     _writeMode = False
@@ -783,7 +783,7 @@ class TaurusValuesTable(TaurusWidget):
     def okClicked(self):
         """This is a SLOT that is being triggered when ACCEPT button is clicked.
 
-        .. note:: This SLOT is called, when user wants to apply table modifications. 
+        .. note:: This SLOT is called, when user wants to apply table modifications.
                   When no cell was modified it will not be called. When
                   modifications have been done, they will be writen to w_value
                   of an attribute.
@@ -795,7 +795,7 @@ class TaurusValuesTable(TaurusWidget):
     def cancelClicked(self):
         """This is a SLOT that is being triggered when CANCEL button is clicked.
 
-        .. note:: This SLOT is called, when user does not want to apply table 
+        .. note:: This SLOT is called, when user does not want to apply table
                   modifications. When no cell was modified it will not be called.
         """
         if self._tableView.model().isDirty():
@@ -824,7 +824,7 @@ class TaurusValuesTable(TaurusWidget):
 
     def setWriteMode(self, isWrite):
         '''
-        Triggered when the read mode is changed to write mode. 
+        Triggered when the read mode is changed to write mode.
 
         :param isWrite: (bool)
         '''

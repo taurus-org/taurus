@@ -98,8 +98,8 @@ def split_model_list(modelNames):
 
 
 def get_matching_devices(expressions, limit=0, exported=False):
-    """ 
-    Searches for devices matching expressions, if exported is True only running devices are returned 
+    """
+    Searches for devices matching expressions, if exported is True only running devices are returned
     """
     db = taurus.Authority()
     all_devs = [s.lower() for s in db.get_device_name('*', '*')]

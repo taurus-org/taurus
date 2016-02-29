@@ -39,14 +39,14 @@ __docformat__ = "restructuredtext"
 
 
 class EnumException(Exception):
-    """Exception thrown by :class:`Enumeration` when trying to declare an 
+    """Exception thrown by :class:`Enumeration` when trying to declare an
     invalid enumeration."""
     pass
 
 
 class Enumeration(object):
-    """ Enumeration class intended to provide the 'enum' feature present in many 
-    programming languages. 
+    """ Enumeration class intended to provide the 'enum' feature present in many
+    programming languages.
     The elements of the enumeration can be accessed in an "object member way" or
     as elements of a dictionary.
     Usage::

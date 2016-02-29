@@ -42,8 +42,8 @@ import operator
 
 
 class CaselessList(list):
-    """A case insensitive lists that has some caseless methods. Only allows 
-    strings as list members. Most methods that would normally return a list, 
+    """A case insensitive lists that has some caseless methods. Only allows
+    strings as list members. Most methods that would normally return a list,
     return a CaselessList. (Except list() and lowercopy())
     Sequence Methods implemented are :
     __contains__, remove, count, index, append, extend, insert,
@@ -115,7 +115,7 @@ class CaselessList(list):
         list.append(self, item)
 
     def extend(self, item):
-        """Extend the list with another list. Each member of the list must be 
+        """Extend the list with another list. Each member of the list must be
         a string."""
         if not isinstance(item, list):
             raise TypeError('You can only extend lists with lists. '
@@ -138,7 +138,7 @@ class CaselessList(list):
         return count
 
     def index(self, item, minindex=0, maxindex=None):
-        """Provide an index of first occurence of item in the list. (or raise 
+        """Provide an index of first occurence of item in the list. (or raise
         a ValueError if item not present)
         If item is not a string, will raise a TypeError.
         minindex and maxindex are also optional arguments
@@ -168,10 +168,10 @@ class CaselessList(list):
 
     def __setitem__(self, index, value):
         """For setting values in the list.
-        index must be an integer or (extended) slice object. (__setslice__ used 
+        index must be an integer or (extended) slice object. (__setslice__ used
         for simple slices)
         If index is an integer then value must be a string.
-        If index is a slice object then value must be a list of strings - with 
+        If index is a slice object then value must be a list of strings - with
         the same length as the slice object requires.
         """
         if isinstance(index, int):
@@ -201,7 +201,7 @@ class CaselessList(list):
 
     def __getslice__(self, i, j):
         """Called to implement evaluation of self[i:j].
-        Although the manual says this method is deprecated - if I don't define 
+        Although the manual says this method is deprecated - if I don't define
         it the list one is called.
         (Which returns a list - this returns a CaselessList)"""
         return CaselessList(list.__getslice__(self, i, j))
@@ -693,14 +693,14 @@ def self_locked(func, reentrant=True):
 
 
 class ThreadDict(dict):
-    ''' Thread safe dictionary with redefinable read/write methods and a 
-    background thread for hardware update.  All methods are thread-safe using 
+    ''' Thread safe dictionary with redefinable read/write methods and a
+    background thread for hardware update.  All methods are thread-safe using
     *@self_lock* decorator.
 
     .. note::
         any method decorated in this way CANNOT call other decorated methods!
         All values of the dictionary will be automatically updated in a separate
-        Thread using read_method provided. Any value overwritten in the dict 
+        Thread using read_method provided. Any value overwritten in the dict
         should launch the write_method.
 
     Briefing::
@@ -889,7 +889,7 @@ class SortedDict(dict):
     def sort(self, key):
         """
         This method modifies the sorting of the dictionary overriding the existing sort key.
-        :param key: it can be a sequence containing all the keys already existing in the dictionary 
+        :param key: it can be a sequence containing all the keys already existing in the dictionary
                     or a callable providing a sorting key algorithm.
         """
         import operator
@@ -1101,7 +1101,7 @@ class ArrayBuffer(object):
         :param maxSize: (int) Maximum size of the internal buffer. The internal
                         buffer length will be allowed to grow up to this value.
                         If maxSize=0 (default), the maximum size will be that of
-                        the given buffer 
+                        the given buffer
         '''
 
         self.__buffer = buffer

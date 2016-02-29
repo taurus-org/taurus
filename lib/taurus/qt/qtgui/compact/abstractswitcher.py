@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""This module provides base classes from which the compact widgets should inherit 
+"""This module provides base classes from which the compact widgets should inherit
 """
 
 __all__ = ["TaurusReadWriteSwitcher"]
@@ -37,24 +37,24 @@ from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 
 class TaurusReadWriteSwitcher(TaurusWidget):
     '''
-    This is a base class for creating widgets that can switch 
+    This is a base class for creating widgets that can switch
     beetween read and write mode by combining a Taurus widget for reading
     and a Taurus Widget for writing.
 
-    For example, if you want to combine a TaurusLabel with a 
+    For example, if you want to combine a TaurusLabel with a
     TaurusValueLineEdit, you can implement it as follows::
 
         class MyRWSwitcher(TaurusReadWriteSwitcher):
             readWClass = TaurusLabel
-            writeWClass = TaurusValueLineEdit 
+            writeWClass = TaurusValueLineEdit
 
-    Alternatively, you can instantiate the TaurusReadWriteSwitcher class 
+    Alternatively, you can instantiate the TaurusReadWriteSwitcher class
     directly and pass the read and write classes to the constructor::
 
-        w = TaurusReadWriteSwitcher(readWClass=TaurusLabel, 
+        w = TaurusReadWriteSwitcher(readWClass=TaurusLabel,
                                     writeWClass=TaurusValueLineEdit)
 
-    Or you can even set the read and write widgets (instead of classes) 
+    Or you can even set the read and write widgets (instead of classes)
     after instantiation::
 
         w = TaurusReadWriteSwitcher()
@@ -64,15 +64,15 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         w.setWriteWidget(b)
 
     TaurusReadWriteSwitcher will normally show the read widget by default,
-    but it will allow to switch to "edit mode" (where the write widget 
+    but it will allow to switch to "edit mode" (where the write widget
     is shown instead). Enetering and exiting the edit mode is controlled
     by "triggers". Triggers can be key presses, QEvents or signals.
 
-    The default implementation sets pressing F2 or doubleclicking the read 
+    The default implementation sets pressing F2 or doubleclicking the read
     widget as the triggers for entering edit mode, and pressing Escape,
-    losing the focus or applying the value on the write widget as the 
-    triggers for leaving the edit mode. This can be customized by changing 
-    `enterEditTriggers` and `exitEditTriggers` class members or by passing 
+    losing the focus or applying the value on the write widget as the
+    triggers for leaving the edit mode. This can be customized by changing
+    `enterEditTriggers` and `exitEditTriggers` class members or by passing
     `enterEditTriggers` and `exitEditTriggers` keyword parameters to the
     constructor of TaurusReadWriteSwitcher:
 
@@ -178,8 +178,8 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         return obj.eventFilter(obj, event)
 
     def setReadWidget(self, widget):
-        '''set the read Widget to be used. You can reimplement this 
-        method to tweak the read widget. 
+        '''set the read Widget to be used. You can reimplement this
+        method to tweak the read widget.
 
         :param widget: (QWidget) This should be Taurus widget
         '''
@@ -203,7 +203,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
             self.readWidget, name='_R_' + self.readWidget.__class__.__name__)
 
     def setWriteWidget(self, widget):
-        '''set the write Widget to be used You can reimplement this 
+        '''set the write Widget to be used You can reimplement this
         method to tweak the write widget.
 
         :param widget: (Qt.QWidget) This should be Taurus widget

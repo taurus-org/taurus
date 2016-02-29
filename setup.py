@@ -587,11 +587,11 @@ class install_html(Command):
 
 
 class install_scripts(dftinstall_scripts):
-    '''Customization to create .bat wrappers for the scripts 
+    '''Customization to create .bat wrappers for the scripts
     when installing on windows.
     Adapted from a recipe by Matthew Brett (who licensed it under CC0):
     https://github.com/matthew-brett/myscripter/blob/master/setup.py
-    See rationale in: 
+    See rationale in:
     http://matthew-brett.github.io/pydagogue/installing_scripts.html
     '''
 
@@ -791,7 +791,7 @@ if sphinx:
     from sphinx.setup_command import BuildDoc
 
     class build_catalog(object):
-        '''builds an html catalog of icons. It links to png thumbnails that are 
+        '''builds an html catalog of icons. It links to png thumbnails that are
         created in the _static dir
         '''
 
@@ -918,7 +918,7 @@ if sphinx:
 
         @staticmethod
         def _zipdir(basedir, archivename):
-            '''function to zip the contents of basedir into archivename. 
+            '''function to zip the contents of basedir into archivename.
             Adapted from: http://stackoverflow.com/questions/296499
             '''
             from zipfile import ZipFile, ZIP_DEFLATED

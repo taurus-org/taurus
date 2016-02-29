@@ -25,7 +25,7 @@
 
 __all__ = ["PanelDescriptionWizard"]
 """
-paneldescriptionwizard.py: 
+paneldescriptionwizard.py:
 """
 
 from taurus.external.qt import Qt
@@ -593,7 +593,7 @@ class CommItemDelegate(Qt.QStyledItemDelegate):
 
 
 class PanelDescriptionWizard(Qt.QWizard, TaurusBaseWidget):
-    '''A wizard-style dialog for configuring a new TaurusGui panel. 
+    '''A wizard-style dialog for configuring a new TaurusGui panel.
     Use :meth:`getDialog` for launching it
     '''
 
@@ -639,7 +639,7 @@ class PanelDescriptionWizard(Qt.QWizard, TaurusBaseWidget):
 
         :param parent: parent widget for the new dialog
 
-        :return: (tuple<PanelDescription,bool>) tuple of a description object 
+        :return: (tuple<PanelDescription,bool>) tuple of a description object
                  and a state flag. The state is True if the dialog was accepted
                  and False otherwise
         """

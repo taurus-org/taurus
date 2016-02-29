@@ -90,13 +90,13 @@ class < _TauClass_ > ( < _SuperClass_ > , TauBaseWidget):
             Called by the model when an event is fired.
 
             Parameters:
-              src: Source of the event. Usually a tau.core.Attribute or 
+              src: Source of the event. Usually a tau.core.Attribute or
                    tau.core.Device object
               type: a TauEventType describing the type of event.
               data: A PyTango object with the event data. It can be None.
-                    - For TauEventType.change events is a PyTango.AttributeValue 
+                    - For TauEventType.change events is a PyTango.AttributeValue
                     object or None;
-                    - For TauEventType.attr_conf events is a 
+                    - For TauEventType.attr_conf events is a
                     PyTango.AttrConfEventData object or None.
             Return:
               None

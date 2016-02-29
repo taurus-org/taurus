@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-taurusdevicepropertytable.py: 
+taurusdevicepropertytable.py:
 """
 
 # todo: tango-centric
@@ -37,7 +37,7 @@ from taurus.core.taurusdevice import TaurusDevice
 
 
 class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
-    ''' 
+    '''
     This widget will show a list of properties of device and the list of values.
     @todo add a frame for Add, Delete and Refresh buttons!
     '''
@@ -329,7 +329,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         self.db.put_device_property(self.dev_name, dict)
 
     def setPropertyValue(self, value, i, j):
-        ''' This method inserts a new table widget inside the cell 
+        ''' This method inserts a new table widget inside the cell
         @deprecated ... use setText() and editProperty() event call instead!!!
         '''
         if len(value) == 1 and isinstance(value[0], str):

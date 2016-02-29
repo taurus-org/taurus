@@ -385,7 +385,7 @@ class ExtendedSelectionModel(Qt.QItemSelectionModel):
 
 @UILoadable(with_ui='ui')
 class CurvePropertiesView(Qt.QAbstractItemView):
-    '''This widget is a view on a CurvesTableModel. It displays and allows to change the 
+    '''This widget is a view on a CurvesTableModel. It displays and allows to change the
     properties of selected curve(s). Note that this widget does not allow to
     change selection by itself, but rather relies on some other view on the same
     model (like a QTableView) to alter the selection.
@@ -533,7 +533,7 @@ class CurvePropertiesView(Qt.QAbstractItemView):
                 setData(index, updatedprop, PROPS_ROLE)
 
     def showProperties(self, prop, blockSignals=True):
-        '''Updates the control widgets to show the given properties. 
+        '''Updates the control widgets to show the given properties.
 
          ..note:: that the signals of the controls may be temporally blocked to
                   prevent loops. See the `blockSignals` parameter.
@@ -602,7 +602,7 @@ class CurvePropertiesView(Qt.QAbstractItemView):
             self.blockControlsSignals(False)
 
     def getShownProperties(self):
-        """Returns a copy of the currently shown properties 
+        """Returns a copy of the currently shown properties
 
         :return: (CurveAppearanceProperties)
         """

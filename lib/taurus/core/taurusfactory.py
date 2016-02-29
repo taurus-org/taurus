@@ -26,32 +26,32 @@
 """
   This module provides the :class:`TaurusFactory` base class that any valid
   Factory in Taurus must inherit.
-  
-  The Factory objects are the basic block for building and interacting with a 
-  given scheme in Taurus. They provide Taurus Element objects (TaurusAuthority, 
+
+  The Factory objects are the basic block for building and interacting with a
+  given scheme in Taurus. They provide Taurus Element objects (TaurusAuthority,
   TaurusDevice, TaurusAttribute or TaurusConfiguration) for a given taurus model
   name.
-  
+
   Taurus model naming is URI based (see <https://tools.ietf.org/html/rfc3986>)
-  
-  All the standard components of an URI (scheme, authority, path, query and 
+
+  All the standard components of an URI (scheme, authority, path, query and
   fragment) may be part of a model name, and they are separated as follows:
-    
+
   <scheme>:<authority><path>?<query>#<fragment>
-  
-  
-  The following are some points to consider when using and/or implementing 
+
+
+  The following are some points to consider when using and/or implementing
   schemes based on this Abstract class:
-  
-  - It is strongly recommended that the scheme component is always present 
-  explicitly in the model name, although a default scheme can be defined in 
-  :mod:`taurus.tauruscustomsettings` so that model names which do not explicit 
+
+  - It is strongly recommended that the scheme component is always present
+  explicitly in the model name, although a default scheme can be defined in
+  :mod:`taurus.tauruscustomsettings` so that model names which do not explicit
   the scheme can be auto-completed.
-  
-  - The authority component (if present on a given name) must always begin by 
+
+  - The authority component (if present on a given name) must always begin by
   a double slash ('//'). (see
   <https://tools.ietf.org/html/rfc3986#section-3.2>)
-  
+
   - The path component, if present, must start by a single slash ('/') (see
   <https://tools.ietf.org/html/rfc3986#section-3.3>)
 
@@ -119,17 +119,17 @@ class TaurusFactory(object):
     def getAuthority(self, name=None):
         """getAuthority(string db_name) -> taurus.core.taurusauthority.TaurusAuthority
 
-        Obtain the object corresponding to the given authority name or the 
+        Obtain the object corresponding to the given authority name or the
         default authority if db_name is None.
-        If the corresponding authority object already exists, the existing 
+        If the corresponding authority object already exists, the existing
         instance is returned. Otherwise a new instance is stored and returned.
 
-        @param[in] db_name authority name string. It should be formed like: 
-                           <scheme>://<authority>. If <scheme> is ommited then 
-                           it will use the default scheme. if db_name is None, 
+        @param[in] db_name authority name string. It should be formed like:
+                           <scheme>://<authority>. If <scheme> is ommited then
+                           it will use the default scheme. if db_name is None,
                            the default authority is used
 
-        @return a taurus.core.taurusauthority.TaurusAuthority object 
+        @return a taurus.core.taurusauthority.TaurusAuthority object
         @throws TaurusException if the given name is invalid.
         """
         raise NotImplementedError("getAuthority cannot be called for abstract"
@@ -138,17 +138,17 @@ class TaurusFactory(object):
     def getDevice(self, dev_name, **kw):
         """getDevice(string dev_name) -> taurus.core.taurusdevice.TaurusDevice
 
-        Obtain the object corresponding to the given device name. If the 
-        corresponding device already exists, the existing instance is returned. 
+        Obtain the object corresponding to the given device name. If the
+        corresponding device already exists, the existing instance is returned.
         Otherwise a new instance is stored and returned.
 
         @param[in] dev_name the device name string. It should be formed like:
-                            <scheme>://<authority>/<device name>. If <scheme> 
-                            is ommited then it will use the default scheme. 
-                            If authority is ommited then it will use the 
+                            <scheme>://<authority>/<device name>. If <scheme>
+                            is ommited then it will use the default scheme.
+                            If authority is ommited then it will use the
                             default authority for the scheme.
 
-        @return a taurus.core.taurusdevice.TaurusDevice object 
+        @return a taurus.core.taurusdevice.TaurusDevice object
         @throws TaurusException if the given name is invalid.
         """
         raise NotImplementedError("getDevice cannot be called for abstract"
@@ -163,7 +163,7 @@ class TaurusFactory(object):
 
         @param[in] attr_name string attribute name
 
-        @return a taurus.core.taurusattribute.TaurusAttribute object 
+        @return a taurus.core.taurusattribute.TaurusAttribute object
         @throws TaurusException if the given name is invalid.
         """
         raise NotImplementedError("getAttribute cannot be called for abstract"
@@ -301,8 +301,8 @@ class TaurusFactory(object):
 
     def getValidTypesForName(self, name, strict=None):
         '''
-        Returns a list of all Taurus element types for which `name` is a valid 
-        model name (while in many cases a name may only be valid for one 
+        Returns a list of all Taurus element types for which `name` is a valid
+        model name (while in many cases a name may only be valid for one
         element type, this is not necessarily true in general)
 
         In this base implementation, name is checked first for Attribute, then
@@ -314,7 +314,7 @@ class TaurusFactory(object):
         :param name: (str) taurus model name
 
         :return: (list<TaurusElementType.element>) where element can be one of:
-                 `Configuration`, `Attribute`, `Device` or `Authority` 
+                 `Configuration`, `Attribute`, `Device` or `Authority`
         '''
         ret = []
         if self.getAttributeNameValidator().isValid(name, strict=strict):
@@ -331,7 +331,7 @@ class TaurusFactory(object):
 
         Note, this generic implementation expects that derived classes provide a
         an attribute called elementTypesMap consisting in a dictionary whose
-        keys are TaurusElementTypes and whose values are the corresponding 
+        keys are TaurusElementTypes and whose values are the corresponding
         specific object classes. e.g., the FooFactory should provide::
 
           class FooFactory(TaurusFactory):

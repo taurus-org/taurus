@@ -52,7 +52,7 @@ class TaurusLabelTest(GenericWidgetTestCase, unittest.TestCase):
 class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
 
     '''
-    Test bug169: 
+    Test bug169:
 
         AttributeError: type object 'TaurusConfigurationProxy' has no attribute
         'buildModelName'.

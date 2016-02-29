@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""This module provides a base widget that can be used to display a taurus 
+"""This module provides a base widget that can be used to display a taurus
 model in a tree widget"""
 
 __all__ = ["TaurusBaseTreeWidget"]

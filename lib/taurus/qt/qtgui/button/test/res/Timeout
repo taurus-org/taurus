@@ -27,7 +27,7 @@
 This module contains classes necessary by a simple python Tango Device Server.
 
 TimeoutDs is used to provoke timeout exceptions on requests.
-It comprises one device class: Timeout. 
+It comprises one device class: Timeout.
 This class implements one attribute: Timeout_attr and one command: TimoutCmd.
 
 Timeout_attr is read/write of type float and its dimension is scalar.
@@ -37,7 +37,7 @@ TimeoutCmd expects as an argument a float scalar.
 The argument value is the time that will take to execute the command.
 
 #@TODO: create .bat file to allow starting on windows
-    
+
 """
 
 import PyTango

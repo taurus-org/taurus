@@ -49,7 +49,7 @@ def get_input(input_data, parent=None, input_panel_klass=None):
         - *unit* <str> (doesn't have default value):
           a label to be presented right to the input box representing the units
         - *data_type* <str or sequence> ('String'):
-          type of data to be requested. Standard 
+          type of data to be requested. Standard
           accepted data types are 'String', 'Integer', 'Float', 'Boolean',
           'Text'. A list of elements will be interpreted as a selection.
           Default TaurusInputPanel class will interpret any custom data types as
@@ -58,14 +58,14 @@ def get_input(input_data, parent=None, input_panel_klass=None):
           input_panel_klass.
         - *minimum* <int/float> (-sys.maxint):
           minimum value (makes sence when data_type is 'Integer' or 'Float')
-        - *maximum* <int/float> (sys.maxint): 
+        - *maximum* <int/float> (sys.maxint):
           maximum value (makes sence when data_type is 'Integer' or 'Float')
-        - *step* <int/float> (1): 
+        - *step* <int/float> (1):
           step size value (makes sence when data_type is 'Integer' or 'Float')
-        - *decimals* <int> (1): 
+        - *decimals* <int> (1):
           number of decimal places to show (makes sence when data_type is
           'Float')
-        - *default_value* <obj> (doesn't have default value): 
+        - *default_value* <obj> (doesn't have default value):
           default value
         - *allow_multiple* <bool> (False):
           allow more than one value to be selected (makes sence when data_type
@@ -87,13 +87,13 @@ def get_input(input_data, parent=None, input_panel_klass=None):
         d1 = dict(prompt="What's your name?", data_type="String")
         d2 = dict(prompt="What's your age?", data_type="Integer",
                   default_value=4, maximum=100, key="Age", unit="years")
-        d3 = dict(prompt="What's your favourite number?", data_type="Float", 
+        d3 = dict(prompt="What's your favourite number?", data_type="Float",
                   default_value=0.1, maximum=88.8, key="Number")
         d4 = dict(prompt="What's your favourite car brand?",
-                  data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"], 
+                  data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"],
                   default_value="Mercedes")
         d5 = dict(prompt="Select some car brands", allow_multiple=True,
-                  data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"], 
+                  data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"],
                   default_value=["Mercedes", "Citroen"])
         d6 = dict(prompt="What's your favourite color?", key="Color",
                   data_type=["blue", "red", "green"], default_value="red")

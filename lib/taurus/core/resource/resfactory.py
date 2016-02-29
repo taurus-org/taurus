@@ -73,10 +73,10 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
     def reloadResource(self, obj=None, priority=1, name=None):
         """(Re)Loads the given resource.
 
-           :param obj: (dict or file or None) the resource object. Default is 
-                       None meaning in will (re)load the default resource: 
+           :param obj: (dict or file or None) the resource object. Default is
+                       None meaning in will (re)load the default resource:
                        taurus_resources.py from the application directory
-           :param priority: (int) the resource priority. Default is 1 meaning 
+           :param priority: (int) the resource priority. Default is 1 meaning
                             maximum priority
            :param name: (str) an optional name to give to the resource
 

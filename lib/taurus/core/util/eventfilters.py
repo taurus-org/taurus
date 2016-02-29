@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""event filters library to be used with 
+"""event filters library to be used with
 :meth:`taurus.qt.qtgui.base.TaurusBaseComponent.setFilters`"""
 
 
@@ -138,19 +138,19 @@ class EventValueMap(dict):
 
 class RepeatedEventFilter(object):
     """
-    The instances of this class will be callables that can be used as filters 
-    of repeated-value events. 
-    If the event type is Change or Periodic, it will only pass when its 
-    evt_value.value is different from that of the last event received from the 
-    same source and type. If evt_value.value is not available in the current 
+    The instances of this class will be callables that can be used as filters
+    of repeated-value events.
+    If the event type is Change or Periodic, it will only pass when its
+    evt_value.value is different from that of the last event received from the
+    same source and type. If evt_value.value is not available in the current
     event, the whole evt_value is used for comparison and as a future reference.
 
     This is useful to avoid processing repetitive events.
 
-    Note that you cannot use this class as a filter: you need to use an 
+    Note that you cannot use this class as a filter: you need to use an
     instance of it.
 
-    Note 2: Use a different instance each time you insert this filter 
+    Note 2: Use a different instance each time you insert this filter
     into a different widget unless you *really* know what you are doing.
 
     Example of usage::
@@ -187,11 +187,11 @@ def filterEvent(evt_src=-1, evt_type=-1, evt_value=-1, filters=()):
     :param evt_type: (TaurusEventType) type of event
     :param evt_value: (object) event value
     :param filters: (sequence<callable>) a sequence of callables, each returning
-                    either None (to discard the event) or the tuple (with 
-                    possibly transformed values) of 
+                    either None (to discard the event) or the tuple (with
+                    possibly transformed values) of
                     (evt_src, evt_type, evt_value)
 
-    :return: (None or tuple) The result of piping the event through the given 
+    :return: (None or tuple) The result of piping the event through the given
              filters.
     """
     evt = evt_src, evt_type, evt_value

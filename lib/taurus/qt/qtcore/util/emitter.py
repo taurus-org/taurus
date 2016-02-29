@@ -139,11 +139,11 @@ class TaurusEmitterThread(Qt.QThread):
                 ...
             def setModel(self,model):
                 ...
-                if hasattr(self,'modelsThread') and not self.modelsThread.isRunning(): 
+                if hasattr(self,'modelsThread') and not self.modelsThread.isRunning():
                     self.modelsThread.start()
                 elif self.modelsQueue.qsize():
                     self.modelsThread.next()
-                ...    
+                ...
 
     """
 
@@ -365,7 +365,7 @@ class SingletonWorker():  # Qt.QObject):
         return
 
     def clear(self):
-        """ 
+        """
         This method will clear queue only if next() has not been called.
         If you call self.thread.clear() it will clear objects for all workers!, be careful
         """

@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-qlogo.py: 
+qlogo.py:
 """
 
 __all__ = ["QLogo"]
@@ -54,7 +54,7 @@ class QLogo(Qt.QLabel):
         """Returns pertinent information in order to be able to build a valid
         QtDesigner widget plugin.
 
-        The dictionary returned by this method should contain *at least* the 
+        The dictionary returned by this method should contain *at least* the
         following keys and values:
 
             - 'module' : a string representing the full python module name (ex.: 'taurus.qt.qtgui.base')

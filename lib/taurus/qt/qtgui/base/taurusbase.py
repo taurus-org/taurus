@@ -59,7 +59,7 @@ DefaultNoneValue = "-----"
 class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     """A generic Taurus component.
 
-       .. note:: 
+       .. note::
            Any class which inherits from TaurusBaseComponent is expected to also
            inherit from QObject (or from a QObject derived class) If this is not
            fullfilled, at least the class should reimplement the :meth:`getSignaller`
@@ -185,14 +185,14 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
     def updateStyle(self):
-        """Method called when the component detects an event that triggers a 
+        """Method called when the component detects an event that triggers a
         change in the style.
         Default implementation doesn't do anything. Overwrite when necessary
         """
         pass
 
     def getParentTaurusComponent(self):
-        """ Returns a parent Taurus component or None if no parent 
+        """ Returns a parent Taurus component or None if no parent
         :class:`taurus.qt.qtgui.base.TaurusBaseComponent` is found.
 
         :raises: RuntimeError
@@ -206,8 +206,8 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     def setEventBufferPeriod(self, period):
         '''Set the period at wich :meth:`fireBufferedEvents` will be called.
-        If period is 0, the event buffering is disabled (i.e., events are fired 
-        as soon as they are received) 
+        If period is 0, the event buffering is disabled (i.e., events are fired
+        as soon as they are received)
 
         :param period: (float) period in seconds for the automatic event firing.
                     period=0 will disable the event buffering.
@@ -225,7 +225,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             self._bufferedEventsTimer.start()
 
     def getEventBufferPeriod(self):
-        '''Returns the event buffer period 
+        '''Returns the event buffer period
 
         :return: (float) period (in s). 0 means event buffering is disabled.
         '''
@@ -243,7 +243,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
         .. note::
             in the earlier steps of the chain (i.e., in :meth:`eventReceived`/
-            :meth:`fireEvent`), the code is executed in a Python thread, while 
+            :meth:`fireEvent`), the code is executed in a Python thread, while
             from eventFilter ahead, the code is executed in a Qt thread.
             When writing widgets, one should normally work on the Qt thread
             (i.e. reimplementing :meth:`handleEvent`)
@@ -260,12 +260,12 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     def fireEvent(self, evt_src=None, evt_type=None, evt_value=None):
         """Emits a "taurusEvent" signal.
         It is unlikely that you need to reimplement this method in subclasses.
-        Consider reimplementing :meth:`eventReceived` or :meth:`handleEvent` 
-        instead depending on whether you need to execute code in the python 
+        Consider reimplementing :meth:`eventReceived` or :meth:`handleEvent`
+        instead depending on whether you need to execute code in the python
         or Qt threads, respectively
 
         :param evt_src: (object or None) object that triggered the event
-        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType or None) 
+        :param evt_type: (taurus.core.taurusbasetypes.TaurusEventType or None)
                          type of event
         :param evt_value: (object or None) event value
         """
@@ -364,7 +364,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     def getEventFilters(self, preqt=False):
         """Returns the list of event filters for this widget
 
-        :param preqt: (bool) If true, return the pre-filters (that are applied 
+        :param preqt: (bool) If true, return the pre-filters (that are applied
                       in eventReceived, at the python thread),
                       otherwise, return the filters to be applied at the main
                       Qt thread (default)
@@ -422,17 +422,17 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     def getModelClass(self):
         """Return the class object for the widget.
-        Default behavior is to do a 'best effort' to determine which model 
+        Default behavior is to do a 'best effort' to determine which model
         type corresponds to the current model name.
         Overwrite as necessary.
 
-        :return: (class TaurusModel or None) The class object corresponding to the type 
+        :return: (class TaurusModel or None) The class object corresponding to the type
                  of Taurus model this widget handles or None if no valid class is found.
         """
         return self.findModelClass()
 
     def findModelClass(self):
-        """Do a "best effort" to determine which model type corresponds to the 
+        """Do a "best effort" to determine which model type corresponds to the
         given model name.
 
         :return: (class TaurusModel or None) The class object corresponding to the type
@@ -471,12 +471,12 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def setModelName(self, modelName, parent=None):
-        """This method will detach from the previous taurus model (if any), it 
-        will set the new model to the given modelName and it will attach 
+        """This method will detach from the previous taurus model (if any), it
+        will set the new model to the given modelName and it will attach
         this component to the new taurus model.
 
         :param modelName: (str) the new taurus model name (according to the taurus convention)
-        :param parent: (TaurusBaseComponent) the parent or None (default) if this 
+        :param parent: (TaurusBaseComponent) the parent or None (default) if this
                        component does not have a parent Taurus component
         """
         modelName = str(modelName)
@@ -529,7 +529,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         return p.getModelName()
 
     def getParentModelObj(self):
-        """Returns the parent model object or None if the component has no 
+        """Returns the parent model object or None if the component has no
         parent or if the parent's model is None
 
         :return: (taurus.core.taurusmodel.TaurusModel or None) the parent taurus model object
@@ -543,7 +543,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         return p.getModelObj()
 
     def getModelObj(self):
-        """Returns the taurus model obj associated with this component or None if 
+        """Returns the taurus model obj associated with this component or None if
         no taurus model is associated.
 
         :return: (taurus.core.taurusmodel.TaurusModel or None) the taurus model object
@@ -551,7 +551,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         return self.modelObj
 
     def getModelType(self):
-        """Returns the taurus model type associated with this component or 
+        """Returns the taurus model type associated with this component or
         taurus.core.taurusbasetypes.TaurusElementType.Unknown if no taurus model is associated.
 
         :return: (taurus.core.taurusbasetypes.TaurusElementType) the taurus model type
@@ -562,10 +562,10 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         return model_obj.getTaurusElementType()
 
     def getModelValueObj(self, cache=True):
-        """Returns the tango obj value associated with this component or None 
+        """Returns the tango obj value associated with this component or None
         if no taurus model is associated.
 
-        :param cache: (bool) if set to True (default) use the cache value. If set to 
+        :param cache: (bool) if set to True (default) use the cache value. If set to
                       False will force a connection to the server.
 
         :return: (TaurusAttrValue) the tango value object.
@@ -603,7 +603,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     def getFormatedToolTip(self, cache=True):
         """Returns a string with contents to be displayed in a tooltip.
 
-        :param cache: (bool) if set to True (default) use the cache value. If set to 
+        :param cache: (bool) if set to True (default) use the cache value. If set to
                       False will force a connection to the server.
 
         :return: (str) a tooltip
@@ -677,7 +677,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         return self.noneValue
 
     def isChangeable(self):
-        """Tells if this component value can be changed by the user. Default implementation 
+        """Tells if this component value can be changed by the user. Default implementation
         will return True if and only if:
 
             - this component is attached to a valid taurus model and
@@ -811,12 +811,12 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         '''
         Sets whether the model-related properties should be stored for this
         widget when creating the config dict with :meth:`createConfig` (and
-        restored when calling :meth:`applyConfig`). 
+        restored when calling :meth:`applyConfig`).
         By default this is not enabled.
         The following properties are affected by this:
         - "model"
 
-        :param yesno: (bool) If True, the model-related properties will be 
+        :param yesno: (bool) If True, the model-related properties will be
                       registered as config properties. If False, they will be
                       unregistered.
 
@@ -847,7 +847,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         Use :meth:`TaurusBaseWidget.safeApplyOperation` if you want to warn the
         user before applying
 
-        :param ops: (sequence<taurus.core.taurusoperation.TaurusOperation> or None) list of operations to apply. 
+        :param ops: (sequence<taurus.core.taurusoperation.TaurusOperation> or None) list of operations to apply.
                     If None is given (default) the component fetches the pending operations
         """
         self.debug("Apply changes")
@@ -883,7 +883,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         self._operations = []
 
     def setDangerMessage(self, dangerMessage=""):
-        """Sets the danger message when applying an operation. If dangerMessage is None, 
+        """Sets the danger message when applying an operation. If dangerMessage is None,
         the apply operation is considered safe
 
         :param dangerMessage: (str or None) the danger message. If None is given (default)
@@ -1112,7 +1112,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
     """The base class for all Qt Taurus widgets.
 
     .. note::
-        Any class which inherits from TaurusBaseWidget is expected to also 
+        Any class which inherits from TaurusBaseWidget is expected to also
         inherit from QWidget (or from a QWidget derived class)"""
 
     ModelChangedSignal = 'modelChanged(const QString &)'
@@ -1238,8 +1238,8 @@ class TaurusBaseWidget(TaurusBaseComponent):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def changeEvent(self, evt):
-        """overwrites QWidget.changeEvent(self, evt) to handle the ParentChangeEvent 
-        in case this widget is using the parent model. Always calls the QWidget.changeEvent 
+        """overwrites QWidget.changeEvent(self, evt) to handle the ParentChangeEvent
+        in case this widget is using the parent model. Always calls the QWidget.changeEvent
         in order not to lose events
         """
         if self.getUseParentModel():
@@ -1432,7 +1432,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
     def getSupportedMimeTypes(self):
         '''
         returns a list of supported mimeTypes that this widget support (ordered
-        by priority). If none is set explicitely via :meth:`setSupportedMimeTypes`, 
+        by priority). If none is set explicitely via :meth:`setSupportedMimeTypes`,
         a best effort will be tried based on the model class
 
         ..seealso: :meth:`setSupportedMimeTypes`
@@ -1457,7 +1457,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
 
     def setSupportedMimeTypes(self, mimetypes):
         '''
-        sets the mimeTypes that this widget support 
+        sets the mimeTypes that this widget support
 
         :param mimetypes: (list<str>) list (ordered by priority) of MIME type names
         '''
@@ -1473,8 +1473,8 @@ class TaurusBaseWidget(TaurusBaseComponent):
                     return
 
     def getDropEventCallback(self):
-        '''returns the method to be called when a dropping event occurs. 
-        The default implementation returns `self.setModel`. Reimplement 
+        '''returns the method to be called when a dropping event occurs.
+        The default implementation returns `self.setModel`. Reimplement
         it subclasses to call different methods.
 
         :return: (callable)
@@ -1492,12 +1492,12 @@ class TaurusBaseWidget(TaurusBaseComponent):
 
     def handleMimeData(self, mimeData, method):
         '''Selects the most appropriate data from the given mimeData object
-        (in the order returned by :meth:`getSupportedMimeTypes`) and passes 
+        (in the order returned by :meth:`getSupportedMimeTypes`) and passes
         it to the given method.
 
         :param mimeData: (QMimeData) the MIME data object from which the model
                          is to be extracted
-        :param method: (callable<str>) a method that accepts a string as argument. 
+        :param method: (callable<str>) a method that accepts a string as argument.
                        This method will be called with the data from the mimeData object
 
         :return: (str or None) returns the MimeType used if the model was
@@ -1520,7 +1520,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
                     return None
 
     def getModelMimeData(self):
-        '''Returns a MimeData object containing the model data. The default implementation 
+        '''Returns a MimeData object containing the model data. The default implementation
         fills the `TAURUS_MODEL_MIME_TYPE`. If the widget's Model class is
         Attribute or Device, it also fills `TAURUS_ATTR_MIME_TYPE` or
         `TAURUS_DEV_MIME_TYPE`, respectively
@@ -1598,7 +1598,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
     def safeApplyOperations(self, ops=None):
         """Applies the given operations (or the pending operations if None passed)
 
-        :param ops: (sequence<taurus.core.taurusoperation.TaurusOperation> or None) list of operations to apply. 
+        :param ops: (sequence<taurus.core.taurusoperation.TaurusOperation> or None) list of operations to apply.
                     If None is given (default) the component fetches the pending operations
 
         :return: (bool) False if the apply was aborted by the user or if the
@@ -1663,7 +1663,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         """Returns pertinent information in order to be able to build a valid
         QtDesigner widget plugin.
 
-        The dictionary returned by this method should contain *at least* the 
+        The dictionary returned by this method should contain *at least* the
         following keys and values:
         - 'module' : a string representing the full python module name (ex.: 'taurus.qt.qtgui.base')
         - 'icon' : a string representing valid resource icon (ex.: ':/designer/combobox.png')
@@ -1728,9 +1728,9 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
     def setAutoApply(self, auto):
         '''
         Sets autoApply mode. In autoApply mode, the widget writes the value
-        automatically whenever it is changed by the user (e.g., when 
-        :meth:`valueChanged` is called). If False, a value changed just 
-        flags a "pending operation" which needs to be applied manually by 
+        automatically whenever it is changed by the user (e.g., when
+        :meth:`valueChanged` is called). If False, a value changed just
+        flags a "pending operation" which needs to be applied manually by
         the user before the value gets written.
 
         :param auto: (bool) True for setting autoApply mode. False for disabling
@@ -1740,7 +1740,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
     def getAutoApply(self):
         '''whether autoApply mode is enabled or not.
 
-        :return: (bool) 
+        :return: (bool)
         '''
         return self._autoApply
 
@@ -1749,8 +1749,8 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         self.setAutoApply(False)
 
     def setForcedApply(self, forced):
-        '''Sets the forcedApply mode. In forcedApply mode, values are written even 
-        if there are not pending operations (e.g. even if the displayed value is 
+        '''Sets the forcedApply mode. In forcedApply mode, values are written even
+        if there are not pending operations (e.g. even if the displayed value is
         the same as the currently applied one).
 
         .. seealso: :meth:`forceApply` and :meth:`writeValue`
@@ -1762,7 +1762,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
     def getForcedApply(self):
         '''whether forcedApply mode is enabled or not.
 
-        :return: (bool) 
+        :return: (bool)
         '''
         return self._forcedApply
 
@@ -1786,8 +1786,8 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
 
         It emits the applied signal if apply is not aborted.
 
-        :param forceApply: (bool) If True, it behaves as in forceApply mode 
-                           (even if the forceApply mode is disabled by 
+        :param forceApply: (bool) If True, it behaves as in forceApply mode
+                           (even if the forceApply mode is disabled by
                            :meth:`setForceApply`)
         '''
         if self.hasPendingOperations():
@@ -1876,16 +1876,16 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         '''returns the operation callbacks (i.e., a sequence of methods that will be called after an operation is executed
            (this default implementation it returns an empty list).
 
-        :return: (sequence<callable>)   
+        :return: (sequence<callable>)
         '''
         return []
 
     def getValue(self):
         '''
-        This method must be implemented in derived classes to return 
-        the value to be written. Note that this may differ 
-        from the displayed value (e.g. for a numeric value being 
-        edited by a QLineEdit-based widget, the displayed value will 
+        This method must be implemented in derived classes to return
+        the value to be written. Note that this may differ
+        from the displayed value (e.g. for a numeric value being
+        edited by a QLineEdit-based widget, the displayed value will
         be a string while getValue will return a number)
         '''
         raise NotImplementedError(
@@ -1893,11 +1893,11 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
 
     def setValue(self, v):
         '''
-        This method must be implemented in derived classes to provide 
-        a (widget-specific) way of updating the displayed value based 
+        This method must be implemented in derived classes to provide
+        a (widget-specific) way of updating the displayed value based
         on a given attribute value
 
-        :param v: The attribute value 
+        :param v: The attribute value
         '''
         raise NotImplementedError(
             "Not allowed to call TaurusBaseWritableWidget.setValue()")

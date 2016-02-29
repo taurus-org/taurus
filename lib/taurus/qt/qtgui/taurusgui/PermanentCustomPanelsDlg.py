@@ -25,7 +25,7 @@
 
 
 """
-PermanentCustomPanelDlg.py: 
+PermanentCustomPanelDlg.py:
 """
 
 from taurus.external.qt import Qt

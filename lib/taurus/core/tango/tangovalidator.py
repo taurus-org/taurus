@@ -43,8 +43,8 @@ from taurus.core.taurusvalidator import (TaurusAttributeNameValidator,
 #      regexp (always a 3-tuple)
 
 class TangoAuthorityNameValidator(TaurusAuthorityNameValidator):
-    '''Validator for Tango authority names. Apart from the standard named 
-    groups (scheme, authority, path, query and fragment), the following named 
+    '''Validator for Tango authority names. Apart from the standard named
+    groups (scheme, authority, path, query and fragment), the following named
     groups are created:
 
      - host: tango host name, without port.
@@ -59,13 +59,13 @@ class TangoAuthorityNameValidator(TaurusAuthorityNameValidator):
 
 
 class TangoDeviceNameValidator(TaurusDeviceNameValidator):
-    '''Validator for Tango device names. Apart from the standard named 
-    groups (scheme, authority, path, query and fragment), the following named 
+    '''Validator for Tango device names. Apart from the standard named
+    groups (scheme, authority, path, query and fragment), the following named
     groups are created:
 
      - devname: device name (either alias or slashed name)
      - [_devalias]: device alias
-     - [_devslashname]: device name in slashed (a/b/c) form 
+     - [_devslashname]: device name in slashed (a/b/c) form
      - [host] as in :class:`TangoAuthorityNameValidator`
      - [port] as in :class:`TangoAuthorityNameValidator`
 
@@ -82,9 +82,9 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
 
     def getNames(self, fullname, factory=None, queryAuth=True):
         '''reimplemented from :class:`TaurusDeviceNameValidator`. It accepts an
-        extra keyword arg `queryAuth` which, if set to False, will prevent the 
+        extra keyword arg `queryAuth` which, if set to False, will prevent the
         validator from trying to query a TaurusAuthority to obtain missing info
-        such as the devslashname <--> devalias correspondence. 
+        such as the devslashname <--> devalias correspondence.
         '''
         groups = self.getUriGroups(fullname)
         if groups is None:
@@ -152,8 +152,8 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
 
 
 class TangoAttributeNameValidator(TaurusAttributeNameValidator):
-    '''Validator for Tango attribute names. Apart from the standard named 
-    groups (scheme, authority, path, query and fragment), the following named 
+    '''Validator for Tango attribute names. Apart from the standard named
+    groups (scheme, authority, path, query and fragment), the following named
     groups are created:
 
      - attrname: attribute name including device name

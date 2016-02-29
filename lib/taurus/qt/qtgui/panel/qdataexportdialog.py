@@ -36,7 +36,7 @@ from taurus.qt.qtgui.util.ui import UILoadable
 @UILoadable
 class QDataExportDialog(Qt.QDialog):
     """
-    This creates a Qt dialog for showing and exporting x-y Ascii data from one or more curves 
+    This creates a Qt dialog for showing and exporting x-y Ascii data from one or more curves
     The data sets are passed (by calling setDataSets() or at instantiation time) as a dictionary::
 
         datadict={name:(x,y),...}

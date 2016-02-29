@@ -211,8 +211,8 @@ def getThemeIcon(key):
 
 
 def getStandardIcon(key, widget=None):
-    """Returns a PyQt4.QtGui.QIcon object for the given key. Key should be a 
-    QStyle.StandardPixmap enumeration member. The widget argument is optional 
+    """Returns a PyQt4.QtGui.QIcon object for the given key. Key should be a
+    QStyle.StandardPixmap enumeration member. The widget argument is optional
     and can also be used to aid the determination of the icon.
 
     :param key: (QStyle.StandardPixmap) a standard pixmap which can follow some existing GUI style or guideline
@@ -268,7 +268,7 @@ def getElementTypeIconName(elemType):
 
     :param elemType: (TaurusElementType) the taurus element type
 
-    :return: (str) a string representing the icon name for the given 
+    :return: (str) a string representing the icon name for the given
              :class:`taurus.core.taurusbasetypes.TaurusElementType`"""
     if elemType is None:
         return
@@ -303,7 +303,7 @@ def getElementTypePixmap(elemType, size=None):
     fallback is returned.
 
     :param elemType: (TaurusElementType) the taurus element type
-    :param size: (int) the pixmap size in pixels (will get a square pixmap). 
+    :param size: (int) the pixmap size in pixels (will get a square pixmap).
                  Default is None meaning it will return the original size.
 
     :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`"""
@@ -381,7 +381,7 @@ def getDevStatePixmap(state, size=None):
     fallback is returned.
 
     :param state: (TaurusDevState) the taurus software device state
-    :param size: (int) the pixmap size in pixels (will get a square pixmap). 
+    :param size: (int) the pixmap size in pixels (will get a square pixmap).
                  Default is None meaning it will return the original size.
 
     :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`"""

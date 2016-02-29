@@ -311,10 +311,10 @@ class CriticalIt(LogIt):
 
 
 class PrintIt(object):
-    '''A decorator similar to TraceIt, DebugIt,... etc but which does not 
+    '''A decorator similar to TraceIt, DebugIt,... etc but which does not
     require the decorated class to inherit from Logger.
     It just uses print statements instead of logging. It is here just to be
-    used as a replacement of those decorators if you cannot use them on a 
+    used as a replacement of those decorators if you cannot use them on a
     non-logger class.
     '''
 
@@ -836,8 +836,8 @@ class Logger(Object):
 
     def deprecated(self, msg=None, dep=None, alt=None, rel=None, dbg_msg=None,
                    _callerinfo=None, **kw):
-        """Record a deprecated warning message in this object's logger. 
-           If message is not passed, a estandard deprecation message is 
+        """Record a deprecated warning message in this object's logger.
+           If message is not passed, a estandard deprecation message is
            constructued using dep, alt, rel arguments.
            Also, an extra debug message can be recorded, followed by traceback
            info.
@@ -846,11 +846,11 @@ class Logger(Object):
                        be constructed using dep (and, optionally, alt and rel)
            :param dep: (str) name of deprecated feature (in case msg is None)
            :param alt: (str) name of alternative feature (in case msg is None)
-           :param rel: (str) name of release from which the feature was 
+           :param rel: (str) name of release from which the feature was
                        deprecated (in case msg is None)
-           :param dbg_msg: (str) msg for debug (or None to log only the warning)  
+           :param dbg_msg: (str) msg for debug (or None to log only the warning)
            :param _callerinfo: for internal use only. Do not use this argument.
-           :param kw: any additional keyword arguments, are passed to 
+           :param kw: any additional keyword arguments, are passed to
                      :meth:`logging.Logger.warning`
         """
         if msg is None:

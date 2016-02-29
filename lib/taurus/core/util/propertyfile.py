@@ -24,8 +24,8 @@
 #############################################################################
 
 """
-propertyfile.py: 
-    
+propertyfile.py:
+
 A Python replacement for java.util.Properties class
 This is modelled as closely as possible to the Java original.
 

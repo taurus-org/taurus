@@ -24,9 +24,9 @@
 ###########################################################################
 
 """
-This module provides objects to manage macro-related tasks. Its primary use is 
-to be used within a TaurusGui for managing panels for: 
-- setting preferences in the sardana control system for data I/O 
+This module provides objects to manage macro-related tasks. Its primary use is
+to be used within a TaurusGui for managing panels for:
+- setting preferences in the sardana control system for data I/O
 - displaying results of macro executions, including creating/removing panels for
   plotting results of scans
 - editing macros
@@ -58,13 +58,13 @@ class ChannelFilter(object):
 
 class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
     '''This is a manager of plots related to the execution of macros.
-    It dynamically creates/removes plots according to the configuration made by 
+    It dynamically creates/removes plots according to the configuration made by
     an ExperimentConfiguration widget.
 
     Currently it supports only 1D scan trends (2D scans are only half-baked)
 
-    To use it simply instantiate it and pass it a door name as a model. You may 
-    want to call :meth:`onExpConfChanged` to update the configuration being 
+    To use it simply instantiate it and pass it a door name as a model. You may
+    want to call :meth:`onExpConfChanged` to update the configuration being
     used.
     '''
 
@@ -118,10 +118,10 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
         Slot to be called when experimental configuration changes. It should
         remove the temporary panels and create the new ones needed.
 
-        :param expconf: (dict) An Experiment Description dictionary. See 
+        :param expconf: (dict) An Experiment Description dictionary. See
                         :meth:`sardana.taurus.qt.qtcore.tango.sardana.
-                        QDoor.getExperimentDescription` 
-                        for more details 
+                        QDoor.getExperimentDescription`
+                        for more details
         '''
         if expconf['ActiveMntGrp'] is None:
             return
@@ -183,11 +183,11 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
     def _updateTemporaryTrends1D(self, trends1d):
         '''adds necessary trend1D panels and removes no longer needed ones
 
-        :param trends1d: (dict) A dict whose keys are tuples of axes and 
+        :param trends1d: (dict) A dict whose keys are tuples of axes and
                          whose values are list of model names to plot
 
         :returns: (tuple) two lists new,rm:new contains the names of the new
-                  panels and rm contains the names of the removed panels  
+                  panels and rm contains the names of the removed panels
         '''
         from taurus.qt.qtgui.plot import TaurusTrend
         newpanels = []
@@ -228,13 +228,13 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
     def _updateTemporaryTrends2D(self, trends2d):
         '''adds necessary trend2D panels and removes no longer needed ones
 
-        :param trends2d: (dict) A dict whose keys are tuples of axes and 
+        :param trends2d: (dict) A dict whose keys are tuples of axes and
                          whose values are list of model names to plot
 
         :returns: (tuple) two lists new,rm:new contains the names of the new
                   panels and rm contains the names of the removed panels
 
-        ..note:: Not fully implemented yet 
+        ..note:: Not fully implemented yet
         '''
         try:
             from taurus.qt.qtgui.extra_guiqwt.taurustrend2d import \
@@ -263,13 +263,13 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
                     self._trends2d[(axes, chname)] = pname
 
     def createPanel(self, widget, name, **kwargs):
-        '''Creates a "panel" from a widget. In this basic implementation this 
+        '''Creates a "panel" from a widget. In this basic implementation this
         means that the widgets is shown as a non-modal top window
 
         :param widget: (QWidget) widget to be used for the panel
         :param name: (str) name of the panel. Must be unique.
 
-        Note: for backawards compatibility, this implementation accepts 
+        Note: for backawards compatibility, this implementation accepts
         arbitrary keyword arguments which are just ignored
         '''
         widget.setWindowTitle(name)
@@ -298,7 +298,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
     def removePanels(self, names=None):
         '''removes panels.
 
-        :param names: (seq<str>) names of the panels to be removed. If None is 
+        :param names: (seq<str>) names of the panels to be removed. If None is
                       given (default), all the panels are removed.
         '''
         if names is None:
@@ -321,7 +321,7 @@ class MacroBroker(DynamicPlotManager):
         - Door output, result and debug panels
         - Macro editor
         - Macro "panic" button (to abort macros)
-        - Dynamic plots (see :class:`DynamicPlotManager`) 
+        - Dynamic plots (see :class:`DynamicPlotManager`)
     '''
 
     def __init__(self, parent):
@@ -505,11 +505,11 @@ class MacroBroker(DynamicPlotManager):
         self.__doubleclickInterval = td
 
     def __onDoorAbort(self):
-        '''slot to be called when the abort action is triggered. 
+        '''slot to be called when the abort action is triggered.
         It sends stop command to the pools (or abort if the action
         has been triggered twice in less than self.__doubleclickInterval
 
-        .. note:: An abort command is always preceded by an stop command 
+        .. note:: An abort command is always preceded by an stop command
         '''
         # decide whether to send stop or abort
         now = datetime.datetime.now()
@@ -536,19 +536,19 @@ class MacroBroker(DynamicPlotManager):
         self.__lastAbortTime = now
 
     def createPanel(self, widget, name, **kwargs):
-        ''' Reimplemented from :class:`DynamicPlotManager` to delegate panel 
+        ''' Reimplemented from :class:`DynamicPlotManager` to delegate panel
         management to the parent widget (a TaurusGui)'''
         mainwindow = self.parent()
         return mainwindow.createPanel(widget, name, **kwargs)
 
     def getPanelWidget(self, name):
-        ''' Reimplemented from :class:`DynamicPlotManager` to delegate panel 
+        ''' Reimplemented from :class:`DynamicPlotManager` to delegate panel
         management to the parent widget (a TaurusGui)'''
         mainwindow = self.parent()
         return mainwindow.getPanel(name).widget()
 
     def removePanel(self, name):
-        ''' Reimplemented from :class:`DynamicPlotManager` to delegate panel 
+        ''' Reimplemented from :class:`DynamicPlotManager` to delegate panel
         management to the parent widget (a TaurusGui)'''
         mainwindow = self.parent()
         mainwindow.removePanel(name)

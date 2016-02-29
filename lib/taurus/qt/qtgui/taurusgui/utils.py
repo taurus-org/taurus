@@ -23,7 +23,7 @@
 ##
 ###########################################################################
 
-"""This configuration contains base modules and classes that may be used 
+"""This configuration contains base modules and classes that may be used
 by specific TaurusGui-based GUIs"""
 
 __docformat__ = 'restructuredtext'
@@ -78,7 +78,7 @@ class ExternalApp(object):
         :param xmlstring: (unicode) XML code defining the values for the
                           cmdargs, text, icon and parent variables
 
-        :return: (ExternalApp) an instance of ExternalApp 
+        :return: (ExternalApp) an instance of ExternalApp
         '''
         try:
             root = etree.fromstring(xmlstring)
@@ -114,7 +114,7 @@ class ExternalApp(object):
 
 class TaurusGuiComponentDescription(object):
     '''
-    A base class for describing a taurusgui component. 
+    A base class for describing a taurusgui component.
     '''
 
     def __init__(self, name, classname=None, modulename=None, widgetname=None,
@@ -199,13 +199,13 @@ class TaurusGuiComponentDescription(object):
         self._model = model
 
     def getWidget(self, sdm=None, setModel=True):
-        ''' Returns the widget to be inserted in the panel 
+        ''' Returns the widget to be inserted in the panel
 
-        :param sdm: (SharedDataManager) if given, the widget will be registered as reader 
+        :param sdm: (SharedDataManager) if given, the widget will be registered as reader
                     and/or writer in this manager as defined by the sharedDataRead and sharedDataWrite properties
         :param setModel: (bool) if True (default) the widget will be given the model deined in the model property
 
-        :return: (QWidget) a new widget instance matching the description 
+        :return: (QWidget) a new widget instance matching the description
         '''
         # instantiate the widget
         if self.modulename is None:
@@ -357,7 +357,7 @@ class TaurusGuiComponentDescription(object):
 
 class PanelDescription(TaurusGuiComponentDescription):
     '''
-    A description of a taurusgui panel. 
+    A description of a taurusgui panel.
     This class is not a panel, but a container of the information required to
     build a panel.
     '''
@@ -404,13 +404,13 @@ class PanelDescription(TaurusGuiComponentDescription):
 
 class ToolBarDescription(TaurusGuiComponentDescription):
     '''
-    A description of a toolbar to be inserted in a TaurusGUI. 
+    A description of a toolbar to be inserted in a TaurusGUI.
     '''
     pass
 
 
 class AppletDescription(TaurusGuiComponentDescription):
     '''
-    A description of a widget to be inserted in the "applets bar" of the TaurusGUI. 
+    A description of a widget to be inserted in the "applets bar" of the TaurusGUI.
     '''
     pass

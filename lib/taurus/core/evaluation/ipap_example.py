@@ -33,7 +33,7 @@ import re
 
 
 class IcepapDriverParam(EvaluationDevice):
-    '''A simple example of usage of the evaluation scheme for 
+    '''A simple example of usage of the evaluation scheme for
     creating an icepap connection device to obtain icepap driver values.
 
     Important: note that only those members listed in `_symbols` will be available

@@ -51,7 +51,7 @@ And now inside a :class:`PyQt4.QtGui.QComboBox`::
     model = taurus.qt.qtcore.TaurusDbPlainDeviceModel()
     model.setDataSource(db)
     view.setModel(model)
-    
+
 """
 
 __docformat__ = 'restructuredtext'

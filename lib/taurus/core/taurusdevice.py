@@ -91,8 +91,8 @@ class TaurusDevice(TaurusModel):
         - If parent_model is a TaurusDevice, the relative name is ignored and
         the parent name is returned
 
-        Note: This is a basic implementation. You may need to reimplement this 
-              for a specific scheme if it supports "useParentModel". 
+        Note: This is a basic implementation. You may need to reimplement this
+              for a specific scheme if it supports "useParentModel".
         """
         if parent_model is None:
             return relative_name

@@ -40,7 +40,7 @@ from taurus.core.taurushelper import makeSchemeExplicit
 
 class _TaurusBaseValidator(Singleton):
     '''This is a private base class for taurus base validators. Do not derive
-    from it if you are implementing a new scheme. Derive from the public 
+    from it if you are implementing a new scheme. Derive from the public
     classes from this module instead.
     '''
     scheme = None
@@ -63,7 +63,7 @@ class _TaurusBaseValidator(Singleton):
 
     @property
     def namePattern(self):
-        '''Provides a name pattern by composing the pattern strings for the 
+        '''Provides a name pattern by composing the pattern strings for the
         URI segments'''
         return self.pattern % dict(scheme=self.scheme,
                                    authority=self.authority,
@@ -74,7 +74,7 @@ class _TaurusBaseValidator(Singleton):
     @property
     def nonStrictNamePattern(self):
         '''implement in derived classes if a "less strict" pattern is allowed
-        (e.g. for backwards-compatibility, "tango://a/b/c" could be an accepted 
+        (e.g. for backwards-compatibility, "tango://a/b/c" could be an accepted
         device name, even if it breaks RFC3986).
         '''
         return None
@@ -84,8 +84,8 @@ class _TaurusBaseValidator(Singleton):
         If strict is False, it also tries to match against the non-strict regexp
         (It logs a warning if it matched only the non-strict alternative)
 
-        .. note:: The "matchLevel" keyword argument is deprecated and only 
-                  implemented for backwards compatibility. Do not use it for 
+        .. note:: The "matchLevel" keyword argument is deprecated and only
+                  implemented for backwards compatibility. Do not use it for
                   new classes
         '''
         # warn if the deprecated matchLevel kwarg was received
@@ -104,7 +104,7 @@ class _TaurusBaseValidator(Singleton):
     def getUriGroups(self, name, strict=None):
         '''returns the named groups dictionary from the URI regexp matching.
         If strict is False, it also tries to match against the non-strict regexp
-        (It logs a warning if it matched only the non-strict alternative) 
+        (It logs a warning if it matched only the non-strict alternative)
         '''
         if strict is None:
             strict = getattr(tauruscustomsettings, 'STRICT_MODEL_NAMES', False)
@@ -150,23 +150,23 @@ class _TaurusBaseValidator(Singleton):
         return groups
 
     def getNames(self, fullname, factory=None):
-        """Returns a tuple of three elements with  (complete_name, normal_name, 
+        """Returns a tuple of three elements with  (complete_name, normal_name,
         short_name) or None if no match is found.
         The definitions of each name are:
 
-        - complete: the full URI allowing an unambiguous identification of the 
+        - complete: the full URI allowing an unambiguous identification of the
           model within taurus (note: it must include the scheme).
-        - normal: an unambiguous URI at the scheme level. Any parts that are 
-          optional and equal to the scheme's default can be stripped. 
+        - normal: an unambiguous URI at the scheme level. Any parts that are
+          optional and equal to the scheme's default can be stripped.
           In particular, the scheme name is typically stripped for all schemes.
         - short: a short name (not necessarily a valid URI) useful for display
           in cases where ambiguity is tolerable.
 
         Example: In a tango system where the default TANGO_HOST is "foo:123"
-        and a device "a/b/c" has been defined with alias "bar" and having an 
+        and a device "a/b/c" has been defined with alias "bar" and having an
         attribute called "d", getNames would return:
 
-        - for the authority:: 
+        - for the authority::
 
             ('tango://foo:123', '//foo:123', 'foo:123')
 
@@ -183,7 +183,7 @@ class _TaurusBaseValidator(Singleton):
             ('tango://foo:123/a/b/c/d', 'a/b/c/d', 'd')
 
             note: if foo123 wasn't the default TANGO_HOST, the normal name
-            would be '//foo:123/a/b/c/d' 
+            would be '//foo:123/a/b/c/d'
 
          - for the attribute (assuming we passed #label)::
 
@@ -192,12 +192,12 @@ class _TaurusBaseValidator(Singleton):
              'd#label')
 
          - for the attribute (assuming we did not pass a conf key)::
-            ('tango://foo:123/a/b/c/d#', 
-             'a/b/c/d#', 
+            ('tango://foo:123/a/b/c/d#',
+             'a/b/c/d#',
              'd#')
 
         Note: it must always be possible to construct the 3 names from a *valid*
-        **fullname** URI. If the given URI is valid but it is not the full name, 
+        **fullname** URI. If the given URI is valid but it is not the full name,
         it may still be possible in some cases to construct the 3 names, but
         it may involve using defaults provided by the scheme (which may require
         more computation than mere parsing the URI)
@@ -207,12 +207,12 @@ class _TaurusBaseValidator(Singleton):
 
 
 class TaurusAuthorityNameValidator(_TaurusBaseValidator):
-    '''Base class for Authority name validators. 
+    '''Base class for Authority name validators.
     The namePattern will be composed from URI segments as follows:
 
-    <scheme>:<authority>[/<path>][?<query>][#<fragment>]    
+    <scheme>:<authority>[/<path>][?<query>][#<fragment>]
 
-    Derived classes must provide attributes defining a regexp string for each 
+    Derived classes must provide attributes defining a regexp string for each
     URI segment (they can be empty strings):
 
     - scheme
@@ -228,7 +228,7 @@ class TaurusAuthorityNameValidator(_TaurusBaseValidator):
               r'(#(?P<fragment>%(fragment)s))?$'
 
     def getNames(self, name, factory=None):
-        '''basic implementation for getNames for authorities. You may 
+        '''basic implementation for getNames for authorities. You may
         reimplement it in your scheme if required'''
         groups = self.getUriGroups(name)
         if groups is None:
@@ -243,9 +243,9 @@ class TaurusDeviceNameValidator(_TaurusBaseValidator):
     '''Base class for Device name validators.
     The namePattern will be composed from URI segments as follows:
 
-    <scheme>:[<authority>/]<path>[?<query>][#<fragment>]    
+    <scheme>:[<authority>/]<path>[?<query>][#<fragment>]
 
-    Derived classes must provide attributes defining a regexp string for each 
+    Derived classes must provide attributes defining a regexp string for each
     URI segment (they can be empty strings):
 
     - scheme
@@ -255,7 +255,7 @@ class TaurusDeviceNameValidator(_TaurusBaseValidator):
     - fragment
 
     Additionally, the namePattern resulting from composing the above segments
-    must contain a named group called "devname" (normally within the 
+    must contain a named group called "devname" (normally within the
     path segment).
     '''
     pattern = r'^(?P<scheme>%(scheme)s):' + \
@@ -269,9 +269,9 @@ class TaurusAttributeNameValidator(_TaurusBaseValidator):
     '''Base class for Device name validators.
     The namePattern will be composed from URI segments as follows:
 
-    <scheme>:[<authority>/]<path>[?<query>][#<fragment>]    
+    <scheme>:[<authority>/]<path>[?<query>][#<fragment>]
 
-    Derived classes must provide attributes defining a regexp string for each 
+    Derived classes must provide attributes defining a regexp string for each
     URI segment (they can be empty strings):
 
     - scheme
@@ -281,7 +281,7 @@ class TaurusAttributeNameValidator(_TaurusBaseValidator):
     - fragment
 
     Additionally, the namePattern resulting from composing the above segments
-    must contain a named group called "attrname" (normally within the 
+    must contain a named group called "attrname" (normally within the
     path segment).
     '''
     pattern = r'^(?P<scheme>%(scheme)s):' + \

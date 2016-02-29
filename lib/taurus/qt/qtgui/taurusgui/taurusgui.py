@@ -215,38 +215,38 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
 
 class TaurusGui(TaurusMainWindow):
     '''
-    This is main class for constructing the dynamic GUIs. TaurusGui is a 
-    specialised TaurusMainWindow which is able to handle "panels" and load 
+    This is main class for constructing the dynamic GUIs. TaurusGui is a
+    specialised TaurusMainWindow which is able to handle "panels" and load
     configuration files.
-    There are several ways of using TaurusGui. In the following we will give 
-    3 examples on how to create a simple GUI called "MyGui" which contains one 
+    There are several ways of using TaurusGui. In the following we will give
+    3 examples on how to create a simple GUI called "MyGui" which contains one
     panel called "Foo" and consisting of a `QWidget`:
 
     **Example 1: use declarative configuration files.**
 
-    You can create a purely declarative configuration file to be interpreted by 
+    You can create a purely declarative configuration file to be interpreted by
     the standard `taurusgui` script::
 
         from taurus.qt.qtgui.taurusgui.utils import PanelDescription
 
         GUI_NAME = 'MyGui'
-        panel = PanelDescription('Foo', 
-                                 classname='taurus.external.qt.Qt.QWidget')   
+        panel = PanelDescription('Foo',
+                                 classname='taurus.external.qt.Qt.QWidget')
 
     Note that this just a very simple example. For a much richer one, see the
     :mod:`taurus.qt.qtgui.taurusgui.conf.tgconf_example01`
 
     **Example 2: do everything programmatically.**
 
-    A stand-alone python script that launches the gui when executed. No 
-    configuration file is used here. Panels and other components are added 
+    A stand-alone python script that launches the gui when executed. No
+    configuration file is used here. Panels and other components are added
     programatically::
 
         if __name__ == '__main__':
             from taurus.qt.qtgui.application import TaurusApplication
             from taurus.qt.qtgui.taurusgui import TaurusGui
             from taurus.external.qt import Qt
-            app = TaurusApplication(app_name='MyGui') 
+            app = TaurusApplication(app_name='MyGui')
             gui = TaurusGui()
             panel = Qt.QWidget()
             gui.createPanel(panel, 'Foo')
@@ -257,10 +257,10 @@ class TaurusGui(TaurusMainWindow):
     **Example 3: mixing declarative and programmatic ways**
 
     It is also possible to create a stand-alone python script which loads itself
-    as a configuration file. In this way you can add things programmatically and 
+    as a configuration file. In this way you can add things programmatically and
     at the same time use the declarative way::
 
-        GUI_NAME = 'MyGui' # <-- declarative! 
+        GUI_NAME = 'MyGui' # <-- declarative!
         if __name__ == '__main__':
             from taurus.qt.qtgui.application import TaurusApplication
             from taurus.qt.qtgui.taurusgui import TaurusGui
@@ -599,8 +599,8 @@ class TaurusGui(TaurusMainWindow):
         :param floating: (bool) whether the panel should be docked or floating. (see note below)
         :param registerconfig: (bool) if True, the panel will be registered as a delegate for configuration
         :param custom: (bool) if True the panel is to be considered a "custom panel"
-        :param permanent: (bool) set this to True for panels that need to be recreated when restoring the app 
-        :param icon: (QIcon) icon for the panel  
+        :param permanent: (bool) set this to True for panels that need to be recreated when restoring the app
+        :param icon: (QIcon) icon for the panel
         :param instrumentkey: (str) name of an instrument to which this panel is to be associated
 
         :return: (DockWidgetPanel) the created panel
@@ -706,21 +706,21 @@ class TaurusGui(TaurusMainWindow):
                 self.createPanel(None, name, custom=True, permanent=True)
 
     def _getPermanentCustomPanels(self):
-        ''' 
+        '''
         returns a list of panel names for which the custom and permanent flags
         are True (i.e., those custom panels that should be stored in
         configuration and/or perspectives)
 
-        :return: (list<str>) 
+        :return: (list<str>)
         '''
         return [n for n, p in self.__panels.iteritems() if (p.isCustom() and p.isPermanent())]
 
     def updatePermanentCustomPanels(self, showAlways=True):
         '''
         Shows a dialog for selecting which custom panels should be permanently
-        stored in the configuration. 
+        stored in the configuration.
 
-        :param showAlways: (bool) forces showing the dialog even if there are no new custom Panels  
+        :param showAlways: (bool) forces showing the dialog even if there are no new custom Panels
         '''
         # check if there are some newly created panels that may be made
         # permanent
@@ -807,7 +807,7 @@ class TaurusGui(TaurusMainWindow):
 
     def createMainSynoptic(self, synopticname):
         '''
-        Creates a synoptic panel and registers it as "SelectedInstrument" 
+        Creates a synoptic panel and registers it as "SelectedInstrument"
         reader and writer (allowing  selecting instruments from synoptic
         '''
         try:
@@ -865,7 +865,7 @@ class TaurusGui(TaurusMainWindow):
         from the Pool. Each panel is a TaurusForm grouping together all those
         elements that belong to the same instrument according to the Pool info
 
-        :return: (list<PanelDescription>)                 
+        :return: (list<PanelDescription>)
         '''
         instrument_dict = {}
         try:
@@ -914,8 +914,8 @@ class TaurusGui(TaurusMainWindow):
             return name.text
 
     def _importConfiguration(self, confname):
-        '''returns the module corresponding to `confname` or to 
-        `tgconf_<confname>`. Note: the `conf` subdirectory of the directory in 
+        '''returns the module corresponding to `confname` or to
+        `tgconf_<confname>`. Note: the `conf` subdirectory of the directory in
         which taurusgui.py file is installed is temporally prepended to sys.path
         '''
         confsubdir = os.path.join(os.path.abspath(os.path.dirname(
@@ -942,14 +942,14 @@ class TaurusGui(TaurusMainWindow):
     def loadConfiguration(self, confname):
         '''Reads a configuration file
 
-        :param confname: (str or None) the  name of module located in the 
+        :param confname: (str or None) the  name of module located in the
                          PYTHONPATH or in the conf subdirectory of the directory
                          in which taurusgui.py file is installed.
-                         This method will try to import <confname>.  
-                         If that fails, it will try to import 
+                         This method will try to import <confname>.
+                         If that fails, it will try to import
                          `tgconf_<confname>`.
-                         Alternatively, `confname` can be the path to the 
-                         configuration module (not necessarily in the 
+                         Alternatively, `confname` can be the path to the
+                         configuration module (not necessarily in the
                          PYTHONPATH).
                          `confname` can also be None, in which case a dummy
                          empty module will be used.
@@ -1324,10 +1324,10 @@ class TaurusGui(TaurusMainWindow):
         TaurusMainWindow.setModifiableByUser(self, modifiable)
 
     def onShortMessage(self, msg):
-        ''' Slot to be called when there is a new short message. Currently, the only action 
+        ''' Slot to be called when there is a new short message. Currently, the only action
         taken when there is a new message is to display it in the main window status bar.
 
-        :param msg: (str) the short descriptive message to be handled 
+        :param msg: (str) the short descriptive message to be handled
         '''
         self.statusBar().showMessage(msg)
 
@@ -1352,7 +1352,7 @@ class TaurusGui(TaurusMainWindow):
 
     def getInstrumentAssociation(self, instrumentname):
         '''
-        Returns the panel name associated to an instrument name 
+        Returns the panel name associated to an instrument name
 
         :param instrumentname: (str or None) The name of the instrument whose associated panel is wanted
 
@@ -1362,11 +1362,11 @@ class TaurusGui(TaurusMainWindow):
 
     def setInstrumentAssociation(self, instrumentname, panelname):
         '''
-        Sets the panel name associated to an instrument 
+        Sets the panel name associated to an instrument
 
-        :param instrumentname: (str) The name of the instrument 
-        :param panelname: (str or None) The name of the associated 
-                          panel or None to remove the association 
+        :param instrumentname: (str) The name of the instrument
+        :param panelname: (str or None) The name of the associated
+                          panel or None to remove the association
                           for this instrument.
         '''
         instrumentname = unicode(instrumentname)
@@ -1383,20 +1383,20 @@ class TaurusGui(TaurusMainWindow):
         '''
         Returns the dictionary of instrument-panel associations
 
-        :return: (dict<str,str>) a dict whose keys are the instruments known to the gui 
+        :return: (dict<str,str>) a dict whose keys are the instruments known to the gui
                  and whose values are the corresponding associated panels (or None).
         '''
         return copy.deepcopy(self.__instrumentToPanelMap)
 
     def setAllInstrumentAssociations(self, associationsdict, clearExisting=False):
         '''
-        Sets the dictionary of instrument-panel associations. 
+        Sets the dictionary of instrument-panel associations.
         By default, it keeps any existing association not present in the associationsdict.
 
         :param associationsdict: (dict<str,str>) a dict whose keys are the instruments names
                                  and whose values are the corresponding associated panels (or None)
-        :param clearExisting: (bool) if True, the the existing asociations are cleared. 
-                              If False (default) existing associations are 
+        :param clearExisting: (bool) if True, the the existing asociations are cleared.
+                              If False (default) existing associations are
                               updated with those in associationsdict
         '''
         if clearExisting:

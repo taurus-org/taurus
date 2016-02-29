@@ -23,7 +23,7 @@
 ##
 ###########################################################################
 
-'''An example of usage of TaurusGui in which the specific GUI is set up both 
+'''An example of usage of TaurusGui in which the specific GUI is set up both
 programmatically and using the same file as the configuration file.
 This can be launched directly as a stand-alone python script'''
 

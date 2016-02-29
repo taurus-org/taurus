@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""This module contains a set of useful traceback elements based on python's 
+"""This module contains a set of useful traceback elements based on python's
 :mod:`traceback` system."""
 
 import sys

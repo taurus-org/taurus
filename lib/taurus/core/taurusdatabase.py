@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""Do not use. Deprecated. Backwards compatibility module for transition from 
+"""Do not use. Deprecated. Backwards compatibility module for transition from
 TaurusDatabase to TaurusAuthority"""
 
 

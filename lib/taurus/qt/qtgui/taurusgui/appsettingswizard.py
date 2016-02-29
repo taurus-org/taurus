@@ -1637,7 +1637,7 @@ class AppSettingsWizard(Qt.QWizard):
         '''returns the xml code corresponding to the options selected in the wizard
         and a dictionary representing the paths that have been substituted.
 
-        :return: (str, dict<str,str>) The return value is a tuple whose first element 
+        :return: (str, dict<str,str>) The return value is a tuple whose first element
                  is the xml code and the second element is a dict where the keys are the
                  destination files and the values are the original paths.
         '''

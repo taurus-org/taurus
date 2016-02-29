@@ -24,14 +24,14 @@
 #############################################################################
 
 """
-Tango extension for taurus core mode. 
+Tango extension for taurus core mode.
 The Tango extension implements :mod:`taurus.core` objects that connect to Tango
-objects. The official scheme name is, obviously, 'tango'. 
+objects. The official scheme name is, obviously, 'tango'.
 
 This extension maps the (Py)Tango objects into Taurus objects as follows:
 
 - A Tango database is represented as a subclass of :class:`TaurusAuthority`
-- A Tango device is represented as a subclass of 
+- A Tango device is represented as a subclass of
   :class:`taurus.core.TaurusDevice`
 - A Tango device attribute is represented as a subclass
   :class:`taurus.core.TaurusAttribute`
@@ -39,39 +39,39 @@ This extension maps the (Py)Tango objects into Taurus objects as follows:
   :class:`taurus.core.TaurusConfiguration`
 
 You should never create objects from the above classes directly. Instead, you
-should use :meth:`taurus.Authority`, :meth:`taurus.Device`, 
+should use :meth:`taurus.Authority`, :meth:`taurus.Device`,
 :meth:`taurus.Attribute` and :meth:`taurus.Configuration` helper functions,
-as in the examples below, or if you require more control, use the 
-:class:`taurus.core.taurusmanager.TaurusManager` or 
-:class:`taurus.core.taurusfactory.TaurusFactory` APIs. 
+as in the examples below, or if you require more control, use the
+:class:`taurus.core.taurusmanager.TaurusManager` or
+:class:`taurus.core.taurusfactory.TaurusFactory` APIs.
 
 Here are some examples:
 
 The Taurus Authority associated with the Tango database
 running on host "machine01" and port 10000 is named "//machine:1000"
-(note that Taurus authority names are always prefixed by "//", to comply with 
+(note that Taurus authority names are always prefixed by "//", to comply with
 RFC3986). And you can get the corresponding Taurus Authority object as:
 
     >>> import taurus
     >>> my_db = taurus.Authority('tango://machine:10000')
-    
-If "tango" is configured as the default scheme for Taurus, the 'tango:' prefix 
-could be avoided and same database could be accessed as:: 
+
+If "tango" is configured as the default scheme for Taurus, the 'tango:' prefix
+could be avoided and same database could be accessed as::
 
     >>> my_db = taurus.Authority('//machine:10000')
 
 Now, assume that a TangoTest device is registered  in the above database as
-``sys/tg_test/1``. In this case, the corresponding Taurus device full name 
+``sys/tg_test/1``. In this case, the corresponding Taurus device full name
 would be ``tango://machine:10000/sys/tg_test/1`` and it could be accessed as::
 
     >>> import taurus
     >>> my_device = taurus.Device('tango://machine:10000/sys/tg_test/1')
 
-If "tango" is configured as the default scheme for Taurus, the previous name 
-could be shortened to ``//machine:10000/sys/tg_test/1`` or even to 
-``sys/tg_test/1`` if the TANGO_HOST environment variable 
+If "tango" is configured as the default scheme for Taurus, the previous name
+could be shortened to ``//machine:10000/sys/tg_test/1`` or even to
+``sys/tg_test/1`` if the TANGO_HOST environment variable
 (or tango.rc file) point to `machine:10000` as the default tango database.
-Furthermore, if, on top of that,  this device is aliased as ``tgtest1`` in the 
+Furthermore, if, on top of that,  this device is aliased as ``tgtest1`` in the
 database, it could be accessed as::
 
     >>> import taurus
@@ -83,33 +83,33 @@ done using its full name::
     >>> import taurus
     >>> my_attr = taurus.Attribute('tango://machine:10000/sys/tg_test/1/ampli')
 
-And of course shorter names can also be used for attributes. Following the 
-examples for the device above, the following names could also have been passed 
+And of course shorter names can also be used for attributes. Following the
+examples for the device above, the following names could also have been passed
 to :meth:`taurus.Attribute`:
 
-- ``//machine:10000/sys/tg_test/1/ampli`` 
+- ``//machine:10000/sys/tg_test/1/ampli``
 - ``sys/tg_test/1/ampli``
-- ``tgtest1/ampli`` 
+- ``tgtest1/ampli``
 
-And TaurusConfiguration objects representing the Tango attribute 
+And TaurusConfiguration objects representing the Tango attribute
 configuration properties can be accessed as::
-    
+
     >>> import taurus
     >>> my_config = taurus.Configuration('sys/tg_test/1/ampli#')
-    
-(in this example I assumed ``tango`` being set as the default scheme and 
+
+(in this example I assumed ``tango`` being set as the default scheme and
 ``machine:10000`` being the default database)
-    
+
 Finally, the TangoFactory object can be accessed as::
 
     >>> import taurus
     >>> tg_factory = taurus.Factory('tango')
-    
-    
+
+
 .. note:: Previous to SEP3, a RFC3986 non-compliant syntax was used for the
-          Tango scheme (e.g., allowing names such as ``tango://a/b/c/d`` -note 
+          Tango scheme (e.g., allowing names such as ``tango://a/b/c/d`` -note
           the double slash which should not be there).
-          This syntax is now deprecated and should not be used. Taurus will 
+          This syntax is now deprecated and should not be used. Taurus will
           issue warnings if detected.
 """
 

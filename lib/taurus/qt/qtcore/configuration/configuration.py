@@ -35,7 +35,7 @@ class configurableProperty:
     '''A dummy class used to handle properties with the configuration API
 
     .. warning:: this class is intended for internal use by the configuration
-                 package. Do not instantiate it directly in your code. 
+                 package. Do not instantiate it directly in your code.
                  Use :meth:`BaseConfigurableClass.registerConfigProperty` instead.
     '''
 
@@ -75,7 +75,7 @@ class BaseConfigurableClass:
 
     Using objects that inherit from :class:`BaseConfigurableClass` automates
     saving and restoring of application settings and also enables the use of
-    perspectives in Taurus GUIs. 
+    perspectives in Taurus GUIs.
 
     The basic idea is that each object/widget in your application is responsible
     for providing a dictionary containing information on its properties (see
@@ -88,7 +88,7 @@ class BaseConfigurableClass:
     structured in a hierarchical way (e.g. as the widgets in a Qt application),
     the parent widget can (should) delegate the save/restore of its children to
     the children themselves. This delegation is done by registering the children
-    using :meth:`registerConfigDelegate`. 
+    using :meth:`registerConfigDelegate`.
 
     Consider the following example: I am creating a groupbox container which
     contains a :class:`TaurusForm` and I want to save/restore the state of the
@@ -107,7 +107,7 @@ class BaseConfigurableClass:
         #and we can retrieve the configuration doing:
         b1 = MyBox()
         b1.setChecked(True)  #checked is a registered property of MyBox class
-        b1.form.setModifiableByUser(True)  #modifiableByUser is a registered property of a TaurusForm 
+        b1.form.setModifiableByUser(True)  #modifiableByUser is a registered property of a TaurusForm
         cfg = b1.createConfig()  #we get the configuration as a dictionary
         ...
         b2 = MyBox()
@@ -155,9 +155,9 @@ class BaseConfigurableClass:
     def createConfig(self, allowUnpickable=False):
         '''
         Returns a dictionary containing configuration information about the
-        current state of the object. 
+        current state of the object.
 
-        In most usual situations, using :meth:`registerConfigProperty` and 
+        In most usual situations, using :meth:`registerConfigProperty` and
         :meth:`registerConfigDelegate`, should be enough to cover all needs using
         this method, although it can be reimplemented in children classes to support
         very specific configurations.
@@ -199,13 +199,13 @@ class BaseConfigurableClass:
     def applyConfig(self, configdict, depth=None):
         """applies the settings stored in a configdict to the current object.
 
-        In most usual situations, using :meth:`registerConfigProperty` and 
+        In most usual situations, using :meth:`registerConfigProperty` and
         :meth:`registerConfigDelegate`, should be enough to cover all needs using
         this method, although it can be reimplemented in children classes to support
         very specific configurations.
 
         :param configdict: (dict)
-        :param depth: (int)  If depth = 0, applyConfig will only be called 
+        :param depth: (int)  If depth = 0, applyConfig will only be called
                       for this object, and not for any other object registered
                       via :meth:`registerConfigurableItem`. If depth > 0,
                       applyConfig will be called recursively as many times as
@@ -234,7 +234,7 @@ class BaseConfigurableClass:
                         itemcfgs[key], depth=depth - 1)
 
     def getConfigurableItemNames(self):
-        '''returns an ordered list of the names of currently registered 
+        '''returns an ordered list of the names of currently registered
         configuration items (delegates and properties)
 
         :return: (list<unicode>)
@@ -256,14 +256,14 @@ class BaseConfigurableClass:
     def registerConfigDelegate(self, delegate, name=None):
         '''
         Registers the given object as a delegate for configuration.
-        Delegates are typically other objects inheriting from BaseConfigurableClass 
+        Delegates are typically other objects inheriting from BaseConfigurableClass
         (or at least they must provide the following methods:
 
           - `createConfig` (as provided by, e.g., BaseConfigurableClass)
           - `applyConfig` (as provided by, e.g., BaseConfigurableClass)
           - `objectName` (as provided by, e.g., QObject)
 
-        :param delegate: (BaseConfigurableClass) The delegate object to be registered. 
+        :param delegate: (BaseConfigurableClass) The delegate object to be registered.
         :param name: (str) The name to be used as a key for this item in the configuration
                      dictionary. If None given, the object name is used by default.
 
@@ -275,14 +275,14 @@ class BaseConfigurableClass:
 
     def registerConfigProperty(self, fget, fset, name):
         '''
-        Registers a certain property to be included in the config dictionary. 
+        Registers a certain property to be included in the config dictionary.
 
         In this context a "property" is some named value that can be obtained
         via a getter method and can be set via a setter method.
 
         :param fget: (method or str) method (or name of a method) that gets no
                      arguments and returns the value of a property.
-        :param fset: (method or str) method (or name of a method) that gets as 
+        :param fset: (method or str) method (or name of a method) that gets as
                      an argument the value of a property, and sets it
         :param name: (str) The name to be used as a key for this property in the configuration
                      dictionary
@@ -302,7 +302,7 @@ class BaseConfigurableClass:
     def _registerConfigurableItem(self, item, name=None):
         '''
         Registers the given item as a configurable item which depends of this
-        Taurus widget. 
+        Taurus widget.
 
         .. note:: This method is not meant to be called directly. Use
                   :meth:`registerConfigProperty`, :meth:`registerConfigDelegate`
@@ -312,9 +312,9 @@ class BaseConfigurableClass:
         following methods:
           - `createConfig` (as provided by, e.g., BaseConfigurableClass)
           - `applyConfig` (as provided by, e.g., BaseConfigurableClass)
-          - `objectName` (as provided by, e.g., QObject) 
+          - `objectName` (as provided by, e.g., QObject)
 
-        :param item: (object) The object that should be registered. 
+        :param item: (object) The object that should be registered.
         :param name: (str) The name to be used as a key for this item in the configuration
                      dictionary. If None given, the object name is used by default.
 
@@ -341,9 +341,9 @@ class BaseConfigurableClass:
         :param item: (object or str) The object that should be unregistered.
                      Alternatively, the name under which the object was registered
                      can be passed as a python string.
-        :param raiseOnError: (bool) If True (default), it raises a KeyError 
-                             exception if item was not registered. If False, it 
-                             just logs a debug message 
+        :param raiseOnError: (bool) If True (default), it raises a KeyError
+                             exception if item was not registered. If False, it
+                             just logs a debug message
 
         .. seealso:: :meth:`registerConfigProperty`, :meth:`registerConfigDelegate`
         '''
@@ -410,7 +410,7 @@ class BaseConfigurableClass:
         '''
         restores the configuration from a qstate generated by :meth:`getQState`.
 
-        :param qstate: (QByteArray)  
+        :param qstate: (QByteArray)
 
         .. seealso:: :meth:`createQConfig`
         '''
@@ -423,7 +423,7 @@ class BaseConfigurableClass:
     def saveConfigFile(self, ofile=None):
         """Stores the current configuration on a file
 
-        :param ofile: (file or string) file or filename to store the configuration 
+        :param ofile: (file or string) file or filename to store the configuration
 
         :return: (str) file name used
         """

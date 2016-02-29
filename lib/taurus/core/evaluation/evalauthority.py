@@ -33,11 +33,11 @@ from taurus.core.taurusauthority import TaurusAuthority
 
 class EvaluationAuthority(TaurusAuthority):
     '''
-    Dummy authority class for Evaluation 
+    Dummy authority class for Evaluation
     (the authority concept is not yet used in the Evaluation scheme)
 
     .. warning:: In most cases this class should not be instantiated directly.
-                 Instead it should be done via the 
+                 Instead it should be done via the
                     :meth:`EvaluationFactory.getAuthority`
     '''
     _factory = None

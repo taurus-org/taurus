@@ -169,7 +169,7 @@ def p_value_atomic(p):
 
 
 def p_value_boolean(p):
-    '''boolean : true 
+    '''boolean : true
                | false
                | yes
                | no'''

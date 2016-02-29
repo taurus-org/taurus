@@ -41,7 +41,7 @@ def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
        - headerChar: Character to be used for the row separator line
          (if hasHeader==True or separateRows==True).
        - delim: The column delimiter.
-       - justify: Determines how are data justified in their column. 
+       - justify: Determines how are data justified in their column.
          Valid values are 'left','right' and 'center'.
        - separateRows: True if rows are to be separated by a line
          of 'headerChar's.

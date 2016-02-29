@@ -50,7 +50,7 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         self._signalGen = Qt.QObject()
 
     def getSignaller(self):
-        '''reimplemented from TaurusBaseComponent because TaurusImageItem is 
+        '''reimplemented from TaurusBaseComponent because TaurusImageItem is
         not (and cannot be) a QObject'''
         return self._signalGen
 
@@ -92,16 +92,16 @@ class TaurusBaseImageItem(TaurusBaseComponent):
             p.replot()
 
     def filterData(self, data):
-        '''Reimplement this method if you want to pre-process 
+        '''Reimplement this method if you want to pre-process
         the data that will be passed to set_data.
 
         It should return something acceptable by :meth:`setData`
         and raise an exception if the data cannot be processed.
 
-        This default implementation casts array types not 
+        This default implementation casts array types not
         supported by guiqwt to numpy.int32
 
-        See: 
+        See:
           - http://code.google.com/p/guiqwt/issues/detail?id=44 and
           - https://sourceforge.net/tracker/?func=detail&atid=484769&aid=3603991&group_id=57612
           - https://sourceforge.net/p/tauruslib/tickets/33/
@@ -244,7 +244,7 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         self.__timeOffset = None
 
     def getSignaller(self):
-        '''reimplemented from TaurusBaseComponent because TaurusImageItem is 
+        '''reimplemented from TaurusBaseComponent because TaurusImageItem is
         not (and cannot be) a QObject'''
         return self._signalGen
 

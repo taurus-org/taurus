@@ -61,12 +61,12 @@ class TaurusAuthority(TaurusModel):
 
     @classmethod
     def buildModelName(cls, parent_model, relative_name):
-        """build an 'absolute' model name from the parent name and the 
-        'relative' name. parent_model is ignored since there is nothing above 
+        """build an 'absolute' model name from the parent name and the
+        'relative' name. parent_model is ignored since there is nothing above
         the Authority object
 
-        Note: This is a basic implementation. You may need to reimplement this 
-              for a specific scheme if it supports "useParentModel". 
+        Note: This is a basic implementation. You may need to reimplement this
+              for a specific scheme if it supports "useParentModel".
         """
         return relative_name
 

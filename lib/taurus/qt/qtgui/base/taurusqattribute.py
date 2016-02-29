@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-Provides a QtObject for taurus attributes 
+Provides a QtObject for taurus attributes
 """
 import weakref
 import re
@@ -39,7 +39,7 @@ from taurus.core.util.safeeval import SafeEvaluator
 
 # @this probably needs to be ported to a proper TaurusFactory
 class TaurusQAttributeFactory(object):
-    '''A factory for TaurusQAttributes that ensures that only one 
+    '''A factory for TaurusQAttributes that ensures that only one
     TaurusQAttributes is created for a given extended model.
     IMPORTANT: This API is for testing purposes.It is likely to change.  Don't rely on it'''
 
@@ -67,7 +67,7 @@ ATTRNAMEVALIDATOR = TangoAttributeNameValidator()
 
 class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
     '''A listener for taurus attributes.
-    It stores the value in a numpy array and emits a 
+    It stores the value in a numpy array and emits a
     dataChanged signal when the data has changed.
     '''
     pyVar_RegExp = re.compile(
@@ -129,7 +129,7 @@ class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
         transformation gets re-evaluated if they change.
         :param trstring: (str) a string to be pre-processed
 
-        :return: (tuple<str,bool>) a tuple containing the processed string 
+        :return: (tuple<str,bool>) a tuple containing the processed string
                  and a boolean indicating if the preprocessing was successful.
                  if ok==True, the string is ready to be evaluated
         """

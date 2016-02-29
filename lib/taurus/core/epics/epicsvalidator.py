@@ -57,7 +57,7 @@ class EpicsAuthorityNameValidator(TaurusAuthorityNameValidator):
 
 class EpicsDeviceNameValidator(TaurusDeviceNameValidator):
     """Validator for Epics device names. Apart from the standard named
-    groups (scheme, authority, path, query and fragment), the following named 
+    groups (scheme, authority, path, query and fragment), the following named
     groups are created:
 
      - devname: device name (only empty string allowed for now)

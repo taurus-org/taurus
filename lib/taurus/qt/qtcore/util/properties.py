@@ -26,14 +26,14 @@
 """
 properties.py: Methods for adding QProperties to QObjects
 
-A call like 
+A call like
         set_property_methods(self,'Filters','QString',default='',
             set_callback=lambda s=self:s.loadTree(s.getFilters(),clear=True),
             reset_callback=lambda s=self:s.loadTree('',clear=True)
             )
-            
+
 Would replace all these lines:
-    
+
     def setFilters(self,filters):
         self._filters = filters
         self.loadTree(self._filters,clear=True)
@@ -46,13 +46,13 @@ Would replace all these lines:
         self.loadTree(self._filters)
 
     filters = QtCore.pyqtProperty("QString", getFilters, setFilters, resetFilters)
-    
+
 Not tested yet with the classical declaration:
-    
-    #model = QtCore.pyqtProperty("QString", TaurusBaseWidget.getModel, 
-                            #TaurusBaseWidget.setModel, 
+
+    #model = QtCore.pyqtProperty("QString", TaurusBaseWidget.getModel,
+                            #TaurusBaseWidget.setModel,
                             #TaurusBaseWidget.resetModel)
-    
+
 """
 
 from functools import partial

@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-taurusgrid.py: module containing the Taurus Widget: TaurusGrid 
+taurusgrid.py: module containing the Taurus Widget: TaurusGrid
 original idea and development by gcuni
 integrated with taurus and regular expressions by srubio
 alba, 2009
@@ -69,7 +69,7 @@ def get_all_models(expressions, limit=1000):
     For each device only the good attributes are read.
 
     It practically equals to fandango.get_matching_attributes; check which is better!
-    Move this method to taurus.core.tango.search 
+    Move this method to taurus.core.tango.search
     '''
     #print( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
     if isinstance(expressions, str):

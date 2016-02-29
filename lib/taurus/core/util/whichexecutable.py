@@ -34,9 +34,9 @@ import os
 
 
 def whichfile(filename, exts=None):
-    '''Find path of executable specified by filename. 
+    '''Find path of executable specified by filename.
     It Takes into consideration
-    the PATHEXT variable (found in MS Windows systems) to try also executable 
+    the PATHEXT variable (found in MS Windows systems) to try also executable
     names extended with executable extensions.
 
     Example::
@@ -48,8 +48,8 @@ def whichfile(filename, exts=None):
       whichfile('command') --> 'C:\\WINDOWS\\system32\\command.COM'
 
     :param filename: (str) executable name.
-    :param exts: (list<str>) a list of valid executable extensions. 
-                 If None given, the PATHEXT environmental variable is used 
+    :param exts: (list<str>) a list of valid executable extensions.
+                 If None given, the PATHEXT environmental variable is used
                  if available.
 
     :return: (str) absolute path to the executable in the file system

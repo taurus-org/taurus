@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""This package provides a set of taurus wiget utilities like color management, 
+"""This package provides a set of taurus wiget utilities like color management,
 configuration, actions."""
 
 __docformat__ = 'restructuredtext'

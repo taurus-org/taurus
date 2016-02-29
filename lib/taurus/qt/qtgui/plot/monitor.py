@@ -38,7 +38,7 @@ class TaurusMonitorTiny(TaurusTrend):
     toolbar). It is inspired by the SysMon applet in old KDE3.
 
     .. seealso:: :class:`TaurusTrend`,
-                 :ref:`TaurusTrend User's Interface Guide <trend_ui>`, 
+                 :ref:`TaurusTrend User's Interface Guide <trend_ui>`,
                  :ref:`The TaurusTrend coding examples <examples_taurustrend>`
     '''
     DEFAULT_MAX_BUFFER_SIZE = 8192  # (8K events))

@@ -150,9 +150,9 @@ class TaurusModelChooser(TaurusWidget):
     def __init__(self, parent=None, selectables=None, host=None, designMode=None, singleModel=False):
         '''Creator of TaurusModelChooser
 
-        :param parent: (QObject) parent for the dialog 
+        :param parent: (QObject) parent for the dialog
         :param selectables: (list<TaurusElementType>) if passed, only elements of the tree whose
-                            type is in the list will be selectable. 
+                            type is in the list will be selectable.
         :param host: (QObject) Tango host to be explored by the chooser
         :param designMode: (bool) needed for taurusdesigner but ignored here
         :param singleModel: (bool) If True, the selection will be of just one
@@ -208,7 +208,7 @@ class TaurusModelChooser(TaurusWidget):
         '''returns the list of models that have been added
 
         :param asMimeData: (bool) If False (default), the return value will be a
-                           list of models. If True, the return value is a 
+                           list of models. If True, the return value is a
                            `QMimeData` containing at least `TAURUS_MODEL_LIST_MIME_TYPE`
                            and `text/plain` MIME types. If only one model was selected,
                            the mime data also contains a TAURUS_MODEL_MIME_TYPE.
@@ -295,9 +295,9 @@ class TaurusModelChooser(TaurusWidget):
     def modelChooserDlg(parent=None, selectables=None, host=None, asMimeData=False, singleModel=False, windowTitle='Model Chooser'):
         '''Static method that launches a modal dialog containing a TaurusModelChooser
 
-        :param parent: (QObject) parent for the dialog 
+        :param parent: (QObject) parent for the dialog
         :param selectables: (list<TaurusElementType>) if passed, only elements of the tree whose
-                            type is in the list will be selectable. 
+                            type is in the list will be selectable.
         :param host: (QObject) Tango host to be explored by the chooser
         :param asMimeData: (bool) If False (default),  a list of models will be.
                            returned. If True, a `QMimeData` object will be
@@ -307,7 +307,7 @@ class TaurusModelChooser(TaurusWidget):
                             model. Otherwise (default) a list of models can be selected
         :param windowTitle: (str) Title of the dialog (default="Model Chooser")
 
-        :return: (list,bool or QMimeData,bool) Returns a models,ok tuple. models can be 
+        :return: (list,bool or QMimeData,bool) Returns a models,ok tuple. models can be
                  either a list of models or a QMimeData object, depending on
                  `asMimeData`. ok is True if the dialog was accepted (by
                  clicking on the "update" button) and False otherwise

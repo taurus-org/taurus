@@ -34,7 +34,7 @@ re-binding. Easy solution (in Python 2.1 and up): use an instance as "module"...
 In Python 2.1 and up, no check is made any more to force entries in sys.modules
 to be actually module objects. You can install an instance object there and take
 advantage of its attribute-access special methods (e.g., as in this snippet, to
-prevent type rebindings. 
+prevent type rebindings.
 
 Usage::
 

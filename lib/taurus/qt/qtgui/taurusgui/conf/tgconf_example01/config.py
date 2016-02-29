@@ -24,7 +24,7 @@
 ###########################################################################
 
 """
-configuration file for an example of how to construct a GUI based on TaurusGUI  
+configuration file for an example of how to construct a GUI based on TaurusGUI
 
 This configuration file determines the default, permanent, pre-defined
 contents of the GUI. While the user may add/remove more elements at run

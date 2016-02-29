@@ -52,15 +52,15 @@ class Singleton(object):
         >>> manager2 = MyManager()
 
         >>> print(manager1,manager2)
-        <__main__.MyManager object at 0x9c2a0ec> 
+        <__main__.MyManager object at 0x9c2a0ec>
         <__main__.MyManager object at 0x9c2a0ec>
 
     Notice that the two instances of manager point to the same object even
-    though you *tried* to construct two instances of MyManager. 
+    though you *tried* to construct two instances of MyManager.
 
     .. warning::
 
-        although __new__ is overriden __init__ is still being called for 
+        although __new__ is overriden __init__ is still being called for
         each instance=Singleton()
     """
 

@@ -130,7 +130,7 @@ class TaurusWebAttribute(object):
 class TaurusWebConfiguration(object):
     """This object is a listener for the taurus attribute configuration.
     When a attribute configuration changes it sends an event. The event
-    triggers a call to *eventReceived*. *eventReceived* will transform 
+    triggers a call to *eventReceived*. *eventReceived* will transform
     the configuration event into a JSON encoded string and sends this
     string through the web socket to the client"""
 
@@ -189,7 +189,7 @@ class TaurusSocket(WebSocketHandler):
         It should be a JSON object with *models* member. the value of *models*
         should be an array of strings, each representing a model name.
         Example:
-            { models : [ "BO/S05/Pump5/Pressure", 
+            { models : [ "BO/S05/Pump5/Pressure",
                          "BO/S05/Pump5/Pressure#unit",
                          "sys/tg_test/1/double_scalar" ]
             }

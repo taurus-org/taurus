@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""The taurus.qt.qtcore.communication submodule. It contains non-gui components 
+"""The taurus.qt.qtcore.communication submodule. It contains non-gui components
 of taurus.qt"""
 
 from .communication import *

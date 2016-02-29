@@ -32,7 +32,7 @@
 #
 # ----------------------------------------------------------------------------
 
-''' Creates a tree of dirs and restructured text stub files for documenting 
+''' Creates a tree of dirs and restructured text stub files for documenting
 the API of a python module with sphinx'''
 
 from __future__ import with_statement
@@ -76,7 +76,7 @@ class _Mock(object):
     def __oct__(*a, **kw): return 1
     def __hex__(*a, **kw): return 0x1
     def __long__(*a, **kw): return long(1)
-    def __index__(*a, **kw): return 1       
+    def __index__(*a, **kw): return 1
 """
 
 import_template = """import {name} as {asname}"""
@@ -311,7 +311,7 @@ def _zipdir(basedir, archivename):
 
 
 def build_mocks_for_taurus(output='mock.zip'):
-    '''builds mocks for the packages required by taurus. The mocks are written 
+    '''builds mocks for the packages required by taurus. The mocks are written
     into the given output directory (or a zip file if output ends with ".zip")
     '''
     import sys

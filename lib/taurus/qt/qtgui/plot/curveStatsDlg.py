@@ -24,8 +24,8 @@
 #############################################################################
 
 """
-curvesAppearanceChooserDlg.py: 
-    A Qt dialog for choosing plot appearance (symbols and lines) 
+curvesAppearanceChooserDlg.py:
+    A Qt dialog for choosing plot appearance (symbols and lines)
     for a QwtPlot-derived widget (like Taurusplot)
 """
 

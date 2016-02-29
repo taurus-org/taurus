@@ -46,9 +46,9 @@ except:
 class TaurusPlotConfDlg(Qt.QWidget):
     ''' A configuration dialog for TaurusPlot.
 
-    The dialog uses a Model/View design: 
+    The dialog uses a Model/View design:
       - it uses a :class:`CurvesTableModel` for describing the curves
-        configuration 
+        configuration
       - it has two views on that model: a :class:`QTableView` and a
         :class:`CurvePropertiesView`.
       - The selection is managed via a :class:`ExtendedSelectionModel` which is

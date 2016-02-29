@@ -200,7 +200,7 @@ def protectTaurusMessageBox(fn):
 
 
 class ProtectTaurusMessageBox(object):
-    """The idea of this class is to be used as a decorator on any method 
+    """The idea of this class is to be used as a decorator on any method
     you which to protect against exceptions. The handle of the exception is to
     display a :class:`TaurusMessageBox` with the exception information. The
     optional parameter title gives the window bar a customized title. The

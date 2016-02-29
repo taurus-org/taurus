@@ -46,7 +46,7 @@ from taurus.external import unittest
 class CoreTangoIndependentTestCase(unittest.TestCase):
     '''Test the Tango-independent core. As part of the SEP3 specification
        Taurus's core must be functional without PyTango.
-       This test checks that you can import taurus without PyTango.         
+       This test checks that you can import taurus without PyTango.
     '''
 
     def _importTaurus(self):

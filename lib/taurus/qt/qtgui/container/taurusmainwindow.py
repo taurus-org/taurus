@@ -76,7 +76,7 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
 
     def addExternalAppConfig(self, extapp):
         '''
-        Creates an entry in the "External Apps" tab of the configuration dialog 
+        Creates an entry in the "External Apps" tab of the configuration dialog
 
         :param extapp: (ExternalAppAction) the external application that is to
                        be included in the configuration menu.
@@ -160,8 +160,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     A Taurus-aware QMainWindow with several customizations:
 
         - It takes care of (re)storing its geometry and state (see :meth:`loadSettings`)
-        - Supports perspectives (programmatic access and, optionally, 
-          accessible by user), and allows defining a set of "factory settings" 
+        - Supports perspectives (programmatic access and, optionally,
+          accessible by user), and allows defining a set of "factory settings"
         - It provides a customizable splashScreen (optional)
         - Supports spawning remote consoles and remote debugging
         - Supports full-screen mode toggling
@@ -657,7 +657,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''saves the application settings (so that they can be restored with :meth:`loadSettings`)
 
         .. note:: this method is automatically called by default when closing the
-                  window, so in general there is no need to call it from derived classes 
+                  window, so in general there is no need to call it from derived classes
 
         :param group: (str) a prefix that will be added to the keys to be
                        saved (no prefix by default)
@@ -699,7 +699,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''Loads the settings saved for the given perspective.
         It emits a 'perspectiveChanged' signal with name as its parameter
 
-        :param name: (str) name of the perspective            
+        :param name: (str) name of the perspective
         :param settings: (QSettings or None) a QSettings object. If None given,
                          the default one returned by :meth:`getQSettings` will
                          be used
@@ -717,7 +717,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.emit(Qt.SIGNAL('perspectiveChanged'), name)
 
     def getPerspectivesList(self, settings=None):
-        '''Returns the list of saved perspectives 
+        '''Returns the list of saved perspectives
 
         :param settings: (QSettings or None) a QSettings object. If None given,
                          the default one returned by :meth:`getQSettings` will
@@ -736,7 +736,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     def removePerspective(self, name=None, settings=None):
         '''removes the given perspective from the settings
 
-        :param name: (str) name of the perspective            
+        :param name: (str) name of the perspective
         :param settings: (QSettings or None) a QSettings object. If None given,
                          the default one returned by :meth:`getQSettings` will
                          be used
@@ -828,9 +828,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
                        (recommended because it allows to specify custom text and
                        icon) or, alternatively, as a list of strings (sys.argv-
                        like) that will be passed to :meth:`subprocess.Popen`.
-        :param toToolBar: (bool) If True (default) a button will be added in the 
+        :param toToolBar: (bool) If True (default) a button will be added in the
                           Tools toolBar
-        :param toMenu: (bool) If True (default) an entry will be added in the 
+        :param toMenu: (bool) If True (default) an entry will be added in the
                           Tools Menu, under the "External Applications" submenu
 
         .. seealso:: :class:`ExternalAppAction`
@@ -1000,7 +1000,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     def onIncommingSocketConnection(self):
         '''
         Slot to be called when another application/instance with the same key
-        checks if this application exists. 
+        checks if this application exists.
 
         .. note:: This is a dummy implementation which
                   just logs the connection and discards the associated socket
@@ -1014,8 +1014,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.activateWindow()
 
     def setHeartbeat(self, interval):
-        '''sets the interval of the heartbeat LED for the window. 
-        The heartbeat is displayed by a Led in the status bar unless 
+        '''sets the interval of the heartbeat LED for the window.
+        The heartbeat is displayed by a Led in the status bar unless
         it is disabled by setting the interval to 0
 
         :param interval: (int) heart beat interval in millisecs. Set to 0 to disable

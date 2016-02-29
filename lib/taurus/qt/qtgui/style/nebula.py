@@ -120,7 +120,7 @@ QGroupBox::title {{
 }}
 
 QTabWidget {{
-    
+
 }}
 
 QTabWidget::tab-bar {{
@@ -170,9 +170,9 @@ QTabBar::tab:selected {{
  QMainWindow::separator:hover {{
     background: red;
  }}
- 
+
  */
- 
+
 
 """
 

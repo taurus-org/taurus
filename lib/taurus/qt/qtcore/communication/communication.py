@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-comunications.py: 
+comunications.py:
 """
 
 from taurus.external.qt import QtCore
@@ -36,7 +36,7 @@ _DEBUG = False
 class DataModel(QtCore.QObject):
     '''
     An object containing one piece of data which is intended to be shared. The
-    data will be identified by its UID (a unique identifier known to objects 
+    data will be identified by its UID (a unique identifier known to objects
     that intend to access the data)
 
     In general, you are not supposed to instantiate objects of this class
@@ -63,7 +63,7 @@ class DataModel(QtCore.QObject):
         return '<DataModel object with dataUID="%s">' % self.dataUID()
 
     def dataUID(self):
-        ''' 
+        '''
         returns the data unique identifier
 
         :return: (str)
@@ -116,7 +116,7 @@ class DataModel(QtCore.QObject):
 
         :param writer: (QObject) object that will change the data
         :param signalname: (str) the signal name that will notify changes
-                           of the data 
+                           of the data
 
         .. seealso:: :meth:`connectReader`, :meth:`setData`
         '''
@@ -230,7 +230,7 @@ class SharedDataManager(QtCore.QObject):
         Note that it returns the :meth:`DataModel.getData` method for the given data
         UID, which can be used for reading the data at any moment.
 
-        :param dataUID: (str) the unique identifier of the data 
+        :param dataUID: (str) the unique identifier of the data
         :param slot: (callable) a method that will be called when the data changes
                      this slot will be the receiver of a signal which has the
                      data as its first argument.
@@ -258,10 +258,10 @@ class SharedDataManager(QtCore.QObject):
         Note that it returns the :meth:`DataModel.setData` method for the given data
         UID, which can be used for changing the data at any moment.
 
-        :param dataUID: (str) the unique identifier of the data 
+        :param dataUID: (str) the unique identifier of the data
         :param writer: (QObject) object that will change the data
         :param signalname: (str) the signal name that will notify changes
-                           of the data 
+                           of the data
 
         :return: (callable) a callable that can be used for setting the data.
                  When using it, one parameter has to be passed containing the
@@ -279,7 +279,7 @@ class SharedDataManager(QtCore.QObject):
     def disconnectWriter(self, dataUID, writer, signalname):
         '''Unregister the given object as writer of the shared data
 
-        :param dataUID: (str) the unique identifier of the data                 
+        :param dataUID: (str) the unique identifier of the data
         :param writer: (QObject) object to unregister
         :param signalname: (str) the signal that was registered
 
@@ -291,7 +291,7 @@ class SharedDataManager(QtCore.QObject):
             self.__models.pop(dataUID)
 
     def disconnectReader(self, dataUID, slot):
-        '''Unregister the given method as data receiver 
+        '''Unregister the given method as data receiver
 
         :param dataUID: (str) the unique identifier of the data
         :param slot: (str) the slot that was registered
@@ -315,7 +315,7 @@ class SharedDataManager(QtCore.QObject):
 
     def debugReader(self, data):
         '''
-        A slot which you can connect as a reader for debugging. It will print info to the stdout 
+        A slot which you can connect as a reader for debugging. It will print info to the stdout
         '''
         print "SharedDataManager: \n\tSender=: %s\n\tData=%s" % (self.sender(), repr(data))
 

@@ -142,7 +142,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
             self.emit(Qt.SIGNAL("applied()"))
 
     def keyPressEvent(self, event):
-        '''reimplemented to emit an 'applied()' signal when Enter (or Return) 
+        '''reimplemented to emit an 'applied()' signal when Enter (or Return)
         key is pressed'''
         if event.key() in [Qt.Qt.Key_Return, Qt.Qt.Key_Enter]:
             self.emit(Qt.SIGNAL("applied()"))
@@ -156,10 +156,10 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
 
     def setValueNames(self, names):
         '''
-        Sets the correspondence between the values to be applied and their 
+        Sets the correspondence between the values to be applied and their
         associated text to show in the combobox.
 
-        :param names: (sequence<tuple>) A sequence of (name,value) tuples, 
+        :param names: (sequence<tuple>) A sequence of (name,value) tuples,
                       where each attribute value gets a name for display
         '''
         bs = self.blockSignals(True)
@@ -173,7 +173,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
 
         ... seealso: :meth:`setValueNames`
 
-        :param names: (sequence<tuple>) A sequence of (name,value) tuples, 
+        :param names: (sequence<tuple>) A sequence of (name,value) tuples,
                       where each attribute value gets a name for display
         '''
         bs = self.blockSignals(True)
@@ -192,13 +192,13 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         self.emitValueChanged()
 
     def getValueString(self, value, default='UNKNOWN(%s)'):
-        """Returns the corresponding name in the combobox out of a value 
+        """Returns the corresponding name in the combobox out of a value
         (or a default value if not found).
 
         :param value: value to look up
-        :param default: (str) value in case it is not found. It accepts 
+        :param default: (str) value in case it is not found. It accepts
                         a '%s' placeholder which will be substituted with
-                        str(value). It defaults to 'UNKNOWN(%s)'.        
+                        str(value). It defaults to 'UNKNOWN(%s)'.
         """
         item = self.findData(Qt.QVariant(value))
         if item < 0:

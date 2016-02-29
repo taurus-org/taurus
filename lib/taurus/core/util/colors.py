@@ -100,7 +100,7 @@ class ColorPalette(object):
         return fmt % self.number(stoq, fg)
 
     def number(self, stoq, fg=False):
-        """Returns the colors as a number, 
+        """Returns the colors as a number,
         suitable for conversion to hexadecimal as argument to QtGui.QColor."""
         r = self.rgb(stoq, fg)
         return r[0] * 256 * 256 + r[1] * 256 + r[2]

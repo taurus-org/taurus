@@ -81,7 +81,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
     def setCmdArgs(self, cmdargs, emitsignal=True):
         '''Sets the command args for executing this external application.
 
-        It emits the "cmdArgsChanged" signal with the new cmdArgs list 
+        It emits the "cmdArgsChanged" signal with the new cmdArgs list
 
         :param cmdargs: (list<str> or str) A list of strings to be passed to
                         :meth:`subprocess.Popen` for launching the external

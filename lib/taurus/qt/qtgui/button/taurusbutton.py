@@ -277,7 +277,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         :param parent: (Qt.QWidget or None) parent of this widget
         :param designMode: (bool) flag for Qt designer
         :param command: (str) the name of the command to be executed
-        :param parameters: (sequence<str>) the list of parameteres. Default value is None meaning no parameters 
+        :param parameters: (sequence<str>) the list of parameteres. Default value is None meaning no parameters
         :param icon: (Qt.QIcon) icon for the button
         :param text: (str) the button text (if None passed, `command` is used)
         :param timeout: (float) the command timeout (in seconds)
@@ -491,7 +491,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
 
         .. seealso:: :meth:`PyTango.DeviceProxy.command_inout`
 
-        :param timeout: (float) the command timeout in seconds 
+        :param timeout: (float) the command timeout in seconds
                         (timeout <0 or timeout=None disables the timeout)
         '''
         if timeout < 0:
@@ -501,7 +501,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
     def getTimeout(self):
         '''
         Returns the number of seconds to wait for the result of the command
-        (or -1 if timeout is disabled) 
+        (or -1 if timeout is disabled)
         '''
         ret = self._timeout
         if ret is None or ret < 0:

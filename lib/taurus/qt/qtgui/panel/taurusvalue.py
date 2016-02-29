@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-taurusvalue.py: 
+taurusvalue.py:
 """
 
 __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox", "DefaultLabelWidget",
@@ -66,10 +66,10 @@ class DefaultTaurusValueCheckBox(TaurusValueCheckBox):
 
 class DefaultLabelWidget(TaurusLabel):
     '''
-    The base class used by default for showing the label of a TaurusValue. 
+    The base class used by default for showing the label of a TaurusValue.
 
     .. note:: It only makes sense to use this class as a part of a TaurusValue,
-              since it assumes that it can get a reference to a TaurusValue via 
+              since it assumes that it can get a reference to a TaurusValue via
               the :meth:`getTaurusValueBuddy` member
     '''
 
@@ -299,7 +299,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
     .. warning::
 
-        :class:`TaurusValue` (and any derived class from it) should never be instantiated directly. 
+        :class:`TaurusValue` (and any derived class from it) should never be instantiated directly.
         It is designed to be instantiated by a :class:`TaurusForm` class, since it
         breaks some conventions on the way it manages layouts of its parent model.
     '''
@@ -370,8 +370,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
     def readWidget(self, followCompact=False):
         '''
-        Returns the read widget. If followCompact=True, and compact mode is 
-        used, it returns the switcher's readWidget instead of the switcher 
+        Returns the read widget. If followCompact=True, and compact mode is
+        used, it returns the switcher's readWidget instead of the switcher
         itself.
         '''
         if followCompact and self.isCompact():
@@ -380,7 +380,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
     def writeWidget(self, followCompact=False):
         '''
-        Returns the write widget. If followCompact=True, and compact mode is 
+        Returns the write widget. If followCompact=True, and compact mode is
         used, it returns the switcher's writeWidget instead of None.
         '''
         if followCompact and self.isCompact():
@@ -1093,11 +1093,11 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         '''
         extending  :meth:`TaurusBaseWidget.createConfig` to store also the class names for subwidgets
 
-        :param alllowUnpickable:  (bool) 
+        :param alllowUnpickable:  (bool)
 
         :return: (dict<str,object>) configurations (which can be loaded with :meth:`applyConfig`).
 
-        .. seealso: :meth:`TaurusBaseWidget.createConfig`, :meth:`applyConfig` 
+        .. seealso: :meth:`TaurusBaseWidget.createConfig`, :meth:`applyConfig`
         '''
         configdict = TaurusBaseWidget.createConfig(
             self, allowUnpickable=allowUnpickable)
@@ -1153,7 +1153,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self.updateExtraWidget()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        """Reimplemented from :meth:`TaurusBaseWidget.handleEvent` 
+        """Reimplemented from :meth:`TaurusBaseWidget.handleEvent`
         to update subwidgets on config events
         """
         if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config and not self._designMode:
@@ -1217,8 +1217,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.updateLabelWidget()
 
     def getSwitcherClass(self):
-        '''Returns the TaurusValue switcher class (used in compact mode).        
-        Override this method if you want to use a custom switcher in 
+        '''Returns the TaurusValue switcher class (used in compact mode).
+        Override this method if you want to use a custom switcher in
         TaurusValue subclasses.
         '''
         class TVSwitcher(TaurusReadWriteSwitcher):

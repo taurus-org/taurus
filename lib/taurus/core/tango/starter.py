@@ -23,10 +23,10 @@
 ##
 #############################################################################
 
-"""This module provides a very simple API for starting and killing device 
+"""This module provides a very simple API for starting and killing device
 servers
 
-It is not a replacement of the Tango Starter Device Server since this is much 
+It is not a replacement of the Tango Starter Device Server since this is much
 more limited in scope.
 """
 
@@ -44,10 +44,10 @@ _log = Logger('Starter')
 
 
 class Starter(object):
-    '''Abstract class for managing (starting, stopping, registering and 
+    '''Abstract class for managing (starting, stopping, registering and
     removing) a Tango Device Server.
 
-    Derived classes should provide the methods for starting and stopping a 
+    Derived classes should provide the methods for starting and stopping a
     device.
     '''
 
@@ -123,13 +123,13 @@ class Starter(object):
 
     def addNewDevice(self, device, klass=None):
         """
-        Register a device of this server in the DB (register the server if 
+        Register a device of this server in the DB (register the server if
         not present)
         e.g. to create Starter in an init script::
 
             addNewDevice('sys/tg_test/foobar', klass='TangoTest')
 
-        :param klass: class name. If None passed, it defaults to the server 
+        :param klass: class name. If None passed, it defaults to the server
                       name (without instance name)
         """
         if device in self._addedDevices:
@@ -159,11 +159,11 @@ class Starter(object):
 
     def cleanDb(self, force=False):
         '''removes devices which have been added by :meth:`addNewDevice`
-        and then removes the server if it was registered by this starter 
+        and then removes the server if it was registered by this starter
         (or, if force is True, it removes the server in any case)
 
-        :param force: (bool) force removing of the Server even if it was 
-                      not registered within this starter 
+        :param force: (bool) force removing of the Server even if it was
+                      not registered within this starter
         '''
         for device in self._addedDevices:
             PyTango.Database().delete_device(device)
@@ -191,7 +191,7 @@ class Starter(object):
 
 
 class ProcessStarter(Starter):
-    '''A :class:`Starter` which uses subprocess to start and stop a device 
+    '''A :class:`Starter` which uses subprocess to start and stop a device
     server.
     '''
 

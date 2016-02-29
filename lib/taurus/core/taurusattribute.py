@@ -108,7 +108,7 @@ class TaurusAttribute(TaurusModel):
         the parent name is returned
 
         Note: This is a basic implementation. You may need to reimplement this
-              for a specific scheme if it supports "useParentModel". 
+              for a specific scheme if it supports "useParentModel".
         """
         if parent_model is None:
             return relative_name
@@ -200,7 +200,7 @@ class TaurusAttribute(TaurusModel):
         '''Enable polling. See :meth:`isPollingEnabled` for clarification of
         what enabled polling means.
 
-        :param force: (bool) True also activates polling 
+        :param force: (bool) True also activates polling
                       (see: :meth:`activatePolling`)
         '''
         self.__enable_polling = True

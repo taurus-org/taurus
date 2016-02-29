@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-TaurusDevicePanel.py: 
+TaurusDevicePanel.py:
 """
 
 __all__ = ["TaurusDevicePanel", "TaurusDevPanel"]
@@ -166,7 +166,7 @@ class TaurusDevicePanel(TaurusWidget):
 
     @classmethod
     def setAttributeFilters(klass, filters):
-        """ 
+        """
         It will set the attribute filters
         filters will be like: {device_regexp:[attribute_regexps]}
         example: {'.*/VGCT-.*': ['ChannelState','p[0-9]']}
@@ -179,14 +179,14 @@ class TaurusDevicePanel(TaurusWidget):
 
     @classmethod
     def setCommandFilters(klass, filters):
-        """ 
+        """
         It will set the command filters
         filters will be like: {device_regexp:[command_regexps]}
         example::
 
           {'.*/IPCT-.*': (
-                           ('setmode',('SERIAL','LOCAL','STEP','FIXED','START','PROTECT')), 
-                           ('onhv1',()), ('offhv1',()), ('onhv2',()), ('offhv2',()), 
+                           ('setmode',('SERIAL','LOCAL','STEP','FIXED','START','PROTECT')),
+                           ('onhv1',()), ('offhv1',()), ('onhv2',()), ('offhv2',()),
                            ('sendcommand',())
                          ),}
 

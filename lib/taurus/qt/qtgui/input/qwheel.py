@@ -430,7 +430,7 @@ class QWheelEdit(Qt.QFrame):
     def _updateDigits(self):
         """_updateDigits(self) -> None
 
-        Updates this widget contents (sub-widgets) according to the current 
+        Updates this widget contents (sub-widgets) according to the current
         widget configuration
         """
         self._clear()
@@ -491,7 +491,7 @@ class QWheelEdit(Qt.QFrame):
     def _setValue(self, v):
         """_setValue(self, v) -> None
 
-        Sets value of this widget. If the given value exceeds any limit, the 
+        Sets value of this widget. If the given value exceeds any limit, the
         value is NOT set.
         """
         if self._roundFunc:
@@ -666,7 +666,7 @@ class QWheelEdit(Qt.QFrame):
     def resetMinValue(self):
         """resetMinValue(self) -> None
 
-        Resets the minimum allowed value to the minimum possible according to 
+        Resets the minimum allowed value to the minimum possible according to
         the current total number of digits
         """
         self.setMinValue(self._getMinPossibleValue())
@@ -695,7 +695,7 @@ class QWheelEdit(Qt.QFrame):
     def resetMaxValue(self):
         """resetMaxValue(self) -> None
 
-        Resets the maximum allowed value to the maximum possible according to 
+        Resets the maximum allowed value to the maximum possible according to
         the current total number of digits
         """
         self.setMaxValue(self._getMaxPossibleValue())

@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""This module provides the base :class:`taurus.qt.qtgui.application.TaurusApplication` 
+"""This module provides the base :class:`taurus.qt.qtgui.application.TaurusApplication`
 class."""
 
 __docformat__ = 'restructuredtext'

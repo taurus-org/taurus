@@ -919,19 +919,19 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
 
         Note that some of the values may be None if that cannot be computed.
 
-        Also, 
+        Also,
 
-        :param limits: (None or tuple<float,float>) tuple containing (min,max) limits. 
-                        Points of the curve whose abscisa value is outside of 
+        :param limits: (None or tuple<float,float>) tuple containing (min,max) limits.
+                        Points of the curve whose abscisa value is outside of
                         these limits are ignored. If None is passed, the limit is not enforced
         :param inclusive: (tuple<bool,bool>). A tuple consisting of the (lower flag, upper flag).
-                          These flags determine whether values exactly equal to the lower or 
+                          These flags determine whether values exactly equal to the lower or
                           upper limits are included. The default value is (True, True).
-        :param imin: (int) lowest index to be considered. If None is given, 
-                     the limit is not enforced 
+        :param imin: (int) lowest index to be considered. If None is given,
+                     the limit is not enforced
         :param imax: (int) higest index to be considered. If None is given,
                      the limit is not enforced
-        :param ignorenans: (bool) if True (defaul), the points with NaN values are stripped 
+        :param ignorenans: (bool) if True (defaul), the points with NaN values are stripped
                      before calculating the stats
 
         :return: (dict) A dict containing the stats.
@@ -1819,8 +1819,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """attaches a curve to the plot formed from raw data that comes in a dict
 
         :param rawdata: (dict) A dictionary defining a rawdata curve. It has the
-                        following structure (all keys are optional, but either 
-                        "y" or "f(x)" must be present. Also, the value of x, y 
+                        following structure (all keys are optional, but either
+                        "y" or "f(x)" must be present. Also, the value of x, y
                         and f(x) can be None):
 
                         {"title":<str>, "x":list<float>, "y":list<float>,
@@ -3102,9 +3102,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         return self._inspectorMode
 
     def onCurveStatsAction(self):
-        ''' 
-        slot for the curveStatsAction. Allows the user to select a range and 
-        then shows curve statistics on that range. 
+        '''
+        slot for the curveStatsAction. Allows the user to select a range and
+        then shows curve statistics on that range.
         '''
         if getattr(self, '_curveStatsDialog', None) is None:
             from taurus.qt.qtgui.plot import CurveStatsDialog
@@ -3188,8 +3188,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     def getCurveStats(self, limits=None, curveNames=None):
         '''Shows a dialog containing descriptive statistics on curves
 
-        :param limits: (None or tuple<float,float>) tuple containing (min,max) limits. 
-                       Points of the curve whose abscisa value is outside of 
+        :param limits: (None or tuple<float,float>) tuple containing (min,max) limits.
+                       Points of the curve whose abscisa value is outside of
                        these limits are ignored. If None is passed, the limit is not enforced
         :param curveNames: (seq<str>) sequence of curve names for which
                            statistics are requested. If None passed (default), all curves are

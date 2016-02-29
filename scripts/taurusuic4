@@ -39,7 +39,7 @@ _template = """#!/usr/bin/env python
 
 # Code implementation generated from reading ui file '{filename}'
 #
-# Created: {ctime} 
+# Created: {ctime}
 #      by: Taurus UI code generator {version}
 #
 # WARNING! All changes made in this file will be lost!
@@ -55,10 +55,10 @@ class {klass}({super_klass}):
 
     def __init__(self, parent=None, designMode=False):
         {super_klass}.__init__(self, parent, designMode=designMode)
-        
+
         self._ui = {ui_klass}()
         self._ui.setupUi(self)
-        
+
     {qt_info}
 
 def main():

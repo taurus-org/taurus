@@ -24,14 +24,14 @@
 #############################################################################
 """
 This module contains a list of codecs for the DEV_ENCODED attribute type.
-All codecs are based on the pair *format, data*. The format is a string 
-containing the codec signature and data is a sequence of bytes (string) 
-containing the encoded data. 
+All codecs are based on the pair *format, data*. The format is a string
+containing the codec signature and data is a sequence of bytes (string)
+containing the encoded data.
 
 This module contains a list of codecs capable of decoding several codings like
 bz2, zip and json.
 
-The :class:`CodecFactory` class allows you to get a codec object for a given 
+The :class:`CodecFactory` class allows you to get a codec object for a given
 format and also to register new codecs.
 The :class:`CodecPipeline` is a special codec that is able to code/decode a
 sequence of codecs. This way you can have codecs 'inside' codecs.
@@ -47,7 +47,7 @@ Example::
     >>> f2, enc_d2 = bz2_json_codec.encode(('', data))
     >>> print len(enc_d1), len(enc_d2)
     688890 123511
-    >>> 
+    >>>
     >>> f1, dec_d1 = json_codec.decode((f1, enc_d1))
     >>> f2, dec_d2 = bz2_json_codec.decode((f2, enc_d2))
 
@@ -756,12 +756,12 @@ class CodecPipeline(Codec, list):
         >>> codec = CodecPipeline('bz2_json')
         >>> format, encoded_data = codec.encode(("", data))
 
-        # decode it 
+        # decode it
         format, decoded_data = codec.decode((format, encoded_data))
         print decoded_data"""
 
     def __init__(self, format):
-        """Constructor. The CodecPipeline object will be created using 
+        """Constructor. The CodecPipeline object will be created using
         the :class:`CodecFactory` to search for format(s) given in the format
         parameter.
 
@@ -809,7 +809,7 @@ class CodecFactory(Singleton, Logger):
         from taurus.core.util.codecs import CodecFactory
         f = CodecFactory()
 
-    The :class:`CodecFactory` class allows you to get a codec object for a given 
+    The :class:`CodecFactory` class allows you to get a codec object for a given
     format and also to register new codecs.
     The :class:`CodecPipeline` is a special codec that is able to code/decode a
     sequence of codecs. This way you can have codecs 'inside' codecs.
@@ -825,7 +825,7 @@ class CodecFactory(Singleton, Logger):
         >>> f2, enc_d2 = bz2_json_codec.encode(('', data))
         >>> print len(enc_d1), len(enc_d2)
         688890 123511
-        >>> 
+        >>>
         >>> f1, dec_d1 = json_codec.decode((f1, enc_d1))
         >>> f2, dec_d2 = bz2_json_codec.decode((f2, enc_d2))
 

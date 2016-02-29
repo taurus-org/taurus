@@ -33,7 +33,7 @@ __docformat__ = "restructuredtext"
 
 
 class SafeEvaluator(object):
-    """This class provides a safe eval replacement. 
+    """This class provides a safe eval replacement.
 
     The method eval() will only evaluate the expressions considered safe (whitelisted).
     By default it has a whitelist of mathematical expressions that can be turn off using defaultSafe=False at init
@@ -42,7 +42,7 @@ class SafeEvaluator(object):
 
     Functions can be removed by name using removeSafe()
 
-    Note: In order to use variables defined outside, the user must explicitly declare them safe. 
+    Note: In order to use variables defined outside, the user must explicitly declare them safe.
     """
 
     def __init__(self, safedict=None, defaultSafe=True):

@@ -29,7 +29,7 @@
     it means when you right click on the widget in the designer, it will have
     the following additional items:
     - 'Edit model...' - opens a customized dialog for editing the widget model
-    
+
   - Property Sheet:
     it means that in the Qt Designer property sheet it will have the following
     properties customized:

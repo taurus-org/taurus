@@ -197,7 +197,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         Rect size never changes (fixed by the graphics objects)
         Size and SizeHint move one around the other
 
-        the method works well until an object is clicked, 
+        the method works well until an object is clicked,
         then the whole reference changes and doesn't work again.
         """
 

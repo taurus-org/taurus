@@ -24,7 +24,7 @@
 ###########################################################################
 
 '''An example of usage of TaurusGui in which no configuration file is used
-(everything is done programmatically) 
+(everything is done programmatically)
 This can be launched directly as a stand-alone python script'''
 
 if __name__ == '__main__':

@@ -68,7 +68,7 @@ Example::
 
     base = 'my/motor/'
     g = globals()
-    
+
     for i in xrange(256):
         i_str = str(i)
         g['mym"+i_str] = base + i_str

@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-event.py: 
+event.py:
 """
 
 __all__ = ["BoundMethodWeakref", "CallableRef", "EventGenerator",
@@ -84,7 +84,7 @@ class BoundMethodWeakref(object):
 
 
 def CallableRef(object, del_cb=None):
-    """This function returns a callable weak reference to a callable object. 
+    """This function returns a callable weak reference to a callable object.
     Object can be a callable object, a function or a method.
 
     :param object: a callable object
@@ -381,7 +381,7 @@ class EventListener(object):
 
     def waitEvent(self, val, after=0, equal=True):
         """Wait for an event with the given value. You MUST protect this function
-        with this object's lock before calling this method and always unlock it 
+        with this object's lock before calling this method and always unlock it
         afterward, of course::
 
             from taurus.core.util.event import EventListener
@@ -404,7 +404,7 @@ class EventListener(object):
         :param after: timestamp. wait for events comming after the given time.
                       default value is 0 meaning any event after Jan 1, 1970
         :type  after: float
-        :param equal: compare for equality. equal=True means an event with the 
+        :param equal: compare for equality. equal=True means an event with the
                       given value, equal=False means any event which as a different value
         :type  equal: bool
         """
@@ -587,13 +587,13 @@ class AttributeEventWait(object):
         :param after: timestamp. wait for events comming after the given time.
                       default value is 0 meaning any event after Jan 1, 1970
         :type  after: float
-        :param equal: compare for equality. equal=True means an event with the 
+        :param equal: compare for equality. equal=True means an event with the
                       given value, equal=False means any event which as a different value
         :type  equal: bool
         :param timeout: maximum time to wait (seconds). Default is None meaning
                wait forever.
         :type  timeout: float
-        :param retries: number of maximum retries of max timeout to attempts. 
+        :param retries: number of maximum retries of max timeout to attempts.
                         Default is -1 meaning infinite number of retries.
                         0 means no wait. Positive number is obvious.
         :param any: if any is True ignore 'val' parameter and accept any event.

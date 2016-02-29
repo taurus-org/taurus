@@ -27,10 +27,10 @@
 
 
 def loopTest(testname, maxtries=100, maxfails=10):
-    '''Run a test `maxtries` times or until it fails `maxfails` times and 
+    '''Run a test `maxtries` times or until it fails `maxfails` times and
     report the number of tries and failures.
 
-    :param testname: (str) test name. see: 
+    :param testname: (str) test name. see:
                      :meth:`unittest.TestLoader.loadTestsFromName`
     :param maxtries: (int) maximum number of runs
     :param maxfails: (int) maximum number of failed runs
@@ -51,12 +51,12 @@ def loopTest(testname, maxtries=100, maxfails=10):
 
 def loopSubprocess(target, maxtries=100, maxfails=10, okvalues=(0,), args=(),
                    kwargs=None):
-    '''Run a callable as a subprocess `maxtries` times or until it fails 
+    '''Run a callable as a subprocess `maxtries` times or until it fails
     `maxfails` times and report the number of tries and failures.
-    The callable is run as a subprocess and it is considered to run fine if 
+    The callable is run as a subprocess and it is considered to run fine if
     the subprocess exit code is in the okValues list.
 
-    :param target: (callable) a callable test 
+    :param target: (callable) a callable test
     :param maxtries: (int) maximum number of runs
     :param maxfails: (int) maximum number of failed runs
     :param okvalues: (seq) a sequence containing exit values of cmd which
@@ -83,18 +83,18 @@ def loopSubprocess(target, maxtries=100, maxfails=10, okvalues=(0,), args=(),
 
 def calculateTestFuzziness(test, maxtries=100, maxfails=10, **kwargs):
     '''Estimate the fuzziness of a test by running it many times and counting
-    the failures. In this context, we assume that there is an underlying 
-    problem and but that the test is not perfect and only fails (triggers the 
-    problem) with a certain failure rate. 
+    the failures. In this context, we assume that there is an underlying
+    problem and but that the test is not perfect and only fails (triggers the
+    problem) with a certain failure rate.
 
-    :param testname: (str) test name. see: 
+    :param testname: (str) test name. see:
                      :meth:`unittest.TestLoader.loadTestsFromName`
     :param maxtries: (int) maximum number of runs
     :param maxfails: (int) maximum number of failed runs
 
-    :return: (tuple) a tuple (f,df,n) where f is the failure rate, df is its 
-             standard deviation, and n is the number of consecutive 
-             times that the test should be passed to have a confidence>99%% 
+    :return: (tuple) a tuple (f,df,n) where f is the failure rate, df is its
+             standard deviation, and n is the number of consecutive
+             times that the test should be passed to have a confidence>99%%
              that the bug is fixed'
     '''
     print ("Running the test %i times (or until it fails %i times)" +

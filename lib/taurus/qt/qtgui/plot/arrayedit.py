@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-arrayedit.py: Widget for editing a spectrum/array via control points 
+arrayedit.py: Widget for editing a spectrum/array via control points
 """
 
 

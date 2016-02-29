@@ -87,7 +87,7 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
 
     def image(self, taurusmodel=None, **kwargs):
         """
-        Extension to meth:`guiqwt.builder.PlotItemBuilder.image` to support passing a 
+        Extension to meth:`guiqwt.builder.PlotItemBuilder.image` to support passing a
         'taurusmodel' as a keyword argument instead passing 'data' or 'filename'.
         """
         if taurusmodel is None:
@@ -207,7 +207,7 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
         """
         Make a taurus trend item
 
-        :return (TaurusTrendItem): 
+        :return (TaurusTrendItem):
         """
         curveparam = CurveParam(icon='curve.png')
         if not title:

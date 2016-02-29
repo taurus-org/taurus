@@ -30,8 +30,8 @@ from taurus.external.qt import Qt
 
 
 class DropDebugger(Qt.QLabel):
-    '''A simple utility for debugging drag&drop. 
-    This widget will accept drops and show a pop-up with the contents 
+    '''A simple utility for debugging drag&drop.
+    This widget will accept drops and show a pop-up with the contents
     of the MIME data passed in the drag&drop'''
 
     def __init__(self, parent=None):

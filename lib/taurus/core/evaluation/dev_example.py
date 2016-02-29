@@ -35,7 +35,7 @@ import ctypes
 
 
 class FreeSpaceDevice(EvaluationDevice):
-    '''A simple example of usage of the evaluation scheme for 
+    '''A simple example of usage of the evaluation scheme for
     creating a device that allows to obtain available space in a dir.
 
     Important: note that only those members listed in `_symbols` will be available
@@ -43,7 +43,7 @@ class FreeSpaceDevice(EvaluationDevice):
     _symbols = ['getFreeSpace']
 
     def getFreeSpace(self, dir):
-        """ return free space (in bytes). 
+        """ return free space (in bytes).
         (Recipe adapted from `http://stackoverflow.com/questions/51658`)
         """
         if platform.system() == 'Windows':

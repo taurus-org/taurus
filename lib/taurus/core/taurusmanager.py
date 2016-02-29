@@ -67,7 +67,7 @@ class TaurusManager(Singleton, Logger):
         pass
 
     def init(self, *args, **kwargs):
-        """Singleton instance initialization. 
+        """Singleton instance initialization.
            For internal usage only. Do **NOT** call this method directly"""
         self._state = ManagerState.UNINITIALIZED
         self.call__init__(Logger)
@@ -116,7 +116,7 @@ class TaurusManager(Singleton, Logger):
         """Add a new job (callable) to the queue. The new job will be processed
         by a separate thread
 
-        :param job: (callable) a callable object 
+        :param job: (callable) a callable object
         :param callback: (callable) called after the job has been processed
         :param args: (list) list of arguments passed to the job
         :param kw: (dict) keyword arguments passed to the job
@@ -184,7 +184,7 @@ class TaurusManager(Singleton, Logger):
         """Gives the factory class object supporting the given scheme
 
         :param scheme: (str or None) the scheme. If None the default scheme is used
-        :return: (taurus.core.taurusfactory.TaurusFactory or None) the factory class object for the 
+        :return: (taurus.core.taurusfactory.TaurusFactory or None) the factory class object for the
                  given scheme or None if a proper factory is not found
         """
         if scheme is None:
@@ -207,7 +207,7 @@ class TaurusManager(Singleton, Logger):
         """Finds the object with the given name
 
         :param absolute_name: (str) the object name
-        :return: (taurus.core.taurusmodel.TaurusModel or None) the taurus model object or None if 
+        :return: (taurus.core.taurusmodel.TaurusModel or None) the taurus model object or None if
                  no suitable name found
         """
         factory = self._get_factory(absolute_name)
@@ -219,7 +219,7 @@ class TaurusManager(Singleton, Logger):
         """Finds the object class for the given object name
 
         :param absolute_name: (str) the object name
-        :return: (class taurus.core.taurusmodel.TaurusModel or None) the taurus model class object or 
+        :return: (class taurus.core.taurusmodel.TaurusModel or None) the taurus model class object or
                  None if no suitable name found
         """
         factory = self._get_factory(absolute_name)

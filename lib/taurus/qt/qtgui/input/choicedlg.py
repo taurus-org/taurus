@@ -88,17 +88,17 @@ class GraphicalChoiceDlg(Qt.QDialog):
 
         :param parent: (QWidget) The parent of the dialog (it will be centered on it)
         :param title: (str) the text which is displayed in the title bar of the dialog
-        :param msg: (str) the text which is shown to the user in the dialog, 
+        :param msg: (str) the text which is shown to the user in the dialog,
                     above the choices.
-        :param choices: (list<list>) a list of lists of strings to be used as 
+        :param choices: (list<list>) a list of lists of strings to be used as
                         choices names. The (possibly sparse) 2D array defined by
                         the nested lists will be used to present the choices in
                         a grid. The choice names will be used as keys for pixmaps
-        :param pixmaps: (dict<str,QPixmap>) dictionary mapping the choices text to 
+        :param pixmaps: (dict<str,QPixmap>) dictionary mapping the choices text to
                         corresponding pixmap. If no valid pixmap is provided for
                         a given choice, the defaultPixmap will be used
         :param iconSize: (int) size of the icons to be displayed (128px by default)
-        :param defaultPixmap: (QPixmap) Default Pixmap to use if none passed for a 
+        :param defaultPixmap: (QPixmap) Default Pixmap to use if none passed for a
                               given choice. No Pixmap will be used if None passed.
         :param horizontalScrollBarPolicy: (enum Qt.ScrollBarPolicy) defines the mode of the horizontal scroll bar.
                                           The default mode is ScrollBarAsNeeded.
@@ -150,14 +150,14 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
                 choice1=pm, choice2=pm, choice3=pm, choice4=pm))
 
     def setChoices(self, choices, pixmaps=None):
-        '''        
+        '''
         sets the available options
 
-        :param choices: (list<list>) a list of lists of strings to be used as 
+        :param choices: (list<list>) a list of lists of strings to be used as
                         choices names. The (possibly sparse) 2D array defined by
                         the nested lists will be used to present the choices in
                         a grid. The choice names will be used as keys for pixmaps
-        :param pixmaps: (dict<str,QPixmap>) dictionary mapping the choices text to 
+        :param pixmaps: (dict<str,QPixmap>) dictionary mapping the choices text to
                         corresponding pixmap. If no valid pixmap is provided for
                         a given choice, a default pixmap will be used
         '''
@@ -169,7 +169,7 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
                                pixmap=pixmaps.get(choice, None))
 
     def setChoice(self, row, col, text, pixmap=None, tooltip=None):
-        ''' 
+        '''
         sets the option for a given row,column coordinate in the grid
 
         :param row: (int) row in the grid for this option
@@ -208,7 +208,7 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
         """Returns pertinent information in order to be able to build a valid
         QtDesigner widget plugin
 
-        The dictionary returned by this method should contain *at least* the 
+        The dictionary returned by this method should contain *at least* the
         following keys and values:
         - 'module' : a string representing the full python module name (ex.: 'taurus.qt.qtgui.base')
         - 'icon' : a string representing valid resource icon (ex.: ':/designer/combobox.png')

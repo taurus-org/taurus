@@ -407,7 +407,7 @@ class TangoDatabaseCache(object):
         device.setAttributes(attrs)
 
     def getDevice(self, name):
-        """Returns a :class:`TangoDevInfo` object with information 
+        """Returns a :class:`TangoDevInfo` object with information
         about the given device name
 
         :param name: (str) the device name
@@ -746,8 +746,8 @@ class TangoAuthority(TaurusAuthority):
 
     def getDevice(self, name):
         """
-        Reimplemented from :class:`TaurusDevice` to use cache and return 
-        :class:`taurus.core.tango.TangoDevInfo` objects with information 
+        Reimplemented from :class:`TaurusDevice` to use cache and return
+        :class:`taurus.core.tango.TangoDevInfo` objects with information
         about the given device name
 
         :param name: (str) the device name

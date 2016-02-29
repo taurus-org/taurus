@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-curvesmodel Model and view for new CurveItem configuration 
+curvesmodel Model and view for new CurveItem configuration
 """
 __all__ = ['TaurusCurveItemTableModel', 'CurveItemConf', 'CurveItemConfDlg']
 #raise UnimplementedError('Under Construction!')
@@ -126,7 +126,7 @@ class CurveItemConf(object):
 
     @staticmethod
     def fromAny(obj):
-        '''return a CurveItemConf from whatever given in input (if possible). 
+        '''return a CurveItemConf from whatever given in input (if possible).
         Raises ValueError if not possible'''
         if isinstance(obj, CurveItemConf):
             return copy.deepcopy(obj)
@@ -455,9 +455,9 @@ class CurveItemConfDlg(Qt.QWidget):
     def showDlg(parent=None, curves=None):
         '''Static method that launches a modal dialog containing a CurveItemConfDlg
 
-        :param parent: (QObject) parent for the dialog 
+        :param parent: (QObject) parent for the dialog
 
-        :return: (list,bool or QMimeData,bool) Returns a models,ok tuple. models can be 
+        :return: (list,bool or QMimeData,bool) Returns a models,ok tuple. models can be
                  either a list of models or a QMimeData object, depending on
                  `asMimeData`. ok is True if the dialog was accepted (by
                  clicking on the "update" button) and False otherwise

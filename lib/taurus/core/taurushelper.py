@@ -358,11 +358,11 @@ def getSchemeFromName(name, implicit=True):
     '''Return the scheme from a taurus name.
 
     :param name: (str) taurus model name URI.
-    :param implicit: (bool) controls whether to return the default scheme 
-                     (if implicit is True -default-) or None (if implicit is 
-                     False) in case `model` does not contain the scheme name 
+    :param implicit: (bool) controls whether to return the default scheme
+                     (if implicit is True -default-) or None (if implicit is
+                     False) in case `model` does not contain the scheme name
                      explicitly. The default schema may be defined in
-                     :module:`taurus.tauruscusmsettings` ('tango' is assumed if 
+                     :module:`taurus.tauruscusmsettings` ('tango' is assumed if
                      not defined)
     '''
     m = __SCHEME_RE.match(name)
@@ -379,7 +379,7 @@ def makeSchemeExplicit(name, default=None):
     contains the scheme, it is returned unchanged.
 
     :param name: (str) taurus model name URI.
-    :param default: (str) The default scheme to use. If no default is passed, 
+    :param default: (str) The default scheme to use. If no default is passed,
                      the one defined in tauruscustomsettings.DEFAULT_SCHEME is
                      used.
 
@@ -395,17 +395,17 @@ def makeSchemeExplicit(name, default=None):
 
 def getValidTypesForName(name, strict=None):
     '''
-    Returns a list of all Taurus element types for which `name` is a valid 
-    model name (while in many cases a name may only be valid for one 
+    Returns a list of all Taurus element types for which `name` is a valid
+    model name (while in many cases a name may only be valid for one
     element type, this is not necessarily true in general)
 
     :param name: (str) taurus model name
     :param strict: (bool) If True, names that are not RFC3986-compliant but
-                   which would be accepted for backwards compatibility are 
-                   considered valid. 
+                   which would be accepted for backwards compatibility are
+                   considered valid.
 
     :return: (list<TaurusElementType.element>) where element can be one of:
-             `Configuration`, `Attribute`, `Device` or `Authority` 
+             `Configuration`, `Attribute`, `Device` or `Authority`
     '''
     try:
         factory = Factory(scheme=getSchemeFromName(name))
@@ -415,24 +415,24 @@ def getValidTypesForName(name, strict=None):
 
 
 def isValidName(name, etypes=None, strict=None):
-    '''Returns True is the given name is a valid Taurus model name. If 
-    `etypes` is passed, it returns True only if name is valid for at least 
-    one of the given the element types. Otherwise it returns False. 
+    '''Returns True is the given name is a valid Taurus model name. If
+    `etypes` is passed, it returns True only if name is valid for at least
+    one of the given the element types. Otherwise it returns False.
     For example::
 
         isValidName('tango:foo')--> True
-        isValidName('tango:a/b/c', [TaurusElementType.Attribute]) --> False 
+        isValidName('tango:a/b/c', [TaurusElementType.Attribute]) --> False
 
     :param name: (str) the string to be checked for validity
-    :param etypes: (seq<TaurusElementType>) if given, names will only be 
-                   considered valid if they represent one of the given 
+    :param etypes: (seq<TaurusElementType>) if given, names will only be
+                   considered valid if they represent one of the given
                    element types. Supported element types are:
                    `Configuration`, `Attribute`, `Device` and `Authority`
     :param strict: (bool) If True, names that are not RFC3986-compliant but
-                   which would be accepted for backwards compatibility are 
-                   considered valid. 
+                   which would be accepted for backwards compatibility are
+                   considered valid.
 
-    :return: (bool) 
+    :return: (bool)
     '''
     validtypes = getValidTypesForName(name, strict=strict)
     if etypes is None:
@@ -502,7 +502,7 @@ def Device(device_name):
 
 
 def Attribute(dev_or_attr_name, attr_name=None):
-    """Returns the taurus attribute for either the pair (device name, attribute name) 
+    """Returns the taurus attribute for either the pair (device name, attribute name)
     or full attribute name
 
     - Attribute(full_attribute_name)
@@ -543,7 +543,7 @@ def Attribute(dev_or_attr_name, attr_name=None):
 
 @tep14_deprecation(alt='Attribute')
 def Configuration(attr_or_conf_name, conf_name=None):
-    """Returns the taurus configuration for either the pair (attribute name, conf name) 
+    """Returns the taurus configuration for either the pair (attribute name, conf name)
     or full conf name
 
     - Configuration(full_conf_name)
@@ -589,8 +589,8 @@ def Authority(name=None):
         factory = manager.getFactory()
         db  = factory.getAuthority(dname)
 
-    :param name: authority name. If None (default) it will return the default 
-                 authority of the default scheme. For example, if the default 
+    :param name: authority name. If None (default) it will return the default
+                 authority of the default scheme. For example, if the default
                  scheme is tango, it will return the default TANGO_HOST database
     :type name: str or None
     :return: a taurus authority
@@ -608,10 +608,10 @@ def Object(*args):
 
     Where:
 
-      - `name` is a model name (str) 
-      - `cls` is a class derived from TaurusModel 
+      - `name` is a model name (str)
+      - `cls` is a class derived from TaurusModel
 
-    If `cls` is not given, Object() will try to guess it from `name`. 
+    If `cls` is not given, Object() will try to guess it from `name`.
 
     :return: a taurus object
     :rtype: :class:`taurus.core.taurusmodel.TaurusModel`

@@ -188,7 +188,7 @@ class _TaurusLedControllerDesignMode(_TaurusLedController):
 
 
 class TaurusLed(QLed, TaurusBaseWidget):
-    """A widget designed to represent with a LED image the state of a device, 
+    """A widget designed to represent with a LED image the state of a device,
     the value of a boolean attribute or the quality of an attribute."""
 
     DefaultModelIndex = None

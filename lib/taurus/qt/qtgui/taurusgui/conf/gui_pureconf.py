@@ -23,10 +23,10 @@
 ##
 ###########################################################################
 
-'''An example of usage of TaurusGui in which the current file is a pure 
-declarative configuration file that should be interpreted by the tarusgui 
-script by running `taurusgui gui_pureconf` (if gui_pureconf.py is in the 
-PYTHONPATH) or `taurusgui <full_path_to_gui_pureconf.py>` (if it is not 
+'''An example of usage of TaurusGui in which the current file is a pure
+declarative configuration file that should be interpreted by the tarusgui
+script by running `taurusgui gui_pureconf` (if gui_pureconf.py is in the
+PYTHONPATH) or `taurusgui <full_path_to_gui_pureconf.py>` (if it is not
 in the PYTHONPATH)'''
 
 

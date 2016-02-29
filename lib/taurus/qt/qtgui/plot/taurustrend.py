@@ -171,7 +171,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             - <[trend_index]> Same as: `"[<trend_index>]" if Ntrends>1 else ""`
 
         :return: (string_list) a list of title strings that correspond to the
-                 list of trends in the set. 
+                 list of trends in the set.
 
         .. seealso:: :meth:`compileBaseTitle`
         '''
@@ -558,7 +558,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             return None
 
     def forceReading(self, cache=False):
-        '''Forces a read of the attribute and generates a fake event with it. 
+        '''Forces a read of the attribute and generates a fake event with it.
         By default it ignores the cache
 
         :param cache: (bool) set to True to do cache'd reading (by default is False)
@@ -591,7 +591,7 @@ class ScanTrendsSet(TaurusTrendsSet):
 
         :param autoClear: (bool) If True, (default) :meth:`clearTrends` will be
                           called every time a "data_desc" packet is received
-        :param xDataKey:  (str) a the name of the data to be used for the x value 
+        :param xDataKey:  (str) a the name of the data to be used for the x value
                           in the scan curves (e.g., a motor name, a counter
                           name,...) By default, "point_nb" is used. The special key
                           "__SCAN_TREND_INDEX__" will associate an internal integer index
@@ -647,7 +647,7 @@ class ScanTrendsSet(TaurusTrendsSet):
 
     def clearTrends(self, replot=True):
         '''
-        Reimplemented from :meth:`TaurusTrendsSet.clearTrends`. 
+        Reimplemented from :meth:`TaurusTrendsSet.clearTrends`.
 
         .. note:: If the autoClear property is True for this trend set, this method is
                   called automatically every time a data_desc package is received.
@@ -871,13 +871,13 @@ class TaurusTrend(TaurusPlot):
     will plot a separate trend line for each.
 
     Note 2: As an special case, you can pass a model of the type
-    scan://doorname. This will link the TaurusTrend to the given Taurus door and will 
+    scan://doorname. This will link the TaurusTrend to the given Taurus door and will
     listen to it for scan record events, which will be plotted.
 
 
 
     .. seealso:: :class:`TaurusPlot`,
-                 :ref:`TaurusTrend User's Interface Guide <trend_ui>`, 
+                 :ref:`TaurusTrend User's Interface Guide <trend_ui>`,
                  :ref:`The TaurusTrend coding examples <examples_taurustrend>`
     '''
 
@@ -940,7 +940,7 @@ class TaurusTrend(TaurusPlot):
             "toggled(bool)"), self._onAutoClearOnScanAction)
 
     def isTimerNeeded(self, checkMinimized=True):
-        '''checks if it makes sense to activate the replot timer. 
+        '''checks if it makes sense to activate the replot timer.
         The following conditions must be met:
 
         - the replot timer must exist
@@ -951,7 +951,7 @@ class TaurusTrend(TaurusPlot):
 
         :param checkMinimized: (bool) whether to include the check of minimized (True by default)
 
-        :return: (bool) 
+        :return: (bool)
         '''
         return self._replotTimer is not None and \
             not self.size().isEmpty() and \
@@ -960,7 +960,7 @@ class TaurusTrend(TaurusPlot):
             not (checkMinimized and self.isMinimized())
 
     def showEvent(self, event):
-        '''reimplemented from :meth:`TaurusPlot.showEvent` so that 
+        '''reimplemented from :meth:`TaurusPlot.showEvent` so that
         the replot timer is active only when needed'''
         TaurusPlot.showEvent(self, event)
         if self.isTimerNeeded(checkMinimized=False):
@@ -968,7 +968,7 @@ class TaurusTrend(TaurusPlot):
             self._replotTimer.start()
 
     def hideEvent(self, event):
-        '''reimplemented from :meth:`TaurusPlot.showEvent` so that 
+        '''reimplemented from :meth:`TaurusPlot.showEvent` so that
         the replot timer is active only when needed'''
         TaurusPlot.hideEvent(self, event)
         if self._replotTimer is not None:
@@ -976,7 +976,7 @@ class TaurusTrend(TaurusPlot):
             self._replotTimer.stop()
 
     def resizeEvent(self, event):
-        '''reimplemented from :meth:`TaurusPlot.resizeEvent` so that 
+        '''reimplemented from :meth:`TaurusPlot.resizeEvent` so that
         the replot timer is active only when needed'''
         TaurusPlot.resizeEvent(self, event)
         if event.oldSize().isEmpty():  # do further checks only if previous size was 0
@@ -1124,7 +1124,7 @@ class TaurusTrend(TaurusPlot):
 
         - scalar data: they are to be plotted in a trend
         - on-dimensional data: each element of the spectrum is considered
-          independently 
+          independently
 
         Note that passing an attribute for X values makes no sense in this case
 
@@ -1238,14 +1238,14 @@ class TaurusTrend(TaurusPlot):
         '''reimplemented from :class:`TaurusPlot`.
         Returns the title of a curve from a trendset
 
-        :param name: (str) The name of the trendset. If the name is not a known 
-                     trendset name and index is None, we will try with tsetname and 
-                     index obtained from parsing the given name (assuming the 
+        :param name: (str) The name of the trendset. If the name is not a known
+                     trendset name and index is None, we will try with tsetname and
+                     index obtained from parsing the given name (assuming the
                      format '<tsetname>[<index>]').
-        :param index: (int or None) the index of the curve in the trend set. 
+        :param index: (int or None) the index of the curve in the trend set.
                       If None is passed, it returns the base title of the trendset
 
-        :return: (str) the title 
+        :return: (str) the title
         '''
         self.curves_lock.acquire()
         try:
@@ -1281,7 +1281,7 @@ class TaurusTrend(TaurusPlot):
 
         :return: (caselessDict<str,QString> or None) The return value will be
                  `None` if `curveNamesList` is None. Otherwise it will be a
-                 dictionary with key=curvename and value=newtitle. 
+                 dictionary with key=curvename and value=newtitle.
 
         .. seealso:: :meth:`setCurvesTitle`, :meth:`setDefaultCurvesTitle`
         '''
@@ -1612,7 +1612,7 @@ class TaurusTrend(TaurusPlot):
             self._archivingWarningThresshold = smin - 2 * sdiv.range()
 
     def showArchivingWarning(self):
-        '''shows a dialog warning of the potential isuues with 
+        '''shows a dialog warning of the potential isuues with
         archiving performance. It offers the user to disable archiving retrieval'''
         # stop the scale change notification temporally (to avoid duplicate
         # warnings)
@@ -1652,8 +1652,8 @@ class TaurusTrend(TaurusPlot):
     def setMaxDataBufferSize(self, maxSize=None):
         '''sets the maximum number of events that can be plotted in the trends
 
-        :param maxSize: (int or None) the maximum limit. If None is passed, 
-                        the user is prompted for a value. 
+        :param maxSize: (int or None) the maximum limit. If None is passed,
+                        the user is prompted for a value.
 
         .. seealso:: :meth:`TaurusTrendSet.setMaxDataBufferSize`
         '''
@@ -1747,10 +1747,10 @@ class TaurusTrend(TaurusPlot):
     def setForcedReadingPeriod(self, msec=None, tsetnames=None):
         '''Sets the forced reading period for the trend sets given by tsetnames.
 
-        :param msec: (int or None) period in milliseconds. If None passed, the user will be 
+        :param msec: (int or None) period in milliseconds. If None passed, the user will be
                      prompted
-        :param tsetnames: (seq<str> or None) names of the curves for which the forced 
-                          reading is set. If None passed, this will be set for all 
+        :param tsetnames: (seq<str> or None) names of the curves for which the forced
+                          reading is set. If None passed, this will be set for all
                           present *and future* curves added to this trend
 
         .. seealso: :meth:`TaurusTrendSet.setForcedReadingPeriod`
@@ -1781,10 +1781,10 @@ class TaurusTrend(TaurusPlot):
             self.curves_lock.release()
 
     def getForcedReadingPeriod(self, tsetname=None):
-        '''returns the forced reading period for the given trend (or the general period 
+        '''returns the forced reading period for the given trend (or the general period
         if None is given)
 
-        :param tsetname: (str or None) name of the trend set for which the forced 
+        :param tsetname: (str or None) name of the trend set for which the forced
                           reading should be returned. If None passed, the
                           default period for all curves is returned
 
@@ -1813,7 +1813,7 @@ class TaurusTrend(TaurusPlot):
                              that 10% of the current range will be added when
                              scrolling. A value of 0 means that no extra
                              space will be added (thus the scroll is not in
-                             "steps"). Large scroll steps mean rough scrolls, 
+                             "steps"). Large scroll steps mean rough scrolls,
                              but also less CPU usage.
 
         .. seealso:: :meth:`setXDynScale`

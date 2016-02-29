@@ -152,7 +152,7 @@ class TimeAxisTool(CommandTool):
 
     def _getAxesUseTime(self, plot):
         """
-        Returns a tuple (xIsTime, yIsTime) where xIsTime is True if the plot's active x 
+        Returns a tuple (xIsTime, yIsTime) where xIsTime is True if the plot's active x
         axis uses a TimeScale. yIsTime is True if plot's active y axis uses a Time
         Scale. Otherwise they are False.
         """
@@ -204,8 +204,8 @@ class TimeAxisTool(CommandTool):
 
 
 class AutoScrollTool(ToggleTool):
-    """A tool that puts the plot in "AutoScroll" mode. 
-    This makes sense in trend plots where we want to keep the last value 
+    """A tool that puts the plot in "AutoScroll" mode.
+    This makes sense in trend plots where we want to keep the last value
     always visible"""
 
     def __init__(self, manager, scrollFactor=0.2, toolbar_id=None):

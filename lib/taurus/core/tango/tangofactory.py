@@ -59,15 +59,15 @@ _Device = TangoDevice
 
 class TangoFactory(Singleton, TaurusFactory, Logger):
     """A :class:`TaurusFactory` singleton class to provide Tango-specific
-    Taurus Element objects (TangoAuthority, TangoDevice, TangoAttribute, 
-    TangoConfiguration) 
+    Taurus Element objects (TangoAuthority, TangoDevice, TangoAttribute,
+    TangoConfiguration)
 
     Tango model names are URI based See https://tools.ietf.org/html/rfc3986.
     For example, a TangoAttribute would be::
 
         tango://foo.org:1234/a/b/c/d#label
-        \___/   \_____/ \__/ \_____/ \___/ 
-          |        |     |      |      |     
+        \___/   \_____/ \__/ \_____/ \___/
+          |        |     |      |      |
           |    hostname port  attr     |
           |   \____________/\______/   |
           |         |           |      |
@@ -78,7 +78,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         - The 'scheme' must be the string "tango" (lowercase mandatory)
         - The 'authority' is the Tango database (<hostname> and <port> mandatory)
         - The 'path' is the Tango object, which can be a Device or Attribute.
-          For device it must have the format _/_/_ or alias 
+          For device it must have the format _/_/_ or alias
           For attribute it must have the format _/_/_/_ or devalias/_
         - The 'fragment' is optional and it refers to an attribute of the model
           object, thus not being part of the model name itself
@@ -174,7 +174,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         """Registers a new attribute class for the attribute name.
 
            :param attr_name: (str) attribute name
-           :param attr_klass: (taurus.core.tango.TangoAttribute) the new class that 
+           :param attr_klass: (taurus.core.tango.TangoAttribute) the new class that
                               will handle the attribute
         """
         self.tango_attr_klasses[attr_name] = attr_klass
@@ -214,12 +214,12 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
 
     def getAuthority(self, name=None):
         """
-        Obtain the object corresponding to the given database name or the 
+        Obtain the object corresponding to the given database name or the
         default database if name is None.
-        If the corresponding authority object already exists, the existing 
+        If the corresponding authority object already exists, the existing
         instance is returned. Otherwise a new instance is stored and returned.
 
-        :param name: (str) database name string alias. If None, the 
+        :param name: (str) database name string alias. If None, the
                         default database is used
 
         :return: (taurus.core.tangodatabase.TangoAuthority) database object
@@ -268,16 +268,16 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            If the corresponding device already exists, the existing instance
            is returned. Otherwise a new instance is stored and returned.
 
-           :param dev_name: (str) tango device name or tango alias for the 
-                            device. It must be a valid Tango device URI. 
-                            If authority is not explicit, the default Tango 
+           :param dev_name: (str) tango device name or tango alias for the
+                            device. It must be a valid Tango device URI.
+                            If authority is not explicit, the default Tango
                             Database will be used
-           :param create_if_needed: (bool) If True, the Device is created if it 
-                                    did not exist previously. If False, it 
+           :param create_if_needed: (bool) If True, the Device is created if it
+                                    did not exist previously. If False, it
                                     returns None if it did not exist
 
-           :return: (taurus.core.tango.TangoDevice) a device object 
-           :raise: (taurus.core.taurusexception.TaurusException) if the given 
+           :return: (taurus.core.tango.TangoDevice) a device object
+           :raise: (taurus.core.taurusexception.TaurusException) if the given
                    dev_name is invalid.
         """
         d = self.tango_devs.get(dev_name)

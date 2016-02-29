@@ -74,7 +74,7 @@ class TaurusForm(TaurusWidget):
     Item objects can be accessed by index using a list-like notation::
 
       form = TaurusForm()
-      form.model = ['sys/tg_test/1'+a for a in ('short_image','/float_scalar','/double_scalar')] 
+      form.model = ['sys/tg_test/1'+a for a in ('short_image','/float_scalar','/double_scalar')]
       form[0].labelConfig = 'dev_alias'
       form[-1].writeWidgetClass = 'TaurusWheelEdit'
       print(len(form))  # --> outputs '3' (the length of the form is the number of items)
@@ -589,12 +589,12 @@ class TaurusCommandsForm(TaurusWidget):
 
     def createConfig(self, allowUnpickable=False):
         '''
-        extending  :meth:`TaurusBaseWidget.createConfig`                
-        :param alllowUnpickable:  (bool) 
+        extending  :meth:`TaurusBaseWidget.createConfig`
+        :param alllowUnpickable:  (bool)
 
         :return: (dict<str,object>) configurations (which can be loaded with :meth:`applyConfig`).
 
-        .. seealso: :meth:`TaurusBaseWidget.createConfig`, :meth:`applyConfig` 
+        .. seealso: :meth:`TaurusBaseWidget.createConfig`, :meth:`applyConfig`
         '''
         # get the basic config
         configdict = TaurusWidget.createConfig(
@@ -763,7 +763,7 @@ class TaurusCommandsForm(TaurusWidget):
         self._expertView = expert
 
     def getSplitter(self):
-        '''returns the splitter that separates the command buttons area from 
+        '''returns the splitter that separates the command buttons area from
         the output area
 
         :return: (QSplitter)'''
@@ -798,7 +798,7 @@ class TaurusAttrForm(TaurusWidget):
         self._sortKey = lambda x: x.name
 
     def setSortKey(self, sortkey):
-        '''sets the key function used to sort the attributes in the form 
+        '''sets the key function used to sort the attributes in the form
 
         :param sortkey: (callable) a function that takes a :class:`AttributeInfo`
                         as argument and returns a key to use for sorting purposes

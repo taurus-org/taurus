@@ -37,8 +37,8 @@ class Object(object):
 
     def call__init__(self, klass, *args, **kw):
         """Method to be called from subclasses to call superclass corresponding
-        __init__ method. This method ensures that classes from diamond like 
-        class hierarquies don't call their super classes __init__ more than 
+        __init__ method. This method ensures that classes from diamond like
+        class hierarquies don't call their super classes __init__ more than
         once."""
 
         if 'inited_class_list' not in self.__dict__:

@@ -25,8 +25,8 @@
 
 
 """
-qdoublelist.py: Provides a generic dialog containing two list which can move 
-items from one to the other 
+qdoublelist.py: Provides a generic dialog containing two list which can move
+items from one to the other
 """
 
 __all__ = ["QDoubleListDlg"]

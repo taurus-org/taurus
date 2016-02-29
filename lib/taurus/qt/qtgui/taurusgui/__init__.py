@@ -27,14 +27,14 @@
 This package provides TaurusGui, a generic framework for creating GUIs without
 actual coding (just configuration files).
 
-See the examples provided in the conf subdirectory directory as well as the 
+See the examples provided in the conf subdirectory directory as well as the
 documentation of the :class:`TaurusGui` class.
 
-    
+
 The "new GUI wizard" and XML configuration files
 ------------------------------------------------
-    
-Note that the configuration files can either be written by hand or by 
+
+Note that the configuration files can either be written by hand or by
 launching the "new GUI" wizard with `taurusgui --new-gui`, which will create
 a new directory containing configuration, resource and launcher files.
 
@@ -43,10 +43,10 @@ The new GUI wizard stores all the options in xml format in a file called
 line::
 
     XML_CONFIG = 'config.xml'
-    
-This line indicates that `config.xml` should also be used as a source of 
-configuration options (in case of conflict, the options set in `config.py` 
-prevail). 
+
+This line indicates that `config.xml` should also be used as a source of
+configuration options (in case of conflict, the options set in `config.py`
+prevail).
 
 """
 

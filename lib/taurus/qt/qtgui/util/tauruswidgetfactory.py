@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-tauruswidgetfactory.py: 
+tauruswidgetfactory.py:
 """
 
 __all__ = ["TaurusWidgetFactory", "getWidgetsOfType"]

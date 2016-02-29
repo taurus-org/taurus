@@ -72,7 +72,7 @@ class NoColors:
 class TermColors:
     """Color escape sequences.
 
-    This class defines the escape sequences for all the standard (ANSI?) 
+    This class defines the escape sequences for all the standard (ANSI?)
     colors in terminals. Also defines a NoColor escape which is just the null
     string, suitable for defining 'dummy' color schemes in terminals which get
     confused by color escapes.

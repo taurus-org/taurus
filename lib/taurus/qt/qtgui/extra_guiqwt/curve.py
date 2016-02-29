@@ -55,7 +55,7 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
         self.taurusparam = taurusparam
 
     def getSignaller(self):
-        '''reimplemented from TaurusBaseComponent because TaurusCurveItem is 
+        '''reimplemented from TaurusBaseComponent because TaurusCurveItem is
         not (and cannot be) a QObject'''
         return self._signalGen
 
@@ -150,7 +150,7 @@ class TaurusTrendItem(CurveItem, TaurusBaseComponent):
         self.updateTaurusParams()
 
     def getSignaller(self):
-        '''reimplemented from TaurusBaseComponent because TaurusCurveItem is 
+        '''reimplemented from TaurusBaseComponent because TaurusCurveItem is
         not (and cannot be) a QObject'''
         return self._signalGen
 

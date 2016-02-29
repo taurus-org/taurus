@@ -191,14 +191,14 @@ class EvaluationAttribute(TaurusAttribute):
 
     @staticmethod
     def getId(obj, idFormat=r'_V%i_'):
-        '''returns an id string for the given object which has the following 
+        '''returns an id string for the given object which has the following
            two properties:
             - It is unique for this object during all its life
             - It is a string that can be used as a variable or method name
 
-        :param obj: (object) the python object whose id is requested 
+        :param obj: (object) the python object whose id is requested
         :param idFormat: (str) a format string containing a "`%i`" which,
-                         when expanded must be a valid variable name 
+                         when expanded must be a valid variable name
                          (i.e. it must match
                          `[a-zA-Z_][a-zA-Z0-9_]*`). The default is `_V%i_`
         '''
@@ -212,7 +212,7 @@ class EvaluationAttribute(TaurusAttribute):
 
         :param trstring: (str) a string to be pre-processed
 
-        :return: (tuple<str,bool>) a tuple containing the processed string 
+        :return: (tuple<str,bool>) a tuple containing the processed string
                  and a boolean indicating if the preprocessing was successful.
                  if ok==True, the string is ready to be evaluated
         """
@@ -256,7 +256,7 @@ class EvaluationAttribute(TaurusAttribute):
     def __ref2Id(self, ref):
         """
         Returns the id of an
-        existing taurus attribute corresponding to the match. 
+        existing taurus attribute corresponding to the match.
         The attribute is created if it didn't previously exist.
 
         :param ref: (str)  string corresponding to a reference. e.g. eval:1
@@ -271,9 +271,9 @@ class EvaluationAttribute(TaurusAttribute):
         it to the reference list and adds its id and current value to the
         symbols dictionary of the evaluator.
 
-        :param ref: (str) 
+        :param ref: (str)
 
-        :return: (TaurusAttribute) 
+        :return: (TaurusAttribute)
 
         '''
         refobj = Attribute(ref)
@@ -330,7 +330,7 @@ class EvaluationAttribute(TaurusAttribute):
             self.warning(msg)
 
     def _encodeType(self, value, dformat):
-        ''' Encode the value type into Taurus data type. In case of non-zero 
+        ''' Encode the value type into Taurus data type. In case of non-zero
         dimension attributes e.g. 1D, 2D the type corresponds to the type of the
         first element.
 
@@ -449,7 +449,7 @@ class EvaluationAttribute(TaurusAttribute):
         return ret
 
     def removeListener(self, listener):
-        """ Remove a TaurusListener from the listeners list. If polling enabled 
+        """ Remove a TaurusListener from the listeners list. If polling enabled
             and it is the last element then stop the polling timer.
             If the listener is not registered nothing happens."""
         ret = TaurusAttribute.removeListener(self, listener)

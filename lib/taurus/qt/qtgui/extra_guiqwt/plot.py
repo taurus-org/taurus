@@ -112,10 +112,10 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
         self.addModels(modelNames)
 
     def addModels(self, modelNames):
-        '''Creates TaurusCurveItems (one for each model in modelNames) and attaches 
+        '''Creates TaurusCurveItems (one for each model in modelNames) and attaches
         them to the plot.
 
-        .. note:: you can also add curves using :meth:`add_items`. :meth:`addModels` 
+        .. note:: you can also add curves using :meth:`add_items`. :meth:`addModels`
                   is only a more Taurus-oriented interface. :meth:`add_items`
                   gives you more control.
 
@@ -258,10 +258,10 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         self.addModels(modelNames)
 
     def addModels(self, modelNames):
-        '''Creates TaurusCurveItems (one for each model in modelNames) and attaches 
+        '''Creates TaurusCurveItems (one for each model in modelNames) and attaches
         them to the plot.
 
-        .. note:: you can also add curves using :meth:`add_items`. :meth:`addModels` 
+        .. note:: you can also add curves using :meth:`add_items`. :meth:`addModels`
                   is only a more Taurus-oriented interface. :meth:`add_items`
                   gives you more control.
 
@@ -269,7 +269,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
                            plotted. For convenience, a string is also accepted
                            (instead of a sequence of strings), in which case the
                            string will be internally converted to a sequence by
-                           splitting it on whitespace and commas. 
+                           splitting it on whitespace and commas.
 
         .. seealso:: :meth:`add_item`
         '''

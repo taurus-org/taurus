@@ -24,8 +24,8 @@
 #############################################################################
 
 """
-curvesAppearanceChooserDlg.py: 
-    A Qt dialog for choosing plot appearance (symbols and lines) 
+curvesAppearanceChooserDlg.py:
+    A Qt dialog for choosing plot appearance (symbols and lines)
     for a QwtPlot-derived widget (like Taurusplot)
 """
 
@@ -400,11 +400,11 @@ class CurveAppearanceProperties(object):
         """
         Creator of :class:`CurveAppearanceProperties`
         Possible keyword arguments are:
-            - sStyle= symbolstyle 
+            - sStyle= symbolstyle
             - sSize= int
             - sColor= color
             - sFill= bool
-            - lStyle= linestyle 
+            - lStyle= linestyle
             - lWidth= int
             - lColor= color
             - cStyle= curvestyle
@@ -413,7 +413,7 @@ class CurveAppearanceProperties(object):
             - visible = bool
             - title= title
 
-        Where: 
+        Where:
             - color is a color that QColor() understands (i.e. a
               Qt.Qt.GlobalColor, a color name, or a Qt.Qcolor)
             - symbolstyle is one of Qwt5.QwtSymbol.Style
@@ -447,8 +447,8 @@ class CurveAppearanceProperties(object):
 
     @staticmethod
     def inConflict_update_a(a, b):
-        """This  function can be passed to CurvesAppearance.merge() 
-        if one wants to update prop1 with prop2 except for those 
+        """This  function can be passed to CurvesAppearance.merge()
+        if one wants to update prop1 with prop2 except for those
         attributes of prop2 that are set to None"""
         if b is None:
             return a

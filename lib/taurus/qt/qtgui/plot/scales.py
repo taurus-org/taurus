@@ -261,10 +261,10 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
         '''convenience method that will enable this engine in the given
         axis. Note that it changes the ScaleDraw as well.
 
-        :param plot: (Qwt5.QwtPlot) the plot to change 
-        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis 
-        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
-                          the current ScaleDraw for the plot will be used if 
+        :param plot: (Qwt5.QwtPlot) the plot to change
+        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given,
+                          the current ScaleDraw for the plot will be used if
                           possible, and a :class:`TaurusTimeScaleDraw` will be set if not
         :param rotation: (float or None) The rotation of the labels (in degrees, clockwise-positive)
         '''
@@ -287,9 +287,9 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
 
         :param plot: (Qwt5.QwtPlot) the plot to change
         :param axis: (Qwt5.QwtPlot.Axis) the id of the axis
-        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given,
                           a :class:`FancyScaleDraw` will be set
-        :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given, 
+        :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given,
                           a :class:`Qwt5.QwtLinearScaleEngine` will be set
         '''
         if scaleDraw is None:
@@ -381,10 +381,10 @@ class DeltaTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
         '''convenience method that will enable this engine in the given
         axis. Note that it changes the ScaleDraw as well.
 
-        :param plot: (Qwt5.QwtPlot) the plot to change 
-        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis 
-        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
-                          the current ScaleDraw for the plot will be used if 
+        :param plot: (Qwt5.QwtPlot) the plot to change
+        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given,
+                          the current ScaleDraw for the plot will be used if
                           possible, and a :class:`TaurusTimeScaleDraw` will be set if not
         :param rotation: (float or None) The rotation of the labels (in degrees, clockwise-positive)
         '''
@@ -407,9 +407,9 @@ class DeltaTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
 
         :param plot: (Qwt5.QwtPlot) the plot to change
         :param axis: (Qwt5.QwtPlot.Axis) the id of the axis
-        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given,
                           a :class:`FancyScaleDraw` will be set
-        :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given, 
+        :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given,
                           a :class:`Qwt5.QwtLinearScaleEngine` will be set
         '''
         if scaleDraw is None:
@@ -452,10 +452,10 @@ class FixedLabelsScaleEngine(Qwt5.QwtLinearScaleEngine):
         '''convenience method that will enable this engine in the given
         axis. Note that it changes the ScaleDraw as well.
 
-        :param plot: (Qwt5.QwtPlot) the plot to change 
-        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis 
-        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
-                          the current ScaleDraw for the plot will be used if 
+        :param plot: (Qwt5.QwtPlot) the plot to change
+        :param axis: (Qwt5.QwtPlot.Axis) the id of the axis
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given,
+                          the current ScaleDraw for the plot will be used if
                           possible, and a :class:`FixedLabelsScaleDraw` will be set if not
         '''
         if scaleDraw is None:
@@ -472,9 +472,9 @@ class FixedLabelsScaleEngine(Qwt5.QwtLinearScaleEngine):
 
         :param plot: (Qwt5.QwtPlot) the plot to change
         :param axis: (Qwt5.QwtPlot.Axis) the id of the axis
-        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given, 
+        :param scaleDraw: (Qwt5.QwtScaleDraw) Scale draw to use. If None given,
                           a :class:`FancyScaleDraw` will be set
-        :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given, 
+        :param scaleEngine: (Qwt5.QwtScaleEngine) Scale draw to use. If None given,
                           a :class:`Qwt5.QwtLinearScaleEngine` will be set
         '''
         if scaleDraw is None:

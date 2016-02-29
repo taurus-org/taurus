@@ -45,13 +45,13 @@ def insertTest(klass=None, helper_name=None, test_method_name=None,
       - test_method_name (str): Optional. Name of the test method to be used.
                                 If None given, one will be generated from the
                                 tested class and helper names.
-      - test_method_doc (str): Optional. The docstring for the inserted test 
-                               method (this shows in the unit test output). 
+      - test_method_doc (str): Optional. The docstring for the inserted test
+                               method (this shows in the unit test output).
                                If None given, a default one is generated which
                                includes the input parameters and the helper
                                name.
-      - tested_name (str): Optional. The name of the class or feature being 
-                           tested (if given, it will be used in default method 
+      - tested_name (str): Optional. The name of the class or feature being
+                           tested (if given, it will be used in default method
                            names and docstrings).
 
       - test_skip (str): Optional. A reason for skipping the test. If None
@@ -61,7 +61,7 @@ def insertTest(klass=None, helper_name=None, test_method_name=None,
                            helper.
 
     This decorator can be considered a "base" decorator. It is often used to
-    create other decorators in which the helper method is pre-set, as in 
+    create other decorators in which the helper method is pre-set, as in
     the following example::
 
         isPos = functools.partial(insertTest, helper_name='isPositive')

@@ -39,7 +39,7 @@ Allow to use decorator either with arguments or not. Example::
         def __call__(self, func):
             return func(*self.args, **self.kw)
 
-    # 
+    #
     # Usage in both cases:
     #
     @apply
@@ -78,7 +78,7 @@ def decorator(func):
             def __call__(self, func):
                 return func(*self.args, **self.kw)
 
-        # 
+        #
         # Usage in both cases:
         #
         @apply

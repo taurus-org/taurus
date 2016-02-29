@@ -100,8 +100,8 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
         return self._auth
 
     def getDevice(self, dev_name):
-        """Obtain the object corresponding to the given device name. If the 
-        corresponding device already exists, the existing instance is returned. 
+        """Obtain the object corresponding to the given device name. If the
+        corresponding device already exists, the existing instance is returned.
         Otherwise a new instance is stored and returned.
 
         :param dev_name: (str) the device name string. See
@@ -145,13 +145,13 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
         return d
 
     def getAttribute(self, attr_name, **kwargs):
-        """Obtain the object corresponding to the given attribute name. If the 
+        """Obtain the object corresponding to the given attribute name. If the
         corresponding attribute already exists, the existing instance is
         returned. Otherwise a new instance is stored and returned. The evaluator
         device associated to this attribute will also be created if necessary.
 
         :param attr_name: (str) the attribute name string. See
-                          :mod:`taurus.core.evaluation` for valid attribute 
+                          :mod:`taurus.core.evaluation` for valid attribute
                           names
 
         Any aditional keyword arguments will be passed directly to the

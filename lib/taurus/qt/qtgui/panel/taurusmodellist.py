@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-itemsmodel Model and view for new CurveItem configuration 
+itemsmodel Model and view for new CurveItem configuration
 """
 __all__ = ['TaurusModelModel', 'TaurusModelItem', 'TaurusModelList']
 #raise UnimplementedError('Under Construction!')
@@ -44,7 +44,7 @@ SRC_ROLE = Qt.Qt.UserRole + 1
 
 
 class TaurusModelItem(object):
-    '''An item object for :class:`TaurusModelModel`. Exposes `display` `icon` and `ok` 
+    '''An item object for :class:`TaurusModelModel`. Exposes `display` `icon` and `ok`
     attributes which are calculated and kept in synch with the property `src`'''
 
     def __init__(self, src=None, display=None):
@@ -244,9 +244,9 @@ class TaurusModelModel(Qt.QAbstractListModel):
     def insertItems(self, row, items):
         '''convenience method to add new rows by passing a list of strings ()
 
-        :param row: (int) the row of the list at which the item insertion 
+        :param row: (int) the row of the list at which the item insertion
                          starts, if row==-1, items will be appended to the list
-        :param items: (seq) a sequence items to add to the list. The objects 
+        :param items: (seq) a sequence items to add to the list. The objects
                       in the sequence can be either strings, :class:`TaurusModelItem` objects
                       or tuples of valid arguments for initializing :class:`TaurusModelItem` objects
         '''

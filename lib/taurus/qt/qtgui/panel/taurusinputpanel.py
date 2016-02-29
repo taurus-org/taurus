@@ -53,7 +53,7 @@ class TaurusInputPanel(Qt.QWidget):
         - *unit* <str> (doesn't have default value):
           a label to be presented right to the input box representing the units
         - *data_type* <str or sequence> ('String'):
-          type of data to be requested. Standard 
+          type of data to be requested. Standard
           accepted data types are 'String', 'Integer', 'Float', 'Boolean',
           'Text'. A list of elements will be interpreted as a selection.
           Default TaurusInputPanel class will interpret any custom data types as
@@ -64,12 +64,12 @@ class TaurusInputPanel(Qt.QWidget):
           minimum value (makes sense when data_type is 'Integer' or 'Float')
         - *maximum* <int/float>:
           maximum value (makes sense when data_type is 'Integer' or 'Float')
-        - *step* <int/float> (1): 
+        - *step* <int/float> (1):
           step size value (makes sense when data_type is 'Integer' or 'Float')
-        - *decimals* <int> (1): 
+        - *decimals* <int> (1):
           number of decimal places to show (makes sense when data_type is
           'Float')
-        - *default_value* <obj> (doesn't have default value): 
+        - *default_value* <obj> (doesn't have default value):
           default value
         - *allow_multiple* <bool> (False):
           allow more than one value to be selected (makes sense when data_type
@@ -85,7 +85,7 @@ class TaurusInputPanel(Qt.QWidget):
                 print "user selected", self.panel.value()
 
         d = dict(prompt="What's your favourite car brand?",
-                 data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"], 
+                 data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"],
                  default_value="Mercedes")
         w = TaurusInputPanel(d)
         l = Listener()

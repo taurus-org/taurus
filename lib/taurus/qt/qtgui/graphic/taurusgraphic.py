@@ -23,7 +23,7 @@
 ##
 #############################################################################
 """
-taurusgraphic.py: 
+taurusgraphic.py:
 """
 
 #__all__ = []
@@ -761,7 +761,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
 
     @staticmethod
     def getTaurusParentItem(item, top=True):
-        """ Searches within a group hierarchy and returns a parent Taurus component or None if no parent TaurusBaseComponent 
+        """ Searches within a group hierarchy and returns a parent Taurus component or None if no parent TaurusBaseComponent
             is found."""
         if item is None:
             return None
@@ -1035,7 +1035,7 @@ class TaurusGraphicsItem(TaurusBaseComponent):
         TaurusBaseComponent.setModel(self, model)
 
     def getParentTaurusComponent(self):
-        """ Returns a parent Taurus component or None if no parent TaurusBaseComponent 
+        """ Returns a parent Taurus component or None if no parent TaurusBaseComponent
             is found."""
         p = self.parentItem()
         while p and not isinstance(p, TaurusGraphicsItem):

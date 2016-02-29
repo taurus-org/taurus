@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-taurusdevicetree.py: 
+taurusdevicetree.py:
 """
 
 # @todo: This module is not being used anywhere in Taurus and depends on
@@ -302,7 +302,7 @@ class TaurusTreeNodeContainer(object):
 ###############################################################################
 
 class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
-    ''' 
+    '''
     This widget displays a list of servers, devices or instances.
     To set a new Model use either setModel(filters), addModels(list), setFilters(...) or loadTree(filters)
     setModel and loadTree are equivalent; adding a new branch to the tree
@@ -1134,7 +1134,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
             pass
 
     def getModelMimeData(self):
-        '''Returns a MimeData object containing the model data. The default implementation 
+        '''Returns a MimeData object containing the model data. The default implementation
         fills the `TAURUS_MODEL_MIME_TYPE`. If the widget's Model class is
         Attribute or Device, it also fills `TAURUS_ATTR_MIME_TYPE` or
         `TAURUS_DEV_MIME_TYPE`, respectively
@@ -1200,8 +1200,8 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     # @{
 
     def contextMenuEvent(self, event):
-        ''' 
-        This function is called when right clicking on TaurusDevTree area. 
+        '''
+        This function is called when right clicking on TaurusDevTree area.
         '''
         node = self.currentItem()
         self.showNodeContextMenu(node, event)
@@ -1209,7 +1209,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
 
     def showNodeContextMenu(self, node, event):
         """
-        A pop up menu will be shown with the available options. 
+        A pop up menu will be shown with the available options.
         Menus are managed using two tuple lists for each node: node.ContextMenu and node.ExpertMenu
         """
         obj = self.getNodeDraggable(node)
@@ -1328,8 +1328,8 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
 
 
 class PopupDialog(Qt.QDialog):
-    """ 
-    This class create the dialog 
+    """
+    This class create the dialog
     Dialog is used to make new floating panels persistent
     """
 
@@ -1381,7 +1381,7 @@ class TaurusTreeNode(Qt.QTreeWidgetItem, TaurusBaseComponent):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getParentTaurusComponent(self):
-        """ Returns a parent Taurus component or None if no parent TaurusBaseComponent 
+        """ Returns a parent Taurus component or None if no parent TaurusBaseComponent
             is found."""
         p = self.parentItem()
         while p and not isinstance(p, TaurusTreeNode):
