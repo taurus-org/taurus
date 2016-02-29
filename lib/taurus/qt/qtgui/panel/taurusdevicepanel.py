@@ -429,7 +429,7 @@ class TaurusDevicePanel(TaurusWidget):
             for t in allattrs:
                 if a and searchCl(a.strip(), t.strip()):
                     aname = '%s/%s' % (device, t)
-                    if not aname in attrs:
+                    if aname not in attrs:
                         attrs.append(aname)
         if attrs:
             #self.trace( 'Matching attributes are: %s' % str(attrs)[:100])

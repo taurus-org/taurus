@@ -172,7 +172,7 @@ def getThemePixmap(key, size=None):
             __LOGGER.debug(
                 'Theme pixmap "%s" not supported. Trying to provide a fallback...', key)
     for member, items in getThemeMembers().items():
-        if not key in items:
+        if key not in items:
             continue
         return getPixmap(":/%s/%s.svg" % (member, key), size)
     __LOGGER.debug('Theme pixmap "%s" not supported.', key)
@@ -203,7 +203,7 @@ def getThemeIcon(key):
                 'Theme icon "%s" not supported. Trying to provide a fallback...', key)
             __LOGGER.stack()
     for member, items in getThemeMembers().items():
-        if not key in items:
+        if key not in items:
             continue
         return Qt.QIcon(":/%s/%s.svg" % (member, key))
     __LOGGER.debug('Theme icon "%s" not supported.', key)

@@ -61,7 +61,7 @@ def append_or_create_env(env, env_name, env_value, is_path_like=True):
         if is_path_like:
             e_n, e_v = env[i].split("=")
             paths = e_v.split(os.path.pathsep)
-            if not env_value in paths:
+            if env_value not in paths:
                 env_value += os.path.pathsep + e_v
         env[i] = env_name + "=" + env_value
 

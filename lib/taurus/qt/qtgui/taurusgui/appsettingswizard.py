@@ -607,7 +607,7 @@ class SynopticPage(BasePage):
             "Open File"), pdir, self.tr("JDW (*.jdw );; All files (*)"))
         for fileName in fileNames:
             fileName = unicode(fileName)
-            if not fileName in self._synoptics:
+            if fileName not in self._synoptics:
                 self._synoptics.append(fileName)
         self._refreshSynopticList()
 

@@ -160,7 +160,7 @@ def resolve_inheritance(xml_source):
     for custom_widget in custom_widgets:
         class_node = custom_widget.find("class")
         class_name = class_node.text
-        if not class_name in widget_klasses:
+        if class_name not in widget_klasses:
             continue
         extends_node = custom_widget.find("extends")
         super_name = extends_node.text
