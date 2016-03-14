@@ -148,9 +148,9 @@ class ImgBeamAnalyzer(ImageCounterDevice):
 class LimaCCDs(ImageCounterDevice):
 
     def __init__(self, name, image_name='video_last_image', **kw):
-        self.call__init__(ImageCounterDevice, name, image_name, **kw)
-        self.rlock = RLock()
         self.processing = False
+        self.rlock = RLock()
+        self.call__init__(ImageCounterDevice, name, image_name, **kw)
 
     def getImageIDAttrName(self):
         return 'video_last_image_counter'
