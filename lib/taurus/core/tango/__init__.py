@@ -2,69 +2,115 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 """
-Tango extension for taurus core mode. 
+Tango extension for taurus core mode.
 The Tango extension implements :mod:`taurus.core` objects that connect to Tango
-objects. The official scheme name is, obviously, 'tango'. As Tango is the default
-taurus scheme, when specifing a tango model name, the scheme prefix ('tango://') can
-be omited.
+objects. The official scheme name is, obviously, 'tango'.
 
-You should never create objects of tango classes directly. Instead you
-should use the :class:`taurus.core.taurusmanager.TaurusManager` and :class:`taurus.core.taurusfactory.TaurusFactory` APIs
-to access all elements.
+This extension maps the (Py)Tango objects into Taurus objects as follows:
 
-For example, to get a reference to the Tango attribute my/tango/device/state you
-should do something like::
+- A Tango database is represented as a subclass of :class:`TaurusAuthority`
+- A Tango device is represented as a subclass of
+  :class:`taurus.core.TaurusDevice`
+- A Tango device attribute is represented as a subclass
+  :class:`taurus.core.TaurusAttribute`
+- The configuration of a Tango attribute is represented as a subclass of
+  :class:`taurus.core.TaurusConfiguration`
 
-    >>> import taurus
-    >>> my_state = taurus.Attribute('tango://my/tango/device/state')
-    
-In fact, because the taurus default extension is Tango, you could omit the 'tango://'
-prefix from the previous code::
+You should never create objects from the above classes directly. Instead, you
+should use :meth:`taurus.Authority`, :meth:`taurus.Device`,
+:meth:`taurus.Attribute` and :meth:`taurus.Configuration` helper functions,
+as in the examples below, or if you require more control, use the
+:class:`taurus.core.taurusmanager.TaurusManager` or
+:class:`taurus.core.taurusfactory.TaurusFactory` APIs.
 
-    >>> import taurus
-    >>> my_state = taurus.Attribute('my/tango/device/state')
+Here are some examples:
 
-The same is applied to a device::
-
-    >>> import taurus
-    >>> my_device = taurus.Device('my/tango/device')
-
-...to a database::
-
-    >>> import taurus
-    >>> db = taurus.Database('homer:10000')
-
-...and an attribute configuration::
+The Taurus Authority associated with the Tango database
+running on host "machine01" and port 10000 is named "//machine:1000"
+(note that Taurus authority names are always prefixed by "//", to comply with
+RFC3986). And you can get the corresponding Taurus Authority object as:
 
     >>> import taurus
-    >>> me_state_config = taurus.Attribute('my/tango/device/state?configuration')
+    >>> my_db = taurus.Authority('tango://machine:10000')
 
-The way to get access to the Tango factory is::
+If "tango" is configured as the default scheme for Taurus, the 'tango:' prefix
+could be avoided and same database could be accessed as::
+
+    >>> my_db = taurus.Authority('//machine:10000')
+
+Now, assume that a TangoTest device is registered  in the above database as
+``sys/tg_test/1``. In this case, the corresponding Taurus device full name
+would be ``tango://machine:10000/sys/tg_test/1`` and it could be accessed as::
 
     >>> import taurus
-    >>> factory = taurus.Factory()
+    >>> my_device = taurus.Device('tango://machine:10000/sys/tg_test/1')
+
+If "tango" is configured as the default scheme for Taurus, the previous name
+could be shortened to ``//machine:10000/sys/tg_test/1`` or even to
+``sys/tg_test/1`` if the TANGO_HOST environment variable
+(or tango.rc file) point to `machine:10000` as the default tango database.
+Furthermore, if, on top of that,  this device is aliased as ``tgtest1`` in the
+database, it could be accessed as::
+
+    >>> import taurus
+    >>> my_device = taurus.Device('tgtest1')
+
+Similarly, accessing the ``ampli`` attribute from the above Tango device can be
+done using its full name::
+
+    >>> import taurus
+    >>> my_attr = taurus.Attribute('tango://machine:10000/sys/tg_test/1/ampli')
+
+And of course shorter names can also be used for attributes. Following the
+examples for the device above, the following names could also have been passed
+to :meth:`taurus.Attribute`:
+
+- ``//machine:10000/sys/tg_test/1/ampli``
+- ``sys/tg_test/1/ampli``
+- ``tgtest1/ampli``
+
+And TaurusConfiguration objects representing the Tango attribute
+configuration properties can be accessed as::
+
+    >>> import taurus
+    >>> my_config = taurus.Configuration('sys/tg_test/1/ampli#')
+
+(in this example I assumed ``tango`` being set as the default scheme and
+``machine:10000`` being the default database)
+
+Finally, the TangoFactory object can be accessed as::
+
+    >>> import taurus
+    >>> tg_factory = taurus.Factory('tango')
+
+
+.. note:: Previous to SEP3, a RFC3986 non-compliant syntax was used for the
+          Tango scheme (e.g., allowing names such as ``tango://a/b/c/d`` -note
+          the double slash which should not be there).
+          This syntax is now deprecated and should not be used. Taurus will
+          issue warnings if detected.
 """
 
 __docformat__ = "restructuredtext"

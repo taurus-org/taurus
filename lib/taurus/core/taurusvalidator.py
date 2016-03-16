@@ -2,311 +2,316 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 """This module contains the base taurus name validator classes"""
 
-__all__ = ["AbstractTangoValidator", "DatabaseNameValidator",
-           "DeviceNameValidator", "AttributeNameValidator",
-           "ConfigurationNameValidator"]
+
+__all__ = ["TaurusAuthorityNameValidator", "TaurusDeviceNameValidator",
+           "TaurusAttributeNameValidator"]
+
 
 __docformat__ = "restructuredtext"
 
 import re
+from taurus import tauruscustomsettings
+from taurus.core.util.singleton import Singleton
+from taurus.core.taurushelper import makeSchemeExplicit
 
-from .taurusbasetypes import MatchLevel
-from .util.singleton import Singleton
 
-InvalidAlias = "nada"
-
-class AbstractTangoValidator:
-    
-    complete_name = None
-    normal_name = None
-    short_name = None
-    
-    uri_gen_delims = "\:\/\?\#\[\]\@"
-    # theoreticaly sub_delims should include '+' but we are more permissive here in tango
-    #uri_sub_delims = "\!\$\&\'\(\)\*\+\,\;\="
-    uri_sub_delims = "\!\$\&\'\(\)\*\,\;\="
-    uri_reserved = uri_gen_delims + uri_sub_delims
-    tango_word = '[^' + uri_reserved + ']+'
-    protocol_prefix = 'tango://'
+class _TaurusBaseValidator(Singleton):
+    '''This is a private base class for taurus base validators. Do not derive
+    from it if you are implementing a new scheme. Derive from the public
+    classes from this module instead.
+    '''
+    scheme = None
+    auth = '(?!)'  # note: '(?!)' is a pattern that will never match
+    path = '(?!)'
+    query = '(?!)'
+    fragment = '(?!)'
 
     def __init__(self):
-        self.complete_re = re.compile("^%s$" % self.complete_name)
-        self.normal_re = re.compile("^%s$" % self.normal_name)
-        self.short_re = re.compile("^%s$" % self.short_name)
+        if self.scheme is None:
+            msg = ('This is  an abstract name validator class. ' +
+                   'Only scheme-specific derived classes can be instantiated')
+            raise NotImplementedError(msg)
 
-    def __getMatch(self,str):
-        return self.complete_re.match(str) or self.normal_re.match(str) or self.short_re.match(str)
+        self.name_re = re.compile(self.namePattern)
+        if self.nonStrictNamePattern is not None:
+            self.nonStrictName_re = re.compile(self.nonStrictNamePattern)
+        else:
+            self.nonStrictName_re = None
 
-    def isValid(self,str, matchLevel = MatchLevel.ANY):
-        if matchLevel == MatchLevel.ANY:
-            return not self.__getMatch(str) is None
-        elif matchLevel == MatchLevel.SHORT:
-            return not self.short_re.match(str) is None
-        elif matchLevel == MatchLevel.NORMAL:
-            return not self.normal_re.match(str) is None
-        elif matchLevel == MatchLevel.COMPLETE:
-            return not self.complete_re.match(str) is None
-        elif matchLevel == MatchLevel.SHORT_NORMAL:
-            return self.isValid(str,MatchLevel.SHORT) or \
-                   self.isValid(str,MatchLevel.NORMAL)
-        elif matchLevel == MatchLevel.NORMAL_COMPLETE:
-            return self.isValid(str,MatchLevel.NORMAL) or \
-                   self.isValid(str,MatchLevel.COMPLETE)
-        return False
-    
-    def getParams(self,str):
-        m = self.__getMatch(str)
-        if m is None:
-            return None
-        return m.groupdict()
-    
-    def getNames(self, str, factory=None):
-        """Returns a tuple of three elements with (complete_name, normal_name, short_name)
-        or None if no match is found"""
+    @property
+    def namePattern(self):
+        '''Provides a name pattern by composing the pattern strings for the
+        URI segments'''
+        return self.pattern % dict(scheme=self.scheme,
+                                   authority=self.authority,
+                                   path=self.path,
+                                   query=self.query,
+                                   fragment=self.fragment)
+
+    @property
+    def nonStrictNamePattern(self):
+        '''implement in derived classes if a "less strict" pattern is allowed
+        (e.g. for backwards-compatibility, "tango://a/b/c" could be an accepted
+        device name, even if it breaks RFC3986).
+        '''
         return None
 
+    def isValid(self, name, matchLevel=None, strict=None):
+        '''Whether the name matches the validator pattern.
+        If strict is False, it also tries to match against the non-strict regexp
+        (It logs a warning if it matched only the non-strict alternative)
 
-class DatabaseNameValidator(Singleton, AbstractTangoValidator):
-    
-    protocol_prefix = '((?P<scheme>tango)://)?'
-    
-    db = '(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
-    # for tango://host:port
-    complete_name = '(' + protocol_prefix + ')?' + db
-    # for a/b/c
-    normal_name = db
-    # for devalias
-    short_name = db
-    
-    def __init__(self):
-        pass
-    
-    def init(self, *args, **kwargs):
-        """Singleton instance initialization."""
-        AbstractTangoValidator.__init__(self)
-        
-    def getNames(self, str, factory=None):
-        elems = self.getParams(str)
-        if elems is None:
-            return str, None, None
-        
-        host = elems.get('host')
-        port = elems.get('port')
-        
-        if host is None or port is None or len(host) == 0 or len(port) == 0:
+        .. note:: The "matchLevel" keyword argument is deprecated and only
+                  implemented for backwards compatibility. Do not use it for
+                  new classes
+        '''
+        # warn if the deprecated matchLevel kwarg was received
+        if matchLevel is not None:
+            return self._isValidAtLevel(name, matchLevel=matchLevel)
+        return self.getUriGroups(name, strict=strict) is not None
+
+    def _isValidAtLevel(self, name, matchLevel=None):
+        # matchLevel is a tango-centric deprecated  argument of isValid. Warn.
+        msg = ('matchLevel is a Tango-centric concept. Avoid it outside ' +
+               'the tango scheme')
+        from taurus import warning
+        warning(msg)
+        return self.isValid(name)
+
+    def getUriGroups(self, name, strict=None):
+        '''returns the named groups dictionary from the URI regexp matching.
+        If strict is False, it also tries to match against the non-strict regexp
+        (It logs a warning if it matched only the non-strict alternative)
+        '''
+        if strict is None:
+            strict = getattr(tauruscustomsettings, 'STRICT_MODEL_NAMES', False)
+        name = makeSchemeExplicit(name, default=self.scheme)
+        m = self.name_re.match(name)
+        # if it is strictly valid, return the groups
+        if m is not None:
+            ret = m.groupdict()
+            ret['__STRICT__'] = True
+            return ret
+        # if we are strict (or no less-strict pattern is defined) return None
+        if strict or self.nonStrictName_re is None:
             return None
-        
-        return 3*('%s:%s' % (host,port),)
-
-
-class DatabaseQueryValidator(Singleton, AbstractTangoValidator):
-    """Deprecated"""
-    
-    query = '\?query=(?P<query>[\w\-_]+)(?P<params>(\?param=[\w\*\?\%\-_]+)*)'
-
-    complete_name = DatabaseNameValidator.complete_name + query 
-    normal_name = DatabaseNameValidator.normal_name + query
-    short_name = query
-    
-    def __init__(self):
-        pass
-    
-    def init(self, *args, **kwargs):
-        """Singleton instance initialization."""
-        AbstractTangoValidator.__init__(self)
-
-    def getNames(self, str, factory=None):
-        elems = self.getParams(str)
-        if elems is None:
-            return str,None
-        
-        query = elems.get('query')
-        params = elems.get('params')
-        
-        short = normal = query
-        if params:
-            normal += str(params.split('?param=')[1:])
-        return str, normal, short    
-            
-
-class DeviceNameValidator(Singleton, AbstractTangoValidator):
-    
-    w = AbstractTangoValidator.tango_word
-    dev = '(?P<devicename>' + w + '/' + w + '/' + w + ')'
-    # for tango://host:port/a/b/c/attrname or host:port/a/b/c
-    complete_name = DatabaseNameValidator.complete_name + '/' + dev
-    # for a/b/c
-    normal_name = DatabaseNameValidator.protocol_prefix + dev
-    # for devalias
-    short_name = '(?P<devalias>'+ w + ')'
-
-    def __init__(self):
-        pass
-    
-    def init(self, *args, **kwargs):
-        """Singleton instance initialization."""
-        AbstractTangoValidator.__init__(self)
-        
-    def getNames(self, str, factory=None):
-        elems = self.getParams(str)
-        if elems is None:
-            return str,None
-        
-        dev_name = elems.get('devicename')
-        alias = elems.get('devalias')
-        
-        host = elems.get('host')
-        port = elems.get('port')
-        
-        if factory is None:
-            return dev_name or '', dev_name or '', alias or ''
-
-        db = None
-        try:
-            if host and port:
-                db = factory.getDatabase("%s:%s" % (host,port))
-                #db = PyTango.Database(host,int(port))
-            else:
-                #db = PyTango.Database()
-                db = factory.getDatabase()
-        except:
-            return dev_name or '', dev_name or '', alias or ''
-        
-        if dev_name:
-            alias = db.getElementAlias(dev_name) or dev_name
-        else:
-            dev_name = db.getElementFullName(alias)
-        
-        complete = "%s:%s/%s" % (host,port,dev_name)
-        return complete, dev_name, alias
-
-
-class DeviceQueryValidator(Singleton, AbstractTangoValidator):
-    """Deprecated"""
-    query = DatabaseQueryValidator.query
-
-    complete_name = DeviceNameValidator.complete_name + query 
-    normal_name = DeviceNameValidator.normal_name + query
-    short_name = DeviceNameValidator.short_name + query
-
-    def __init__(self):
-        pass
-    
-    def init(self, *args, **kwargs):
-        """Singleton instance initialization."""
-        AbstractTangoValidator.__init__(self)    
-
-    def getNames(self,str, factory=None):
-        elems = self.getParams(str)
-        if elems is None:
-            return str,None
-        
-        query = elems.get('query')
-        params = elems.get('params')
-        
-        short = query
-        if params:
-            short += str(params.split('?param=')[1:])
-        return str,short    
-
-    
-class AttributeNameValidator(Singleton, AbstractTangoValidator):
-    
-    w = AbstractTangoValidator.tango_word
-    attr = '/(?P<attributename>' + w + ')'
-    # for tango://host:port/a/b/c/attributename or host:port/a/b/c/attributename
-    complete_name = DeviceNameValidator.complete_name + attr
-    # for a/b/c/attributename
-    normal_name = DeviceNameValidator.normal_name + attr
-    # for devalias/attributename
-    short_name = DeviceNameValidator.short_name + attr
-    
-    def __init__(self):
-        """ Initialization. Nothing to be done here for now."""
-        pass
-    
-    def init(self, *args, **kwargs):
-        """Singleton instance initialization."""
-        AbstractTangoValidator.__init__(self)
-
-    def getNames(self, str, factory=None):
-        """Returns the complete and short names"""
-        
-        elems = self.getParams(str)
-        if elems is None:
+        # If a less-strict pattern is defined, use it, but warn if it works
+        m = self.nonStrictName_re.match(name)
+        if m is None:
             return None
-        
-        dev_name = elems.get('devicename')
-        attr_name = elems.get('attributename')
-        
-        if dev_name:
-            normal_name = dev_name + "/" + attr_name
         else:
-            normal_name = attr_name
-            
-        return str, normal_name, attr_name
-    
-    
-class ConfigurationNameValidator(Singleton, AbstractTangoValidator):
-    
-    w = AbstractTangoValidator.tango_word
-    conf = "\?(?i)configuration(=(?P<configparam>" + w + "))*"
-    # for tango://host:port/a/b/c/attrname or host:port/a/b/c/attrname
-    complete_name = AttributeNameValidator.complete_name + conf
-    # for a/b/c/attrname
-    normal_name = AttributeNameValidator.normal_name + conf
-    # for devalias/attrname
-    short_name = AttributeNameValidator.short_name + conf
+            from taurus import warning
+            msg = ('Model name "%s" is supported but not strictly valid. \n' +
+                   'It is STRONGLY recommended that you change it to \n' +
+                   'strictly follow %s scheme syntax') % (name, self.scheme)
+            warning(msg)
+            ret = m.groupdict()
+            ret['__STRICT__'] = False
+            return ret
 
-    def __init__(self):
-        """ Initialization. Nothing to be done here for now."""
-
-    def init(self, *args, **kwargs):
-        """Singleton instance initialization."""
-        AbstractTangoValidator.__init__(self)
-
-    def getNames(self, str, factory=None):
-        """Returns the complete and short names"""
-        
-        elems = self.getParams(str)
-        if elems is None:
+    def getParams(self, name):
+        # deprecation warning
+        msg = ('%s.getParams() is deprecated. Use getUriGroups() instead.' %
+               self.__class__.__name__)
+        from taurus import warning
+        warning(msg)
+        # support old group names
+        groups = self.getUriGroups(name, strict=False)
+        if groups is None:
             return None
-                
-        dev_name = elems.get('devicename')
-        attr_name = elems.get('attributename')
-        simple = elems.get('configparam') or 'configuration'
-        
-        if dev_name:
-            normal = dev_name + "/" + attr_name + "?configuration=" + simple
-        elif attr_name:
-            normal = attr_name + "?configuration=" + simple
-        else:
-            normal = simple
-        
-        ret  = str,normal,simple
-        return ret
-    
+        groups = dict(groups)  # copy, just in case
+        groups['devicename'] = groups.get('devname')
+        groups['devalias'] = groups.get('_devalias')
+        groups['attributename'] = groups.get('_shortattrname')
+        groups['configparam'] = groups.get('fragment')
+        return groups
 
+    def getNames(self, fullname, factory=None):
+        """Returns a tuple of three elements with  (complete_name, normal_name,
+        short_name) or None if no match is found.
+        The definitions of each name are:
+
+        - complete: the full URI allowing an unambiguous identification of the
+          model within taurus (note: it must include the scheme).
+        - normal: an unambiguous URI at the scheme level. Any parts that are
+          optional and equal to the scheme's default can be stripped.
+          In particular, the scheme name is typically stripped for all schemes.
+        - short: a short name (not necessarily a valid URI) useful for display
+          in cases where ambiguity is tolerable.
+
+        Example: In a tango system where the default TANGO_HOST is "foo:123"
+        and a device "a/b/c" has been defined with alias "bar" and having an
+        attribute called "d", getNames would return:
+
+        - for the authority::
+
+            ('tango://foo:123', '//foo:123', 'foo:123')
+
+        - for the device::
+
+            ('tango://foo:123/a/b/c', 'a/b/c', 'bar')
+
+            note: if foo:123 wasn't the default TANGO_HOST, the normal name
+            would be '//foo:123/a/b/c'. Equivalent rules apply to Attribute
+            and configuration normal names.
+
+        - for the attribute::
+
+            ('tango://foo:123/a/b/c/d', 'a/b/c/d', 'd')
+
+            note: if foo123 wasn't the default TANGO_HOST, the normal name
+            would be '//foo:123/a/b/c/d'
+
+         - for the attribute (assuming we passed #label)::
+
+            ('tango://foo:123/a/b/c/d#label',
+             'a/b/c/d#label',
+             'd#label')
+
+         - for the attribute (assuming we did not pass a conf key)::
+            ('tango://foo:123/a/b/c/d#',
+             'a/b/c/d#',
+             'd#')
+
+        Note: it must always be possible to construct the 3 names from a *valid*
+        **fullname** URI. If the given URI is valid but it is not the full name,
+        it may still be possible in some cases to construct the 3 names, but
+        it may involve using defaults provided by the scheme (which may require
+        more computation than mere parsing the URI)
+        """
+        raise NotImplementedError('getNames must be implemented in derived ' +
+                                  'classes')
+
+
+class TaurusAuthorityNameValidator(_TaurusBaseValidator):
+    '''Base class for Authority name validators.
+    The namePattern will be composed from URI segments as follows:
+
+    <scheme>:<authority>[/<path>][?<query>][#<fragment>]
+
+    Derived classes must provide attributes defining a regexp string for each
+    URI segment (they can be empty strings):
+
+    - scheme
+    - authority
+    - path
+    - query
+    - fragment
+    '''
+    pattern = r'^(?P<scheme>%(scheme)s):' + \
+              r'(?P<authority>%(authority)s)' + \
+              r'((?=/)(?P<path>%(path)s))?' + \
+              r'(\?(?P<query>%(query)s))?' + \
+              r'(#(?P<fragment>%(fragment)s))?$'
+
+    def getNames(self, name, factory=None):
+        '''basic implementation for getNames for authorities. You may
+        reimplement it in your scheme if required'''
+        groups = self.getUriGroups(name)
+        if groups is None:
+            return None
+        complete = '%(scheme)s:%(authority)s' % groups
+        normal = '%(authority)s' % groups
+        short = ('%(authority)s' % groups).strip('/')
+        return complete, normal, short
+
+
+class TaurusDeviceNameValidator(_TaurusBaseValidator):
+    '''Base class for Device name validators.
+    The namePattern will be composed from URI segments as follows:
+
+    <scheme>:[<authority>/]<path>[?<query>][#<fragment>]
+
+    Derived classes must provide attributes defining a regexp string for each
+    URI segment (they can be empty strings):
+
+    - scheme
+    - authority
+    - path
+    - query
+    - fragment
+
+    Additionally, the namePattern resulting from composing the above segments
+    must contain a named group called "devname" (normally within the
+    path segment).
+    '''
+    pattern = r'^(?P<scheme>%(scheme)s):' + \
+              r'((?P<authority>%(authority)s)(?=/))?' + \
+              r'(?P<path>%(path)s)' + \
+              r'(\?(?P<query>%(query)s))?' + \
+              r'(#(?P<fragment>%(fragment)s))?$'
+
+
+class TaurusAttributeNameValidator(_TaurusBaseValidator):
+    '''Base class for Device name validators.
+    The namePattern will be composed from URI segments as follows:
+
+    <scheme>:[<authority>/]<path>[?<query>][#<fragment>]
+
+    Derived classes must provide attributes defining a regexp string for each
+    URI segment (they can be empty strings):
+
+    - scheme
+    - authority
+    - path
+    - query
+    - fragment
+
+    Additionally, the namePattern resulting from composing the above segments
+    must contain a named group called "attrname" (normally within the
+    path segment).
+    '''
+    pattern = r'^(?P<scheme>%(scheme)s):' + \
+              r'((?P<authority>%(authority)s)(?=/))?' + \
+              r'(?P<path>%(path)s)' + \
+              r'(\?(?P<query>%(query)s))?' + \
+              r'(#(?P<fragment>%(fragment)s))?$'
+
+
+class TaurusDatabaseNameValidator(TaurusAuthorityNameValidator):
+    '''Backwards-compatibility only. Use TaurusAuthorityNameValidator instead'''
+
+    def __init__(self, *args, **kwargs):
+        msg = ('%s is deprecated. Use "Authority" instead of "Database"' %
+               self.__class__.__name__)
+        from taurus import warning
+        warning(msg)
+        return TaurusAuthorityNameValidator.__init__(self, *args, **kwargs)
+
+
+if __name__ == '__main__':
+
+    class FooAttributeNameValidator(TaurusAttributeNameValidator):
+        scheme = 'foo'
+        authority = '[^?#/]+'
+        path = '[^?#]+'
+        query = '(?!)'
+        fragment = '[^?#]*'
+
+    v = FooAttributeNameValidator()
+    name = 'foo://bar#label'
+    print v.isValid(name)
+    print v.getUriGroups(name)

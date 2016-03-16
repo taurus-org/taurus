@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -55,9 +55,9 @@ def loadUi(obj, filename=None, path=None, with_ui=None):
                  [default: None, meaning calculate path with algorithm explained
                  before]
     :type path: str
-    :param with_ui: if True, the objects defined in the ui file will be 
+    :param with_ui: if True, the objects defined in the ui file will be
                     accessible as submembers of an ui member of the widget. If
-                    False, such objects will directly be members of the widget. 
+                    False, such objects will directly be members of the widget.
     :type with_ui: bool
     """
     if path is None:
@@ -82,7 +82,8 @@ def loadUi(obj, filename=None, path=None, with_ui=None):
             delattr(obj, member_name)
     else:
         uic.loadUi(full_name, baseinstance=obj)
-        
+
+
 def UILoadable(klass=None, with_ui=None):
     """
     A class decorator intended to be used in a Qt.QWidget to make its UI
@@ -90,13 +91,13 @@ def UILoadable(klass=None, with_ui=None):
     This decorator will add a :func:`loadUi` method to the decorated class and
     optionaly a property with a name given by *with_ui* parameter.
 
-    The folowing example assumes the existence of the ui file 
+    The folowing example assumes the existence of the ui file
     :file:`<my_widget_dir>/ui/MyWidget.ui` which is a QWidget panel with *at
     least* a QPushButton with objectName *my_button* ::
 
         from taurus.external.qt import Qt
         from taurus.qt.qtgui.util.ui import UILoadable
-        
+
         @UILoadable
         class MyWidget(Qt.QWidget):
 
@@ -110,10 +111,10 @@ def UILoadable(klass=None, with_ui=None):
     member *_ui* ::
 
         import os.path
-        
+
         from taurus.external.qt import Qt
         from taurus.qt.qtgui.util.ui import UILoadable
-        
+
         @UILoadable(with_ui="_ui")
         class MyWidget(Qt.QWidget):
 
@@ -136,7 +137,7 @@ def UILoadable(klass=None, with_ui=None):
 
             @UILoadable(with_ui="_ui")
             class MyWidget(Qt.QWidget):
- 
+
                 def __init__(self, parent=None):
                     Qt.QWidget.__init__(self, parent)
                     self.my_button = "hello"
@@ -160,16 +161,16 @@ def UILoadable(klass=None, with_ui=None):
         if path is None:
             path = klass_path
         return loadUi(self, filename=filename, path=path, with_ui=with_ui)
-    
+
     klass.loadUi = _loadUi
     return klass
 
 
 def main():
     from taurus.qt.qtgui.application import TaurusApplication
-    
+
     app = TaurusApplication([])
-    
+
     @UILoadable(with_ui="ui")
     class A(Qt.QWidget):
 
@@ -178,10 +179,10 @@ def main():
             import taurus.qt.qtgui.panel.ui
             path = os.path.dirname(taurus.qt.qtgui.panel.ui.__file__)
             self.loadUi(filename='TaurusMessagePanel.ui', path=path)
-    
+
     gui = A()
     gui.show()
     app.exec_()
-    
+
 if __name__ == "__main__":
     main()

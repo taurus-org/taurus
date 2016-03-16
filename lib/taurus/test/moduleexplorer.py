@@ -3,24 +3,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ###########################################################################
 
@@ -77,7 +77,7 @@ class ModuleExplorer(object):
         return inspect.isclass(obj) and hasattr(obj, '__init__')
 
     def _isenumeration(self, obj):
-#        return isinstance(obj, taurus.core.util)
+        #        return isinstance(obj, taurus.core.util)
         return False  # @todo
 
     def exploreModule(self, modulename):
@@ -123,7 +123,7 @@ class ModuleExplorer(object):
 # externalmembers = [n for n,v in inspect.getmembers(object) if (n not in
 # localmembers and not n.startswith('_'))]
 
-        #filter out excluded members
+        # filter out excluded members
         submodulenames = [n for n in submodulenames if not self._matchesAnyPattern(
             os.path.join(modulename, n), self.exclude_patterns)]
         localclassnames = [n for n in localclassnames if not self._matchesAnyPattern(
@@ -135,7 +135,7 @@ class ModuleExplorer(object):
         externalmembernames = [n for n in externalmembernames if not self._matchesAnyPattern(
             os.path.join(modulename, n), self.exclude_patterns)]
 
-        #recurse
+        # recurse
         submodules = {}
         for n in submodulenames:
             sm_name = '.'.join((modulename, n))
@@ -198,7 +198,7 @@ class ModuleExplorer(object):
         return minfo, ModuleExplorer.getAll(minfo, 'warnings')
 
 
-def main(modulename='taurus', exclude_patterns=('.*/ui')):
+def main(modulename='taurus', exclude_patterns=(r'taurus.qt.qtgui.extra_.*',)):
     moduleinfo, allw = ModuleExplorer.explore(
         modulename, exclude_patterns=exclude_patterns, verbose=True)
     print '\n\n' + '*' * 50

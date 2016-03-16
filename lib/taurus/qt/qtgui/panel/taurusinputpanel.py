@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -39,12 +39,12 @@ from taurus.qt.qtgui.util.ui import UILoadable
 @UILoadable(with_ui='_ui')
 class TaurusInputPanel(Qt.QWidget):
     """A panel design to get an input from the user.
-    
+
     The input_data is a dictionary which contains information on how to build
     the input dialog. It **must** contains the following keys:
-    
+
         - *prompt* <str>: message to be displayed
-        
+
     The following are optional keys (and their corresponding default values):
 
         - *title* <str> (doesn't have default value)
@@ -53,7 +53,7 @@ class TaurusInputPanel(Qt.QWidget):
         - *unit* <str> (doesn't have default value):
           a label to be presented right to the input box representing the units
         - *data_type* <str or sequence> ('String'):
-          type of data to be requested. Standard 
+          type of data to be requested. Standard
           accepted data types are 'String', 'Integer', 'Float', 'Boolean',
           'Text'. A list of elements will be interpreted as a selection.
           Default TaurusInputPanel class will interpret any custom data types as
@@ -64,28 +64,28 @@ class TaurusInputPanel(Qt.QWidget):
           minimum value (makes sense when data_type is 'Integer' or 'Float')
         - *maximum* <int/float>:
           maximum value (makes sense when data_type is 'Integer' or 'Float')
-        - *step* <int/float> (1): 
+        - *step* <int/float> (1):
           step size value (makes sense when data_type is 'Integer' or 'Float')
-        - *decimals* <int> (1): 
+        - *decimals* <int> (1):
           number of decimal places to show (makes sense when data_type is
           'Float')
-        - *default_value* <obj> (doesn't have default value): 
+        - *default_value* <obj> (doesn't have default value):
           default value
         - *allow_multiple* <bool> (False):
           allow more than one value to be selected (makes sense when data_type
           is a sequence of possibilities)
-        
+
 
     Example::
 
         app = Qt.QApplication([])
-        
+
         class Listener(object):
             def on_accept(self):
                 print "user selected", self.panel.value()
-        
+
         d = dict(prompt="What's your favourite car brand?",
-                 data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"], 
+                 data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"],
                  default_value="Mercedes")
         w = TaurusInputPanel(d)
         l = Listener()
@@ -94,6 +94,7 @@ class TaurusInputPanel(Qt.QWidget):
         w.show()
         app.exec_()
     """
+
     def __init__(self, input_data, parent=None):
         Qt.QWidget.__init__(self, parent)
         self._input_data = input_data
@@ -102,7 +103,7 @@ class TaurusInputPanel(Qt.QWidget):
 
     def fill_main_panel(self, panel, input_data):
         layout = Qt.QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0 ,0)
+        layout.setContentsMargins(0, 0, 0, 0)
         panel.setLayout(layout)
         if isinstance(input_data, collections.Mapping):
             single_panel, getter = self.create_single_input_panel(input_data)
@@ -110,47 +111,49 @@ class TaurusInputPanel(Qt.QWidget):
             self.value = getter
             if 'title' in input_data:
                 self.setWindowTitle(input_data['title'])
-    
+
     def create_single_input_panel(self, input_data):
         style = Qt.QApplication.instance().style()
         icon = style.standardIcon(Qt.QStyle.SP_MessageBoxQuestion)
         self.setIconPixmap(icon.pixmap(64))
-        
+
         self.setText(input_data['prompt'])
 
         data_type = input_data.get('data_type', 'String')
         is_seq = not isinstance(data_type, (str, unicode)) and \
-                 isinstance(data_type, collections.Sequence)
+            isinstance(data_type, collections.Sequence)
         if is_seq:
             panel, getter = self.create_selection_panel(input_data)
         else:
             data_type_l = data_type.lower()
-            creator = getattr(self, "create_" + data_type_l + "_panel", self.create_custom_panel)
+            creator = getattr(self, "create_" + data_type_l +
+                              "_panel", self.create_custom_panel)
             if creator:
                 panel, getter = creator(input_data)
-        
+
         if panel is None:
-            panel = Qt.QLabel("Cannot create widget for data type '%s'" % data_type)
-            getter = lambda : None
+            panel = Qt.QLabel(
+                "Cannot create widget for data type '%s'" % data_type)
+            getter = lambda: None
         return panel, getter
-        
+
     def create_custom_panel(self, input_data):
         return self.create_string_panel(input_data)
 
     def create_selection_panel(self, input_data):
         allow_multiple = input_data.get('allow_multiple', False)
-        
+
         if allow_multiple:
             return self._create_multi_selection_panel(input_data)
         else:
             return self._create_single_selection_panel(input_data)
-    
+
     def _create_single_selection_panel(self, input_data):
         items = list(map(str, input_data['data_type']))
         if len(items) > 5:
             return self._create_combobox_panel(input_data)
         return self._create_radiobutton_panel(input_data)
-    
+
     def _create_combobox_panel(self, input_data):
         panel = self._create_simple_panel(input_data)
         layout = panel.layout()
@@ -158,7 +161,7 @@ class TaurusInputPanel(Qt.QWidget):
         items = input_data['data_type']
         for item in items:
             is_seq = not isinstance(item, (str, unicode)) and \
-                     isinstance(item, collections.Sequence)
+                isinstance(item, collections.Sequence)
             if is_seq:
                 text, userData = item
             else:
@@ -166,11 +169,11 @@ class TaurusInputPanel(Qt.QWidget):
             combobox.addItem(text, userData)
         layout.addWidget(combobox, 0, 1)
         return panel, self._get_combobox_value
-    
+
     def _get_combobox_value(self):
         combo = self._ui.inputWidget
         return Qt.from_qvariant(combo.itemData(combo.currentIndex()))
-    
+
     def _create_radiobutton_panel(self, input_data):
         panel = self._create_group_panel(input_data)
         layout = panel.layout()
@@ -180,7 +183,7 @@ class TaurusInputPanel(Qt.QWidget):
         buttongroup.setExclusive(True)
         for item in items:
             is_seq = not isinstance(item, (str, unicode)) and \
-                     isinstance(item, collections.Sequence)
+                isinstance(item, collections.Sequence)
             if is_seq:
                 text, userData = item
             else:
@@ -198,7 +201,7 @@ class TaurusInputPanel(Qt.QWidget):
         button = buttongroup.checkedButton()
         if button is not None:
             return button._value
-    
+
     def _create_multi_selection_panel(self, input_data):
         panel = self._create_group_panel(input_data)
         layout = panel.layout()
@@ -207,7 +210,7 @@ class TaurusInputPanel(Qt.QWidget):
         if default_value is None:
             default_value = ()
         dft_is_seq = not isinstance(default_value, (str, unicode)) and \
-                     isinstance(default_value, collections.Sequence)
+            isinstance(default_value, collections.Sequence)
         if not dft_is_seq:
             default_value = default_value,
 
@@ -216,7 +219,7 @@ class TaurusInputPanel(Qt.QWidget):
 
         for item in items:
             is_seq = not isinstance(item, (str, unicode)) and \
-                     isinstance(item, collections.Sequence)
+                isinstance(item, collections.Sequence)
             if is_seq:
                 text, userData = item
             else:
@@ -230,7 +233,7 @@ class TaurusInputPanel(Qt.QWidget):
 
     def _get_multi_selection_value(self):
         listwidget = self._ui.inputWidget
-        return [ Qt.from_qvariant(item.data(Qt.Qt.UserRole)) for item in listwidget.selectedItems() ]
+        return [Qt.from_qvariant(item.data(Qt.Qt.UserRole)) for item in listwidget.selectedItems()]
 
     def _create_group_panel(self, input_data):
         title = input_data.get('key', '')
@@ -243,7 +246,7 @@ class TaurusInputPanel(Qt.QWidget):
         self._ui.inputLabel = Qt.QLabel()
         self._ui.unitLabel = Qt.QLabel()
         return panel
-            
+
     def _create_simple_panel(self, input_data):
         panel = Qt.QWidget()
         key = input_data.get('key', '')
@@ -260,7 +263,7 @@ class TaurusInputPanel(Qt.QWidget):
         layout.setColumnStretch(1, 1)
         layout.setColumnStretch(2, 0)
         return panel
-    
+
     def create_integer_panel(self, input_data):
         panel = self._create_simple_panel(input_data)
         minimum = input_data.get('minimum', numpy.iinfo('i').min)
@@ -275,10 +278,10 @@ class TaurusInputPanel(Qt.QWidget):
             spinbox.setValue(input_data['default_value'])
         layout.addWidget(spinbox, 0, 1)
         return panel, self._get_integer_value
-    
+
     def _get_integer_value(self):
         return int(self._ui.inputWidget.value())
-        
+
     def create_float_panel(self, input_data):
         panel = self._create_simple_panel(input_data)
         minimum = input_data.get('minimum', numpy.finfo('d').min)
@@ -325,7 +328,7 @@ class TaurusInputPanel(Qt.QWidget):
 
     def _get_text_value(self):
         return str(self._ui.inputWidget.toPlainText())
-        
+
     def create_boolean_panel(self, input_data):
         panel = self._create_simple_panel(input_data)
         layout = panel.layout()
@@ -337,7 +340,7 @@ class TaurusInputPanel(Qt.QWidget):
 
     def _get_boolean_value(self):
         return self._ui.inputWidget.checkState() == Qt.Qt.Checked
-    
+
     def inputPanel(self):
         return self._ui._inputPanel
 
@@ -377,7 +380,7 @@ class TaurusInputPanel(Qt.QWidget):
         :return: the text for this panel
         :rtype: str"""
         return self._ui.textLabel.text()
-    
+
     def setInputFocus(self):
         inputWidget = self._ui.inputWidget
         if not inputWidget:
@@ -392,15 +395,18 @@ class TaurusInputPanel(Qt.QWidget):
                 button = inputWidget.button(bid)
             button.setFocus()
 
+
 def main():
     app = Qt.QApplication([])
-    
+
     class Listener(object):
+
         def on_accept(self):
             print "user selected", self.panel.value()
-    
+
     d = dict(prompt="What's your favourite car brand?",
-             data_type=["Mazda", "Skoda", "Citroen", "Mercedes", "Audi", "Ferrari"], 
+             data_type=["Mazda", "Skoda", "Citroen",
+                        "Mercedes", "Audi", "Ferrari"],
              default_value="Mercedes")
     w = TaurusInputPanel(d)
     l = Listener()

@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -31,6 +31,9 @@ from taurus.external.qt import Qt
 
 from taurus.core.util.colors import ColorPalette, \
     DEVICE_STATE_DATA, ATTRIBUTE_QUALITY_DATA
+from taurus.core.taurusbasetypes import AttrQuality
+from taurus.core.tango import DevState  # TODO: Tango-centric
+
 
 class QtColorPalette(ColorPalette):
 
@@ -44,7 +47,7 @@ class QtColorPalette(ColorPalette):
         self._qvariant_cache_bg = dict()
 
     def qbrush(self, stoq):
-        #print stoq
+        # print stoq
         """Returns the brush for the specified state or quality"""
         name = self._decoder(stoq)
 
@@ -58,7 +61,7 @@ class QtColorPalette(ColorPalette):
             if name == 'None':
                 b[name].setStyle(Qt.Qt.BDiagPattern)
 
-        return ( b[name], f[name] )
+        return (b[name], f[name])
 
     def qcolor(self, stoq):
         """Returns the color for the specified state or quality"""
@@ -72,7 +75,7 @@ class QtColorPalette(ColorPalette):
         if not b.has_key(name):
             b[name] = Qt.QColor(self.number(name))
 
-        return ( b[name], f[name] )
+        return (b[name], f[name])
 
     def qvariant(self, stoq):
         """Returns the color for the specified state or quality"""
@@ -81,13 +84,13 @@ class QtColorPalette(ColorPalette):
         f = self._qvariant_cache_fg
         b = self._qvariant_cache_bg
         if not f.has_key(name):
-            (back,fore) = self.qcolor(name)
+            (back, fore) = self.qcolor(name)
             f[name] = Qt.QVariant(fore)
             b[name] = Qt.QVariant(back)
 
-        return ( b[name], f[name] )
+        return (b[name], f[name])
 
-import PyTango
 
-QT_DEVICE_STATE_PALETTE = QtColorPalette(DEVICE_STATE_DATA, PyTango.DevState)
-QT_ATTRIBUTE_QUALITY_PALETTE = QtColorPalette(ATTRIBUTE_QUALITY_DATA, PyTango.AttrQuality)
+QT_DEVICE_STATE_PALETTE = QtColorPalette(DEVICE_STATE_DATA, DevState)
+QT_ATTRIBUTE_QUALITY_PALETTE = QtColorPalette(ATTRIBUTE_QUALITY_DATA,
+                                              AttrQuality)

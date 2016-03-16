@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -34,8 +34,8 @@ class Table:
 
     DefTermWidth = 80
 
-    PrettyOpts   = {'col_sep': ' |', 'col_head_sep': '-', 'border': '='}
-    
+    PrettyOpts = {'col_sep': ' |', 'col_head_sep': '-', 'border': '='}
+
     def __init__(self, elem_list, elem_fmt=None, term_width=None,
                  row_head_str=None, row_head_fmt='%-*s', row_head_width=None,
                  col_head_str=None, col_head_fmt='%*s',  col_head_width=None,
@@ -44,21 +44,21 @@ class Table:
         self.nr_col = len(elem_list)
         self.nr_row = len(elem_list[0])
         self.elem_list = elem_list
-        
+
         if elem_fmt is None:
             elem_fmt = self.nr_row * ['%*s']
         if len(elem_fmt) == 1:
             elem_fmt *= self.nr_row
-        self.elem_fmt  = elem_fmt
-        
-        self.term_width   = term_width or Table.DefTermWidth
-        self.col_sep      = col_sep
-        self.row_sep      = row_sep
+        self.elem_fmt = elem_fmt
+
+        self.term_width = term_width or Table.DefTermWidth
+        self.col_sep = col_sep
+        self.row_sep = row_sep
         self.col_head_sep = col_head_sep
-        self.border       = border
-        
+        self.border = border
+
         max_len_fn = lambda x: reduce(max, map(len, x))
-        
+
         self.row_head_str = row_head_str
         self.row_head_fmt = row_head_fmt
         if row_head_str is not None and len(row_head_str) != self.nr_row:
@@ -71,7 +71,7 @@ class Table:
             else:
                 row_head_width = 0
         self.row_head_width = row_head_width
-            
+
         self.col_head_str = col_head_str
         self.col_head_fmt = col_head_fmt
         if col_head_str is not None and len(col_head_str) != self.nr_col:
@@ -88,18 +88,18 @@ class Table:
             self.col_head_lines = len(col_head_str[0])
         else:
             self.col_head_lines = 0
-        
+
     def updateElem(self, elem_list):
         new_col, new_row = len(elem_list), len(elem_list[0])
         if new_col != self.nr_col or new_row != self.nr_row:
             raise 'Invalid new elem list size %dx%d, was %dx%d' % \
                   (new_col, new_row, self.nr_col, self.nr_row)
         self.elem_list = elem_list
-        
+
     def genOutput(self, term_width=None):
         if term_width is None:
             term_width = self.term_width
-        
+
         rhw, chw = self.row_head_width, self.col_head_width
         chl = self.col_head_lines
         lcs = len(self.col_sep)
@@ -111,7 +111,7 @@ class Table:
         tot_rows = chl + self.nr_row
         if rhw > 0:
             tot_width += rhw + lcs
-            
+
         output = []
 
         if self.row_head_str is not None:
@@ -140,10 +140,10 @@ class Table:
                     fmt = self.col_head_fmt
                     for k in xrange(chl):
                         line[k] += fmt % (chw, col_head[k])
-                        
+
                 for k in xrange(self.nr_row):
                     fmt = self.elem_fmt[k]
-                    line[chl+k] += fmt % (chw, elem[k])
+                    line[chl + k] += fmt % (chw, elem[k])
 
             max_width = reduce(max, map(len, line))
             if self.border is not None:
@@ -160,5 +160,3 @@ class Table:
                 output.append(self.border * nr_border)
 
         return output
-
-

@@ -2,24 +2,24 @@
 
 ##############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ##############################################################################
 
@@ -43,15 +43,17 @@ from distutils.command.install_scripts import install_scripts as dftinstall_scri
 try:
     import sphinx
     import sphinx.util.console
-    sphinx.util.console.color_terminal = lambda : False
+    sphinx.util.console.color_terminal = lambda: False
 except:
     sphinx = None
+
 
 def abspath(*path):
     """A method to determine absolute path for a given relative path to the
     directory where this setup.py script is located"""
     setup_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(setup_dir, *path)
+
 
 def get_release_info():
     name = "release"
@@ -62,10 +64,8 @@ def get_release_info():
 
 Release = get_release_info()
 
-author = Release.authors['Tiago']
-maintainer = Release.authors['Pascual-Izarra']
 
-package_dir = { 'taurus' : abspath('lib', 'taurus') }
+package_dir = {'taurus': abspath('lib', 'taurus')}
 
 packages = [
     'taurus',
@@ -74,6 +74,7 @@ packages = [
     'taurus.external',
     'taurus.external.argparse',
     'taurus.external.enum',
+    #'taurus.external.enum.enum', #todo: do we need this one?
     'taurus.external.ordereddict',
     'taurus.external.pint',
     'taurus.external.qt',
@@ -81,20 +82,33 @@ packages = [
     'taurus.external.test',
 
     'taurus.core',
+    'taurus.core.test',
     'taurus.core.util',
     'taurus.core.util.argparse',
     'taurus.core.util.decorator',
     'taurus.core.util.report',
-    'taurus.core.utils',  # old, deprecated: maintain for compatibility
+    'taurus.core.util.test',
+
+    'taurus.core.epics',
+    'taurus.core.epics.test',
+    'taurus.core.epics.test.res',
 
     'taurus.core.resource',
+    'taurus.core.resource.test',
+    'taurus.core.resource.test.res',
 
-    'taurus.core.simulation',
+    # 'taurus.core.spec',
+
+    # 'taurus.core.spec',
 
     'taurus.core.evaluation',
+    'taurus.core.evaluation.test',
 
     'taurus.core.tango',
     'taurus.core.tango.img',
+    'taurus.core.tango.util',
+    'taurus.core.tango.test',
+    'taurus.core.tango.test.res',
 
     'taurus.console',
     'taurus.console.util',
@@ -117,11 +131,12 @@ packages = [
     'taurus.qt.qtgui.test',
     'taurus.qt.qtgui.application',
     'taurus.qt.qtgui.base',
+    'taurus.qt.qtgui.base.test',
     'taurus.qt.qtgui.button',
     'taurus.qt.qtgui.button.test',
     'taurus.qt.qtgui.button.test.res',
     'taurus.qt.qtgui.compact',
-#    'taurus.qt.qtgui.console',
+    #    'taurus.qt.qtgui.console',
     'taurus.qt.qtgui.container',
     'taurus.qt.qtgui.dialog',
     'taurus.qt.qtgui.display',
@@ -142,7 +157,7 @@ packages = [
     'taurus.qt.qtgui.panel.report',
     'taurus.qt.qtgui.plot',
     'taurus.qt.qtgui.resource',
-#    'taurus.qt.qtgui.shell',
+    #    'taurus.qt.qtgui.shell',
     'taurus.qt.qtgui.style',
     'taurus.qt.qtgui.table',
     'taurus.qt.qtgui.taurusgui',
@@ -163,8 +178,8 @@ extra_packages = [
 
     'taurus.qt.qtgui.taurusgui.conf.tgconf_example01',
     'taurus.qt.qtgui.taurusgui.conf.tgconf_macrogui',
-    
-    #For backwards compat. They may be removed later on:
+
+    # For backwards compat. They may be removed later on:
     'taurus.qt.qtgui.extra_macroexecutor',
     'taurus.qt.qtgui.extra_sardana',
     'taurus.qt.qtgui.extra_pool',
@@ -178,44 +193,53 @@ provides = [
 
 requires = [
     'numpy (>=1.1)',
-    'PyTango (>=7.1)',
-    'PyQt4 (>=4.4)',
-    'PyQt4.Qwt5 (>=5.2.0)',   # plotting
-    'ply (>=2.3)',            # jdraw parser
-    'lxml (>=2.1)',           # tau2taurus, taurusuic4
-    'spyder (>=2.2)',         # shell, editor
+    #########################################################################
+    # TODO: if using setuptools, the following can be moved to extra_requires
+    'PyTango (>=7.1)',  # [Taurus-Tango]
+    'PyQt4 (>=4.8)',  # [Taurus-Qt]
+    'PyQt4.Qwt5 (>=5.2.0)',  # [Taurus-Qt-Plot]
+    'ply (>=2.3)',  # [Taurus-Qt-Synoptic]
+    'lxml (>=2.1)',  # [Taurus-TaurusGUI]
+    'spyder (>=2.2)',  # [Taurus-Editor] --> or maybe move it to sardana
+    # Consider also guiqwt, guidata, PyMca,...
+    #
+    #########################################################################
 ]
 
 package_data = {
-    'taurus.core.epics'        : ['__taurus_plugin__'],
-    'taurus.core.evaluation'   : ['__taurus_plugin__'],
-    'taurus.core.resource'     : ['__taurus_plugin__'],
-    'taurus.core.simulation'   : ['__taurus_plugin__'],
-    'taurus.core.tango'        : ['__taurus_plugin__'],
+    'taurus.core.epics': ['__taurus_plugin__'],
+    'taurus.core.evaluation': ['__taurus_plugin__'],
+    'taurus.core.resource': ['__taurus_plugin__'],
+    # 'taurus.core.spec'         : ['__taurus_plugin__'],
+    'taurus.core.tango': ['__taurus_plugin__'],
 
-    'taurus.qt.qtgui.resource' : ['*.rcc'],
-    'taurus.qt.qtgui.util'     : ['tauruswidget_template',
-                                  'tauruswidget_qtdesignerplugin_template'],
-    'taurus.qt.uic'            : ['pyuic4/*'],
-    'taurus.qt.qtgui.taurusgui.conf.tgconf_example01' : ['images/*'],
-    'taurus.qt.qtgui.button.test' : ['res/*'],
-    'taurus.qt.qtgui.graphic.jdraw.test' : ['res/*'],
-        
+    'taurus.core.tango.test': ['res/*'],
+    'taurus.core.epics.test': ['res/*'],
+    'taurus.core.resource.test': ['res/*'],
+
+    'taurus.qt.qtgui.resource': ['*.rcc'],
+    'taurus.qt.qtgui.util': ['tauruswidget_template',
+                             'tauruswidget_qtdesignerplugin_template'],
+    'taurus.qt.uic': ['pyuic4/*'],
+    'taurus.qt.qtgui.taurusgui.conf.tgconf_example01': ['images/*'],
+    'taurus.qt.qtgui.button.test': ['res/*'],
+    'taurus.qt.qtgui.graphic.jdraw.test': ['res/*'],
+
     'taurus.qt.qtgui.help': ['ui/*.ui'],
     'taurus.qt.qtgui.panel.report': ['ui/*.ui'],
     'taurus.qt.qtgui.panel': ['ui/*.ui'],
     'taurus.qt.qtgui.plot': ['ui/*.ui'],
     'taurus.qt.qtgui.taurusgui': ['ui/*.ui'],
     'taurus.qt.qtgui.extra_guiqwt': ['ui/*.ui'],
-    'taurus.qt.qtgui.util.test.test_ui' : ['ui/*.ui', 'ui/mywidget2/*.ui'],
-    'taurus.qt.qtgui.util.test.test_ui.mywidget3' : ['ui/*.ui'],
+    'taurus.qt.qtgui.util.test.test_ui': ['ui/*.ui', 'ui/mywidget2/*.ui'],
+    'taurus.qt.qtgui.util.test.test_ui.mywidget3': ['ui/*.ui'],
 }
-
 
 # The files listed here will be made executable when installed.
 # The file names are relative to the dir containing setup.py
 # Note: They must also be listed in packages or package_data
 executable_data = [
+    'taurus/core/tango/test/res/TangoSchemeTest',
     'taurus/qt/qtgui/button/test/res/Timeout',
 ]
 
@@ -223,10 +247,11 @@ executable_data = [
 # before running setup to avoid license issues)
 if os.path.isdir(abspath('lib', 'taurus', 'external', 'enum', 'enum')):
     packages.append('taurus.external.enum.enum')
-if os.path.isdir(abspath('lib', 'taurus', 'external', 'pint', 'pint')):
-    packages.append('taurus.external.pint.pint')
-    package_data['taurus.external.pint.pint'] = ['*.txt']
-    
+if os.path.isdir(abspath('lib', 'taurus', 'external', 'pint', 'pint_local')):
+    packages.append('taurus.external.pint.pint_local')
+    packages.append('taurus.external.pint.pint_local.compat')
+    package_data['taurus.external.pint.pint_local'] = ['*.txt']
+
 
 def get_script_files():
     scripts_dir = abspath('scripts')
@@ -242,7 +267,7 @@ def get_script_files():
         # avoid files that have any extension
         if len(os.path.splitext(abs_item)[1]) > 0:
             continue
-        scripts.append('scripts/' + item)
+        scripts.append(os.path.join(scripts_dir, item))
     return scripts
 
 scripts = get_script_files()
@@ -264,6 +289,7 @@ classifiers = [
     'Operating System :: Unix',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
+    'Programming Language :: Python :: 2.7',
     'Topic :: Scientific/Engineering',
     'Topic :: Software Development :: Libraries',
     'Topic :: Software Development :: User Interfaces',
@@ -274,19 +300,20 @@ classifiers = [
 class build_resources(Command):
 
     description = "\"build\" Qt resource files"
-    user_options = [('logo=', None, "alternative logo file (default is taurus.png)")]
+    user_options = [
+        ('logo=', None, "alternative logo file (default is taurus.png)")]
     AllowedExt = ('svg', 'png', 'jpg', 'jpeg', 'gif')
 
-    def initialize_options (self):
+    def initialize_options(self):
         self.resource_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource')
         self.taurus = os.path.join(self.resource_dir, 'taurus.png')
-        self.logo = None  #os.path.join(self.resource_dir,'taurus.png')
+        self.logo = None  # os.path.join(self.resource_dir,'taurus.png')
         if self.distribution.verbose:
             self.out = sys.stdout
         else:
             self.out = StringIO.StringIO()
 
-    def finalize_options (self):
+    def finalize_options(self):
         if self.logo is None:
             build = self.get_finalized_command('build')
             if build:
@@ -300,7 +327,8 @@ class build_resources(Command):
         if os.name == 'nt':
             try:
                 self.QTDIR = os.environ["QTDIR"]
-                self.rcc_exec = self.rcc_exec = os.path.join(self.QTDIR, 'bin', 'rcc')
+                self.rcc_exec = self.rcc_exec = os.path.join(
+                    self.QTDIR, 'bin', 'rcc')
             except KeyError:
                 msg = "Cannot find QT installation. " \
                     "You should set the env. variable QTDIR " \
@@ -341,8 +369,10 @@ class build_resources(Command):
             logo_relpath = os.path.relpath(self.logo)
             taurus_relpath = os.path.relpath(self.taurus)
             f.write('<RCC>\n    <qresource>\n')
-            f.write('        <file alias="logo.png">%s</file>\n' % logo_relpath)
-            f.write('        <file alias="taurus.png">%s</file>\n' % taurus_relpath)
+            f.write('        <file alias="logo.png">%s</file>\n' %
+                    logo_relpath)
+            f.write('        <file alias="taurus.png">%s</file>\n' %
+                    taurus_relpath)
             f.write('    </qresource>\n')
             f.write('</RCC>\n')
         except Exception, e:
@@ -357,13 +387,14 @@ class build_resources(Command):
         if self.rcc_exec:
             print("Generating %s... " % rcc_filename, file=out, end='')
             out.flush()
-            cmd = '%s -binary %s -o %s' % (self.rcc_exec, qrc_filename, rcc_filename)
+            cmd = '%s -binary %s -o %s' % (self.rcc_exec,
+                                           qrc_filename, rcc_filename)
             if os.system(cmd):
                 print("[FAILED]", file=out)
             else:
                 print("[DONE]", file=out)
 
-        return [ [qrc_filename], [rcc_filename]]
+        return [[qrc_filename], [rcc_filename]]
 
     def _build_res(self, abs_dir, bases=list()):
         """Builds the resources in the abs_dir recursively.
@@ -377,7 +408,8 @@ class build_resources(Command):
         local_bases.append(res_name)
         out = self.out
         for elem in os.listdir(abs_dir):
-            if elem.startswith('.'): continue
+            if elem.startswith('.'):
+                continue
             abs_elem = os.path.abspath(os.path.join(abs_dir, elem))
             if os.path.isdir(abs_elem):
                 ret = self._build_res(abs_elem, local_bases)
@@ -401,14 +433,16 @@ class build_resources(Command):
                 qres_prefix = ""
                 if len(local_bases) > 2:
                     qres_prefix = "/" + "/".join(local_bases[2:])
-                    f.write('<RCC>\n    <qresource prefix="%s">\n' % qres_prefix)
+                    f.write('<RCC>\n    <qresource prefix="%s">\n' %
+                            qres_prefix)
                 else:
                     f.write('<RCC>\n    <qresource>\n')
                 qres_prefix = ":" + qres_prefix
                 qres_prefix += "/"
                 for elem in local_elems:
                     rel_elem = os.path.join(base_dir, elem)
-                    f.write('        <file alias="%s">%s</file>\n' % (elem, rel_elem))
+                    f.write('        <file alias="%s">%s</file>\n' %
+                            (elem, rel_elem))
                 f.write('    </qresource>\n</RCC>')
             except Exception, e:
                 print("[FAILED]\nDescription:\n%s" % str(e), file=out)
@@ -422,7 +456,8 @@ class build_resources(Command):
             if self.rcc_exec:
                 print("Generating %s... " % rcc_filename, file=out, end='')
                 out.flush()
-                cmd = '%s -binary %s -o %s' % (self.rcc_exec, qrc_filename, rcc_filename)
+                cmd = '%s -binary %s -o %s' % (self.rcc_exec,
+                                               qrc_filename, rcc_filename)
                 if os.system(cmd):
                     print("[FAILED]", file=out)
                 else:
@@ -440,9 +475,10 @@ class build(dftbuild):
          ('no-doc', None, "do not build documentation"),
          ('with-tango-icons', None, "add Tango icons too (not just *.rcc files)")]
 
-    boolean_options = dftbuild.boolean_options + ['with-extra-widgets', 'no-doc']
+    boolean_options = dftbuild.boolean_options + \
+        ['with-extra-widgets', 'no-doc']
 
-    def initialize_options (self):
+    def initialize_options(self):
         dftbuild.initialize_options(self)
         self.logo = None
         self.doc_fmt = None
@@ -450,10 +486,11 @@ class build(dftbuild):
         self.with_tango_icons = None
         self.with_extra_widgets = True
 
-    def finalize_options (self):
+    def finalize_options(self):
         dftbuild.finalize_options(self)
         if self.logo is None:
-            self.logo = abspath('lib', 'taurus', 'qt', 'qtgui', 'resource', 'taurus.png')
+            self.logo = abspath('lib', 'taurus', 'qt',
+                                'qtgui', 'resource', 'taurus.png')
 
     def run(self):
         self.build_package_data()
@@ -466,7 +503,7 @@ class build(dftbuild):
             packages.extend(extra_packages)
         resource_package_data = self.get_extra_resource_package_data()
         package_data['taurus.qt.qtgui.resource'].extend(resource_package_data)
-        
+
     def has_doc(self):
         if self.no_doc:
             return False
@@ -494,7 +531,7 @@ class build(dftbuild):
         return data
 
     sub_commands = [('build_resources', has_resources)] + \
-                   dftbuild.sub_commands + \
+        dftbuild.sub_commands + \
                    [('build_doc', has_doc)]
 
 
@@ -516,8 +553,10 @@ class install_man(Command):
         man_pages = []
         for f in man_elems:
             f = os.path.join(src_man_dir, f)
-            if not os.path.isfile(f): continue
-            if not f.endswith(".1"): continue
+            if not os.path.isfile(f):
+                continue
+            if not f.endswith(".1"):
+                continue
             man_pages.append(f)
 
         install_dir = os.path.join(self.install_dir, 'man1')
@@ -548,24 +587,24 @@ class install_html(Command):
 
 
 class install_scripts(dftinstall_scripts):
-    '''Customization to create .bat wrappers for the scripts 
+    '''Customization to create .bat wrappers for the scripts
     when installing on windows.
     Adapted from a recipe by Matthew Brett (who licensed it under CC0):
     https://github.com/matthew-brett/myscripter/blob/master/setup.py
-    See rationale in: 
+    See rationale in:
     http://matthew-brett.github.io/pydagogue/installing_scripts.html
     '''
 
     user_options = list(dftinstall_scripts.user_options)
     user_options.extend(
-            [
-             ('wrappers', None, 'Install .bat wrappers for windows (enabled by default on windows)'),
-             ('ignore-shebang', None, 'Use "python" as the interpreter in .bat wrappers (instead of using the interpreter found in the shebang line of the scripts). Note: this only affects to windows .bat wrappers!'),
-             ])
-
+        [
+            ('wrappers', None,
+             'Install .bat wrappers for windows (enabled by default on windows)'),
+            ('ignore-shebang', None, 'Use "python" as the interpreter in .bat wrappers (instead of using the interpreter found in the shebang line of the scripts). Note: this only affects to windows .bat wrappers!'),
+        ])
 
     BAT_TEMPLATE_SHEBANG = \
-r"""@echo off
+        r"""@echo off
 REM wrapper to use shebang first line of {FNAME}
 set mypath=%~dp0
 set pyscript="%mypath%{FNAME}"
@@ -578,7 +617,7 @@ set py_exe=%line1:~2%
 call %py_exe% %pyscript% %*
 """
     BAT_TEMPLATE_PATH = \
-r"""@echo off
+        r"""@echo off
 REM wrapper to launch {FNAME}
 set mypath=%~dp0
 set pyscript="%mypath%{FNAME}"
@@ -618,12 +657,14 @@ call %py_exe% %pyscript% %*
                     fobj.write(bat_contents)
 
 
-class install_lib(dftinstall_lib):  
+class install_lib(dftinstall_lib):
+
     def run(self):
         dftinstall_lib.run(self)
         # Set the executable bits (owner, group, and world) on
         # all executable_data
-        exe_ouput = [os.path.join(self.install_dir,f) for f in executable_data]
+        exe_ouput = [os.path.join(self.install_dir, f)
+                     for f in executable_data]
         if os.name == 'posix':
             for fn in self.get_outputs():
                 if fn in exe_ouput:
@@ -639,9 +680,9 @@ class install(dftinstall):
 
     user_options = list(dftinstall.user_options)
     user_options.extend([
-            ('install-man=', None, 'installation directory for Unix man pages'),
-            ('install-html=', None, "installation directory for HTML documentation"),
-            ('no-doc', None, "do not install HTML documentation")])
+        ('install-man=', None, 'installation directory for Unix man pages'),
+        ('install-html=', None, "installation directory for HTML documentation"),
+        ('no-doc', None, "do not install HTML documentation")])
 
     def initialize_options(self):
         self.install_man = None
@@ -668,9 +709,11 @@ class install(dftinstall):
                 self.install_man = None
         else:
             if self.install_man is None:
-                self.install_man = os.path.join(self.install_data, 'share', 'man')
+                self.install_man = os.path.join(
+                    self.install_data, 'share', 'man')
         if self.install_html is None:
-            self.install_html = os.path.join(self.install_data, 'share', 'doc', 'taurus', 'html')
+            self.install_html = os.path.join(
+                self.install_data, 'share', 'doc', 'taurus', 'html')
         if self.no_doc is None:
             self.no_doc = False
         self.dump_dirs("Installation directories")
@@ -693,6 +736,7 @@ class install(dftinstall):
 
 
 class clean(dftclean):
+
     def run(self):
         dftclean.run(self)
 
@@ -734,20 +778,20 @@ class clean(dftclean):
             log.debug("'%s' does not exist -- can't clean it", api_dir)
 
 
-cmdclass = { 'build' : build,
-             'build_resources' : build_resources,
-             'install' : install,
-             'install_lib': install_lib,
-             'install_man' : install_man,
-             'install_html' : install_html,
-             'install_scripts' : install_scripts,
-             'clean' : clean }
+cmdclass = {'build': build,
+            'build_resources': build_resources,
+            'install': install,
+            'install_lib': install_lib,
+            'install_man': install_man,
+            'install_html': install_html,
+            'install_scripts': install_scripts,
+            'clean': clean}
 
 if sphinx:
     from sphinx.setup_command import BuildDoc
 
     class build_catalog(object):
-        '''builds an html catalog of icons. It links to png thumbnails that are 
+        '''builds an html catalog of icons. It links to png thumbnails that are
         created in the _static dir
         '''
 
@@ -755,8 +799,8 @@ if sphinx:
 
         HTML_IL = '<tr height="30">' \
                   '<td width="30" align="center">' \
-                     '<img width="24" src="{thumbnail}"' \
-                                    ' alt="{res_relpath}"/></td>' \
+            '<img width="24" src="{thumbnail}"' \
+            ' alt="{res_relpath}"/></td>' \
                   '<td width="400">{qres_prefix}{icon_name}</td>' \
                   '<td width="400">{res_relpath}</td>' \
                   '<td width="200">{theme}</td></tr>\n'
@@ -766,22 +810,22 @@ if sphinx:
                  '<th>Theme</th></tr>\n'
 
         def run(self):
-            self.resource_dir = abspath('lib', 'taurus', 'qt', 'qtgui', 
+            self.resource_dir = abspath('lib', 'taurus', 'qt', 'qtgui',
                                         'resource')
             pngs_dir = os.path.abspath(os.path.join(self.builder_target_dir,
-                                                    '_static', 
-                                                    'icon_thumbnails') )
+                                                    '_static',
+                                                    'icon_thumbnails'))
             devel_dir = os.path.abspath(os.path.join(self.builder_target_dir,
-                                                     'devel') )
+                                                     'devel'))
             self.thumbnails_relpath = os.path.relpath(pngs_dir, devel_dir)
-            
+
             orig_dir = os.path.abspath(os.curdir)
             os.chdir(self.resource_dir)
-            
+
             # create temporary catalog file (to be removed at end of build_doc)
             catalog = file(self.fname, 'w')
-            catalog.write("<html><head>\n<title>taurus Icon Catalog</title>\n" \
-            "<style>table { border-collapse: collapse; }</style>\n</head>\n<body>\n")
+            catalog.write("<html><head>\n<title>taurus Icon Catalog</title>\n"
+                          "<style>table { border-collapse: collapse; }</style>\n</head>\n<body>\n")
 
             try:
                 cur_dir = os.path.abspath(os.curdir)
@@ -801,11 +845,12 @@ if sphinx:
                 catalog.write("""</body></html>""")
                 catalog.close()
                 os.chdir(orig_dir)
-            
-            #make thumbnails 
+
+            # make thumbnails
             try:
                 if self.thumbnails_source == 'wand':
                     from wand.image import Image
+
                     def transform(ifname, ofname):
                         with Image(filename=ifname) as img:
                             img.transform(resize='24x')
@@ -817,9 +862,11 @@ if sphinx:
                     if PyQt4.Qt.qApp.instance() is None:
                         self.app = PyQt4.Qt.QApplication([])
                     from PyQt4 import Qt
+
                     def transform(ifname, ofname):
                         pixmap = Qt.QPixmap(ifname)
-                        p = pixmap.scaledToWidth(24, Qt.Qt.SmoothTransformation)
+                        p = pixmap.scaledToWidth(
+                            24, Qt.Qt.SmoothTransformation)
                         return p.save(ofname)
                 else:
                     if not os.path.isabs(self.thumbnails_source):
@@ -832,23 +879,24 @@ if sphinx:
                         zfile.extractall(pngs_dir)
                     else:
                         shutil.copytree(self.thumbnails_source, pngs_dir)
+
                     def transform(ifname, ofname):
-                        #just check if the required thumbnail exists
-                        return os.path.isfile(ofname) 
+                        # just check if the required thumbnail exists
+                        return os.path.isfile(ofname)
 
                 print("\tCreating PNG thumbnails for icon catalog")
-                os.path.walk(self.resource_dir, self._make_thumbnails, 
-                             (self.resource_dir, pngs_dir, transform) )
+                os.path.walk(self.resource_dir, self._make_thumbnails,
+                             (self.resource_dir, pngs_dir, transform))
                 # create a zipped file for the thumbnails
                 fname = abspath('doc', '~thumbnails.zip')
                 if os.path.isfile(fname):
                     os.remove(fname)
-                self._zipdir(pngs_dir, fname) 
-                
+                self._zipdir(pngs_dir, fname)
+
             except ImportError, e:
                 print("\tCannot create PNG thumbnails for icon catalog: %s" %
-                       repr(e))
-                
+                      repr(e))
+
         @staticmethod
         def _make_thumbnails(arg, dirname, fnames):
             '''create thumbnails. To be called by a walker'''
@@ -865,12 +913,12 @@ if sphinx:
                     full_target_fname = os.path.join(path, target_fname)
                     if not os.path.isfile(full_target_fname):
                         ok = transform(full_source_fname, full_target_fname)
-                        print(ok and "[OK]" or "[FAIL]", full_source_fname, 
+                        print(ok and "[OK]" or "[FAIL]", full_source_fname,
                               '->', full_target_fname)
-        
-        @staticmethod                
+
+        @staticmethod
         def _zipdir(basedir, archivename):
-            '''function to zip the contents of basedir into archivename. 
+            '''function to zip the contents of basedir into archivename.
             Adapted from: http://stackoverflow.com/questions/296499
             '''
             from zipfile import ZipFile, ZIP_DEFLATED
@@ -878,21 +926,23 @@ if sphinx:
             assert os.path.isdir(basedir)
             with closing(ZipFile(archivename, "w", ZIP_DEFLATED)) as z:
                 for root, dirs, files in os.walk(basedir):
-                    #NOTE: ignore empty directories
+                    # NOTE: ignore empty directories
                     for fn in files:
                         absfn = os.path.join(root, fn)
-                        zfn = absfn[len(basedir)+len(os.sep):] 
+                        zfn = absfn[len(basedir) + len(os.sep):]
                         z.write(absfn, zfn)
-                        
+
         def getThemeIcon(self, resource):
             try:
                 import PyQt4.Qt
                 if not hasattr(PyQt4.Qt.QIcon, "hasThemeIcon"):
                     return "Unknown"
                 i = resource.rfind("/")
-                if i >= 0: resource = resource[i + 1:]
+                if i >= 0:
+                    resource = resource[i + 1:]
                 i = resource.rfind(".")
-                if i >= 0: resource = resource[:i]
+                if i >= 0:
+                    resource = resource[:i]
                 if PyQt4.Qt.QIcon.hasThemeIcon(resource):
                     return resource
                 return "No"
@@ -906,13 +956,14 @@ if sphinx:
             anchor = '<a href="#_base">Base icons</a>'
             try:
                 taurus_relpath = 'taurus.png'
-                png_relpath = os.path.join(self.thumbnails_relpath, 
+                png_relpath = os.path.join(self.thumbnails_relpath,
                                            taurus_relpath)
                 html += self.HTML_IL.format(thumbnail=png_relpath,
                                             res_relpath=taurus_relpath,
                                             qres_prefix=":/",
                                             icon_name=taurus_relpath,
-                                            theme=self.getThemeIcon("taurus.png")
+                                            theme=self.getThemeIcon(
+                                                "taurus.png")
                                             )
             except Exception, e:
                 print("[FAILED]\nDescription:\n%s" % str(e), file=out)
@@ -922,7 +973,7 @@ if sphinx:
             finally:
                 html += '</table>\n'
 
-            return [ [html], [anchor] ]
+            return [[html], [anchor]]
 
         def _build_res(self, abs_dir, bases=list()):
             """Builds the resources in the abs_dir recursively.
@@ -936,7 +987,8 @@ if sphinx:
             local_bases.append(res_name)
             out = self.out
             for elem in os.listdir(abs_dir):
-                if elem.startswith('.'): continue
+                if elem.startswith('.'):
+                    continue
                 abs_elem = os.path.abspath(os.path.join(abs_dir, elem))
                 if os.path.isdir(abs_elem):
                     ret = self._build_res(abs_elem, local_bases)
@@ -959,9 +1011,11 @@ if sphinx:
                     qres_prefix = ":" + qres_prefix
                     qres_prefix += "/"
 
-                    html += '<h2><a name="%s">%s (%s)</a></h2>\n' % (base_dir, qres_prefix, base_dir)
-                    html += self.HTML_T % (qres_prefix , base_dir)
-                    anchor = '<a href="#%s">%s (%s)</a>' % (base_dir, base_dir, qres_prefix)
+                    html += '<h2><a name="%s">%s (%s)</a></h2>\n' % (
+                        base_dir, qres_prefix, base_dir)
+                    html += self.HTML_T % (qres_prefix, base_dir)
+                    anchor = '<a href="#%s">%s (%s)</a>' % (base_dir,
+                                                            base_dir, qres_prefix)
                     for elem in local_elems:
                         rel_elem = os.path.join(base_dir, elem)
                         base_elem, _ = os.path.splitext(rel_elem)
@@ -971,7 +1025,8 @@ if sphinx:
                                                     res_relpath=rel_elem,
                                                     qres_prefix=qres_prefix,
                                                     icon_name=rel_elem,
-                                                    theme=self.getThemeIcon(elem)
+                                                    theme=self.getThemeIcon(
+                                                        elem)
                                                     )
                 except Exception, e:
                     print("[FAILED]\nDescription:\n%s" % str(e), file=out)
@@ -981,25 +1036,24 @@ if sphinx:
                 result[0].append(html)
                 result[1].append(anchor)
             return result
-        
 
     class build_doc(BuildDoc):
         user_options = BuildDoc.user_options + \
-                     [('thumbnails-source=', None, 
-                       ('Source for catalog thumbnails. Use "qt" for ' +
-                        'transforming the icons in the resource dir using ' +
-                        'QPixmap  (this is the default). Use "wand" to ' +
-                        'transform using the wand module. Or provide an ' +
-                        'absolute path to either a dir or a zipfile ' +
-                        'containing a tree of pre-transformed thumbnails') ),
-                      ('skip-api', None, 'skip api doc creation'),
-                      ('skip-catalog', None, 'skip icon catalog creation')
-                      ]
+            [('thumbnails-source=', None,
+              ('Source for catalog thumbnails. Use "qt" for ' +
+               'transforming the icons in the resource dir using ' +
+               'QPixmap  (this is the default). Use "wand" to ' +
+               'transform using the wand module. Or provide an ' +
+               'absolute path to either a dir or a zipfile ' +
+               'containing a tree of pre-transformed thumbnails')),
+             ('skip-api', None, 'skip api doc creation'),
+             ('skip-catalog', None, 'skip icon catalog creation')
+             ]
         boolean_options = BuildDoc.boolean_options + ['skip-api',
                                                       'skip-catalog'
                                                       ]
 
-        def initialize_options (self):
+        def initialize_options(self):
             BuildDoc.initialize_options(self)
             self.thumbnails_source = 'qt'
             self.skip_api = False
@@ -1015,14 +1069,14 @@ if sphinx:
             if self.skip_api:
                 return
 
-            #import auto_rst4api from the doc dir
+            # import auto_rst4api from the doc dir
             name = 'auto_rst4api'
             data = imp.find_module(name, [doc_dir])
             auto_rst4api = imp.load_module(name, *data)
             API_Creator = auto_rst4api.Auto_rst4API_Creator
-            
+
             # prepare api creator
-            excl = ['_[^\.]*[^_]', '.*.extra_sardana', '.*.extra_pool', 
+            excl = ['_[^\.]*[^_]', '.*.extra_sardana', '.*.extra_pool',
                     '.*.extra_macroexecutor', 'taurus.external']
             rstCreator = API_Creator(exclude_patterns=excl,
                                      templatespath=doc_dir,
@@ -1030,22 +1084,22 @@ if sphinx:
                                      verbose=self.distribution.verbose)
             # clean previously existing rst files
             rstCreator.cleanAutogenerated(api_dir)
-            
+
             # generate api
-            # IMPORTANT: 'taurus' here is already the one from source, since we went 
+            # IMPORTANT: 'taurus' here is already the one from source, since we went
             #            through doc/conf.py already and inserted the lib dir in the
             #            path
             import taurus
             r = rstCreator.documentModule('taurus', api_dir)
-            
+
             # report
             print("Auto Creation of API docs Finished with %i warnings:" % len(r))
             for i in r:
                 print(i)
-                
+
         def _build_catalog(self, fname):
             if self.skip_catalog:
-                return            
+                return
             catalog = build_catalog()
             catalog.fname = fname
             catalog.builder_target_dir = self.builder_target_dir
@@ -1053,23 +1107,23 @@ if sphinx:
             catalog.verbose = self.distribution.verbose
             catalog.out = self.out
             catalog.run()
-        
+
         def doit(self):
             if self.distribution.verbose:
                 self.out = sys.stdout
             else:
                 self.out = StringIO.StringIO()
-            
+
             _catalog_file = abspath('doc', 'source', 'devel', 'catalog.html')
             _api_dir = abspath('doc', 'source', 'devel', 'api')
             _lib_dir = abspath('lib')
             _doc_dir = abspath('doc')
-            _mock_path = os.path.join(_doc_dir, 'mock.zip') 
+            _mock_path = os.path.join(_doc_dir, 'mock.zip')
             # append mock dir to the sys path (mocks will be used if needed)
             sys.path.append(_mock_path)
             # Import taurus from src distribution
             sys.path.insert(0, os.path.abspath(_lib_dir))
-                
+
             try:
                 for cmd_name in self.get_sub_commands():
                     self.run_command(cmd_name)
@@ -1089,16 +1143,14 @@ if sphinx:
     cmdclass['build_doc'] = build_doc
 
 
-
 def main():
     setup(name='taurus',
           version=Release.version,
           description=Release.description,
           long_description=Release.long_description,
-          author=author[0],
-          author_email=author[1],
-          maintainer=maintainer[0],
-          maintainer_email=maintainer[1],
+          author=Release.authors['Tiago_et_al'][0],
+          maintainer=Release.authors['Community'][0],
+          maintainer_email=Release.authors['Community'][1],
           url=Release.url,
           download_url=Release.download_url,
           platforms=Release.platforms,

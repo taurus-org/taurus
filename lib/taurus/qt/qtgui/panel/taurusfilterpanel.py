@@ -2,28 +2,28 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
-"""This module provides widgets that display the database in a tree format"""
+"""This module provides widgets that display the authority in a tree format"""
 
 __docformat__ = 'restructuredtext'
 
@@ -37,20 +37,26 @@ import taurus.core.util
 import taurus.qt.qtgui.base
 import taurus.qt.qtgui.resource
 
+from taurus.core.tango.tangodatabase import (TangoAttrInfo, TangoDevInfo,
+                                             TangoServInfo)
+
 ElemType = taurus.core.taurusbasetypes.TaurusElementType
 getElementTypeIcon = taurus.qt.qtgui.resource.getElementTypeIcon
 getPixmap = taurus.qt.qtgui.resource.getPixmap
 getThemeIcon = taurus.qt.qtgui.resource.getThemeIcon
 getThemePixmap = taurus.qt.qtgui.resource.getThemePixmap
 
+
 class BaseFilter(object):
-    
+
     def __init__(self, re_expr):
         if len(re_expr) == 0:
             re_expr = ".*"
         else:
-            if re_expr[0] != "^": re_expr = "^" + re_expr
-            if re_expr[-1] != "$": re_expr += "$"
+            if re_expr[0] != "^":
+                re_expr = "^" + re_expr
+            if re_expr[-1] != "$":
+                re_expr += "$"
         self._re_expr = re.compile(re_expr, re.IGNORECASE)
 
     def __call__(self, obj):
@@ -58,12 +64,12 @@ class BaseFilter(object):
 
 
 class BaseElementFilter(BaseFilter):
-    
+
     def __init__(self, re_expr, func=None):
         super(BaseElementFilter, self).__init__(re_expr)
         self._klass = func.im_class
         self._func = func
-    
+
     def filter(self, obj):
         if not isinstance(obj, self._klass):
             return obj
@@ -73,36 +79,36 @@ class BaseElementFilter(BaseFilter):
 
 
 class DeviceFilter(BaseElementFilter):
-    
-    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusDevInfo.name):
+
+    def __init__(self, re_expr, func=TangoDevInfo.name):
         super(DeviceFilter, self).__init__(re_expr, func=func)
 
 
 class DeviceClassFilter(BaseElementFilter):
-    
-    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusDevInfo.name):
+
+    def __init__(self, re_expr, func=TangoDevInfo.name):
         super(DeviceClassFilter, self).__init__(re_expr, func=func)
 
 
 class ServerFilter(BaseElementFilter):
 
-    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusServInfo.name):
+    def __init__(self, re_expr, func=TangoServInfo.name):
         super(ServerFilter, self).__init__(re_expr, func=func)
 
 
 class AttributeFilter(BaseElementFilter):
-    
-    def __init__(self, re_expr, func=taurus.core.taurusdatabase.TaurusAttrInfo.name):
+
+    def __init__(self, re_expr, func=TangoAttrInfo.name):
         super(AttributeFilter, self).__init__(re_expr, func=func)
 
 
 class KlassFilter(BaseFilter):
-    
+
     def __init__(self, klass):
-        #don't call super on purpose. We don't need/have a regular expression here!
+        # don't call super on purpose. We don't need/have a regular expression here!
         #super(KlassFilter, self).__init__(re_expr)
         self._klass = klass
-        
+
     def filter(self, obj):
         if isinstance(obj, self._klass):
             return obj
@@ -111,61 +117,64 @@ class KlassFilter(BaseFilter):
 def getFilter(type, re_expr=None):
     if re_expr is None:
         if type == ElemType.Device:
-            return KlassFilter(taurus.core.taurusdatabase.TaurusDevInfo)
+            return KlassFilter(TangoDevInfo)
         elif type == ElemType.Server:
-            return KlassFilter(taurus.core.taurusdatabase.TaurusServInfo)
+            return KlassFilter(TangoServInfo)
         elif type == ElemType.DeviceClass:
-            return KlassFilter(taurus.core.taurusdatabase.TaurusDevInfo)
+            return KlassFilter(TangoDevInfo)
         return None
 
     if type == ElemType.Device:
         return DeviceFilter(re_expr)
     elif type == ElemType.Domain:
-        return DeviceFilter(re_expr, taurus.core.taurusdatabase.TaurusDevInfo.domain)
+        return DeviceFilter(re_expr, TangoDevInfo.domain)
     elif type == ElemType.Family:
-        return DeviceFilter(re_expr, taurus.core.taurusdatabase.TaurusDevInfo.family)
+        return DeviceFilter(re_expr, TangoDevInfo.family)
     elif type == ElemType.Member:
-        return DeviceFilter(re_expr, taurus.core.taurusdatabase.TaurusDevInfo.member)
+        return DeviceFilter(re_expr, TangoDevInfo.member)
     elif type == ElemType.Server:
         return ServerFilter(re_expr)
     elif type == ElemType.ServerName:
-        return ServerFilter(re_expr, taurus.core.taurusdatabase.TaurusServInfo.serverName)
+        return ServerFilter(re_expr, TangoServInfo.serverName)
     elif type == ElemType.ServerInstance:
-        return ServerFilter(re_expr, taurus.core.taurusdatabase.TaurusServInfo.serverInstance)
+        return ServerFilter(re_expr, TangoServInfo.serverInstance)
     elif type == ElemType.DeviceClass:
         return DeviceClassFilter(re_expr)
     elif type == ElemType.Attribute:
         return AttributeFilter(re_expr)
 
 
-
-
-
 class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
-    
-    def __init__(self, parent = None, designMode = False):
+
+    def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QWidget, parent)
-        self.call__init__(taurus.qt.qtgui.base.TaurusBaseWidget, name, designMode=designMode)
+        self.call__init__(taurus.qt.qtgui.base.TaurusBaseWidget,
+                          name, designMode=designMode)
         self.init()
-    
+
     def init(self):
         l = Qt.QBoxLayout(Qt.QBoxLayout.TopToBottom)
         self.setLayout(l)
         self.addFilterHeader()
         self.insertFilterItem()
         l.addStretch(1)
-        
+
     def addFilterHeader(self):
         label = Qt.QLabel("Type:")
         comboBox = Qt.QComboBox()
-        comboBox.addItem(getElementTypeIcon(ElemType.Attribute), "Attribute", ElemType.Attribute)
-        comboBox.addItem(getElementTypeIcon(ElemType.Device), "Device", ElemType.Device)
-        comboBox.addItem(getElementTypeIcon(ElemType.DeviceClass), "Device type", ElemType.DeviceClass)
-        comboBox.addItem(getElementTypeIcon(ElemType.Server), "Server", ElemType.Server)
+        comboBox.addItem(getElementTypeIcon(ElemType.Attribute),
+                         "Attribute", ElemType.Attribute)
+        comboBox.addItem(getElementTypeIcon(ElemType.Device),
+                         "Device", ElemType.Device)
+        comboBox.addItem(getElementTypeIcon(ElemType.DeviceClass),
+                         "Device type", ElemType.DeviceClass)
+        comboBox.addItem(getElementTypeIcon(ElemType.Server),
+                         "Server", ElemType.Server)
         comboBox.addItem("Any")
         previewButton = Qt.QPushButton("Preview")
-        Qt.QObject.connect(previewButton, Qt.SIGNAL("clicked()"), self.onPreview)
+        Qt.QObject.connect(previewButton, Qt.SIGNAL(
+            "clicked()"), self.onPreview)
         field = Qt.QWidget()
         l = Qt.QHBoxLayout()
         field.setLayout(l)
@@ -174,22 +183,26 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         l.addWidget(previewButton)
         l.addStretch(1)
         self.layout().addWidget(field)
-    
+
     def insertFilterItem(self, row=None):
 
         sl = self.layout()
 
         comboBox = Qt.QComboBox()
         self._fillComboBox(comboBox)
-        Qt.QObject.connect(comboBox, Qt.SIGNAL("currentIndexChanged(int)"), self.onFilterComboBoxItemSelected)
-        
+        Qt.QObject.connect(comboBox, Qt.SIGNAL(
+            "currentIndexChanged(int)"), self.onFilterComboBoxItemSelected)
+
         edit = Qt.QLineEdit()
-        
-        addButton = Qt.QPushButton(Qt.QIcon(":/actions/list-add.svg"),"")
-        Qt.QObject.connect(addButton, Qt.SIGNAL("clicked()"), self.onAddFilterButtonClicked)
-        
-        removeButton = Qt.QPushButton(Qt.QIcon(":/actions/list-remove.svg"),"")
-        Qt.QObject.connect(removeButton, Qt.SIGNAL("clicked()"), self.onRemoveFilterButtonClicked)
+
+        addButton = Qt.QPushButton(Qt.QIcon(":/actions/list-add.svg"), "")
+        Qt.QObject.connect(addButton, Qt.SIGNAL(
+            "clicked()"), self.onAddFilterButtonClicked)
+
+        removeButton = Qt.QPushButton(
+            Qt.QIcon(":/actions/list-remove.svg"), "")
+        Qt.QObject.connect(removeButton, Qt.SIGNAL(
+            "clicked()"), self.onRemoveFilterButtonClicked)
 
         field = Qt.QWidget()
         l = Qt.QHBoxLayout()
@@ -199,34 +212,43 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         l.addWidget(edit)
         l.addWidget(addButton)
         l.addWidget(removeButton)
-        
+
         if row is None:
             sl.addWidget(field)
         else:
             sl.insertWidget(row, field)
-    
+
     def _fillComboBox(self, comboBox):
-        comboBox.addItem(getElementTypeIcon(ElemType.Attribute), "Attribute", ElemType.Attribute)
-        comboBox.addItem(getElementTypeIcon(ElemType.Device), "Device", ElemType.Device)
-        comboBox.addItem(getElementTypeIcon(ElemType.DeviceClass), "Device type", ElemType.DeviceClass)
-        comboBox.addItem(getElementTypeIcon(ElemType.Domain), "Domain", ElemType.Domain)
-        comboBox.addItem(getElementTypeIcon(ElemType.Family), "Family", ElemType.Family)
-        comboBox.addItem(getElementTypeIcon(ElemType.Member), "Member", ElemType.Member)
-        comboBox.addItem(getElementTypeIcon(ElemType.Server), "Server", ElemType.Server)
-        comboBox.addItem(getElementTypeIcon(ElemType.ServerName), "Server Name", ElemType.ServerName)
-        comboBox.addItem(getElementTypeIcon(ElemType.ServerInstance), "Server Instance", ElemType.ServerInstance)
-    
+        comboBox.addItem(getElementTypeIcon(ElemType.Attribute),
+                         "Attribute", ElemType.Attribute)
+        comboBox.addItem(getElementTypeIcon(ElemType.Device),
+                         "Device", ElemType.Device)
+        comboBox.addItem(getElementTypeIcon(ElemType.DeviceClass),
+                         "Device type", ElemType.DeviceClass)
+        comboBox.addItem(getElementTypeIcon(ElemType.Domain),
+                         "Domain", ElemType.Domain)
+        comboBox.addItem(getElementTypeIcon(ElemType.Family),
+                         "Family", ElemType.Family)
+        comboBox.addItem(getElementTypeIcon(ElemType.Member),
+                         "Member", ElemType.Member)
+        comboBox.addItem(getElementTypeIcon(ElemType.Server),
+                         "Server", ElemType.Server)
+        comboBox.addItem(getElementTypeIcon(ElemType.ServerName),
+                         "Server Name", ElemType.ServerName)
+        comboBox.addItem(getElementTypeIcon(ElemType.ServerInstance),
+                         "Server Instance", ElemType.ServerInstance)
+
     def onFilterComboBoxItemSelected(self, index):
         pass
-    
+
     def onAddFilterButtonClicked(self):
         button = self.sender()
-        if button is None: 
+        if button is None:
             return
         field = button.parent()
         index = self.layout().indexOf(field)
-        self.insertFilterItem(index+1)
-    
+        self.insertFilterItem(index + 1)
+
     def onRemoveFilterButtonClicked(self):
         l = self.layout()
         # there is a header row, at least one filter row and a stretch at the
@@ -235,7 +257,7 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         if l.count() <= 3:
             return
         button = self.sender()
-        if button is None: 
+        if button is None:
             return
         field = button.parent()
         l.removeWidget(field)
@@ -248,7 +270,7 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         dialog.setModal(True)
         w = trees.TaurusTreeWidget(dialog, perspective=self.getHeaderType())
         w.setModel(model)
-        w.setFilters( self.calculate() )
+        w.setFilters(self.calculate())
         dialog.exec_()
 
     def getHeaderType(self):
@@ -261,37 +283,36 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         db = self.getModelObj()
         if db is None:
             return
-        
+
         g_layout = self.layout()
-        
+
         filters = []
-        for i in xrange(1, g_layout.count()-1):
+        for i in xrange(1, g_layout.count() - 1):
             field_layout = g_layout.itemAt(i).widget().layout()
             comboBox = field_layout.itemAt(1).widget()
             edit = field_layout.itemAt(2).widget()
-            
+
             type = Qt.from_qvariant(comboBox.itemData(comboBox.currentIndex()))
             expr = str(edit.text())
             f = getFilter(type, expr)
             filters.append(f)
-        
+
         finalType = self.getHeaderType()
         filters.append(getFilter(finalType))
         return filters
-        
-        
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget overwriting
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.taurusdatabase.TaurusDatabase
+        return taurus.core.taurusauthority.TaurusAuthority
 
-    #: This property holds the unique URI string representing the model name 
-    #: with which this widget will get its data from. The convention used for 
+    #: This property holds the unique URI string representing the model name
+    #: with which this widget will get its data from. The convention used for
     #: the string can be found :ref:`here <model-concept>`.
-    #: 
-    #: In case the property :attr:`useParentModel` is set to True, the model 
+    #:
+    #: In case the property :attr:`useParentModel` is set to True, the model
     #: text must start with a '/' followed by the attribute name.
     #:
     #: **Access functions:**
@@ -307,24 +328,29 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
 
 
 class TaurusFilterPanelOld2(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
-    
-    def __init__(self, parent = None, designMode = False):
+
+    def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QWidget, parent)
-        self.call__init__(taurus.qt.qtgui.base.TaurusBaseWidget, name, designMode=designMode)
+        self.call__init__(taurus.qt.qtgui.base.TaurusBaseWidget,
+                          name, designMode=designMode)
         self.init()
-    
+
     def init(self):
         l = Qt.QGridLayout()
-        l.setContentsMargins(0,0,0,0)
+        l.setContentsMargins(0, 0, 0, 0)
         self.setLayout(l)
 
         comboBox = Qt.QComboBox()
-        comboBox.addItem(getElementTypeIcon(ElemType.Attribute), "Attribute", ElemType.Attribute)
-        comboBox.addItem(getElementTypeIcon(ElemType.Device), "Device", ElemType.Device)
-        comboBox.addItem(getElementTypeIcon(ElemType.DeviceClass), "Device type", ElemType.DeviceClass)
-        comboBox.addItem(getElementTypeIcon(ElemType.Server), "Server", ElemType.Server)
-        
+        comboBox.addItem(getElementTypeIcon(ElemType.Attribute),
+                         "Attribute", ElemType.Attribute)
+        comboBox.addItem(getElementTypeIcon(ElemType.Device),
+                         "Device", ElemType.Device)
+        comboBox.addItem(getElementTypeIcon(ElemType.DeviceClass),
+                         "Device type", ElemType.DeviceClass)
+        comboBox.addItem(getElementTypeIcon(ElemType.Server),
+                         "Server", ElemType.Server)
+
         l.addWidget(Qt.QLabel("Filter for:"), 0, 0)
         l.addWidget(comboBox, 0, 1)
 
@@ -341,7 +367,7 @@ class TaurusFilterPanelOld2(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         self._serverNameEdit = Qt.QLineEdit()
         self._serverInstanceEdit = Qt.QLineEdit()
         self._attributeEdit = Qt.QLineEdit()
-        
+
         lbl = Qt.QLabel("Device type:")
         l.addWidget(lbl, 1, 0)
         l.setAlignment(lbl, Qt.Qt.AlignRight)
@@ -362,32 +388,32 @@ class TaurusFilterPanelOld2(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         l.addWidget(self._serverInstanceEdit, 8, 1)
         l.addWidget(Qt.QLabel("Attribute:"), 9, 0)
         l.addWidget(self._attributeEdit, 9, 1)
-    
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget overwriting
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.taurusdatabase.TaurusDatabase
+        return taurus.core.taurusauthority.TaurusAuthority
 
     def setModel(self, m):
         taurus.qt.qtgui.base.TaurusBaseWidget.setModel(self, m)
         db = self.getModelObj()
         #model = self._deviceEdit.model()
-        #if model is None: return
-        #model.setDataSource(db)
+        # if model is None: return
+        # model.setDataSource(db)
         self._deviceEdit.clear()
         if db is not None:
             deviceNames = db.cache().getDeviceNames()
             deviceNames.sort()
             #icon = taurus.core.icons.getElementTypeIcon(ElemType.Device)
             self._deviceEdit.addItems(deviceNames)
-        
-    #: This property holds the unique URI string representing the model name 
-    #: with which this widget will get its data from. The convention used for 
+
+    #: This property holds the unique URI string representing the model name
+    #: with which this widget will get its data from. The convention used for
     #: the string can be found :ref:`here <model-concept>`.
-    #: 
-    #: In case the property :attr:`useParentModel` is set to True, the model 
+    #:
+    #: In case the property :attr:`useParentModel` is set to True, the model
     #: text must start with a '/' followed by the attribute name.
     #:
     #: **Access functions:**
@@ -415,7 +441,7 @@ class _MessageWidget(Qt.QWidget):
         self._label = Qt.QLabel()
         l.addWidget(self._icon)
         l.addWidget(self._label)
-    
+
     def setText(self, text):
         self._label.setText(text)
 
@@ -424,42 +450,52 @@ from taurus.external.qt.uic import loadUi
 
 
 class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
-    
+
     _Items = "server", "serverName", "serverInstance", \
              "deviceName", "deviceType", "deviceDomain", "deviceFamily", "deviceMember", \
              "attribute"
-             
-    def __init__(self, parent = None, designMode = False):
+
+    def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QWidget, parent)
-        self.call__init__(taurus.qt.qtgui.base.TaurusBaseWidget, name, designMode=designMode)
+        self.call__init__(taurus.qt.qtgui.base.TaurusBaseWidget,
+                          name, designMode=designMode)
         self.init()
-    
+
     def init(self):
         l = Qt.QVBoxLayout()
         self.setLayout(l)
-        
+
         panel = self._mainPanel = Qt.QWidget()
         l.addWidget(panel, 1)
         this_dir = os.path.dirname(os.path.abspath(__file__))
         ui_filename = os.path.join(this_dir, 'ui', 'TaurusFilterPanel.ui')
         self.ui = ui = loadUi(ui_filename, baseinstance=panel)
-        
+
         comboBox = ui.filterTypeCombo
-        comboBox.addItem(getElementTypeIcon(ElemType.Attribute), "Attribute", ElemType.Attribute)
-        comboBox.addItem(getElementTypeIcon(ElemType.Device), "Device", ElemType.Device)
-        comboBox.addItem(getElementTypeIcon(ElemType.DeviceClass), "Device type", ElemType.DeviceClass)
-        comboBox.addItem(getElementTypeIcon(ElemType.Server), "Server", ElemType.Server)
+        comboBox.addItem(getElementTypeIcon(ElemType.Attribute),
+                         "Attribute", ElemType.Attribute)
+        comboBox.addItem(getElementTypeIcon(ElemType.Device),
+                         "Device", ElemType.Device)
+        comboBox.addItem(getElementTypeIcon(ElemType.DeviceClass),
+                         "Device type", ElemType.DeviceClass)
+        comboBox.addItem(getElementTypeIcon(ElemType.Server),
+                         "Server", ElemType.Server)
 
         clickedSig = Qt.SIGNAL("clicked()")
         idxChangedSig = Qt.SIGNAL("currentIndexChanged(int)")
-        Qt.QObject.connect(ui.serverNameCombo, idxChangedSig, self._updateServerInstanceCombo)
-        Qt.QObject.connect(ui.deviceDomainCombo, idxChangedSig, self._updateDeviceFamilyCombo)
-        Qt.QObject.connect(ui.deviceFamilyCombo, idxChangedSig, self._updateDeviceMemberCombo)
+        Qt.QObject.connect(ui.serverNameCombo, idxChangedSig,
+                           self._updateServerInstanceCombo)
+        Qt.QObject.connect(ui.deviceDomainCombo, idxChangedSig,
+                           self._updateDeviceFamilyCombo)
+        Qt.QObject.connect(ui.deviceFamilyCombo, idxChangedSig,
+                           self._updateDeviceMemberCombo)
 
         class clearSelection(object):
+
             def __init__(self, cb):
-                self._cb=cb
+                self._cb = cb
+
             def __call__(self):
                 self._cb.setCurrentIndex(-1)
 
@@ -468,29 +504,31 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
             Qt.QObject.connect(combo, idxChangedSig, self._updateStatusBar)
             Qt.QObject.connect(clearButton, clickedSig, clearSelection(combo))
             clearButton.setIcon(clear_icon)
-        
+
         sb = self._statusbar = Qt.QStatusBar()
         sb.setSizeGripEnabled(False)
         l.addWidget(sb)
         sbWarningMsg = self._sbWarningMsg = _MessageWidget()
         sbWarningMsg.setVisible(False)
         sb.addWidget(sbWarningMsg)
-    
+
     def combos(self):
         if not hasattr(self, "_combos"):
             f = self.ui
-            self._combos = [ getattr(f, name + "Combo") for name in self._Items ]
+            self._combos = [getattr(f, name + "Combo") for name in self._Items]
         return self._combos
 
     def clearButtons(self):
         if not hasattr(self, "_clearButtons"):
             f = self.ui
-            self._clearButtons = [ getattr(f, name + "ClearButton") for name in self._Items ]
+            self._clearButtons = [getattr(f, name + "ClearButton")
+                                  for name in self._Items]
         return self._clearButtons
-    
+
     def _db_cache(self):
         db = self.getModelObj()
-        if db is None: return
+        if db is None:
+            return
         return db.cache()
 
     def _updateStatusBar(self, index=None):
@@ -498,7 +536,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         server = str(form.serverCombo.currentText())
         serverName = str(form.serverNameCombo.currentText())
         serverInstance = str(form.serverInstanceCombo.currentText())
-        
+
         msg = self._sbWarningMsg
         msg.setVisible(False)
 
@@ -508,25 +546,25 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
                 "time may result in an empty filter"
             msg.setVisible(True)
             msg.setText(s)
-        
+
         deviceName = str(form.deviceNameCombo.currentText())
         deviceDomain = str(form.deviceDomainCombo.currentText())
         deviceFamily = str(form.deviceFamilyCombo.currentText())
         deviceMember = str(form.deviceMemberCombo.currentText())
-        
+
         if deviceName and (deviceDomain or deviceFamily or deviceMember):
             sb = self._statusbar
             s = "Specifying name filter and domain/family/member filters at the same " \
                 "time may result in an empty filter"
             msg.setVisible(True)
             msg.setText(s)
-        
-        
+
     def _updateServerCombo(self, index=None):
         combo = self.ui.serverCombo
         combo.clear()
         db_cache = self._db_cache()
-        if db_cache is None: return
+        if db_cache is None:
+            return
         servers = db_cache.servers()
         icon = getElementTypeIcon(ElemType.Server)
         for serverName in sorted(servers):
@@ -538,7 +576,8 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo = self.ui.serverNameCombo
         combo.clear()
         db_cache = self._db_cache()
-        if db_cache is None: return
+        if db_cache is None:
+            return
         servers = db_cache.servers()
         serverNames = []
         for server in servers.values():
@@ -555,8 +594,10 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo = self.ui.serverInstanceCombo
         combo.clear()
         db_cache = self._db_cache()
-        if db_cache is None: return
-        if index is None or index == -1: return
+        if db_cache is None:
+            return
+        if index is None or index == -1:
+            return
         serverName = str(self.sender().currentText())
         servers = db_cache.servers()
         serverInstances = []
@@ -568,12 +609,13 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         for serverInstance in serverInstances:
             combo.addItem(icon, serverInstance)
         combo.setCurrentIndex(-1)
-        
+
     def _updateDeviceTypeCombo(self, index=None):
         combo = self.ui.deviceTypeCombo
         combo.clear()
         db_cache = self._db_cache()
-        if db_cache is None: return
+        if db_cache is None:
+            return
         deviceKlasses = db_cache.klasses()
         icon = getElementTypeIcon(ElemType.DeviceClass)
         for klassName in sorted(deviceKlasses):
@@ -585,7 +627,8 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo = self.ui.deviceNameCombo
         combo.clear()
         db_cache = self._db_cache()
-        if db_cache is None: return
+        if db_cache is None:
+            return
         devices = db_cache.devices()
         icon = getElementTypeIcon(ElemType.Device)
         for deviceName in sorted(devices):
@@ -597,7 +640,8 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo = self.ui.deviceDomainCombo
         combo.clear()
         db_cache = self._db_cache()
-        if db_cache is None: return
+        if db_cache is None:
+            return
         domains = db_cache.getDeviceDomainNames()
         domains.sort()
         icon = getElementTypeIcon(ElemType.Domain)
@@ -609,10 +653,12 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo = self.ui.deviceFamilyCombo
         combo.clear()
         db_cache = self._db_cache()
-        if db_cache is None: return
-        
+        if db_cache is None:
+            return
+
         deviceDomain = str(self.ui.deviceDomainCombo.currentText())
-        if deviceDomain == "": return
+        if deviceDomain == "":
+            return
         families = db_cache.getDeviceFamilyNames(deviceDomain)
         families.sort()
         icon = getElementTypeIcon(ElemType.Family)
@@ -624,24 +670,28 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         combo = self.ui.deviceMemberCombo
         combo.clear()
         db_cache = self._db_cache()
-        if db_cache is None: return
+        if db_cache is None:
+            return
 
         deviceDomain = str(self.ui.deviceDomainCombo.currentText())
-        if deviceDomain == "": return
+        if deviceDomain == "":
+            return
         deviceFamily = str(self.ui.deviceFamilyCombo.currentText())
-        if deviceFamily == "": return
+        if deviceFamily == "":
+            return
         members = db_cache.getDeviceMemberNames(deviceDomain, deviceFamily)
         members.sort()
         icon = getElementTypeIcon(ElemType.Member)
         for member in members:
             combo.addItem(icon, member)
         combo.setCurrentIndex(-1)
-        
+
     def _updateAttributeCombo(self, index=None):
         combo = self.ui.attributeCombo
         combo.clear()
         db_cache = self._db_cache()
-        if db_cache is None: return
+        if db_cache is None:
+            return
 
     def _fillItems(self):
         self._updateServerCombo()
@@ -653,28 +703,28 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
         self._updateDeviceFamilyCombo()
         self._updateDeviceMemberCombo()
         self._updateAttributeCombo()
-        
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget overwriting
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.taurusdatabase.TaurusDatabase
+        return taurus.core.taurusauthority.TaurusAuthority
 
     def setModel(self, m):
         taurus.qt.qtgui.base.TaurusBaseWidget.setModel(self, m)
         db = self.getModelObj()
         #model = self._deviceEdit.model()
-        #if model is None: return
-        #model.setDataSource(db)
+        # if model is None: return
+        # model.setDataSource(db)
         self.ui.deviceNameCombo.clear()
         self._fillItems()
-        
-    #: This property holds the unique URI string representing the model name 
-    #: with which this widget will get its data from. The convention used for 
+
+    #: This property holds the unique URI string representing the model name
+    #: with which this widget will get its data from. The convention used for
     #: the string can be found :ref:`here <model-concept>`.
-    #: 
-    #: In case the property :attr:`useParentModel` is set to True, the model 
+    #:
+    #: In case the property :attr:`useParentModel` is set to True, the model
     #: text must start with a '/' followed by the attribute name.
     #:
     #: **Access functions:**
@@ -693,18 +743,18 @@ def main():
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.core.util import argparse
     import sys
-    
+
     parser = argparse.get_taurus_parser()
     parser.usage = "%prog [options] [hostname]"
-    
+
     app = TaurusApplication(cmd_line_parser=parser)
     args = app.get_command_line_args()
-    
-    if len(args)>0: 
-        host=args[0]
-    else: 
-        host = taurus.Database().getNormalName()
-    
+
+    if len(args) > 0:
+        host = args[0]
+    else:
+        host = taurus.Authority().getNormalName()
+
     w = TaurusFilterPanel()
     w.setWindowIcon(Qt.QIcon(":/actions/system-shutdown.svg"))
     w.setWindowTitle("A Taurus Filter Example")
@@ -712,6 +762,6 @@ def main():
     w.show()
 
     sys.exit(app.exec_())
-    
+
 if __name__ == "__main__":
     main()

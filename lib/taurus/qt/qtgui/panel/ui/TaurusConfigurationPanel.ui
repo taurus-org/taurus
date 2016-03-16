@@ -38,7 +38,7 @@
          </widget>
         </item>
         <item row="0" column="1" >
-         <widget class="TaurusConfigLineEdit" name="valueMinConfig" />
+         <widget class="TangoConfigLineEdit" name="valueMinConfig" />
         </item>
         <item row="1" column="0" >
          <widget class="QLabel" name="rangeMaxLabel" >
@@ -48,7 +48,7 @@
          </widget>
         </item>
         <item row="1" column="1" >
-         <widget class="TaurusConfigLineEdit" name="valueMaxConfig" />
+         <widget class="TangoConfigLineEdit" name="valueMaxConfig" />
         </item>
        </layout>
       </widget>
@@ -76,7 +76,7 @@
          </widget>
         </item>
         <item row="0" column="1" >
-         <widget class="TaurusConfigLineEdit" name="alarmMinConfig" />
+         <widget class="TangoConfigLineEdit" name="alarmMinConfig" />
         </item>
         <item row="1" column="0" >
          <widget class="QLabel" name="alarmMaxLabel" >
@@ -86,7 +86,7 @@
          </widget>
         </item>
         <item row="1" column="1" >
-         <widget class="TaurusConfigLineEdit" name="alarmMaxConfig" />
+         <widget class="TangoConfigLineEdit" name="alarmMaxConfig" />
         </item>
        </layout>
        <zorder>alarmMinLabel</zorder>
@@ -118,7 +118,7 @@
          </widget>
         </item>
         <item row="0" column="1" >
-         <widget class="TaurusConfigLineEdit" name="warningMinConfig" />
+         <widget class="TangoConfigLineEdit" name="warningMinConfig" />
         </item>
         <item row="1" column="0" >
          <widget class="QLabel" name="warningMaxLabel" >
@@ -128,7 +128,7 @@
          </widget>
         </item>
         <item row="1" column="1" >
-         <widget class="TaurusConfigLineEdit" name="warningMaxConfig" />
+         <widget class="TangoConfigLineEdit" name="warningMaxConfig" />
         </item>
        </layout>
       </widget>
@@ -233,7 +233,7 @@
     </widget>
    </item>
    <item row="2" column="1" colspan="2" >
-    <widget class="TaurusConfigLineEdit" name="labelConfig" />
+    <widget class="TangoConfigLineEdit" name="labelConfig" />
    </item>
    <item row="3" column="0" >
     <widget class="QLabel" name="unitLabel" >
@@ -243,7 +243,7 @@
     </widget>
    </item>
    <item row="3" column="1" colspan="2" >
-    <widget class="TaurusConfigLineEdit" name="unitConfig" />
+    <widget class="TangoConfigLineEdit" name="unitConfig" />
    </item>
    <item row="4" column="0" >
     <widget class="QLabel" name="displayUnitLabel" >
@@ -253,7 +253,7 @@
     </widget>
    </item>
    <item row="4" column="1" colspan="2" >
-    <widget class="TaurusConfigLineEdit" name="displayUnitConfig" />
+    <widget class="TangoConfigLineEdit" name="displayUnitConfig" />
    </item>
    <item row="5" column="0" >
     <widget class="QLabel" name="standardUnitLabel" >
@@ -263,7 +263,7 @@
     </widget>
    </item>
    <item row="5" column="1" colspan="2" >
-    <widget class="TaurusConfigLineEdit" name="standardUnitConfig" />
+    <widget class="TangoConfigLineEdit" name="standardUnitConfig" />
    </item>
    <item row="6" column="0" >
     <widget class="QLabel" name="formatLabel" >
@@ -273,7 +273,7 @@
     </widget>
    </item>
    <item row="6" column="1" colspan="2" >
-    <widget class="TaurusConfigLineEdit" name="formatConfig" />
+    <widget class="TangoConfigLineEdit" name="formatConfig" />
    </item>
    <item row="7" column="0" colspan="2" >
     <widget class="QLabel" name="descriptionLabel" >
@@ -289,7 +289,7 @@
     </widget>
    </item>
    <item row="8" column="0" colspan="3" >
-    <widget class="TaurusConfigLineEdit" name="descriptionConfig" />
+    <widget class="TangoConfigLineEdit" name="descriptionConfig" />
    </item>
    <item row="12" column="0" colspan="4" >
     <spacer name="verticalSpacer_2" >
@@ -337,9 +337,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>TaurusConfigLineEdit</class>
+   <class>TangoConfigLineEdit</class>
    <extends>QLineEdit</extends>
-   <header>taurus.qt.qtgui.input</header>
+   <header>taurus.qt.qtgui.panel</header>
   </customwidget>
   <customwidget>
    <class>TaurusGroupBox</class>

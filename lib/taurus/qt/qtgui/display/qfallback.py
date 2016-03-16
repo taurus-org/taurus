@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -36,18 +36,21 @@ import functools
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 
+
 def create_fallback(widget_klass_name):
     return functools.partial(QFallBackWidget, replaces=widget_klass_name,
                              exc_info=sys.exc_info())
 
+
 def create_taurus_fallback(widget_klass_name):
     return functools.partial(TaurusFallBackWidget, replaces=widget_klass_name,
                              exc_info=sys.exc_info())
-                          
+
+
 class QFallBackWidget(Qt.QWidget):
     """A FallBack widget to be used when a real widget cannot be loaded for any
     reason (example: a dependency library is not installed)"""
-    
+
     def __init__(self, replaces=None, parent=None, *args, **kwargs):
         Qt.QWidget.__init__(self, parent)
         if replaces is None:
@@ -67,7 +70,7 @@ class QFallBackWidget(Qt.QWidget):
             Qt.QObject.connect(self.details_button, Qt.SIGNAL("clicked()"),
                                self.onShowDetails)
         layout.addStretch(1)
-        
+
     def onShowDetails(self):
         import taurus.qt.qtgui.dialog
         msgbox = taurus.qt.qtgui.dialog.TaurusMessageBox(*self.exc_info,
@@ -78,11 +81,9 @@ class QFallBackWidget(Qt.QWidget):
 
 
 class TaurusFallBackWidget(QFallBackWidget, TaurusBaseWidget):
-    
+
     def __init__(self, replaces=None, parent=None, *args, **kwargs):
         self.call__init__(QFallBackWidget, replaces=replaces,
                           parent=parent, *args, **kwargs)
         designMode = kwargs.get("designMode", False)
         self.call__init__(TaurusBaseWidget, replaces, designMode=designMode)
-
-

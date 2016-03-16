@@ -2,95 +2,91 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 """This module provides a set of basic taurus widgets based on QLineEdit"""
 
-__all__ = ["TaurusValueLineEdit", "TaurusConfigLineEdit"]
+__all__ = ["TaurusValueLineEdit"]
 
 __docformat__ = 'restructuredtext'
 
-import sys, PyTango, taurus.core
+import sys
+import numpy
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseWritableWidget
+from taurus.external.pint import Quantity
+from taurus.qt.qtgui.base import TaurusBaseWritableWidget
+from taurus.qt.qtgui.util import PintValidator
+from taurus.core import DataType, DataFormat, TaurusEventType
 
-_String = str
-try:
-    _String = Qt.QString
-except AttributeError:
-    _String = str
 
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     __pyqtSignals__ = ("modelChanged(const QString &)",)
 
-    def __init__(self, qt_parent = None, designMode = False):
+    def __init__(self, qt_parent=None, designMode=False):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QLineEdit, qt_parent)
-        self.call__init__(TaurusBaseWritableWidget, name, designMode=designMode)
+        self.call__init__(TaurusBaseWritableWidget,
+                          name, designMode=designMode)
         self._enableWheelEvent = False
-        self.__minAlarm = -float("inf")
-        self.__maxAlarm = float("inf")
-        self.__minLimit = -float("inf")
-        self.__maxLimit = float("inf")
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
 
-        self.connect(self, Qt.SIGNAL('textChanged(const QString &)'), self.valueChanged)
+        self.connect(self, Qt.SIGNAL(
+            'textChanged(const QString &)'), self.valueChanged)
         self.connect(self, Qt.SIGNAL('returnPressed()'), self.writeValue)
-        self.connect(self, Qt.SIGNAL('valueChanged'), self.updatePendingOperations)
-        self.connect(self, Qt.SIGNAL('editingFinished()'), self._onEditingFinished)
+        self.connect(self, Qt.SIGNAL('valueChanged'),
+                     self.updatePendingOperations)
+        self.connect(self, Qt.SIGNAL('editingFinished()'),
+                     self._onEditingFinished)
 
-    def _updateValidator(self, attrinfo):
-        '''This method sets a validator depending on the data type
-        attrinfo is an AttributeInfoEx object'''
-        if PyTango.is_int_type(attrinfo.data_type):
-            validator = Qt.QIntValidator(self) #initial range is -2147483648 to 2147483647 (and cannot be set larger)
-            if validator.bottom() < self.__minLimit < validator.top():
-                validator.setBottom(int(self.__minLimit))
-            if validator.bottom() < self.__maxLimit < validator.top():
-                validator.setTop(int(self.__maxLimit))
-            self.setValidator(validator)
-            self.debug("IntValidator set with limits=[%d,%d]"%(validator.bottom(), validator.top()))
-        elif PyTango.is_float_type(attrinfo.data_type):
-            validator= Qt.QDoubleValidator(self)
-            validator.setBottom(self.__minLimit)
-            validator.setTop(self.__maxLimit)
-            #I removed the validation of decimal digits because it was not practical when editing values
-#            decimalDigits = self.__decimalDigits(attrinfo.format) 
-#            if decimalDigits is not None:
-#                validator.setDecimals(decimalDigits)
-            self.setValidator(validator)
-            self.debug("DoubleValidator set with limits=[%f,%f]"%(self.__minLimit, self.__maxLimit))
-        else: #@TODO Other validators can be configured for other types (e.g. with string lengths, tango names,...)
+    def _updateValidator(self, value):
+        '''This method sets a validator depending on the data type'''
+        if isinstance(value.wvalue, Quantity):
+            val = self.validator()
+            if not isinstance(val, PintValidator):
+                val = PintValidator(self)
+                self.setValidator(val)
+            attr = self.getModelObj()
+            bottom, top = attr.range
+            if bottom != val.bottom:
+                val.setBottom(bottom)
+            if top != val.top:
+                val.setTop(top)
+            units = value.wvalue.units
+            if units != val.units:
+                val.setUnits(units)
+
+        # @TODO Other validators can be configured for other types (e.g. with string lengths, tango names,...)
+        else:
             self.setValidator(None)
             self.debug("Validator disabled")
 
     def __decimalDigits(self, fmt):
         '''returns the number of decimal digits from a format string
-        (or None if they are not defined)''' 
+        (or None if they are not defined)'''
         try:
-            if fmt[-1].lower() in ['f','g'] and '.' in fmt:
+            if fmt[-1].lower() in ['f', 'g'] and '.' in fmt:
                 return int(fmt[:-1].split('.')[-1])
             else:
                 return None
@@ -110,52 +106,34 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.emitValueChanged()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
-            if evt_value.min_alarm != taurus.core.taurusconfiguration.TaurusConfiguration.no_min_alarm:
-                self.__minAlarm = float(evt_value.min_alarm)
-            else:
-                self.__minAlarm = -float("inf")
-            if evt_value.max_alarm != taurus.core.taurusconfiguration.TaurusConfiguration.no_max_alarm:
-                self.__maxAlarm = float(evt_value.max_alarm)
-            else:
-                self.__maxAlarm = float("inf")
-            if evt_value.min_value != taurus.core.taurusconfiguration.TaurusConfiguration.no_min_value:
-                self.__minLimit = float(evt_value.min_value)
-            else:
-                self.__minLimit = -float("inf")
-            if evt_value.max_value != taurus.core.taurusconfiguration.TaurusConfiguration.no_max_value:
-                self.__maxLimit = float(evt_value.max_value)
-            else:
-                self.__maxLimit = float("inf")
-
+        if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self._updateValidator(evt_value)
-        TaurusBaseWritableWidget.handleEvent(self, evt_src, evt_type, evt_value)
-
-    def _inAlarm(self, v):
-        try: return not(self.__minAlarm < float(v) < self.__maxAlarm)
-        except: return False #this will return false for non-numerical values
-
-    def _outOfRange(self, v):
-        validator = self.validator()
-        if validator:
-            return validator.validate(_String(str(v)), 0)[0] != validator.Acceptable
-        else: #fallback, only for numeric typess (returns False for other types)
-            try: return not(self.__minLimit <= float(v) <=  self.__maxLimit)
-            except: return False
+        TaurusBaseWritableWidget.handleEvent(
+            self, evt_src, evt_type, evt_value)
 
     def updateStyle(self):
         TaurusBaseWritableWidget.updateStyle(self)
-        color, weight = 'black', 'normal' #default case: the value is in normal range with no pending changes
-        v = self.getValue()
-        if self._outOfRange(v): #the value is invalid and can't be applied
-            color = 'gray'
-        elif self._inAlarm(v): #the value is valid but in alarm range...
-            color = 'orange'
-            if self.hasPendingOperations(): #...and some change is pending
-                weight = 'bold'
-        elif self.hasPendingOperations(): #the value is in valid range with pending changes
-            color, weight= 'blue','bold'
-        self.setStyleSheet('TaurusValueLineEdit {color: %s; font-weight: %s}'%(color,weight))
+
+        value = self.getValue()
+        if value is None:
+            # invalid value
+            color, weight = 'gray', 'normal'
+        else:
+            # check if there are pending operations
+            if self.hasPendingOperations():
+                color, weight = 'blue', 'bold'
+            else:
+                color, weight = 'black', 'normal'
+            # also check alarms (if applicable)
+            modelObj = self.getModelObj()
+            if modelObj and modelObj.type in [DataType.Integer, DataType.Float]:
+                min_, max_ = modelObj.alarms
+                if value < min_ or value > max_:
+                    color = 'orange'
+        # apply style
+        style = 'TaurusValueLineEdit {color: %s; font-weight: %s}' %\
+                (color, weight)
+        self.setStyleSheet(style)
 
     def wheelEvent(self, evt):
         if not self.getEnableWheelEvent() or Qt.QLineEdit.isReadOnly(self):
@@ -170,7 +148,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         modifiers = evt.modifiers()
         if modifiers & Qt.Qt.ControlModifier:
             numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.isFloat():
+        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
             numSteps *= .1
         self._stepBy(numSteps)
 
@@ -185,36 +163,68 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         if model is None or not model.isNumeric():
             return Qt.QLineEdit.keyPressEvent(self, evt)
 
-        if evt.key() == Qt.Qt.Key_Up:     numSteps = 1
-        elif evt.key() == Qt.Qt.Key_Down: numSteps = -1
-        else: return Qt.QLineEdit.keyPressEvent(self, evt)
+        if evt.key() == Qt.Qt.Key_Up:
+            numSteps = 1
+        elif evt.key() == Qt.Qt.Key_Down:
+            numSteps = -1
+        else:
+            return Qt.QLineEdit.keyPressEvent(self, evt)
 
         evt.accept()
         modifiers = evt.modifiers()
         if modifiers & Qt.Qt.ControlModifier:
             numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.isFloat():
+        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
             numSteps *= .1
         self._stepBy(numSteps)
 
     def _stepBy(self, v):
-        self.setValue(self.getValue() + v)
+        value = self.getValue()
+        self.setValue(value + Quantity(v, value.units))
 
     def setValue(self, v):
         model = self.getModelObj()
         if model is None:
             v_str = str(v)
         else:
-            v_str = str(model.displayValue(v))
+            v_str = str(self.displayValue(v))
         v_str = v_str.strip()
         self.setText(v_str)
 
     def getValue(self):
-        v_qstr = self.text()
-        model = self.getModelObj()
+        text = self.text()
+        model_obj = self.getModelObj()
+        if model_obj is None:
+            return None
+        val = self.validator()
         try:
-            return model.encode(v_qstr)
-        except:
+            model_type = model_obj.type
+            model_format = model_obj.data_format
+            if model_type in [DataType.Integer, DataType.Float]:
+                if val is None or \
+                        val.validate(str(text), 0)[0] != val.Acceptable:
+                    return None
+                q = Quantity(text)
+                # allow implicit units (assume wvalue.units implicitly)
+                if q.dimensionless:
+                    q = Quantity(q.magnitude, val.units)
+                return q
+            elif model_type == DataType.Boolean:
+                if model_format == DataFormat._0D:
+                    return bool(int(eval(text)))
+                else:
+                    return numpy.array(eval(text), dtype=int).astype(bool)
+            elif model_type == DataType.String:
+                if model_format == DataFormat._0D:
+                    return str(text)
+                else:
+                    return numpy.array(eval(text), dtype=str).tolist()
+            elif model_type == DataType.Bytes:
+                return bytes(text)
+            else:
+                raise TypeError('Unsupported model type "%s"', model_type)
+        except Exception, e:
+            self.warning('Cannot return value for "%s". Reason: %r', text, e)
             return None
 
     def setEnableWheelEvent(self, b):
@@ -258,100 +268,23 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                                        resetEnableWheelEvent)
 
 
-
-class TaurusConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
-    def __init__(self, qt_parent = None, designMode = False):
-        name = self.__class__.__name__
-        self.call__init__wo_kw(Qt.QLineEdit, qt_parent)
-        self.call__init__(TaurusBaseWritableWidget, name, designMode=designMode)
-
-        self.connect(self, Qt.SIGNAL('textChanged(const QString &)'), self.valueChanged)
-        self.connect(self, Qt.SIGNAL('returnPressed()'), self.writeValue)
-        self.connect(self, Qt.SIGNAL('editingFinished()'), self._onEditingFinished)
-
-    def _onEditingFinished(self):
-        if self._autoApply: self.writeValue()
-
-    def handleEvent(self, evt_src, evt_type, evt_value):
-        self.valueChanged()
-
-    def getModelClass(self):
-        return taurus.core.taurusconfiguration.TaurusConfiguration
-
-    def setValue(self, v):
-        model = self.getModelObj()
-        cfg = self._configParam
-        if model is None or not cfg:
-            v_str = str(v)
-        else:
-            v_str = str(model.getParam(cfg))
-        self.blockSignals(True)
-        self.setText(v_str.strip())
-        self.blockSignals(False)
-
-    def getValue(self):
-        v_qstr = self.text()
-        model = self.getModelObj()
-        try:
-            return model.encode(v_qstr)
-        except:
-            return None
-
-    def setModel(self, model):
-        model = str(model)
-        try:
-            self._configParam = model[model.rfind('=')+1:].lower()
-        except:
-            self._configParam = ''
-        TaurusBaseWritableWidget.setModel(self,model)
-
-    def valueChanged(self):
-        model = self.getModelObj()
-        if self.getValue() != str(model.getParam(self._configParam)):
-            self.setStyleSheet('TaurusConfigLineEdit {color: %s; font-weight: %s}'%('blue','bold'))
-        else:
-            self.setStyleSheet('TaurusConfigLineEdit {color: %s; font-weight: %s}'%('black','normal'))
-
-    def writeValue(self):
-        model = self.getModelObj()
-        model.setParam(str(self._configParam), str(self.text()))
-        self.setStyleSheet('TaurusConfigLineEdit {color: %s; font-weight: %s}'%('black','normal'))
-
-    @classmethod
-    def getQtDesignerPluginInfo(cls):
-        ret = TaurusBaseWritableWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.input'
-        ret['icon'] = ":/designer/lineedit.png"
-        return ret
-
-#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # QT properties
-#-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
-    model = Qt.pyqtProperty("QString", TaurusBaseWritableWidget.getModel,
-                            setModel, TaurusBaseWritableWidget.resetModel)
-
-    autoApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getAutoApply,
-                                TaurusBaseWritableWidget.setAutoApply,
-                                TaurusBaseWritableWidget.resetAutoApply)
-
-    forcedApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getForcedApply,
-                                  TaurusBaseWritableWidget.setForcedApply,
-                                  TaurusBaseWritableWidget.resetForcedApply)
-
 def main():
     import sys
-    attr_name = sys.argv[1]
-    a = Qt.QApplication([])
-    panel = Qt.QWidget()
-    l = Qt.QGridLayout()
-    w1 = TaurusConfigLineEdit()
-    #w1 = TaurusValueLineEdit()
-    w1.setModel(attr_name)
-    l.addWidget(w1,0,0)
-    panel.setLayout(l)
-    panel.setVisible(True)
-    return a.exec_()
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication()
+
+    form = Qt.QWidget()
+    layout = Qt.QVBoxLayout()
+    form.setLayout(layout)
+    for m in ('sys/tg_test/1/double_scalar',
+              'sys/tg_test/1/double_scalar'
+              ):
+        w = TaurusValueLineEdit()
+        w.setModel(m)
+        layout.addWidget(w)
+    form.show()
+    sys.exit(app.exec_())
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ###########################################################################
 
@@ -57,7 +57,8 @@ try:
     SARDANA_INSTALLED = True
 except:
     SARDANA_INSTALLED = False
-    
+
+
 class BooleanWidget(Qt.QWidget):
     """
     This class represents the simple boolean widget with two RadioButtons
@@ -74,13 +75,16 @@ class BooleanWidget(Qt.QWidget):
         self._formLayout.addWidget(self.falseButton)
         self.trueButton.setText("Yes")
         self.falseButton.setText("No")
-        Qt.QObject.connect(self.trueButton, Qt.SIGNAL("clicked()"), self.valueChanged)
-        Qt.QObject.connect(self.falseButton, Qt.SIGNAL("clicked()"), self.valueChanged)
+        Qt.QObject.connect(self.trueButton, Qt.SIGNAL(
+            "clicked()"), self.valueChanged)
+        Qt.QObject.connect(self.falseButton, Qt.SIGNAL(
+            "clicked()"), self.valueChanged)
         self.setValue(self.getDefaultValue())
 
     def valueChanged(self):
         if not (self.trueButton.isChecked() == self._actualValue):
-            self.emit(Qt.SIGNAL("valueChanged"), self._actualValue, not self._actualValue)
+            self.emit(Qt.SIGNAL("valueChanged"),
+                      self._actualValue, not self._actualValue)
         self._actualValue = self.trueButton.isChecked()
 
     def setValue(self, value):
@@ -183,11 +187,13 @@ class IntroPage(BasePage):
 
     def _setupUI(self):
         self.setTitle('Introduction')
-        self.setPixmap(Qt.QWizard.WatermarkPixmap, taurus.qt.qtgui.resource.getThemeIcon("document-properties").pixmap(120, 120))
+        self.setPixmap(Qt.QWizard.WatermarkPixmap, taurus.qt.qtgui.resource.getThemeIcon(
+            "document-properties").pixmap(120, 120))
         label = Qt.QLabel(self.getIntroText())
         label.setWordWrap(True)
         self._layout.addWidget(label, 0, 0)
-        self._spacerItem1 = Qt.QSpacerItem(10, 200, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Fixed)
+        self._spacerItem1 = Qt.QSpacerItem(
+            10, 200, Qt.QSizePolicy.Minimum, Qt.QSizePolicy.Fixed)
         self._layout.addItem(self._spacerItem1, 1, 0)
         self.setLayout(self._layout)
 
@@ -202,31 +208,37 @@ class IntroPage(BasePage):
     def setNextPageId(self, id):
         self._nextPageId = id
 
+
 class ProjectPage(BasePage):
 
     def __init__(self, parent=None):
         BasePage.__init__(self, parent)
         self.setTitle('Project')
-        self.setSubTitle('Choose a location for the application files (i.e., the "project directory")')
+        self.setSubTitle(
+            'Choose a location for the application files (i.e., the "project directory")')
         self.__setitem__('projectDir', self._getProjectDir)
-
 
     def _setupUI(self):
         BasePage._setupUI(self)
         self._projectDirLabel = Qt.QLabel("Project Directory:")
         self._projectDirLE = Qt.QLineEdit(Qt.QDir.homePath())
         self._projectDirLE.setMinimumSize(150, 30)
-        self._projectDirLE.setToolTip('This directory will be used to store all files needed by the application.')
-        self._projectDirBT = Qt.QPushButton(taurus.qt.qtgui.resource.getThemeIcon("document-properties"), '...')
+        self._projectDirLE.setToolTip(
+            'This directory will be used to store all files needed by the application.')
+        self._projectDirBT = Qt.QPushButton(
+            taurus.qt.qtgui.resource.getThemeIcon("document-properties"), '...')
         self._layout.addWidget(self._projectDirLabel, 1, 0)
         self._layout.addWidget(self._projectDirLE, 1, 1)
         self._layout.addWidget(self._projectDirBT, 1, 2)
 
-        Qt.QObject.connect(self._projectDirBT, Qt.SIGNAL("clicked()"), self.onSelectDir)
+        Qt.QObject.connect(self._projectDirBT, Qt.SIGNAL(
+            "clicked()"), self.onSelectDir)
 
     def onSelectDir(self):
-        dirname = unicode(Qt.QFileDialog.getExistingDirectory(self, 'Choose the project directory', self._projectDirLE.text()))
-        if not dirname: return
+        dirname = unicode(Qt.QFileDialog.getExistingDirectory(
+            self, 'Choose the project directory', self._projectDirLE.text()))
+        if not dirname:
+            return
         self._projectDirLE.setText(dirname)
 
     def validatePage(self):
@@ -237,31 +249,35 @@ class ProjectPage(BasePage):
                 os.makedirs(dirname)
             except Exception, e:
                 Qt.QMessageBox.warning(self, 'Error creating project directory',
-                                    'Could not create the project directory.\nReason:%s' % repr(e),
-                                     Qt.QMessageBox.Cancel)
+                                       'Could not create the project directory.\nReason:%s' % repr(
+                                           e),
+                                       Qt.QMessageBox.Cancel)
                 return False
         fname = os.path.join(dirname, self.wizard().getXmlConfigFileName())
         if os.path.exists(fname):
             option = Qt.QMessageBox.question(self, 'Overwrite project?',
-                                    'The "%s" file already exists in the project directory.\n Do you want to edit the existing project?' % (os.path.basename(fname)),
-                                     Qt.QMessageBox.Yes | Qt.QMessageBox.Cancel)
+                                             'The "%s" file already exists in the project directory.\n Do you want to edit the existing project?' % (
+                                                 os.path.basename(fname)),
+                                             Qt.QMessageBox.Yes | Qt.QMessageBox.Cancel)
             if option == Qt.QMessageBox.Yes:
                 try:
                     self.wizard().loadXml(fname)
                 except Exception, e:
                     Qt.QMessageBox.warning(self, 'Error loading project configuration',
-                                    'Could not load the existing configuration.\nReason:%s' % repr(e),
-                                     Qt.QMessageBox.Cancel)
+                                           'Could not load the existing configuration.\nReason:%s' % repr(
+                                               e),
+                                           Qt.QMessageBox.Cancel)
                     return False
             else:
                 return False
         elif len(os.listdir(dirname)):
             option = Qt.QMessageBox.question(self, 'Non empty project dir',
-                                    'The project directory ("%s") is not empty.\nAre you sure you want to use it?' % (os.path.basename(dirname)),
-                                     Qt.QMessageBox.Yes | Qt.QMessageBox.No)
+                                             'The project directory ("%s") is not empty.\nAre you sure you want to use it?' % (
+                                                 os.path.basename(dirname)),
+                                             Qt.QMessageBox.Yes | Qt.QMessageBox.No)
             if option != Qt.QMessageBox.Yes:
                 return False
-        #if all went ok...
+        # if all went ok...
         return True
 
     def _getProjectDir(self):
@@ -280,8 +296,10 @@ class GeneralSettings(BasePage):
         self.wizard().__setitem__("organizationName", self._getOrganizationName)
 
     def fromXml(self, xml):
-        self._guiNameLineEdit.setText(AppSettingsWizard.getValueFromNode(xml, "GUI_NAME", ''))
-        self._organizationCombo.setEditText(AppSettingsWizard.getValueFromNode(xml, "ORGANIZATION", default='Taurus'))
+        self._guiNameLineEdit.setText(
+            AppSettingsWizard.getValueFromNode(xml, "GUI_NAME", ''))
+        self._organizationCombo.setEditText(
+            AppSettingsWizard.getValueFromNode(xml, "ORGANIZATION", default='Taurus'))
 
     def _getGUIName(self):
         return str(self._guiNameLineEdit.text())
@@ -295,7 +313,7 @@ class GeneralSettings(BasePage):
     def _setupUI(self):
         BasePage._setupUI(self)
         self._guiNameLabel = Qt.QLabel("GUI name:")
-        font = Qt.QFont()  #set bigger font
+        font = Qt.QFont()  # set bigger font
         font.setPointSize(14)
 
         self._label = Qt.QLabel()
@@ -303,26 +321,33 @@ class GeneralSettings(BasePage):
         self._guiNameLineEdit = Qt.QLineEdit()
         self._guiNameLineEdit.setFont(font)
         self._guiNameLineEdit.setMinimumSize(150, 30)
-        self._layout.addWidget(self._guiNameLabel, 1, 0, 1, 1, Qt.Qt.AlignRight)
-        self._layout.addWidget(self._guiNameLineEdit, 1, 1, 1, 1, Qt.Qt.AlignRight)
+        self._layout.addWidget(self._guiNameLabel, 1, 0,
+                               1, 1, Qt.Qt.AlignRight)
+        self._layout.addWidget(self._guiNameLineEdit, 1,
+                               1, 1, 1, Qt.Qt.AlignRight)
         self._organizationNameLabel = Qt.QLabel("Organization name:")
         self._organizationCombo = Qt.QComboBox()
         self._organizationCombo.addItems(self._getOrganizationNames())
         self._organizationCombo.setMinimumSize(150, 25)
         self._organizationCombo.setEditable(True)
-        self._layout.addWidget(self._organizationNameLabel, 2, 0, 1, 1, Qt.Qt.AlignRight)
-        self._layout.addWidget(self._organizationCombo, 2, 1, 1, 1, Qt.Qt.AlignRight)
+        self._layout.addWidget(self._organizationNameLabel,
+                               2, 0, 1, 1, Qt.Qt.AlignRight)
+        self._layout.addWidget(self._organizationCombo,
+                               2, 1, 1, 1, Qt.Qt.AlignRight)
 
-
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        self._spacerItem1 = Qt.QSpacerItem(
+            10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
         self._layout.addItem(self._spacerItem1, 8, 0, 1, 1, Qt.Qt.AlignCenter)
         self._status_label = Qt.QLabel()
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label, 9, 0, 1, 3)
 
-        Qt.QObject.connect(self._guiNameLineEdit, Qt.SIGNAL("textChanged(const QString&)"), self.checkData)
-        Qt.QObject.connect(self._organizationCombo, Qt.SIGNAL("editTextChanged(const QString&)"), self.checkData)
-        Qt.QObject.connect(self._organizationCombo, Qt.SIGNAL("currentIndexChanged(const QString&)"), self.checkData)
+        Qt.QObject.connect(self._guiNameLineEdit, Qt.SIGNAL(
+            "textChanged(const QString&)"), self.checkData)
+        Qt.QObject.connect(self._organizationCombo, Qt.SIGNAL(
+            "editTextChanged(const QString&)"), self.checkData)
+        Qt.QObject.connect(self._organizationCombo, Qt.SIGNAL(
+            "currentIndexChanged(const QString&)"), self.checkData)
 
     def _getOrganizationNames(self):
         return ["TAURUS", "ALBA", "DESY", "Elettra", "ESRF", "MAX-lab", "SOLEIL", "XFEL"]
@@ -347,6 +372,7 @@ class GeneralSettings(BasePage):
 
 
 class CustomLogoPage(BasePage):
+
     def __init__(self, parent=None):
         BasePage.__init__(self, parent)
         self._customLogoDefaultPath = ":/logo.png"
@@ -360,7 +386,8 @@ class CustomLogoPage(BasePage):
     def _setupUI(self):
         BasePage._setupUI(self)
         self.setTitle('Custom logo')
-        self._label = Qt.QLabel("\nIf you want to have a custom logo inside your application panel, please select the image file. \n")
+        self._label = Qt.QLabel(
+            "\nIf you want to have a custom logo inside your application panel, please select the image file. \n")
         self._label.setWordWrap(True)
         self._layout.addWidget(self._label, 0, 0, 1, 4)
         self._customLogoLabel = Qt.QLabel("Custom logo:")
@@ -369,37 +396,51 @@ class CustomLogoPage(BasePage):
         self._customLogoLineEdit.setReadOnly(False)
         self._customLogoButton = Qt.QPushButton()
         self._customLogoButton.setToolTip("Browse...")
-        self._customLogoButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("folder-open"))
+        self._customLogoButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("folder-open"))
         self._customLogoButton.setMaximumSize(80, 25)
-        self._spacerItem1 = Qt.QSpacerItem(30, 30, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Fixed)
+        self._spacerItem1 = Qt.QSpacerItem(
+            30, 30, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Fixed)
         self._customLogo = Qt.QLabel(self)
         self._customLogo.setAlignment(Qt.Qt.AlignCenter)
         self._customLogo.setMinimumSize(120, 120)
         self._customLogoDefaultButton = Qt.QPushButton()
         self._customLogoDefaultButton.setToolTip("Default")
         self._customLogoDefaultButton.setMaximumSize(80, 25)
-        self._customLogoDefaultButton.setIcon(taurus.qt.qtgui.resource.getIcon(":/actions/edit-undo.svg"))
+        self._customLogoDefaultButton.setIcon(
+            taurus.qt.qtgui.resource.getIcon(":/actions/edit-undo.svg"))
         self._customLogoRemoveButton = Qt.QPushButton()
         self._customLogoRemoveButton.setToolTip("Remove")
         self._customLogoRemoveButton.setMaximumSize(80, 25)
-        self._customLogoRemoveButton.setIcon(taurus.qt.qtgui.resource.getIcon(":/emblems/emblem-unreadable.svg"))
-        self._spacerItem2 = Qt.QSpacerItem(30, 30, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Fixed)
+        self._customLogoRemoveButton.setIcon(
+            taurus.qt.qtgui.resource.getIcon(":/emblems/emblem-unreadable.svg"))
+        self._spacerItem2 = Qt.QSpacerItem(
+            30, 30, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Fixed)
 
         self._layout.addWidget(self._customLogoLabel, 2, 0, Qt.Qt.AlignRight)
-        self._layout.addWidget(self._customLogoLineEdit, 2, 1, Qt.Qt.AlignRight)
+        self._layout.addWidget(self._customLogoLineEdit,
+                               2, 1, Qt.Qt.AlignRight)
         self._layout.addWidget(self._customLogoButton, 2, 2, Qt.Qt.AlignLeft)
-        self._layout.addWidget(self._customLogoDefaultButton, 2, 3, Qt.Qt.AlignLeft)
-        self._layout.addWidget(self._customLogoRemoveButton, 2, 4, Qt.Qt.AlignLeft)
+        self._layout.addWidget(
+            self._customLogoDefaultButton, 2, 3, Qt.Qt.AlignLeft)
+        self._layout.addWidget(
+            self._customLogoRemoveButton, 2, 4, Qt.Qt.AlignLeft)
         self._layout.addItem(self._spacerItem2, 2, 5)
         self._layout.addItem(self._spacerItem1, 3, 2)
-        self._layout.addWidget(self._customLogo, 4, 1, 1, 1, Qt.Qt.AlignHCenter)
+        self._layout.addWidget(self._customLogo, 4, 1,
+                               1, 1, Qt.Qt.AlignHCenter)
 
-        Qt.QObject.connect(self._customLogoButton, Qt.SIGNAL("clicked()"), self._selectImage)
-        Qt.QObject.connect(self._customLogoDefaultButton, Qt.SIGNAL("clicked()"), self._setDefaultImage)
-        Qt.QObject.connect(self._customLogoRemoveButton, Qt.SIGNAL("clicked()"), self._removeImage)
-        Qt.QObject.connect(self._customLogoLineEdit, Qt.SIGNAL("textChanged(const QString&)"), self._changeImage)
+        Qt.QObject.connect(self._customLogoButton, Qt.SIGNAL(
+            "clicked()"), self._selectImage)
+        Qt.QObject.connect(self._customLogoDefaultButton,
+                           Qt.SIGNAL("clicked()"), self._setDefaultImage)
+        Qt.QObject.connect(self._customLogoRemoveButton,
+                           Qt.SIGNAL("clicked()"), self._removeImage)
+        Qt.QObject.connect(self._customLogoLineEdit, Qt.SIGNAL(
+            "textChanged(const QString&)"), self._changeImage)
 
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        self._spacerItem1 = Qt.QSpacerItem(
+            10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
         self._layout.addItem(self._spacerItem1, 8, 0, 1, 1, Qt.Qt.AlignCenter)
         self._status_label = Qt.QLabel("Press next button to continue")
         self.setStatusLabelPalette(self._status_label)
@@ -407,7 +448,8 @@ class CustomLogoPage(BasePage):
         self._setNoImage()
 
     def fromXml(self, xml):
-        customLogo = AppSettingsWizard.getValueFromNode(xml, "CUSTOM_LOGO", None)
+        customLogo = AppSettingsWizard.getValueFromNode(
+            xml, "CUSTOM_LOGO", None)
         if customLogo is None:
             self._setDefaultImage()
         else:
@@ -417,7 +459,8 @@ class CustomLogoPage(BasePage):
         self._customLogoLineEdit.setText(self._customLogoDefaultPath)
 
     def _setNoImage(self):
-        self._customLogo.setPixmap(taurus.qt.qtgui.resource.getThemePixmap("image-missing").scaled(50, 50))
+        self._customLogo.setPixmap(
+            taurus.qt.qtgui.resource.getThemePixmap("image-missing").scaled(50, 50))
         self._customLogoPath = None
         self._customLogoRemoveButton.hide()
 
@@ -432,14 +475,15 @@ class CustomLogoPage(BasePage):
             return None
 
     def _selectImage(self):
-            fileName = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"), Qt.QDir.homePath() , self.tr("Images (*.png *.xpm *.jpg *.jpeg *.svg)"))
-            self._customLogoLineEdit.setText(fileName)
-            self._changeImage()
+        fileName = Qt.QFileDialog.getOpenFileName(self, self.tr(
+            "Open File"), Qt.QDir.homePath(), self.tr("Images (*.png *.xpm *.jpg *.jpeg *.svg)"))
+        self._customLogoLineEdit.setText(fileName)
+        self._changeImage()
 
     def _changeImage(self):
         fileName = str(self._customLogoLineEdit.text())
         if (len(fileName)):
-            if  fileName[0] == ":":
+            if fileName[0] == ":":
                 pixmap = taurus.qt.qtgui.resource.getPixmap(fileName)
                 if (pixmap.height()):
                     image = pixmap.toImage()
@@ -468,14 +512,16 @@ class CustomLogoPage(BasePage):
             self._setNoImage()
             self._setStatus("No image")
 
-
     def _setImage(self, image):
         if type(image) == Qt.QPixmap:
-            self._customLogo.setPixmap(image.scaled(60, 200, Qt.Qt.KeepAspectRatio))
+            self._customLogo.setPixmap(
+                image.scaled(60, 200, Qt.Qt.KeepAspectRatio))
         elif type(image) == Qt.QImage:
-            self._customLogo.setPixmap(Qt.QPixmap().fromImage(image).scaled(60, 200, Qt.Qt.KeepAspectRatio))
+            self._customLogo.setPixmap(Qt.QPixmap().fromImage(
+                image).scaled(60, 200, Qt.Qt.KeepAspectRatio))
         else:
-            self._customLogo.setPixmap(taurus.qt.qtgui.resource.getThemePixmap("image-missing").scaled(50, 50))
+            self._customLogo.setPixmap(
+                taurus.qt.qtgui.resource.getThemePixmap("image-missing").scaled(50, 50))
             self._customLogoPath = None
 
     def _setStatus(self, text):
@@ -483,16 +529,18 @@ class CustomLogoPage(BasePage):
 
 
 class SynopticPage(BasePage):
+
     def __init__(self, parent=None):
         BasePage.__init__(self, parent)
         self._synoptics = []
 
     def fromXml(self, xml):
         self._synoptics = []
-        synopticNodes = AppSettingsWizard.getArrayFromNode(xml, "SYNOPTIC", default=[])
+        synopticNodes = AppSettingsWizard.getArrayFromNode(
+            xml, "SYNOPTIC", default=[])
         for child in synopticNodes:
             if child.get("str") is not None and len(child.get("str")):
-                    self._synoptics.append(child.get("str"))
+                self._synoptics.append(child.get("str"))
 
     def initializePage(self):
         BasePage.initializePage(self)
@@ -502,14 +550,16 @@ class SynopticPage(BasePage):
     def _setupUI(self):
         BasePage._setupUI(self)
         self.setTitle('Synoptics')
-        self._label = Qt.QLabel("If you want to add one or more synoptic panels (graphical views of instruments) select the corresponding JDRAW files here\n")
+        self._label = Qt.QLabel(
+            "If you want to add one or more synoptic panels (graphical views of instruments) select the corresponding JDRAW files here\n")
         self._label.setWordWrap(True)
         self._layout.addWidget(self._label, 0, 0)
         self.setLayout(self._layout)
         self._synopticGroupBox = Qt.QGroupBox()
         self._synopticGroupBox.setCheckable(False)
         self._synopticGroupBox.setAlignment(Qt.Qt.AlignLeft)
-        self._synopticGroupBox.setStyleSheet(" QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
+        self._synopticGroupBox.setStyleSheet(
+            " QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
         self._layout.addWidget(self._synopticGroupBox, 2, 0, 1, 1)
         self._horizontalLayout = Qt.QHBoxLayout(self._synopticGroupBox)
         self._synopticList = Qt.QListWidget(self._synopticGroupBox)
@@ -528,32 +578,40 @@ class SynopticPage(BasePage):
         self._downButton.setStyleSheet("text-align: left;")
         self._verticalLayout.addWidget(self._downButton)
         self._horizontalLayout.addLayout(self._verticalLayout)
-        self._addButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-add"))
-        self._removeButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
+        self._addButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("list-add"))
+        self._removeButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
         self._upButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-up"))
-        self._downButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-down"))
-        Qt.QObject.connect(self._addButton, Qt.SIGNAL("clicked()"), self._addSynoptic)
-        Qt.QObject.connect(self._removeButton, Qt.SIGNAL("clicked()"), self._removeSynoptic)
-        Qt.QObject.connect(self._upButton, Qt.SIGNAL("clicked()"), self._moveUp)
-        Qt.QObject.connect(self._downButton, Qt.SIGNAL("clicked()"), self._moveDown)
+        self._downButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("go-down"))
+        Qt.QObject.connect(self._addButton, Qt.SIGNAL(
+            "clicked()"), self._addSynoptic)
+        Qt.QObject.connect(self._removeButton, Qt.SIGNAL(
+            "clicked()"), self._removeSynoptic)
+        Qt.QObject.connect(self._upButton, Qt.SIGNAL(
+            "clicked()"), self._moveUp)
+        Qt.QObject.connect(self._downButton, Qt.SIGNAL(
+            "clicked()"), self._moveDown)
         #Qt.QObject.connect(self._synopticList, Qt.SIGNAL("itemDoubleClicked(QListWidgetItem*)"), self._editSynoptic)
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        self._spacerItem1 = Qt.QSpacerItem(
+            10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
         self._layout.addItem(self._spacerItem1, 8, 0, 1, 1, Qt.Qt.AlignCenter)
         self._status_label = Qt.QLabel("Press next button to continue")
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label, 9, 0, 1, 1)
 
-
-    def _addSynoptic (self):
+    def _addSynoptic(self):
         pdir = self.wizard().__getitem__('projectDir')
-        fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr("Open File"), pdir, self.tr("JDW (*.jdw );; All files (*)"))
+        fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr(
+            "Open File"), pdir, self.tr("JDW (*.jdw );; All files (*)"))
         for fileName in fileNames:
             fileName = unicode(fileName)
-            if not fileName in self._synoptics:
+            if fileName not in self._synoptics:
                 self._synoptics.append(fileName)
         self._refreshSynopticList()
 
-    def _editSynoptic (self):
+    def _editSynoptic(self):
         # edit
         self._refreshSynopticList()
 
@@ -568,20 +626,24 @@ class SynopticPage(BasePage):
             self._synoptic_id = self._synopticList.selectedIndexes()[0].row()
             if self._synoptic_id > 0:
                 tmp = self._synoptics[self._synoptic_id]
-                self._synoptics[self._synoptic_id] = self._synoptics[self._synoptic_id - 1]
+                self._synoptics[self._synoptic_id] = self._synoptics[
+                    self._synoptic_id - 1]
                 self._synoptics[self._synoptic_id - 1] = tmp
                 self._refreshSynopticList()
-                self._synopticList.setCurrentIndex(self._synopticList.indexFromItem(self._synopticList.item(self._synoptic_id - 1)))
+                self._synopticList.setCurrentIndex(self._synopticList.indexFromItem(
+                    self._synopticList.item(self._synoptic_id - 1)))
 
     def _moveDown(self):
         if len(self._synopticList.selectedIndexes()) > 0:
             self._synoptic_id = self._synopticList.selectedIndexes()[0].row()
             if self._synoptic_id < self._synopticList.count() - 1:
                 tmp = self._synoptics[self._synoptic_id]
-                self._synoptics[self._synoptic_id] = self._synoptics[self._synoptic_id + 1]
+                self._synoptics[self._synoptic_id] = self._synoptics[
+                    self._synoptic_id + 1]
                 self._synoptics[self._synoptic_id + 1] = tmp
                 self._refreshSynopticList()
-                self._synopticList.setCurrentIndex(self._synopticList.indexFromItem(self._synopticList.item(self._synoptic_id + 1)))
+                self._synopticList.setCurrentIndex(self._synopticList.indexFromItem(
+                    self._synopticList.item(self._synoptic_id + 1)))
 
     def _refreshSynopticList(self):
         self._synopticList.clear()
@@ -609,7 +671,8 @@ class MacroServerInfoPage(BasePage):
 
     def initializePage(self):
         BasePage.initializePage(self)
-        self._label.setText("\n <b>%s</b> can communicate with a Sardana's Macro Server and Pool.\nYou can enable and configure them here:\n" % self.wizard().__getitem__("guiName"))
+        self._label.setText("\n <b>%s</b> can communicate with a Sardana's Macro Server and Pool.\nYou can enable and configure them here:\n" %
+                            self.wizard().__getitem__("guiName"))
         self.wizard().__setitem__("macroServerName", self._getMacroServerName)
         self.wizard().__setitem__("doorName", self._getDoorName)
 
@@ -623,7 +686,8 @@ class MacroServerInfoPage(BasePage):
         self._macroGroupBox.setCheckable(True)
         self._macroGroupBox.setChecked(False)
         self._macroGroupBox.setAlignment(Qt.Qt.AlignLeft)
-        self._macroGroupBox.setStyleSheet(" QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
+        self._macroGroupBox.setStyleSheet(
+            " QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
         self._horizontalLayout = Qt.QHBoxLayout(self._macroGroupBox)
         self._confWidget = TaurusMacroConfigurationDialog(self)
         self._confWidget.setWindowFlags(Qt.Qt.Widget)
@@ -635,22 +699,30 @@ class MacroServerInfoPage(BasePage):
         self._layout.addWidget(self._label, 0, 0, 1, 1)
         self._layout.addWidget(self._macroGroupBox, 1, 0, 1, 1)
 
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        self._spacerItem1 = Qt.QSpacerItem(
+            10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
         self._layout.addItem(self._spacerItem1, 8, 0, 1, 1, Qt.Qt.AlignCenter)
         self._status_label = Qt.QLabel("Press next button to continue")
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label, 9, 0, 1, 1)
 
-        Qt.QObject.connect(self._confWidget.macroServerComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"), self.checkData)
-        Qt.QObject.connect(self._confWidget.doorComboBox, Qt.SIGNAL("currentIndexChanged(const QString&)"), self.checkData)
-        Qt.QObject.connect(self._macroGroupBox, Qt.SIGNAL("toggled(bool)"), self.checkData)
+        Qt.QObject.connect(self._confWidget.macroServerComboBox, Qt.SIGNAL(
+            "currentIndexChanged(const QString&)"), self.checkData)
+        Qt.QObject.connect(self._confWidget.doorComboBox, Qt.SIGNAL(
+            "currentIndexChanged(const QString&)"), self.checkData)
+        Qt.QObject.connect(self._macroGroupBox, Qt.SIGNAL(
+            "toggled(bool)"), self.checkData)
 
     def fromXml(self, xml):
-        macroserverName = AppSettingsWizard.getValueFromNode(xml, "MACROSERVER_NAME", default="")
-        doorName = AppSettingsWizard.getValueFromNode(xml, "DOOR_NAME", default="")
-        macroEditorsPath = AppSettingsWizard.getValueFromNode(xml, "MACROEDITORS_PATH", default="")
+        macroserverName = AppSettingsWizard.getValueFromNode(
+            xml, "MACROSERVER_NAME", default="")
+        doorName = AppSettingsWizard.getValueFromNode(
+            xml, "DOOR_NAME", default="")
+        macroEditorsPath = AppSettingsWizard.getValueFromNode(
+            xml, "MACROEDITORS_PATH", default="")
 
-        id = self._confWidget.macroServerComboBox.findText(macroserverName, Qt.Qt.MatchExactly)
+        id = self._confWidget.macroServerComboBox.findText(
+            macroserverName, Qt.Qt.MatchExactly)
         if id >= 0:
             self._confWidget.macroServerComboBox.setCurrentIndex(id)
             self._macroGroupBox.setChecked(True)
@@ -658,7 +730,8 @@ class MacroServerInfoPage(BasePage):
             self._macroGroupBox.setChecked(False)
             return
 
-        id = self._confWidget.doorComboBox.findText(doorName, Qt.Qt.MatchExactly)
+        id = self._confWidget.doorComboBox.findText(
+            doorName, Qt.Qt.MatchExactly)
         if id >= 0:
             self._confWidget.doorComboBox.setCurrentIndex(id)
 
@@ -686,13 +759,15 @@ class MacroServerInfoPage(BasePage):
 
 
 class InstrumentsPage(BasePage):
+
     def __init__(self, parent=None):
         BasePage.__init__(self, parent)
 
     def initializePage(self):
         BasePage.initializePage(self)
         self.wizard().__setitem__("instruments", self._getInstruments)
-        self._label.setText("<b>%s</b> can use instrument information stored in the Sardana's Pool to create instrument panels." % self.wizard().__getitem__("guiName"))
+        self._label.setText("<b>%s</b> can use instrument information stored in the Sardana's Pool to create instrument panels." %
+                            self.wizard().__getitem__("guiName"))
 
     def _setupUI(self):
         BasePage._setupUI(self)
@@ -704,17 +779,21 @@ class InstrumentsPage(BasePage):
         self._instrumentsLabel = Qt.QLabel("Generate panels from Pool Info?")
         self._intstrumentsBoolean = BooleanWidget()
         self._intstrumentsBoolean.setMinimumSize(150, 25)
-        self._layout.addWidget(self._instrumentsLabel, 5, 0, 1, 1, Qt.Qt.AlignRight)
-        self._layout.addWidget(self._intstrumentsBoolean, 5, 1, 1, 1, Qt.Qt.AlignRight)
+        self._layout.addWidget(self._instrumentsLabel, 5,
+                               0, 1, 1, Qt.Qt.AlignRight)
+        self._layout.addWidget(self._intstrumentsBoolean,
+                               5, 1, 1, 1, Qt.Qt.AlignRight)
 
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        self._spacerItem1 = Qt.QSpacerItem(
+            10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
         self._layout.addItem(self._spacerItem1, 8, 0, 1, 1, Qt.Qt.AlignCenter)
         self._status_label = Qt.QLabel("Press next button to continue")
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label, 9, 0, 1, 3)
 
     def fromXml(self, xml):
-        instruments = AppSettingsWizard.getValueFromNode(xml, "INSTRUMENTS_FROM_POOL", default="False")
+        instruments = AppSettingsWizard.getValueFromNode(
+            xml, "INSTRUMENTS_FROM_POOL", default="False")
         if str(instruments).lower() == "true":
             self._intstrumentsBoolean.setValue(True)
         else:
@@ -744,13 +823,15 @@ class PanelsPage(BasePage):
     def _setupUI(self):
         BasePage._setupUI(self)
         self.setTitle('Panels editor')
-        self._label = Qt.QLabel("If you want extra panels add them to this list\n")
+        self._label = Qt.QLabel(
+            "If you want extra panels add them to this list\n")
         self._layout.addWidget(self._label, 0, 0)
         self.setLayout(self._layout)
         self._panelGroupBox = Qt.QGroupBox()
         self._panelGroupBox.setCheckable(False)
         self._panelGroupBox.setAlignment(Qt.Qt.AlignLeft)
-        self._panelGroupBox.setStyleSheet(" QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
+        self._panelGroupBox.setStyleSheet(
+            " QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
         self._layout.addWidget(self._panelGroupBox, 2, 0, 1, 1)
         self._horizontalLayout = Qt.QHBoxLayout(self._panelGroupBox)
         self._panelList = Qt.QListWidget(self._panelGroupBox)
@@ -769,16 +850,25 @@ class PanelsPage(BasePage):
         self._downButton.setStyleSheet("text-align: left;")
         self._verticalLayout.addWidget(self._downButton)
         self._horizontalLayout.addLayout(self._verticalLayout)
-        self._addButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-add"))
-        self._removeButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
+        self._addButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("list-add"))
+        self._removeButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
         self._upButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-up"))
-        self._downButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-down"))
-        Qt.QObject.connect(self._addButton, Qt.SIGNAL("clicked()"), self._addPanel)
-        Qt.QObject.connect(self._removeButton, Qt.SIGNAL("clicked()"), self._removePanel)
-        Qt.QObject.connect(self._upButton, Qt.SIGNAL("clicked()"), self._moveUp)
-        Qt.QObject.connect(self._downButton, Qt.SIGNAL("clicked()"), self._moveDown)
-        Qt.QObject.connect(self._panelList, Qt.SIGNAL("itemDoubleClicked(QListWidgetItem*)"), self._editPanel)
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        self._downButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("go-down"))
+        Qt.QObject.connect(self._addButton, Qt.SIGNAL(
+            "clicked()"), self._addPanel)
+        Qt.QObject.connect(self._removeButton, Qt.SIGNAL(
+            "clicked()"), self._removePanel)
+        Qt.QObject.connect(self._upButton, Qt.SIGNAL(
+            "clicked()"), self._moveUp)
+        Qt.QObject.connect(self._downButton, Qt.SIGNAL(
+            "clicked()"), self._moveDown)
+        Qt.QObject.connect(self._panelList, Qt.SIGNAL(
+            "itemDoubleClicked(QListWidgetItem*)"), self._editPanel)
+        self._spacerItem1 = Qt.QSpacerItem(
+            10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
         self._layout.addItem(self._spacerItem1, 8, 0, 1, 1, Qt.Qt.AlignCenter)
         self._status_label = Qt.QLabel("Press next button to continue")
         self.setStatusLabelPalette(self._status_label)
@@ -786,21 +876,24 @@ class PanelsPage(BasePage):
 
     def fromXml(self, xml):
         self._panels = []
-        panelNodes = AppSettingsWizard.getArrayFromNode(xml, "PanelDescriptions", default=[])
+        panelNodes = AppSettingsWizard.getArrayFromNode(
+            xml, "PanelDescriptions", default=[])
         for child in panelNodes:
-            name = AppSettingsWizard.getValueFromNode(child, "name", default=None)
+            name = AppSettingsWizard.getValueFromNode(
+                child, "name", default=None)
             if name:
                 self._panels.append((name, etree.tostring(child)))
 
-    def _addPanel (self):
-        paneldesc, ok = taurus.qt.qtgui.taurusgui.paneldescriptionwizard.PanelDescriptionWizard.getDialog(self)
+    def _addPanel(self):
+        paneldesc, ok = taurus.qt.qtgui.taurusgui.paneldescriptionwizard.PanelDescriptionWizard.getDialog(
+            self)
         if ok:
             w = paneldesc.getWidget()
             self._panels.append((paneldesc.name, paneldesc.toXml()))
 
         self._refreshPanelList()
 
-    def _editPanel (self):
+    def _editPanel(self):
         # edit
         self._refreshPanelList()
 
@@ -818,7 +911,8 @@ class PanelsPage(BasePage):
                 self._panels[self._panel_id] = self._panels[self._panel_id - 1]
                 self._panels[self._panel_id - 1] = tmp
                 self._refreshPanelList()
-                self._panelList.setCurrentIndex(self._panelList.indexFromItem(self._panelList.item(self._panel_id - 1)))
+                self._panelList.setCurrentIndex(self._panelList.indexFromItem(
+                    self._panelList.item(self._panel_id - 1)))
 
     def _moveDown(self):
         if len(self._panelList.selectedIndexes()) > 0:
@@ -828,7 +922,8 @@ class PanelsPage(BasePage):
                 self._panels[self._panel_id] = self._panels[self._panel_id + 1]
                 self._panels[self._panel_id + 1] = tmp
                 self._refreshPanelList()
-                self._panelList.setCurrentIndex(self._panelList.indexFromItem(self._panelList.item(self._panel_id + 1)))
+                self._panelList.setCurrentIndex(self._panelList.indexFromItem(
+                    self._panelList.item(self._panel_id + 1)))
 
     def _refreshPanelList(self):
         self._panelList.clear()
@@ -855,12 +950,14 @@ class ExternalAppEditor(Qt.QDialog):
     A dialog for configuring an external appaction for a TaurusMainWindow.
     '''
     #@todo: this class should be made more generic (e.g. provide a getter for an ExternalAppAction) and then moved elsewhere
+
     def __init__(self, parent=None):
         Qt.QDialog.__init__(self, parent)
         self.setModal(True)
         self.setWindowTitle('External Application Editor')
 
-        self._dlgBox = Qt.QDialogButtonBox(Qt.QDialogButtonBox.Ok | Qt.QDialogButtonBox.Cancel)
+        self._dlgBox = Qt.QDialogButtonBox(
+            Qt.QDialogButtonBox.Ok | Qt.QDialogButtonBox.Cancel)
 
         self._layout = Qt.QVBoxLayout()
         self._layout1 = Qt.QGridLayout()
@@ -871,15 +968,17 @@ class ExternalAppEditor(Qt.QDialog):
         self.setLayout(self._layout)
 
         self._icon = None
-        self._label = Qt.QLabel("\n On this page you can define an external application. \n")
+        self._label = Qt.QLabel(
+            "\n On this page you can define an external application. \n")
         self._label.setWordWrap(True)
         self._layout1.addWidget(self._label, 0, 0, 1, 4)
         self._execFileLabel = Qt.QLabel("Command:")
         self._execFileLineEdit = Qt.QLineEdit()
         self._execFileLineEdit.setMinimumSize(150, 25)
-        #self._execFileLineEdit.setReadOnly(True)
+        # self._execFileLineEdit.setReadOnly(True)
         self._execFileButton = Qt.QPushButton()
-        self._execFileButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("folder-open"))
+        self._execFileButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("folder-open"))
         self._execFileButton.setToolTip("Browse...")
         self._execFileButton.setMaximumSize(80, 25)
         self._layout1.addWidget(self._execFileLabel, 2, 0, Qt.Qt.AlignRight)
@@ -898,24 +997,29 @@ class ExternalAppEditor(Qt.QDialog):
 
         self._iconLabel = Qt.QLabel("Icon:")
         self._iconLogo = Qt.QPushButton()
-        self._iconLogo.setIcon(Qt.QIcon(taurus.qt.qtgui.resource.getThemePixmap("image-missing")))
+        self._iconLogo.setIcon(
+            Qt.QIcon(taurus.qt.qtgui.resource.getThemePixmap("image-missing")))
         self._iconLogo.setIconSize(Qt.QSize(60, 60))
-        self._iconLogo.setStyleSheet(" QPushButton:flat { border: none; /* no border for a flat push button */} ")
+        self._iconLogo.setStyleSheet(
+            " QPushButton:flat { border: none; /* no border for a flat push button */} ")
         self._iconLogo.setFlat(True)
         self._layout1.addWidget(self._iconLabel, 5, 0, Qt.Qt.AlignRight)
         self._layout1.addWidget(self._iconLogo, 5, 1, Qt.Qt.AlignCenter)
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        self._spacerItem1 = Qt.QSpacerItem(
+            10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
         self._layout1.addItem(self._spacerItem1, 8, 0, 1, 1, Qt.Qt.AlignCenter)
 
-        #connections
-        Qt.QObject.connect(self._execFileButton, Qt.SIGNAL("clicked()"), self._selectExecFile)
-        Qt.QObject.connect(self._execFileLineEdit, Qt.SIGNAL("textChanged(const QString&)"), self._setDefaultText)
-        Qt.QObject.connect(self._iconLogo, Qt.SIGNAL("clicked()"), self._selectIcon)
+        # connections
+        Qt.QObject.connect(self._execFileButton, Qt.SIGNAL(
+            "clicked()"), self._selectExecFile)
+        Qt.QObject.connect(self._execFileLineEdit, Qt.SIGNAL(
+            "textChanged(const QString&)"), self._setDefaultText)
+        Qt.QObject.connect(self._iconLogo, Qt.SIGNAL(
+            "clicked()"), self._selectIcon)
         self.connect(self._dlgBox, Qt.SIGNAL('accepted()'), self.accept)
         self.connect(self._dlgBox, Qt.SIGNAL('rejected()'), self.reject)
         self.checkData()
         self._setIcon(ExternalAppAction.DEFAULT_ICON_NAME)
-
 
     def checkData(self):
         if len(self._execFileLineEdit.text()) > 0:
@@ -927,17 +1031,18 @@ class ExternalAppEditor(Qt.QDialog):
         fileName = self._execFileLineEdit.text().split('/')[-1]
         index = str(fileName).rfind(".")
         if (index > 0):
-            self._textLineEdit.setText (str(fileName)[0:index])
+            self._textLineEdit.setText(str(fileName)[0:index])
         else:
             self._textLineEdit.setText(fileName)
         self.checkData()
 
     def _selectExecFile(self):
-        filePath = Qt.QFileDialog.getOpenFileName(self, self.tr("Open File"), Qt.QDir.homePath(), self.tr("All files (*)"))
+        filePath = Qt.QFileDialog.getOpenFileName(self, self.tr(
+            "Open File"), Qt.QDir.homePath(), self.tr("All files (*)"))
         if len(filePath):
             self._execFileLineEdit.setText(filePath)
             self._setDefaultText()
-            
+
     def _getExecFile(self):
         return str(self._execFileLineEdit.text())
 
@@ -945,12 +1050,13 @@ class ExternalAppEditor(Qt.QDialog):
         iconNameList = []
         pixmapList = {}
         rowIconName = []
-        #rowPixmap=[]
+        # rowPixmap=[]
         rowSize = 7
         r = 0
         i = 0
 
-        progressBar = Qt.QProgressDialog  ("Loading icons...", "Abort", 0, len(taurus.qt.qtgui.resource.getThemeMembers().items()), self)
+        progressBar = Qt.QProgressDialog("Loading icons...", "Abort", 0, len(
+            taurus.qt.qtgui.resource.getThemeMembers().items()), self)
         progressBar.setModal(True)
         progressBar.setMinimumDuration(0)
 
@@ -970,20 +1076,22 @@ class ExternalAppEditor(Qt.QDialog):
                     else:
                         r = r + 1
 
-        if (len (rowIconName) > 0) and not (progressBar.wasCanceled()):
+        if (len(rowIconName) > 0) and not (progressBar.wasCanceled()):
             iconNameList.append(rowIconName)
 
         if not progressBar.wasCanceled():
             progressBar.close()
-            name, ok = taurus.qt.qtgui.input.GraphicalChoiceDlg.getChoice(parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=iconNameList, pixmaps=pixmapList, iconSize=60)
+            name, ok = taurus.qt.qtgui.input.GraphicalChoiceDlg.getChoice(
+                parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=iconNameList, pixmaps=pixmapList, iconSize=60)
             if ok:
                 self._setIcon(name)
         else:
             progressBar.close()
 
-    def _setIcon(self , name):
+    def _setIcon(self, name):
         if taurus.qt.qtgui.resource.getThemePixmap(name).width() != 0:
-            self._iconLogo.setIcon(Qt.QIcon(taurus.qt.qtgui.resource.getThemePixmap(name)))
+            self._iconLogo.setIcon(
+                Qt.QIcon(taurus.qt.qtgui.resource.getThemePixmap(name)))
             self._iconLogo.setIconSize(Qt.QSize(60, 60))
             self._iconLogo.setText("")
             self._icon = name
@@ -993,7 +1101,7 @@ class ExternalAppEditor(Qt.QDialog):
 
     def _getParams(self):
         return str(self._paramsLineEdit.text())
-        #return str(self._paramsLineEdit.text()).split()
+        # return str(self._paramsLineEdit.text()).split()
 
     def _getText(self):
         return str(self._textLineEdit.text())
@@ -1018,10 +1126,11 @@ class ExternalAppEditor(Qt.QDialog):
     def getDialog():
         dlg = ExternalAppEditor()
         dlg.exec_()
-        return dlg._getExecFile(), dlg._toXml() , (dlg.result() == dlg.Accepted)
+        return dlg._getExecFile(), dlg._toXml(), (dlg.result() == dlg.Accepted)
 
 
 class ExternalAppPage(BasePage):
+
     def __init__(self, parent=None):
         BasePage.__init__(self, parent)
         self._externalApps = []
@@ -1034,13 +1143,15 @@ class ExternalAppPage(BasePage):
     def _setupUI(self):
         BasePage._setupUI(self)
         self.setTitle('External Applications')
-        self._label = Qt.QLabel("The GUI may include shortcuts to external applications. You can add them now.\n")
+        self._label = Qt.QLabel(
+            "The GUI may include shortcuts to external applications. You can add them now.\n")
         self._layout.addWidget(self._label, 0, 0)
         self.setLayout(self._layout)
         self._externalAppGroupBox = Qt.QGroupBox()
         self._externalAppGroupBox.setCheckable(False)
         self._externalAppGroupBox.setAlignment(Qt.Qt.AlignLeft)
-        self._externalAppGroupBox.setStyleSheet(" QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
+        self._externalAppGroupBox.setStyleSheet(
+            " QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
         self._layout.addWidget(self._externalAppGroupBox, 2, 0, 1, 1)
         self._horizontalLayout = Qt.QHBoxLayout(self._externalAppGroupBox)
         self._externalAppList = Qt.QListWidget(self._externalAppGroupBox)
@@ -1059,16 +1170,25 @@ class ExternalAppPage(BasePage):
         self._downButton.setStyleSheet("text-align: left;")
         self._verticalLayout.addWidget(self._downButton)
         self._horizontalLayout.addLayout(self._verticalLayout)
-        self._addButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-add"))
-        self._removeButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
+        self._addButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("list-add"))
+        self._removeButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
         self._upButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-up"))
-        self._downButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-down"))
-        Qt.QObject.connect(self._addButton, Qt.SIGNAL("clicked()"), self._addApplication)
-        Qt.QObject.connect(self._removeButton, Qt.SIGNAL("clicked()"), self._removeApplication)
-        Qt.QObject.connect(self._upButton, Qt.SIGNAL("clicked()"), self._moveUp)
-        Qt.QObject.connect(self._downButton, Qt.SIGNAL("clicked()"), self._moveDown)
-        Qt.QObject.connect(self._externalAppList, Qt.SIGNAL("itemDoubleClicked(QListWidgetItem*)"), self._editApplication)
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        self._downButton.setIcon(
+            taurus.qt.qtgui.resource.getThemeIcon("go-down"))
+        Qt.QObject.connect(self._addButton, Qt.SIGNAL(
+            "clicked()"), self._addApplication)
+        Qt.QObject.connect(self._removeButton, Qt.SIGNAL(
+            "clicked()"), self._removeApplication)
+        Qt.QObject.connect(self._upButton, Qt.SIGNAL(
+            "clicked()"), self._moveUp)
+        Qt.QObject.connect(self._downButton, Qt.SIGNAL(
+            "clicked()"), self._moveDown)
+        Qt.QObject.connect(self._externalAppList, Qt.SIGNAL(
+            "itemDoubleClicked(QListWidgetItem*)"), self._editApplication)
+        self._spacerItem1 = Qt.QSpacerItem(
+            10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
         self._layout.addItem(self._spacerItem1, 8, 0, 1, 1, Qt.Qt.AlignCenter)
         self._status_label = Qt.QLabel("Press next button to continue")
         self.setStatusLabelPalette(self._status_label)
@@ -1076,20 +1196,22 @@ class ExternalAppPage(BasePage):
 
     def fromXml(self, xml):
         self._externalApps = []
-        panelNodes = AppSettingsWizard.getArrayFromNode(xml, "ExternalApps", default=[])
+        panelNodes = AppSettingsWizard.getArrayFromNode(
+            xml, "ExternalApps", default=[])
         for child in panelNodes:
-            name = AppSettingsWizard.getValueFromNode(child, "command", default=None)
+            name = AppSettingsWizard.getValueFromNode(
+                child, "command", default=None)
             if name:
                 self._externalApps.append((name, etree.tostring(child)))
 
-    def _addApplication (self):
+    def _addApplication(self):
         name, xml, ok = ExternalAppEditor.getDialog()
         if ok:
             self._externalApps.append((name, xml))
 
         self._refreshApplicationList()
 
-    def _editApplication (self):
+    def _editApplication(self):
         # edit
         self._refreshApplicationList()
 
@@ -1104,20 +1226,24 @@ class ExternalAppPage(BasePage):
             self._app_id = self._externalAppList.selectedIndexes()[0].row()
             if self._app_id > 0:
                 tmp = self._externalApps[self._app_id]
-                self._externalApps[self._app_id] = self._externalApps[self._app_id - 1]
+                self._externalApps[self._app_id] = self._externalApps[
+                    self._app_id - 1]
                 self._externalApps[self._app_id - 1] = tmp
                 self._refreshApplicationList()
-                self._externalAppList.setCurrentIndex(self._externalAppList.indexFromItem(self._externalAppList.item(self._app_id - 1)))
+                self._externalAppList.setCurrentIndex(self._externalAppList.indexFromItem(
+                    self._externalAppList.item(self._app_id - 1)))
 
     def _moveDown(self):
         if len(self._externalAppList.selectedIndexes()) > 0:
             self._app_id = self._externalAppList.selectedIndexes()[0].row()
             if self._app_id < self._externalAppList.count() - 1:
                 tmp = self._externalApps[self._app_id]
-                self._externalApps[self._app_id] = self._externalApps[self._app_id + 1]
+                self._externalApps[self._app_id] = self._externalApps[
+                    self._app_id + 1]
                 self._externalApps[self._app_id + 1] = tmp
                 self._refreshApplicationList()
-                self._externalAppList.setCurrentIndex(self._externalAppList.indexFromItem(self._externalAppList.item(self._app_id + 1)))
+                self._externalAppList.setCurrentIndex(self._externalAppList.indexFromItem(
+                    self._externalAppList.item(self._app_id + 1)))
 
     def _refreshApplicationList(self):
         self._externalAppList.clear()
@@ -1138,7 +1264,9 @@ class ExternalAppPage(BasePage):
     def _setStatus(self, text):
         self._status_label.setText(text)
 
+
 class MonitorPage(BasePage):
+
     def __init__(self, parent=None):
         BasePage.__init__(self, parent)
 
@@ -1149,52 +1277,61 @@ class MonitorPage(BasePage):
     def _setupUI(self):
         BasePage._setupUI(self)
         self.setTitle('Monitor List')
-        self._label = Qt.QLabel("\nIf you want to monitor some attributes, add them to the monitor list. \n")
+        self._label = Qt.QLabel(
+            "\nIf you want to monitor some attributes, add them to the monitor list. \n")
         self._label.setWordWrap(True)
         self._layout.addWidget(self._label, 0, 0, 1, 4)
         self._monitorLabel = Qt.QLabel("Monitor List:")
         self._monitorLineEdit = Qt.QLineEdit()
-        self._monitorLineEdit.setToolTip("Comma-separated list of attribute names")
+        self._monitorLineEdit.setToolTip(
+            "Comma-separated list of attribute names")
         self._monitorLineEdit.setMinimumSize(400, 25)
         self._monitorLineEdit.setReadOnly(False)
         self._monitorButton = Qt.QPushButton()
         self._monitorButton.setToolTip("Browse...")
-        #self._monitorButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("system-search"))
-        self._monitorButton.setIcon(taurus.qt.qtgui.resource.getIcon(":/designer/devs_tree.png"))
+        # self._monitorButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("system-search"))
+        self._monitorButton.setIcon(
+            taurus.qt.qtgui.resource.getIcon(":/designer/devs_tree.png"))
         self._monitorButton.setMaximumSize(80, 25)
         self._monitorClearButton = Qt.QPushButton()
         self._monitorClearButton.setToolTip("Clear")
         self._monitorClearButton.setMaximumSize(80, 25)
-        self._monitorClearButton.setIcon(taurus.qt.qtgui.resource.getIcon(":/actions/edit-clear.svg"))
+        self._monitorClearButton.setIcon(
+            taurus.qt.qtgui.resource.getIcon(":/actions/edit-clear.svg"))
         self._layout.addWidget(self._monitorLabel, 2, 0, Qt.Qt.AlignRight)
         self._layout.addWidget(self._monitorLineEdit, 2, 1, Qt.Qt.AlignRight)
         self._layout.addWidget(self._monitorButton, 2, 2, Qt.Qt.AlignLeft)
         self._layout.addWidget(self._monitorClearButton, 2, 3, Qt.Qt.AlignLeft)
-        Qt.QObject.connect(self._monitorButton, Qt.SIGNAL("clicked()"), self._selectMonitor)
-        Qt.QObject.connect(self._monitorClearButton, Qt.SIGNAL("clicked()"), self._clearMonitor)
-        #self._synopticClear.hide()
+        Qt.QObject.connect(self._monitorButton, Qt.SIGNAL(
+            "clicked()"), self._selectMonitor)
+        Qt.QObject.connect(self._monitorClearButton,
+                           Qt.SIGNAL("clicked()"), self._clearMonitor)
+        # self._synopticClear.hide()
 
-        self._spacerItem1 = Qt.QSpacerItem(10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
+        self._spacerItem1 = Qt.QSpacerItem(
+            10, 0, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Expanding)
         self._layout.addItem(self._spacerItem1, 8, 0, 1, 1, Qt.Qt.AlignCenter)
         self._status_label = Qt.QLabel("Press next button to continue")
         self.setStatusLabelPalette(self._status_label)
         self._layout.addWidget(self._status_label, 9, 0, 1, 4)
 
     def fromXml(self, xml):
-        self._monitorLineEdit.setText(AppSettingsWizard.getValueFromNode(xml, "MONITOR", default=""))
+        self._monitorLineEdit.setText(
+            AppSettingsWizard.getValueFromNode(xml, "MONITOR", default=""))
 
     def _clearMonitor(self):
         self._monitorLineEdit.clear()
-        #self._monitorClearButton.hide()
+        # self._monitorClearButton.hide()
 
     def _getMonitor(self):
         return str(self._monitorLineEdit.text())
 
     def _selectMonitor(self):
-            models, ok = taurus.qt.qtgui.panel.TaurusModelChooser.modelChooserDlg(host=None)
-            if ok:
-                self._monitorLineEdit.setText(",".join(models))
-            self.checkData()
+        models, ok = taurus.qt.qtgui.panel.TaurusModelChooser.modelChooserDlg(
+            host=None)
+        if ok:
+            self._monitorLineEdit.setText(",".join(models))
+        self.checkData()
 
     def _setStatus(self, text):
         self._status_label.setText(text)
@@ -1209,30 +1346,31 @@ class OutroPage(BasePage):
         self._label1 = Qt.QLabel("XML configuration file:")
         self._layout.addWidget(self._label1, 0, 0)
         self._xml = Qt.QTextEdit()
-        self._xml.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding))
+        self._xml.setSizePolicy(Qt.QSizePolicy(
+            Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding))
         self._layout.addWidget(self._xml, 1, 0)
         self._label2 = Qt.QLabel("Files copied")
         self._layout.addWidget(self._label2, 2, 0)
         self._substTable = Qt.QTableWidget()
         self._substTable.setColumnCount(2)
         self._substTable.setEditTriggers(self._substTable.NoEditTriggers)
-        self._substTable.setHorizontalHeaderLabels (('Original file', 'File in Project dir'))
-        self._substTable.setSizePolicy(Qt.QSizePolicy(Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding))
+        self._substTable.setHorizontalHeaderLabels(
+            ('Original file', 'File in Project dir'))
+        self._substTable.setSizePolicy(Qt.QSizePolicy(
+            Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Expanding))
         self._layout.addWidget(self._substTable, 3, 0)
-
 
     def _getXml(self):
         return str(self._xml.toPlainText())
-
 
     def saveFile(self, fileName):
         file = Qt.QFile(fileName)
 
         if not file.open(Qt.QFile.WriteOnly | Qt.QFile.Text):
             Qt.QMessageBox.warning(self, self.tr("Saving XML..."),
-                    self.tr("Cannot write file %1:\n%2.")
-                    .arg(fileName)
-                    .arg(file.errorString()))
+                                   self.tr("Cannot write file %1:\n%2.")
+                                   .arg(fileName)
+                                   .arg(file.errorString()))
             return False
 
         file.write(str(self._xml.toPlainText()))
@@ -1259,47 +1397,53 @@ class OutroPage(BasePage):
             self.createProject()
         except Exception, e:
             Qt.QMessageBox.warning(self, 'Error creating project',
-                                    'Could not create project files. \nReason:%s' % repr(e),
-                                     Qt.QMessageBox.Cancel)
+                                   'Could not create project files. \nReason:%s' % repr(
+                                       e),
+                                   Qt.QMessageBox.Cancel)
             import traceback
             traceback.print_exc()
             return False
         return True
 
     def createProject(self):
-        #prepare a log file
+        # prepare a log file
         pdir = self.wizard().__getitem__('projectDir')
         logfilename = os.path.join(pdir, 'wizard.log')
         logfile = open(logfilename, 'w')
-        logfile.write('Project created by AppSettingsWizard on %s\n' % datetime.datetime.now().isoformat())
-        #copy files
+        logfile.write('Project created by AppSettingsWizard on %s\n' %
+                      datetime.datetime.now().isoformat())
+        # copy files
         for i in range(self._substTable.rowCount()):
             src = unicode(self._substTable.item(i, 0).text())
-            dst = os.path.join(pdir, unicode(self._substTable.item(i, 1).text()))
+            dst = os.path.join(pdir, unicode(
+                self._substTable.item(i, 1).text()))
             if os.path.normpath(src) != os.path.normpath(dst):
                 shutil.copy(src, dst)
                 logfile.write('File copied: %s --> %s\n' % (src, dst))
-        #write xml config file
-        xmlcfgfilename = os.path.join(pdir, self.wizard().getXmlConfigFileName())
+        # write xml config file
+        xmlcfgfilename = os.path.join(
+            pdir, self.wizard().getXmlConfigFileName())
         f = open(xmlcfgfilename, 'w')
         f.write(unicode(self._xml.toPlainText()))
         f.close()
         logfile.write('XML Config file created: "%s"\n' % xmlcfgfilename)
-        #write python config file
-        pycfgfilename = os.path.join(pdir, '%s.py' % self.wizard().getConfigFilePrefix())
+        # write python config file
+        pycfgfilename = os.path.join(
+            pdir, '%s.py' % self.wizard().getConfigFilePrefix())
         f = open(pycfgfilename, 'w')
         f.write("XML_CONFIG = '%s'" % self.wizard().getXmlConfigFileName())
         f.close()
         logfile.write('Python config file created: "%s"\n' % pycfgfilename)
-        #write __init__.py config file
+        # write __init__.py config file
         initfilename = os.path.join(pdir, '__init__.py')
         f = open(initfilename, 'w')
         f.write('from config import *')
         f.close()
         logfile.write('python init file created: "%s"\n' % initfilename)
-        #write launcher script
+        # write launcher script
         try:
-            launcherfilename = os.path.join(pdir, self.wizard().__getitem__("guiName"))
+            launcherfilename = os.path.join(
+                pdir, self.wizard().__getitem__("guiName"))
             f = open(launcherfilename, 'w')
             f.write(('#!/bin/sh\n'
                      '#Make sure to give this file execution permisions\n'
@@ -1308,8 +1452,9 @@ class OutroPage(BasePage):
             os.chmod(launcherfilename, 0755)
             logfile.write('Unix launcher created: "%s"\n' % launcherfilename)
         except:
-            logfile.write('Error creating Unix launcher: "%s"\n' % launcherfilename)
-        #if all went ok...
+            logfile.write('Error creating Unix launcher: "%s"\n' %
+                          launcherfilename)
+        # if all went ok...
         msg = 'Application project was successfully created. You can find the files in: "%s"' % pdir
         msg += '\nTip: copy this directory into a directory that is in your Python path.'
         details = ''
@@ -1320,7 +1465,8 @@ class OutroPage(BasePage):
                 details += '- %s: %s\n\n' % (short, long)
         logfile.write(msg + details)
         logfile.close()
-        dlg = Qt.QMessageBox(Qt.QMessageBox.Information, 'Application project created', msg, Qt.QMessageBox.Ok, self)
+        dlg = Qt.QMessageBox(Qt.QMessageBox.Information,
+                             'Application project created', msg, Qt.QMessageBox.Ok, self)
         dlg.setDetailedText(details)
         dlg.exec_()
 
@@ -1329,13 +1475,15 @@ class AppSettingsWizard(Qt.QWizard):
     """
     This Wizard provide functionality for creating from scratch a configuration
     directory for a TaurusGUI based application.
-    
+
     The files in the configuration dir determine the default, permanent, pre-defined
     contents of the GUI. While the user may add/remove more elements at run
     time and those customizations will also be stored, this file defines what a
     user will find when launching the GUI for the first time.
     """
-    Pages = Enumeration('Pages', ('IntroPage', 'ProjectPage', 'GeneralSettings', 'CustomLogoPage', 'SynopticPage', 'MacroServerInfo', 'InstrumentsPage', 'PanelsPage', 'ExternalAppPage', 'MonitorPage', 'OutroPage'))
+    Pages = Enumeration('Pages', ('IntroPage', 'ProjectPage', 'GeneralSettings', 'CustomLogoPage', 'SynopticPage',
+                                  'MacroServerInfo', 'InstrumentsPage', 'PanelsPage', 'ExternalAppPage', 'MonitorPage', 'OutroPage'))
+
     def __init__(self, parent=None, jdrawCommand='jdraw', configFilePrefix='config'):
         Qt.QWizard.__init__(self, parent)
         self.installEventFilter(self)
@@ -1391,7 +1539,7 @@ class AppSettingsWizard(Qt.QWizard):
         '''
         parses xml code and sets all pages according to its contents. It
         raises an exception if something could not be processed
-        
+
         :param fname: (unicode) path to file containing xml code
         '''
         projectDir, cfgfile = os.path.split(fname)
@@ -1399,7 +1547,7 @@ class AppSettingsWizard(Qt.QWizard):
         xml = f.read()
         root = etree.fromstring(xml)
 
-        #print self.Pages
+        # print self.Pages
         for pageNumber in range(len(self.Pages.keys())):
             self.page(pageNumber).fromXml(root)
 
@@ -1452,18 +1600,18 @@ class AppSettingsWizard(Qt.QWizard):
 
         synoptic_page = SynopticPage()
         self.setPage(self.Pages.SynopticPage, synoptic_page)
-        
+
         if SARDANA_INSTALLED:
             synoptic_page.setNextPageId(self.Pages.MacroServerInfo)
-            
+
             macroserver_page = MacroServerInfoPage()
             self.setPage(self.Pages.MacroServerInfo, macroserver_page)
             macroserver_page.setNextPageId(self.Pages.InstrumentsPage)
-            
+
             instruments_page = InstrumentsPage()
             self.setPage(self.Pages.InstrumentsPage, instruments_page)
-            instruments_page.setNextPageId(self.Pages.PanelsPage) 
-            
+            instruments_page.setNextPageId(self.Pages.PanelsPage)
+
         else:
             synoptic_page.setNextPageId(self.Pages.PanelsPage)
 
@@ -1483,56 +1631,59 @@ class AppSettingsWizard(Qt.QWizard):
         self.setPage(self.Pages.OutroPage, outro_page)
         outro_page.setNextPageId(-1)
 
-        self.setOption (Qt.QWizard.CancelButtonOnLeft , True)
+        self.setOption(Qt.QWizard.CancelButtonOnLeft, True)
 
     def generateXml(self):
         '''returns the xml code corresponding to the options selected in the wizard
         and a dictionary representing the paths that have been substituted.
-        
-        :return: (str, dict<str,str>) The return value is a tuple whose first element 
+
+        :return: (str, dict<str,str>) The return value is a tuple whose first element
                  is the xml code and the second element is a dict where the keys are the
                  destination files and the values are the original paths.
         '''
         pdir = self.__getitem__('projectDir')
         root = etree.Element("taurusgui_config")
-        #general settings page
+        # general settings page
         guiName = etree.SubElement(root, "GUI_NAME")
         guiName.text = self.__getitem__("guiName")
         organizationName = etree.SubElement(root, "ORGANIZATION")
         organizationName.text = self.__getitem__("organizationName")
-        #custom logo page
+        # custom logo page
         customLogo = etree.SubElement(root, "CUSTOM_LOGO")
         src = self.__getitem__("customLogo")
         if src is None or src.startswith(":"):
             dst = src
         else:
-            src = os.path.join(pdir, src)  #if src is absolute, it stays so, and if it is relative, we assume pdir as the root dir
+            # if src is absolute, it stays so, and if it is relative, we assume
+            # pdir as the root dir
+            src = os.path.join(pdir, src)
             dst = self.substitutionName(src)
         customLogo.text = dst
-        #synoptic page
+        # synoptic page
         synopticList = self.__getitem__("synoptics")
         if synopticList:
             synoptics = etree.SubElement(root, "SYNOPTIC")
             for src in synopticList:
                 src = os.path.join(pdir, src)
-                #substitute the jdw files
+                # substitute the jdw files
                 dst = self.substitutionName(src)
                 child = etree.SubElement(synoptics, "synoptic", str=dst)
-                #substitute any referenced files within the jdrawfiles
+                # substitute any referenced files within the jdrawfiles
                 f = open(src, 'r')
                 contents = f.read()
                 f.close()
                 for ref in re.findall(r'file_name:\"(.+?)\"', contents):
-                    refsrc = os.path.join(os.path.dirname(src), ref)  #this is ok for both relative and absolute references
+                    # this is ok for both relative and absolute references
+                    refsrc = os.path.join(os.path.dirname(src), ref)
                     refdst = self.substitutionName(refsrc)
                     if ref != refdst:
                         short = 'Manual editing needed in "%s"' % dst
                         long = ('The synoptic file "%s" references a file that '
-                               'has been copied to the project dir in order to make the project portable. '
-                               'Please edit "%s" and replace "%s" by "%s"') % (dst, dst, ref, refdst)
+                                'has been copied to the project dir in order to make the project portable. '
+                                'Please edit "%s" and replace "%s" by "%s"') % (dst, dst, ref, refdst)
                         self._projectWarnings.append((short, long))
 
-        #macroserver page
+        # macroserver page
         if SARDANA_INSTALLED and self.__getitem__("macroServerName"):
             macroServerName = etree.SubElement(root, "MACROSERVER_NAME")
             macroServerName.text = self.__getitem__("macroServerName")
@@ -1540,7 +1691,7 @@ class AppSettingsWizard(Qt.QWizard):
             doorName.text = self.__getitem__("doorName")
             instruments = etree.SubElement(root, "INSTRUMENTS_FROM_POOL")
             instruments.text = str(self.__getitem__("instruments"))
-        #panels page
+        # panels page
         panelList = self.__getitem__("panels")
         if panelList:
             panels = etree.SubElement(root, "PanelDescriptions")
@@ -1548,7 +1699,7 @@ class AppSettingsWizard(Qt.QWizard):
                 name, xml = panel
                 item = etree.fromstring(xml)
                 panels.append(item)
-        #external apps page
+        # external apps page
         externalAppList = self.__getitem__("externalApps")
         if externalAppList:
             externalApps = etree.SubElement(root, "ExternalApps")
@@ -1556,11 +1707,11 @@ class AppSettingsWizard(Qt.QWizard):
                 name, xml = externalApp
                 item = etree.fromstring(xml)
                 externalApps.append(item)
-       #monitor page
+       # monitor page
         monitor = etree.SubElement(root, "MONITOR")
         monitor.text = self.__getitem__("monitor")
 
-        return  etree.tostring(root, pretty_print=True), copy.copy(self._substitutions)
+        return etree.tostring(root, pretty_print=True), copy.copy(self._substitutions)
 
     def substitutionName(self, src):
         name = os.path.basename(src)
@@ -1581,6 +1732,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-

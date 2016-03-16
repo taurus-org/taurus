@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -81,6 +81,7 @@ __all__ = ["get_taurus_parser", "init_taurus_args", "parse_taurus_args",
 
 __docformat__ = "restructuredtext"
 
+
 def get_taurus_parser(parser=None):
     """ Returns a :class:`optparse.OptionParser` initialized with a
     :class:`optparse.OptionGroup` containning some taurus options.
@@ -98,14 +99,14 @@ def get_taurus_parser(parser=None):
     g = parser.get_option_group('--taurus-log-level')
     if g is None:
         group = optparse.OptionGroup(parser, "Taurus Options",
-                "Basic options present in any taurus application")
+                                     "Basic options present in any taurus application")
 
         help_tauruslog = "taurus log level. Allowed values are (case insensitive): critical, "\
                          "error, warning/warn, info, debug, trace"
         help_tangohost = "Tango host name"
         help_tauruspolling = "taurus global polling period in milliseconds"
-        help_taurusserial= "taurus serialization mode. Allowed values are (case insensitive): "\
-                           "serial, concurrent (default)"
+        help_taurusserial = "taurus serialization mode. Allowed values are (case insensitive): "\
+            "serial, concurrent (default)"
         help_rcport = "enables remote debugging using the given port"
         group.add_option("--taurus-log-level", dest="taurus_log_level", metavar="LEVEL",
                          help=help_tauruslog, type="str", default="info")
@@ -119,6 +120,7 @@ def get_taurus_parser(parser=None):
                          help=help_rcport, type="int", default=None)
         parser.add_option_group(group)
     return parser
+
 
 def parse_taurus_args(parser=None, args=None, values=None):
     """Parses the command line. If parser is not given, then a new parser
@@ -140,6 +142,7 @@ def parse_taurus_args(parser=None, args=None, values=None):
     options, args = parser.parse_args(args=args, values=values)
     return parser, options, args
 
+
 def init_taurus_args(parser=None, args=None, values=None):
     """Parses the command line using :func:`taurus.core.util.argparse.parse_taurus_args`.
 
@@ -156,7 +159,8 @@ def init_taurus_args(parser=None, args=None, values=None):
     :return: a tuple of three elements: parser, options, args
     :rtype: :class:`optparse.OptionParser`, :class:`optparse.Values`, seq<str> """
     import taurus
-    parser, options, args = parse_taurus_args(parser=parser, args=args, values=values)
+    parser, options, args = parse_taurus_args(
+        parser=parser, args=args, values=values)
 
     # initialize taurus log level
     log_level_str = options.taurus_log_level.capitalize()
@@ -187,11 +191,13 @@ def init_taurus_args(parser=None, args=None, values=None):
         try:
             import rfoo.utils.rconsole
             rfoo.utils.rconsole.spawn_server(port=options.remote_console_port)
-            taurus.info("rconsole started. You can connect to it by typing: rconsole -p %d", options.remote_console_port)
+            taurus.info("rconsole started. You can connect to it by typing: rconsole -p %d",
+                        options.remote_console_port)
         except Exception, e:
-            taurus.warning("Cannot spawn debugger. Reason: %s",str(e))
+            taurus.warning("Cannot spawn debugger. Reason: %s", str(e))
 
     return parser, options, args
+
 
 def split_taurus_args(parser, args=None):
     """Splits arguments into valid parser arguments and non valid parser
@@ -204,7 +210,7 @@ def split_taurus_args(parser, args=None):
     :type args: seq<str>
     :return: a tuple of two elements: parser args, non parser args
     :rtype: seq<seq<str>, seq<str>>"""
-    
+
     if args is None:
         import sys
         args = sys.argv
@@ -216,6 +222,5 @@ def split_taurus_args(parser, args=None):
             taurus_args.append(arg)
         else:
             non_taurus_args.append(arg)
-    
-    return taurus_args, non_taurus_args
 
+    return taurus_args, non_taurus_args

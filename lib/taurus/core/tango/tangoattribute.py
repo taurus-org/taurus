@@ -2,53 +2,247 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 """This module contains all taurus tango attribute"""
 
-__all__ = ["TangoAttribute", "TangoStateAttribute", "TangoAttributeEventListener"]
+__all__ = ["TangoAttribute", "TangoAttributeEventListener", "TangoAttrValue"]
 
 __docformat__ = "restructuredtext"
 
 # -*- coding: utf-8 -*-
 import time
 import threading
+import weakref
 import PyTango
 import numpy
+from functools import partial
 
-from taurus import Factory, Manager
-from taurus.core.taurusattribute import TaurusAttribute, TaurusStateAttribute
-from taurus.core.taurusbasetypes import TaurusEventType, TaurusSerializationMode, \
-    SubscriptionState
+from taurus import Manager
+from taurus.external.pint import Quantity
+
+from taurus.core.taurusattribute import TaurusAttribute
+from taurus.core.taurusbasetypes import (TaurusEventType,
+                                         TaurusSerializationMode,
+                                         SubscriptionState, TaurusAttrValue,
+                                         DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
-from .enums import EVENT_TO_POLLING_EXCEPTIONS
+from taurus.core.util.log import debug, tep14_deprecation
 
-DataType = PyTango.CmdArgType
+from taurus.core.tango.enums import (EVENT_TO_POLLING_EXCEPTIONS,
+                                     FROM_TANGO_TO_NUMPY_TYPE,
+                                     DevState)
+
+from .util.tango_taurus import (description_from_tango,
+                                display_level_from_tango,
+                                quality_from_tango,
+                                standard_display_format_from_tango,
+                                unit_from_tango, quantity_from_tango_str,
+                                str_2_obj, data_format_from_tango,
+                                data_type_from_tango)
+
+
+class TangoAttrValue(TaurusAttrValue):
+    '''A TaurusAttrValue specialization to decode PyTango.DeviceAttribute
+    objects'''
+
+    def __init__(self, attr=None, pytango_dev_attr=None, config=None):
+        # config parameter is kept for backwards compatibility only
+        TaurusAttrValue.__init__(self)
+        if config is not None:
+            from taurus.core.util.log import deprecated
+            deprecated(dep='"config" kwarg', alt='"attr"', rel='tep14')
+            attr = config
+        if attr is None:
+            self._attrRef = None
+        else:
+            self._attrRef = weakref.proxy(attr)
+        self.config = self._attrRef  # bck-compat
+
+        self._pytango_dev_attr = p = pytango_dev_attr
+        if p is None:
+            self._pytango_dev_attr = p = PyTango.DeviceAttribute()
+            return
+
+        if self._attrRef is None:
+            return
+
+        numerical = PyTango.is_numerical_type(self._attrRef._tango_data_type,
+                                              inc_array=True)
+        if p.has_failed:
+            self.error = PyTango.DevFailed(*p.get_err_stack())
+        else:
+            if p.is_empty:  # spectra and images can be empty without failing
+                dtype = FROM_TANGO_TO_NUMPY_TYPE.get(
+                    self._attrRef._tango_data_type)
+                if self._attrRef.data_format == DataFormat._1D:
+                    shape = (0,)
+                elif self._attrRef.data_format == DataFormat._2D:
+                    shape = (0, 0)
+                p.value = numpy.empty(shape, dtype=dtype)
+                if not (numerical or self._attrRef.type == DataType.Boolean):
+                    # generate a nested empty list of given shape
+                    p.value = []
+                    for _ in xrange(len(shape) - 1):
+                        p.value = [p.value]
+
+        rvalue = p.value
+        wvalue = p.w_value
+        if numerical:
+            units = self._attrRef._units
+            if rvalue is not None:
+                rvalue = Quantity(rvalue, units=units)
+            if wvalue is not None:
+                wvalue = Quantity(wvalue, units=units)
+        elif isinstance(rvalue, PyTango._PyTango.DevState):
+            rvalue = DevState[str(rvalue)]
+        elif p.type == PyTango.CmdArgType.DevUChar:
+            if self._attrRef.data_format == DataFormat._0D:
+                rvalue = chr(rvalue)
+                wvalue = chr(wvalue)
+            else:
+                rvalue = rvalue.view('S1')
+                wvalue = wvalue.view('S1')
+
+        self.rvalue = rvalue
+        self.wvalue = wvalue
+        self.time = p.time  # TODO: decode this into a TaurusTimeVal
+        self.quality = quality_from_tango(p.quality)
+
+    def __getattr__(self, name):
+        try:
+            ret = getattr(self._attrRef, name)
+        except AttributeError:
+            try:
+                ret = getattr(self._pytango_dev_attr, name)
+            except AttributeError:
+                raise AttributeError('%s has no attribute %s'
+                                     % (self.__class__.__name__, name))
+        # return the attr but only after warning
+        from taurus.core.util.log import deprecated
+        deprecated(dep='TangoAttrValue.%s' % name,
+                   alt='TangoAttribute.%s' % name, rel='tep14')
+        return ret
+
+    # --------------------------------------------------------
+    # This is for backwards compat with the API of taurus < 4
+    #
+    @tep14_deprecation(alt='.rvalue')
+    def _get_value(self):
+        '''for backwards compat with taurus < 4'''
+        debug(repr(self))
+        try:
+            return self.__fix_int(self.rvalue.magnitude)
+        except AttributeError:
+            return self.rvalue
+
+    @tep14_deprecation(alt='.rvalue')
+    def _set_value(self, value):
+        '''for backwards compat with taurus < 4'''
+        debug('Setting %r to %s' % (value, self.name))
+
+        if self.rvalue is None:  # we do not have a previous rvalue
+            import numpy
+            dtype = numpy.array(value).dtype
+            if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
+                msg = 'Refusing to set ambiguous value (deprecated .value API)'
+                raise ValueError(msg)
+            else:
+                self.rvalue = value
+        elif hasattr(self.rvalue, 'units'):  # we do have it and is a Quantity
+            self.rvalue = Quantity(value, units=self.rvalue.units)
+        else:  # we do have a previous value and is not a quantity
+            self.rvalue = value
+
+    value = property(_get_value, _set_value)
+
+    @tep14_deprecation(alt='.wvalue')
+    def _get_w_value(self):
+        '''for backwards compat with taurus < 4'''
+        debug(repr(self))
+        try:
+            return self.__fix_int(self.wvalue.magnitude)
+        except AttributeError:
+            return self.wvalue
+
+    @tep14_deprecation(alt='.wvalue')
+    def _set_w_value(self, value):
+        '''for backwards compat with taurus < 4'''
+        debug('Setting %r to %s' % (value, self.name))
+
+        if self.wvalue is None:  # we do not have a previous wvalue
+            import numpy
+            dtype = numpy.array(value).dtype
+            if numpy.issubdtype(dtype, int) or numpy.issubdtype(dtype, float):
+                msg = 'Refusing to set ambiguous value (deprecated .value API)'
+                raise ValueError(msg)
+            else:
+                self.wvalue = value
+        elif hasattr(self.wvalue, 'units'):  # we do have it and is a Quantity
+            self.wvalue = Quantity(value, units=self.wvalue.units)
+        else:  # we do have a previous value and is not a quantity
+            self.wvalue = value
+
+    w_value = property(_get_w_value, _set_w_value)
+
+    @property
+    @tep14_deprecation(alt='.error')
+    def has_failed(self):
+        return self.error
+
+    def __fix_int(self, value):
+        '''cast value to int if  it is an integer.
+        Works on scalar and non-scalar values'''
+        if self.type != DataType.Integer:
+            return value
+        try:
+            return int(value)
+        except TypeError:
+            import numpy
+            return numpy.array(value, dtype='int')
+
 
 class TangoAttribute(TaurusAttribute):
 
-    # helper class property that stores a reference to the corresponding factory
+    no_cfg_value = '-----'
+    no_unit = 'No unit'
+    no_standard_unit = 'No standard unit'
+    no_display_unit = 'No display unit'
+    no_description = 'No description'
+    not_specified = 'Not specified'
+    no_min_value = no_max_value = not_specified
+    no_min_alarm = no_max_alarm = not_specified
+    no_min_warning = no_max_warning = not_specified
+    no_delta_t = no_delta_val = not_specified
+    no_rel_change = no_abs_change = not_specified
+    no_archive_rel_change = no_archive_abs_change = not_specified
+    no_archive_period = not_specified
+
+    # helper class property that stores a reference to the corresponding
+    # factory
     _factory = None
+    _scheme = 'tango'
+    _description = 'A Tango Attribute'
 
     def __init__(self, name, parent, **kwargs):
 
@@ -58,41 +252,56 @@ class TangoAttribute(TaurusAttribute):
         # the last attribute error
         self.__attr_err = None
 
-        # the last time the attribute was read
-        self.__attr_timestamp = 0
-
         # the change event identifier
         self.__chg_evt_id = None
-
-        # reference to the configuration object
-        self.__attr_config = None
 
         # current event subscription state
         self.__subscription_state = SubscriptionState.Unsubscribed
         self.__subscription_event = threading.Event()
 
+        # the parent's HW object (the PyTango Device obj)
+        self.__dev_hw_obj = None
+
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
 
+        self._events_working = False
+
+        attr_info = None
+        if parent:
+            attr_name = self.getSimpleName()
+            try:
+                attr_info = parent.attribute_query(attr_name)
+            except (AttributeError, PyTango.DevFailed):
+                # if PyTango could not connect to the dev
+                attr_info = None
+
+        # Set default values in case the attrinfoex is None
+        self.writable = False
+        dis_level = PyTango.DispLevel.OPERATOR
+        self.display_level = display_level_from_tango(dis_level)
+        self.tango_writable = PyTango.AttrWriteType.READ
+        self._units = unit_from_tango(PyTango.constants.UnitNotSpec)
+        # decode the Tango configuration attribute (adds extra members)
+        self._pytango_attrinfoex = None
+        self._decodeAttrInfoEx(attr_info)
+
+        # subscribe to configuration events (unsubscription done at cleanup)
+        self.__cfg_evt_id = None
+        self._subscribeConfEvents()
+
+    def cleanUp(self):
+        self.trace("[TangoAttribute] cleanUp")
+        self._unsubscribeConfEvents()
+        TaurusAttribute.cleanUp(self)
+        self.__dev_hw_obj = None
+        self._pytango_attrinfoex = None
+
     def __getattr__(self, name):
-        return getattr(self._getRealConfig(), name)
-
-    def _getRealConfig(self):
-        """ Returns the current configuration of the attribute."""
-
-        if self.__attr_config is None:
-            cfg_name = "%s?configuration" % self.getFullName()
-            from taurus.core.tango import TangoConfiguration  # @todo...
-            self.__attr_config = TangoConfiguration(cfg_name, self)
-        return self.__attr_config
-
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # TaurusModel necessary overwrite
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    @classmethod
-    def factory(cls):
-        if cls._factory is None:
-            cls._factory = Factory(scheme='tango')
-        return cls._factory
+        try:
+            return getattr(self._pytango_attrinfoex, name)
+        except AttributeError:
+            raise Exception('TangoAttribute does not have the attribute %s'
+                            % name)
 
     def getNewOperation(self, value):
         attr_value = PyTango.AttributeValue()
@@ -106,110 +315,89 @@ class TangoAttribute(TaurusAttribute):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def isNumeric(self, inc_array=False):
-        cfg = self._getRealConfig()
-        if not cfg:
-            self.warning("attribute does not contain information")
-            return False
-        if inc_array and not self.isScalar():
-            return False
-
-        type = cfg.getType()
-        return PyTango.is_numerical_type(type, inc_array=inc_array)
+        tgtype = self._tango_data_type
+        return PyTango.is_numerical_type(tgtype, inc_array=inc_array)
 
     def isInteger(self, inc_array=False):
-        cfg = self._getRealConfig()
-        if not cfg:
-            self.warning("attribute does not contain information")
-            return False
-        if inc_array and not self.isScalar():
-            return False
-
-        type = cfg.getType()
-        return PyTango.is_int_type(type, inc_array=inc_array)
+        tgtype = self._tango_data_type
+        return PyTango.is_int_type(tgtype, inc_array=inc_array)
 
     def isFloat(self, inc_array=False):
-        cfg = self._getRealConfig()
-        if not cfg:
-            self.warning("attribute does not contain information")
-            return False
-        if inc_array and not self.isScalar():
-            return False
-
-        type = cfg.getType()
-        return PyTango.is_float_type(type, inc_array=inc_array)
+        tgtype = self._tango_data_type
+        return PyTango.is_float_type(tgtype, inc_array=inc_array)
 
     def isBoolean(self, inc_array=False):
-        cfg = self._getRealConfig()
-        if not cfg:
-            self.warning("attribute does not contain information")
-            return False
-        if inc_array and not self.isScalar():
-            return False
-
-        type = cfg.getType()
-        if inc_array:
-            return type in (DataType.DevBoolean, DataType.DevVarBooleanArray)
-        else:
-            return type == DataType.DevBoolean
+        tgtype = self._tango_data_type
+        return PyTango.is_bool_type(tgtype, inc_array=inc_array)
 
     def isState(self):
-        cfg = self._getRealConfig()
-        if not cfg:
-            self.warning("attribute does not contain information")
-            return False
-        return cfg.getType() == DataType.DevState
+        tgtype = self._tango_data_type
+        return tgtype == PyTango.CmdArgType.DevState
 
-    def getDisplayValue(self, cache=True):
-        attrvalue = self.getValueObj(cache=cache)
-        if not attrvalue:
-            return None
-        v = attrvalue.value
-
-        return self.displayValue(v)
+    def getFormat(self, cache=True):
+        return self.format
 
     def encode(self, value):
         """Translates the given value into a tango compatible value according to
-        the attribute data type"""
+        the attribute data type.
 
-        attrvalue = None
-
-        if self._getRealConfig() is None:
-            self.warning("attribute does not contain information")
-            return value
+        Raises `pint.DimensionalityError` if value is a Quantity and it
+        cannot be expressed in the units of the attribute set in the DB
+        """
+        if isinstance(value, Quantity):
+            # convert to units of the attr in the DB (or raise an exception)
+            magnitude = value.to(self._units).magnitude
+        else:
+            magnitude = value
 
         fmt = self.getDataFormat()
-        type = self.getType()
-        if fmt == PyTango.SCALAR:
-            if type == DataType.DevDouble:
-                attrvalue = float(value)
-            elif type == DataType.DevFloat:
+        tgtype = self._tango_data_type
+        if fmt == DataFormat._0D:
+            if tgtype == PyTango.CmdArgType.DevDouble:
+                attrvalue = float(magnitude)
+            elif tgtype == PyTango.CmdArgType.DevFloat:
                 # We encode to float, but rounding to Tango::DevFloat precision
-                # see: http://sf.net/p/tauruslib/tickets/61
-                attrvalue = float(numpy.float32(value))
-            elif PyTango.is_int_type(type):
-                #attrvalue = int(value)
-                attrvalue = long(value)  #changed as a partial workaround to a problem in PyTango writing to DevULong64 attributes (see ALBA RT#29793)
-            elif type == DataType.DevBoolean:
+                # see: http://sf.net/p/sardana/tickets/162
+                attrvalue = float(numpy.float32(magnitude))
+            elif PyTango.is_int_type(tgtype):
+                # changed as a partial workaround to a problem in PyTango
+                # writing to DevULong64 attributes (see ALBA RT#29793)
+                attrvalue = long(magnitude)
+            elif tgtype == PyTango.CmdArgType.DevBoolean:
                 try:
-                    attrvalue = bool(int(value))
+                    attrvalue = bool(int(magnitude))
                 except:
-                    attrvalue = str(value).lower() == 'true'
-            elif type == DataType.DevUChar:
-                attrvalue = chr(value)
-            elif type == DataType.DevState or type == DataType.DevEncoded:
-                attrvalue = value
+                    attrvalue = str(magnitude).lower() == 'true'
+            elif tgtype == PyTango.CmdArgType.DevUChar:
+                try:
+                    # assume value to be a 1-character string repr of a byte
+                    attrvalue = ord(magnitude)
+                except TypeError:
+                    # but also support uint8 values (use ord-chr to make sure)
+                    attrvalue = ord(chr(magnitude))
+            elif tgtype in (PyTango.CmdArgType.DevState,
+                            PyTango.CmdArgType.DevEncoded):
+                attrvalue = magnitude
             else:
-                attrvalue = str(value)
-        elif fmt in (PyTango.SPECTRUM, PyTango.IMAGE):
-            attrvalue = value
+                attrvalue = str(magnitude)
+        elif fmt in (DataFormat._1D, DataFormat._2D):
+            if PyTango.is_int_type(tgtype):
+                # cast to integer because the magnitude conversion gives floats
+                attrvalue = magnitude.astype('int64')
+            elif tgtype == PyTango.CmdArgType.DevUChar:
+                attrvalue = magnitude.view('uint8')
+            else:
+                attrvalue = magnitude
         else:
-            attrvalue = str(value)
+            attrvalue = str(magnitude)
         return attrvalue
 
     def decode(self, attr_value):
-        """Decodes a value that was received from PyTango into the expected 
+        """Decodes a value that was received from PyTango into the expected
         representation"""
-        return attr_value
+        # TODO decode of the configuration
+        value = TangoAttrValue(pytango_dev_attr=attr_value, attr=self)
+        return value
 
     def write(self, value, with_read=True):
         """ Write the value in the Tango Device Attribute """
@@ -231,17 +419,18 @@ class TangoAttribute(TaurusAttribute):
                         if err.reason == 'API_UnsupportedFeature':
                             dev.write_attribute(name, value)
                             result = dev.read_attribute(name)
-                            break;
+                            break
                     else:
                         raise df
-                result = self.decode(result)
                 self.poll(single=False, value=result, time=time.time())
-                return result
+                return self.decode(result)
             else:
                 dev.write_attribute(name, value)
+                return None
         except PyTango.DevFailed, df:
             err = df[0]
-            self.error("[Tango] write failed (%s): %s" % (err.reason, err.desc))
+            self.error("[Tango] write failed (%s): %s" %
+                       (err.reason, err.desc))
             raise df
         except Exception, e:
             self.error("[Tango] write failed: %s" % str(e))
@@ -256,7 +445,6 @@ class TangoAttribute(TaurusAttribute):
             else:
                 self.__attr_value = self.decode(kwargs.get('value'))
                 self.__attr_err = kwargs.get('error')
-                self.__attr_timestamp = kwargs.get('time', time.time())
                 if self.__attr_err:
                     raise self.__attr_err
         except PyTango.DevFailed, df:
@@ -274,13 +462,17 @@ class TangoAttribute(TaurusAttribute):
 
     def read(self, cache=True):
         """ Returns the current value of the attribute.
-            if cache is set to True (default) or the attribute has events 
+            if cache is set to True (default) or the attribute has events
             active then it will return the local cached value. Otherwise it will
             read the attribute value from the tango device."""
         curr_time = time.time()
 
         if cache:
-            dt = (curr_time - self.__attr_timestamp) * 1000
+            try:
+                attr_timestamp = self.__attr_value.time.totime()
+            except AttributeError:
+                attr_timestamp = 0
+            dt = (curr_time - attr_timestamp) * 1000
             if dt < self.getPollingPeriod():
                 if self.__attr_value is not None:
                     return self.__attr_value
@@ -291,12 +483,13 @@ class TangoAttribute(TaurusAttribute):
             try:
                 dev = self.getParentObj()
                 v = dev.read_attribute(self.getSimpleName())
-                self.__attr_value, self.__attr_err, self.__attr_timestamp = self.decode(v), None, curr_time
+                self.__attr_value, self.__attr_err = self.decode(v), None
                 return self.__attr_value
             except PyTango.DevFailed, df:
-                self.__attr_value, self.__attr_err, self.__attr_timestamp = None, df, curr_time
+                self.__attr_value, self.__attr_err = None, df
                 err = df[0]
-                self.debug("[Tango] read failed (%s): %s", err.reason, err.desc)
+                self.debug("[Tango] read failed (%s): %s",
+                           err.reason, err.desc)
                 raise df
             except Exception, e:
                 self.__attr_value, self.__attr_err = None, e
@@ -304,7 +497,6 @@ class TangoAttribute(TaurusAttribute):
                 raise e
         elif self.__subscription_state in (SubscriptionState.Subscribing, SubscriptionState.PendingSubscribe):
             self.__subscription_event.wait()
-
 
         if self.__attr_err is not None:
             raise self.__attr_err
@@ -315,26 +507,23 @@ class TangoAttribute(TaurusAttribute):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def __fireRegisterEvent(self, listener):
-        #fire a first configuration event
-        #cfg = self._getRealConfig().getValueObj()
-        #if cfg:
-        #    self.fireEvent(TaurusEventType.Config, cfg, listener)
-        #else:
-
-        #fire a first change event
+        '''fire the first config and change (or error) events'''
         try:
             v = self.read()
+            # note: it may seem redundant, but some widgets may only react to
+            # one or another type, so we should send both for bck-compat
+            # Taurus4 widgets should never use config events since the same info
+            # is always emitted in a change event
+            self.fireEvent(TaurusEventType.Config, v, listener)
             self.fireEvent(TaurusEventType.Change, v, listener)
         except:
             self.fireEvent(TaurusEventType.Error, self.__attr_err, listener)
 
     def addListener(self, listener):
         """ Add a TaurusListener object in the listeners list.
-            If it is the first element and Polling is enabled starts the 
+            If it is the first element and Polling is enabled starts the
             polling mechanism.
             If the listener is already registered nothing happens."""
-        cfg = self._getRealConfig()
-        cfg.addListener(listener)
 
         listeners = self._listeners
         initial_subscription_state = self.__subscription_state
@@ -348,7 +537,7 @@ class TangoAttribute(TaurusAttribute):
         if self.__subscription_state == SubscriptionState.Unsubscribed and len(listeners) == 1:
             self._subscribeEvents()
 
-        #if initial_subscription_state == SubscriptionState.Subscribed:
+        # if initial_subscription_state == SubscriptionState.Subscribed:
         if len(listeners) > 1 and (initial_subscription_state == SubscriptionState.Subscribed or self.isPollingActive()):
             sm = self.getSerializationMode()
             if sm == TaurusSerializationMode.Concurrent:
@@ -358,13 +547,10 @@ class TangoAttribute(TaurusAttribute):
         return ret
 
     def removeListener(self, listener):
-        """ Remove a TaurusListener from the listeners list. If polling enabled 
+        """ Remove a TaurusListener from the listeners list. If polling enabled
             and it is the last element the stop the polling timer.
             If the listener is not registered nothing happens."""
         ret = TaurusAttribute.removeListener(self, listener)
-
-        cfg = self._getRealConfig()
-        cfg.removeListener(listener)
 
         if not ret:
             return ret
@@ -395,61 +581,103 @@ class TangoAttribute(TaurusAttribute):
         pass
 
     def _subscribeEvents(self):
-        """ Enable subscription to the attribute events. If change events are 
+        """ Enable subscription to the attribute events. If change events are
             not supported polling is activated """
 
-        # We have to register for configuration events before registering for
-        # change events because when a change event occurs we need to have
-        # configuration info in order to know how to decode the value
-        self._getRealConfig().addListener(self)
-
-
-        self.trace("Subscribing to change events...")
-
-        dev = self.getParentObj()
-        if dev is None:
-            self.debug("failed to subscribe change events: device is None")
-            return
-        dev = dev.getHWObj()
-        if dev is None:
-            self.debug("failed to subscribe change events: HW is None")
-            return
+        if self.__dev_hw_obj is None:
+            dev = self.getParentObj()
+            if dev is None:
+                self.debug("failed to subscribe to chg events: device is None")
+                return
+            self.__dev_hw_obj = dev.getDeviceProxy()
+            if self.__dev_hw_obj is None:
+                self.debug("failed to subscribe to chg events: HW is None")
+                return
 
         self.__subscription_event = threading.Event()
+        attr_name = self.getSimpleName()
 
         try:
             self.__subscription_state = SubscriptionState.Subscribing
-            self.__chg_evt_id = dev.subscribe_event(self.getSimpleName(),
-                                                  PyTango.EventType.CHANGE_EVENT,
-                                                  self, [])
+            self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
+                attr_name, PyTango.EventType.CHANGE_EVENT,
+                self, [])
 
         except:
             self.__subscription_state = SubscriptionState.PendingSubscribe
             self._activatePolling()
-            self.__chg_evt_id = dev.subscribe_event(self.getSimpleName(),
-                                                  PyTango.EventType.CHANGE_EVENT,
-                                                  self, [], True)
+            self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
+                attr_name, PyTango.EventType.CHANGE_EVENT,
+                self, [], True)
 
     def _unsubscribeEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object
-        self._getRealConfig().removeListener(self)
-        if not self.__chg_evt_id is None and not self._dev_hw_obj is None:
-            self.trace("Unsubscribing to change events (ID=%d)" % self.__chg_evt_id)
+        if self.__dev_hw_obj is not None and self.__chg_evt_id is not None:
+            self.trace("Unsubscribing to change events (ID=%d)",
+                       self.__chg_evt_id)
             try:
-                self._dev_hw_obj.unsubscribe_event(self.__chg_evt_id)
+                self.__dev_hw_obj.unsubscribe_event(self.__chg_evt_id)
                 self.__chg_evt_id = None
             except PyTango.DevFailed, df:
                 if len(df.args) and df[0].reason == 'API_EventNotFound':
-                    # probably tango shutdown as been initiated before and it
-                    # unsubscribed from events itself
+                    # probably tango shutdown has been initiated before and
+                    # it unsubscribed from events itself
                     pass
                 else:
-                    self.debug("Failed: %s" % df[0].desc)
+                    self.debug("Failed: %s", df[0].desc)
                     self.trace(str(df))
         self._deactivatePolling()
         self.__subscription_state = SubscriptionState.Unsubscribed
+
+    def _subscribeConfEvents(self):
+        """ Enable subscription to the attribute configuration events."""
+        self.trace("Subscribing to configuration events...")
+        if self.__dev_hw_obj is None:
+            dev = self.getParentObj()
+            if dev is None:
+                self.debug("failed to subscribe to cfg events: device is None")
+                return
+            self.__dev_hw_obj = dev.getDeviceProxy()
+            if self.__dev_hw_obj is None:
+                self.debug("failed to subscribe to cfg events: HW is None")
+                return
+
+        attr_name = self.getSimpleName()
+        try:
+            self.__cfg_evt_id = self.__dev_hw_obj.subscribe_event(
+                attr_name,
+                PyTango.EventType.ATTR_CONF_EVENT,
+                self, [], True)
+        except PyTango.DevFailed, e:
+            self.debug("Error trying to subscribe to CONFIGURATION events.")
+            self.traceback()
+            # Subscription failed either because event mechanism is not available
+            # or because the device server is not running.
+            # The first possibility is assumed so an attempt to get the configuration
+            # manually is done
+            # TODO decide what should be done here
+            try:
+                attrinfoex = self.__dev_hw_obj.attribute_query(attr_name)
+                self._decodeAttrInfoEx(attrinfoex)
+            except:
+                self.debug("Error getting attribute configuration")
+                self.traceback()
+
+    def _unsubscribeConfEvents(self):
+        # Careful in this method: This is intended to be executed in the cleanUp
+        # so we should not access external objects from the factory, like the
+        # parent object
+        if self.__cfg_evt_id and not self.__dev_hw_obj is None:
+            self.trace("Unsubscribing to configuration events (ID=%s)",
+                       str(self.__cfg_evt_id))
+            try:
+                self.__dev_hw_obj.unsubscribe_event(self.__cfg_evt_id)
+                self.__cfg_evt_id = None
+            except PyTango.DevFailed, e:
+                self.debug("Error trying to unsubscribe configuration events")
+                self.trace(str(e))
 
     def push_event(self, event):
         """Method invoked by the PyTango layer when a change event occurs.
@@ -459,17 +687,30 @@ class TangoAttribute(TaurusAttribute):
         manager = Manager()
         sm = self.getSerializationMode()
         if not event.err:
-            self.__attr_value, self.__attr_err, self.__attr_timestamp = self.decode(event.attr_value), None, curr_time
-            self.__subscription_state = SubscriptionState.Subscribed
-            self.__subscription_event.set()
-            if not self.isPollingForced():
-                self._deactivatePolling()
+            # if it is a configuration event
+            if isinstance(event, PyTango.AttrConfEventData):
+                event_type = TaurusEventType.Config
+                self._decodeAttrInfoEx(event.attr_conf)
+                # make sure that there is a self.__attr_value
+                if self.__attr_value is None:
+                    # TODO: maybe we can avoid this read?
+                    self.__attr_value = self.getValueObj(cache=False)
+            # if it is an attribute event
+            else:
+                event_type = TaurusEventType.Change
+                self.__attr_value, self.__attr_err = self.decode(
+                    event.attr_value), None
+                self.__subscription_state = SubscriptionState.Subscribed
+                self.__subscription_event.set()
+                if not self.isPollingForced():
+                    self._deactivatePolling()
+            # notify the listeners
             listeners = tuple(self._listeners)
             if sm == TaurusSerializationMode.Concurrent:
-                manager.addJob(self.fireEvent, None, TaurusEventType.Change,
+                manager.addJob(self.fireEvent, None, event_type,
                                self.__attr_value, listeners=listeners)
             else:
-                self.fireEvent(TaurusEventType.Change, self.__attr_value,
+                self.fireEvent(event_type, self.__attr_value,
                                listeners=listeners)
         elif event.errors[0].reason in EVENT_TO_POLLING_EXCEPTIONS:
             if self.isPollingActive():
@@ -478,7 +719,8 @@ class TangoAttribute(TaurusAttribute):
             self.__subscription_state = SubscriptionState.PendingSubscribe
             self._activatePolling()
         else:
-            self.__attr_value, self.__attr_err = None, PyTango.DevFailed(*event.errors)
+            self.__attr_value, self.__attr_err = None, PyTango.DevFailed(
+                *event.errors)
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
             self._deactivatePolling()
@@ -490,19 +732,421 @@ class TangoAttribute(TaurusAttribute):
                 self.fireEvent(TaurusEventType.Error, self.__attr_err,
                                listeners=listeners)
 
+    def isWrite(self, cache=True):
+        return self.getTangoWritable(cache) == PyTango.AttrWriteType.WRITE
+
+    def isReadOnly(self, cache=True):
+        return not self.getTangoWritable(cache) == PyTango.AttrWriteType.READ
+
+    def isReadWrite(self, cache=True):
+        return self.getTangoWritable(cache) == PyTango.AttrWriteType.READ_WRITE
+
+    def getTangoWritable(self, cache=True):
+        '''like TaurusConfiguration.getWritable, but it returns a
+         PyTango.AttrWriteType instead of a bool'''
+        return self.tango_writable
+
+    def getLabel(self, cache=True):
+        return self._label
+
+    def getRange(self, cache=True):
+        return self._range
+
+    def getLimits(self, cache=True):
+        return self.getRange(cache)
+
+    def getRanges(self, cache=True):
+        return self.getRange()
+
+    def getAlarms(self, cache=True):
+        return self._alarm
+
+    def getWarnings(self, cache=True):
+        return self._warning
+
+    def getMaxDim(self, cache=True):
+        return self.max_dim_x, self.max_dim_y
+
+    def setLimits(self, low, high):
+        self.setRange([low, high])
+
+    def setLabel(self, lbl):
+        TaurusAttribute.setLabel(self, lbl)
+        infoex = self._pytango_attrinfoex
+        infoex.label = lbl
+        self._applyConfig()
+
+    def setRange(self, *limits):
+        if isinstance(limits[0], list):
+            limits = limits[0]
+        low, high = limits
+        low = Quantity(low)
+        high = Quantity(high)
+        TaurusAttribute.setRange(self, [low, high])
+        infoex = self._pytango_attrinfoex
+        if low.magnitude != float('-inf'):
+            infoex.min_value = str(low.to(self._units).magnitude)
+        else:
+            infoex.min_value = 'Not specified'
+        if high.magnitude != float('inf'):
+            infoex.max_value = str(high.to(self._units).magnitude)
+        else:
+            infoex.max_value = 'Not specified'
+        self._applyConfig()
+
+    def setWarnings(self, *limits):
+        if isinstance(limits[0], list):
+            limits = limits[0]
+        low, high = limits
+        low = Quantity(low)
+        high = Quantity(high)
+        TaurusAttribute.setWarnings(self, [low, high])
+        infoex = self._pytango_attrinfoex
+        if low.magnitude != float('-inf'):
+            infoex.alarms.min_warning = str(low.to(self._units).magnitude)
+        else:
+            infoex.alarms.min_warning = 'Not specified'
+        if high.magnitude != float('inf'):
+            infoex.alarms.max_warning = str(high.to(self._units).magnitude)
+        else:
+            infoex.alarms.max_warning = 'Not specified'
+        self._applyConfig()
+
+    def setAlarms(self, *limits):
+        if isinstance(limits[0], list):
+            limits = limits[0]
+        low, high = limits
+        low = Quantity(low)
+        high = Quantity(high)
+        TaurusAttribute.setAlarms(self, [low, high])
+        infoex = self._pytango_attrinfoex
+        if low.magnitude != float('-inf'):
+            infoex.alarms.min_alarm = str(low.to(self._units).magnitude)
+        else:
+            infoex.alarms.min_alarm = 'Not specified'
+        if high.magnitude != float('inf'):
+            infoex.alarms.max_alarm = str(high.to(self._units).magnitude)
+        else:
+            infoex.alarms.max_alarm = 'Not specified'
+        self._applyConfig()
+
+    def _applyConfig(self):
+        config = self._pytango_attrinfoex
+        self.setConfigEx(config)
+
+    def _decodeAttrInfoEx(self, pytango_attrinfoex=None):
+        if pytango_attrinfoex is None:
+            self._pytango_attrinfoex = PyTango.AttributeInfoEx()
+        else:
+            self._pytango_attrinfoex = i = pytango_attrinfoex
+
+            self.writable = i.writable != PyTango.AttrWriteType.READ
+            self._label = i.label
+            self.data_format = data_format_from_tango(i.data_format)
+            desc = description_from_tango(i.description)
+            if desc != "":
+                self._description = desc
+            self.type = data_type_from_tango(i.data_type)
+            ###############################################################
+            # changed in taurus4: range, alarm and warning now return
+            # quantities if appropriate
+            units = unit_from_tango(i.unit)
+            if PyTango.is_numerical_type(i.data_type, inc_array=True):
+                Q_ = partial(quantity_from_tango_str, units=units,
+                             dtype=i.data_type)
+                ninf, inf = float('-inf'), float('inf')
+                min_value = Q_(i.min_value) or Quantity(ninf, units)
+                max_value = Q_(i.max_value) or Quantity(inf, units)
+                min_alarm = Q_(i.alarms.min_alarm) or Quantity(ninf, units)
+                max_alarm = Q_(i.alarms.max_alarm) or Quantity(inf, units)
+                min_warning = Q_(i.alarms.min_warning) or Quantity(ninf, units)
+                max_warning = Q_(i.alarms.max_warning) or Quantity(inf, units)
+                self._range = [min_value, max_value]
+                self._warning = [min_warning, max_warning]
+                self._alarm = [min_alarm, max_alarm]
+
+            ###############################################################
+            # The following members will be accessed via __getattr__
+            # self.standard_unit
+            # self.display_unit
+            # self.disp_level
+            ###############################################################
+            # Tango-specific extension of TaurusConfigValue
+            self.display_level = display_level_from_tango(i.disp_level)
+            self.tango_writable = i.writable
+            self.max_dim = i.max_dim_x, i.max_dim_y
+            ###############################################################
+            self.format = standard_display_format_from_tango(i.data_type,
+                                                             i.format)
+            # self._units and self._display_format is to be used by
+            # TangoAttrValue for performance reasons. Do not rely on it in other
+            # code
+            self._units = units
+
+    @property
+    def _tango_data_type(self):
+        '''returns the *tango* (not Taurus) data type'''
+        return self._pytango_attrinfoex.data_type
+
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # Deprecated methods
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+    @tep14_deprecation(alt=".description")
+    def getDescription(self, cache=True):
+        return self.description
+
+    @tep14_deprecation(alt=".description")
+    def setDescription(self, descr):
+        self.description = descr
+
+    @tep14_deprecation()
     def isInformDeviceOfErrors(self):
         return False
 
+    @tep14_deprecation(dbg_msg='Deprecated method')
+    def displayValue(self, value):
+        return str(value)
 
-class TangoStateAttribute(TangoAttribute, TaurusStateAttribute):
-    def __init__(self, name, parent, **kwargs):
-        self.call__init__(TangoAttribute, name, parent, **kwargs)
-        self.call__init__(TaurusStateAttribute, name, parent, **kwargs)
+    @tep14_deprecation(alt='getLabel')
+    def getDisplayValue(self, cache=True):
+        attrvalue = self.getValueObj(cache=cache)
+        if not attrvalue:
+            return None
+        v = attrvalue.rvalue
+
+        return self.displayValue(v)
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def getStandardUnit(self, cache=True):
+        try:
+            return str(self.getValueObj(cache).rvalue.units)
+        except:
+            return None
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def getDisplayUnit(self, cache=True):
+        try:
+            return str(self.getValueObj(cache).rvalue.units)
+        except:
+            return None
+
+    @tep14_deprecation(dbg_msg='Do not use')
+    def getDisplayWriteValue(self, cache=True):
+        raise NotImplementedError("Not available since Taurus4")
+
+    @tep14_deprecation(alt='isWritable')
+    def getWritable(self, cache=True):
+        return self.isWritable(cache)
+
+    @tep14_deprecation(alt='self.data_format')
+    def isScalar(self):
+        return self.data_format == DataFormat._0D
+
+    @tep14_deprecation(alt='self.data_format')
+    def isSpectrum(self):
+        return self.data_format == DataFormat._1D
+
+    @tep14_deprecation(alt='self.data_format')
+    def isImage(self):
+        return self.data_format == DataFormat._2D
+
+    @tep14_deprecation(alt='getMaxDim')
+    def getMaxDimX(self, cache=True):
+        dim = self.getMaxDim(cache)
+        if dim:
+            return dim[0]
+        else:
+            return None
+
+    @tep14_deprecation(alt='getMaxDim')
+    def getMaxDimY(self, cache=True):
+        dim = self.getMaxDim(cache)
+        if dim:
+            return dim[1]
+        else:
+            return None
+
+    @tep14_deprecation(dbg_msg='Deprecated method')
+    def getShape(self, cache=True):
+        if self.isScalar(cache):
+            return ()
+        elif self.isSpectrum():
+            return (self.getMaxDimX(),)
+        else:
+            return self.getMaxDim()
+
+    @tep14_deprecation(alt='getAttributeInfoEx')
+    def getParam(self, param_name):
+        """ Get attributes of AttributeInfoEx (PyTango)
+        """
+        try:
+            return getattr(self._pytango_attrinfoex, param_name)
+        except:
+            return None
+
+    @tep14_deprecation(alt='PyTango')
+    def setParam(self, param_name, value):
+        """ Set attributes of AttributeInfoEx (PyTango)
+        """
+        if hasattr(self._pytango_attrinfoex, param_name):
+            setattr(self._pytango_attrinfoex, param_name, str(value))
+        self._applyConfig()
+
+    @tep14_deprecation(alt='self')
+    def getConfig(self):
+        """ Returns the current configuration of the attribute."""
+        return weakref.proxy(self)
+
+    def getAttributeInfoEx(self):
+        return self._pytango_attrinfoex
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def getUnit(self, cache=True):
+        try:
+            return str(self.getValueObj(cache).rvalue.units)
+        except:
+            return None
+
+    @tep14_deprecation(alt='.rvalue.units')
+    def _set_unit(self, value):
+        '''for backwards compat with taurus < 4'''
+        extra_msg = 'Ignoring setting of units of %s to %r' % (self.name,
+                                                               value)
+        self.debug(extra_msg)
+
+    @tep14_deprecation(alt='getMinRange')
+    def getMinValue(self, cache=True):
+        return self.getMinRange()
+
+    @tep14_deprecation(alt='getMaxRange')
+    def getMaxValue(self, cache=True):
+        return self.getMaxRange()
+
+    @tep14_deprecation(alt='getRange')
+    def getCLimits(self):
+        if self._pytango_attrinfoex is not None:
+            value = [self._pytango_attrinfoex.min_value,
+                     self._pytango_attrinfoex.max_value]
+        else:
+            value = [self.not_specified, self.not_specified]
+        return value
+
+    @tep14_deprecation(alt='getAlarms')
+    def getCAlarms(self):
+        if self._pytango_attrinfoex is not None:
+            value = [self._pytango_attrinfoex.min_alarm,
+                     self._pytango_attrinfoex.max_alarm]
+        else:
+            value = [self.not_specified, self.not_specified]
+        return value
+
+    @tep14_deprecation(alt='getWarnings')
+    def getCWarnings(self):
+        if self._pytango_attrinfoex is not None:
+            value = [self._pytango_attrinfoex.alarms.min_warning,
+                     self._pytango_attrinfoex.alarms.max_warning]
+        else:
+            value = [self.not_specified, self.not_specified]
+        return value
+
+    @tep14_deprecation(alt='getRange + getAlarms + getWarnings')
+    def getCRanges(self):
+        if self._pytango_attrinfoex is not None:
+            value = [self._pytango_attrinfoex.min_value,
+                     self._pytango_attrinfoex.min_alarm,
+                     self._pytango_attrinfoex.alarms.min_warning,
+                     self._pytango_attrinfoex.alarms.max_warning,
+                     self._pytango_attrinfoex.max_alarm,
+                     self._pytango_attrinfoex.max_value]
+        else:
+            value = [self.not_specified, self.not_specified,
+                     self.not_specified, self.not_specified,
+                     self.not_specified, self.not_specified]
+        return value
+
+    @tep14_deprecation(alt='.alarms[0]')
+    def getMinAlarm(self):
+        if self._pytango_attrinfoex is None:
+            return None
+        return self._pytango_attrinfoex.alarms.min_alarm
+
+    @tep14_deprecation(alt='.alarms[1]')
+    def getMaxAlarm(self):
+        if self._pytango_attrinfoex is None:
+            return None
+        return self._pytango_attrinfoex.alarms.max_alarm
+
+    @tep14_deprecation(alt='.warnings[0]')
+    def getMinWarning(self):
+        if self._pytango_attrinfoex is None:
+            return None
+        return self._pytango_attrinfoex.alarms.min_warning
+
+    @tep14_deprecation(alt='.warnings[1]')
+    def getMaxWarning(self):
+        if self._pytango_attrinfoex is None:
+            return None
+        return self._pytango_attrinfoex.alarms.max_warning
+
+    @tep14_deprecation(alt='.alarms')
+    def setMinAlarm(self, value):
+        if self._pytango_attrinfoex is None:
+            self._pytango_attrinfoex.alarms.min_alarm = str(value)
+            self._applyConfig()
+
+    @tep14_deprecation(alt='.alarms')
+    def setMaxAlarm(self, value):
+        if self._pytango_attrinfoex is None:
+            self._pytango_attrinfoex.alarms.max_alarm = str(value)
+            self._applyConfig()
+
+    @tep14_deprecation(alt='.warnings')
+    def setMinWarning(self, value):
+        if self._pytango_attrinfoex is None:
+            self._pytango_attrinfoex.alarms.min_warning = str(value)
+            self._applyConfig()
+
+    @tep14_deprecation(alt='.warnings')
+    def setMaxWarning(self, value):
+        if self._pytango_attrinfoex is None:
+            self._pytango_attrinfoex.alarms.max_warning = str(value)
+            self._applyConfig()
+
+    # deprecated property!
+    unit = property(getUnit, _set_unit)
+    climits = property(getCLimits)
+    calarms = property(getCAlarms)
+    cwarnings = property(getCAlarms)
+    cranges = property(getCRanges)
+
+    min_alarm = property(getMinAlarm, setMinAlarm)
+    max_alarm = property(getMaxAlarm, setMaxAlarm)
+    min_warning = property(getMinWarning, setMinWarning)
+    max_warning = property(getMaxWarning, setMaxWarning)
+
+    # properties
+    label = property(getLabel, setLabel)
+    range = property(getRange, setRange)
+    warnings = property(getWarnings, setWarnings)
+    alarms = property(getAlarms, setAlarms)
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, descr):
+        if descr != self._description:
+            if descr == '':
+                descr = 'A Tango Attribute'
+            self._description = descr
+            self._applyConfig()
 
 
 class TangoAttributeEventListener(EventListener):
     """A class that listens for an event with a specific value
-    
+
     Note: Since this class stores for each event value the last timestamp when
     it occured, it should only be used for events for which the event value
     domain (possible values) is limited and well known (ex: an enum)"""
@@ -518,7 +1162,6 @@ class TangoAttributeEventListener(EventListener):
         self.fireEvent(v.value)
 
 
-
 def test1():
     import numpy
     from taurus import Attribute
@@ -528,4 +1171,3 @@ def test1():
 
 if __name__ == "__main__":
     test1()
-

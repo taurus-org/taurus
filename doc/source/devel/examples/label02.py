@@ -12,7 +12,7 @@ w1 = TaurusLabel()
 w2 = TaurusLabel()
 layout.addWidget(w1)
 layout.addWidget(w2)
-w1.model = 'sys/tg_test/1/double_scalar?configuration=label'
+w1.model = 'sys/tg_test/1/double_scalar#label'
 w1.bgRole = ''
 w2.model = 'sys/tg_test/1/double_scalar'
 

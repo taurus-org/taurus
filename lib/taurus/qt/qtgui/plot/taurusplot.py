@@ -2,31 +2,32 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 """
 taurusplot.py: Generic graphical plotting widget for Taurus
 """
-__all__=["TaurusCurve", "TaurusCurveMarker", "TaurusXValues", "TaurusPlot", "isodatestr2float"]
+__all__ = ["TaurusCurve", "TaurusCurveMarker",
+           "TaurusXValues", "TaurusPlot", "isodatestr2float"]
 
 import os
 import copy
@@ -35,75 +36,84 @@ import time
 import numpy
 from taurus.external.qt import Qt, Qwt5
 
-import PyTango
-
+import taurus
 import taurus.core
+from taurus.core.taurusmanager import getSchemeFromName
+from taurus.core.taurusbasetypes import DataFormat
+# TODO: Tango-centric
 from taurus.core.util.containers import LoopList, CaselessDict, CaselessList
 from taurus.core.util.safeeval import SafeEvaluator
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.plot import TaurusPlotConfigDialog, FancyScaleDraw,\
-                           DateTimeScaleEngine, FixedLabelsScaleEngine, FixedLabelsScaleDraw
+    DateTimeScaleEngine, FixedLabelsScaleEngine, FixedLabelsScaleDraw
 from curvesAppearanceChooserDlg import CurveAppearanceProperties
 from taurus.qt.qtgui.resource import getThemeIcon
+
 
 def isodatestr2float(s, sep='_'):
     '''
     converts a date string in iso format to a timestamp (seconds since epoch)
     with microseconds precision
     '''
-    d = datetime.strptime(s,'%Y-%m-%d'+sep+'%H:%M:%S.%f')
-    return time.mktime(d.timetuple()) + d.microsecond*1e-6
-    
+    d = datetime.strptime(s, '%Y-%m-%d' + sep + '%H:%M:%S.%f')
+    return time.mktime(d.timetuple()) + d.microsecond * 1e-6
+
 
 #import threading
 class DummyLock(object):
+
     def acquire(self):
         pass
+
     def release(self):
         pass
 
-##for debugging. Comment out in production
+# for debugging. Comment out in production
 #from taurus.core.util.log import TraceIt, DebugIt, InfoIt, WarnIt
 
 
 DFT_CURVE_PENS = [Qt.QPen(Qt.Qt.red),
-                 Qt.QPen(Qt.Qt.blue),
-                 Qt.QPen(Qt.Qt.green),
-                 Qt.QPen(Qt.Qt.magenta),
-                 Qt.QPen(Qt.Qt.cyan),
-                 Qt.QPen(Qt.Qt.yellow),
-                 Qt.QPen(Qt.Qt.black)]
+                  Qt.QPen(Qt.Qt.blue),
+                  Qt.QPen(Qt.Qt.green),
+                  Qt.QPen(Qt.Qt.magenta),
+                  Qt.QPen(Qt.Qt.cyan),
+                  Qt.QPen(Qt.Qt.yellow),
+                  Qt.QPen(Qt.Qt.black)]
 
 for __p in DFT_CURVE_PENS:
-    __p.setWidth(1) # TODO: we would like this to be 2, but bug #171 forces 1
+    __p.setWidth(1)  # TODO: we would like this to be 2, but bug #171 forces 1
+
 
 class TaurusZoomer(Qwt5.QwtPlotZoomer):
     '''A QwtPlotZoomer that displays the label assuming that X values are timestamps'''
+
     def __init__(self, *args):
         Qwt5.QwtPlotZoomer.__init__(self, *args)
         self._xIsTime = False
-        
+
     def setXIsTime(self, xistime):
         '''If xistime is True, the x values will be interpreted as timestamps
-        
+
         :param xistime: (bool)
         '''
         self._xIsTime = xistime
-        
+
     def trackerText(self, pos):
         '''reimplemented from :meth:`Qwt5.QwtPicker.trackerText`'''
         pos = self.invTransform(pos)
         if self._xIsTime:
             x = datetime.fromtimestamp(pos.x()).isoformat(' ')
         else:
-            x = '%g'%pos.x()
-        y = '%g'%pos.y()
-        return Qwt5.QwtText(', '.join((x,y)))
-    
+            x = '%g' % pos.x()
+        y = '%g' % pos.y()
+        return Qwt5.QwtText(', '.join((x, y)))
+
+
 class TaurusCurveMarker(Qwt5.QwtPlotMarker, TaurusBaseComponent):
     '''Taurus-enabled custom version of QwtPlotMarker
     '''
+
     def __init__(self, name, parent=None, labelOpacity=0.7):
         self.call__init__wo_kw(Qwt5.QwtPlotMarker)
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
@@ -112,12 +122,14 @@ class TaurusCurveMarker(Qwt5.QwtPlotMarker, TaurusBaseComponent):
         self.setLabelAlignment(Qt.Qt.AlignRight | Qt.Qt.AlignBottom)
         text = Qwt5.QwtText('')
         text.setColor(Qt.Qt.black)
-        text.setBackgroundBrush(Qt.QBrush(Qt.QColor(0,255,0,int(255*labelOpacity)))) #a semi-transparent green background for the label
+        # a semi-transparent green background for the label
+        text.setBackgroundBrush(
+            Qt.QBrush(Qt.QColor(0, 255, 0, int(255 * labelOpacity))))
         self.setLabel(text)
         self.setSymbol(Qwt5.QwtSymbol(Qwt5.QwtSymbol.Diamond,
-                                  Qt.QBrush(Qt.Qt.yellow),
-                                  Qt.QPen(Qt.Qt.green),
-                                  Qt.QSize(7,7)))
+                                      Qt.QBrush(Qt.Qt.yellow),
+                                      Qt.QPen(Qt.Qt.green),
+                                      Qt.QSize(7, 7)))
 
     def alignLabel(self):
         '''Sets the label alignment in a "smart" way (depending on the current
@@ -125,17 +137,18 @@ class TaurusCurveMarker(Qwt5.QwtPlotMarker, TaurusBaseComponent):
         '''
         xmap = self.plot().canvasMap(self.xAxis())
         ymap = self.plot().canvasMap(self.yAxis())
-        xmiddlepoint = xmap.p1() + xmap.pDist()/2 #p1,p2 are left,right here
-        ymiddlepoint = ymap.p2() + ymap.pDist()/2 #p1,p2 are bottom,top here (and pixel coords start from top!)
+        xmiddlepoint = xmap.p1() + xmap.pDist() / 2  # p1,p2 are left,right here
+        # p1,p2 are bottom,top here (and pixel coords start from top!)
+        ymiddlepoint = ymap.p2() + ymap.pDist() / 2
         xPaintPos = xmap.transform(self.xValue())
         yPaintPos = ymap.transform(self.yValue())
 
-        if xPaintPos > xmiddlepoint: #the point in the right side
+        if xPaintPos > xmiddlepoint:  # the point in the right side
             hAlign = Qt.Qt.AlignLeft
         else:
             hAlign = Qt.Qt.AlignRight
 
-        if yPaintPos > ymiddlepoint: #the point is in the bottom side
+        if yPaintPos > ymiddlepoint:  # the point is in the bottom side
             vAlign = Qt.Qt.AlignTop
         else:
             vAlign = Qt.Qt.AlignBottom
@@ -147,7 +160,8 @@ class TaurusXValues(TaurusBaseComponent):
     '''
     Class for managing abscissas values in a TaurusCurve
     '''
-    def __init__(self, name, parent = None):
+
+    def __init__(self, name, parent=None):
         self._xValues = None
         self._signalGen = Qt.QObject()
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
@@ -163,38 +177,44 @@ class TaurusXValues(TaurusBaseComponent):
         model = src if src is not None else self.getModelObj()
         if model is None:
             self._xValues = numpy.zeros(0)
-            for l in self._listeners : l.fireEvent(model, evt_type, val)
+            for l in self._listeners:
+                l.fireEvent(model, evt_type, val)
             return
 
         format = getattr(val, 'data_format', model.getDataFormat())
-        if format == PyTango.AttrDataFormat.SPECTRUM:
-            value =  val if val is not None else self.getModelValueObj()
+        if format == DataFormat._1D:
+            value = val if val is not None else self.getModelValueObj()
             if value:
                 self._xValues = numpy.array(value.value)
             else:
                 self._xValues = numpy.zeros(0)
-        for l in self._listeners : l.fireEvent(src, evt_type, val) #all listeners are notified via fireEvent when the X changes
+        for l in self._listeners:
+            # all listeners are notified via fireEvent when the X changes
+            l.fireEvent(src, evt_type, val)
 
     def preAttach(self):
         """reimplemented because this cannot use signals(they are not
         QObjects). see :meth:`TaurusBaseComponent.preAttach`"""
-        self._signalGen.connect(self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent)
+        self._signalGen.connect(self._signalGen, Qt.SIGNAL(
+            'taurusEvent'), self.filterEvent)
 
     def preDetach(self):
         """reimplemented because this cannot use signals(they are not QObjects).
         See :meth:`TaurusBaseComponent.preDetach`"""
-        self._signalGen.disconnect(self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent)
+        self._signalGen.disconnect(
+            self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent)
 
     def fireEvent(self,  evt_src, evt_type, evt_value):
         """reimplemented because this cannot use signals(they are not QObjects).
         see :meth:`TaurusBaseComponent.fireEvent`"""
-        self._signalGen.emit(Qt.SIGNAL('taurusEvent'),  evt_src, evt_type, evt_value)
+        self._signalGen.emit(Qt.SIGNAL('taurusEvent'),
+                             evt_src, evt_type, evt_value)
 
-    def registerDataChanged(self,listener):
+    def registerDataChanged(self, listener):
         '''see :meth:`TaurusBaseComponent.registerDataChanged`'''
         self._listeners.append(listener)
 
-    def unregisterDataChanged(self,listener):
+    def unregisterDataChanged(self, listener):
         '''see :meth:`TaurusBaseComponent.unregisterDataChanged`'''
         self._listeners.remove(listener)
 
@@ -240,13 +260,16 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
     information about which TaurusCurves are attached. Therefore the programmer
     should never attach/detach a TaurusCurve manually.
     '''
-    consecutiveDroppedEventsWarning = 3 #number consecutive of dropped events before issuing a warning (-1 for disabling)
-    droppedEventsWarning = -1 #absolute number of dropped events before issuing a warning (-1 for disabling)
-    def __init__(self, name, xname=None, parent = None, rawData=None, optimized=False):
+    consecutiveDroppedEventsWarning = 3  # number consecutive of dropped events before issuing a warning (-1 for disabling)
+    # absolute number of dropped events before issuing a warning (-1 for
+    # disabling)
+    droppedEventsWarning = -1
+
+    def __init__(self, name, xname=None, parent=None, rawData=None, optimized=False):
 
         Qwt5.QwtPlotCurve.__init__(self)
         TaurusBaseComponent.__init__(self, 'TaurusCurve')
-        self._rawData=rawData
+        self._rawData = rawData
         self._xValues = None
         self._yValues = None
         self._showMaxPeak = False
@@ -260,7 +283,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         self._maxPeakMarker = TaurusCurveMarker(name, self)
         self._minPeakMarker = TaurusCurveMarker(name, self)
         self.__curveName = name
-        self.isRawData= not(rawData is None)
+        self.isRawData = not(rawData is None)
         self.droppedEventsCount = 0
         self.consecutiveDroppedEventsCount = 0
         if optimized:
@@ -274,7 +297,6 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         else:
             self.__xFromAttr = None
 
-
         if name and not self.isRawData:
             try:
                 self.setModel(name)
@@ -282,10 +304,10 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                 self.error("Problems when adding curve " + str(name))
                 self.traceback()
 
-                
+
 #    @staticmethod
 #    def defaultMarkerFormatter(self,curve,label,i,x,y,xIsTime):
-#        """ 
+#        """
 #        Returns the text to be shown in  plot tooltips/markers.
 #        :param curve: the name of the curve
 #        :param label: the label to be displayed
@@ -294,16 +316,16 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
 #        :param y: y axis position
 #        :param xIsTime: To adapt format to time if needed
 #        :return: (str)
-#        """           
+#        """
 #        #@todo: Check: is this method ever called??? It seems it is not since it is buggy and we don't see problems
 #        if self.getXIsTime():
 #            infotxt = "'%s'[%i]:\n\t (t=%s, y=%.3g)"%(pickedCurveName,pickedIndex,datetime.fromtimestamp(picked.x()).ctime(),picked.y())
 #        else:
-#            infotxt = "'%s'[%i]:\n\t (x=%.3g, y=%.3g)"%(pickedCurveName,pickedIndex,picked.x(),picked.y())   
+#            infotxt = "'%s'[%i]:\n\t (x=%.3g, y=%.3g)"%(pickedCurveName,pickedIndex,picked.x(),picked.y())
 #        return infotxt
-#                
+#
 #    def setMarkerFormatter(self,formatter):
-#        """ 
+#        """
 #        Sets formatter method for plot tooltips/markers.
 #        The method must have at least 4 arguments:
 #        :param curve: the name of the curve
@@ -312,17 +334,17 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
 #        :param x: x axis position
 #        :param y: y axis position
 #        :param xIsTime: To adapt format to time if needed
-#        """        
+#        """
 #        self._markerFormatter = formatter
-#        
+#
 #    def markerFormatter(self):
-#        """ 
+#        """
 #        Returns the method used to format plot tooltips
-#        
+#
 #        :return: (function)
 #        """
 #        return self._formatter
-        
+
     def getCurveName(self):
         '''Returns the name of the curve (in the case of non RawDataCurves, it
         is the same as the model name)
@@ -343,7 +365,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         self._titleText = titletext
         self.updateTitle()
 
-    def titleText(self, compiled = False):
+    def titleText(self, compiled=False):
         '''Returns the titleText string. If compiled == True, the returned string
         will be processed through compileTitleText
 
@@ -355,7 +377,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         .. seealso:: :meth:`compileTitleText`
         '''
         if compiled:
-            return self.compileTitleText(self._titleText )
+            return self.compileTitleText(self._titleText)
         else:
             return self._titleText
 
@@ -368,7 +390,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         self.itemChanged()
 
     def compileTitleText(self, titletext):
-        '''Substitutes the known placeholders by the current equivalent values
+        """Substitutes the known placeholders by the current equivalent values
         for a titleText.
 
         *Note*: Some placeholders may not make sense for certain curves (e.g.
@@ -382,41 +404,48 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                             - <label> the attribute label (default)
                             - <model> the model name
                             - <attr_name> attribute name
-                            - <attr_fullname> full attribute name (for backwards compatibility, <attr_full_name> is also accepted)
+                            - <attr_fullname> full attribute name (for backwards
+                              compatibility, <attr_full_name> is also accepted)
                             - <dev_alias> device alias
                             - <dev_name> device name
-                            - <dev_fullname> full device name (for backwards compatibility, <dev_full_name> is also accepted)
+                            - <dev_fullname> full device name (for backwards
+                              compatibility, <dev_full_name> is also accepted)
                             - <current_title> The current title
 
         :return: (str) a title string where the placeholders have been
                  substituted by their corresponding values
-        '''
-        #All TaurusCurves can deal with at least these placeholders
-        titletext = titletext.replace('<current_title>',str(self.title().text()))
-        titletext = titletext.replace('<model>',self.getModel())
+        """
+        # All TaurusCurves can deal with at least these placeholders
+        titletext = titletext.replace('<current_title>',
+                                      str(self.title().text()))
+        titletext = titletext.replace('<model>', self.getModel())
         attr = self.getModelObj()
         if attr is None:
             return titletext
-        #TaurusCurves for which we can get the Attribute...
-        titletext = titletext.replace('<label>',attr.label or '---')
-        titletext = titletext.replace('<attr_name>',attr.name or '---')
-        titletext = titletext.replace('<attr_fullname>',attr.getFullName() or '---')
-        titletext = titletext.replace('<attr_full_name>',attr.getFullName() or '---')
-        titletext = titletext.replace('<dev_alias>',attr.dev_alias or '---')
-        titletext = titletext.replace('<dev_name>',attr.dev_name or '---')
+        # TaurusCurves for which we can get the Attribute...
+        titletext = titletext.replace('<label>', attr.label or '---')
+        titletext = titletext.replace('<attr_name>', attr.name or '---')
+        titletext = titletext.replace('<attr_fullname>',
+                                      attr.getFullName() or '---')
+        titletext = titletext.replace('<attr_full_name>',
+                                      attr.getFullName() or '---')
 
         dev = attr.getParentObj()
-        if dev is None:
-            return titletext
-        #TaurusCurves for which we can get the Device object...
-        titletext = titletext.replace('<dev_fullname>',dev.getFullName() or '---')
-        titletext = titletext.replace('<dev_full_name>',dev.getFullName() or '---')
+        if dev is not None:
+            # TaurusCurves for which we can get the Device object...
+            titletext = titletext.replace('<dev_alias>',
+                                          dev.getSimpleName() or '---')
+            titletext = titletext.replace('<dev_name>',
+                                          dev.getNormalName() or '---')
+            titletext = titletext.replace('<dev_fullname>',
+                                          dev.getFullName() or '---')
+            titletext = titletext.replace('<dev_full_name>',
+                                          dev.getFullName() or '---')
         return titletext
 
-
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     # Convenience attach/detach methods
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
     def attachMarkers(self, plot):
         '''attach markers to the plot
@@ -481,7 +510,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
 
     def getSignaller(self):
         '''See :meth:`TaurusBaseComponent.getSignaller` '''
-        return self._signalGen   
+        return self._signalGen
 
     def getModelClass(self):
         '''See :meth:`TaurusBaseComponent.getModelClass`'''
@@ -549,15 +578,17 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         if model is None:
             self._xValues = numpy.zeros(0)
             self._yValues = numpy.zeros(0)
-            self._signalGen.emit(Qt.SIGNAL("dataChanged(const QString &)"), str(self.getModel()))
+            self._signalGen.emit(
+                Qt.SIGNAL("dataChanged(const QString &)"), str(self.getModel()))
             return
 
         if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
             self.updateTitle()
 
-        value = val if isinstance(val, (PyTango.DeviceAttribute, taurus.core.taurusbasetypes.TaurusAttrValue)) else self.getModelValueObj()
-        if not isinstance(value, (PyTango.DeviceAttribute, taurus.core.taurusbasetypes.TaurusAttrValue)):
-            self._onDroppedEvent(reason="Could not get DeviceAttribute value")
+        value = val if isinstance(
+            val, taurus.core.taurusbasetypes.TaurusAttrValue) else self.getModelValueObj()
+        if not isinstance(value, taurus.core.taurusbasetypes.TaurusAttrValue):
+            self._onDroppedEvent(reason="Could not get attribute value")
             return
         try:
             self.setXYFromModel(value)
@@ -565,11 +596,12 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
             self._onDroppedEvent(reason=str(e))
             return
         self._updateMarkers()
-        self._signalGen.emit(Qt.SIGNAL("dataChanged(const QString &)"), str(self.getModel()))
-        
+        self._signalGen.emit(
+            Qt.SIGNAL("dataChanged(const QString &)"), str(self.getModel()))
+
     def _onDroppedEvent(self, reason='Unknown'):
         '''inform the user about a dropped event
-        
+
         :param reason: (str) The reason of the drop
         '''
         self.debug("Droping event. Reason %s", reason)
@@ -578,59 +610,72 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         mustwarn = False
         if self.droppedEventsCount == self.droppedEventsWarning:
             mustwarn = True
-            msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' + 
-                   'Future occurrences will be silently ignored')%(self.droppedEventsWarning, self.modelName)
-            self.consecutiveDroppedEventsWarning = -1 #disable the consecutive Dropped events warning (we do not want it if we got this one)
+            msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' +
+                   'Future occurrences will be silently ignored') % (self.droppedEventsWarning, self.modelName)
+            # disable the consecutive Dropped events warning (we do not want it
+            # if we got this one)
+            self.consecutiveDroppedEventsWarning = -1
         if self.consecutiveDroppedEventsCount == self.consecutiveDroppedEventsWarning:
             mustwarn = True
-            msg = ('At least %i consecutive events from model "%s" have being dropped. This attribute may have problems\n' + 
-                   'Future occurrences will be silently ignored')%(self.consecutiveDroppedEventsWarning, self.modelName)
-            self.consecutiveDroppedEventsWarning = -1 #disable the consecutive Dropped events warning 
-        if mustwarn:        
+            msg = ('At least %i consecutive events from model "%s" have being dropped. This attribute may have problems\n' +
+                   'Future occurrences will be silently ignored') % (self.consecutiveDroppedEventsWarning, self.modelName)
+            # disable the consecutive Dropped events warning
+            self.consecutiveDroppedEventsWarning = -1
+        if mustwarn:
             self.warning(msg)
-            p = self.plot() 
+            p = self.plot()
             if p:
                 c = p.canvas()
-                msg2 = "Errors reading %s (%s)"%(self.titleText(compiled=True), self.modelName)
+                msg2 = "Errors reading %s (%s)" % (
+                    self.titleText(compiled=True), self.modelName)
                 Qt.QToolTip.showText(c.mapToGlobal(c.pos()), msg2, c)
                 #Qt.QMessageBox.warning(p, "Errors in curve %s"%self.titleText(compiled=True), msg, Qt.QMessageBox.Ok)
-            
 
         if self.droppedEventsCount == self.droppedEventsWarning:
             mustwarn = True
-            msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' + 
-                   'Future occurrences will be silently ignored')%(self.droppedEventsWarning, self.modelName)
+            msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' +
+                   'Future occurrences will be silently ignored') % (self.droppedEventsWarning, self.modelName)
             self.warning(msg)
-            p = self.plot() 
+            p = self.plot()
             if p:
                 c = p.canvas()
                 msg = ''
                 Qt.QToolTip.showText(c.pos(), msg, c)
                 #Qt.QMessageBox.warning(p, "Errors in curve %s"%self.titleText(compiled=True), msg, Qt.QMessageBox.Ok)
-            
+
     def _updateMarkers(self):
         '''updates min & max markers if needed'''
         if self.isVisible():
             if self._showMaxPeak:
-                try: maxpoint = [self._xValues[self._yValues.argmax()],self._yValues.max()]
-                except: maxpoint = [0, 0]
+                try:
+                    maxpoint = [self._xValues[
+                        self._yValues.argmax()], self._yValues.max()]
+                except:
+                    maxpoint = [0, 0]
                 self._maxPeakMarker.setValue(*maxpoint)
                 label = self._maxPeakMarker.label()
                 if self.plot().getXIsTime():
-                    label.setText("Max. " + str(self.title().text()) + " " + repr(maxpoint[1]) + ' at t = ' + datetime.fromtimestamp(maxpoint[0]).ctime())
+                    label.setText("Max. " + str(self.title().text()) + " " + repr(
+                        maxpoint[1]) + ' at t = ' + datetime.fromtimestamp(maxpoint[0]).ctime())
                 else:
-                    label.setText("Max. " + str(self.title().text()) + " " + repr(maxpoint[1]) + ' at x = ' + repr(maxpoint[0]))
-                    
+                    label.setText("Max. " + str(self.title().text()) + " " +
+                                  repr(maxpoint[1]) + ' at x = ' + repr(maxpoint[0]))
+
                 self._maxPeakMarker.setLabel(label)
             if self._showMinPeak:
-                try: minpoint = [self._xValues[self._yValues.argmin()],self._yValues.min()]
-                except: minpoint = [0,0]
+                try:
+                    minpoint = [self._xValues[
+                        self._yValues.argmin()], self._yValues.min()]
+                except:
+                    minpoint = [0, 0]
                 self._minPeakMarker.setValue(*minpoint)
                 label = self._minPeakMarker.label()
                 if self.plot().getXIsTime():
-                    label.setText("Min. " + str(self.title().text()) + " " + repr(minpoint[1]) + ' at t = ' + datetime.fromtimestamp(minpoint[0]).ctime())
+                    label.setText("Min. " + str(self.title().text()) + " " + repr(
+                        minpoint[1]) + ' at t = ' + datetime.fromtimestamp(minpoint[0]).ctime())
                 else:
-                    label.setText("Min. " + str(self.title().text()) + " " + repr(minpoint[1]) + ' at x = ' + repr(minpoint[0]))
+                    label.setText("Min. " + str(self.title().text()) + " " +
+                                  repr(minpoint[1]) + ' at x = ' + repr(minpoint[0]))
                 self._minPeakMarker.setLabel(label)
 
     def setXYFromModel(self, value):
@@ -638,38 +683,47 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         given model. This method can be reimplemented by subclasses of Taurusplot
         that behave differently (e.g. TaurusTrend)
 
-        :param value: (PyTango.DeviceAttribute) the value object from the model
+        :param value: (TaurusAttrValue) the value object from the model
         """
-        if value.data_format == PyTango.AttrDataFormat.SPECTRUM:
+        attr = self.getModelObj()
+        if attr.data_format == DataFormat._1D:
+            # TODO: Adapt all values to be plotted to the same Unit
             if value:
-                self._yValues = numpy.array(value.value)
+                self._yValues = numpy.array(value.rvalue.magnitude)
             else:
                 self._yValues = numpy.zeros(0)
             self._xValues = self.getXValues()
         else:
-            raise ValueError("""TaurusCurve only supports SPECTRUM attributes(a %s was passed).
-                             \n Note: if you want a trend plot, use TaurusTrendCurve instead of TaurusCurve."""%str(value.data_format))
+            raise ValueError('TaurusCurve only supports SPECTRUM attributes '
+                             '(a %s was passed). \n'
+                             'Note: if you want a trend plot, use '
+                             'TaurusTrendCurve instead of '
+                             'TaurusCurve.' % str(DataFormat[attr.data_format]))
 
-    def setPaused(self, paused = True):
+    def setPaused(self, paused=True):
         '''Pauses itself and other listeners depending on it
 
         .. seealso:: :meth:`TaurusBaseComponent.setPaused`
         '''
         TaurusBaseComponent.setPaused(self, paused)
         for ob in (self.__xFromAttr, self._maxPeakMarker, self._minPeakMarker):
-            try: ob.setPaused(paused)
-            except AttributeError: pass
+            try:
+                ob.setPaused(paused)
+            except AttributeError:
+                pass
 
-    def setAppearanceProperties(self,prop):
+    def setAppearanceProperties(self, prop):
         """Applies the given CurveAppearanceProperties object (prop) to the curve.
         If a given property is set to None, it is not applied
 
         :param prop: (CurveAppearanceProperties)
         """
-        prop=copy.deepcopy(prop)
+        prop = copy.deepcopy(prop)
         s = Qwt5.QwtSymbol(self.symbol())
-        if prop.sStyle is not None: s.setStyle(Qwt5.QwtSymbol.Style(prop.sStyle))
-        if prop.sSize is not None: s.setSize(prop.sSize)
+        if prop.sStyle is not None:
+            s.setStyle(Qwt5.QwtSymbol.Style(prop.sStyle))
+        if prop.sSize is not None:
+            s.setSize(prop.sSize)
         if prop.sColor is not None:
             b = s.brush()
             p = s.pen()
@@ -688,47 +742,55 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                 s.brush().setStyle(Qt.Qt.NoBrush)
                 s.setBrush(b)
         p = Qt.QPen(self.pen())
-        if prop.lStyle is not None: p.setStyle(prop.lStyle)
-        if prop.lWidth is not None: p.setWidth(prop.lWidth)
-        if prop.lColor is not None: p.setColor(Qt.QColor(prop.lColor))
-        if prop.cStyle is not None: self.setStyle(prop.cStyle)
+        if prop.lStyle is not None:
+            p.setStyle(prop.lStyle)
+        if prop.lWidth is not None:
+            p.setWidth(prop.lWidth)
+        if prop.lColor is not None:
+            p.setColor(Qt.QColor(prop.lColor))
+        if prop.cStyle is not None:
+            self.setStyle(prop.cStyle)
         if prop.cFill is not None:
             b = Qt.QBrush(self.brush())
-            if prop.cFill:  #The area under the curve is filled with the same color as the curve but with 50% transparency
+            if prop.cFill:  # The area under the curve is filled with the same color as the curve but with 50% transparency
                 color = p.color()
                 color.setAlphaF(0.5)
                 b.setColor(color)
                 b.setStyle(Qt.Qt.SolidPattern)
             else:
                 b.setStyle(Qt.Qt.NoBrush)
-            self.setBrush(b)            
-        if prop.yAxis is not None: self.setYAxis(prop.yAxis)
-        if getattr(prop,"visible",None) is not None: self.setVisible(prop.visible)
-        if prop.title is not None: self.setTitleText(prop.title)
+            self.setBrush(b)
+        if prop.yAxis is not None:
+            self.setYAxis(prop.yAxis)
+        if getattr(prop, "visible", None) is not None:
+            self.setVisible(prop.visible)
+        if prop.title is not None:
+            self.setTitleText(prop.title)
         self.setSymbol(s)
         self.setPen(p)
-        
 
     def getAppearanceProperties(self):
         """Returns the appearance properties of the curve (color, symbol, width,...).
 
         :return: (CurveAppearanceProperties)
         """
-        prop=CurveAppearanceProperties()
-        s=self.symbol()
-        prop.sStyle=s.style()
-        prop.sSize=s.size().width() #We are only supporting symbols with width==heigh
-        prop.sColor=s.brush().color()
-        prop.sFill= (s.brush().style() != Qt.Qt.NoBrush)
-        p=self.pen()
-        prop.lStyle=p.style()
-        prop.lWidth=p.width()
-        prop.lColor=p.color()
-        prop.cStyle=self.style()
-        prop.cFill= (self.brush().style() != Qt.Qt.NoBrush)
-        prop.yAxis=self.yAxis()
+        prop = CurveAppearanceProperties()
+        s = self.symbol()
+        prop.sStyle = s.style()
+        prop.sSize = s.size().width()  # We are only supporting symbols with width==heigh
+        prop.sColor = s.brush().color()
+        prop.sFill = (s.brush().style() != Qt.Qt.NoBrush)
+        p = self.pen()
+        prop.lStyle = p.style()
+        prop.lWidth = p.width()
+        prop.lColor = p.color()
+        prop.cStyle = self.style()
+        prop.cFill = (self.brush().style() != Qt.Qt.NoBrush)
+        prop.yAxis = self.yAxis()
         prop.visible = self.isVisible()
-        prop.title=self.title().text() #We are forced to save only the text (and not the QwtText) because Pickle chokes with the QwtText
+        # We are forced to save only the text (and not the QwtText) because
+        # Pickle chokes with the QwtText
+        prop.title = self.title().text()
         return copy.deepcopy(prop)
 
     def setYAxis(self, axis):
@@ -737,7 +799,9 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         :param axis: (Qwt5.QwtPlot.Axis) the axis to which it should associate
         """
         Qwt5.QwtPlotCurve.setYAxis(self, axis)
-        self.safeSetData() #this way we make sure that the filtering is correct (in case of change of scale type)
+        # this way we make sure that the filtering is correct (in case of
+        # change of scale type)
+        self.safeSetData()
 
     def setFilteredWhenLog(self, filtered=True):
         '''Set whether non-possitive values should be discarded or not when
@@ -766,26 +830,27 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         .. seealso:: :meth:`safeSetData`, :meth:`setFilteredWhenLog`
         '''
         if self.isFilteredWhenLog():
-            #filter out the nonpossitive elements if the scale is logarithmic
+            # filter out the nonpossitive elements if the scale is logarithmic
             if self.plot():
                 type_ = self.plot().getAxisTransformationType(self.xAxis())
                 if type_ == Qwt5.QwtScaleTransformation.Log10:
-                    x,y = numpy.array(x),numpy.array(y)
-                    valid = x>0 #this is an array of bools representing valid entries
-                    x , y = x[valid], y[valid]
+                    x, y = numpy.array(x), numpy.array(y)
+                    valid = x > 0  # this is an array of bools representing valid entries
+                    x, y = x[valid], y[valid]
                 type_ = self.plot().getAxisTransformationType(self.yAxis())
                 if type_ == Qwt5.QwtScaleTransformation.Log10:
-                    x,y = numpy.array(x),numpy.array(y)
-                    valid = y>0 #this is an array of bools representing valid entries
-                    x , y = x[valid], y[valid]
+                    x, y = numpy.array(x), numpy.array(y)
+                    valid = y > 0  # this is an array of bools representing valid entries
+                    x, y = x[valid], y[valid]
             else:
                 self.debug("Curve is not connected but still receiving data")
 
-        if len(x)!=len(y): 
-            self.warning("setData(x[%d],y[%d]): array sizes don't match!"%(len(x),len(y)))
+        if len(x) != len(y):
+            self.warning(
+                "setData(x[%d],y[%d]): array sizes don't match!" % (len(x), len(y)))
 
-        #now proceed as usual
-        Qwt5.QwtPlotCurve.setData(self, x,y)
+        # now proceed as usual
+        Qwt5.QwtPlotCurve.setData(self, x, y)
 
     def safeSetData(self):
         '''Calls setData with x= self._xValues and y=self._yValues
@@ -806,41 +871,43 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         :return: (widget or None)
         '''
         p = self.plot()
-        while p and not isinstance(p,TaurusBaseComponent):
+        while p and not isinstance(p, TaurusBaseComponent):
             if isinstance(p, (Qt.QDialog, Qt.QMainWindow)):
                 p = None
-                break;
+                break
             p = p.parentWidget()
         return p
 
-    def registerDataChanged(self,listener,meth):
+    def registerDataChanged(self, listener, meth):
         ''' registers a listener to the DataChangedSignal of this curve
 
         :param listener: (QWidget) listener object
         :param meth: (callable) callback method
         '''
-        listener.connect(self._signalGen, Qt.SIGNAL("dataChanged(const QString &)"), meth)
+        listener.connect(self._signalGen, Qt.SIGNAL(
+            "dataChanged(const QString &)"), meth)
 
-    def unregisterDataChanged(self,listener,meth):
+    def unregisterDataChanged(self, listener, meth):
         '''unregisters the given listener and method from the DataChangedSignal
         of this curve
 
         :param listener: (QWidget) listener object
         :param meth: (callable) callback method
         '''
-        listener.disconnect(self._signalGen, Qt.SIGNAL("dataChanged(const QString &)"), meth)
+        listener.disconnect(self._signalGen, Qt.SIGNAL(
+            "dataChanged(const QString &)"), meth)
 
     def isReadOnly(self):
         '''see :meth:`TaurusBaseComponent.isReadOnly`'''
         return True
 
-    def getStats(self, limits=None, inclusive=(True,True), imin=None, imax=None, ignorenans=True):
+    def getStats(self, limits=None, inclusive=(True, True), imin=None, imax=None, ignorenans=True):
         '''
         returns a dict containing several descriptive statistics of a region of
         the curve defined by the limits given by the keyword arguments. It also
         contains a copy of the data in the considered region. The keys of the
         returned dictionary correspond to:
-                 
+
                  -'x' : the abscissas for the considered points (numpy.array)
                  -'y' : the ordinates for the considered points (numpy.array)
                  -'points': number of considered points (int)
@@ -849,87 +916,93 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
                  -'mean' : arithmetic average of y (float)
                  -'std' : (biased)standard deviation of y (float)
                  -'rms' : root mean square of y (float)
-                 
+
         Note that some of the values may be None if that cannot be computed.
-        
-        Also, 
-        
-        :param limits: (None or tuple<float,float>) tuple containing (min,max) limits. 
-                        Points of the curve whose abscisa value is outside of 
+
+        Also,
+
+        :param limits: (None or tuple<float,float>) tuple containing (min,max) limits.
+                        Points of the curve whose abscisa value is outside of
                         these limits are ignored. If None is passed, the limit is not enforced
         :param inclusive: (tuple<bool,bool>). A tuple consisting of the (lower flag, upper flag).
-                          These flags determine whether values exactly equal to the lower or 
+                          These flags determine whether values exactly equal to the lower or
                           upper limits are included. The default value is (True, True).
-        :param imin: (int) lowest index to be considered. If None is given, 
-                     the limit is not enforced 
+        :param imin: (int) lowest index to be considered. If None is given,
+                     the limit is not enforced
         :param imax: (int) higest index to be considered. If None is given,
                      the limit is not enforced
-        :param ignorenans: (bool) if True (defaul), the points with NaN values are stripped 
+        :param ignorenans: (bool) if True (defaul), the points with NaN values are stripped
                      before calculating the stats
-                     
+
         :return: (dict) A dict containing the stats.
         '''
-        
+
         data = self.data()
-        if imin is None: imin = 0
-        if imax is None: imax = data.size()
-        
+        if imin is None:
+            imin = 0
+        if imax is None:
+            imax = data.size()
+
         x = numpy.array([data.x(i) for i in xrange(imin, imax)])
         y = numpy.array([data.y(i) for i in xrange(imin, imax)])
-        
+
         if limits is not None:
-            xmin,xmax = limits
-            if xmax is None: xmax=numpy.inf
+            xmin, xmax = limits
+            if xmax is None:
+                xmax = numpy.inf
             if inclusive:
-                mask = (x>=xmin) * (x<=xmax)
+                mask = (x >= xmin) * (x <= xmax)
             else:
-                mask = (x>xmin) * (x<xmax)                
-            x = x[mask]
-            y = y[mask]    
-        
-        if ignorenans: 
-            mask = numpy.invert(numpy.isnan(x+y)) #we remove points where either x or y are Nan
+                mask = (x > xmin) * (x < xmax)
             x = x[mask]
             y = y[mask]
-            
-        ret = {'x'    : x, 
-               'y'    : y,
+
+        if ignorenans:
+            # we remove points where either x or y are Nan
+            mask = numpy.invert(numpy.isnan(x + y))
+            x = x[mask]
+            y = y[mask]
+
+        ret = {'x': x,
+               'y': y,
                'points': x.size,
-               'min'  : None, 
-               'max'  : None,
-               'mean' : None,
-               'std'  : None,
-               'rms'  : None}
-        
-        if  x.size > 0:
+               'min': None,
+               'max': None,
+               'mean': None,
+               'std': None,
+               'rms': None}
+
+        if x.size > 0:
             argmin = y.argmin()
             argmax = y.argmax()
-            ret.update({'min'  : (x[argmin],y[argmin]), 
-                        'max'  : (x[argmax],y[argmax]),
-                        'mean' : y.mean(),
-                        'std'  : y.std(),
-                        'rms'  : numpy.sqrt(numpy.mean(y**2))})
+            ret.update({'min': (x[argmin], y[argmin]),
+                        'max': (x[argmax], y[argmax]),
+                        'mean': y.mean(),
+                        'std': y.std(),
+                        'rms': numpy.sqrt(numpy.mean(y ** 2))})
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Methods necessary to show/hide peak values
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    def showMaxPeak(self,show):
+    def showMaxPeak(self, show):
         """Specififes if we want to show or not the max peak of the curve
 
         :param show: (bool)
         """
         self._showMaxPeak = show
-        #self.fireEvent(taurus.core.taurusbasetypes.TaurusEventType.Change) #force re-reading attribute to update peak values
+        # self.fireEvent(taurus.core.taurusbasetypes.TaurusEventType.Change)
+        # #force re-reading attribute to update peak values
 
-    def showMinPeak(self,show):
+    def showMinPeak(self, show):
         """Specififes if we want to show or not the min peak of the curve.
 
         :param show: (bool)
         """
         self._showMinPeak = show
-        #self.fireEvent(taurus.core.taurusbasetypes.TaurusEventType.Change) #force re-reading attribute to update peak values
+        # self.fireEvent(taurus.core.taurusbasetypes.TaurusEventType.Change)
+        # #force re-reading attribute to update peak values
 
     def getYAxisStatus(self):
         '''returns either None (if the curve is not visible) or its yAxis (if it
@@ -937,11 +1010,12 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
 
         :return: (Qwt5.QwtPlot.Axis or None)
         '''
-        if not self.isVisible(): return None
+        if not self.isVisible():
+            return None
         return self.yAxis()
 
 
-#class TaurusPlot(Qwt5.QwtPlot, Logger):
+# class TaurusPlot(Qwt5.QwtPlot, Logger):
 class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     '''
     TaurusPlot is a general widget for plotting 1D data sets. It is an extended
@@ -988,7 +1062,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     '''
     __pyqtSignals__ = ("dataChanged(const QString &)",)
 
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent=None, designMode=False):
         name = "TaurusPlot"
         Qwt5.QwtPlot.__init__(self, parent)
         TaurusBaseWidget.__init__(self, name)
@@ -999,37 +1073,39 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._defaultCurvesTitle = '<label>'
         self._curvePens = LoopList(DFT_CURVE_PENS)
         self._gridPen = Qt.QPen(Qt.Qt.gray, 1)
-        self._supportedConfigVersions = ["tpc-1","tpc-1.1"] #the latest element of this list is considered the current version
+        # the latest element of this list is considered the current version
+        self._supportedConfigVersions = ["tpc-1", "tpc-1.1"]
 
 #        Logger.__init__(self)
 #        Qwt5.QwtPlot.__init__(self, parent)
 
-        #dictionary for default axes naming
-        self._axesnames = {Qwt5.QwtPlot.xBottom:'X',Qwt5.QwtPlot.xTop:'X2',
-                           Qwt5.QwtPlot.yLeft:'Y1', Qwt5.QwtPlot.yRight:'Y2'}
+        # dictionary for default axes naming
+        self._axesnames = {Qwt5.QwtPlot.xBottom: 'X', Qwt5.QwtPlot.xTop: 'X2',
+                           Qwt5.QwtPlot.yLeft: 'Y1', Qwt5.QwtPlot.yRight: 'Y2'}
         # cache for the values of the axis transformation
         self.__transformations = {}
 
-        #Data Import Dialog (it will only be initialised if required)
-        self.DataImportDlg=None
+        # Data Import Dialog (it will only be initialised if required)
+        self.DataImportDlg = None
 
-        #Values to be managed with/from the TaurusPlotConfigDialog time configuration
+        # Values to be managed with/from the TaurusPlotConfigDialog time
+        # configuration
         self._xIsTime = False
         self._xMax = None
         self._xMin = None
         self._xDynScale = False
         self._xDynScaleSupported = False
 
-        #enable dropping (see also dragEnterEvent and dropEvent methods)
+        # enable dropping (see also dragEnterEvent and dropEvent methods)
         self.setAcceptDrops(True)
 
         # book-keeping of attached tauruscurves
-        self.curves = CaselessDict()
+        self.curves = CaselessDict()  # TODO: Tango-centric
         #self.curves_lock = threading.RLock()
         self.curves_lock = DummyLock()
 
-        #background
-        #self.setCanvasBackground(Qt.Qt.white)
+        # background
+        # self.setCanvasBackground(Qt.Qt.white)
 
         # attach a grid
         self._grid = Qwt5.QwtPlotGrid()
@@ -1039,43 +1115,49 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         # configure axes
         for axis in [Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.yLeft, Qwt5.QwtPlot.yRight, Qwt5.QwtPlot.xTop]:
             self.setAxisScaleDraw(axis, FancyScaleDraw())
-        self.y2AxisPalette = Qt.QPalette(Qt.QColor("blue"),Qt.QColor("black"),Qt.QColor("blue"),Qt.QColor("blue"),Qt.QColor("blue"),Qt.QColor("blue"),Qt.QColor("blue"))
+        self.y2AxisPalette = Qt.QPalette(Qt.QColor("blue"), Qt.QColor("black"), Qt.QColor(
+            "blue"), Qt.QColor("blue"), Qt.QColor("blue"), Qt.QColor("blue"), Qt.QColor("blue"))
         self.axisScaleDraw(Qwt5.QwtPlot.yRight).setPalette(self.y2AxisPalette)
 
         # set initial show/hide peaks configuration
         self._showMaxPeaks = False
         self._showMinPeaks = False
 
-        # zoom. One zoomer for Y1 and another for Y2 (but only one will be active at each time)
+        # zoom. One zoomer for Y1 and another for Y2 (but only one will be
+        # active at each time)
         self._max_zoom_stack = 15
         self._zoomer1 = TaurusZoomer(self.canvas())
         self._zoomer2 = TaurusZoomer(self.canvas())
         self._zoomer2.setRubberBandPen(Qt.Qt.blue)
         self._zoomer2.setTrackerPen(Qt.Qt.blue)
-        self._zoomer2.setAxis(Qwt5.QwtPlot.xBottom,Qwt5.QwtPlot.yRight)
+        self._zoomer2.setAxis(Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.yRight)
         self._zoomer2.setEnabled(False)
         self._zoomer = self._zoomer1
         self._allowZoomers = True
         for z in (self._zoomer1, self._zoomer2):
             z.setMaxStackDepth(self._max_zoom_stack)
-            z.setKeyPattern(z.KeyHome, Qt.Qt.Key_unknown) #this disables the escape key for going to the top of the zoom stack (we use escape via an action for autoscaling)
+            # this disables the escape key for going to the top of the zoom
+            # stack (we use escape via an action for autoscaling)
+            z.setKeyPattern(z.KeyHome, Qt.Qt.Key_unknown)
 
         # point picker
         self._pointPicker = Qwt5.QwtPicker(self.canvas())
-        self._pointPicker.setSelectionFlags(Qwt5.QwtPicker.PointSelection )
+        self._pointPicker.setSelectionFlags(Qwt5.QwtPicker.PointSelection)
 
         self._pickedMarker = TaurusCurveMarker("Picked", labelOpacity=0.8)
         self._pickedCurveName = ""
-        self.connect(self._pointPicker, Qt.SIGNAL('selected(QwtPolygon)'), self.pickDataPoint)      
-        
-        #xRegion picker
-        self._xRegionPicker = Qwt5.QwtPlotPicker(Qwt5.QwtPlot.xBottom, 
+        self.connect(self._pointPicker, Qt.SIGNAL(
+            'selected(QwtPolygon)'), self.pickDataPoint)
+
+        # xRegion picker
+        self._xRegionPicker = Qwt5.QwtPlotPicker(Qwt5.QwtPlot.xBottom,
                                                  Qwt5.QwtPlot.yLeft,
                                                  Qwt5.QwtPicker.PointSelection,
                                                  Qwt5.QwtPicker.VLineRubberBand,
                                                  Qwt5.QwtPicker.AlwaysOn, self.canvas())
         self._xRegionPicker.setEnabled(False)
-        self.connect(self._xRegionPicker, Qt.SIGNAL('selected(QwtDoublePoint)'), self._onXRegionEvent)
+        self.connect(self._xRegionPicker, Qt.SIGNAL(
+            'selected(QwtDoublePoint)'), self._onXRegionEvent)
 
         # magnifier
         self._magnifier = Qwt5.QwtPlotMagnifier(self.canvas())
@@ -1083,144 +1165,170 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         # panner
         self._panner = Qwt5.QwtPlotPanner(self.canvas())
-        self._panner.setMouseButton(Qt.Qt.LeftButton,Qt.Qt.ControlModifier)
+        self._panner.setMouseButton(Qt.Qt.LeftButton, Qt.Qt.ControlModifier)
 
         # legend
         self._legendPos = Qwt5.QwtPlot.RightLegend
         self._showLegend = False
-        self._legendDecissionIsForever=False
+        self._legendDecissionIsForever = False
         self.updateLegend()
         self.connect(self, Qt.SIGNAL('legendClicked(QwtPlotItem*)'),
                      self.toggleCurveState)
 
-        #datainspector mode
+        # datainspector mode
         self._inspectorMode = False
         self.toggleDataInspectorMode(False)
-        
-        #optimization
-        self._optimizationEnabled = True
-        
-        #modifiable by user
-        self.setModifiableByUser(True)
-        
-        #drag&drop
-        self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE])
 
-        #initialize actions
+        # optimization
+        self._optimizationEnabled = True
+
+        # modifiable by user
+        self.setModifiableByUser(True)
+
+        # drag&drop
+        self.setSupportedMimeTypes(
+            [TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE])
+
+        # initialize actions
         self.__initActions()
 
-        #final stuff
+        # final stuff
         self.setObjectName(name)
-        #self.defineStyle()
+        # self.defineStyle()
 
     def __initActions(self):
         '''Create and attach TaurusPlot actions'''
-        
-        #=======================================================================
-        ## This action is for debug only. Comment out when not debugging
+
+        #======================================================================
+        # This action is for debug only. Comment out when not debugging
         #self._debugAction = Qt.QAction("Calculate statistics", None)
-        #self._debugAction.setShortcut(Qt.Qt.Key_D)
+        # self._debugAction.setShortcut(Qt.Qt.Key_D)
         #self.connect(self._debugAction, Qt.SIGNAL("triggered()"), self.__debug)
-        #self.canvas().addAction(self._debugAction)
-        #=======================================================================
+        # self.canvas().addAction(self._debugAction)
+        #======================================================================
 
         self._dataInspectorAction = Qt.QAction("Data &Inspector mode", None)
         self._dataInspectorAction.setShortcut(Qt.Qt.Key_I)
         self._dataInspectorAction.setCheckable(True)
         self._dataInspectorAction.setChecked(self._pointPicker.isEnabled())
-        self.connect(self._dataInspectorAction, Qt.SIGNAL("toggled(bool)"), self.toggleDataInspectorMode)
+        self.connect(self._dataInspectorAction, Qt.SIGNAL(
+            "toggled(bool)"), self.toggleDataInspectorMode)
 
         self._curveStatsAction = Qt.QAction("Calculate statistics", None)
         self._curveStatsAction.setShortcut(Qt.Qt.Key_S)
-        self.connect(self._curveStatsAction, Qt.SIGNAL("triggered()"), self.onCurveStatsAction)
+        self.connect(self._curveStatsAction, Qt.SIGNAL(
+            "triggered()"), self.onCurveStatsAction)
 
         self._pauseAction = Qt.QAction("&Pause", None)
-        self._pauseAction.setShortcuts([Qt.Qt.Key_P,Qt.Qt.Key_Pause])
+        self._pauseAction.setShortcuts([Qt.Qt.Key_P, Qt.Qt.Key_Pause])
         self._pauseAction.setCheckable(True)
         self._pauseAction.setChecked(self.isPaused())
-        self.connect(self._pauseAction, Qt.SIGNAL("toggled(bool)"), self.setPaused)
+        self.connect(self._pauseAction, Qt.SIGNAL(
+            "toggled(bool)"), self.setPaused)
 
         self._autoscaleAllAxisAction = Qt.QAction("Autoscale all axes", None)
         self._autoscaleAllAxisAction.setShortcut(Qt.Qt.Key_Escape)
-        self.connect(self._autoscaleAllAxisAction,  Qt.SIGNAL("triggered()"), self.autoScaleAllAxes)
+        self.connect(self._autoscaleAllAxisAction,  Qt.SIGNAL(
+            "triggered()"), self.autoScaleAllAxes)
 
         self._toggleZoomAxisAction = Qt.QAction("Toggle Zoom-aware axis", None)
         self._toggleZoomAxisAction.setShortcut(Qt.Qt.Key_Z)
-        self.connect(self._toggleZoomAxisAction,  Qt.SIGNAL("triggered()"), self.toggleZoomer)
+        self.connect(self._toggleZoomAxisAction,  Qt.SIGNAL(
+            "triggered()"), self.toggleZoomer)
 
         self._configDialogAction = Qt.QAction("Plot configuration...", None)
         self._configDialogAction.setShortcut(Qt.QKeySequence("Alt+C"))
-        self.connect(self._configDialogAction, Qt.SIGNAL("triggered()"), self.showConfigDialog)
+        self.connect(self._configDialogAction, Qt.SIGNAL(
+            "triggered()"), self.showConfigDialog)
 
         self._inputDataAction = Qt.QAction("Input data selection...", None)
         self._inputDataAction.setShortcut(Qt.QKeySequence.New)
-        self.connect(self._inputDataAction, Qt.SIGNAL("triggered()"), self.showDataImportDlg)
+        self.connect(self._inputDataAction, Qt.SIGNAL(
+            "triggered()"), self.showDataImportDlg)
 
         self._saveConfigAction = Qt.QAction("Save current settings...", None)
         self._saveConfigAction.setShortcut(Qt.QKeySequence.Save)
-        self.connect(self._saveConfigAction, Qt.SIGNAL("triggered()"), self.saveConfig)
+        self.connect(self._saveConfigAction, Qt.SIGNAL(
+            "triggered()"), self.saveConfig)
 
-        self._loadConfigAction = Qt.QAction("&Retrieve saved settings...", None)
+        self._loadConfigAction = Qt.QAction(
+            "&Retrieve saved settings...", None)
         self._loadConfigAction.setShortcut(Qt.QKeySequence.Open)
-        self.connect(self._loadConfigAction, Qt.SIGNAL("triggered()"), self.loadConfig)
+        self.connect(self._loadConfigAction, Qt.SIGNAL(
+            "triggered()"), self.loadConfig)
 
         self._showLegendAction = Qt.QAction("Show &Legend", None)
         self._showLegendAction.setShortcut(Qt.QKeySequence("Ctrl+L"))
         self._showLegendAction.setCheckable(True)
         self._showLegendAction.setChecked(self._showLegend)
-        self.connect(self._showLegendAction, Qt.SIGNAL("triggered(bool)"), self.showLegend)
+        self.connect(self._showLegendAction, Qt.SIGNAL(
+            "triggered(bool)"), self.showLegend)
         self.canvas().addAction(self._showLegendAction)
 
         self._showMaxAction = Qt.QAction("Show Max", None)
         self._showMaxAction.setCheckable(True)
         self._showMaxAction.setChecked(self._showMaxPeaks)
-        self.connect(self._showMaxAction,  Qt.SIGNAL("toggled(bool)"), self.showMaxPeaks)
+        self.connect(self._showMaxAction,  Qt.SIGNAL(
+            "toggled(bool)"), self.showMaxPeaks)
 
         self._showMinAction = Qt.QAction("Show Min", None)
         self._showMinAction.setCheckable(True)
         self._showMinAction.setChecked(self._showMinPeaks)
-        self.connect(self._showMinAction,  Qt.SIGNAL("toggled(bool)"), self.showMinPeaks)
+        self.connect(self._showMinAction,  Qt.SIGNAL(
+            "toggled(bool)"), self.showMinPeaks)
 
         self._printAction = Qt.QAction("&Print plot...", None)
-        self.connect(self._printAction, Qt.SIGNAL("triggered()"), self.exportPrint)
+        self.connect(self._printAction, Qt.SIGNAL(
+            "triggered()"), self.exportPrint)
 
         self._exportPdfAction = Qt.QAction("Export plot to PD&F...", None)
-        self.connect(self._exportPdfAction, Qt.SIGNAL("triggered()"), self.exportPdf)
+        self.connect(self._exportPdfAction, Qt.SIGNAL(
+            "triggered()"), self.exportPdf)
 
         self._exportAsciiAction = Qt.QAction("Export data to &ASCII...", None)
-        self.connect(self._exportAsciiAction, Qt.SIGNAL("triggered()"), self.exportAscii)
+        self.connect(self._exportAsciiAction, Qt.SIGNAL(
+            "triggered()"), self.exportAscii)
 
-        self._setCurvesTitleAction = Qt.QAction("Change Curves Titles...", None)
-        self.connect(self._setCurvesTitleAction, Qt.SIGNAL("triggered()"), self.changeCurvesTitlesDialog)
-        
-        self._closeWindowAction =  Qt.QAction(getThemeIcon("process-stop"),'Close Plot', self)
-        self.connect(self._closeWindowAction, Qt.SIGNAL("triggered()"), self.close)
+        self._setCurvesTitleAction = Qt.QAction(
+            "Change Curves Titles...", None)
+        self.connect(self._setCurvesTitleAction, Qt.SIGNAL(
+            "triggered()"), self.changeCurvesTitlesDialog)
 
-        #add all actions and limit the scope of the key shortcuts to the widget (default is Window)
+        self._closeWindowAction = Qt.QAction(
+            getThemeIcon("process-stop"), 'Close Plot', self)
+        self.connect(self._closeWindowAction,
+                     Qt.SIGNAL("triggered()"), self.close)
+
+        # add all actions and limit the scope of the key shortcuts to the
+        # widget (default is Window)
         for action in (self._dataInspectorAction, self._pauseAction, self._autoscaleAllAxisAction,
-                  self._toggleZoomAxisAction, self._configDialogAction, self._inputDataAction,
-                  self._saveConfigAction, self._loadConfigAction, self._showLegendAction,
-                  self._showMaxAction, self._showMinAction, self._printAction, self._exportPdfAction,
-                  self._exportAsciiAction, self._setCurvesTitleAction, self._curveStatsAction):
-            action.setShortcutContext(Qt.Qt.WidgetShortcut) #this is needed to avoid ambiguity when more than one TaurusPlot is used in the same window
-            self.canvas().addAction(action) #because of the line above, we must add the actions to the widget that gets the focus (the canvas instead of self)
-    
+                       self._toggleZoomAxisAction, self._configDialogAction, self._inputDataAction,
+                       self._saveConfigAction, self._loadConfigAction, self._showLegendAction,
+                       self._showMaxAction, self._showMinAction, self._printAction, self._exportPdfAction,
+                       self._exportAsciiAction, self._setCurvesTitleAction, self._curveStatsAction):
+            # this is needed to avoid ambiguity when more than one TaurusPlot
+            # is used in the same window
+            action.setShortcutContext(Qt.Qt.WidgetShortcut)
+            # because of the line above, we must add the actions to the widget
+            # that gets the focus (the canvas instead of self)
+            self.canvas().addAction(action)
+
     def dropEvent(self, event):
         '''reimplemented to support dropping of modelnames in taurusplots'''
-        mtype = self.handleMimeData(event.mimeData(),self.addModels)
+        mtype = self.handleMimeData(event.mimeData(), self.addModels)
         if mtype is None:
             self.info('Invalid model')
         else:
-            event.acceptProposedAction() 
-            
+            event.acceptProposedAction()
+
 #    def dropEvent(self, event):
 #        '''reimplemented to support dropping of modelnames in taurusplots'''
 #        supported = self.getSupportedMimeTypes()
-#        formats = event.mimeData().formats() 
+#        formats = event.mimeData().formats()
 #        for mtype in supported:
 #            if mtype in formats:
 #                modelname = str(event.mimeData().data(mtype))
-#                if modelname is None: 
+#                if modelname is None:
 #                    return
 #                try:
 #                    self.addModels([modelname])
@@ -1242,7 +1350,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         try:
             return self.__transformations[axis]
         except KeyError:
-            t =  self.axisScaleEngine(axis).transformation().type()
+            t = self.axisScaleEngine(axis).transformation().type()
             self.__transformations[axis] = t
             return t
 
@@ -1254,9 +1362,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def getCurveTitle(self, curvename):
         '''return the current title associated to a given curve name
-        
+
         :param curvename: (str) the name of the curve
-        
+
         :return:(str)
         '''
         self.curves_lock.acquire()
@@ -1269,7 +1377,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         finally:
             self.curves_lock.release()
         return title
-    
+
     def getCurveNames(self):
         '''returns the names of all TaurusCurves attached to the plot (in arbitrary
         order, if you need a sorted list, see :meth:`getCurveNamesSorted`).
@@ -1285,7 +1393,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.curves_lock.release()
         return ret
 
-
     def getCurveNamesSorted(self):
         '''returns the names of the curves in z order (which is the one used in
         the legend, and in showing the curves).
@@ -1296,13 +1403,13 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         self.curves_lock.acquire()
         try:
-            names = [o.getCurveName() for o in self.itemList() if isinstance(o, TaurusCurve)]
+            names = [o.getCurveName()
+                     for o in self.itemList() if isinstance(o, TaurusCurve)]
         finally:
             self.curves_lock.release()
         return copy.deepcopy(names)
 
-
-    def sortCurves(self, ordered = None):
+    def sortCurves(self, ordered=None):
         '''Sorts the attached curves in a given z order. This affects both the
         ordering in the legend and the visibility order when curves overlap in
         the plotting area. The order is governed by the `ordered` parameter (or
@@ -1315,10 +1422,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.curves_lock.acquire()
         try:
             if ordered is None:
-                orderedObjs = sorted(self.curves.values(), key = lambda curve:curve.titleText(compiled=True))
+                orderedObjs = sorted(
+                    self.curves.values(), key=lambda curve: curve.titleText(compiled=True))
             else:
                 #current = self.curves.keys()
-                #if len(ordered) != len(current) or set(map(str.lower,current)) - set(map(str.lower, ordered)):
+                # if len(ordered) != len(current) or set(map(str.lower,current)) - set(map(str.lower, ordered)):
                 #    raise ValueError('Invalid value for the "ordered" parameter')
                 orderedObjs = [self.curves[n] for n in ordered]
             for curve in orderedObjs:
@@ -1341,15 +1449,16 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 z.setEnabled(False)
             return
         if axis is None:
-            #find the axis of the currently disabled zoomer
+            # find the axis of the currently disabled zoomer
             for z in (self._zoomer1, self._zoomer2):
-                if not z.isEnabled():break
+                if not z.isEnabled():
+                    break
             axis = z.yAxis()
-        #enable the zoomer corresponding to axis and disable the other one
+        # enable the zoomer corresponding to axis and disable the other one
         for z in (self._zoomer1, self._zoomer2):
-            z.setEnabled(z.yAxis()==axis)
+            z.setEnabled(z.yAxis() == axis)
         self._zoomer = self.getZoomers(axis)[0]
-        self.debug('Now Zooming on %s'%unicode(self.getAxisName(axis)))
+        self.debug('Now Zooming on %s' % unicode(self.getAxisName(axis)))
         return self._zoomer.yAxis()
 
     def getAxisName(self, axis):
@@ -1361,10 +1470,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :return: (unicode)
         '''
         name = unicode(self.axisTitle(axis).text())
-        if name == '': name = self._axesnames[axis]
+        if name == '':
+            name = self._axesnames[axis]
         return name
 
-    def setPaused(self, paused = True):
+    def setPaused(self, paused=True):
         '''delegates the pausing to the curves
 
         :param paused: (bool) if True, the plot will be paused
@@ -1382,9 +1492,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def __debug(self, *args, **kwargs):
         '''put code here that you want to debug'''
-        print "!!!!!!!!!!!!!!!1",self.pos()
-        Qt.QToolTip.showText(self.mapToGlobal(self.pos()), "ASDASDASDASD DASDAS ASDA", self)
-        
+        print "!!!!!!!!!!!!!!!1", self.pos()
+        Qt.QToolTip.showText(self.mapToGlobal(self.pos()),
+                             "ASDASDASDASD DASDAS ASDA", self)
+
         return
 
     def getDefaultAxisLabelsAlignment(self, axis, rotation):
@@ -1396,25 +1507,38 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         :return: (Qt.Alignment) an alignment
         '''
-        #print "!!!!", {Qwt5.QwtPlot.xBottom:"B" , Qwt5.QwtPlot.yLeft:"L", Qwt5.QwtPlot.yRight:"R", Qwt5.QwtPlot.xTop:"T"}[axis]
+        # print "!!!!", {Qwt5.QwtPlot.xBottom:"B" , Qwt5.QwtPlot.yLeft:"L",
+        # Qwt5.QwtPlot.yRight:"R", Qwt5.QwtPlot.xTop:"T"}[axis]
         if axis == Qwt5.QwtPlot.xBottom:
-            if rotation == 0 : return Qt.Qt.AlignHCenter|Qt.Qt.AlignBottom
-            elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignBottom
-            else:              return Qt.Qt.AlignRight|Qt.Qt.AlignBottom
+            if rotation == 0:
+                return Qt.Qt.AlignHCenter | Qt.Qt.AlignBottom
+            elif rotation < 0:
+                return Qt.Qt.AlignLeft | Qt.Qt.AlignBottom
+            else:
+                return Qt.Qt.AlignRight | Qt.Qt.AlignBottom
         elif axis == Qwt5.QwtPlot.yLeft:
-            if rotation == 0 : return Qt.Qt.AlignLeft|Qt.Qt.AlignVCenter
-            elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignBottom
-            else:              return Qt.Qt.AlignLeft|Qt.Qt.AlignTop
+            if rotation == 0:
+                return Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter
+            elif rotation < 0:
+                return Qt.Qt.AlignLeft | Qt.Qt.AlignBottom
+            else:
+                return Qt.Qt.AlignLeft | Qt.Qt.AlignTop
         elif axis == Qwt5.QwtPlot.yRight:
-            if rotation == 0 : return Qt.Qt.AlignRight|Qt.Qt.AlignVCenter
-            elif rotation < 0: return Qt.Qt.AlignRight|Qt.Qt.AlignTop
-            else:              return Qt.Qt.AlignRight|Qt.Qt.AlignBottom
+            if rotation == 0:
+                return Qt.Qt.AlignRight | Qt.Qt.AlignVCenter
+            elif rotation < 0:
+                return Qt.Qt.AlignRight | Qt.Qt.AlignTop
+            else:
+                return Qt.Qt.AlignRight | Qt.Qt.AlignBottom
         elif axis == Qwt5.QwtPlot.xTop:
-            if rotation == 0 : return Qt.Qt.AlignHCenter|Qt.Qt.AlignTop
-            elif rotation < 0: return Qt.Qt.AlignLeft|Qt.Qt.AlignTop
-            else:              return Qt.Qt.AlignRight|Qt.Qt.AlignTop
+            if rotation == 0:
+                return Qt.Qt.AlignHCenter | Qt.Qt.AlignTop
+            elif rotation < 0:
+                return Qt.Qt.AlignLeft | Qt.Qt.AlignTop
+            else:
+                return Qt.Qt.AlignRight | Qt.Qt.AlignTop
 
-    def setAxisCustomLabels(self, axis, pos_and_labels, rotation = 0, alignment = None):
+    def setAxisCustomLabels(self, axis, pos_and_labels, rotation=0, alignment=None):
         '''By calling this method, the scale vaues can be substituted  by custom
         labels at arbitrary positions. In general, it is a good idea to let the
         alignment to be autocalculated.
@@ -1428,14 +1552,14 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                                If None given, it will be autocalculated
 
         '''
-        positions, labels = zip(*pos_and_labels) #"unzipping"
+        positions, labels = zip(*pos_and_labels)  # "unzipping"
         positions = list(positions)
 
         self.setAxisScaleEngine(axis, FixedLabelsScaleEngine(positions))
 
         sd = FixedLabelsScaleDraw(positions, labels)
         sd.setLabelRotation(rotation)
-        if alignment is  None:
+        if alignment is None:
             alignment = self.getDefaultAxisLabelsAlignment(axis, rotation)
         sd.setLabelAlignment(alignment)
         self.setAxisScaleDraw(axis, sd)
@@ -1444,24 +1568,27 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def getPickedMarker(self):
         '''returns the marker for the picked points for this plot
-        
+
         :return: (TaurusCurveMarker)
         '''
         return self._pickedMarker
-    
+
     def getZoomers(self, axis=None):
         '''returns a list of the zoomer(s) associated to the given axis.
         If None is passed, it returns a list containing the current zoomer
 
         :param axis: (Qwt5.QwtPlot.Axis) the axis
         '''
-        if axis is None: return [self._zoomer]
-        elif axis == Qwt5.QwtPlot.yLeft: return [self._zoomer1]
-        elif axis == Qwt5.QwtPlot.yRight: return [self._zoomer2]
-        elif axis == Qwt5.QwtPlot.xBottom: return [self._zoomer1, self._zoomer2]
+        if axis is None:
+            return [self._zoomer]
+        elif axis == Qwt5.QwtPlot.yLeft:
+            return [self._zoomer1]
+        elif axis == Qwt5.QwtPlot.yRight:
+            return [self._zoomer2]
+        elif axis == Qwt5.QwtPlot.xBottom:
+            return [self._zoomer1, self._zoomer2]
         else:
             raise ValueError('Invalid axis for getZoomers()')
-
 
     def getGrid(self):
         ''' returns the grid of the plot
@@ -1474,7 +1601,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''deprecated method . Only here for backwards compatibility. It will be
         removed, eventually. Now you should use the TaurusPlot instance instead of
         TaurusPlot.getPlot()'''
-        self.info('DEPRECATION WARNING!: Calling TaurusPlot.getPlot() is deprecated. Use the TaurusPlot object itself instead')
+        self.info(
+            'DEPRECATION WARNING!: Calling TaurusPlot.getPlot() is deprecated. Use the TaurusPlot object itself instead')
         print self.sender()
         return self
 
@@ -1511,11 +1639,13 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         .. seealso:: :meth:`setAxisLabelFormat`
         '''
-        if format is None: formats = [xformat, y1format, y2format]
-        else: formats = [format]*3
-        axes =[Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.yLeft, Qwt5.QwtPlot.yRight]
-        for axis, format in zip(axes,formats) :
-            self.setAxisLabelFormat(axis,format)
+        if format is None:
+            formats = [xformat, y1format, y2format]
+        else:
+            formats = [format] * 3
+        axes = [Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.yLeft, Qwt5.QwtPlot.yRight]
+        for axis, format in zip(axes, formats):
+            self.setAxisLabelFormat(axis, format)
 
     def setAxisLabelFormat(self, axis, format=None):
         '''changes the format of an axis label. format is a python format string
@@ -1609,18 +1739,18 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if legend:
             widget = legend.find(curve)
             if isinstance(curve, TaurusCurve):
-                title=curve.title()
-                #if hidding the curve, hide peaks also
+                title = curve.title()
+                # if hidding the curve, hide peaks also
                 # change legend color too
                 if on is False:
                     title.setColor(Qt.Qt.darkGray)
                     curve.showMaxPeak(False)
                     curve.showMinPeak(False)
                     curve.detachMarkers()
-                #if the curve is shown, show the markers as well (if required)
+                # if the curve is shown, show the markers as well (if required)
                 # and change the color in the legend too!
                 else:
-                    if curve.yAxis()==Qwt5.QwtPlot.yLeft:
+                    if curve.yAxis() == Qwt5.QwtPlot.yLeft:
                         title.setColor(Qt.Qt.black)
                     else:
                         title.setColor(Qt.Qt.darkBlue)
@@ -1636,7 +1766,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def toggleCurveState(self, curve):
         '''cycles through 3 possible states for a curve:
-        
+
             - invisible
             - attached to Y1
             - attached to Y2
@@ -1645,17 +1775,18 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         self.curves_lock.acquire()
         try:
-            #get the key in the self.curves directory
-            curveName=None
-            for curveName,c in self.curves.iteritems():
-                if c is curve: break
-            axis=curve.yAxis()
-            #Toggle state
+            # get the key in the self.curves directory
+            curveName = None
+            for curveName, c in self.curves.iteritems():
+                if c is curve:
+                    break
+            axis = curve.yAxis()
+            # Toggle state
             if not curve.isVisible():
-                self.setCurvesYAxis([curveName],Qwt5.QwtPlot.yLeft)
-            elif axis==Qwt5.QwtPlot.yLeft:
-                self.setCurvesYAxis([curveName],Qwt5.QwtPlot.yRight)
-            elif axis==Qwt5.QwtPlot.yRight:
+                self.setCurvesYAxis([curveName], Qwt5.QwtPlot.yLeft)
+            elif axis == Qwt5.QwtPlot.yLeft:
+                self.setCurvesYAxis([curveName], Qwt5.QwtPlot.yRight)
+            elif axis == Qwt5.QwtPlot.yRight:
                 self.showCurve(curve, False)
                 self.autoShowYAxes()
         finally:
@@ -1674,10 +1805,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         try:
             curve = self.curves.get(str(name))
             curve.safeSetData()
-            #self._zoomer.setZoomBase()
-            if self.getXDynScale(): #keep the scale width constant, but translate it to get the last value
-                max= curve._xValues[-1]
-                min=max-self.getXAxisRange()
+            # self._zoomer.setZoomBase()
+            if self.getXDynScale():  # keep the scale width constant, but translate it to get the last value
+                max = curve._xValues[-1]
+                min = max - self.getXAxisRange()
                 self.setAxisScale(Qwt5.QwtPlot.xBottom, min, max)
         finally:
             self.curves_lock.release()
@@ -1688,8 +1819,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """attaches a curve to the plot formed from raw data that comes in a dict
 
         :param rawdata: (dict) A dictionary defining a rawdata curve. It has the
-                        following structure (all keys are optional, but either 
-                        "y" or "f(x)" must be present. Also, the value of x, y 
+                        following structure (all keys are optional, but either
+                        "y" or "f(x)" must be present. Also, the value of x, y
                         and f(x) can be None):
 
                         {"title":<str>, "x":list<float>, "y":list<float>,
@@ -1708,43 +1839,55 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         *Note*: using "name" in the rawdata dictionary is a still-supported-but-deprecated synonim of "title".
         """
         if properties is None:
-            properties=CurveAppearanceProperties(lColor=self._curvePens.next().color(), lWidth=2)
-        #Deprecation Warning:
+            properties = CurveAppearanceProperties(
+                lColor=self._curvePens.next().color(), lWidth=2)
+        # Deprecation Warning:
         if rawdata.has_key("pen") or rawdata.has_key("style"):
-            raise DeprecationWarning("'pen' or 'style' are no longer supported. Use the properties parameter instead")
+            raise DeprecationWarning(
+                "'pen' or 'style' are no longer supported. Use the properties parameter instead")
         if rawdata.has_key("name"):
             if rawdata.has_key("title"):
-                self.error('Inconsistence: both "name" and "title" passed for rawdata. Use "title" only')
+                self.error(
+                    'Inconsistence: both "name" and "title" passed for rawdata. Use "title" only')
             else:
-                self.warning('The use of "name" (=%s) for attaching rawdata is deprecated. Use "title" instead'%rawdata["name"])
+                self.warning(
+                    'The use of "name" (=%s) for attaching rawdata is deprecated. Use "title" instead' % rawdata["name"])
                 rawdata["title"] = rawdata["name"]
 
-        y = rawdata.get("y",None)
-        fx = rawdata.get("f(x)",None)
-        x = rawdata.get("x",None)
+        y = rawdata.get("y", None)
+        fx = rawdata.get("f(x)", None)
+        x = rawdata.get("x", None)
         if fx is None:
-            if y is None: raise ValueError('Either "f(x)" or "y" keys must be present') 
-            title = str(rawdata.get("title","rawdata"))
+            if y is None:
+                raise ValueError('Either "f(x)" or "y" keys must be present')
+            title = str(rawdata.get("title", "rawdata"))
             if x is None:
-                x = numpy.arange(len(y)) #if no x is given, the indices will be used
+                # if no x is given, the indices will be used
+                x = numpy.arange(len(y))
             else:
                 x = numpy.array(x)
         else:
-            if y is not None: raise ValueError('only one of "f(x)" or "y" keys can be present')
-            if x is None: raise ValueError('Missing "x" values') #we need x values in which to evaluate
-            title = str(rawdata.get("title",fx))
+            if y is not None:
+                raise ValueError(
+                    'only one of "f(x)" or "y" keys can be present')
+            if x is None:
+                # we need x values in which to evaluate
+                raise ValueError('Missing "x" values')
+            title = str(rawdata.get("title", fx))
             x = numpy.array(x)
-            sev = SafeEvaluator({'x':x})
+            sev = SafeEvaluator({'x': x})
             try:
                 y = sev.eval(fx)
             except:
-                self.warning("the function '%s' could not be evaluated (skipping)"%title) #TODO: deal with this exception properly.
+                # TODO: deal with this exception properly.
+                self.warning(
+                    "the function '%s' could not be evaluated (skipping)" % title)
                 return
         #@todo: support error bars
 #        ex=rawdata.get("ex",numpy.zeros(len(y)))
 #        ey=rawdata.get("ey",numpy.zeros(len(y)))
 
-        #at this point, both x and y must be valid
+        # at this point, both x and y must be valid
         y = numpy.array(y)
 
         if id is None:
@@ -1761,18 +1904,21 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                     curve.unregisterDataChanged(self, self.curveDataChanged)
                     curve.detach()
                     self.curves.pop(name)
-                self.debug('overwriting curve %s with raw data'%name)
-            self.debug('attaching raw data with name %s'%name)
-            curve = TaurusCurve(name, rawData=rawdata, optimized=self.isOptimizationEnabled())
-            #curve.fireEvent = lambda arg:None  #!!! reimplementing FireEvent on the fly! (ugly-lazy hack)
+                self.debug('overwriting curve %s with raw data' % name)
+            self.debug('attaching raw data with name %s' % name)
+            curve = TaurusCurve(name, rawData=rawdata,
+                                optimized=self.isOptimizationEnabled())
+            # curve.fireEvent = lambda arg:None  #!!! reimplementing FireEvent
+            # on the fly! (ugly-lazy hack)
             curve.attach(self)
             if self._showMaxPeaks:
                 curve.attachMaxMarker(self)
             if self._showMinPeaks:
                 curve.attachMinMarker(self)
             curve._xValues, curve._yValues = x, y
-            curve.setData(x,y)
-            curve.setTitle(title) #note that the title and the name may differ
+            curve.setData(x, y)
+            # note that the title and the name may differ
+            curve.setTitle(title)
             curve.setAppearanceProperties(properties)
             self.curves[name] = curve
             self.showCurve(curve, True)
@@ -1789,13 +1935,14 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         :param name: (str) name (identifier) of the curve to dettach
         '''
-        name=str(name)
-        self.debug("detaching raw data with name %s"%name)
+        name = str(name)
+        self.debug("detaching raw data with name %s" % name)
         self.curves_lock.acquire()
         try:
-            curve=self.curves.get(name)
+            curve = self.curves.get(name)
             if curve is None or not curve.isRawData:
-                self.error("detachRawData failed: '%s' is not a rawData curve"%name)
+                self.error(
+                    "detachRawData failed: '%s' is not a rawData curve" % name)
                 return
             curve.detach()
             self.curves.pop(name)
@@ -1811,7 +1958,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         self.curves_lock.acquire()
         try:
-            names=[name for name in self.curves.keys() if self.curves[name].isRawData]
+            names = [name for name in self.curves.keys() if self.curves[
+                name].isRawData]
         finally:
             self.curves_lock.release()
 
@@ -1819,7 +1967,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.detachRawData(name)
         return names
 
-    def getCurveData(self,curvename, numpy=False):
+    def getCurveData(self, curvename, numpy=False):
         """returns the data in the curve as two lists (x,y) of values
 
         :param curvename: (str) the curve name
@@ -1830,17 +1978,17 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.curves_lock.acquire()
         try:
             if self.curves.has_key(curvename):
-                data=self.curves[curvename].data()
-                x=[data.x(i) for i in xrange(data.size())]
-                y=[data.y(i) for i in xrange(data.size())]
+                data = self.curves[curvename].data()
+                x = [data.x(i) for i in xrange(data.size())]
+                y = [data.y(i) for i in xrange(data.size())]
             else:
-                self.error("Curve '%s' not found"%curvename)
+                self.error("Curve '%s' not found" % curvename)
                 raise KeyError()
         finally:
             self.curves_lock.release()
         if numpy:
-            x,y = numpy.array(x), numpy.array(y)
-        return x,y
+            x, y = numpy.array(x), numpy.array(y)
+        return x, y
 
     def updateCurves(self, names):
         '''
@@ -1856,12 +2004,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                         right hand value for the Y values)
         '''
 
-
         self.curves_lock.acquire()
         try:
             xnames, ynames = [], []
             for name in names:
-                name = name.lower()
                 n = name.split("|")
                 yname = n[-1]
                 xname = None
@@ -1870,18 +2016,20 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 xnames.append(xname)
                 ynames.append(yname)
 
-            del_curves = [ name for name in self.curves.keys() if name not in ynames]
-            
-            #if all curves were removed, reset the color palette
+            del_curves = [name for name in self.curves.keys()
+                          if name not in ynames]
+
+            # if all curves were removed, reset the color palette
             if len(del_curves) == len(self.curves):
                 self._curvePens.setCurrentIndex(0)
 
-            for i,name in enumerate(ynames):
+            for i, name in enumerate(ynames):
                 xname = xnames[i]
                 name = str(name)
-                self.debug('updating curve %s'%name)
+                self.debug('updating curve %s' % name)
                 if not self.curves.has_key(name):
-                    curve = TaurusCurve(name, xname, self, optimized=self.isOptimizationEnabled())
+                    curve = TaurusCurve(name, xname, self,
+                                        optimized=self.isOptimizationEnabled())
                     curve.attach(self)
                     self.curves[name] = curve
                     self.showCurve(curve, True)
@@ -1901,7 +2049,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 name = str(name)
                 #curve = self.curves.pop(name)
                 curve = self.curves.get(name)
-                if not curve.isRawData:   #The rawdata curves should not be dettached by updateCurves. Call detachRawdata insted
+                if not curve.isRawData:  # The rawdata curves should not be dettached by updateCurves. Call detachRawdata insted
                     curve.unregisterDataChanged(self, self.curveDataChanged)
                     curve.detach()
                     self.curves.pop(name)
@@ -1933,12 +2081,13 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             if force or not self.legend():
                 self._legend = Qwt5.QwtLegend()
                 self._legend.setItemMode(Qwt5.QwtLegend.ClickableItem)
-                self._legend.setDisplayPolicy (Qwt5.QwtLegend.FixedIdentifier,
-                                                Qwt5.QwtLegendItem.ShowLine|
-                                                Qwt5.QwtLegendItem.ShowSymbol|
-                                                Qwt5.QwtLegendItem.ShowText)
+                self._legend.setDisplayPolicy(Qwt5.QwtLegend.FixedIdentifier,
+                                              Qwt5.QwtLegendItem.ShowLine |
+                                              Qwt5.QwtLegendItem.ShowSymbol |
+                                              Qwt5.QwtLegendItem.ShowText)
                 self.insertLegend(self._legend, self._legendPos)
-                self._legend.setToolTip("Clicking on a legend item changes\n the associated Y axis for the curve.")
+                self._legend.setToolTip(
+                    "Clicking on a legend item changes\n the associated Y axis for the curve.")
         else:
             self._legend = None
             self.insertLegend(None)
@@ -1952,7 +2101,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                         plotted) (default=True)
         '''
         if forever:
-            self._legendDecissionIsForever=forever
+            self._legendDecissionIsForever = forever
             self._showLegend = show
         else:
             if not self._legendDecissionIsForever:
@@ -1964,7 +2113,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''See :meth:`TaurusBaseComponent.getModelObj`'''
         return self.getCurve(self._modelNames[idx]).getModelObj()
 
-    #def defineStyle(self):
+    # def defineStyle(self):
     #    pass
 
     def minimumSizeHint(self):
@@ -1988,14 +2137,14 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     def getParentTaurusComponent(self):
         '''See :meth:`TaurusBaseComponent.getParentTaurusComponent`'''
         p = self.parentWidget()
-        while p and not isinstance(p,TaurusBaseComponent):
+        while p and not isinstance(p, TaurusBaseComponent):
             if isinstance(p, Qt.QDialog) or isinstance(p, Qt.QMainWindow):
                 p = None
-                break;
+                break
             p = p.parentWidget()
         return p
 
-    #def keyPressEvent(self,keyEvent):
+    # def keyPressEvent(self,keyEvent):
     #    """This function will capture any key press and react on ESC key pressed to set autoscale on all axis"""
     #    #Leave this commented unless you want to debug
     #    #elif (keyEvent.key() == Qt.Qt.Key_D):
@@ -2008,17 +2157,20 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def closeEvent(self, event):
         '''See :meth:`Qwidget.closeEvent`'''
-        #make sure no dialogs are left open
+        # make sure no dialogs are left open
         if self.DataImportDlg is not None:
             self.DataImportDlg.close()
 
-    def contextMenuEvent(self,event):
+    def contextMenuEvent(self, event):
         """ This function is called when there is context menu event. See
         :meth:`Qwidget.closeEvent` A pop up menu will be shown with the
         available options. Different parts of the plot (canvas, axes,...) behave
         differently"""
 
-        #print "!!!!!!!!",  self.canvas().underMouse(), self.axisWidget(self.yLeft).underMouse(), self.axisWidget(self.yRight).underMouse(), self.axisWidget(self.xBottom).underMouse()
+        # print "!!!!!!!!",  self.canvas().underMouse(),
+        # self.axisWidget(self.yLeft).underMouse(),
+        # self.axisWidget(self.yRight).underMouse(),
+        # self.axisWidget(self.xBottom).underMouse()
         if self.canvas().underMouse():
             self._canvasContextMenu().exec_(event.globalPos())
         elif self.axisWidget(self.yLeft).underMouse():
@@ -2028,10 +2180,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         elif self.axisWidget(self.xBottom).underMouse():
             self._axisContextMenu(self.xBottom).exec_(event.globalPos())
         else:
-            #default catch-all #@TODO FOR SOME REASON, the underMouse() method used above fails sometimes !!!???
+            # default catch-all #@TODO FOR SOME REASON, the underMouse() method
+            # used above fails sometimes !!!???
             self._canvasContextMenu().exec_(event.globalPos())
         event.accept()
-        
+
     def _canvasContextMenu(self):
         """Returns a contextMenu for the canvas
 
@@ -2047,7 +2200,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         menu.addAction(self._setCurvesTitleAction)
         menu.addSeparator()
 
-        scalesSubMenu=menu.addMenu("&Scales")
+        scalesSubMenu = menu.addMenu("&Scales")
         scalesSubMenu.addAction(self._autoscaleAllAxisAction)
         scalesSubMenu.addSeparator()
         for axis in (Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.yLeft, Qwt5.QwtPlot.yRight):
@@ -2061,7 +2214,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         menu.addAction(self._dataInspectorAction)
 
         menu.addSeparator()
-        exportSubMenu=menu.addMenu("&Export && Print")
+        exportSubMenu = menu.addMenu("&Export && Print")
         menu.addAction(self._curveStatsAction)
         exportSubMenu.addAction(self._printAction)
         exportSubMenu.addAction(self._exportPdfAction)
@@ -2069,13 +2222,13 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         menu.addSeparator()
         menu.addAction(self._pauseAction)
-        
+
         if self.isWindow():
             menu.addAction(self._closeWindowAction)
 
         return menu
 
-    def _axisContextMenu(self,axis=None):
+    def _axisContextMenu(self, axis=None):
         '''Returns a context menu for the given axis
 
         :param axis: (Qwt5.QwtPlot.Axis) the axis
@@ -2084,29 +2237,37 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         menu = Qt.QMenu(self)
         axisname = self.getAxisName(axis)
-        menu.setTitle("Options for axis %s"%axisname)
+        menu.setTitle("Options for axis %s" % axisname)
 
-        autoScaleThisAxis = lambda : self.setAxisAutoScale(axis=axis)
-        autoscaleAction= menu.addAction("AutoScale %s"%axisname)
-        self.connect(autoscaleAction, Qt.SIGNAL("triggered()"), autoScaleThisAxis)
+        autoScaleThisAxis = lambda: self.setAxisAutoScale(axis=axis)
+        autoscaleAction = menu.addAction("AutoScale %s" % axisname)
+        self.connect(autoscaleAction, Qt.SIGNAL(
+            "triggered()"), autoScaleThisAxis)
 
         if not self.getXIsTime():
-            switchThisAxis = lambda : self.setAxisScaleType(axis=axis, scale=None)
-            switchThisAxisAction= menu.addAction("Toggle linear/log for %s"%axisname)
-            self.connect(switchThisAxisAction, Qt.SIGNAL("triggered()"), switchThisAxis)
+            switchThisAxis = lambda: self.setAxisScaleType(
+                axis=axis, scale=None)
+            switchThisAxisAction = menu.addAction(
+                "Toggle linear/log for %s" % axisname)
+            self.connect(switchThisAxisAction, Qt.SIGNAL(
+                "triggered()"), switchThisAxis)
 
         if axis in (Qwt5.QwtPlot.yLeft, Qwt5.QwtPlot.yRight):
-            zoomOnThisAxis = lambda : self.toggleZoomer(axis=axis)
-            zoomOnThisAxisAction= menu.addAction("Zoom-to-region acts on %s"%axisname)
-            self.connect(zoomOnThisAxisAction, Qt.SIGNAL("triggered()"), zoomOnThisAxis)
+            zoomOnThisAxis = lambda: self.toggleZoomer(axis=axis)
+            zoomOnThisAxisAction = menu.addAction(
+                "Zoom-to-region acts on %s" % axisname)
+            self.connect(zoomOnThisAxisAction, Qt.SIGNAL(
+                "triggered()"), zoomOnThisAxis)
 
         elif axis in (Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.xTop):
             if self.isXDynScaleSupported():
-                xDynAction=menu.addAction("&Auto-scroll %s"%axisname)
-                xDynAction.setToolTip('If enabled, the scale of %s will be autoadjusted to provide a fixed window moving to show always the last value')
+                xDynAction = menu.addAction("&Auto-scroll %s" % axisname)
+                xDynAction.setToolTip(
+                    'If enabled, the scale of %s will be autoadjusted to provide a fixed window moving to show always the last value')
                 xDynAction.setCheckable(True)
                 xDynAction.setChecked(self.getXDynScale())
-                self.connect(xDynAction, Qt.SIGNAL("toggled(bool)"), self.setXDynScale)
+                self.connect(xDynAction, Qt.SIGNAL(
+                    "toggled(bool)"), self.setXDynScale)
         return menu
 
     def showConfigDialog(self):
@@ -2115,7 +2276,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         self._configDialog = TaurusPlotConfigDialog(self)
         self._configDialog.exec_()
-        del self._configDialog #destroy the dialog (it may probably not be used anymore)
+        # destroy the dialog (it may probably not be used anymore)
+        del self._configDialog
 
     def getCurveAppearancePropertiesDict(self):
         '''Returns the appearance properties of all curves in the plot.
@@ -2128,9 +2290,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         self.curves_lock.acquire()
         try:
-            propdict={}
-            for name,curve in self.curves.iteritems():
-                propdict[name]=copy.deepcopy(curve.getAppearanceProperties())
+            propdict = {}
+            for name, curve in self.curves.iteritems():
+                propdict[name] = copy.deepcopy(curve.getAppearanceProperties())
         finally:
             self.curves_lock.release()
         return propdict
@@ -2147,18 +2309,18 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         self.curves_lock.acquire()
         try:
-            for name,prop in propDict.iteritems():
+            for name, prop in propDict.iteritems():
                 c = self.curves[name]
                 c.setAppearanceProperties(copy.deepcopy(prop))
-                visible = getattr(prop,'visible',True)
-                if visible is not None: 
+                visible = getattr(prop, 'visible', True)
+                if visible is not None:
                     self.showCurve(c, visible)
         finally:
             self.curves_lock.release()
         self.autoShowYAxes()
         self.replot()
 
-    def onCurveAppearanceChanged(self,prop,names):
+    def onCurveAppearanceChanged(self, prop, names):
         """Applies the properties given in prop to all the curves named in names.
         This functions is called from the config dialog when changes are applied.
 
@@ -2166,8 +2328,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :param names: (sequence<str>) a sequence of names of curves to which the
                       properties should be applied
         """
-        propDict={}
-        for name in names: propDict[name]=prop
+        propDict = {}
+        for name in names:
+            propDict[name] = prop
         self.setCurveAppearanceProperties(propDict)
 
     def _createAxesDict(self):
@@ -2175,16 +2338,16 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         :return: (dict) Configurations that can be loaded with applyAxesConfig
         '''
-        xMin, xMax= self.getAxisScale(Qwt5.QwtPlot.xBottom)
-        y1Min, y1Max= self.getAxisScale(Qwt5.QwtPlot.yLeft)
-        y2Min, y2Max= self.getAxisScale(Qwt5.QwtPlot.yRight)
-        axesdict= {'xMin': xMin, 'xMax': xMax, 'y1Min': y1Min, 'y1Max': y1Max, 'y2Min': y2Min, 'y2Max': y2Max,
-                   'xMode': int(self.getAxisTransformationType(Qwt5.QwtPlot.xBottom)),
-                   'y1Mode':int(self.getAxisTransformationType(Qwt5.QwtPlot.yLeft)),
-                   'y2Mode':int(self.getAxisTransformationType(Qwt5.QwtPlot.yRight)),
-                   'xDyn': self.getXDynScale(),
-                   'xIsTime':self.getXIsTime()
-                   }
+        xMin, xMax = self.getAxisScale(Qwt5.QwtPlot.xBottom)
+        y1Min, y1Max = self.getAxisScale(Qwt5.QwtPlot.yLeft)
+        y2Min, y2Max = self.getAxisScale(Qwt5.QwtPlot.yRight)
+        axesdict = {'xMin': xMin, 'xMax': xMax, 'y1Min': y1Min, 'y1Max': y1Max, 'y2Min': y2Min, 'y2Max': y2Max,
+                    'xMode': int(self.getAxisTransformationType(Qwt5.QwtPlot.xBottom)),
+                    'y1Mode': int(self.getAxisTransformationType(Qwt5.QwtPlot.yLeft)),
+                    'y2Mode': int(self.getAxisTransformationType(Qwt5.QwtPlot.yRight)),
+                    'xDyn': self.getXDynScale(),
+                    'xIsTime': self.getXIsTime()
+                    }
         return axesdict
 
     def _createMiscDict(self):
@@ -2192,10 +2355,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         :return: (dict) configurations that can be loaded with applyMiscConfig
         '''
-        miscdict= {'defaultCurvesTitle':self.getDefaultCurvesTitle(),
-                   'canvasBackground':self.canvasBackground(),
-                   'orderedCurveNames': self.getCurveNamesSorted(),
-                   'plotTitle': unicode(self.title().text())}
+        miscdict = {'defaultCurvesTitle': self.getDefaultCurvesTitle(),
+                    'canvasBackground': self.canvasBackground(),
+                    'orderedCurveNames': self.getCurveNamesSorted(),
+                    'plotTitle': unicode(self.title().text())}
         return miscdict
 
     def checkConfigVersion(self, configdict, showDialog=False, supportedVersions=None):
@@ -2214,17 +2377,22 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         .. seealso:: :meth:`TaurusBaseComponent.checkConfigVersion`
         '''
-        if supportedVersions is None: supportedVersions = self._supportedConfigVersions
-        version = configdict.get("ConfigVersion","__UNVERSIONED__")
+        if supportedVersions is None:
+            supportedVersions = self._supportedConfigVersions
+        version = configdict.get("ConfigVersion", "__UNVERSIONED__")
         if version not in supportedVersions:
-            msg = 'Unsupported Config Version %s. (Supported: %s)'%(version, repr(supportedVersions))
+            msg = 'Unsupported Config Version %s. (Supported: %s)' % (
+                version, repr(supportedVersions))
             self.warning(msg)
-            if showDialog: Qt.QMessageBox.warning(self, "Wrong Configuration Version", msg, Qt.QMessageBox.Ok)
+            if showDialog:
+                Qt.QMessageBox.warning(
+                    self, "Wrong Configuration Version", msg, Qt.QMessageBox.Ok)
             return False
         return True
 
     def createConfigDict(self, allowUnpickable=False, curvenames=None):
-        self.info("Deprecation warning: createConfigDict is deprecated. Please use createConfig instead")
+        self.info(
+            "Deprecation warning: createConfigDict is deprecated. Please use createConfig instead")
         return self.createConfig(allowUnpickable=False, curvenames=None)
 
     def createConfig(self, allowUnpickable=False, curvenames=None, **kwargs):
@@ -2256,24 +2424,27 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         miscdict = self._createMiscDict()
         self.curves_lock.acquire()
         try:
-            if curvenames is None: curvenames=self.curves.keys()
+            if curvenames is None:
+                curvenames = self.curves.keys()
+            curvenames = self._lowerIfInsensitive(curvenames)
             for name in curvenames:
                 curve = self.curves.get(name)
-                propdict[name]=copy.deepcopy(curve.getAppearanceProperties())
+                propdict[name] = copy.deepcopy(curve.getAppearanceProperties())
                 if curve.isRawData:
-                    rawdatadict[name]=curve.getRawData()
+                    rawdatadict[name] = curve.getRawData()
                 else:
-                    tangodict[name]=curve.getModel()
-        except Exception,e:
-            self.error('Exception while gathering curves configuration info'+str(e))
+                    tangodict[name] = curve.getModel()
+        except Exception, e:
+            self.error(
+                'Exception while gathering curves configuration info' + str(e))
         finally:
             self.curves_lock.release()
         curvenames = CaselessList(curvenames)
         model = CaselessList([m for m in self.getModel() if m in curvenames])
-        configdict={"Axes":axesdict, "Misc":miscdict, "RawData":rawdatadict,
-                    "TangoCurves":tangodict, "CurveProp":propdict,
-                    "ConfigVersion":self._supportedConfigVersions[-1],
-                    "model":model}
+        configdict = {"Axes": axesdict, "Misc": miscdict, "RawData": rawdatadict,
+                      "TangoCurves": tangodict, "CurveProp": propdict,
+                      "ConfigVersion": self._supportedConfigVersions[-1],
+                      "model": model}
         return configdict
 
     def applyConfig(self, configdict, **kwargs):
@@ -2283,17 +2454,21 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         .. seealso:: :meth:`createConfig`, :meth:`TaurusBaseComponent.applyConfig`
         """
-        if not self.checkConfigVersion(configdict): return
-        #attach the curves
-        for rd in configdict["RawData"].values(): self.attachRawData(rd)
-        models = configdict.get("model", configdict["TangoCurves"].values()) #for backwards compatibility, if the ordered list of models is not stored, it uses the unsorted dict values
+        if not self.checkConfigVersion(configdict):
+            return
+        # attach the curves
+        for rd in configdict["RawData"].values():
+            self.attachRawData(rd)
+        # for backwards compatibility, if the ordered list of models is not
+        # stored, it uses the unsorted dict values
+        models = configdict.get("model", configdict["TangoCurves"].values())
         self.addModels(models)
-        #set curve properties
+        # set curve properties
         self.setCurveAppearanceProperties(configdict["CurveProp"])
         self.updateLegend(force=True)
-        #set the axes
+        # set the axes
         self.applyAxesConfig(configdict["Axes"])
-        #set other misc configurations
+        # set other misc configurations
         self.applyMiscConfig(configdict["Misc"])
 
     def applyMiscConfig(self, miscdict):
@@ -2305,12 +2480,13 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.setDefaultCurvesTitle(miscdict["defaultCurvesTitle"])
         self.setCanvasBackground(miscdict["canvasBackground"])
         self.sortCurves(ordered=miscdict.get("orderedCurveNames", None))
-        if "plotTitle" in miscdict: self.setTitle(miscdict['plotTitle'])
+        if "plotTitle" in miscdict:
+            self.setTitle(miscdict['plotTitle'])
 
     def applyAxesConfig(self, axes):
         '''sets the axes according to settings stored in the axes dict,
         which can be generated with _createAxesDict()
-        
+
         :param axes: (dict) contains axes properties
         '''
         self.setXIsTime(axes["xIsTime"])
@@ -2335,11 +2511,14 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         import cPickle as pickle
         if ofile is None:
-            ofile = str(Qt.QFileDialog.getSaveFileName( self, 'Save Taurusplot Configuration', 'TaurusplotConfig.pck', 'TaurusPlot Curve Properties File (*.pck)'))
-            if not ofile: return
-        if not isinstance(ofile,file): ofile=open(ofile,'w')
-        configdict=self.createConfig(curvenames=curvenames)
-        self.info("Saving current settings in '%s'"%ofile.name)
+            ofile = str(Qt.QFileDialog.getSaveFileName(self, 'Save Taurusplot Configuration',
+                                                       'TaurusplotConfig.pck', 'TaurusPlot Curve Properties File (*.pck)'))
+            if not ofile:
+                return
+        if not isinstance(ofile, file):
+            ofile = open(ofile, 'w')
+        configdict = self.createConfig(curvenames=curvenames)
+        self.info("Saving current settings in '%s'" % ofile.name)
         pickle.dump(configdict, ofile)
         return ofile.name
 
@@ -2352,10 +2531,13 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         import cPickle as pickle
         if ifile is None:
-            ifile = str(Qt.QFileDialog.getOpenFileName( self, 'Load Taurusplot Configuration', '', 'TaurusPlot Curve Properties File (*.pck)'))
-            if not ifile: return
-        if not isinstance(ifile,file): ifile=open(ifile,'r')
-        configdict=pickle.load(ifile)
+            ifile = str(Qt.QFileDialog.getOpenFileName(
+                self, 'Load Taurusplot Configuration', '', 'TaurusPlot Curve Properties File (*.pck)'))
+            if not ifile:
+                return
+        if not isinstance(ifile, file):
+            ifile = open(ifile, 'r')
+        configdict = pickle.load(ifile)
         self.applyConfig(configdict)
         return ifile.name
 
@@ -2363,14 +2545,14 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''propagates a list of taurus filters to the curves given by curvenames.
         See :meth:`TaurusBaseComponent.setEventFilters`
         '''
-        if curvenames is None: curvenames=self.curves.keys()
+        if curvenames is None:
+            curvenames = self.curves.keys()
         self.curves_lock.acquire()
         try:
-            for name in curvenames: 
+            for name in curvenames:
                 self.curves[name].setEventFilters(filters, preqt=preqt)
         finally:
             self.curves_lock.release()
-
 
     def setAxisAutoScale(self, axis):
         """Sets the axis to autoscale and resets the zoomer for that axis if needed
@@ -2380,39 +2562,40 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         .. seealso:: :meth:`autoScaleAllAxes`
         """
         Qwt5.QwtPlot.setAxisAutoScale(self, axis)
-        for z in self.getZoomers(axis): z.setZoomBase()
+        for z in self.getZoomers(axis):
+            z.setZoomBase()
         self.replot()
-
 
     def autoScaleAllAxes(self):
         '''Optimized autoscale of whole plot'''
-        minX=float('inf')
-        maxX=float('-inf')
+        minX = float('inf')
+        maxX = float('-inf')
         if self.getXDynScale():
             originalXRange = self.getXAxisRange()
             self.curves_lock.acquire()
             try:
                 for c in self.curves.values():
-                    if c.minXValue() < minX: 
+                    if c.minXValue() < minX:
                         minX = c.minXValue()
-                    if c.maxXValue() > maxX: 
+                    if c.maxXValue() > maxX:
                         maxX = c.maxXValue()
-                    if minX!=maxX:
+                    if minX != maxX:
                         break
             finally:
                 self.curves_lock.release()
-                         
+
         for axis in range(Qwt5.QwtPlot.axisCnt):
-            if axis == Qwt5.QwtPlot.xBottom and minX==maxX:
-                Qwt5.QwtPlot.setAxisScale(self, axis, minX-0.5*originalXRange, minX+0.5*originalXRange)
+            if axis == Qwt5.QwtPlot.xBottom and minX == maxX:
+                Qwt5.QwtPlot.setAxisScale(
+                    self, axis, minX - 0.5 * originalXRange, minX + 0.5 * originalXRange)
             else:
                 Qwt5.QwtPlot.setAxisAutoScale(self, axis)
         self.replot()
-        #Update the zoom stacks
+        # Update the zoom stacks
         self._zoomer1.setZoomBase()
         self._zoomer2.setZoomBase()
 
-    def setAxisScale(self,axis,min,max):
+    def setAxisScale(self, axis, min, max):
         """Rescales the given axis to the range defined by min and max. If min
         and max are None, autoscales. It also takes care of resetting the
         affected zoomer(s)
@@ -2433,7 +2616,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         else:
             Qwt5.QwtPlot.setAxisScale(self, axis, min, max)
             self.replot()
-        for z in self.getZoomers(axis): z.setZoomBase()
+        for z in self.getZoomers(axis):
+            z.setZoomBase()
 
     def getAxisScale(self, axis):
         """returns the lower and higher bounds for the given axis, or None,None
@@ -2443,10 +2627,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         :return: (float,float) atuple of floats (or None,None)
         """
-        if self.axisAutoScale(axis): return None,None
+        if self.axisAutoScale(axis):
+            return None, None
         return self.axisScaleDiv(axis).lowerBound(), self.axisScaleDiv(axis).upperBound()
 
-    def getXAxisRange(self,axis=Qwt5.QwtPlot.xBottom):
+    def getXAxisRange(self, axis=Qwt5.QwtPlot.xBottom):
         '''same as self.axisScaleDiv(axis).range()
 
         :param axis: (Qwt5.QwtPlot.Axis) the (X) axis. (default=Qwt5.QwtPlot.xBottom)
@@ -2463,16 +2648,17 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :param scale: (Qwt5.QwtScaleTransformation.Type) the scale
                       transformation. For convenience, the strings "Linear"
                       and "Log" can be used as well'''
-                      
+
         if self.getXIsTime() and isinstance(self.axisScaleEngine(axis), DateTimeScaleEngine):
-            raise ValueError('TaurusPlot.setAxisScaleType cannot be called with time scales') 
+            raise ValueError(
+                'TaurusPlot.setAxisScaleType cannot be called with time scales')
         if not Qwt5.QwtPlot.axisValid(axis):
             self.error("TaurusPlot.setScale() invalid axis: " + axis)
         if scale is None:
             currentType = self.getAxisTransformationType(axis)
             if currentType == Qwt5.QwtScaleTransformation.Linear:
                 scale = Qwt5.QwtScaleTransformation.Log10
-            elif  currentType == Qwt5.QwtScaleTransformation.Log10:
+            elif currentType == Qwt5.QwtScaleTransformation.Log10:
                 scale = Qwt5.QwtScaleTransformation.Linear
 
         if scale in ("Linear", Qwt5.QwtScaleTransformation.Linear, int(Qwt5.QwtScaleTransformation.Linear)):
@@ -2480,13 +2666,15 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         elif scale in ("Logarithmic", Qwt5.QwtScaleTransformation.Log10, int(Qwt5.QwtScaleTransformation.Log10)):
             newScale = Qwt5.QwtLog10ScaleEngine()
         else:
-            self.error("TaurusPlot.setAxisScaleType() invalid scale: %s"%str(scale))
+            self.error(
+                "TaurusPlot.setAxisScaleType() invalid scale: %s" % str(scale))
             return
-        self.setAxisScaleEngine(axis,newScale)
-        #update the data in the curves (because of the filtering done for possitive values in log mode)
+        self.setAxisScaleEngine(axis, newScale)
+        # update the data in the curves (because of the filtering done for
+        # possitive values in log mode)
         self.__updateCurvesData()
         return
-    
+
     def axisScaleDiv(self, axis):
         """ Return the scale division of a specified axis.
 
@@ -2495,7 +2683,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :return: (Qwt5.QwtScaleDiv) scale division
         """
         div = Qwt5.QwtPlot.axisScaleDiv(self, axis)
-        if Qwt5.QWT_VERSION < 0x050200: #fix compatibility issue with Qwt < 5.2 (contributed by A. Persson)
+        # fix compatibility issue with Qwt < 5.2 (contributed by A. Persson)
+        if Qwt5.QWT_VERSION < 0x050200:
             div.lowerBound = div.lBound
             div.upperBound = div.hBound
         return div
@@ -2510,7 +2699,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.curves_lock.release()
         self.replot()
 
-    def exportPdf(self,fileName=None):
+    def exportPdf(self, fileName=None):
         """Export the plot to a PDF. slot for the _exportPdfAction.
 
         :param fileName: (str) The name of the file to which the plot will be
@@ -2518,17 +2707,19 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                          a file name.
         """
         if fileName is None:
-            fileName = Qt.QFileDialog.getSaveFileName( self, 'Export File Name', 'plot.pdf', 'PDF Documents (*.pdf)')
+            fileName = Qt.QFileDialog.getSaveFileName(
+                self, 'Export File Name', 'plot.pdf', 'PDF Documents (*.pdf)')
         fileName = str(fileName)
         if fileName:
             try:
-                f = open(fileName,'w') #check if the file is actually writable
+                # check if the file is actually writable
+                f = open(fileName, 'w')
                 f.close()
             except:
-                self.error("Can't write to '%s'"%fileName)
+                self.error("Can't write to '%s'" % fileName)
                 Qt.QMessageBox.warning(self, "File Error",
-                                       "Can't write to\n'%s'"%fileName,
-                                        Qt.QMessageBox.Ok)
+                                       "Can't write to\n'%s'" % fileName,
+                                       Qt.QMessageBox.Ok)
                 return
             printer = Qt.QPrinter()
             printer.setOutputFormat(Qt.QPrinter.PdfFormat)
@@ -2536,7 +2727,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             printer.setOutputFileName(fileName)
             printer.setCreator('TaurusPlot')
             self.print_(printer)
-
 
     def exportPrint(self):
         '''Launches a QPrintDialog for printing the plot'''
@@ -2554,11 +2744,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             filter = Qwt5.QwtPlotPrintFilter()
             if (Qt.QPrinter.GrayScale == printer.colorMode()):
                 filter.setOptions(Qwt5.QwtPlotPrintFilter.PrintAll
-                                 & ~Qwt5.QwtPlotPrintFilter.PrintBackground
-                                 | Qwt5.QwtPlotPrintFilter.PrintFrameWithScales)
+                                  & ~Qwt5.QwtPlotPrintFilter.PrintBackground
+                                  | Qwt5.QwtPlotPrintFilter.PrintFrameWithScales)
             self.print_(printer, filter)
 
-    def exportAscii(self,curves=None):
+    def exportAscii(self, curves=None):
         '''Opens a dialog for exporting curves to ASCII files.
 
         :param curves:  (sequence<str>) the curves curves that will be
@@ -2569,16 +2759,16 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         try:
             if curves is None:
                 curves = self.getCurveNamesSorted()
-            frozendata={}
+            frozendata = {}
             for k in curves:
-                frozendata[k]=self.getCurveData(k)
+                frozendata[k] = self.getCurveData(k)
         finally:
             self.curves_lock.release()
-        klass = getattr(self,'exportDlgClass', None)
+        klass = getattr(self, 'exportDlgClass', None)
         if klass is None:
             from taurus.qt.qtgui.panel import QDataExportDialog
             klass = QDataExportDialog
-        dialog = klass(parent=self, datadict=frozendata, 
+        dialog = klass(parent=self, datadict=frozendata,
                        sortedNames=curves)
         dialog.setXIsTime(self.getXIsTime())
         return dialog.exec_()
@@ -2613,29 +2803,33 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         .. seealso:: :meth:`numpy.loadtxt`
         '''
         if filenames is None:
-            filenames = Qt.QFileDialog.getOpenFileNames( self, 'Choose input files', '', 'Ascii file (*)')
-        if not filenames: return False
-        rawdata={}
+            filenames = Qt.QFileDialog.getOpenFileNames(
+                self, 'Choose input files', '', 'Ascii file (*)')
+        if not filenames:
+            return False
+        rawdata = {}
         for fname in filenames:
-            fname=str(fname)
+            fname = str(fname)
             if self.xIsTime and xcol is not None:
-                converters = kwargs.get('converters',{})
+                converters = kwargs.get('converters', {})
                 converters[xcol] = isodatestr2float
-                kwargs['converters']=converters
-            M=numpy.loadtxt(fname, **kwargs)
-            if len(M.shape)==1:M = M.reshape(M.size, 1) #make sure we are dealing with a 2D matrix even if it is just a colum
+                kwargs['converters'] = converters
+            M = numpy.loadtxt(fname, **kwargs)
+            if len(M.shape) == 1:
+                # make sure we are dealing with a 2D matrix even if it is just
+                # a colum
+                M = M.reshape(M.size, 1)
             if xcol is None:
-                rawdata["x"]=None
+                rawdata["x"] = None
             else:
-                rawdata["x"]=M[:,xcol]
+                rawdata["x"] = M[:, xcol]
 
             for col in xrange(M.shape[1]):
-                if col==xcol: continue #ignore the xcol (it has already been set)
-                rawdata["y"]=M[:,col]
-                rawdata["title"]="%s[%i]"%(os.path.basename(fname),col)
+                if col == xcol:
+                    continue  # ignore the xcol (it has already been set)
+                rawdata["y"] = M[:, col]
+                rawdata["title"] = "%s[%i]" % (os.path.basename(fname), col)
                 self.attachRawData(copy.deepcopy(rawdata))
-    
-    
 
     def showDataImportDlg(self):
         '''Launches the data import dialog. This dialog lets the user manage
@@ -2646,30 +2840,36 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if self.DataImportDlg is None:
             from taurus.qt.qtgui.panel import TaurusModelChooser
             self.DataImportDlg = Qt.QDialog(self)
-            self.DataImportDlg.setWindowTitle("%s - Import Data"%(str(self.windowTitle())))
-            self.DataImportDlg.modelChooser = TaurusModelChooser(selectables=[taurus.core.taurusbasetypes.TaurusElementType.Attribute])
+            self.DataImportDlg.setWindowTitle(
+                "%s - Import Data" % (str(self.windowTitle())))
+            self.DataImportDlg.modelChooser = TaurusModelChooser(
+                selectables=[taurus.core.taurusbasetypes.TaurusElementType.Attribute])
             from taurus.qt.qtgui.panel import QRawDataWidget
             self.DataImportDlg.rawDataChooser = QRawDataWidget()
 
-            tabs=Qt.QTabWidget()
+            tabs = Qt.QTabWidget()
             tabs.addTab(self.DataImportDlg.modelChooser, "&Attributes")
             tabs.addTab(self.DataImportDlg.rawDataChooser, "&Raw Data")
-            mainlayout=Qt.QVBoxLayout(self.DataImportDlg)
+            mainlayout = Qt.QVBoxLayout(self.DataImportDlg)
             mainlayout.addWidget(tabs)
 
-            self.connect(self.DataImportDlg.modelChooser, Qt.SIGNAL("updateModels"), self.setModel)
-            self.connect(self.DataImportDlg.rawDataChooser, Qt.SIGNAL("ReadFromFiles"), self.readFromFiles)
-            self.connect(self.DataImportDlg.rawDataChooser, Qt.SIGNAL("AddCurve"), self.attachRawData)
+            self.connect(self.DataImportDlg.modelChooser,
+                         Qt.SIGNAL("updateModels"), self.setModel)
+            self.connect(self.DataImportDlg.rawDataChooser,
+                         Qt.SIGNAL("ReadFromFiles"), self.readFromFiles)
+            self.connect(self.DataImportDlg.rawDataChooser,
+                         Qt.SIGNAL("AddCurve"), self.attachRawData)
 
-        models_and_display = [(m,self.getCurveTitle(m.split('|')[-1])) for m in self._modelNames]
-        
+        models_and_display = [(m, self.getCurveTitle(
+            m.split('|')[-1])) for m in self._modelNames]
+
         self.DataImportDlg.modelChooser.setListedModels(models_and_display)
         self.DataImportDlg.show()
 
     def readFromFiles(self, xcol, skiprows):
         '''helper slot. Calls self.importAscii(xcol=xcol, skiprows=skiprows )
         See meth:`importAscii`'''
-        self.importAscii(xcol=xcol, skiprows=skiprows )
+        self.importAscii(xcol=xcol, skiprows=skiprows)
 
     def isXDynScaleSupported(self):
         '''Whether this widget offers xDynScale-related options. Useful for
@@ -2703,7 +2903,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                         X axis. Otherwise it is disabled. (Default=True)
 
         .. seealso:: :meth:`getXDynScale`, :meth:`setXDynScaleSupported`'''
-        self._xDynScale=enabled
+        self._xDynScale = enabled
 
     def getXDynScale(self):
         '''Whether the current X scale is in Dynamic scaling mode
@@ -2722,7 +2922,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :param axis: (Qwt5.QwtPlot.Axis) the axis
         """
         if not Qwt5.QwtPlot.axisValid(axis):
-            raise ValueError, "TaurusPlot::setCurvesYAxis. Invalid axis ID: " + repr(axis)
+            raise ValueError, "TaurusPlot::setCurvesYAxis. Invalid axis ID: " + \
+                repr(axis)
         self.curves_lock.acquire()
         try:
             for curveName in curvesNamesList:
@@ -2734,13 +2935,13 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         finally:
             self.curves_lock.release()
 
-        #disable the other axis if no curves are assigned to it
+        # disable the other axis if no curves are assigned to it
         self.autoShowYAxes()
-        #change the axis of the picked marker if needed
+        # change the axis of the picked marker if needed
         if self._pickedCurveName in curvesNamesList:
             self._pickedMarker.setYAxis(axis)
 
-        self.emit(Qt.SIGNAL('CurvesYAxisChanged'),curvesNamesList,axis)
+        self.emit(Qt.SIGNAL('CurvesYAxisChanged'), curvesNamesList, axis)
 
         self.replot()
 
@@ -2749,20 +2950,22 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         associated to them. Also takes care of changing the zoomer if needed"""
         self.curves_lock.acquire()
         try:
-            #get a list of *unique* axes with visible curves attached
-            axes=list(set([curve.yAxis() for curve in self.curves.itervalues() if curve.isVisible()]))
+            # get a list of *unique* axes with visible curves attached
+            axes = list(
+                set([curve.yAxis() for curve in self.curves.itervalues() if curve.isVisible()]))
 
-            n=len(axes)
-            if n==0:
-                self.enableAxis(Qwt5.QwtPlot.yLeft,False)
-                self.enableAxis(Qwt5.QwtPlot.yRight,False)
-            elif n==1:
+            n = len(axes)
+            if n == 0:
+                self.enableAxis(Qwt5.QwtPlot.yLeft, False)
+                self.enableAxis(Qwt5.QwtPlot.yRight, False)
+            elif n == 1:
                 for axis in [Qwt5.QwtPlot.yLeft, Qwt5.QwtPlot.yRight]:
-                    self.enableAxis(axis,(axis==axes[0]))
-                self.toggleZoomer(axes[0]) #enable the zoom of the axis that has contents
+                    self.enableAxis(axis, (axis == axes[0]))
+                # enable the zoom of the axis that has contents
+                self.toggleZoomer(axes[0])
             else:
-                self.enableAxis(Qwt5.QwtPlot.yLeft,True)
-                self.enableAxis(Qwt5.QwtPlot.yRight,True)
+                self.enableAxis(Qwt5.QwtPlot.yLeft, True)
+                self.enableAxis(Qwt5.QwtPlot.yRight, True)
         finally:
             self.curves_lock.release()
 
@@ -2797,30 +3000,35 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                  the picked point in the curve data. If no point was found
                  within the scope, it returns None,None,None
         '''
-        if isinstance(pos,Qt.QPolygon):pos=pos.first()
-        scopeRect=Qt.QRect(0,0,scope,scope)
+        if isinstance(pos, Qt.QPolygon):
+            pos = pos.first()
+        scopeRect = Qt.QRect(0, 0, scope, scope)
         scopeRect.moveCenter(pos)
-        mindist=scope
-        picked=None
-        pickedCurveName=None
-        pickedIndex=None
+        mindist = scope
+        picked = None
+        pickedCurveName = None
+        pickedIndex = None
         self.curves_lock.acquire()
         try:
-            if targetCurveNames is None: targetCurveNames = self.curves.iterkeys()
+            if targetCurveNames is None:
+                targetCurveNames = self.curves.iterkeys()
             for name in targetCurveNames:
                 curve = self.curves.get(name, None)
-                if curve is None: self.error("Curve '%s' not found"%name)
-                if not curve.isVisible(): continue
-                data=curve.data()
+                if curve is None:
+                    self.error("Curve '%s' not found" % name)
+                if not curve.isVisible():
+                    continue
+                data = curve.data()
                 for i in xrange(data.size()):
-                    point=Qt.QPoint(self.transform(curve.xAxis(),data.x(i)) , self.transform(curve.yAxis(),data.y(i)))
+                    point = Qt.QPoint(self.transform(curve.xAxis(), data.x(
+                        i)), self.transform(curve.yAxis(), data.y(i)))
                     if scopeRect.contains(point):
-                        dist=(pos-point).manhattanLength()
+                        dist = (pos - point).manhattanLength()
                         if dist < mindist:
-                            mindist=dist
-                            picked = Qt.QPointF(data.x(i),data.y(i))
-                            pickedCurveName=name
-                            pickedIndex=i
+                            mindist = dist
+                            picked = Qt.QPointF(data.x(i), data.y(i))
+                            pickedCurveName = name
+                            pickedIndex = i
                             pickedAxes = curve.xAxis(), curve.yAxis()
         finally:
             self.curves_lock.release()
@@ -2830,32 +3038,36 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self._pickedMarker.setValue(picked)
             self._pickedMarker.setAxis(*pickedAxes)
             self._pickedMarker.attach(self)
-            self._pickedCurveName=pickedCurveName
-            self._pickedMarker.pickedIndex=pickedIndex
+            self._pickedCurveName = pickedCurveName
+            self._pickedMarker.pickedIndex = pickedIndex
             pickedCurveTitle = self.getCurveTitle(pickedCurveName)
             self.replot()
-            label=self._pickedMarker.label()
+            label = self._pickedMarker.label()
             if self.getXIsTime():
-                infotxt = "'%s'[%i]:\n\t (t=%s, y=%.5g)"%(pickedCurveTitle,pickedIndex,datetime.fromtimestamp(picked.x()).ctime(),picked.y())
+                infotxt = "'%s'[%i]:\n\t (t=%s, y=%.5g)" % (
+                    pickedCurveTitle, pickedIndex, datetime.fromtimestamp(picked.x()).ctime(), picked.y())
             else:
-                infotxt = "'%s'[%i]:\n\t (x=%.5g, y=%.5g)"%(pickedCurveTitle,pickedIndex,picked.x(),picked.y())
+                infotxt = "'%s'[%i]:\n\t (x=%.5g, y=%.5g)" % (
+                    pickedCurveTitle, pickedIndex, picked.x(), picked.y())
             label.setText(infotxt)
-            fits = label.textSize().width()<self.size().width()
+            fits = label.textSize().width() < self.size().width()
             if fits:
-                self._pickedMarker.setLabel(Qwt5.QwtText (label))
+                self._pickedMarker.setLabel(Qwt5.QwtText(label))
                 self._pickedMarker.alignLabel()
                 self.replot()
             else:
                 popup = Qt.QWidget(self, Qt.Qt.Popup)
                 popup.setLayout(Qt.QVBoxLayout())
-                popup.layout().addWidget(Qt.QLabel(infotxt))  #@todo: make the widget background semitransparent green!
+                # @todo: make the widget background semitransparent green!
+                popup.layout().addWidget(Qt.QLabel(infotxt))
                 popup.setWindowOpacity(self._pickedMarker.labelOpacity)
                 popup.show()
-                popup.move(self.pos().x()-popup.size().width(),self.pos().y() )
+                popup.move(self.pos().x() -
+                           popup.size().width(), self.pos().y())
                 popup.move(self.pos())
                 Qt.QTimer.singleShot(5000, popup.hide)
-                
-        return picked,pickedCurveName,pickedIndex
+
+        return picked, pickedCurveName, pickedIndex
 
     def toggleDataInspectorMode(self, enable=None):
         ''' Enables/Disables the Inspector Mode. When "Inspector Mode" is
@@ -2871,45 +3083,49 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                  disabled (False)
         '''
         if enable is None:
-            enable=not(self._inspectorMode)
+            enable = not(self._inspectorMode)
 
-        self._pointPicker.setEnabled(enable)#enables/disables the picker
-        self._zoomer.setEnabled(self._allowZoomers and not(enable)) #disables/enables the zoomers
+        self._pointPicker.setEnabled(enable)  # enables/disables the picker
+        self._zoomer.setEnabled(self._allowZoomers and not(
+            enable))  # disables/enables the zoomers
 
         if enable:
-            cursor=Qt.Qt.WhatsThisCursor
+            cursor = Qt.Qt.WhatsThisCursor
         else:
-            cursor=Qt.Qt.CrossCursor
-            self._pickedMarker.detach()#clears previous marker
+            cursor = Qt.Qt.CrossCursor
+            self._pickedMarker.detach()  # clears previous marker
             self.replot()
 
         self.canvas().setCursor(cursor)
-        self._inspectorMode=enable
+        self._inspectorMode = enable
 
         return self._inspectorMode
-        
+
     def onCurveStatsAction(self):
-        ''' 
-        slot for the curveStatsAction. Allows the user to select a range and 
-        then shows curve statistics on that range. 
         '''
-        if getattr(self, '_curveStatsDialog',None) is None:
+        slot for the curveStatsAction. Allows the user to select a range and
+        then shows curve statistics on that range.
+        '''
+        if getattr(self, '_curveStatsDialog', None) is None:
             from taurus.qt.qtgui.plot import CurveStatsDialog
             self._curveStatsDialog = CurveStatsDialog(self)
-            self.connect(self._curveStatsDialog, Qt.SIGNAL('closed'),self._onCurveStatsDialogClosed)
-            self.connect(self._curveStatsDialog, Qt.SIGNAL('finished(int)'),self._onCurveStatsDialogClosed)
+            self.connect(self._curveStatsDialog, Qt.SIGNAL(
+                'closed'), self._onCurveStatsDialogClosed)
+            self.connect(self._curveStatsDialog, Qt.SIGNAL(
+                'finished(int)'), self._onCurveStatsDialogClosed)
         elif not self._curveStatsDialog.isVisible():
             self._curveStatsDialog.refreshCurves()
-        self._curveStatsAction.setEnabled(False) #it will be reenabed by _onCurveStatsDialogClosed
+        # it will be reenabed by _onCurveStatsDialogClosed
+        self._curveStatsAction.setEnabled(False)
         self._curveStatsDialog.show()
-        
+
     def _onCurveStatsDialogClosed(self, *args):
         '''slot called when the Curve Stats dialog is closed'''
         self._curveStatsAction.setEnabled(True)
-        
+
     def selectXRegion(self, axis=Qwt5.QwtPlot.xBottom, callback=None):
         '''Changes the input mode to allow the user to select a region of the X axis
-        
+
         :param axis: (Qwt5.QwtPlot.xBottom or Qwt5.QwtPlot.xTop) on which the
                      region will be defined (Default=Qwt5.QwtPlot.xBottom)
         :param callback: (method) a function that will be called when the user
@@ -2917,9 +3133,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                         nothing is done
         '''
         self.__xRegionCallback = callback
-        self._xRegionPicker.setAxis(axis,Qwt5.QwtPlot.yLeft)
+        self._xRegionPicker.setAxis(axis, Qwt5.QwtPlot.yLeft)
         self._beginXRegionMode()
-        
+
     def _onXRegionEvent(self, pos):
         '''slot called when the _xRegionPicker picks a point'''
         if self.__xRegionEnd is not None:
@@ -2935,15 +3151,16 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.__xRegionEnd = x
             self.__xRegionEndMarker.setXValue(x)
             self.__xRegionEndMarker.attach(self)
-            
-            xmin,xmax = self.__xRegionStart,self.__xRegionEnd
-            if xmin>xmax: xmin,xmax = xmax,xmin
-            
-            self.__xRegionCallback((xmin,xmax))
-            
+
+            xmin, xmax = self.__xRegionStart, self.__xRegionEnd
+            if xmin > xmax:
+                xmin, xmax = xmax, xmin
+
+            self.__xRegionCallback((xmin, xmax))
+
             self.replot()
             self._endXRegionMode()
-            
+
     def _beginXRegionMode(self):
         '''pre-region selection tasks'''
         self.__xRegionStart = None
@@ -2954,11 +3171,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.__xRegionEndMarker = Qwt5.QwtPlotMarker()
         self.__xRegionEndMarker.setLineStyle(Qwt5.QwtPlotMarker.VLine)
         self.__xRegionEndMarker.setLinePen(Qt.QPen(Qt.Qt.green, 2))
-        
-        self._zoomer.setEnabled(False) #disables the zoomers
-        self.canvas().setCursor(Qt.Qt.SplitHCursor) 
-        self._xRegionPicker.setEnabled(True) 
-        
+
+        self._zoomer.setEnabled(False)  # disables the zoomers
+        self.canvas().setCursor(Qt.Qt.SplitHCursor)
+        self._xRegionPicker.setEnabled(True)
+
     def _endXRegionMode(self):
         '''post-region selection tasks'''
         self._xRegionPicker.setEnabled(False)
@@ -2967,32 +3184,32 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.__xRegionStartMarker.detach()
         self.__xRegionEndMarker.detach()
         self.replot()
-        
+
     def getCurveStats(self, limits=None, curveNames=None):
         '''Shows a dialog containing descriptive statistics on curves
-        
-        :param limits: (None or tuple<float,float>) tuple containing (min,max) limits. 
-                       Points of the curve whose abscisa value is outside of 
+
+        :param limits: (None or tuple<float,float>) tuple containing (min,max) limits.
+                       Points of the curve whose abscisa value is outside of
                        these limits are ignored. If None is passed, the limit is not enforced
         :param curveNames: (seq<str>) sequence of curve names for which
                            statistics are requested. If None passed (default), all curves are
                            considered
-                           
+
         :return: (dict) Returns a dictionary whose keys are the curve names and
                         whose values are the dictionaries returned by
                         :meth:`TaurusCurve.getStats`
         '''
-        if limits is not None and limits[0] is None and limits[1] is None: 
+        if limits is not None and limits[0] is None and limits[1] is None:
             limits = None
         if curveNames is None:
-            curveNames=self.getCurveNamesSorted()
-        
+            curveNames = self.getCurveNamesSorted()
+
         stats = {}
         self.curves_lock.acquire()
         try:
             for name in curveNames:
                 curve = self.curves.get(name, None)
-                stats[name] = curve.getStats(limits=limits)             
+                stats[name] = curve.getStats(limits=limits)
                 stats[name]['title'] = unicode(curve.title().text())
         finally:
             self.curves_lock.release()
@@ -3053,11 +3270,23 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
-        if isinstance(modelNames,(basestring,Qt.QString)): 
-            modelNames = str(modelNames).replace(',',' ')
+        if isinstance(modelNames, (basestring, Qt.QString)):
+            modelNames = str(modelNames).replace(',', ' ')
             modelNames = modelNames.split()
         return modelNames
-    
+
+    def _lowerIfInsensitive(self, modelNames):
+        """filter a model name list converting to lowercase the names belonging
+         to case-insensitive schemes"""
+        models = []
+        for m in modelNames:
+            scheme = getSchemeFromName(m)
+            if taurus.Factory(scheme).caseSensitive:
+                models.append(str(m))
+            else:
+                models.append(str(m).lower())
+        return models
+
     @Qt.pyqtSignature("setModel(QStringList)")
     def setModel(self, modelNames):
         '''sets the models of the Tango attributes that should be displayed in
@@ -3074,10 +3303,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if modelNames is None:
             modelNames = []
         modelNames = self._splitModel(modelNames)
-        self._modelNames = CaselessList([str(n) for n in modelNames])
+        self._modelNames = self._lowerIfInsensitive(modelNames)
         self.updateCurves(self._modelNames)
         self.emit(Qt.SIGNAL("modelChanged()"))
-        #update the modelchooser list
+        # update the modelchooser list
         if self.DataImportDlg is not None:
             self.DataImportDlg.modelChooser.setListedModels(self._modelNames)
 
@@ -3103,9 +3332,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         .. seealso:: :meth:`setModels`, :meth:`removeModels`
         '''
-        modelNames = self._splitModel(modelNames)
+        modelNames = self._lowerIfInsensitive(self._splitModel(modelNames))
         modelNames = [str(m) for m in modelNames if m not in self._modelNames]
-        self.setModel(self._modelNames+modelNames)
+        self.setModel(self._modelNames + modelNames)
 
     @Qt.pyqtSignature("removeModels(QStringList)")
     def removeModels(self, modelNames):
@@ -3116,28 +3345,30 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         .. seealso:: :meth:`setModels`, :meth:`addModels`
         '''
-        modelNames = self._splitModel(modelNames)
+        modelNames = self._lowerIfInsensitive(self._splitModel(modelNames))
         for name in modelNames:
-            try: self._modelNames.remove(name)
-            except: self.warning("'%s' not in model list"%name)
+            try:
+                self._modelNames.remove(name)
+            except:
+                self.warning("'%s' not in model list" % name)
         self.setModel(self._modelNames)
 
     @Qt.pyqtSignature("setUseParentModel(bool)")
-    def setUseParentModel(self,yesno):
+    def setUseParentModel(self, yesno):
         '''Sets whether the TaurusCurves of this plot should use the plot's parent model
 
         :param yesno: (bool) if True, the curves in the plot will use the Plot's
                       parent model
 
         .. seealso:: :meth:`TaurusBaseComponent.setParentModel` '''
-        
+
         if yesno and self._designMode:
-                Qt.QMessageBox.information(self, "UseParentModel usage note",
-                                         "Using the UseParentModel feature may require you to call "+\
-                                         "recheckTaurusParent() manually for this widget after calling " +\
-                                         "setupUi in your code."+\
-                                         "See the documentation of TaurusBaseWidget.recheckTaurusParent()")
-        
+            Qt.QMessageBox.information(self, "UseParentModel usage note",
+                                       "Using the UseParentModel feature may require you to call " +
+                                       "recheckTaurusParent() manually for this widget after calling " +
+                                       "setupUi in your code." +
+                                       "See the documentation of TaurusBaseWidget.recheckTaurusParent()")
+
         self._useParentModel = yesno
 
         parent_widget = self.getParentTaurusComponent()
@@ -3171,7 +3402,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~
 
     @Qt.pyqtSignature("setLegendPosition(int)")
-    def setLegendPosition(self,pos):
+    def setLegendPosition(self, pos):
         '''Specify the position of the legend relative to the plot
 
         :param pos: (Qwt5.QwtPlot.LegendPosition)
@@ -3251,7 +3482,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         self.curves_lock.acquire()
         try:
-            if curveNamesList is None: curveNamesList = [n for n,c in self.curves.iteritems() if not c.isRawData]
+            if curveNamesList is None:
+                curveNamesList = [
+                    n for n, c in self.curves.iteritems() if not c.isRawData]
             newTitlesDict = CaselessDict()
             for curveName in curveNamesList:
                 curve = self.curves.get(curveName)
@@ -3277,21 +3510,25 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         .. seealso:: :meth:`setCurvesTitle`, :meth:`setDefaultCurvesTitle`
         '''
         newTitlesDict = None
-        placeholders = ['<label>', '<model>', '<attr_name>', '<attr_fullname>', 
+        placeholders = ['<label>', '<model>', '<attr_name>', '<attr_fullname>',
                         '<dev_alias>', '<dev_name>', '<dev_fullname>', '<current_title>']
         try:
             current = placeholders.index(self._defaultCurvesTitle)
             items = placeholders
         except:
-            current= len(placeholders)
-            items = placeholders+[self._defaultCurvesTitle]
+            current = len(placeholders)
+            items = placeholders + [self._defaultCurvesTitle]
 
-        msg = 'New text to be used for the curves.\nYou can use any of the following placeholders:\n%s'%", ".join(placeholders)
-        titletext, ok = Qt.QInputDialog.getItem(self, 'New Title for Curves', msg, items, current, True)
+        msg = 'New text to be used for the curves.\nYou can use any of the following placeholders:\n%s' % ", ".join(
+            placeholders)
+        titletext, ok = Qt.QInputDialog.getItem(
+            self, 'New Title for Curves', msg, items, current, True)
         if ok:
             titletext = str(titletext)
-            if curveNamesList is None: self.setDefaultCurvesTitle(titletext)
-            newTitlesDict = self.setCurvesTitle(titletext, curveNamesList=curveNamesList)
+            if curveNamesList is None:
+                self.setDefaultCurvesTitle(titletext)
+            newTitlesDict = self.setCurvesTitle(
+                titletext, curveNamesList=curveNamesList)
         return newTitlesDict
 
     #-~-~-~-~-~-~-~-~-~-~-~-~
@@ -3339,7 +3576,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         :param allow: (bool) If True, zoomers are enabled, otherwise, they are disabled
         '''
-        self._allowZoomers =  allow
+        self._allowZoomers = allow
         self._zoomer.setEnabled(allow)
 
     @Qt.pyqtSignature("getAllowZoomers()")
@@ -3410,9 +3647,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         :param enable: (bool) If True, optimization is enabled, otherwise, it is disabled
         '''
-        #set the optimized flag for use with new curves
+        # set the optimized flag for use with new curves
         self._optimizationEnabled = enable
-        #make sure that already-created curves are also optimized
+        # make sure that already-created curves are also optimized
         try:
             for curveName in self.curves.iterkeys():
                 curve = self.curves.get(str(curveName))
@@ -3420,7 +3657,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 curve.setPaintAttribute(curve.ClipPolygons, enable)
         finally:
             self.curves_lock.release()
-        
+
     @Qt.pyqtSignature("isOptimizationEnabled()")
     def isOptimizationEnabled(self):
         '''Whether painting optimization is enabled for this plot
@@ -3428,7 +3665,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :return: (bool)
         '''
         return self._optimizationEnabled
-    
+
     @Qt.pyqtSignature("resetOptimizationEnabled()")
     def resetOptimizationEnabled(self):
         '''Equivalent to `setOptimizationEnabled(True)`
@@ -3439,49 +3676,57 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     def getQtDesignerPluginInfo(cls):
         """Returns pertinent information in order to be able to build a valid
         QtDesigner widget plugin
-        
+
         :return: (dict) a map with pertinent designer information"""
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.plot'
         ret['group'] = 'Taurus Display'
-        ret['icon'] =':/designer/qwtplot.png'
+        ret['icon'] = ':/designer/qwtplot.png'
         return ret
-            
+
     ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     #                      Qt Properties                        #
     ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
-
-    gridColor = Qt.pyqtProperty("QColor", getGridColor, setGridColor, resetGridColor)
-    gridWidth = Qt.pyqtProperty("int", getGridWidth, setGridWidth, resetGridWidth)
-    legendPosition = Qt.pyqtProperty("int", getLegendPosition, setLegendPosition, resetLegendPosition)
+    gridColor = Qt.pyqtProperty(
+        "QColor", getGridColor, setGridColor, resetGridColor)
+    gridWidth = Qt.pyqtProperty(
+        "int", getGridWidth, setGridWidth, resetGridWidth)
+    legendPosition = Qt.pyqtProperty(
+        "int", getLegendPosition, setLegendPosition, resetLegendPosition)
     model = Qt.pyqtProperty("QStringList", getModel, setModel, resetModel)
-    useParentModel = Qt.pyqtProperty("bool", getUseParentModel, setUseParentModel, resetUseParentModel)
+    useParentModel = Qt.pyqtProperty(
+        "bool", getUseParentModel, setUseParentModel, resetUseParentModel)
     xIsTime = Qt.pyqtProperty("bool", getXIsTime, setXIsTime, resetXIsTime)
-    allowZoomers = Qt.pyqtProperty("bool", getAllowZoomers, setAllowZoomers, resetAllowZoomers)
-    enablePanner = Qt.pyqtProperty("bool", isPannerEnabled, setPannerEnabled, resetPannerEnabled)
-    enableMagnifier = Qt.pyqtProperty("bool", isMagnifierEnabled, setMagnifierEnabled, resetMagnifierEnabled)
-    defaultCurvesTitle = Qt.pyqtProperty("QString", getDefaultCurvesTitle, setDefaultCurvesTitle, resetDefaultCurvesTitle)
-    enableOptimization = Qt.pyqtProperty("bool", isOptimizationEnabled, setOptimizationEnabled, resetOptimizationEnabled)
-    
+    allowZoomers = Qt.pyqtProperty(
+        "bool", getAllowZoomers, setAllowZoomers, resetAllowZoomers)
+    enablePanner = Qt.pyqtProperty(
+        "bool", isPannerEnabled, setPannerEnabled, resetPannerEnabled)
+    enableMagnifier = Qt.pyqtProperty(
+        "bool", isMagnifierEnabled, setMagnifierEnabled, resetMagnifierEnabled)
+    defaultCurvesTitle = Qt.pyqtProperty(
+        "QString", getDefaultCurvesTitle, setDefaultCurvesTitle, resetDefaultCurvesTitle)
+    enableOptimization = Qt.pyqtProperty(
+        "bool", isOptimizationEnabled, setOptimizationEnabled, resetOptimizationEnabled)
+
 
 def main():
     import sys
     import taurus.qt.qtgui.application
     import taurus.core.util.argparse
-    
+
     parser = taurus.core.util.argparse.get_taurus_parser()
     parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
     parser.set_description("a taurus application for plotting 1D data sets")
     parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='e', metavar="t|n",
-                  help="interprete X values as either timestamps (t) or numbers (n). Accepted values: t|n (e is also accepted as a synonim of n)")
+                      help="interprete X values as either timestamps (t) or numbers (n). Accepted values: t|n (e is also accepted as a synonim of n)")
     parser.add_option("--config", "--config-file", dest="config_file", default=None,
-                  help="use the given config file for initialization")
+                      help="use the given config file for initialization")
     parser.add_option("--export", "--export-file", dest="export_file", default=None,
-                  help="use the given file to as output instead of showing the plot")
-    parser.add_option("--window-name", dest="window_name", default="TaurusPlot", help="Name of the window")
-    
-    
+                      help="use the given file to as output instead of showing the plot")
+    parser.add_option("--window-name", dest="window_name",
+                      default="TaurusPlot", help="Name of the window")
+
     app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
                                                         app_name="taurusplot",
                                                         app_version=taurus.Release.version)
@@ -3489,44 +3734,48 @@ def main():
     options = app.get_command_line_options()
     if options.x_axis_mode.lower() not in ['t', 'e', 'n']:
         parser.print_help(sys.stderr)
-        sys.exit(1)    
+        sys.exit(1)
 
     models = args
-    
     w = TaurusPlot()
     w.setWindowTitle(options.window_name)
-    
+
     w.setXIsTime(options.x_axis_mode.lower() == 't')
-    if options.config_file is not None: w.loadConfig(options.config_file)
-    if models: w.setModel(models)
+    if options.config_file is not None:
+        w.loadConfig(options.config_file)
+
+    if models:
+        w.setModel(models)
     if options.export_file is not None:
-        curves = dict.fromkeys(w.trendSets.keys(),0)        
-        def exportIfAllCurves(curve,trend=w,counters=curves):
+        curves = dict.fromkeys(w.trendSets.keys(), 0)
+
+        def exportIfAllCurves(curve, trend=w, counters=curves):
             curve = str(curve)
-            print '*'*10 + ' %s: Event received for %s  '%(datetime.now().isoformat(),curve) +'*'*10        
+            print '*' * 10 + ' %s: Event received for %s  ' % (datetime.now().isoformat(), curve) + '*' * 10
             if curve in counters:
-                counters[curve]+=1
+                counters[curve] += 1
                 if all(counters.values()):
                     trend.exportPdf(options.export_file)
-                    print '*'*10 + ' %s: Exported to : %s  '%(datetime.now().isoformat(),options.export_file) +'*'*10        
+                    print '*' * 10 + ' %s: Exported to : %s  ' % (datetime.now().isoformat(), options.export_file) + '*' * 10
                     trend.close()
             return
-        if not curves: w.close()
+        if not curves:
+            w.close()
         else:
             for ts in w.trendSets.values():
-#                Qt.QObject.connect(ts._signalGen, ts._signalGen.newDataChangedSignal(), exportIfAllCurves)
-                Qt.QObject.connect(ts._signalGen, Qt.SIGNAL("dataChanged(const QString &)"), exportIfAllCurves)
-        sys.exit(app.exec_()) #exit without showing the widget
-    
-    #show the widget
+                #                Qt.QObject.connect(ts._signalGen, ts._signalGen.newDataChangedSignal(), exportIfAllCurves)
+                Qt.QObject.connect(ts._signalGen, Qt.SIGNAL(
+                    "dataChanged(const QString &)"), exportIfAllCurves)
+        sys.exit(app.exec_())  # exit without showing the widget
+
+    # show the widget
     w.show()
-    #if no models are passed, show the data import dialog
+    # if no models are passed, show the data import dialog
     if len(models) == 0 and options.config_file is None:
         w.showDataImportDlg()
-        
+
     sys.exit(app.exec_())
 
-    
-if __name__ == "__main__":
-    main()    
 
+if __name__ == "__main__":
+    main()

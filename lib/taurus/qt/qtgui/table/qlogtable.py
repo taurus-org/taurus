@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -54,13 +54,14 @@ LEVEL, TIME, MSG, NAME, ORIGIN = range(5)
 HORIZ_HEADER = 'Level', 'Time', 'Message', 'By', 'Origin'
 
 __LEVEL_BRUSH = {
-    taurus.Trace    : (Qt.Qt.lightGray, Qt.Qt.black),
-    taurus.Debug    : (Qt.Qt.green, Qt.Qt.black),
-    taurus.Info     : (Qt.Qt.blue, Qt.Qt.white),
-    taurus.Warning  : (Qt.QColor(255,165,0), Qt.Qt.black),
-    taurus.Error    : (Qt.Qt.red, Qt.Qt.black),
-    taurus.Critical : (Qt.QColor(160,32,240), Qt.Qt.white),
+    taurus.Trace: (Qt.Qt.lightGray, Qt.Qt.black),
+    taurus.Debug: (Qt.Qt.green, Qt.Qt.black),
+    taurus.Info: (Qt.Qt.blue, Qt.Qt.white),
+    taurus.Warning: (Qt.QColor(255, 165, 0), Qt.Qt.black),
+    taurus.Error: (Qt.Qt.red, Qt.Qt.black),
+    taurus.Critical: (Qt.QColor(160, 32, 240), Qt.Qt.white),
 }
+
 
 def getBrushForLevel(level):
     elevel = taurus.Trace
@@ -76,7 +77,7 @@ def getBrushForLevel(level):
         elevel = taurus.Error
     elif level <= taurus.Critical:
         elevel = taurus.Critical
-    f, g  = map(Qt.QBrush, __LEVEL_BRUSH[elevel])
+    f, g = map(Qt.QBrush, __LEVEL_BRUSH[elevel])
     return f, g
 
 
@@ -91,6 +92,7 @@ def _origin_cmp(rec1, rec2):
 
 gethostname = memoized(socket.gethostname)
 
+
 def _get_record_origin(rec):
     host = getattr(rec, 'hostName', "?" + gethostname() + "?")
     procName = getattr(rec, 'processName', "?process?")
@@ -99,6 +101,7 @@ def _get_record_origin(rec):
     threadID = getattr(rec, 'thread', "?threadID?")
     return host, procName, procID, threadName, threadID
 
+
 def _get_record_trace(rec):
     pathname = getattr(rec, 'pathname', '')
     filename = getattr(rec, 'filename', '')
@@ -106,19 +109,23 @@ def _get_record_trace(rec):
     funcname = getattr(rec, 'funcName', '')
     lineno = getattr(rec, 'lineno', '')
     return pathname, filename, modulename, funcname, lineno
-    
+
+
 def _get_record_origin_str(rec):
     return "{0}.{1}.{3}".format(*_get_record_origin(rec))
 
+
 def _get_record_origin_tooltip(rec):
-    
+
     host, procName, procID, threadName, threadID = _get_record_origin(rec)
     pathname, filename, modulename, funcname, lineno = _get_record_trace(rec)
     timestamp = str(datetime.datetime.fromtimestamp(rec.created))
     bgcolor, fgcolor = map(Qt.QBrush.color, getBrushForLevel(rec.levelno))
-    bgcolor = "#%02x%02x%02x" % (bgcolor.red(), bgcolor.green(), bgcolor.blue())
-    fgcolor = "#%02x%02x%02x" % (fgcolor.red(), fgcolor.green(), fgcolor.blue())
-    
+    bgcolor = "#%02x%02x%02x" % (
+        bgcolor.red(), bgcolor.green(), bgcolor.blue())
+    fgcolor = "#%02x%02x%02x" % (
+        fgcolor.red(), fgcolor.green(), fgcolor.blue())
+
     return """<html><font face="monospace" size="1">
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td>Level:</td><td><font color="{level_bgcolor}">{level}</font></td></tr>
@@ -137,11 +144,12 @@ def _get_record_origin_tooltip(rec):
            pathname=pathname, filename=filename, funcname=funcname,
            lineno=lineno)
 
+
 class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
 
     DftFont = Qt.QFont("Mono", 8)
     DftColSize = Qt.QSize(80, 20), Qt.QSize(200, 20), \
-                 Qt.QSize(300, 20), Qt.QSize(180, 20), Qt.QSize(240, 20),
+        Qt.QSize(300, 20), Qt.QSize(180, 20), Qt.QSize(240, 20),
 
     def __init__(self, capacity=500000, freq=0.25):
         super(Qt.QAbstractTableModel, self).__init__()
@@ -150,34 +158,35 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
         self._records = []
         self._accumulated_records = []
         Logger.addRootLogHandler(self)
-        self.startTimer(freq*1000)
+        self.startTimer(freq * 1000)
 
     # ---------------------------------
     # Qt.QAbstractTableModel overwrite
     # ---------------------------------
 
-    def sort(self, column, order = Qt.Qt.AscendingOrder):
+    def sort(self, column, order=Qt.Qt.AscendingOrder):
         if column == LEVEL:
-            f = lambda a,b: cmp(a.levelno,b.levelno)
+            f = lambda a, b: cmp(a.levelno, b.levelno)
         elif column == TIME:
-            f = lambda a,b: cmp(a.created,b.created)
+            f = lambda a, b: cmp(a.created, b.created)
         elif column == MSG:
-            f = lambda a,b: cmp(a.msg,b.msg)
+            f = lambda a, b: cmp(a.msg, b.msg)
         elif column == NAME:
-            f = lambda a,b: cmp(a.name,b.name)
+            f = lambda a, b: cmp(a.name, b.name)
         elif column == ORIGIN:
             f = _origin_cmp
-        self._records = sorted(self._records, cmp=f,reverse= order == Qt.Qt.DescendingOrder)
+        self._records = sorted(self._records, cmp=f,
+                               reverse=order == Qt.Qt.DescendingOrder)
 
     def rowCount(self, index=Qt.QModelIndex()):
         return len(self._records)
 
     def columnCount(self, index=Qt.QModelIndex()):
         return len(HORIZ_HEADER)
-    
+
     def getRecord(self, index):
         return self._records[index.row()]
-    
+
     def data(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < len(self._records)):
             return Qt.QVariant()
@@ -189,7 +198,7 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
             elif column == TIME:
                 dt = datetime.datetime.fromtimestamp(record.created)
                 return Qt.QVariant(str(dt))
-                #return Qt.QVariant(dt.strftime("%Y-%m-%d %H:%m:%S.%f"))
+                # return Qt.QVariant(dt.strftime("%Y-%m-%d %H:%m:%S.%f"))
             elif column == MSG:
                 return Qt.QVariant(record.getMessage())
             elif column == NAME:
@@ -198,8 +207,8 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
                 return Qt.QVariant(_get_record_origin_str(record))
         elif role == Qt.Qt.TextAlignmentRole:
             if column in (LEVEL, MSG):
-                return Qt.QVariant(Qt.Qt.AlignLeft|Qt.Qt.AlignVCenter)
-            return Qt.QVariant(Qt.Qt.AlignRight|Qt.Qt.AlignVCenter)
+                return Qt.QVariant(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter)
+            return Qt.QVariant(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
         elif role == Qt.Qt.BackgroundRole:
             if column == LEVEL:
                 return Qt.QVariant(getBrushForLevel(record.levelno)[0])
@@ -210,8 +219,8 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
             return Qt.QVariant(_get_record_origin_tooltip(record))
         elif role == Qt.Qt.SizeHintRole:
             return self._getSizeHint(column)
-        #elif role == Qt.Qt.StatusTipRole:
-        #elif role == Qt.Qt.CheckStateRole:
+        # elif role == Qt.Qt.StatusTipRole:
+        # elif role == Qt.Qt.CheckStateRole:
         elif role == Qt.Qt.FontRole:
             return Qt.QVariant(self.DftFont)
         return Qt.QVariant()
@@ -247,27 +256,26 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
             return Qt.QVariant()
         if orientation == Qt.Qt.Horizontal:
             return Qt.QVariant(HORIZ_HEADER[section])
-        return Qt.QVariant(int(section+1))
+        return Qt.QVariant(int(section + 1))
 
     def insertRows(self, position, rows=1, index=Qt.QModelIndex()):
-        self.beginInsertRows(Qt.QModelIndex(), position, position+rows-1)
+        self.beginInsertRows(Qt.QModelIndex(), position, position + rows - 1)
         self.endInsertRows()
 
     def removeRows(self, position, rows=1, index=Qt.QModelIndex()):
-        self.beginRemoveRows(Qt.QModelIndex(), position, position+rows-1)
+        self.beginRemoveRows(Qt.QModelIndex(), position, position + rows - 1)
         self.endRemoveRows()
 
-
-    #def setData(self, index, value, role=Qt.Qt.DisplayRole):
+    # def setData(self, index, value, role=Qt.Qt.DisplayRole):
     #    pass
 
-    #def flags(self, index)
+    # def flags(self, index)
     #    pass
 
-    #def insertColumns(self):
+    # def insertColumns(self):
     #    pass
 
-    #def removeColumns(self):
+    # def removeColumns(self):
     #    pass
 
     # --------------------------
@@ -310,15 +318,17 @@ class _LogRecordStreamHandler(LogRecordStreamHandler):
 
 class QRemoteLoggingTableModel(QLoggingTableModel):
     """A remote Qt table that displays the taurus logging messages"""
+
     def connect_logging(self, host='localhost',
-                port=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
-                handler=_LogRecordStreamHandler):
+                        port=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
+                        handler=_LogRecordStreamHandler):
         self.log_receiver = LogRecordSocketReceiver(host=host, port=port,
                                                     handler=handler, model=self)
-        self.log_thread = threading.Thread(target=self.log_receiver.serve_until_stopped)
+        self.log_thread = threading.Thread(
+            target=self.log_receiver.serve_until_stopped)
         self.log_thread.daemon = False
         self.log_thread.start()
-    
+
     def disconnect_logging(self):
         if not hasattr(self, 'log_receiver') or self.log_receiver is None:
             return
@@ -336,7 +346,7 @@ class QLoggingTable(Qt.QTableView):
         """Overwrite of slot rows inserted to do proper resize and scroll to
         bottom if desired"""
         Qt.QTableView.rowsInserted(self, index, start, end)
-        for i in xrange(start,end+1):
+        for i in xrange(start, end + 1):
             self.resizeRowToContents(i)
         if start == 0:
             self.resizeColumnsToContents()
@@ -363,23 +373,25 @@ class LoggingToolBar(FilterToolBar):
         self.getFilterLineEdit().setToolTip("Quick filter by log name")
 
         self._logLevelComboBox = logLevelComboBox = Qt.QComboBox()
-        levels =  "Trace", "Debug", "Info", "Warning", "Error", "Critical"
+        levels = "Trace", "Debug", "Info", "Warning", "Error", "Critical"
         for level in levels:
-            logLevelComboBox.addItem(level, Qt.QVariant(getattr(taurus, level)))
+            logLevelComboBox.addItem(
+                level, Qt.QVariant(getattr(taurus, level)))
         logLevelComboBox.setCurrentIndex(0)
         Qt.QObject.connect(logLevelComboBox,
                            Qt.SIGNAL("currentIndexChanged(int)"),
                            self.onLogLevelChanged)
         logLevelComboBox.setToolTip("Filter by log level")
-        
+
         self._filterLevelAction = self.addWidget(logLevelComboBox)
         self.addSeparator()
-                
+
         af = ActionFactory()
         self._scrollLockAction = af.createAction(self, "Refresh",
-            icon=getThemeIcon("system-lock-screen"),
-            tip="Scroll lock",
-            toggled=self.onToggleScrollLock)
+                                                 icon=getThemeIcon(
+                                                     "system-lock-screen"),
+                                                 tip="Scroll lock",
+                                                 toggled=self.onToggleScrollLock)
 
         self.addAction(self._scrollLockAction)
 
@@ -388,10 +400,10 @@ class LoggingToolBar(FilterToolBar):
 
     def onLogLevelChanged(self, index):
         self.onFilterChanged()
-    
+
     def getLogLevelComboBox(self):
         return self._logLevelComboBox
-        
+
     def getLogLevel(self):
         combo = self.getLogLevelComboBox()
         return Qt.from_qvariant(combo.itemData(combo.currentIndex()))
@@ -417,8 +429,8 @@ class QLoggingFilterProxyModel(Qt.QSortFilterProxyModel):
         self.setFilterRole(Qt.Qt.DisplayRole)
 
         # sort configuration
-        #self.setSortCaseSensitivity(Qt.Qt.CaseInsensitive)
-        #self.setSortRole(Qt.Qt.DisplayRole)
+        # self.setSortCaseSensitivity(Qt.Qt.CaseInsensitive)
+        # self.setSortRole(Qt.Qt.DisplayRole)
 
         # general configuration
 
@@ -444,20 +456,21 @@ class QLoggingFilterProxyModel(Qt.QSortFilterProxyModel):
 _W = "Warning: Switching log perspective will erase previous log messages " \
      "from current perspective!"
 
+
 class QLoggingWidget(QBaseTableWidget):
 
     KnownPerspectives = {
-        'Standard' : {
-            "label"   : "Local",
-            "icon"    : "computer",
-            "tooltip" : "Local logging.\n" + _W,
-            "model"   : [QLoggingFilterProxyModel, QLoggingTableModel,],
+        'Standard': {
+            "label": "Local",
+            "icon": "computer",
+            "tooltip": "Local logging.\n" + _W,
+            "model": [QLoggingFilterProxyModel, QLoggingTableModel, ],
         },
-        'Remote' : {
-            "label"   : "Remote",
-            "icon"    : "network-server",
-            "tooltip" : "Monitor remote logs.\n" + _W,
-            "model"   : [QLoggingFilterProxyModel, QRemoteLoggingTableModel,],
+        'Remote': {
+            "label": "Remote",
+            "icon": "network-server",
+            "tooltip": "Monitor remote logs.\n" + _W,
+            "model": [QLoggingFilterProxyModel, QRemoteLoggingTableModel, ],
         },
     }
 
@@ -468,9 +481,9 @@ class QLoggingWidget(QBaseTableWidget):
                  with_selection_widget=True, with_refresh_widget=True,
                  perspective=None, proxy=None):
         QBaseTableWidget.__init__(self, parent=parent, designMode=designMode,
-                 with_filter_widget=with_filter_widget,
-                 with_selection_widget=False, with_refresh_widget=False,
-                 perspective=perspective, proxy=proxy)
+                                  with_filter_widget=with_filter_widget,
+                                  with_selection_widget=False, with_refresh_widget=False,
+                                  perspective=perspective, proxy=proxy)
 
     def createViewWidget(self, klass=None):
         if klass is None:
@@ -497,7 +510,7 @@ class QLoggingWidget(QBaseTableWidget):
             return
         proxy_model = self.getQModel()
         level = self.getFilterBar().getLogLevel()
-        proxy_model.setFilterLogLevel(level)        
+        proxy_model.setFilterLogLevel(level)
         return QBaseTableWidget.onFilterChanged(self, filter)
 
     def onSwitchPerspective(self, perspective):
@@ -507,20 +520,21 @@ class QLoggingWidget(QBaseTableWidget):
                 host, port = self.hostName, self.port
             else:
                 isValid = False
-                dft = "%s:%d" % (socket.gethostname(), logging.handlers.DEFAULT_TCP_LOGGING_PORT)
+                dft = "%s:%d" % (socket.gethostname(),
+                                 logging.handlers.DEFAULT_TCP_LOGGING_PORT)
                 while not isValid:
                     txt, res = Qt.QInputDialog.getText(self,
-                        "Please input remote logging host and port",
-                        "Location (<host>:<port>):", Qt.QLineEdit.Normal, dft)
+                                                       "Please input remote logging host and port",
+                                                       "Location (<host>:<port>):", Qt.QLineEdit.Normal, dft)
                     if not res:
                         return
                     try:
-                        host, port = str(txt).split(":",1)
+                        host, port = str(txt).split(":", 1)
                         port = int(port)
                         isValid = True
                     except:
                         Qt.QMessageBox.information(self, "Invalid name",
-                            "Please type a valid <host>:<port>")
+                                                   "Please type a valid <host>:<port>")
             ret = QBaseTableWidget.onSwitchPerspective(self, perspective)
             qmodel = self.getQModel()
             qmodel.connect_logging(host=host, port=port)
@@ -531,22 +545,21 @@ class QLoggingWidget(QBaseTableWidget):
     def destroy(self, destroyWindow=True, destroySubWindows=True):
         self.stop_logging()
         return QBaseTableWidget.destroy(self, destroyWindow, destroySubWindows)
-    
+
     def stop_logging(self):
         model = self.getBaseQModel()
         if hasattr(model, 'disconnect_logging'):
             model.disconnect_logging()
-    
-    
+
     @classmethod
     def getQtDesignerPluginInfo(cls):
         return {
-            'module'    : 'taurus.qt.qtgui.table',
-            'group'     : 'Taurus Views',
-            'icon'      : ':/designer/table.png',
-            'container' : False }
+            'module': 'taurus.qt.qtgui.table',
+            'group': 'Taurus Views',
+            'icon': ':/designer/table.png',
+            'container': False}
 
-   
+
 def fill_log():
     import time
     import random
@@ -554,14 +567,15 @@ def fill_log():
     for i in xrange(10):
         taurus.info("Hello world %04d" % i)
 
-    loggers = ["Object%02d" % (i+1) for i in range(10)]
+    loggers = ["Object%02d" % (i + 1) for i in range(10)]
     i = 0
     while True:
         time.sleep(random.random())
         logger = logging.getLogger(random.choice(loggers))
         level = random.randint(taurus.Trace, taurus.Critical)
         logger.log(level, "log message %04d" % i)
-        i +=1
+        i += 1
+
 
 def main():
     import taurus.qt.qtgui.application
@@ -577,14 +591,14 @@ def main():
     taurus.setLogLevel(taurus.Trace)
     taurus.disableLogOutput()
     w = QLoggingWidget()
-    
+
     taurus.trace("trace message")
     taurus.debug("debug message")
     taurus.info("Hello world")
     taurus.warning("Warning message")
     taurus.error("error message")
     taurus.critical("critical message")
-    w.setMinimumSize(1200,600)
+    w.setMinimumSize(1200, 600)
     w.show()
     app.exec_()
     w.stop_logging()

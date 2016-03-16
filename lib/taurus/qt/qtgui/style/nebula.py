@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -32,17 +32,17 @@ __docformat__ = 'restructuredtext'
 from taurus.external.qt import Qt
 
 _NEBULA_KEYS = {
-    'border_radius' : '4px',
-    'titlebar_background_color' : 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgb(200, 200, 200), stop: 1 rgb(150, 150, 150))',
-    'selected_titlebar_background_color' : 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgb(60, 150, 255), stop: 1 rgb(0, 65, 200))',
-    'single_titlebar_background_color' : 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgb(90, 180, 255), stop: 1 rgb(30, 95, 250))',
-    'titlebar_color' : 'white',
-    'selected_titlebar_color' : 'white',
-    'content_background_color' : 'qlineargradient(x1: 0, y1: 0, x2: 1.0, y2: 1.0, stop: 0 rgb(224, 224, 224), stop: 1 rgb(255, 255, 255))'
+    'border_radius': '4px',
+    'titlebar_background_color': 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgb(200, 200, 200), stop: 1 rgb(150, 150, 150))',
+    'selected_titlebar_background_color': 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgb(60, 150, 255), stop: 1 rgb(0, 65, 200))',
+    'single_titlebar_background_color': 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgb(90, 180, 255), stop: 1 rgb(30, 95, 250))',
+    'titlebar_color': 'white',
+    'selected_titlebar_color': 'white',
+    'content_background_color': 'qlineargradient(x1: 0, y1: 0, x2: 1.0, y2: 1.0, stop: 0 rgb(224, 224, 224), stop: 1 rgb(255, 255, 255))'
 }
 
 _NEBULA_STYLESHEET = \
-"""QToolBox:tab {{
+    """QToolBox:tab {{
     color: {titlebar_color};
     border-width: 0px;
     border-style: solid;
@@ -120,7 +120,7 @@ QGroupBox::title {{
 }}
 
 QTabWidget {{
-    
+
 }}
 
 QTabWidget::tab-bar {{
@@ -170,16 +170,18 @@ QTabBar::tab:selected {{
  QMainWindow::separator:hover {{
     background: red;
  }}
- 
+
  */
- 
+
 
 """
 
 NEBULA_STYLESHEET = _NEBULA_STYLESHEET.format(**_NEBULA_KEYS)
 
+
 def getStyle():
     return None
+
 
 def getStyleSheet():
     return NEBULA_STYLESHEET

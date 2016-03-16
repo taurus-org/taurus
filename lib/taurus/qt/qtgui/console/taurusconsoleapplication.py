@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -38,13 +38,13 @@ from taurus.external.qt import Qt
 
 try:
     from IPython.qt.console.qtconsoleapp import IPythonQtConsoleApp
-except ImportError: #for IPython v<1.x
+except ImportError:  # for IPython v<1.x
     from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
-     
+
 
 class TaurusConsoleApplication(IPythonQtConsoleApp):
 
-    name='taurusconsole'
+    name = 'taurusconsole'
 
     def init_qt_elements(self):
         self.app = Qt.QApplication.instance()
@@ -54,9 +54,5 @@ class TaurusConsoleApplication(IPythonQtConsoleApp):
         pass
 
     def init_kernel_manager(self):
-        # avoid starting a default kernel 
+        # avoid starting a default kernel
         self.kernel_manager = None
-
-    
-
-

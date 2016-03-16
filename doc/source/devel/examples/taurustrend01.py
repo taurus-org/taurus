@@ -6,16 +6,16 @@ from taurus.qt.qtgui.plot import TaurusTrend
 
 app = Qt.QApplication(sys.argv)
 ##########################
-#BEGIN EXAMPLE CODE
+# BEGIN EXAMPLE CODE
 ##########################
 
 panel = TaurusTrend()
 model = ['sys/taurustest/1/position']
-panel.setXIsTime(True) #to show the x values as time
+panel.setXIsTime(True)  # to show the x values as time
 panel.setModel(model)
 
 ########################
-#END EXAMPLE CODE
+# END EXAMPLE CODE
 ########################
 panel.show()
 sys.exit(app.exec_())

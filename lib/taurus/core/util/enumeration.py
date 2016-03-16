@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -39,20 +39,20 @@ __docformat__ = "restructuredtext"
 
 
 class EnumException(Exception):
-    """Exception thrown by :class:`Enumeration` when trying to declare an 
+    """Exception thrown by :class:`Enumeration` when trying to declare an
     invalid enumeration."""
     pass
 
 
 class Enumeration(object):
-    """ Enumeration class intended to provide the 'enum' feature present in many 
-    programming languages. 
+    """ Enumeration class intended to provide the 'enum' feature present in many
+    programming languages.
     The elements of the enumeration can be accessed in an "object member way" or
     as elements of a dictionary.
     Usage::
-        
+
         from taurus.core.util.enumeration import Enumeration
-        
+
         Volkswagen = Enumeration("Volkswagen",
             ["JETTA",
              "RABBIT",
@@ -67,24 +67,24 @@ class Enumeration(object):
              ])
 
     In the command line::
-                
+
         >>> my_car = Volkswagen.BEETLE
         >>> homer_car = Volkswagen.PASSAT
-        
+
         >>> print Volkswagen.BEETLE
         2
 
         >>> print Volkswagen['BEETLE']
         2
-        
+
         >>>print Volkswagen.whatis(homer_car)
         'PASSAT'
     """
 
     def __init__(self, name, enumList, flaggable=False, no_doc=False):
         self._name = name
-        lookup = { }
-        reverseLookup = { }
+        lookup = {}
+        reverseLookup = {}
         uniqueNames = set()
         self._flaggable = flaggable
         self._uniqueValues = uniqueValues = set()
@@ -92,16 +92,19 @@ class Enumeration(object):
         for x in enumList:
             if isinstance(x, tuple):
                 if flaggable:
-                    raise EnumException("flagable enum does not accept tuple items")
+                    raise EnumException(
+                        "flagable enum does not accept tuple items")
                 x, i = x
                 if not isinstance(x, (str, unicode)):
                     raise EnumException("enum name is not a string: " + str(x))
                 if not isinstance(i, (int, long)):
-                    raise EnumException("enum value is not an integer: " + str(i))
+                    raise EnumException(
+                        "enum value is not an integer: " + str(i))
                 if x in uniqueNames:
                     raise EnumException("enum name is not unique: " + str(x))
                 if i in uniqueValues:
-                    raise EnumException("enum value is not unique for " + str(x))
+                    raise EnumException(
+                        "enum value is not unique for " + str(x))
                 uniqueNames.add(x)
                 uniqueValues.add(i)
                 lookup[x] = i
@@ -121,6 +124,13 @@ class Enumeration(object):
         self.reverseLookup = reverseLookup
         if not no_doc:
             self.__doc_enum()
+
+    def __call__(self, i):
+        # TODO: Dummy implementation to simulate Python Enum behaviour.
+        # It is not a complete replacement because although we can use
+        # Enumeration as Callable, it still return an int instead of an
+        # Enumeration member.
+        return self.lookup[self.whatis(i)]
 
     def _generateUniqueId(self):
         if self._flaggable:
@@ -147,22 +157,22 @@ class Enumeration(object):
         rl = self.reverseLookup
         keys = rl.keys()
         keys.sort()
-        values = "\n".join([ "    - {0} ({1})".format(rl[k], k) for k in keys ])
+        values = "\n".join(["    - {0} ({1})".format(rl[k], k) for k in keys])
         self.__doc__ = self._name + " enumeration. " + \
-                       "Possible values are:\n\n" + values
+            "Possible values are:\n\n" + values
 
     def __str__(self):
         rl = self.reverseLookup
         keys = rl.keys()
         keys.sort()
-        values = ", ".join([ rl[k] for k in keys ])
+        values = ", ".join([rl[k] for k in keys])
         return self._name + "(" + values + ")"
 
     def __repr__(self):
         rl = self.reverseLookup
         keys = rl.keys()
         keys.sort()
-        values = [ rl[k] for k in keys ]
+        values = [rl[k] for k in keys]
         return "Enumeration('" + self._name + "', " + str(values) + ")"
 
     def has_key(self, key):

@@ -2,80 +2,85 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 """This module provides widgets that display the database in a tree format"""
 
 __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
-    "TaurusTreeDeviceFamilyItem", "TaurusTreeDeviceMemberItem", "TaurusTreeSimpleDeviceItem",
-    "TaurusTreeDeviceItem", "TaurusTreeAttributeItem", "TaurusTreeServerNameItem",
-    "TaurusTreeServerItem", "TaurusTreeDeviceClassItem", "TaurusDbBaseModel",
-    "TaurusDbSimpleDeviceModel", "TaurusDbPlainDeviceModel", "TaurusDbDeviceModel",
-    "TaurusDbSimpleDeviceAliasModel",
-    "TaurusDbPlainServerModel", "TaurusDbServerModel",
-    "TaurusDbDeviceClassModel",
-    "TaurusDbBaseProxyModel",
-    "TaurusDbDeviceProxyModel", "TaurusDbServerProxyModel", "TaurusDbDeviceClassProxyModel"]
+           "TaurusTreeDeviceFamilyItem", "TaurusTreeDeviceMemberItem", "TaurusTreeSimpleDeviceItem",
+           "TaurusTreeDeviceItem", "TaurusTreeAttributeItem", "TaurusTreeServerNameItem",
+           "TaurusTreeServerItem", "TaurusTreeDeviceClassItem", "TaurusDbBaseModel",
+           "TaurusDbSimpleDeviceModel", "TaurusDbPlainDeviceModel", "TaurusDbDeviceModel",
+           "TaurusDbSimpleDeviceAliasModel",
+           "TaurusDbPlainServerModel", "TaurusDbServerModel",
+           "TaurusDbDeviceClassModel",
+           "TaurusDbBaseProxyModel",
+           "TaurusDbDeviceProxyModel", "TaurusDbServerProxyModel", "TaurusDbDeviceClassProxyModel"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
-from taurus.core.taurusbasetypes import TaurusElementType, TaurusSWDevHealth
-from taurus.core.taurusdatabase import TaurusInfo, TaurusDatabase
+from taurus.core.taurusbasetypes import TaurusElementType, TaurusDevState
 import taurus.qt.qtcore.mimetypes
+
+from taurus.core.tango.tangodatabase import TangoInfo, TangoDatabase
 
 from .taurusmodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 
 ElemType = TaurusElementType
-DevHealth = TaurusSWDevHealth
+
 
 def getElementTypeIcon(*args, **kwargs):
     """Wrapper to prevent loading qtgui when this module is imported"""
     import taurus.qt.qtgui.resource
     return taurus.qt.qtgui.resource.getElementTypeIcon(*args, **kwargs)
 
+
 def getElementTypeToolTip(*args, **kwargs):
     """Wrapper to prevent loading qtgui when this module is imported"""
     import taurus.qt.qtgui.resource
     return taurus.qt.qtgui.resource.getElementTypeToolTip(*args, **kwargs)
+
 
 def getElementTypeSize(*args, **kwargs):
     """Wrapper to prevent loading qtgui when this module is imported"""
     import taurus.qt.qtgui.resource
     return taurus.qt.qtgui.resource.getElementTypeSize(*args, **kwargs)
 
-def getSWDevHealthIcon(*args, **kwargs):
-    """Wrapper to prevent loading qtgui when this module is imported"""
-    import taurus.qt.qtgui.resource
-    return taurus.qt.qtgui.resource.getSWDevHealthIcon(*args, **kwargs)
 
-def getSWDevHealthToolTip(*args, **kwargs):
+def getDevStateIcon(*args, **kwargs):
     """Wrapper to prevent loading qtgui when this module is imported"""
     import taurus.qt.qtgui.resource
-    return taurus.qt.qtgui.resource.getSWDevHealthToolTip(*args, **kwargs)
+    return taurus.qt.qtgui.resource.getDevStateIcon(*args, **kwargs)
+
+
+def getDevStateToolTip(*args, **kwargs):
+    """Wrapper to prevent loading qtgui when this module is imported"""
+    import taurus.qt.qtgui.resource
+    return taurus.qt.qtgui.resource.getDevStateToolTip(*args, **kwargs)
 
 
 class TaurusTreeDbBaseItem(TaurusBaseTreeItem):
-    DisplayFunc = TaurusInfo.name
+    DisplayFunc = TangoInfo.name
 
 
 class TaurusTreeDevicePartItem(TaurusTreeDbBaseItem):
@@ -83,7 +88,8 @@ class TaurusTreeDevicePartItem(TaurusTreeDbBaseItem):
 
     def data(self, index):
         column = index.column()
-        if column > 0: return
+        if column > 0:
+            return
 
         model = index.model()
         role = model.role(column, self.depth())
@@ -144,7 +150,7 @@ class TaurusTreeSimpleDeviceItem(TaurusTreeDbBaseItem):
         elif role == ElemType.DeviceClass:
             return obj.klass().name()
         elif role == ElemType.Exported:
-            return obj.health()
+            return obj.state()
         elif role == ElemType.Host:
             return obj.host()
         elif role == ElemType.Domain:
@@ -164,9 +170,6 @@ class TaurusTreeSimpleDeviceItem(TaurusTreeDbBaseItem):
 class TaurusTreeDeviceItem(TaurusTreeDbBaseItem):
     """A node designed to represent a device"""
 
-    SearchForAttributeHealth = DevHealth.Exported, DevHealth.ExportedAlive, \
-                               DevHealth.NotExportedAlive
-
     def child(self, row):
         self.updateChilds()
         return super(TaurusTreeDeviceItem, self).child(row)
@@ -177,7 +180,7 @@ class TaurusTreeDeviceItem(TaurusTreeDbBaseItem):
         if nb > 0:
             return True
         data = self.itemData()
-        if not data.health() in self.SearchForAttributeHealth:
+        if data.state() != TaurusDevState.Ready:
             return False
         return True
 
@@ -186,7 +189,7 @@ class TaurusTreeDeviceItem(TaurusTreeDbBaseItem):
         if nb > 0:
             return nb
         data = self.itemData()
-        if not data.health() in self.SearchForAttributeHealth:
+        if data.state() != TaurusDevState.Ready:
             return 0
         self.updateChilds()
         return super(TaurusTreeDeviceItem, self).childCount()
@@ -212,7 +215,7 @@ class TaurusTreeDeviceItem(TaurusTreeDbBaseItem):
         elif role == ElemType.DeviceClass:
             return obj.klass().name()
         elif role == ElemType.Exported:
-            return obj.health()
+            return obj.state()
         elif role == ElemType.Host:
             return obj.host()
         elif role == ElemType.Domain:
@@ -252,15 +255,17 @@ class TaurusTreeAttributeItem(TaurusTreeDbBaseItem):
             return data.name()
         ret = '<TABLE border="0" cellpadding="1" cellspacing="0">'
         items = dict(
-            name = "'" + di.label + "' (" + data.name() + ")",
-            description = di.description.replace("<","&lt;").replace(">","&gt;"),
-            unit = di.unit,
-            limits = "[%s, %s]" % (di.min_value, di.max_value),
-            alarms = "[%s, %s]" % (di.alarms.min_alarm, di.alarms.max_alarm),
-            warnings = "[%s, %s]" % (di.alarms.min_warning, di.alarms.max_warning),)
+            name="'" + di.label + "' (" + data.name() + ")",
+            description=di.description.replace(
+                "<", "&lt;").replace(">", "&gt;"),
+            unit=di.unit,
+            limits="[%s, %s]" % (di.min_value, di.max_value),
+            alarms="[%s, %s]" % (di.alarms.min_alarm, di.alarms.max_alarm),
+            warnings="[%s, %s]" % (di.alarms.min_warning, di.alarms.max_warning),)
 
         for id, value in items.items():
-            ret += '<TR><TD WIDTH="80" ALIGN="RIGHT" VALIGN="MIDDLE"><B>%s:</B></TD><TD>%s</TD></TR>' % (id.capitalize(), value)
+            ret += '<TR><TD WIDTH="80" ALIGN="RIGHT" VALIGN="MIDDLE"><B>%s:</B></TD><TD>%s</TD></TR>' % (
+                id.capitalize(), value)
         ret += '</TABLE>'
         return ret
 
@@ -301,7 +306,7 @@ class TaurusTreeServerItem(TaurusTreeDbBaseItem):
         elif role == ElemType.ServerInstance:
             return self._itemData.serverInstance()
         elif role == ElemType.Exported:
-            return self._itemData.health()
+            return self._itemData.state()
         elif role == ElemType.Host:
             return self._itemData.host()
 
@@ -326,7 +331,7 @@ class TaurusTreeFullServerItem(TaurusTreeDbBaseItem):
         elif role == ElemType.ServerInstance:
             return self._itemData.fullName()
         elif role == ElemType.Exported:
-            return self._itemData.health()
+            return self._itemData.state()
         elif role == ElemType.Host:
             return self._itemData.host()
 
@@ -360,7 +365,8 @@ class TaurusDbBaseModel(TaurusBaseModel):
     database."""
 
     ColumnNames = "Device", "Alias", "Server", "Class", "Alive", "Host"
-    ColumnRoles = (ElemType.Device, ElemType.Device), ElemType.DeviceAlias, ElemType.Server, ElemType.DeviceClass, ElemType.Exported, ElemType.Host
+    ColumnRoles = (
+        ElemType.Device, ElemType.Device), ElemType.DeviceAlias, ElemType.Server, ElemType.DeviceClass, ElemType.Exported, ElemType.Host
 
     def createNewRootItem(self):
         return TaurusTreeDbBaseItem(self, self.ColumnNames)
@@ -398,7 +404,8 @@ class TaurusDbBaseModel(TaurusBaseModel):
         ret = Qt.QMimeData()
         data = []
         for index in indexes:
-            if not index.isValid(): continue
+            if not index.isValid():
+                continue
             #item = index.internalPointer()
             #data = item.mimeData(index)
             #stream << item.mimeData(index)
@@ -407,10 +414,12 @@ class TaurusDbBaseModel(TaurusBaseModel):
             if mime_data_item is None:
                 continue
             data.append(mime_data_item)
-        ret.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, "\r\n".join(data))
+        ret.setData(
+            taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, "\r\n".join(data))
         ret.setText(", ".join(data))
-        if len(data)==1:
-            ret.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(data[0]))
+        if len(data) == 1:
+            ret.setData(
+                taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(data[0]))
         return ret
 
     def pyData(self, index, role):
@@ -429,18 +438,18 @@ class TaurusDbBaseModel(TaurusBaseModel):
             if column == 0:
                 ret = self.roleIcon(taurus_role)
             if taurus_role == ElemType.Exported:
-                health = item.data(index)
-                ret = getSWDevHealthIcon(health)
+                state = item.data(index)
+                ret = getDevStateIcon(state)
         elif role == Qt.Qt.ToolTipRole:
             ret = item.toolTip(index)
             if ret is None:
                 data = item.data(index)
                 if data is not None:
                     if taurus_role == ElemType.Exported:
-                        ret = getSWDevHealthToolTip(data)
+                        ret = getDevStateToolTip(data)
                     else:
                         ret = self.roleToolTip(taurus_role)
-        #elif role == Qt.Qt.SizeHintRole:
+        # elif role == Qt.Qt.SizeHintRole:
         #    ret = self.columnSize(column)
         elif role == Qt.Qt.FontRole:
             ret = self.DftFont
@@ -449,7 +458,7 @@ class TaurusDbBaseModel(TaurusBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
         devices = data.devices()
 
@@ -478,7 +487,7 @@ class TaurusDbSimpleDeviceAliasModel(TaurusDbBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
         devices = data.devices()
 
@@ -495,12 +504,13 @@ class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
     nodes will have attribute child nodes if the device is running."""
 
     ColumnNames = "Device", "Alias", "Server", "Class", "Alive", "Host"
-    ColumnRoles = (ElemType.Device, ElemType.Device, ElemType.Attribute), ElemType.DeviceAlias, ElemType.Server, ElemType.DeviceClass, ElemType.Exported, ElemType.Host
+    ColumnRoles = (ElemType.Device, ElemType.Device,
+                   ElemType.Attribute), ElemType.DeviceAlias, ElemType.Server, ElemType.DeviceClass, ElemType.Exported, ElemType.Host
 
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
         devices = data.devices()
 
@@ -518,24 +528,28 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
            - <domain>
            - <family>
            - <member>"""
-    ColumnRoles = (ElemType.Device, ElemType.Domain, ElemType.Family, ElemType.Member, ElemType.Attribute), ElemType.DeviceAlias, ElemType.Server, ElemType.DeviceClass, ElemType.Exported, ElemType.Host
+    ColumnRoles = (ElemType.Device, ElemType.Domain, ElemType.Family, ElemType.Member,
+                   ElemType.Attribute), ElemType.DeviceAlias, ElemType.Server, ElemType.DeviceClass, ElemType.Exported, ElemType.Host
 
     def setupModelData(self, data):
         if data is None:
             return
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.deviceTree()
 
         rootItem = self._rootItem
         for domain in data.keys():
             families = data[domain]
-            domainItem = TaurusTreeDeviceDomainItem(self, domain.upper(), rootItem)
+            domainItem = TaurusTreeDeviceDomainItem(
+                self, domain.upper(), rootItem)
             for family in families.keys():
                 members = families[family]
-                familyItem = TaurusTreeDeviceFamilyItem(self, family.upper(), domainItem)
+                familyItem = TaurusTreeDeviceFamilyItem(
+                    self, family.upper(), domainItem)
                 for member in members.keys():
                     dev = members[member]
-                    memberItem = TaurusTreeDeviceItem(self, dev, parent=familyItem)
+                    memberItem = TaurusTreeDeviceItem(
+                        self, dev, parent=familyItem)
                     familyItem.appendChild(memberItem)
                 domainItem.appendChild(familyItem)
             rootItem.appendChild(domainItem)
@@ -543,20 +557,22 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
 
 class TaurusDbPlainServerModel(TaurusDbBaseModel):
     ColumnNames = "Server", "Alive", "Host"
-    ColumnRoles = (ElemType.Server, ElemType.ServerInstance), ElemType.Exported, ElemType.Host
+    ColumnRoles = (ElemType.Server,
+                   ElemType.ServerInstance), ElemType.Exported, ElemType.Host
 
     def setupModelData(self, data):
         if data is None:
             return
 
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
 
         servers = data.servers()
         rootItem = self._rootItem
 
         for server_name, server in servers.items():
-            serverInstanceItem = TaurusTreeFullServerItem(self, server, rootItem)
+            serverInstanceItem = TaurusTreeFullServerItem(
+                self, server, rootItem)
             rootItem.appendChild(serverInstanceItem)
 
 
@@ -571,13 +587,14 @@ class TaurusDbServerModel(TaurusDbBaseModel):
         - <Attribute>"""
 
     ColumnNames = "Server", "Alive", "Host"
-    ColumnRoles = (ElemType.Server, ElemType.ServerName, ElemType.ServerInstance, ElemType.DeviceClass, ElemType.Device, ElemType.Attribute), ElemType.Exported, ElemType.Host
+    ColumnRoles = (ElemType.Server, ElemType.ServerName, ElemType.ServerInstance,
+                   ElemType.DeviceClass, ElemType.Device, ElemType.Attribute), ElemType.Exported, ElemType.Host
 
     def setupModelData(self, data):
         if data is None:
             return
 
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
 
         servers, klasses, devices = data.servers(), data.klasses(), data.devices()
@@ -594,16 +611,18 @@ class TaurusDbServerModel(TaurusDbBaseModel):
                 serverNameItem = TaurusTreeServerNameItem(self, name, rootItem)
                 rootItem.appendChild(serverNameItem)
                 server_dict[name] = serverNameItem
-                #rootItem.appendChild(serverNameItem)
+                # rootItem.appendChild(serverNameItem)
 
-            serverInstanceItem = TaurusTreeServerItem(self, server, serverNameItem)
+            serverInstanceItem = TaurusTreeServerItem(
+                self, server, serverNameItem)
             serverNameItem.appendChild(serverInstanceItem)
 
             klass_names = server.getClassNames()
             device_names = server.getDeviceNames()
             for klass_name in klass_names:
                 klass = klasses[klass_name]
-                klassItem = TaurusTreeDeviceClassItem(self, klass, serverInstanceItem)
+                klassItem = TaurusTreeDeviceClassItem(
+                    self, klass, serverInstanceItem)
                 serverInstanceItem.appendChild(klassItem)
                 for dev_name in device_names:
                     dev = devices[dev_name]
@@ -619,13 +638,14 @@ class TaurusDbDeviceClassModel(TaurusDbBaseModel):
            * <Device>
                * <Attribute>"""
     ColumnNames = "Class", "Alive", "Host"
-    ColumnRoles = (ElemType.DeviceClass, ElemType.DeviceClass, ElemType.Device, ElemType.Attribute), ElemType.Exported, ElemType.Host
+    ColumnRoles = (ElemType.DeviceClass, ElemType.DeviceClass,
+                   ElemType.Device, ElemType.Attribute), ElemType.Exported, ElemType.Host
 
     def setupModelData(self, data):
         if data is None:
             return
 
-        if isinstance(data, TaurusDatabase):
+        if isinstance(data, TangoDatabase):
             data = data.cache()
 
         rootItem = self._rootItem
@@ -635,7 +655,7 @@ class TaurusDbDeviceClassModel(TaurusDbBaseModel):
             klass = klasses[klass_name]
             klassItem = TaurusTreeDeviceClassItem(self, klass, rootItem)
             for dev_name in klass.getDeviceNames():
-                dev_nb+=1
+                dev_nb += 1
                 dev = devices[dev_name]
                 devItem = TaurusTreeDeviceItem(self, dev, klassItem)
                 klassItem.appendChild(devItem)
@@ -687,14 +707,14 @@ class TaurusDbDeviceProxyModel(TaurusDbBaseProxyModel):
 
     def deviceMatches(self, device, regexp):
         name = device.name()
-        
+
         # if Qt.QString(name).contains(regexp):
         if regexp.indexIn(name) != -1:
             return True
         name = device.alias()
         if name is None:
             return False
-        #return Qt.QString(name).contains(regexp)
+        # return Qt.QString(name).contains(regexp)
         return regexp.indexIn(name) != -1
 
 
@@ -712,13 +732,13 @@ class TaurusDbServerProxyModel(TaurusDbBaseProxyModel):
             serverName = treeItem.display()
             serverInstances = sourceModel.getServerNameInstances(serverName)
             for serverInstance in serverInstances:
-                #if Qt.QString(serverInstance.name()).contains(regexp):
+                # if Qt.QString(serverInstance.name()).contains(regexp):
                 if regexp.indexIn(serverInstance.name()) != -1:
                     return True
             return False
 
         if isinstance(treeItem, TaurusTreeServerItem):
-            #return treeItem.qdisplay().contains(regexp)
+            # return treeItem.qdisplay().contains(regexp)
             return regexp.indexIn(treeItem.qdisplay()) != -1
 
         return True
@@ -737,5 +757,5 @@ class TaurusDbDeviceClassProxyModel(TaurusDbBaseProxyModel):
 
         regexp = self.filterRegExp()
 
-        #return treeItem.qdisplay().contains(regexp)
+        # return treeItem.qdisplay().contains(regexp)
         return regexp.indexIn(treeItem.qdisplay()) != -1

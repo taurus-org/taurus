@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -28,7 +28,8 @@
 __docformat__ = "restructuredtext"
 
 import release as Release
-#from .enums import * #note: all the enums from enums.py were moved to taurusbasetypes.py
+# from .enums import * #note: all the enums from enums.py were moved to
+# taurusbasetypes.py
 from .taurusbasetypes import *
 from .taurusexception import *
 from .taurusmodel import *
@@ -36,7 +37,7 @@ from .tauruslistener import *
 from .taurusdevice import *
 from .taurusattribute import *
 from .taurusconfiguration import *
-from .taurusdatabase import *
+from .taurusauthority import *
 from .taurusfactory import *
 from .taurusmanager import *
 from .taurusoperation import *
@@ -48,4 +49,3 @@ try:
     from .tauv1 import *
 except:
     pass
-

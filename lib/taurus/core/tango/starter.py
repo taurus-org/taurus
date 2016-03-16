@@ -2,31 +2,31 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
-"""This module provides a very simple API for starting and killing device 
+"""This module provides a very simple API for starting and killing device
 servers
 
-It is not a replacement of the Tango Starter Device Server since this is much 
+It is not a replacement of the Tango Starter Device Server since this is much
 more limited in scope.
 """
 
@@ -42,24 +42,25 @@ from taurus.core.util.log import Logger
 
 _log = Logger('Starter')
 
+
 class Starter(object):
-    '''Abstract class for managing (starting, stopping, registering and 
+    '''Abstract class for managing (starting, stopping, registering and
     removing) a Tango Device Server.
-    
-    Derived classes should provide the methods for starting and stopping a 
+
+    Derived classes should provide the methods for starting and stopping a
     device.
     '''
-   
+
     def __init__(self, ds_name):
         '''
         :param ds_name: (str) Device Server name in the form "server/instance"
         '''
         self.ds_name = ds_name
-        self.dserver_name = 'dserver/%s' % ds_name       
+        self.dserver_name = 'dserver/%s' % ds_name
         try:
             self.dserver = PyTango.DeviceProxy(self.dserver_name)
             self.serverExisted = True
-        except PyTango.DevFailed: #not registered?
+        except PyTango.DevFailed:  # not registered?
             self.dserver = None
             self.serverExisted = False
         self._addedDevices = []
@@ -69,10 +70,10 @@ class Starter(object):
 
     def terminate(self):
         raise NotImplementedError('terminate method is mandatory')
-        
+
     def start(self):
         raise NotImplementedError('start method is mandatory')
-    
+
     def stopDs(self, synch=True, hard_kill=False, wait_seconds=10):
         if hard_kill:
             _log.info('Hard killing server %s...' % self.ds_name)
@@ -83,20 +84,20 @@ class Starter(object):
         if not synch:
             return
         for i in range(wait_seconds):
-            _log.debug('Waiting for server %s to get stopped. Iteration: %d'% \
+            _log.debug('Waiting for server %s to get stopped. Iteration: %d' %
                        (self.ds_name, i))
             if self.isRunning():
                 time.sleep(1)
             else:
                 ##############################################################
                 # TODO: this workaround doesn't seem necessary (see isRunning)
-                #time.sleep(3)
+                # time.sleep(3)
                 ##############################################################
                 _log.info('Server %s has been stopped' % self.ds_name)
                 return
-        _log.warning('Server %s did not stop within %d seconds'%
+        _log.warning('Server %s did not stop within %d seconds' %
                      (self.ds_name, wait_seconds))
-    
+
     def startDs(self, synch=True, wait_seconds=10):
         if self.isRunning():
             _log.warning('Server already running')
@@ -106,33 +107,33 @@ class Starter(object):
         if not synch:
             return
         for i in range(wait_seconds):
-            _log.debug('Waiting for server %s to get started... %d'% \
-                      (self.ds_name, i))
+            _log.debug('Waiting for server %s to get started... %d' %
+                       (self.ds_name, i))
             if self.isRunning():
                 _log.info('Server %s has been started' % self.ds_name)
                 ##############################################################
                 # TODO: this workaround doesn't seem necessary (see isRunning)
-                #time.sleep(3)
+                # time.sleep(3)
                 ##############################################################
                 return
             else:
                 time.sleep(1)
-        _log.warning('Server %s did not start within %d seconds'% \
+        _log.warning('Server %s did not start within %d seconds' %
                      (self.ds_name, wait_seconds))
-        
+
     def addNewDevice(self, device, klass=None):
         """
-        Register a device of this server in the DB (register the server if 
+        Register a device of this server in the DB (register the server if
         not present)
         e.g. to create Starter in an init script::
-            
+
             addNewDevice('sys/tg_test/foobar', klass='TangoTest')
-        
-        :param klass: class name. If None passed, it defaults to the server 
+
+        :param klass: class name. If None passed, it defaults to the server
                       name (without instance name)
         """
         if device in self._addedDevices:
-            _log.warning('%s already added. Skipping'%device)
+            _log.warning('%s already added. Skipping' % device)
             return
         if klass is None:
             klass = self.ds_name.split('/')[0]
@@ -144,39 +145,38 @@ class Starter(object):
             return
         except:
             pass
-        # register the device, 
+        # register the device,
         # in case the server did not exist before this will define it
         dev_info = PyTango.DbDevInfo()
         dev_info.name = device
         dev_info.klass = klass
         dev_info.server = self.ds_name
         db.add_device(dev_info)
-        #create proxy to dserver
+        # create proxy to dserver
         self.dserver = PyTango.DeviceProxy(self.dserver_name)
-        #keep track of added devices
-        self._addedDevices.append(device) 
-        
+        # keep track of added devices
+        self._addedDevices.append(device)
+
     def cleanDb(self, force=False):
         '''removes devices which have been added by :meth:`addNewDevice`
-        and then removes the server if it was registered by this starter 
+        and then removes the server if it was registered by this starter
         (or, if force is True, it removes the server in any case)
-        
-        :param force: (bool) force removing of the Server even if it was 
-                      not registered within this starter 
+
+        :param force: (bool) force removing of the Server even if it was
+                      not registered within this starter
         '''
         for device in self._addedDevices:
             PyTango.Database().delete_device(device)
-            _log.info('Deleted device %s'%device)
-        if (self.serverExisted or len(self._addedDevices)==0) and not force:
-            msg = ('%s was not registered by this starter. Not removing. '+
-                   'Use %s.cleanDb(force=True) to force cleanup')% \
-                                 (self.ds_name, self.__class__.__name__)
+            _log.info('Deleted device %s' % device)
+        if (self.serverExisted or len(self._addedDevices) == 0) and not force:
+            msg = ('%s was not registered by this starter. Not removing. ' +
+                   'Use %s.cleanDb(force=True) to force cleanup') % \
+                (self.ds_name, self.__class__.__name__)
             _log.warning(msg)
         else:
             self.stopDs(hard_kill=True)
             PyTango.Database().delete_server(self.ds_name)
-            _log.info('Deleted Server %s'%self.ds_name)
-
+            _log.info('Deleted Server %s' % self.ds_name)
 
     def isRunning(self):
         # TODO: In case the sleeps in startDS and stopDS need to be re-added,
@@ -191,7 +191,7 @@ class Starter(object):
 
 
 class ProcessStarter(Starter):
-    '''A :class:`Starter` which uses subprocess to start and stop a device 
+    '''A :class:`Starter` which uses subprocess to start and stop a device
     server.
     '''
 
@@ -209,7 +209,7 @@ class ProcessStarter(Starter):
         dev_null = open(os.devnull, 'wb')
         args = [self.exec_name, self.ds_instance]
         self.process = subprocess.Popen(args, stdout=dev_null, stderr=dev_null)
-            
+
     def terminate(self):
         if self.process:
             self.process.terminate()
@@ -224,19 +224,17 @@ class ProcessStarter(Starter):
 
 
 if __name__ == '__main__':
-    
+
     from taurus.test.resource import getResourcePath
     timeoutExec = getResourcePath('taurus.qt.qtgui.button.test.res', 'Timeout')
     s = ProcessStarter(timeoutExec, 'Timeout/test_removeme')
     devname = 'testing/timeout/temp-1'
     s.addNewDevice(devname, klass='Timeout')
     s.startDs()
-    try: 
+    try:
         print 'Is running:', s.isRunning()
         print "ping:", PyTango.DeviceProxy(devname).ping()
     except Exception, e:
         print e
     s.stopDs()
     s.cleanDb(force=False)
-    
-    

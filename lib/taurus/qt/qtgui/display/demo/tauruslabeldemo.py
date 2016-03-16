@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -32,6 +32,7 @@ __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 
+
 def demo():
     import sys
     import taurus.qt.qtgui.application
@@ -39,17 +40,17 @@ def demo():
 
     Application = taurus.qt.qtgui.application.TaurusApplication
     TaurusLabel = taurus.qt.qtgui.display.TaurusLabel
-    
+
     app = Application.instance()
     owns_app = app is None
-    
+
     if owns_app:
         app = Application()
 
     M = 2
 
     class TaurusLabelTestPanel(Qt.QWidget):
-        
+
         def __init__(self, parent=None):
             Qt.QWidget.__init__(self, parent)
             panel_l = Qt.QVBoxLayout()
@@ -63,7 +64,7 @@ def demo():
             display_l.setContentsMargins(M, M, M, M)
             display_l.setSpacing(M)
             display_panel.setLayout(display_l)
-            #display_l.addStretch(1)
+            # display_l.addStretch(1)
             display_l.addWidget(w)
 
             control_panel = Qt.QGroupBox("Control Panel")
@@ -87,20 +88,29 @@ def demo():
             panel_l.addWidget(display_panel)
             panel_l.addWidget(control_panel)
 
-            fg_widget.addItems(["value", "w_value", "state", "quality", "none"])
+            fg_widget.addItems(["", "rvalue", "rvalue.magnitude",
+                                "rvalue.units", "wvalue", "wvalue.magnitude",
+                                "wvalue.units", "state", "quality", "none"])
             bg_widget.addItems(["quality", "state", "none"])
-            
-            Qt.QObject.connect(model_widget, Qt.SIGNAL("textChanged(const QString &)"), w.setModel)
-            Qt.QObject.connect(fg_widget, Qt.SIGNAL("currentIndexChanged(const QString &)"), w.setFgRole)
-            Qt.QObject.connect(bg_widget, Qt.SIGNAL("currentIndexChanged(const QString &)"), w.setBgRole)
-            Qt.QObject.connect(prefix_widget, Qt.SIGNAL("textChanged(const QString &)"), w.setPrefixText)
-            Qt.QObject.connect(suffix_widget, Qt.SIGNAL("textChanged(const QString &)"), w.setSuffixText)
-            Qt.QObject.connect(model_index_widget, Qt.SIGNAL("textChanged(const QString &)"), w.setModelIndex)
-            
+
+            Qt.QObject.connect(model_widget, Qt.SIGNAL(
+                "textChanged(const QString &)"), w.setModel)
+            Qt.QObject.connect(fg_widget, Qt.SIGNAL(
+                "currentIndexChanged(const QString &)"), w.setFgRole)
+            Qt.QObject.connect(bg_widget, Qt.SIGNAL(
+                "currentIndexChanged(const QString &)"), w.setBgRole)
+            Qt.QObject.connect(prefix_widget, Qt.SIGNAL(
+                "textChanged(const QString &)"), w.setPrefixText)
+            Qt.QObject.connect(suffix_widget, Qt.SIGNAL(
+                "textChanged(const QString &)"), w.setSuffixText)
+            Qt.QObject.connect(model_index_widget, Qt.SIGNAL(
+                "textChanged(const QString &)"), w.setModelIndex)
+
             model_widget.setText("sys/tg_test/1/double_scalar")
             fg_widget.setCurrentIndex(0)
+            fg_widget.setEditable(True)
             bg_widget.setCurrentIndex(0)
-            
+
             self.w_label = w
             self.w_model = model_widget
             self.w_model_index = model_index_widget
@@ -108,28 +118,29 @@ def demo():
             self.w_bg = bg_widget
             self.w_prefix = prefix_widget
             self.w_suffix = suffix_widget
-    
+
     panel = Qt.QWidget()
     panel.setWindowTitle(app.applicationName())
-    layout=Qt.QGridLayout()
+    layout = Qt.QGridLayout()
     panel.setLayout(layout)
     layout.setContentsMargins(M, M, M, M)
     layout.setSpacing(M)
     p1 = TaurusLabelTestPanel()
     p1.w_model.setText("sys/tg_test/1/double_scalar")
     p2 = TaurusLabelTestPanel()
-    p2.w_model.setText("sys/tg_test/1/double_scalar?configuration=label")
+    p2.w_model.setText("sys/tg_test/1/double_scalar#label")
     p2.w_bg.setCurrentIndex(2)
     layout.addWidget(p1, 0, 0)
     layout.addWidget(p2, 0, 1)
-    layout.addItem(Qt.QSpacerItem(10,10), 1, 0, 1, 2)
+    layout.addItem(Qt.QSpacerItem(10, 10), 1, 0, 1, 2)
     layout.setRowStretch(1, 1)
     panel.show()
     if owns_app:
         sys.exit(app.exec_())
     else:
         return panel
-    
+
+
 def main():
     return demo()
 

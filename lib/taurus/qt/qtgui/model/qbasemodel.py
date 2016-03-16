@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -37,6 +37,7 @@ from taurus.external.qt import Qt
 from taurus.qt.qtgui.util import ActionFactory
 from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.base import TaurusBaseWidget
+
 
 class BaseToolBar(Qt.QToolBar):
 
@@ -73,9 +74,10 @@ class FilterToolBar(BaseToolBar):
 
         af = ActionFactory()
         self._clearFilterAction = af.createAction(self, "Clear",
-                                          icon=getThemeIcon("edit-clear"),
-                                          tip="Clears the filter",
-                                          triggered=self.onClearFilter)
+                                                  icon=getThemeIcon(
+                                                      "edit-clear"),
+                                                  tip="Clears the filter",
+                                                  triggered=self.onClearFilter)
         self.addAction(self._clearFilterAction)
 
     def getFilterLineEdit(self):
@@ -92,7 +94,7 @@ class FilterToolBar(BaseToolBar):
     def onFilterEdited(self, text=None):
         text = text or self.getFilterLineEdit().text()
         self.emit(Qt.SIGNAL("filterEdited"), text)
-    
+
     def setFilterText(self, text):
         self.getFilterLineEdit().setText(text)
 
@@ -127,7 +129,8 @@ class EditorToolBar(BaseToolBar):
                                                tip="Move selected item down one level",
                                                triggered=self.onMoveDown)
         self._moveBottomAction = af.createAction(self, "To bottom",
-                                                 icon=getThemeIcon("go-bottom"),
+                                                 icon=getThemeIcon(
+                                                     "go-bottom"),
                                                  tip="Move selected item to bottom",
                                                  triggered=self.onMoveBottom)
         self.addAction(self._addAction)
@@ -165,11 +168,13 @@ class SelectionToolBar(BaseToolBar):
 
         af = ActionFactory()
         self._selectAllAction = af.createAction(self, "Select All",
-                                                icon=getThemeIcon("edit-select-all"),
+                                                icon=getThemeIcon(
+                                                    "edit-select-all"),
                                                 tip="Select all items",
                                                 triggered=self.onSelectAll)
         self._clearSelectionAction = af.createAction(self, "Clear selection",
-                                                     icon=getThemeIcon("edit-clear"),
+                                                     icon=getThemeIcon(
+                                                         "edit-clear"),
                                                      tip="Clears current selection",
                                                      triggered=self.onclearSelection)
 
@@ -191,7 +196,8 @@ class RefreshToolBar(BaseToolBar):
 
         af = ActionFactory()
         self._refreshAction = af.createAction(self, "Refresh",
-                                              icon=getThemeIcon("view-refresh"),
+                                              icon=getThemeIcon(
+                                                  "view-refresh"),
                                               tip="Refresh view",
                                               triggered=self.onRefresh)
         self.addAction(self._refreshAction)
@@ -251,7 +257,7 @@ class QBaseModelWidget(Qt.QMainWindow):
     The Qt model associated with the internal Qt view widget should be a
     :class:`taurus.qt.qtcore.model.TaurusBaseModel`"""
 
-    KnownPerspectives = { }
+    KnownPerspectives = {}
     DftPerspective = None
 
     def __init__(self, parent=None, designMode=False, with_filter_widget=True,
@@ -285,7 +291,7 @@ class QBaseModelWidget(Qt.QMainWindow):
                 self._with_refresh_widget = with_refresh_widget
         else:
             self._with_refresh_widget = None
-            
+
         self._proxyModel = proxy
 
         toolBars = self.createToolArea()
@@ -293,7 +299,7 @@ class QBaseModelWidget(Qt.QMainWindow):
         statusbar = self.createStatusBar()
 
         for toolBar in toolBars:
-            #toolBar.addSeparator()
+            # toolBar.addSeparator()
             self.addToolBar(toolBar)
         self.setContentsMargins(0, 0, 0, 0)
         self.setCentralWidget(self._viewWidget)
@@ -303,8 +309,10 @@ class QBaseModelWidget(Qt.QMainWindow):
             perspective = self.DftPerspective
 
         if len(self.KnownPerspectives) > 1:
-            p_bar = self._perspectiveBar = PerspectiveToolBar(perspective, view=self, parent=self)
-            self.connect(p_bar, Qt.SIGNAL("perspectiveChanged"), self.onSwitchPerspective)
+            p_bar = self._perspectiveBar = PerspectiveToolBar(
+                perspective, view=self, parent=self)
+            self.connect(p_bar, Qt.SIGNAL("perspectiveChanged"),
+                         self.onSwitchPerspective)
             self.addToolBar(p_bar)
         else:
             self._perspectiveBar = None
@@ -319,17 +327,19 @@ class QBaseModelWidget(Qt.QMainWindow):
         return sb
 
     def createToolArea(self):
-        tb = [] # tb = self._toolArea = QToolArea(self)
+        tb = []  # tb = self._toolArea = QToolArea(self)
         if self._with_filter_widget:
-            f_bar = self._filterBar = self._with_filter_widget(view=self, parent=self)
+            f_bar = self._filterBar = self._with_filter_widget(
+                view=self, parent=self)
             Qt.QObject.connect(f_bar, Qt.SIGNAL("filterChanged"),
                                self.onFilterChanged)
             tb.append(f_bar)
         else:
             self._filterBar = None
-        
+
         if self._with_selection_widget:
-            s_bar = self._selectionBar = self._with_selection_widget(view=self, parent=self)
+            s_bar = self._selectionBar = self._with_selection_widget(
+                view=self, parent=self)
             Qt.QObject.connect(s_bar, Qt.SIGNAL("selectAllTriggered"),
                                self.onSelectAll)
             Qt.QObject.connect(s_bar, Qt.SIGNAL("clearSelectionTriggered"),
@@ -337,9 +347,10 @@ class QBaseModelWidget(Qt.QMainWindow):
             tb.append(s_bar)
         else:
             self._selectionBar = None
-        
+
         if self._with_refresh_widget:
-            r_bar = self._refreshBar = self._with_refresh_widget(view=self, parent=self)
+            r_bar = self._refreshBar = self._with_refresh_widget(
+                view=self, parent=self)
             Qt.QObject.connect(r_bar, Qt.SIGNAL("refreshTriggered"),
                                self.onRefreshModel)
             tb.append(r_bar)
@@ -347,16 +358,16 @@ class QBaseModelWidget(Qt.QMainWindow):
             self._refreshBar = None
 
         return tb
-    
+
     def getPerspectiveBar(self):
         return self._perspectiveBar
-    
+
     def getFilterBar(self):
         return self._filterBar
-    
+
     def getSelectionBar(self):
         return self._selectionBar
-    
+
     def getRefreshBar(self):
         return self._refreshBar
 
@@ -371,17 +382,17 @@ class QBaseModelWidget(Qt.QMainWindow):
         view = self.viewWidget()
         view.clearSelection()
 
-    def _onClicked (self, index):
+    def _onClicked(self, index):
         '''Emits an "itemClicked" signal with with the clicked item and column
         as arguments'''
         item = self._mapToSource(index).internalPointer()
-        self.emit(Qt.SIGNAL('itemClicked'),item, index.column())
+        self.emit(Qt.SIGNAL('itemClicked'), item, index.column())
 
-    def _onDoubleClicked (self, index):
+    def _onDoubleClicked(self, index):
         '''Emits an "itemDoubleClicked" signal with the clicked item and column
         as arguments'''
         item = self._mapToSource(index).internalPointer()
-        self.emit(Qt.SIGNAL('itemDoubleClicked'),item, index.column())
+        self.emit(Qt.SIGNAL('itemDoubleClicked'), item, index.column())
 
     def viewWidget(self):
         return self._viewWidget
@@ -469,9 +480,9 @@ class QBaseModelWidget(Qt.QMainWindow):
         if len(filter) > 0 and filter[0] != '^':
             filter = '^' + filter
         proxy_model.setFilterRegExp(filter)
-        #proxy_model.setFilterFixedString(filter)
-        #proxy_model.setFilterWildcard(filter)
-        #self.update()
+        # proxy_model.setFilterFixedString(filter)
+        # proxy_model.setFilterWildcard(filter)
+        # self.update()
 
     def refresh(self):
         self.getQModel().refresh()
@@ -484,25 +495,27 @@ class QBaseModelWidget(Qt.QMainWindow):
         return self._perspectiveBar.perspective()
 
     def onSwitchPerspective(self, perspective):
-        old_qmodel =  self.getQModel()
+        old_qmodel = self.getQModel()
         self._setPerspective(perspective)
-        
-        #set the selectables as they where in the previous model
+
+        # set the selectables as they where in the previous model
         if hasattr(old_qmodel, "selectables"):
             self.getQModel().setSelectables(old_qmodel.selectables())
-        
-        #set the taurus model (if any) to the qmodel
-        if hasattr(self,'getModelObj'):
-            taurusModel =  self.getModelObj()
+
+        # set the taurus model (if any) to the qmodel
+        if hasattr(self, 'getModelObj'):
+            taurusModel = self.getModelObj()
             if taurusModel is not None:
                 self.getQModel().setDataSource(taurusModel)
 
     def _setPerspective(self, perspective):
         qmodel_classes = self.KnownPerspectives[perspective]["model"]
-        qmodel_class, qmodel_proxy_classes = qmodel_classes[-1], qmodel_classes[-2::-1] #reversed
+        # reversed
+        qmodel_class, qmodel_proxy_classes = qmodel_classes[
+            -1], qmodel_classes[-2::-1]
         qmodel = qmodel_class(self)
         qmodel_source = qmodel
-        if self._proxyModel is None: #applies the chain of proxies
+        if self._proxyModel is None:  # applies the chain of proxies
             for qmodel_proxy_class in qmodel_proxy_classes:
                 qproxy = qmodel_proxy_class(self)
                 qproxy.setSourceModel(qmodel_source)
@@ -535,7 +548,7 @@ class TaurusBaseModelWidget(TaurusBaseWidget):
     taurus model. It must be used together with
     class:`~taurus.qt.qtgui.base.QBaseModelWidget`"""
 
-    def __init__(self, designMode=False):#, perspective=None, proxy=None):
+    def __init__(self, designMode=False):  # , perspective=None, proxy=None):
         name = self.__class__.__name__
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
 

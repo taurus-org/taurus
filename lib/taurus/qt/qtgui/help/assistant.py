@@ -2,24 +2,24 @@
 
 ##############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ##############################################################################
 
@@ -63,7 +63,7 @@ class _Assistant(Qt.QProcess):
         if self.isRunning():
             return
         args = ["-enableRemoteControl",
-                "-collectionFile", self.__collection_file]        
+                "-collectionFile", self.__collection_file]
         Qt.QProcess.start(self, "assistant", args)
 
     def isRunning(self):
@@ -106,6 +106,8 @@ class _Assistant(Qt.QProcess):
 
 
 __ASSISTANTS = {}
+
+
 def Assistant(collection_file, auto_create=True, parent=None):
     """
     The :func:`Assistant` will create a subprocess displaying the
@@ -137,7 +139,7 @@ def Assistant(collection_file, auto_create=True, parent=None):
 
 def main():
     import sys
-    
+
     app = Qt.QApplication([])
     window = Qt.QWidget()
     layout = Qt.QHBoxLayout(window)
@@ -147,18 +149,19 @@ def main():
     layout.addWidget(textEdit)
     layout.addWidget(goButton)
     layout.addWidget(terminateButton)
-    
+
     def go():
         assistant = Assistant(textEdit.text(), parent=window)
         assistant.start()
         assistant.waitForStarted()
         assistant.assistantShow(Widgets.bookmarks)
+
     def terminate():
-        assistant = Assistant(textEdit.text(), auto_create=False, parent=window)
+        assistant = Assistant(
+            textEdit.text(), auto_create=False, parent=window)
         if assistant:
             assistant.terminate()
-    
-    
+
     goButton.connect(goButton, Qt.SIGNAL('clicked()'), go)
     terminateButton.connect(terminateButton, Qt.SIGNAL('clicked()'), terminate)
     window.show()

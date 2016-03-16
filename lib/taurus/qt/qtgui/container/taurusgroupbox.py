@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -38,33 +38,34 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
     This type of taurus container classes are specially useful if you define
     a parent taurus model to them and set all contained taurus widgets to use parent
     model. Example::
-    
+
         from taurus.qt.qtgui.container import *
         from taurus.qt.qtgui.display import *
-        
+
         widget = TaurusGroupBox("Example")
-        layout = Qt.QBoxLayout()
+        layout = Qt.QVBoxLayout()
         widget.setLayout(layout)
         widget.model = 'sys/database/2'
-        stateWidget = TaurusValueLabel()
+        stateWidget = TaurusLabel()
         layout.addWidget(stateWidget)
         stateWidget.useParentModel = True
         stateWidget.model = '/state'"""
-        
-    __pyqtSignals__ = ("modelChanged(const QString &)", "pendingOperationsChanged(bool)",)
-        
+
+    __pyqtSignals__ = ("modelChanged(const QString &)",
+                       "pendingOperationsChanged(bool)",)
+
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
         self._prefix = ''
         self._suffix = ''
-        
+
         self.call__init__wo_kw(Qt.QGroupBox, parent)
         self.call__init__(TaurusBaseContainer, name, designMode=designMode)
-        
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Public slots for apply/restore changes
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    
+
     @Qt.pyqtSignature("pendingOperationsChanged(bool)")
     def pendingOperationsChanged(self, yesno):
         self.debug("emiting pendingOperationsChanged(%s)" % str(yesno))
@@ -73,40 +74,42 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
     @Qt.pyqtSignature("applyPendingChanges()")
     def applyPendingChanges(self):
         self.applyPendingOperations()
-    
+
     @Qt.pyqtSignature("resetPendingChanges()")
     def resetPendingChanges(self):
         self.resetPendingOperations()
-    
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget over writing
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-                    
+
     def getDisplayValue(self):
         v = TaurusBaseContainer.getDisplayValue(self)
         return "%s%s%s" % ((self._prefix or ''), v, (self._suffix or ''))
-        
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # QT properties 
+    # QT properties
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getPrefixText(self):
         return self._prefix
-    
+
     @Qt.pyqtSignature("setPrefixText(QString)")
-    def setPrefixText(self,prefix):
+    def setPrefixText(self, prefix):
         self._prefix = prefix
         import taurus.core
-        self.fireEvent(evt_type = taurus.core.taurusbasetypes.TaurusEventType.Change)
+        self.fireEvent(
+            evt_type=taurus.core.taurusbasetypes.TaurusEventType.Change)
 
     def getSuffixText(self):
         return self._suffix
-    
+
     @Qt.pyqtSignature("setSuffixText(QString)")
-    def setSuffixText(self,suffix):
+    def setSuffixText(self, suffix):
         self._suffix = suffix
         import taurus.core
-        self.fireEvent(evt_type = taurus.core.taurusbasetypes.TaurusEventType.Change)
+        self.fireEvent(
+            evt_type=taurus.core.taurusbasetypes.TaurusEventType.Change)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -118,35 +121,36 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
             ret['container'] = True
         return ret
 
-    model = Qt.pyqtProperty("QString", TaurusBaseContainer.getModel, 
-                                TaurusBaseContainer.setModel, 
-                                TaurusBaseContainer.resetModel)
-    
-    useParentModel = Qt.pyqtProperty("bool", 
-                                         TaurusBaseContainer.getUseParentModel,
-                                         TaurusBaseContainer.setUseParentModel,
-                                         TaurusBaseContainer.resetUseParentModel)
-    
+    model = Qt.pyqtProperty("QString", TaurusBaseContainer.getModel,
+                            TaurusBaseContainer.setModel,
+                            TaurusBaseContainer.resetModel)
+
+    useParentModel = Qt.pyqtProperty("bool",
+                                     TaurusBaseContainer.getUseParentModel,
+                                     TaurusBaseContainer.setUseParentModel,
+                                     TaurusBaseContainer.resetUseParentModel)
+
     showQuality = Qt.pyqtProperty("bool", TaurusBaseContainer.getShowQuality,
-                                      TaurusBaseContainer.setShowQuality,
-                                      TaurusBaseContainer.resetShowQuality)
+                                  TaurusBaseContainer.setShowQuality,
+                                  TaurusBaseContainer.resetShowQuality)
 
     showText = Qt.pyqtProperty("bool", TaurusBaseContainer.getShowText,
-                                   TaurusBaseContainer.setShowText,
-                                   TaurusBaseContainer.resetShowText)
-    
+                               TaurusBaseContainer.setShowText,
+                               TaurusBaseContainer.resetShowText)
+
     prefixText = Qt.pyqtProperty("QString", getPrefixText, setPrefixText,
-                                     doc="prefix text (optional)")
-    
+                                 doc="prefix text (optional)")
+
     suffixText = Qt.pyqtProperty("QString", getSuffixText, setSuffixText,
-                                    doc="suffix text (optional)")
+                                 doc="suffix text (optional)")
+
 
 def demo():
     "Group box"
     w = Qt.QWidget()
     w.setWindowTitle(Qt.QApplication.instance().applicationName())
     layout = Qt.QGridLayout()
-    layout.setContentsMargins(0,0,0,0)
+    layout.setContentsMargins(0, 0, 0, 0)
     w.setLayout(layout)
     groupbox = TaurusGroupBox()
     groupbox.model = "sys/tg_test/1"
@@ -169,22 +173,23 @@ def demo():
     w.show()
     return w
 
+
 def main():
     import sys
     import taurus.qt.qtgui.application
     Application = taurus.qt.qtgui.application.TaurusApplication
-    
+
     app = Application.instance()
     owns_app = app is None
-    
+
     if owns_app:
         import taurus.core.util.argparse
         parser = taurus.core.util.argparse.get_taurus_parser()
         parser.usage = "%prog [options] <full_device_name(s)>"
-        app = Application(sys.argv, cmd_line_parser=parser, 
+        app = Application(sys.argv, cmd_line_parser=parser,
                           app_name="Taurus frame demo", app_version="1.0",
                           org_domain="Taurus", org_name="Tango community")
-        
+
     args = app.get_command_line_args()
 
     if len(args) == 0:
@@ -201,7 +206,7 @@ def main():
             groupbox.model = model
             layout.addWidget(groupbox)
     w.show()
-    
+
     if owns_app:
         sys.exit(app.exec_())
     else:

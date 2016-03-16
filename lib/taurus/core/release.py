@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -42,7 +42,6 @@ Release data for the taurus project. It contains the following members:
 # -*- coding: utf-8 -*-
 
 
-
 # Name of the package for release purposes.  This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'taurus'
@@ -53,28 +52,29 @@ name = 'taurus'
 # bdist_deb does not accept underscores (a Debian convention).
 
 
-version_info = (3,7,0,'rc',0)
+version_info = (4, 0, 0, 'alpha', 0)
 version = '.'.join(map(str, version_info[:3]))
 revision = str(version_info[4])
 
 description = "A framework for scientific/industrial CLIs and GUIs"
 
-long_description = """Taurus is a python framework for control and data 
-acquisition CLIs and GUIs in scientific/industrial environments. 
-It supports multiple control systems or data sources: Tango, EPICS, spec... 
+long_description = """Taurus is a python framework for control and data
+acquisition CLIs and GUIs in scientific/industrial environments.
+It supports multiple control systems or data sources: Tango, EPICS, spec...
 New control system libraries can be integrated through plugins."""
 
 license = 'LGPL'
 
-authors = {'Tiago'          : ('Tiago Coutinho','tiago.coutinho@esrf.fr'),
-           'Pascual-Izarra' : ('Carlos Pascual-Izarra','cpascual@cells.es'),
-           'Reszela'        : ('Zbigniew Reszela','zreszela@cells.es') }
-            
+authors = {'Tiago_et_al': ('Tiago Coutinho et al.', ''),
+           'Community': ('Taurus Community',
+                         'tauruslib-devel@lists.sourceforge.net'),
+           }
+
 
 url = 'http://www.taurus-scada.org'
 
 download_url = 'http://pypi.python.org/packages/source/t/taurus'
 
-platforms = ['Linux','Windows XP/2000/NT','Windows 95/98/ME']
+platforms = ['Linux', 'Windows XP/2000/NT', 'Windows 95/98/ME']
 
 keywords = ['CLI', 'GUI', 'PyTango', 'Tango', 'Shell']

@@ -6,7 +6,7 @@ from taurus.qt.qtgui.plot import TaurusPlot, CurveAppearanceProperties
 
 app = Qt.QApplication(sys.argv)
 ##########################
-#BEGIN EXAMPLE CODE
+# BEGIN EXAMPLE CODE
 ##########################
 
 import numpy
@@ -14,9 +14,9 @@ from taurus.qt import Qwt5
 
 panel = TaurusPlot()
 
-rawdata1 = {"y":5*numpy.random.random(10), "name":"Random"}
-rawdata2 = {"x":[1, 2, 5, 7], "y":[2, 3, 1, 4], "name":"Hand-written"}
-rawdata3 = {"x":numpy.arange(0,10,0.1), "f(x)":"sqrt(x)"}
+rawdata1 = {"y": 5 * numpy.random.random(10), "name": "Random"}
+rawdata2 = {"x": [1, 2, 5, 7], "y": [2, 3, 1, 4], "name": "Hand-written"}
+rawdata3 = {"x": numpy.arange(0, 10, 0.1), "f(x)": "sqrt(x)"}
 
 p1 = CurveAppearanceProperties(sStyle=Qwt5.QwtSymbol.Rect,
                                sSize=5,
@@ -36,9 +36,8 @@ panel.attachRawData(rawdata2, properties=p2)
 panel.attachRawData(rawdata3)
 
 
-
 ########################
-#END EXAMPLE CODE
+# END EXAMPLE CODE
 ########################
 panel.show()
 sys.exit(app.exec_())
