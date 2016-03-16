@@ -187,7 +187,7 @@ class TangoDevice(TaurusDevice):
         self._deviceObj = None
         TaurusDevice.cleanUp(self)
 
-    @tep14_deprecation()
+    @tep14_deprecation(alt='.state().name')
     def getDisplayValue(self, cache=True):
         return self.state(cache).name
 
