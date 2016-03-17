@@ -3,33 +3,34 @@
 
 ##############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 ##############################################################################
-import sys, os
+import sys
+import os
 
 
 # declare some useful absolute paths
 _this_dir = os.path.dirname(os.path.abspath(__file__))
-_setup_dir = os.path.abspath(os.path.join(_this_dir, os.path.pardir, 
-                             os.path.pardir))
+_setup_dir = os.path.abspath(os.path.join(_this_dir, os.path.pardir,
+                                          os.path.pardir))
 _lib_dir = os.path.join(_setup_dir, 'lib')
 _doc_dir = os.path.join(_setup_dir, 'doc')
 _api_dir = os.path.join(_doc_dir, 'source', 'devel', 'api')
@@ -38,7 +39,7 @@ _mock_path = os.path.join(_doc_dir, 'mock.zip')
 
 # append mock dir to the sys path (mocks will be used if needed)
 sys.path.append(_mock_path)
-    
+
 # Import code from src distribution
 sys.path.insert(0, os.path.abspath(_lib_dir))
 
@@ -54,16 +55,16 @@ sys.path.append(os.path.abspath('sphinxext'))
 # it has no effect on local builds
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd:    
+if on_rtd:
     import imp
 
     def _build_catalog():
-        #import setup.py as a module
+        # import setup.py as a module
         name = 'setup'
         data = imp.find_module(name, [_setup_dir])
         setupmod = imp.load_module(name, *data)
         catalog = setupmod.build_catalog()
-        #build
+        # build
         fname = os.path.join(_doc_dir, 'source', 'devel', 'catalog.html')
         catalog.fname = fname
         catalog.builder_target_dir = _this_dir
@@ -71,15 +72,15 @@ if on_rtd:
         catalog.verbose = True
         catalog.out = sys.stdout
         catalog.run()
-        
+
     def _build_doc_api():
-        #import auto_rst4api from the doc dir
+        # import auto_rst4api from the doc dir
         name = 'auto_rst4api'
         data = imp.find_module(name, [_doc_dir])
         auto_rst4api = imp.load_module(name, *data)
         API_Creator = auto_rst4api.Auto_rst4API_Creator
         # prepare api creator
-        excl = ['_[^\.]*[^_]', '.*.extra_sardana', '.*.extra_pool', 
+        excl = ['_[^\.]*[^_]', '.*.extra_sardana', '.*.extra_pool',
                 '.*.extra_macroexecutor', 'taurus.external']
         rstCreator = API_Creator(exclude_patterns=excl,
                                  templatespath=_doc_dir,
@@ -94,15 +95,15 @@ if on_rtd:
         print("Auto Creation of API docs Finished with %i warnings:" % len(r))
         for i in r:
             print(i)
-        
-    #build the api and the catalog    
+
+    # build the api and the catalog
     _build_catalog()
     _build_doc_api()
 
 # ------------------------------------------------------------------------------
 
 
-# -- General configuration -----------------------------------------------------
+# -- General configuration -----------------------------------------------
 
 #autosummary_generate = True
 
@@ -120,7 +121,7 @@ extensions = ['sphinx.ext.pngmath',
               'taurusextension']
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+#templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -137,7 +138,8 @@ copyright = u'2011, ALBA - CELLS, Creative Commons Attribution-Share Alike 3.0'
 copyright = u"""Except where otherwise noted, content on this site is
 licensed under a Creative Commons Attribution 3.0 License"""
 
-#Ideally we would like to put the following html code for copyright... but how?
+# Ideally we would like to put the following html code for copyright...
+# but how?
 '''<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/es/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-sa/3.0/es/88x31.png" /></a><br /><span xmlns:dc="http://purl.org/dc/elements/1.1/" href="http://purl.org/dc/dcmitype/Text" property="dc:title" rel="dc:type">Taurus Documentation</span> by <span xmlns:cc="http://creativecommons.org/ns#" property="cc:attributionName">CELLS - ALBA</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/es/">Creative Commons Attribution-Share Alike 3.0 Spain License</a>.'''
 
 # The version info for the project you're documenting, acts as replacement for
@@ -187,12 +189,13 @@ pygments_style = 'sphinx'
 #modindex_common_prefix = []
 
 
-# -- Options for HTML output ---------------------------------------------------
+# -- Options for HTML output ---------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
 #html_theme = 'default'
-html_theme = 'default'
+#html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -200,7 +203,7 @@ html_theme = 'default'
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = []
+#html_theme_path = []
 #html_theme_path = ['themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
@@ -263,7 +266,7 @@ html_static_path = ['_static']
 htmlhelp_basename = 'taurusdoc'
 
 
-# -- Options for LaTeX output --------------------------------------------------
+# -- Options for LaTeX output --------------------------------------------
 
 # The paper size ('letter' or 'a4').
 #latex_paper_size = 'letter'
@@ -274,8 +277,8 @@ htmlhelp_basename = 'taurusdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'taurus.tex', u'taurus Documentation',
-   u'taurus team', 'manual'),
+    ('index', 'taurus.tex', u'taurus Documentation',
+     u'taurus team', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -297,24 +300,23 @@ latex_documents = [
 
 todo_include_todos = True
 
-# -- Options for Graphviz  -----------------------------------------------------
+# -- Options for Graphviz  -----------------------------------------------
 
-inheritance_node_attrs = dict(shape='box', fontcolor='black', 
+inheritance_node_attrs = dict(shape='box', fontcolor='black',
                               height=0.5,
                               color='dodgerblue1', style='rounded')
 
 inheritance_graph_attrs = dict(rankdir="UD", ratio='compress')
 
-#inheritance_graph_attrs = dict(rankdir="LR", size='"6.0, 8.0"',
+# inheritance_graph_attrs = dict(rankdir="LR", size='"6.0, 8.0"',
 #                               fontsize=14, ratio='compress')
 
-# -- Options for reference to other documentation ------------------------------
+# -- Options for reference to other documentation ------------------------
 
 intersphinx_mapping = {
     'http://docs.python.org/dev': None,
-    'http://docs.scipy.org/doc/scipy/reference' : None,
-    'http://docs.scipy.org/doc/numpy' : None,
+    'http://docs.scipy.org/doc/scipy/reference': None,
+    'http://docs.scipy.org/doc/numpy': None,
     'http://www.esrf.fr/computing/cs/tango/tango_doc/kernel_doc/pytango/latest/': None,
-    'http://pyqt.sourceforge.net/Docs/PyQt4/' : None,
+    'http://pyqt.sourceforge.net/Docs/PyQt4/': None,
 }
-
