@@ -116,7 +116,7 @@ class TaurusBaseController(object):
                 try:
                     self._last_value = self.modelObj().getValueObj()
                 except:
-                    pass
+                    self._last_value = None
         self.update()
 
     def eventReceived(self, evt_src, evt_type, evt_value):
