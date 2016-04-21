@@ -1,0 +1,11 @@
+[
+  ["actions", "Tango/scalable/actions"],
+  ["apps", "Tango/scalable/apps"],
+  ["categories", "Tango/scalable/categories"],
+  ["devices", "Tango/scalable/devices"],
+  ["emblems", "Tango/scalable/emblems"],
+  ["emotes", "Tango/scalable/emotes"],
+  ["mimetypes", "Tango/scalable/mimetypes"],
+  ["places", "Tango/scalable/places"],
+  ["status", "Tango/scalable/status"]
+]

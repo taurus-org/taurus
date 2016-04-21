@@ -29,3 +29,17 @@ behavior associated with a specific HW device. They intend to represent only
 abstract model data."""
 
 __docformat__ = 'restructuredtext'
+
+
+# register icon path files and icon theme on import of taurus.qt.qtgui
+import icon as __icon
+import os
+import glob
+
+icon_dir = os.path.join(os.path.dirname(os.path.abspath(__icon.__file__)))
+# TODO: get .path file glob pattern from tauruscustomsettings
+__icon.registerPathFiles(glob.glob(os.path.join(icon_dir,'*.path')))
+# TODO: get theme name and path from tauruscustomsettings
+__icon.registerTheme()
+
+del os, glob, __icon, icon_dir

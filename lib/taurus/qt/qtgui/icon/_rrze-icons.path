@@ -1,0 +1,9 @@
+[
+  ["actions", "rrze-icons/actions"],
+  ["categories", "rrze-icons/categories"],
+  ["devices", "rrze-icons/devices"],
+  ["emblems", "rrze-icons/emblems"],
+  ["mime_types", "rrze-icons/mime-types"],
+  ["places", "rrze-icons/places"],
+  ["status", "rrze-icons/status"]
+]
