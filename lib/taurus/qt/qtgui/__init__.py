@@ -35,11 +35,14 @@ __docformat__ = 'restructuredtext'
 import icon as __icon
 import os
 import glob
+from taurus import tauruscustomsettings as __S
 
 icon_dir = os.path.join(os.path.dirname(os.path.abspath(__icon.__file__)))
 # TODO: get .path file glob pattern from tauruscustomsettings
 __icon.registerPathFiles(glob.glob(os.path.join(icon_dir,'*.path')))
 # TODO: get theme name and path from tauruscustomsettings
-__icon.registerTheme()
+__icon.registerTheme(name=getattr(__S, 'QT_THEME_NAME', 'Tango'),
+                     path=getattr(__S, 'QT_THEME_DIR', ''),
+                     force=getattr(__S, 'QT_THEME_FORCE_ON_LINUX', False))
 
 del os, glob, __icon, icon_dir

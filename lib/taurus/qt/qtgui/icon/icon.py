@@ -143,16 +143,17 @@ def registerPathFiles(pathfilenames):
 
 
 
-def registerTheme(name='Tango', path=None, force=False):
+def registerTheme(name='Tango', path='', force=False):
     """Use bundled them if OS does not define a theme (non-X11 systems)
 
     :param name: (str) icon theme name (default=Tango)
-    :param path: (str) path to dir containing the theme
+    :param path: (str) path to dir containing the theme (absolute or relative
+                 to dir of taurus.qt.qtgui.icon). Default = ''
     :param force: (bool) Force to set path even if a theme is already set
     """
     if force or not sys.platform.startswith('linux'):
-        if path is None:
-            path = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+        base_dir = os.path.abspath(os.path.dirname(__file__))
+        path = os.path.join(base_dir, path)
         Qt.QIcon.setThemeSearchPaths([path])
         Qt.QIcon.setThemeName(name)
         __LOGGER.info('Setting %s icon theme (from %s)', name, path)
