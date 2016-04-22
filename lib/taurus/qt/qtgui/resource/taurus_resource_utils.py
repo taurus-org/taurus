@@ -89,15 +89,15 @@ def getIcon(key):
         head, tail = os.path.split(key[1:])
         # logos used to be in the resource root. Now they are in 'logos'
         prefix = sanitizePrefix(head or 'logos')
-        alt = 'Qt.QIcon(%s:%s)' % (prefix, tail)
+        alt = 'Qt.QIcon("%s:%s")' % (prefix, tail)
         ret = Qt.QIcon('%s:%s' % (prefix, tail))
     elif not Qt.QFile.exists(key) and Qt.QIcon.hasThemeIcon(key):
-        alt = 'QIcon.fromTheme(%s)' % key
+        alt = 'QIcon.fromTheme("%s")' % key
         ret = Qt.QIcon.fromTheme(key)
     else:
-        alt = 'QIcon(%s)' % key
+        alt = 'QIcon("%s")' % key
         ret = Qt.QIcon(key)
-    deprecated(dep='getIcon(%s)' % key, alt=alt, rel='4.0')
+    deprecated(dep='getIcon("%s")' % key, alt=alt, rel='4.0')
     return ret
 
 
