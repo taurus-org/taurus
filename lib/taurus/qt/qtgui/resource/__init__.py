@@ -24,7 +24,14 @@
 #############################################################################
 
 """
-
+Old module supporting resources (now it just contains a reimplementation
+based on taurus.qt.qtgui.icon for bck-compat)
 """
+
+from taurus.core.util.log import deprecated as __deprecated
+
+__deprecated(dep='taurus.qt.qtgui.resource',
+           alt='taurus.qt.qtgui.icon',
+           rel='4.0')
 
 from taurus_resource_utils import *

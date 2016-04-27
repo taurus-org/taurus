@@ -25,11 +25,22 @@
 
 """This module provides widgets that display the database in a tree format"""
 
-__all__ = ['getPixmap', 'getThemePixmap', 'getIcon', 'getThemeIcon', 'getStandardIcon',
-           'getElementTypeToolTip', 'getElementTypeIconName', 'getElementTypeIcon',
-           'getElementTypePixmap', 'getElementTypeSize',
-           'getDevStateToolTip',  'getDevStateIcon', 'getDevStatePixmap',
-           'getThemeMembers']
+__all__ = [
+    'getPixmap',
+    'getIcon',
+    'getThemePixmap',
+    'getThemeIcon',
+    'getThemeMembers',
+    # the following are actually from taurus.qt.qtgui.icon
+    'getStandardIcon',
+    'getElementTypeToolTip',
+    'getElementTypeSize',
+    'getElementTypeIcon',
+    'getElementTypeIconName',
+    'getElementTypePixmap',
+    'getDevStateToolTip',
+    'getDevStateIcon',
+    'getDevStatePixmap',]
 
 __docformat__ = 'restructuredtext'
 
@@ -37,296 +48,93 @@ import os
 
 from taurus.external.qt import Qt
 
-from taurus.core.taurusbasetypes import TaurusElementType, TaurusDevState
-from taurus.core.util.log import Logger, tep14_deprecation
+from taurus.core.util.log import (deprecated, tep14_deprecation,
+                                  deprecation_decorator)
 
-__LOGGER = Logger(__name__)
-
-ElemType = TaurusElementType
-Size = Qt.QSize
-
-__INITIALIZED = False
-# Theme capacity was only added in Qt 4.6
-__THEME_CAPACITY = hasattr(Qt.QIcon, "fromTheme")
-# Uncomment the following line to force NOT to use OS theme.
-#__THEME_CAPACITY = False
-
-__THEME_MEMBERS = {}
-
-# Default width, height and QSize constants
-__DW = 70
-__DH = 24
-
-__DQS = Size(__DW, __DH)
-__1DQS = __DQS
-__2DQS = Size(2 * __DW, __DH)
-__3DQS = Size(3 * __DW, __DH)
+from taurus.qt.qtgui.icon import *
 
 
-def __init():
-    global __INITIALIZED
-    global __THEME_MEMBERS
-
-    if __INITIALIZED:
-        return
-
-    # register only the tango-icons rcc files (and initialize the
-    # THEME_MEMBERS)
-    res_dir = os.path.dirname(os.path.abspath(__file__))
-    Qt.QDir.addSearchPath("resource", res_dir)
-    prefix = 'qrc_tango_icons_'
-    suffix = '.rcc'
-    lp, ls = len(prefix), len(suffix)
-    theme_members = {}
-    other_rcc_files = []
-    for f in os.listdir(res_dir):
-        if f.endswith(suffix):
-            if f.startswith(prefix):
-                if Qt.QResource.registerResource("resource:" + f):
-                    d = f[lp:-ls]
-                    theme_members[d] = [
-                        str(e)[:-4] for e in Qt.QDir(":%s" % d).entryList() if str(e).endswith('.svg')]
-                else:
-                    __LOGGER.info("Failed to load resource %s" % f)
-            else:
-                # we remember these and will register later
-                other_rcc_files.append(f)
-    __THEME_MEMBERS = theme_members
-
-    # register the rest of the resource files
-    for f in other_rcc_files:
-        if not Qt.QResource.registerResource("resource:" + f):
-            __LOGGER.info("Failed to load resource %s" % f)
-
-    __INITIALIZED = True
-
-__init()
-
-
+@deprecation_decorator(alt='QIcon.hasThemeIcon to test individual names',
+                       rel='4.0')
 def getThemeMembers():
     """Returns the current icon theme elements
+
+    .. note:: Since its depredation, it returns an empty dict (there is no
+    reasonable way of introspecting the list of available icon names).
+    Alternatively Just test a given name using
 
     :return: the current icon theme elements in a dictionary where each key is
              a group name and the value is a sequence of theme icon name.
     :rtype: dict<str,seq<str>>"""
-    global __THEME_MEMBERS
-    return __THEME_MEMBERS
+    return {}
 
 
+@deprecation_decorator(alt='getCachedPixmap', rel='4.0')
 def getPixmap(key, size=None):
-    """Returns a PyQt4.QtGui.QPixmap object for the given key and size
-
-    :param key: (str) a string with the pixmap resource key (ex.: ':/status/folder_open.svg')
-    :param size: (int) the pixmap size in pixels (will get a square pixmap). Default is None
-                 meaning it will return the original size
-
-    :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given key and size"""
-
-    name = key
-    if size is not None:
-        key = key + "_%sx%s" % (size, size)
-    pm = Qt.QPixmapCache.find(key)
-    if pm is None:
-        pm = Qt.QPixmap(name)
-        if size is not None:
-            pm = pm.scaled(size, size, Qt.Qt.KeepAspectRatio,
-                           Qt.Qt.SmoothTransformation)
-        Qt.QPixmapCache.insert(key, pm)
-    return Qt.QPixmap(pm)
+    return getCachedPixmap(key, size=size)
 
 
 def getIcon(key):
-    """Returns a PyQt4.QtGui.QIcon object for the given key
+    """Returns a PyQt4.QtGui.QIcon object for the given key. It supports QDir's
+    searchPath prefixes (see :meth:`QDir.setSearchPaths`).
+    Note that taurus.qt.qtgui.resource already sets several search paths based
+    on .path files
 
-    :param key: (str) a string with the pixmap resource key (ex.: ':/status/folder_open.svg')
+    :param key: (str) the pixmap file name. (optionally with a prefix)
 
     :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given key"""
+
+    # handle resource syntax (deprecated)
     if key.startswith(':'):
-        return Qt.QIcon(key)
-    return getThemeIcon(key)
+        head, tail = os.path.split(key[1:])
+        # logos used to be in the resource root. Now they are in 'logos'
+        prefix = sanitizePrefix(head or 'logos')
+        alt = 'Qt.QIcon("%s:%s")' % (prefix, tail)
+        ret = Qt.QIcon('%s:%s' % (prefix, tail))
+    elif not Qt.QFile.exists(key) and Qt.QIcon.hasThemeIcon(key):
+        alt = 'QIcon.fromTheme("%s")' % key
+        ret = Qt.QIcon.fromTheme(key)
+    else:
+        alt = 'QIcon("%s")' % key
+        ret = Qt.QIcon(key)
+    deprecated(dep='getIcon("%s")' % key, alt=alt, rel='4.0')
+    return ret
 
 
-def getThemePixmap(key, size=None):
-    """Returns a PyQt4.QtGui.QPixmap object for the given key and size. Key should be a valid theme
-    key. See `Icon Naming Specification <http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html>`_
-    for the list of valid theme keys.
+@deprecation_decorator(alt='QIcon.fromTheme(key).pixmap(size, size)', rel='4.0')
+def getThemePixmap(key, size=48):
+    """Returns a PyQt4.QtGui.QPixmap object for the given key and size.
+    Key should be a valid theme icon key. See :meth:`PyQt4.QIcon.fromTheme`.
 
-    If theme is not supported by Qt (version < 4.6) or by the OS, the method will return a
-    theme pixmap from the `Tango Icon Library <http://tango.freedesktop.org/Tango_Icon_Library>`_.
+    Note that if the OS does not define a theme, taurus.qt.qtgui.resource will
+    use the bundled 'Tango' icons theme. See:
+    `Tango Icon Library <http://tango.freedesktop.org/Tango_Icon_Library>`_.
 
     If the key cannot be found, it will return a null content Pixmap.
 
     :param key: (str) a string with the pixmap theme key (ex.: 'folder_open')
-    :param size: (int) the pixmap size in pixels (will get a square pixmap). Default is None
-                 meaning it will return the original size
-
-    :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given key and size"""
-
-    global __THEME_CAPACITY
-    global __LOGGER
-    if __THEME_CAPACITY:
-        if Qt.QIcon.hasThemeIcon(key):
-            size = size or 48
-            return Qt.QIcon.fromTheme(key).pixmap(size, size)
-        else:
-            __LOGGER.debug(
-                'Theme pixmap "%s" not supported. Trying to provide a fallback...', key)
-    for member, items in getThemeMembers().items():
-        if key not in items:
-            continue
-        return getPixmap(":/%s/%s.svg" % (member, key), size)
-    __LOGGER.debug('Theme pixmap "%s" not supported.', key)
-    return Qt.QPixmap()
-
-
-def getThemeIcon(key):
-    """Returns a PyQt4.QtGui.QIcon object for the given key. Key should be a valid theme key. See
-    `Icon Naming Specification <http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html>`_
-    for the list of valid theme keys.
-
-    If theme is not supported by Qt (version < 4.6) or by the OS, the method will return a
-    theme icon from the `Tango Icon Library <http://tango.freedesktop.org/Tango_Icon_Library>`_.
-
-    If the key cannot be found, it will return a null content QIcon.
-
-    :param key: (str) a string with the icon theme key (ex.: 'folder_open')
-
-    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given key"""
-
-    global __THEME_CAPACITY
-    global __LOGGER
-    if __THEME_CAPACITY:
-        if Qt.QIcon.hasThemeIcon(key):
-            return Qt.QIcon.fromTheme(key)
-        else:
-            __LOGGER.debug(
-                'Theme icon "%s" not supported. Trying to provide a fallback...', key)
-            __LOGGER.stack()
-    for member, items in getThemeMembers().items():
-        if key not in items:
-            continue
-        return Qt.QIcon(":/%s/%s.svg" % (member, key))
-    __LOGGER.debug('Theme icon "%s" not supported.', key)
-    return Qt.QIcon()
-
-
-def getStandardIcon(key, widget=None):
-    """Returns a PyQt4.QtGui.QIcon object for the given key. Key should be a
-    QStyle.StandardPixmap enumeration member. The widget argument is optional
-    and can also be used to aid the determination of the icon.
-
-    :param key: (QStyle.StandardPixmap) a standard pixmap which can follow some existing GUI style or guideline
-    :param widget: (Qt.QWidget) the widget argument (optional) can also be used to aid the determination of the icon.
-
-    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given key"""
-    styleOption = None
-    if widget is not None:
-        styleOption = Qt.QStyleOption()
-        styleOption.initFrom(widget)
-    style = Qt.QApplication.instance().style()
-    return style.standardIcon(key, styleOption, widget)
-
-# Indexes for the map below
-__IDX_ELEM_TYPE_ICON, __IDX_ELEM_TYPE_SIZE, __IDX_ELEM_TYPE_TOOLTIP = range(3)
-
-# New default role map
-# Elements are: icon theme, preferred size, description/tooltip
-_ELEM_TYPE_MAP = {ElemType.Name: ("folder", __3DQS, None),
-                  ElemType.Device: ("applications-system", Size(210, __DH), "Tango device name"),
-                  ElemType.DeviceAlias: ("applications-system", Size(140, __DH), "Tango device alias"),
-                  ElemType.Domain: ("folder", Size(80, __DH), "Tango device domain"),
-                  ElemType.Family: ("folder", Size(80, __DH), "Tango device family"),
-                  ElemType.Member: ("applications-system", Size(80, __DH), "Tango device member"),
-                  ElemType.Server: ("application-x-executable", Size(190, __DH), "Tango server"),
-                  ElemType.ServerName: ("application-x-executable", Size(80, __DH), "Tango server name"),
-                  ElemType.ServerInstance: ("application-x-executable", Size(80, __DH), "Tango server instance"),
-                  ElemType.DeviceClass: ("text-x-script", Size(140, __DH), "Tango class name"),
-                  ElemType.Exported: ("start-here", Size(60, __DH), "Alive/not alive"),
-                  ElemType.Host: ("network-server", Size(100, __DH), "Host machine were last ran"),
-                  ElemType.Attribute: (":/actions/format-text-bold.svg", Size(100, __DH), "Attribute name"), }
-
-
-def getElementTypeToolTip(elemType):
-    data = _ELEM_TYPE_MAP.get(elemType)
-    if data is None:
-        return
-    return data[__IDX_ELEM_TYPE_TOOLTIP]
-
-
-def getElementTypeSize(elemType):
-    data = _ELEM_TYPE_MAP.get(elemType)
-    if data is None:
-        return
-    return data[__IDX_ELEM_TYPE_SIZE]
-
-
-def getElementTypeIconName(elemType):
-    """Gets an icon name string for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`.
-
-    If an icon name cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`,
-    None is returned.
-
-    :param elemType: (TaurusElementType) the taurus element type
-
-    :return: (str) a string representing the icon name for the given
-             :class:`taurus.core.taurusbasetypes.TaurusElementType`"""
-    if elemType is None:
-        return
-    data = _ELEM_TYPE_MAP.get(elemType)
-    if data is None:
-        return
-    return data[__IDX_ELEM_TYPE_ICON]
-
-
-def getElementTypeIcon(elemType, fallback=None):
-    """Gets a PyQt4.QtGui.QIcon object for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`.
-
-    If an icon cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`,
-    fallback is returned.
-
-    :param elemType: (TaurusElementType) the taurus element type
-    :param fallback: (PyQt4.QtGui.QIcon) the fallback icon. Default is None.
-
-    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`"""
-
-    themeIconName = getElementTypeIconName(elemType)
-    icon = getIcon(themeIconName)
-    if icon.isNull() and fallback is not None:
-        icon = fallback
-    return icon
-
-
-def getElementTypePixmap(elemType, size=None):
-    """Gets a PyQt4.QtGui.QPixmap object for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`.
-
-    If a pixmap cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`,
-    fallback is returned.
-
-    :param elemType: (TaurusElementType) the taurus element type
     :param size: (int) the pixmap size in pixels (will get a square pixmap).
-                 Default is None meaning it will return the original size.
+                 Default size=48
 
-    :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.taurusbasetypes.TaurusElementType`"""
+    :return: (PyQt4.QtGui.QPixmap)
+    """
+    return Qt.QIcon.fromTheme(key).pixmap(size, size)
 
-    if elemType is None:
-        return
-    data = _ELEM_TYPE_MAP.get(elemType)
-    if data is None:
-        return
-    themeName = data[__IDX_ELEM_TYPE_ICON]
-    return getThemePixmap(themeName, size)
 
-# Indexes for the map below
-__IDX_STATE_ICON, __IDX_STATE_TOOLTIP = range(2)
+@deprecation_decorator(alt='QIcon.fromTheme', rel='4.0')
+def getThemeIcon(key):
+    """Returns the theme icon corresponding to the given key.
+    Key should be a valid theme icon key. See :meth:`PyQt4.QIcon.fromTheme`.
 
-_STATE_MAP = {
-    TaurusDevState.Ready: (":/status/available.svg",
-                           "Element ready"),
-    TaurusDevState.NotReady: (":/status/not-available.svg",
-                              "Element not ready"),
-    TaurusDevState.Undefined: (":/status/not-known.svg",
-                               "Element state undefined")
-}
+    Note that if the OS does not define a theme, taurus.qt.qtgui.resource will
+    use the bundled 'Tango' icons theme. See:
+    `Tango Icon Library <http://tango.freedesktop.org/Tango_Icon_Library>`_.
+
+    :param key: (str) a string with the icon theme key (e.g.: 'folder_open')
+
+    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given theme key
+    """
+    return Qt.QIcon.fromTheme(key)
 
 
 @tep14_deprecation(alt='getDevStateToolTip')
@@ -334,39 +142,9 @@ def getSWDevHealthToolTip(state):
     return getDevStateToolTip(state)
 
 
-def getDevStateToolTip(state):
-    data = _STATE_MAP.get(state)
-    if data is None:
-        return
-    return data[__IDX_STATE_TOOLTIP]
-
-
 @tep14_deprecation(alt='getDevStateIcon')
 def getSWDevHealthIcon(state, fallback=None):
     return getDevStateIcon(state, fallback=fallback)
-
-
-def getDevStateIcon(state, fallback=None):
-    """Gets a PyQt4.QtGui.QIcon object for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`.
-
-    If an icon cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`,
-    fallback is returned.
-
-    :param state: (TaurusDevState) the taurus device state
-    :param fallback: (PyQt4.QtGui.QIcon) the fallback icon. Default is None.
-
-    :return: (PyQt4.QtGui.QIcon) a PyQt4.QtGui.QIcon for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`"""
-    if state is None:
-        return
-    data = _STATE_MAP.get(state)
-    if data is None:
-        return
-    name = data[__IDX_STATE_ICON]
-
-    icon = getIcon(name)
-    if icon.isNull() and fallback is not None:
-        icon = fallback
-    return icon
 
 
 @tep14_deprecation(alt='getDevStatePixmap')
@@ -374,21 +152,45 @@ def getSWDevHealthPixmap(state, fallback=None):
     return getDevStatePixmap(state, fallback=fallback)
 
 
-def getDevStatePixmap(state, size=None):
-    """Gets a PyQt4.QtGui.QPixmap object for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`.
 
-    If a pixmap cannot be found for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`,
-    fallback is returned.
 
-    :param state: (TaurusDevState) the taurus software device state
-    :param size: (int) the pixmap size in pixels (will get a square pixmap).
-                 Default is None meaning it will return the original size.
+if __name__ == '__main__':
 
-    :return: (PyQt4.QtGui.QPixmap) a PyQt4.QtGui.QPixmap for the given :class:`taurus.core.taurusbasetypes.TaurusDevState`"""
-    if state is None:
-        return
-    data = _STATE_MAP.get(state)
-    if data is None:
-        return
-    name = data[__IDX_STATE_ICON]
-    return getPixmap(name, size)
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication()
+
+    print getThemeMembers()
+
+
+    themekey = 'computer'
+    b = Qt.QIcon.fromTheme(themekey)
+
+    icons = [
+
+        getIcon('actions:edit-cut.svg'),
+        getIcon(':/actions/edit-cut.svg'),
+
+        getIcon(":/apps/preferences-system-session.svg"),
+        getIcon(":/designer/devs_tree.png"),
+
+        getIcon(":/actions/process-stop.svg"),  # from tango-icons/actions
+        getIcon(":/actions/add.svg"), # from rrze-icons/actions
+        getIcon(":/actions/stop.svg"), # from extra-icons/actions
+
+        getIcon(":taurus.svg"),
+        getIcon("computer"),  # theme Icon via getIcon
+        getThemeIcon("computer"),  # theme Icon via getThemeIcon
+        ]
+
+    w = Qt.QWidget()
+    l = Qt.QVBoxLayout()
+    w.setLayout(l)
+    for icon in icons:
+        button = Qt.QPushButton(icon, 'kk')
+        l.addWidget(button)
+
+    w.show()
+
+    sys.exit(app.exec_())

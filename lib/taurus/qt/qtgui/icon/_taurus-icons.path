@@ -1,0 +1,13 @@
+[
+  ["logos", "logos"],
+  ["external", "external"],
+  ["jive", "external/jive"],
+  ["extra_icons", "extra-icons"],
+  ["actions", "extra-icons/actions"],
+  ["designer", "extra-icons/designer"],
+  ["leds_images24", "extra-icons/leds/images24"],
+  ["leds_images48", "extra-icons/leds/images48"],
+  ["leds_images256", "extra-icons/leds/images256"],
+  ["large", "large"],
+  ["snapshot", "large/snapshot"]
+]

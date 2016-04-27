@@ -1,12 +1,7 @@
 MANIFEST
 /dist
 *.pyc
-*.qrc
-*.rcc
 /build/
-/lib/taurus/qt/qtgui/graphic/jdraw/jdraw_lextab.py
-/lib/taurus/qt/qtgui/graphic/jdraw/jdraw_yacctab.py
-parser.out
-parsetab.py
 /setup.cfg
 doc/~thumbnails.zip
+/lib/taurus.egg-info

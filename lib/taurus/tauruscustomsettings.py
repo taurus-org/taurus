@@ -122,6 +122,16 @@ QT_AUTO_INIT_RES = DEFAULT_QT_AUTO_INIT_RES
 #: Remove input hook (only valid for PyQt4)
 QT_AUTO_REMOVE_INPUTHOOK = DEFAULT_QT_AUTO_REMOVE_INPUTHOOK
 
+#: Select the theme to be used: set the theme dir  and the theme name.
+#: The path can be absolute or relative to the dir of taurus.qt.qtgui.icon
+#: If not set, the dir of taurus.qt.qtgui.icon will be used
+QT_THEME_DIR = ''
+#: The name of the icon theme (e.g. 'Tango', 'Oxygen', etc). Default='Tango'
+QT_THEME_NAME = 'Tango'
+#: In Linux the QT_THEME_NAME is not applied (to respect the system theme)
+#: setting QT_THEME_FORCE_ON_LINUX=True overrides this.
+QT_THEME_FORCE_ON_LINUX = True
+
 
 # ----------------------------------------------------------------------------
 # Deprecation handling:
