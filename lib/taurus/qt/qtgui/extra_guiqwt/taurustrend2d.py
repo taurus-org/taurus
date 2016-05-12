@@ -70,6 +70,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         self.get_tool(TaurusModelChooserTool).singleModel = True
         self.setModifiableByUser(self._modifiableByUser)
         self.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
+        self.registerConfigDelegate(self.get_tool(AutoScrollTool))
 
     def keyPressEvent(self, event):
         if(event.key() == Qt.Qt.Key_Escape):
