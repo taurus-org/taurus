@@ -215,6 +215,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
             taurusparam = TaurusTrendParam()
         self.defaultTaurusparam = taurusparam
         self.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
+        self.registerConfigDelegate(self.get_tool(AutoScrollTool))
 
     def keyPressEvent(self, event):
         if(event.key() == Qt.Qt.Key_Escape):

@@ -35,6 +35,7 @@ from guiqwt.tools import (CommandTool, ToggleTool, DefaultToolbarID,
 from guiqwt.signals import SIG_ITEMS_CHANGED
 
 from taurus.core.taurusbasetypes import TaurusElementType
+from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.extra_guiqwt.builder import make
 from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendItem
@@ -213,17 +214,20 @@ class TimeAxisTool(CommandTool):
         self._setPlotTimeScales(True, True)
 
 
-class AutoScrollTool(ToggleTool):
+class AutoScrollTool(ToggleTool, BaseConfigurableClass):
     """A tool that puts the plot in "AutoScroll" mode.
     This makes sense in trend plots where we want to keep the last value
     always visible"""
 
     def __init__(self, manager, scrollFactor=0.2, toolbar_id=None):
-        super(AutoScrollTool, self).__init__(
-                manager, title='Auto Scroll', icon=None,
+        ToggleTool.__init__(self, manager, title='Auto Scroll', icon=None,
                 tip='Force X scale to always show the last value',
                 toolbar_id=toolbar_id)
+        BaseConfigurableClass.__init__(self)
         self.scrollFactor = scrollFactor
+        self.registerConfigProperty(self.action.isChecked,
+                                    self.action.setChecked,
+                                    'actionChecked')
 
     def register_plot(self, baseplot):
         ToggleTool.register_plot(self, baseplot)
