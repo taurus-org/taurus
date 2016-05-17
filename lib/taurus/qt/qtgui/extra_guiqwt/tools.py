@@ -251,6 +251,9 @@ class AutoScrollTool(ToggleTool, BaseConfigurableClass):
     def onScrollRequested(self, plot, axis, value):
         scalemin, scalemax = plot.get_axis_limits(axis)
         scaleRange = abs(scalemax - scalemin)
+        # ignore requests that imply setting a null range
+        if scaleRange == 0:
+            return
         xmin = value - scaleRange * (1. - self.scrollFactor)
         xmax = value + scaleRange * self.scrollFactor
         plot.set_axis_limits(axis, xmin, xmax)
