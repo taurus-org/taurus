@@ -36,11 +36,10 @@ import numpy
 from taurus.external.qt import Qt
 from taurus.external.pint import Q_
 
-
 class _ArrowButton(Qt.QPushButton):
     """Private class to be used by QWheelEdit for an arrow button"""
 
-    ArrowPixmapName = ":/arrow01.svg"
+    ArrowPixmapName = "extra_icons:arrow01.svg"
 
     ButtonSize = 14
     IconSize = ButtonSize - 2
@@ -72,7 +71,7 @@ class _UpArrowButton(_ArrowButton):
     def getPixmap(self):
         pm = Qt.QPixmapCache.find(_UpArrowButton.ArrowPixmapKey)
         if pm is None:
-            pm = Qt.QPixmap(_UpArrowButton.ArrowPixmapName)
+            pm = Qt.QPixmap(self.ArrowPixmapName)
             Qt.QPixmapCache.insert(_UpArrowButton.ArrowPixmapKey, pm)
         return pm
 
@@ -89,11 +88,10 @@ class _DownArrowButton(_ArrowButton):
     def getPixmap(self):
         pm = Qt.QPixmapCache.find(_DownArrowButton.ArrowPixmapKey)
         if pm is None:
-            pm = Qt.QPixmap(_DownArrowButton.ArrowPixmapName)
+            pm = Qt.QPixmap(self.ArrowPixmapName)
             pm = pm.transformed(Qt.QMatrix().rotate(180))
             Qt.QPixmapCache.insert(_DownArrowButton.ArrowPixmapKey, pm)
         return pm
-
 
 class _DigitLabel(Qt.QLabel):
     """A private single digit label to be used by QWheelEdit widget"""
