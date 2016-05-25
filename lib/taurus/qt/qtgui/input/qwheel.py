@@ -34,6 +34,7 @@ import math
 import numpy
 
 from taurus.external.qt import Qt
+from taurus.external.pint import Q_
 
 
 class _ArrowButton(Qt.QPushButton):
@@ -603,8 +604,10 @@ class QWheelEdit(Qt.QFrame):
         Sets the value of this widget.
         Send a 'valueChanged(double)' Qt signal
 
-        @param[in] v (float) the value to be set
+        @param[in] v (float/Quantity) the value to be set
         """
+        if isinstance(v, Q_):
+            v = v.magnitude
         self._setValue(v)
         self._updateValue(trigValueEdited=False)
 
