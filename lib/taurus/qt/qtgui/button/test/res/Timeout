@@ -104,13 +104,13 @@ class Timeout(PyTango.Device_4Impl):
 
     @PyTango.DebugIt()
     def read_Timeout_attr(self, the_att):
-        self.info_stream("read_Long_attr")
+        self.info_stream("read_Timeout_attr")
         time.sleep(self.attr_duration)
         the_att.set_value(self.attr_duration)
     
     @PyTango.DebugIt()
     def write_Timeout_attr(self, the_att):
-        self.info_stream("write_Short_attr_rw")
+        self.info_stream("write_Timeout_attr")
         self.attr_duration = the_att.get_write_value()
         time.sleep(self.attr_duration)
 
