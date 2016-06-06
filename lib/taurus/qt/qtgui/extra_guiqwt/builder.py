@@ -32,7 +32,8 @@ __docformat__ = 'restructuredtext'
 import guiqwt.builder
 
 from curve import TaurusCurveItem, TaurusTrendItem
-from image import TaurusImageItem, TaurusRGBImageItem, TaurusEncodedImageItem, TaurusXYImageItem
+from image import (TaurusImageItem, TaurusRGBImageItem, TaurusEncodedImageItem,
+                   TaurusEncodedRGBImageItem, TaurusXYImageItem)
 from guiqwt.curve import CurveParam
 from guiqwt.image import ImageParam, XYImageItem
 from guiqwt.styles import XYImageParam
@@ -105,14 +106,13 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
             assert isinstance(ydata, (tuple, list)) and len(ydata) == 2
             assert filename is None
             assert data is None
-            
+
+            from taurus import Attribute
             param = ImageParam(title=_("Image"), icon='image.png')
-            
             if pixel_size is None:
                 xmin, xmax = xdata
                 ymin, ymax = ydata
             else:
-                from taurus import Attribute
                 attr = Attribute(taurusmodel)
                 valueobj = attr.read()
                 attrdata = getattr(valueobj, 'value', numpy.zeros((1,1)))
@@ -124,14 +124,16 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
                                    xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                                    xformat=xformat, yformat=yformat,
                                    zformat=zformat)
+            try:
+                from PyTango import DevEncoded  #@todo: replace this (Tango-centric).
+            except:
+                DevEncoded = 28 #@todo: hardcoded fallback to be replaced when the data types are handled in Taurus
             if forceRGB:
-                image = TaurusRGBImageItem(param)
+                if Attribute(taurusmodel).read().type == DevEncoded:
+                    image = TaurusEncodedRGBImageItem(param)
+                else:
+                    image = TaurusRGBImageItem(param)
             else:
-                from taurus import Attribute
-                try:
-                    from PyTango import DevEncoded  #@todo: replace this (Tango-centric).
-                except:
-                    DevEncoded = 28 #@todo: hardcoded fallback to be replaced when the data types are handled in Taurus
                 if Attribute(taurusmodel).read().type == DevEncoded:
                     image = TaurusEncodedImageItem(param)
                 else:
