@@ -35,14 +35,17 @@ __docformat__ = 'restructuredtext'
 from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.core.tango import TangoDevice
 from taurus.core.util.containers import CaselessDict, CaselessList
-from threading import RLock
 
 class ImageDevice(TangoDevice):
     """A class encapsulating a generic image device"""
     
-    def __init__(self, name, image_name='image', **kw):
-        self.call__init__(TangoDevice, name, **kw)
-        self.setImageAttrName(image_name)
+    def __init__(self, name, image_name='image', image_ct='imagecounter', **kw):
+        self._image_data = CaselessDict()
+        self.call__init__(ImageDevice, name, image_name, **kw)
+        self._image_id_attr_name = image_ct
+        self._busy = False
+        self._image_id_attr = self.getAttribute(self._image_id_attr_name)
+        self._image_id_attr.addListener(self)
 
     def addImageAttrName(self, attr_name):
         if attr_name in self._image_attr_names:
@@ -81,21 +84,46 @@ class ImageCounterDevice(ImageDevice):
         dirty = []
         for name in names:
             d = self._image_data.get(name)
-            if d is None or d[0] == True:
+            if d is None or d[0]:
                 dirty.append(name)
         return names
 
     def getImageIDAttrName(self):
-        return 'imagecounter'
-    
+        return self._image_id_attr_name
+
+    def _emitImageEvents(self, evt_type, images):
+        for attr_image_name in images:
+            image_value = images[attr_image_name][1]
+            if hasattr(image_value, 'is_empty') and not image_value.is_empty:
+                self.debug("fireEvent for %s attribute" % attr_image_name)
+                if not hasattr(image_value, 'rvalue'):
+                    image_value.rvalue = image_value.value
+                # Only emit to upper layers the events where
+                # something has been read.
+                attr_image = self.getAttribute(image_value.name)
+                attr_image.fireEvent(evt_type, image_value)
+
     def eventReceived(self, evt_src, evt_type, evt_value):
         if evt_src == self._image_id_attr:
             if evt_type == TaurusEventType.Change:
-                self._setDirty()
-                self.fireEvent(evt_type, evt_value)
+                if not self._busy:
+                    self.debug("Processing image %d" % evt_value.value)
+                    # discared events if there is one being processed
+                    self._busy = True
+                    # read the related Image attributes
+                    # (asap and in one action)
+                    images = self.getImageData()
+                    self._setDirty()
+                    self.fireEvent(evt_type, evt_value)
+                    # maintain this fireEvent for backwards compatibility
+                    # with Qub widget
+                    self._emitImageEvents(evt_type, images)
+                    self._busy = False
+                else:
+                    self.debug("Discard image %d" % evt_value.value)
         else:
             ImageDevice.eventReceived(self, evt_src, evt_type, evt_value)
-    
+
     def getImageData(self, names=None):
         if names is None:
             names = self.getImageAttrNames()
