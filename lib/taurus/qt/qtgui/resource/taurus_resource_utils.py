@@ -69,9 +69,16 @@ def getThemeMembers():
     return {}
 
 
-@deprecation_decorator(alt='getCachedPixmap', rel='4.0')
 def getPixmap(key, size=None):
-    return getCachedPixmap(key, size=size)
+    # handle resource syntax (deprecated)
+    if key.startswith(':'):
+        head, tail = os.path.split(key[1:])
+        # logos used to be in the resource root. Now they are in 'logos'
+        prefix = sanitizePrefix(head or 'logos')
+        alt = 'getCachedPixmap("%s:%s [, size]")' % (prefix, tail)
+        ret = getCachedPixmap('%s:%s' % (prefix, tail), size)
+    deprecated(dep='getPixmap("%s" [, size])' % key, alt=alt, rel='4.0')
+    return ret
 
 
 def getIcon(key):
