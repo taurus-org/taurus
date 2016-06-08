@@ -7,10 +7,6 @@ services:
 
 python:
   - "2.7"
-  
-env:
-  - INSTALL="Y"
-  - INSTALL="N"
 
 branches:
   only:
@@ -20,11 +16,9 @@ branches:
 before_install:
   # run cpascual/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
   - docker pull cpascual/taurus-test
-  - if [ $INSTALL == "Y" ]; then docker run -d --name=taurus-test -e HOSTNAME=taurus-test --volume=`pwd`:/taurus cpascual/taurus-test; fi
-  - if [ $INSTALL == "N" ]; then docker run -d --name=taurus-test -e HOSTNAME=taurus-test -e PYTHONPATH=/taurus/lib -e PATH=/taurus/scripts:$PATH --volume=`pwd`:/taurus cpascual/taurus-test; fi
+  - docker run -d --name=taurus-test -e HOSTNAME=taurus-test --volume=`pwd`:/taurus cpascual/taurus-test
   - sleep 10
   
 script:
-  - if [ $INSTALL == "Y" ]; then docker exec taurus-test python /taurus/setup.py install; fi
-  - if [ $INSTALL == "N" ]; then docker exec taurus-test python /taurus/setup.py build_resources; fi
+  - docker exec taurus-test python /taurus/setup.py install
   - docker exec -ti taurus-test python /taurus/lib/taurus/test/testsuite.py
