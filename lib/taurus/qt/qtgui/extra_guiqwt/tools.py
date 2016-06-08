@@ -30,10 +30,12 @@ __docformat__ = 'restructuredtext'
 
 
 from taurus.external.qt import Qt
-from guiqwt.tools import CommandTool, ToggleTool, DefaultToolbarID, QActionGroup, add_actions
+from guiqwt.tools import (CommandTool, ToggleTool, DefaultToolbarID,
+                          QActionGroup, add_actions)
 from guiqwt.signals import SIG_ITEMS_CHANGED
 
 from taurus.core.taurusbasetypes import TaurusElementType
+from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.extra_guiqwt.builder import make
 from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendItem
@@ -45,12 +47,14 @@ from taurus.qt.qtgui.plot import DateTimeScaleEngine
 
 class TaurusCurveChooserTool(CommandTool):
     """
-    A tool that shows the Taurus Model Chooser to create/edit the taurus curves of a plot
+    A tool that shows the Taurus Model Chooser to create/edit the taurus curves
+    of a plot
     """
 
     def __init__(self, manager, toolbar_id=DefaultToolbarID):
         super(TaurusCurveChooserTool, self).__init__(
-            manager, "Taurus Models...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
+                manager, "Taurus Models...", getIcon(":/taurus.png"),
+                toolbar_id=toolbar_id)
 
     def activate_command(self, plot, checked):
         """Activate tool"""
@@ -65,8 +69,8 @@ class TaurusCurveChooserTool(CommandTool):
             # create curve items and add them to the plot
             for c in confs:
                 if c.taurusparam.yModel:
-                    item = make.pcurve(
-                        c.taurusparam.xModel or None, c.taurusparam.yModel, c.curveparam)
+                    item = make.pcurve(c.taurusparam.xModel or None,
+                                       c.taurusparam.yModel, c.curveparam)
                     plot.add_item(item)
                     if c.axesparam is not None:
                         c.axesparam.update_axes(item)
@@ -74,12 +78,14 @@ class TaurusCurveChooserTool(CommandTool):
 
 class TaurusImageChooserTool(CommandTool):
     """
-    A tool that shows the Taurus Model Chooser and adds new taurus image items to a plot
+    A tool that shows the Taurus Model Chooser and adds new taurus image items
+    to a plot
     """
 
     def __init__(self, manager, toolbar_id=DefaultToolbarID):
         super(TaurusImageChooserTool, self).__init__(
-            manager, "Add Taurus images...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
+                manager, "Add Taurus images...", getIcon(":/taurus.png"),
+                toolbar_id=toolbar_id)
 
     def activate_command(self, plot, checked):
         """Activate tool"""
@@ -95,19 +101,24 @@ class TaurusImageChooserTool(CommandTool):
 
 class TaurusModelChooserTool(CommandTool):
     """
-    A tool that shows the Taurus Model Chooser and sets the chosen model on the manager
+    A tool that shows the Taurus Model Chooser and sets the chosen model on
+    the manager
     """
 
     def __init__(self, manager, toolbar_id=DefaultToolbarID, singleModel=False):
         super(TaurusModelChooserTool, self).__init__(
-            manager, "Change Taurus Model...", getIcon(":/taurus.png"), toolbar_id=toolbar_id)
+                manager, "Change Taurus Model...", getIcon(":/taurus.png"),
+                toolbar_id=toolbar_id)
         self.singleModel = singleModel
 
     def activate_command(self, plot, checked):
         """Activate tool"""
         # show a dialog
-        models, ok = TaurusModelChooser.modelChooserDlg(parent=plot, selectables=[
-                                                        TaurusElementType.Attribute], singleModel=self.singleModel)
+        models, ok = TaurusModelChooser.modelChooserDlg(
+                parent=plot,
+                selectables=[TaurusElementType.Attribute],
+                singleModel=self.singleModel
+        )
         if ok:
             if self.singleModel:
                 if models:
@@ -124,10 +135,9 @@ class TimeAxisTool(CommandTool):
     """
 
     def __init__(self, manager):
-        super(TimeAxisTool, self).__init__(manager, "Time Scale",
-                                           icon=getIcon(
-                                               ":/status/awaiting.svg"),
-                                           tip=None, toolbar_id=None)
+        super(TimeAxisTool, self).__init__(
+                manager, "Time Scale", icon=getIcon(":/status/awaiting.svg"),
+                tip=None, toolbar_id=None)
         self.action.setEnabled(True)
 
     def create_action_menu(self, manager):
@@ -152,16 +162,17 @@ class TimeAxisTool(CommandTool):
 
     def _getAxesUseTime(self, plot):
         """
-        Returns a tuple (xIsTime, yIsTime) where xIsTime is True if the plot's active x
-        axis uses a TimeScale. yIsTime is True if plot's active y axis uses a Time
+        Returns a tuple (xIsTime, yIsTime) where xIsTime is True if the plot's
+        active x axis uses a TimeScale. yIsTime is True if plot's active y axis
         Scale. Otherwise they are False.
         """
         if plot is None:
-            return (False, False)
+            return False, False
         xaxis, yaxis = plot.get_active_axes()
         xEngine = plot.axisScaleEngine(xaxis)
         yEngine = plot.axisScaleEngine(yaxis)
-        return isinstance(xEngine, DateTimeScaleEngine), isinstance(yEngine, DateTimeScaleEngine)
+        return (isinstance(xEngine, DateTimeScaleEngine),
+                isinstance(yEngine, DateTimeScaleEngine))
 
     def update_status(self, plot):
         active_scale = self._getAxesUseTime(plot)
@@ -203,15 +214,20 @@ class TimeAxisTool(CommandTool):
         self._setPlotTimeScales(True, True)
 
 
-class AutoScrollTool(ToggleTool):
+class AutoScrollTool(ToggleTool, BaseConfigurableClass):
     """A tool that puts the plot in "AutoScroll" mode.
     This makes sense in trend plots where we want to keep the last value
     always visible"""
 
     def __init__(self, manager, scrollFactor=0.2, toolbar_id=None):
-        super(AutoScrollTool, self).__init__(manager, title='Auto Scroll', icon=None,
-                                             tip='Force X scale to always show the last value', toolbar_id=toolbar_id)
+        ToggleTool.__init__(self, manager, title='Auto Scroll', icon=None,
+                tip='Force X scale to always show the last value',
+                toolbar_id=toolbar_id)
+        BaseConfigurableClass.__init__(self)
         self.scrollFactor = scrollFactor
+        self.registerConfigProperty(self.action.isChecked,
+                                    self.action.setChecked,
+                                    'actionChecked')
 
     def register_plot(self, baseplot):
         ToggleTool.register_plot(self, baseplot)
@@ -229,11 +245,15 @@ class AutoScrollTool(ToggleTool):
                     'scrollRequested'), self.onScrollRequested)
 
     def getScrollItems(self, plot):
-        return [item for item in plot.get_items() if isinstance(item, (TaurusTrendItem, TaurusTrend2DItem))]
+        return [item for item in plot.get_items()
+                if isinstance(item, (TaurusTrendItem, TaurusTrend2DItem))]
 
     def onScrollRequested(self, plot, axis, value):
         scalemin, scalemax = plot.get_axis_limits(axis)
         scaleRange = abs(scalemax - scalemin)
+        # ignore requests that imply setting a null range
+        if scaleRange == 0:
+            return
         xmin = value - scaleRange * (1. - self.scrollFactor)
         xmax = value + scaleRange * self.scrollFactor
         plot.set_axis_limits(axis, xmin, xmax)
@@ -245,7 +265,6 @@ class AutoScrollTool(ToggleTool):
 def testTool(tool):
     from taurus.qt.qtgui.application import TaurusApplication
     from guiqwt.plot import CurveDialog
-    import sys
 
     app = TaurusApplication()
     win = CurveDialog(edit=False, toolbar=True)
