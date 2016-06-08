@@ -14,7 +14,8 @@ env:
 
 branches:
   only:
-    - taurus4-preview
+    - develop
+    - support-3.x
 
 before_install:
   # run cpascual/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
