@@ -135,7 +135,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
             self.setWidget(widget)
         elif widget is not None:
             self._widgetClassName = widget
-        self.connect(self, Qt.SIGNAL('clicked()'), self.onClicked)
+        self.clicked.connect(self.onClicked)
         self.setDefault(False)
         self.setAutoDefault(False)
         # no need to listen to change events!
@@ -267,7 +267,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
     .. seealso:: :class:`TaurusCommandsForm` provides a good example of use of
                  TaurusCommandButton (including managing the return value) '''
 
-    __pyqtSignals__ = ("commandExecuted",)
+    commandExecuted = Qt.pyqtSignal(object)
 
     def __init__(self, parent=None, designMode=False, command=None,
                  parameters=None, icon=None, text=None,
@@ -298,7 +298,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         self.setCustomText(text)
         self.setDefault(False)
         self.setAutoDefault(False)
-        self.connect(self, Qt.SIGNAL('clicked()'), self.onClicked)
+        self.clicked.connect(self.onClicked)
 
     def getDisplayValue(self):
         '''see :meth:`TaurusBaseComponent.displayValue`'''
@@ -312,7 +312,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         return self._command
 
     @ProtectTaurusMessageBox(title="Unexpected error when executing command")
-    def onClicked(self):
+    def onClicked(self, value=0):
         return self._onClicked()
 
     def _onClicked(self):
@@ -357,7 +357,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
         finally:
             modelobj.set_timeout_millis(orig_timeout)
 
-        self.emit(Qt.SIGNAL('commandExecuted'), result)
+        self.commandExecuted.emit(result)
         return result
 
     def _castParameters(self, parameters=None, command=None, dev=None):
@@ -556,7 +556,7 @@ class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QPushButton, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
-        self.connect(self, Qt.SIGNAL("toggled(bool)"), self.on_toggle)
+        self.toggled.connect(self.on_toggle)
         self.setCheckable(True)
         self.setAutoTooltip(False)
         self.insertEventFilter(eventfilters.IGNORE_ALL)
@@ -668,7 +668,7 @@ def commandButtonMain():
 
     def f(*a):
         print a
-    form.connect(form, Qt.SIGNAL('commandExecuted'), f)
+    form.commandExecuted.connect(f)
     form.show()
     sys.exit(app.exec_())
 

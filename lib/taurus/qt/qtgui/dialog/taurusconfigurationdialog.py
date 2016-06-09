@@ -46,10 +46,8 @@ class TaurusConfigurationDialog(Qt.QDialog):
         layout.addWidget(self._panel)
         self._panel._ui.pushButtonOk.setVisible(True)
         self._panel._ui.pushButtonCancel.setVisible(True)
-        self.connect(self._panel._ui.pushButtonOk,
-                     Qt.SIGNAL("clicked()"), self._onOk)
-        self.connect(self._panel._ui.pushButtonCancel,
-                     Qt.SIGNAL("clicked()"), self._onCancel)
+        self._panel._ui.pushButtonOk.clicked.connect(self._onOk)
+        self._panel._ui.pushButtonCancel.clicked.connect(self._onCancel)
         self.adjustSize()
         self.show()
 

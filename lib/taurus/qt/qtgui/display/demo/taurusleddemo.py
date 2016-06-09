@@ -92,18 +92,12 @@ def demo():
             on_color_widget.addItems(colors)
             off_color_widget.addItems(colors)
 
-            Qt.QObject.connect(inverted_widget, Qt.SIGNAL(
-                "toggled(bool)"), w.setLedInverted)
-            Qt.QObject.connect(model_widget, Qt.SIGNAL(
-                "textChanged(const QString &)"), w.setModel)
-            Qt.QObject.connect(fg_widget, Qt.SIGNAL(
-                "currentIndexChanged(const QString &)"), w.setFgRole)
-            Qt.QObject.connect(model_index_widget, Qt.SIGNAL(
-                "textChanged(const QString &)"), w.setModelIndex)
-            Qt.QObject.connect(on_color_widget, Qt.SIGNAL(
-                "currentIndexChanged(const QString &)"), w.setOnColor)
-            Qt.QObject.connect(off_color_widget, Qt.SIGNAL(
-                "currentIndexChanged(const QString &)"), w.setOffColor)
+            inverted_widget.toggled.connect(w.setLedInverted)
+            model_widget.textChanged.connect(w.setModel)
+            fg_widget.currentIndexChanged[str].connect(w.setFgRole)
+            model_index_widget.textChanged.connect(w.setModelIndex)
+            on_color_widget.currentIndexChanged[str].connect(w.setOnColor)
+            off_color_widget.currentIndexChanged[str].connect(w.setOffColor)
 
             inverted_widget.setChecked(False)
             model_widget.setText("sys/tg_test/1/state")

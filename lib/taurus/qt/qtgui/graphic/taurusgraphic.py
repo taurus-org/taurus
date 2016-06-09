@@ -76,6 +76,10 @@ def parseTangoUri(name):
         return None
 
 
+class QEmitter(Qt.QObject):
+    updateView = Qt.pyqtSignal('QGraphicsView')
+
+
 class TaurusGraphicsUpdateThread(Qt.QThread):
 
     def __init__(self, parent=None, period=3):
@@ -103,10 +107,10 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
 
     def run(self):
         self.log.debug("run... - TaurusGraphicsUpdateThread")
-        emitter = Qt.QObject()
+        emitter = QEmitter()
         emitter.moveToThread(Qt.QApplication.instance().thread())
         emitter.setParent(Qt.QApplication.instance())
-        Qt.QObject.connect(emitter, Qt.SIGNAL("updateView"), self._updateView)
+        emitter.updateView.connect(self._updateView)
 
         p = self.parent()
         while True:
@@ -123,7 +127,8 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
 
             for v in p.views():
                 # p.debug("emit('updateView')")
-                emitter.emit(Qt.SIGNAL("updateView"), v)
+                # emitter.updateView.emit(v)
+                self.emitter.updateView.emit(v)
             # This sleep is needed to reduce CPU usage of the application!
             self.sleep(self.period)
             # End of while
@@ -150,10 +155,12 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
      allows to configure custom context menus for graphic items using a list
      of tuples. Empty tuples will insert separators in the menu.
     '''
-    __pyqtSignals__ = (
-        "refreshTree2", "graphicItemSelected(QString)", "graphicSceneClicked(QPoint)")
     ANY_ATTRIBUTE_SELECTS_DEVICE = True
     TRACE_ALL = False
+
+    refreshTree2 = Qt.pyqtSignal()
+    graphicItemSelected = Qt.pyqtSignal('QString')
+    graphicSceneClicked = Qt.pyqtSignal('QPoint')
 
     def __init__(self, parent=None, strt=True):
         name = self.__class__.__name__
@@ -253,13 +260,13 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     pass
 
                 # if isinstance(widget,Qt.QWidget):
-                  # if not standAlone:
-                    #obj = newDialog(self.parent())
-                  # else:
-                    #obj = newDialog()
-                  # obj.initComponents(widget,objName,clName)
-                  # obj.setModal(False)
-                  # obj.setVisible(True)
+                    # if not standAlone:
+                        #obj = newDialog(self.parent())
+                    # else:
+                        #obj = newDialog()
+                    # obj.initComponents(widget,objName,clName)
+                    # obj.setModal(False)
+                    # obj.setVisible(True)
 
                 widget.setWindowTitle('%s - %s' % (clName, objName))
                 self.panels.append(widget)
@@ -367,7 +374,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     def getItemClicked(self, mouseEvent):
         pos = mouseEvent.scenePos()
         x, y = pos.x(), pos.y()
-        self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"), Qt.QPoint(x, y))
+        self.graphicSceneClicked.emit(Qt.QPoint(x, y))
         obj = self.getItemByPosition(x, y)
         #self.debug('mouse clicked on %s(%s) at (%s,%s)'%(type(obj).__name__,getattr(obj,'_name',''),x,y))
         return obj
@@ -385,19 +392,17 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 if self.selectGraphicItem(obj_name):
                     self.debug(
                         ' => graphicItemSelected(QString)(%s)' % obj_name)
-                    self.emit(
-                        Qt.SIGNAL("graphicItemSelected(QString)"), obj_name)
+                    self.graphicItemSelected.emit(obj_name)
                 else:
                     # It should send None but the signature do not allow it
-                    self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), "")
+                    self.graphicItemSelected.emit("")
 
             def addMenuAction(menu, k, action, last_was_separator=False):
                 try:
                     if k:
                         configDialogAction = menu.addAction(k)
                         if action:
-                            self.connect(configDialogAction, Qt.SIGNAL(
-                                "triggered()"), lambda dev=obj_name, act=action: act(dev))
+                            configDialogAction.triggered[()].connect(lambda dev=obj_name, act=action: act(dev))
                         else:
                             configDialogAction.setEnabled(False)
                         last_was_separator = False
@@ -462,7 +467,6 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         # SynopticSelectionStyle but there is nothing about it
         self._selectionStyle = selectionStyle
 
-    #@Qt.pyqtSignature("selectGraphicItem(const QString &)")
     def selectGraphicItem(self, item_name):
         """
         A blue circle is drawn around the matching item name.

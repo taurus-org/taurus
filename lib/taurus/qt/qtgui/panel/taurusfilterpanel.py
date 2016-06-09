@@ -173,8 +173,7 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
                          "Server", ElemType.Server)
         comboBox.addItem("Any")
         previewButton = Qt.QPushButton("Preview")
-        Qt.QObject.connect(previewButton, Qt.SIGNAL(
-            "clicked()"), self.onPreview)
+        previewButton.clicked.connect(self.onPreview)
         field = Qt.QWidget()
         l = Qt.QHBoxLayout()
         field.setLayout(l)
@@ -190,19 +189,16 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
 
         comboBox = Qt.QComboBox()
         self._fillComboBox(comboBox)
-        Qt.QObject.connect(comboBox, Qt.SIGNAL(
-            "currentIndexChanged(int)"), self.onFilterComboBoxItemSelected)
+        comboBox.currentIndexChanged.connect(self.onFilterComboBoxItemSelected)
 
         edit = Qt.QLineEdit()
 
         addButton = Qt.QPushButton(Qt.QIcon(":/actions/list-add.svg"), "")
-        Qt.QObject.connect(addButton, Qt.SIGNAL(
-            "clicked()"), self.onAddFilterButtonClicked)
+        addButton.clicked.connect(self.onAddFilterButtonClicked)
 
         removeButton = Qt.QPushButton(
             Qt.QIcon(":/actions/list-remove.svg"), "")
-        Qt.QObject.connect(removeButton, Qt.SIGNAL(
-            "clicked()"), self.onRemoveFilterButtonClicked)
+        removeButton.clicked.connect(self.onRemoveFilterButtonClicked)
 
         field = Qt.QWidget()
         l = Qt.QHBoxLayout()
@@ -484,11 +480,11 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
 
         clickedSig = Qt.SIGNAL("clicked()")
         idxChangedSig = Qt.SIGNAL("currentIndexChanged(int)")
-        Qt.QObject.connect(ui.serverNameCombo, idxChangedSig,
+        ui.serverNameCombo.currentIndexChanged.connect(
                            self._updateServerInstanceCombo)
-        Qt.QObject.connect(ui.deviceDomainCombo, idxChangedSig,
+        ui.deviceDomainCombo.currentIndexChanged.connect(
                            self._updateDeviceFamilyCombo)
-        Qt.QObject.connect(ui.deviceFamilyCombo, idxChangedSig,
+        ui.deviceFamilyCombo.currentIndexChanged.connect(
                            self._updateDeviceMemberCombo)
 
         class clearSelection(object):
@@ -501,8 +497,8 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
 
         clear_icon = getThemeIcon("edit-clear")
         for combo, clearButton in zip(self.combos(), self.clearButtons()):
-            Qt.QObject.connect(combo, idxChangedSig, self._updateStatusBar)
-            Qt.QObject.connect(clearButton, clickedSig, clearSelection(combo))
+            combo.currentIndexChanged.connect(self._updateStatusBar)
+            clearButton.clicked.connect(clearSelection(combo))
             clearButton.setIcon(clear_icon)
 
         sb = self._statusbar = Qt.QStatusBar()

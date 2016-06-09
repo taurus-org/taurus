@@ -624,7 +624,7 @@ class _Quantity(SharedRegistryObject):
         if not self._ok_for_muldiv(no_offset_units_self):
             raise OffsetUnitCalculusError(self._units, other._units)
         elif no_offset_units_self == 1 and len(self._units) == 1:
-                self.ito_root_units()
+            self.ito_root_units()
 
         no_offset_units_other = len(other._get_non_multiplicative_units())
 

@@ -26,13 +26,17 @@
 emitter.py: This module provides a task scheduler used by TaurusGrid and TaurusDevTree widgets
 """
 
+import Queue
+import traceback
 from functools import partial
+from collections import Iterable
+
 import taurus
 from taurus.external.qt import Qt
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
-import Queue
-import traceback
+
+
 
 ###############################################################################
 # Helping methods
@@ -68,6 +72,15 @@ class MethodModel(object):
 
     def setModel(self, value):
         return self.method(value)
+
+
+class QEmitter(Qt.QObject):
+    """Emitter class providing two signals."""
+
+    doSomething = Qt.pyqtSignal(Iterable)
+    somethingDone = Qt.pyqtSignal()
+    newQueue = Qt.pyqtSignal()
+
 
 ###############################################################################
 
@@ -163,16 +176,15 @@ class TaurusEmitterThread(Qt.QThread):
         self._cursor = False
         self.timewait = sleep
 
-        self.emitter = Qt.QObject()
+        self.emitter = QEmitter()
         self.emitter.moveToThread(Qt.QApplication.instance().thread())
         # Mandatory!!! if parent is set before changing thread it could lead to
         # segFaults!
         self.emitter.setParent(Qt.QApplication.instance())
         self._done = 0
         # Moved to the end to prevent segfaults ...
-        Qt.QObject.connect(self.emitter, Qt.SIGNAL(
-            "doSomething"), self._doSomething)
-        Qt.QObject.connect(self.emitter, Qt.SIGNAL("somethingDone"), self.next)
+        self.emitter.doSomething.connect(self._doSomething)
+        self.emitter.somethingDone.connect(self.next)
 
     def getQueue(self):
         if self.queue:
@@ -219,7 +231,7 @@ class TaurusEmitterThread(Qt.QThread):
             except:
                 self.log.error('At TaurusEmitterThread._doSomething(%s): \n%s' % (
                     map(str, args), traceback.format_exc()))
-        self.emitter.emit(Qt.SIGNAL("somethingDone"))
+        self.emitter.somethingDone.emit()
         self._done += 1
         return
 
@@ -262,7 +274,7 @@ class TaurusEmitterThread(Qt.QThread):
                 else:
                     continue
             self.log.debug('Emitting doSomething signal ...')
-            self.emitter.emit(Qt.SIGNAL("doSomething"), item)
+            self.emitter.doSomething.emit(item)
             # End of while
         self.log.info(
             '#' * 80 + '\nOut of TaurusEmitterThread.run()' + '\n' + '#' * 80)
@@ -330,7 +342,7 @@ class SingletonWorker():  # Qt.QObject):
                     self.thread.getQueue().put(item)
                 i += 1
             self.log.info('%d Items added to emitter queue' % i)
-            self.thread.emitter.emit(Qt.SIGNAL("newQueue"))
+            self.thread.emitter.newQueue.emit()
         except Queue.Empty:
             self.log.warning(traceback.format_exc())
         except:
@@ -344,10 +356,8 @@ class SingletonWorker():  # Qt.QObject):
         return self.thread.getDone()
 
     def start(self):
-        Qt.QObject.connect(self.thread.emitter,
-                           Qt.SIGNAL("somethingDone"), self.next)
-        Qt.QObject.connect(self.thread.emitter, Qt.SIGNAL(
-            "newQueue"), self.thread.next)
+        self.thread.emitter.somethingDone.connect(self.next)
+        self.thread.emitter.newQueue.connect(self.thread.next)
         try:
             self.thread.start()
         except:
@@ -357,10 +367,8 @@ class SingletonWorker():  # Qt.QObject):
         return
 
     def stop(self):
-        Qt.QObject.disconnect(self.thread.emitter,
-                              Qt.SIGNAL("somethingDone"), self.next)
-        Qt.QObject.disconnect(self.thread.emitter, Qt.SIGNAL(
-            "newQueue"), self.thread.next)
+        self.thread.emitter.somethingDone.disconnect(self.next)
+        self.thread.emitter.newQueue.disconnect(self.thread.next)
         self._running = False
         return
 

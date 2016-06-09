@@ -33,7 +33,7 @@ from taurus.external.qt import QtCore, QtGui, Qt
 
 class QXTermWidget(QtGui.QWidget):
 
-    __pyqtSignals__ = ("commandFinished(int)")
+    commandFinished = Qt.pyqtSignal(int)
 
     def __init__(self, parent=None, designMode=False):
         QtGui.QWidget.__init__(self, parent)
@@ -44,16 +44,15 @@ class QXTermWidget(QtGui.QWidget):
         self._proc = None
         if not designMode:
             self._proc = QtCore.QProcess(self)
-            QtCore.QObject.connect(self._proc, QtCore.SIGNAL(
-                "finished(int, QProcess::ExitStatus)"), self._commandFinished)
+            self._proc.finished.connect(self._commandFinished)
 
     def closeEvent(self, event):
         self._endTheProcess()
         event.accept()
 
-    @QtCore.pyqtSignature("commandFinished(int,QProcess::ExitStatus)")
+    @QtCore.pyqtSlot(int, int, name='commandFinished')
     def _commandFinished(self, exitCode, exitStatus):
-        self.emit(QtCore.SIGNAL("commandFinished(int)"), exitCode)
+        self.commandFinished.emit(exitCode)
         if exitStatus == 0:
             self._restartTheProcess()
 
@@ -93,7 +92,7 @@ class QXTermWidget(QtGui.QWidget):
     def getCommand(self):
         return self._command
 
-    @QtCore.pyqtSignature("setCommand(QString)")
+    @QtCore.pyqtSlot('QString')
     def setCommand(self, value):
         self._command = value
         self._restartTheProcess()
@@ -107,7 +106,7 @@ class QXTermWidget(QtGui.QWidget):
     def getFontSize(self):
         return self._fontSize
 
-    @QtCore.pyqtSignature("setFontSize(int)")
+    @QtCore.pyqtSlot(int)
     def setFontSize(self, value):
         self._fontSize = value
         self._restartTheProcess()

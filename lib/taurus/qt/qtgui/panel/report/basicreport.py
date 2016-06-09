@@ -54,8 +54,8 @@ class SendMailDialog(Qt.QDialog):
     def __init__(self, parent=None):
         Qt.QDialog.__init__(self, parent)
         self.loadUi(filename="SendMailForm.ui")
-        self.connect(self.ui.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
-        self.connect(self.ui.buttonBox, Qt.SIGNAL("rejected()"), self.reject)
+        self.ui.buttonBox.accepted.connect(self.accept)
+        self.ui.buttonBox.rejected.connect(self.reject)
         self.ui.editMessage.setFont(Qt.QFont("Monospace"))
 
     def setFrom(self, efrom):

@@ -36,8 +36,6 @@ from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 class TaurusValueCheckBox(Qt.QCheckBox, TaurusBaseWritableWidget):
     """A QCheckBox connected to a boolean writable attribute model"""
 
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
-
     def __init__(self, qt_parent=None, designMode=False):
         name = "TaurusValueCheckBox"
         self.call__init__wo_kw(Qt.QCheckBox, qt_parent)
@@ -46,7 +44,7 @@ class TaurusValueCheckBox(Qt.QCheckBox, TaurusBaseWritableWidget):
 
         self.setObjectName(name)
         self.updateStyle()
-        self.connect(self, Qt.SIGNAL('stateChanged(int)'), self.valueChanged)
+        self.stateChanged.connect(self.notifyValueChanged)
 
     def keyPressEvent(self, event):
         if event.key() in (Qt.Qt.Key_Return, Qt.Qt.Key_Enter):

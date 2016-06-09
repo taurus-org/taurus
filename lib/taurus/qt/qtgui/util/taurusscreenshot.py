@@ -69,15 +69,17 @@ class GrabberThread(threading.Thread):
 
 class Grabber(Qt.QObject, Logger):
 
+    grab = Qt.pyqtSignal()
+
     def __init__(self, widget, fileName):
         Qt.QObject.__init__(self)
         Logger.__init__(self)
         self._widget = widget
         self._fileName = fileName
-        self.connect(self, Qt.SIGNAL("grab"), self.onGrab)
+        self.grab.connect(self.onGrab)
 
     def grabTrigger(self):
-        self.emit(Qt.SIGNAL("grab"))
+        self.grab.emit()
 
     def onGrab(self):
         Grabber._grabWidget(self._widget, self._fileName)

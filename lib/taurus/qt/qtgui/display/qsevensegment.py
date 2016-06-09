@@ -612,18 +612,13 @@ def main():
     l.addRow(LedOnBgColor)
     l.addRow(LedOffPenColor)
     l.addRow(LedOffBgColor)
-    Qt.QObject.connect(valueLineEdit, Qt.SIGNAL(
-        "textChanged(QString)"), digitWidget.setValue)
-    Qt.QObject.connect(ledPenWidthWidget, Qt.SIGNAL(
-        "valueChanged ( int )"), digitWidget.setLedPenWidth)
-    Qt.QObject.connect(bgBrushWidget, Qt.SIGNAL("clicked()"), __setBgBrush)
-    Qt.QObject.connect(LedOnPenColor, Qt.SIGNAL(
-        "clicked()"), __setLedOnPenColor)
-    Qt.QObject.connect(LedOnBgColor, Qt.SIGNAL("clicked()"), __setLedOnBgColor)
-    Qt.QObject.connect(LedOffPenColor, Qt.SIGNAL(
-        "clicked()"), __setLedOffPenColor)
-    Qt.QObject.connect(LedOffBgColor, Qt.SIGNAL(
-        "clicked()"), __setLedOffBgColor)
+    valueLineEdit.textChanged.connect(digitWidget.setValue)
+    ledPenWidthWidget.valueChanged.connect(digitWidget.setLedPenWidth)
+    bgBrushWidget.clicked.connect(__setBgBrush)
+    LedOnPenColor.clicked.connect(__setLedOnPenColor)
+    LedOnBgColor.clicked.connect(__setLedOnBgColor)
+    LedOffPenColor.clicked.connect(__setLedOffPenColor)
+    LedOffBgColor.clicked.connect(__setLedOffBgColor)
     panel.setVisible(True)
     a.exec_()
 

@@ -50,9 +50,8 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
         layout.addWidget(stateWidget)
         stateWidget.useParentModel = True
         stateWidget.model = '/state'"""
-
-    __pyqtSignals__ = ("modelChanged(const QString &)",
-                       "pendingOperationsChanged(bool)",)
+    modelChanged = Qt.pyqtSignal('const QString &')
+    pendingOperationsChanged = Qt.pyqtSignal(bool)
 
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
@@ -66,16 +65,16 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
     # Public slots for apply/restore changes
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    @Qt.pyqtSignature("pendingOperationsChanged(bool)")
+    @Qt.pyqtSlot(bool)
     def pendingOperationsChanged(self, yesno):
         self.debug("emiting pendingOperationsChanged(%s)" % str(yesno))
-        self.emit(Qt.SIGNAL('pendingOperationsChanged(bool)'), yesno)
+        self.pendingOperationsChanged.emit(yesno)
 
-    @Qt.pyqtSignature("applyPendingChanges()")
+    @Qt.pyqtSlot()
     def applyPendingChanges(self):
         self.applyPendingOperations()
 
-    @Qt.pyqtSignature("resetPendingChanges()")
+    @Qt.pyqtSlot()
     def resetPendingChanges(self):
         self.resetPendingOperations()
 
@@ -94,7 +93,7 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
     def getPrefixText(self):
         return self._prefix
 
-    @Qt.pyqtSignature("setPrefixText(QString)")
+    @Qt.pyqtSlot('QString')
     def setPrefixText(self, prefix):
         self._prefix = prefix
         import taurus.core
@@ -104,7 +103,7 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
     def getSuffixText(self):
         return self._suffix
 
-    @Qt.pyqtSignature("setSuffixText(QString)")
+    @Qt.pyqtSlot('QString')
     def setSuffixText(self, suffix):
         self._suffix = suffix
         import taurus.core

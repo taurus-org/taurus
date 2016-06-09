@@ -43,6 +43,7 @@ from taurus.core.taurusbasetypes import DataFormat
 # TODO: Tango-centric
 from taurus.core.util.containers import LoopList, CaselessDict, CaselessList
 from taurus.core.util.safeeval import SafeEvaluator
+from taurus.qt.qtcore.util.signal import baseSignal
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.plot import TaurusPlotConfigDialog, FancyScaleDraw,\
@@ -163,7 +164,6 @@ class TaurusXValues(TaurusBaseComponent):
 
     def __init__(self, name, parent=None):
         self._xValues = None
-        self._signalGen = Qt.QObject()
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
         self._listeners = []
         self.setModel(name)
@@ -191,24 +191,6 @@ class TaurusXValues(TaurusBaseComponent):
         for l in self._listeners:
             # all listeners are notified via fireEvent when the X changes
             l.fireEvent(src, evt_type, val)
-
-    def preAttach(self):
-        """reimplemented because this cannot use signals(they are not
-        QObjects). see :meth:`TaurusBaseComponent.preAttach`"""
-        self._signalGen.connect(self._signalGen, Qt.SIGNAL(
-            'taurusEvent'), self.filterEvent)
-
-    def preDetach(self):
-        """reimplemented because this cannot use signals(they are not QObjects).
-        See :meth:`TaurusBaseComponent.preDetach`"""
-        self._signalGen.disconnect(
-            self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent)
-
-    def fireEvent(self,  evt_src, evt_type, evt_value):
-        """reimplemented because this cannot use signals(they are not QObjects).
-        see :meth:`TaurusBaseComponent.fireEvent`"""
-        self._signalGen.emit(Qt.SIGNAL('taurusEvent'),
-                             evt_src, evt_type, evt_value)
 
     def registerDataChanged(self, listener):
         '''see :meth:`TaurusBaseComponent.registerDataChanged`'''
@@ -265,6 +247,8 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
     # disabling)
     droppedEventsWarning = -1
 
+    dataChanged = baseSignal('dataChanged', 'QString')
+
     def __init__(self, name, xname=None, parent=None, rawData=None, optimized=False):
 
         Qwt5.QwtPlotCurve.__init__(self)
@@ -279,7 +263,6 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         self._history = []
         self._titleText = '<label>'
         self.setXValuesBuilder()
-        self._signalGen = Qt.QObject()
         self._maxPeakMarker = TaurusCurveMarker(name, self)
         self._minPeakMarker = TaurusCurveMarker(name, self)
         self.__curveName = name
@@ -493,25 +476,6 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
     # Overwrite from TaurusBaseComponent
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-#    def preAttach(self):
-#        """implemented because TaurusCurves cannot use signals(they are not QObjects)
-#        See :meth:`TaurusBaseComponent.preAttach`"""
-#        self._signalGen.connect(self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent)
-#
-#    def preDetach(self):
-#        """implemented because TaurusCurves cannot use signals(they are not QObjects)
-#        See :meth:`TaurusBaseComponent.preDetach`"""
-#        self._signalGen.disconnect(self._signalGen, Qt.SIGNAL('taurusEvent'), self.filterEvent)
-#
-#    def fireEvent(self,  evt_src, evt_type, evt_value):
-#        """implemented because TaurusCurves cannot use signals(they are not QObjects)
-#        See :meth:`TaurusBaseComponent.fireEvent`"""
-#        self._signalGen.emit(Qt.SIGNAL('taurusEvent'),  evt_src, evt_type, evt_value)
-
-    def getSignaller(self):
-        '''See :meth:`TaurusBaseComponent.getSignaller` '''
-        return self._signalGen
-
     def getModelClass(self):
         '''See :meth:`TaurusBaseComponent.getModelClass`'''
         return taurus.core.taurusattribute.TaurusAttribute
@@ -578,8 +542,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         if model is None:
             self._xValues = numpy.zeros(0)
             self._yValues = numpy.zeros(0)
-            self._signalGen.emit(
-                Qt.SIGNAL("dataChanged(const QString &)"), str(self.getModel()))
+            self.dataChanged.emit(str(self.getModel()))
             return
 
         if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config:
@@ -596,8 +559,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
             self._onDroppedEvent(reason=str(e))
             return
         self._updateMarkers()
-        self._signalGen.emit(
-            Qt.SIGNAL("dataChanged(const QString &)"), str(self.getModel()))
+        self.dataChanged.emit(str(self.getModel()))
 
     def _onDroppedEvent(self, reason='Unknown'):
         '''inform the user about a dropped event
@@ -884,8 +846,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         :param listener: (QWidget) listener object
         :param meth: (callable) callback method
         '''
-        listener.connect(self._signalGen, Qt.SIGNAL(
-            "dataChanged(const QString &)"), meth)
+        self.dataChanged.connect(meth)
 
     def unregisterDataChanged(self, listener, meth):
         '''unregisters the given listener and method from the DataChangedSignal
@@ -894,8 +855,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         :param listener: (QWidget) listener object
         :param meth: (callable) callback method
         '''
-        listener.disconnect(self._signalGen, Qt.SIGNAL(
-            "dataChanged(const QString &)"), meth)
+        self.dataChanged.disconnect(meth)
 
     def isReadOnly(self):
         '''see :meth:`TaurusBaseComponent.isReadOnly`'''
@@ -1060,7 +1020,12 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                  :ref:`TaurusPlot User's Interface Guide <taurusplot_ui>`,
                  :ref:`The TaurusPlot coding examples <examples_taurusplot>`
     '''
-    __pyqtSignals__ = ("dataChanged(const QString &)",)
+
+    #: Override the default modelChanged('QString') signal
+    modelChanged = Qt.pyqtSignal()
+
+    dataChanged = Qt.pyqtSignal('QString')
+    CurvesYAxisChanged = Qt.pyqtSignal('QStringList', int)
 
     def __init__(self, parent=None, designMode=False):
         name = "TaurusPlot"
@@ -1146,8 +1111,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         self._pickedMarker = TaurusCurveMarker("Picked", labelOpacity=0.8)
         self._pickedCurveName = ""
-        self.connect(self._pointPicker, Qt.SIGNAL(
-            'selected(QwtPolygon)'), self.pickDataPoint)
+        self._pointPicker.selected.connect(self.pickDataPoint)
 
         # xRegion picker
         self._xRegionPicker = Qwt5.QwtPlotPicker(Qwt5.QwtPlot.xBottom,
@@ -1156,8 +1120,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                                                  Qwt5.QwtPicker.VLineRubberBand,
                                                  Qwt5.QwtPicker.AlwaysOn, self.canvas())
         self._xRegionPicker.setEnabled(False)
-        self.connect(self._xRegionPicker, Qt.SIGNAL(
-            'selected(QwtDoublePoint)'), self._onXRegionEvent)
+        self._xRegionPicker.selected.connect(self._onXRegionEvent)
 
         # magnifier
         self._magnifier = Qwt5.QwtPlotMagnifier(self.canvas())
@@ -1172,8 +1135,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._showLegend = False
         self._legendDecissionIsForever = False
         self.updateLegend()
-        self.connect(self, Qt.SIGNAL('legendClicked(QwtPlotItem*)'),
-                     self.toggleCurveState)
+        self.legendClicked.connect(self.toggleCurveState)
 
         # datainspector mode
         self._inspectorMode = False
@@ -1211,93 +1173,76 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._dataInspectorAction.setShortcut(Qt.Qt.Key_I)
         self._dataInspectorAction.setCheckable(True)
         self._dataInspectorAction.setChecked(self._pointPicker.isEnabled())
-        self.connect(self._dataInspectorAction, Qt.SIGNAL(
-            "toggled(bool)"), self.toggleDataInspectorMode)
+        self._dataInspectorAction.toggled[bool].connect(self.toggleDataInspectorMode)
 
         self._curveStatsAction = Qt.QAction("Calculate statistics", None)
         self._curveStatsAction.setShortcut(Qt.Qt.Key_S)
-        self.connect(self._curveStatsAction, Qt.SIGNAL(
-            "triggered()"), self.onCurveStatsAction)
+        self._curveStatsAction.triggered[()].connect(self.onCurveStatsAction)
 
         self._pauseAction = Qt.QAction("&Pause", None)
         self._pauseAction.setShortcuts([Qt.Qt.Key_P, Qt.Qt.Key_Pause])
         self._pauseAction.setCheckable(True)
         self._pauseAction.setChecked(self.isPaused())
-        self.connect(self._pauseAction, Qt.SIGNAL(
-            "toggled(bool)"), self.setPaused)
+        self._pauseAction.toggled[bool].connect(self.setPaused)
 
         self._autoscaleAllAxisAction = Qt.QAction("Autoscale all axes", None)
         self._autoscaleAllAxisAction.setShortcut(Qt.Qt.Key_Escape)
-        self.connect(self._autoscaleAllAxisAction,  Qt.SIGNAL(
-            "triggered()"), self.autoScaleAllAxes)
+        self._autoscaleAllAxisAction.triggered[()].connect(self.autoScaleAllAxes)
 
         self._toggleZoomAxisAction = Qt.QAction("Toggle Zoom-aware axis", None)
         self._toggleZoomAxisAction.setShortcut(Qt.Qt.Key_Z)
-        self.connect(self._toggleZoomAxisAction,  Qt.SIGNAL(
-            "triggered()"), self.toggleZoomer)
+        self._toggleZoomAxisAction.triggered[()].connect(self.toggleZoomer)
 
         self._configDialogAction = Qt.QAction("Plot configuration...", None)
         self._configDialogAction.setShortcut(Qt.QKeySequence("Alt+C"))
-        self.connect(self._configDialogAction, Qt.SIGNAL(
-            "triggered()"), self.showConfigDialog)
+        self._configDialogAction.triggered[()].connect(self.showConfigDialog)
 
         self._inputDataAction = Qt.QAction("Input data selection...", None)
         self._inputDataAction.setShortcut(Qt.QKeySequence.New)
-        self.connect(self._inputDataAction, Qt.SIGNAL(
-            "triggered()"), self.showDataImportDlg)
+        self._inputDataAction.triggered[()].connect(self.showDataImportDlg)
 
         self._saveConfigAction = Qt.QAction("Save current settings...", None)
         self._saveConfigAction.setShortcut(Qt.QKeySequence.Save)
-        self.connect(self._saveConfigAction, Qt.SIGNAL(
-            "triggered()"), self.saveConfig)
+        self._saveConfigAction.triggered[()].connect(self.saveConfig)
 
         self._loadConfigAction = Qt.QAction(
             "&Retrieve saved settings...", None)
         self._loadConfigAction.setShortcut(Qt.QKeySequence.Open)
-        self.connect(self._loadConfigAction, Qt.SIGNAL(
-            "triggered()"), self.loadConfig)
+        self._loadConfigAction.triggered[()].connect(self.loadConfig)
 
         self._showLegendAction = Qt.QAction("Show &Legend", None)
         self._showLegendAction.setShortcut(Qt.QKeySequence("Ctrl+L"))
         self._showLegendAction.setCheckable(True)
         self._showLegendAction.setChecked(self._showLegend)
-        self.connect(self._showLegendAction, Qt.SIGNAL(
-            "triggered(bool)"), self.showLegend)
+        self._showLegendAction.triggered[bool].connect(self.showLegend)
         self.canvas().addAction(self._showLegendAction)
 
         self._showMaxAction = Qt.QAction("Show Max", None)
         self._showMaxAction.setCheckable(True)
         self._showMaxAction.setChecked(self._showMaxPeaks)
-        self.connect(self._showMaxAction,  Qt.SIGNAL(
-            "toggled(bool)"), self.showMaxPeaks)
+        self._showMaxAction.toggled.connect(self.showMaxPeaks)
 
         self._showMinAction = Qt.QAction("Show Min", None)
         self._showMinAction.setCheckable(True)
         self._showMinAction.setChecked(self._showMinPeaks)
-        self.connect(self._showMinAction,  Qt.SIGNAL(
-            "toggled(bool)"), self.showMinPeaks)
+        self._showMinAction.toggled[bool].connect(self.showMinPeaks)
 
         self._printAction = Qt.QAction("&Print plot...", None)
-        self.connect(self._printAction, Qt.SIGNAL(
-            "triggered()"), self.exportPrint)
+        self._printAction.triggered[()].connect(self.exportPrint)
 
         self._exportPdfAction = Qt.QAction("Export plot to PD&F...", None)
-        self.connect(self._exportPdfAction, Qt.SIGNAL(
-            "triggered()"), self.exportPdf)
+        self._exportPdfAction.triggered[()].connect(self.exportPdf)
 
         self._exportAsciiAction = Qt.QAction("Export data to &ASCII...", None)
-        self.connect(self._exportAsciiAction, Qt.SIGNAL(
-            "triggered()"), self.exportAscii)
+        self._exportAsciiAction.triggered[()].connect(self.exportAscii)
 
         self._setCurvesTitleAction = Qt.QAction(
             "Change Curves Titles...", None)
-        self.connect(self._setCurvesTitleAction, Qt.SIGNAL(
-            "triggered()"), self.changeCurvesTitlesDialog)
+        self._setCurvesTitleAction.triggered[()].connect(self.changeCurvesTitlesDialog)
 
         self._closeWindowAction = Qt.QAction(
             getThemeIcon("process-stop"), 'Close Plot', self)
-        self.connect(self._closeWindowAction,
-                     Qt.SIGNAL("triggered()"), self.close)
+        self._closeWindowAction.triggered[()].connect(self.close)
 
         # add all actions and limit the scope of the key shortcuts to the
         # widget (default is Window)
@@ -1793,7 +1738,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             self.curves_lock.release()
         self.replot()
 
-    @Qt.pyqtSignature("dataChanged(const QString &)")
+    @Qt.pyqtSlot("QString", name="dataChanged")
     def curveDataChanged(self, name):
         '''slot that is called whenever a curve emits a dataChanged signal
 
@@ -1812,7 +1757,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 self.setAxisScale(Qwt5.QwtPlot.xBottom, min, max)
         finally:
             self.curves_lock.release()
-        self.emit(Qt.SIGNAL("dataChanged(const QString &)"), str(name))
+        self.dataChanged.emit(str(name))
         self.replot()
 
     def attachRawData(self, rawdata, properties=None, id=None):
@@ -2124,7 +2069,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''See :meth:`QWidget.sizeHint`'''
         return Qt.QSize(300, 200)
 
-    @Qt.pyqtSignature("modelChanged(const QString &)")
+    @Qt.pyqtSlot('QString', name='modelChanged')
     def parentModelChanged(self, parentmodel_name):
         '''See :meth:`TaurusBaseComponent.parentModelChanged`'''
         self.curves_lock.acquire()
@@ -2241,23 +2186,20 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         autoScaleThisAxis = lambda: self.setAxisAutoScale(axis=axis)
         autoscaleAction = menu.addAction("AutoScale %s" % axisname)
-        self.connect(autoscaleAction, Qt.SIGNAL(
-            "triggered()"), autoScaleThisAxis)
+        autoscaleAction.triggered[()].connect(autoScaleThisAxis)
 
         if not self.getXIsTime():
             switchThisAxis = lambda: self.setAxisScaleType(
                 axis=axis, scale=None)
             switchThisAxisAction = menu.addAction(
                 "Toggle linear/log for %s" % axisname)
-            self.connect(switchThisAxisAction, Qt.SIGNAL(
-                "triggered()"), switchThisAxis)
+            switchThisAxisAction.triggered[()].connect(switchThisAxis)
 
         if axis in (Qwt5.QwtPlot.yLeft, Qwt5.QwtPlot.yRight):
             zoomOnThisAxis = lambda: self.toggleZoomer(axis=axis)
             zoomOnThisAxisAction = menu.addAction(
                 "Zoom-to-region acts on %s" % axisname)
-            self.connect(zoomOnThisAxisAction, Qt.SIGNAL(
-                "triggered()"), zoomOnThisAxis)
+            zoomOnThisAxisAction.triggered[()].connect(zoomOnThisAxis)
 
         elif axis in (Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.xTop):
             if self.isXDynScaleSupported():
@@ -2266,8 +2208,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                     'If enabled, the scale of %s will be autoadjusted to provide a fixed window moving to show always the last value')
                 xDynAction.setCheckable(True)
                 xDynAction.setChecked(self.getXDynScale())
-                self.connect(xDynAction, Qt.SIGNAL(
-                    "toggled(bool)"), self.setXDynScale)
+                xDynAction.toggled.connect(self.setXDynScale)
         return menu
 
     def showConfigDialog(self):
@@ -2853,12 +2794,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             mainlayout = Qt.QVBoxLayout(self.DataImportDlg)
             mainlayout.addWidget(tabs)
 
-            self.connect(self.DataImportDlg.modelChooser,
-                         Qt.SIGNAL("updateModels"), self.setModel)
-            self.connect(self.DataImportDlg.rawDataChooser,
-                         Qt.SIGNAL("ReadFromFiles"), self.readFromFiles)
-            self.connect(self.DataImportDlg.rawDataChooser,
-                         Qt.SIGNAL("AddCurve"), self.attachRawData)
+            self.DataImportDlg.modelChooser.updateModels.connect(self.setModel)
+            self.DataImportDlg.rawDataChooser.ReadFromFiles.connect(self.readFromFiles)
+            self.DataImportDlg.rawDataChooser.AddCurve.connect(self.attachRawData)
 
         models_and_display = [(m, self.getCurveTitle(
             m.split('|')[-1])) for m in self._modelNames]
@@ -2941,7 +2879,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if self._pickedCurveName in curvesNamesList:
             self._pickedMarker.setYAxis(axis)
 
-        self.emit(Qt.SIGNAL('CurvesYAxisChanged'), curvesNamesList, axis)
+        self.CurvesYAxisChanged.emit(curvesNamesList, axis)
 
         self.replot()
 
@@ -3109,10 +3047,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if getattr(self, '_curveStatsDialog', None) is None:
             from taurus.qt.qtgui.plot import CurveStatsDialog
             self._curveStatsDialog = CurveStatsDialog(self)
-            self.connect(self._curveStatsDialog, Qt.SIGNAL(
-                'closed'), self._onCurveStatsDialogClosed)
-            self.connect(self._curveStatsDialog, Qt.SIGNAL(
-                'finished(int)'), self._onCurveStatsDialogClosed)
+            self._curveStatsDialog.closed.connect(self._onCurveStatsDialogClosed)
+            self._curveStatsDialog.finished.connect(self._onCurveStatsDialogClosed)
         elif not self._curveStatsDialog.isVisible():
             self._curveStatsDialog.refreshCurves()
         # it will be reenabed by _onCurveStatsDialogClosed
@@ -3223,7 +3159,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     # grid properties
     #-~-~-~-~-~-~-~-~-~-~-~-~
 
-    @Qt.pyqtSignature("setGridColor(QColor)")
+    @Qt.pyqtSlot('QColor')
     def setGridColor(self, color):
         '''Changes the color of the plot grid and refreshes the plot
 
@@ -3244,7 +3180,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''equivalent to self.setGridColor(Qt.Qt.gray)'''
         self.setGridColor(Qt.Qt.gray)
 
-    @Qt.pyqtSignature("setGridWidth(int)")
+    @Qt.pyqtSlot(int)
     def setGridWidth(self, width):
         '''Changes the width of the plot grid lines and refreshes the plot
 
@@ -3287,7 +3223,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 models.append(str(m).lower())
         return models
 
-    @Qt.pyqtSignature("setModel(QStringList)")
+    @Qt.pyqtSlot('QStringList')
     def setModel(self, modelNames):
         '''sets the models of the Tango attributes that should be displayed in
         this TaurusPlot.
@@ -3305,7 +3241,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         modelNames = self._splitModel(modelNames)
         self._modelNames = self._lowerIfInsensitive(modelNames)
         self.updateCurves(self._modelNames)
-        self.emit(Qt.SIGNAL("modelChanged()"))
+        self.modelChanged.emit()
         # update the modelchooser list
         if self.DataImportDlg is not None:
             self.DataImportDlg.modelChooser.setListedModels(self._modelNames)
@@ -3323,7 +3259,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''equivalent to setModel([])'''
         self.setModel([])
 
-    @Qt.pyqtSignature("addModels(QStringList)")
+    @Qt.pyqtSlot('QStringList')
     def addModels(self, modelNames):
         '''Adds models to the existing ones:
 
@@ -3336,7 +3272,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         modelNames = [str(m) for m in modelNames if m not in self._modelNames]
         self.setModel(self._modelNames + modelNames)
 
-    @Qt.pyqtSignature("removeModels(QStringList)")
+    @Qt.pyqtSlot('QStringList')
     def removeModels(self, modelNames):
         '''Removes models from those already in the plot.
 
@@ -3353,7 +3289,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 self.warning("'%s' not in model list" % name)
         self.setModel(self._modelNames)
 
-    @Qt.pyqtSignature("setUseParentModel(bool)")
+    @Qt.pyqtSlot(bool)
     def setUseParentModel(self, yesno):
         '''Sets whether the TaurusCurves of this plot should use the plot's parent model
 
@@ -3374,13 +3310,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         parent_widget = self.getParentTaurusComponent()
         if parent_widget:
             if yesno:
-                self.connect(parent_widget,
-                             Qt.SIGNAL('modelChanged(const QString &)'),
-                             self.parentModelChanged)
+                parent_widget.modelChanged.connect(self.parentModelChanged)
             else:
-                self.disconnect(parent_widget,
-                                Qt.SIGNAL('modelChanged(const QString &)'),
-                                self.parentModelChanged)
+                parent_widget.modelChanged.disconnect(self.parentModelChanged)
 
         self.curves_lock.acquire()
         try:
@@ -3401,7 +3333,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     # legend properties
     #-~-~-~-~-~-~-~-~-~-~-~-~
 
-    @Qt.pyqtSignature("setLegendPosition(int)")
+    @Qt.pyqtSlot(int)
     def setLegendPosition(self, pos):
         '''Specify the position of the legend relative to the plot
 
@@ -3569,7 +3501,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''equivalent to setXIsTime(False)'''
         self.setXIsTime(False)
 
-    @Qt.pyqtSignature("setAllowZoomers(bool)")
+    @Qt.pyqtSlot(bool)
     def setAllowZoomers(self, allow):
         '''enable/disable the zoomers for the plot. (The zoomers provide zooming
         by selecting a region of the plot)
@@ -3579,7 +3511,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._allowZoomers = allow
         self._zoomer.setEnabled(allow)
 
-    @Qt.pyqtSignature("getAllowZoomers()")
+    @Qt.pyqtSlot(result=bool)
     def getAllowZoomers(self):
         '''Whether the Zoomers are enabled for this plot
 
@@ -3589,12 +3521,12 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         return self._allowZoomers
 
-    @Qt.pyqtSignature("resetAllowZoomers()")
+    @Qt.pyqtSlot()
     def resetAllowZoomers(self):
         '''same as setAllowZoomers(True)'''
         self.setAllowZoomers(True)
 
-    @Qt.pyqtSignature("isPannerEnabled(bool)")
+    @Qt.pyqtSlot(bool)
     def setPannerEnabled(self, enable):
         '''Specify whether the plot can be panned (i.e., dragged around to navigate it)
 
@@ -3602,7 +3534,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         self._panner.setEnabled(enable)
 
-    @Qt.pyqtSignature("isPannerEnabled()")
+    @Qt.pyqtSlot(result=bool)
     def isPannerEnabled(self):
         '''Whether the Panner is enabled for this plot
 
@@ -3612,12 +3544,12 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         return self._panner.isEnabled()
 
-    @Qt.pyqtSignature("resetPannerEnabled()")
+    @Qt.pyqtSlot()
     def resetPannerEnabled(self):
         '''same as setPannerEnabled(True)'''
         self.setPannerEnabled(True)
 
-    @Qt.pyqtSignature("setMagnifierEnabled(bool)")
+    @Qt.pyqtSlot(bool)
     def setMagnifierEnabled(self, enable):
         '''Specify whether the plot can be magnified (i.e. zoomed in and out
         with the mousewheel)
@@ -3626,7 +3558,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         self._magnifier.setEnabled(enable)
 
-    @Qt.pyqtSignature("isMagnifierEnabled()")
+    @Qt.pyqtSlot(result=bool)
     def isMagnifierEnabled(self):
         '''Whether the magnifier is enabled for this plot
 
@@ -3636,12 +3568,12 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         return self._magnifier.isEnabled()
 
-    @Qt.pyqtSignature("resetMagnifierEnabled()")
+    @Qt.pyqtSlot()
     def resetMagnifierEnabled(self):
         '''same as `setMagnifierEnabled(True)`'''
         self.setMagnifierEnabled(True)
 
-    @Qt.pyqtSignature("setOptimizationEnabled(bool)")
+    @Qt.pyqtSlot(bool)
     def setOptimizationEnabled(self, enable):
         '''Specify whether the plot should use paint optimizations
 
@@ -3658,7 +3590,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         finally:
             self.curves_lock.release()
 
-    @Qt.pyqtSignature("isOptimizationEnabled()")
+    @Qt.pyqtSlot(result=bool)
     def isOptimizationEnabled(self):
         '''Whether painting optimization is enabled for this plot
 
@@ -3666,7 +3598,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''
         return self._optimizationEnabled
 
-    @Qt.pyqtSignature("resetOptimizationEnabled()")
+    @Qt.pyqtSlot()
     def resetOptimizationEnabled(self):
         '''Equivalent to `setOptimizationEnabled(True)`
         '''
@@ -3763,9 +3695,7 @@ def main():
             w.close()
         else:
             for ts in w.trendSets.values():
-                #                Qt.QObject.connect(ts._signalGen, ts._signalGen.newDataChangedSignal(), exportIfAllCurves)
-                Qt.QObject.connect(ts._signalGen, Qt.SIGNAL(
-                    "dataChanged(const QString &)"), exportIfAllCurves)
+                ts.dataChanged.connect(exportIfAllCurves)
         sys.exit(app.exec_())  # exit without showing the widget
 
     # show the widget

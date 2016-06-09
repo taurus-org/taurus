@@ -141,38 +141,22 @@ def demo():
             scale_text_widget.setChecked(w.showScaleText)
             value_text_widget.setChecked(w.showValueText)
 
-            Qt.QObject.connect(value_widget, Qt.SIGNAL(
-                "valueChanged(double)"), w.setValue)
-            Qt.QObject.connect(minimum_widget, Qt.SIGNAL(
-                "valueChanged(double)"), w.setMinimum)
-            Qt.QObject.connect(minimum_alarm_widget, Qt.SIGNAL(
-                "valueChanged(double)"), w.setMinimumAlarm)
-            Qt.QObject.connect(minimum_warning_widget, Qt.SIGNAL(
-                "valueChanged(double)"), w.setMinimumWarning)
-            Qt.QObject.connect(maximum_warning_widget, Qt.SIGNAL(
-                "valueChanged(double)"), w.setMaximumWarning)
-            Qt.QObject.connect(maximum_alarm_widget, Qt.SIGNAL(
-                "valueChanged(double)"), w.setMaximumAlarm)
-            Qt.QObject.connect(maximum_widget, Qt.SIGNAL(
-                "valueChanged(double)"), w.setMaximum)
-            Qt.QObject.connect(steps_widget, Qt.SIGNAL(
-                "valueChanged(int)"), w.setSteps)
-            Qt.QObject.connect(value_offset_widget, Qt.SIGNAL(
-                "valueChanged(double)"), w.setValueOffset)
-            Qt.QObject.connect(digit_offset_widget, Qt.SIGNAL(
-                "valueChanged(double)"), w.setDigitOffset)
-            Qt.QObject.connect(frame_width_widget, Qt.SIGNAL(
-                "valueChanged(int)"), w.setFrameWidth)
-            Qt.QObject.connect(angle_widget, Qt.SIGNAL(
-                "valueChanged(double)"), w.setAngle)
-            Qt.QObject.connect(scale_color_widget, Qt.SIGNAL(
-                "toggled(bool)"), w.setShowScaleColor)
-            Qt.QObject.connect(scale_ticks_widget, Qt.SIGNAL(
-                "toggled(bool)"), w.setShowScaleTicks)
-            Qt.QObject.connect(scale_text_widget, Qt.SIGNAL(
-                "toggled(bool)"), w.setShowScaleText)
-            Qt.QObject.connect(value_text_widget, Qt.SIGNAL(
-                "toggled(bool)"), w.setShowValueText)
+            value_widget.valueChanged.connect(w.setValue)
+            minimum_widget.valueChanged.connect(w.setMinimum)
+            minimum_alarm_widget.valueChanged.connect(w.setMinimumAlarm)
+            minimum_warning_widget.valueChanged.connect(w.setMinimumWarning)
+            maximum_warning_widget.valueChanged.connect(w.setMaximumWarning)
+            maximum_alarm_widget.valueChanged.connect(w.setMaximumAlarm)
+            maximum_widget.valueChanged.connect(w.setMaximum)
+            steps_widget.valueChanged.connect(w.setSteps)
+            value_offset_widget.valueChanged.connect(w.setValueOffset)
+            digit_offset_widget.valueChanged.connect(w.setDigitOffset)
+            frame_width_widget.valueChanged.connect(w.setFrameWidth)
+            angle_widget.valueChanged.connect(w.setAngle)
+            scale_color_widget.toggled.connect(w.setShowScaleColor)
+            scale_ticks_widget.toggled.connect(w.setShowScaleTicks)
+            scale_text_widget.toggled.connect(w.setShowScaleText)
+            value_text_widget.toggled.connect(w.setShowValueText)
 
             self.w = w
             self.w_minimum = minimum_widget

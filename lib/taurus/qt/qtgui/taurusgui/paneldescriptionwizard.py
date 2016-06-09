@@ -47,6 +47,8 @@ import copy
 class ExpertWidgetChooserDlg(Qt.QDialog):
     CHOOSE_TYPE_TXT = '(choose type)'
 
+    memberSelected = Qt.pyqtSignal(dict)
+
     def __init__(self, parent=None):
         Qt.QDialog.__init__(self, parent)
 
@@ -78,14 +80,11 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
         self.setLayout(layout)
 
         # connections
-        self.connect(self.moduleNameLE, Qt.SIGNAL(
-            'editingFinished()'), self.onModuleSelected)
-        self.connect(self.moduleNameLE, Qt.SIGNAL(
-            'textEdited(QString)'), self.onModuleEdited)
-        self.connect(self.membersCB, Qt.SIGNAL(
-            'activated(QString)'), self.onMemberSelected)
-        self.connect(self.dlgBox, Qt.SIGNAL('accepted()'), self.accept)
-        self.connect(self.dlgBox, Qt.SIGNAL('rejected()'), self.reject)
+        self.moduleNameLE.editingFinished.connect(self.onModuleSelected)
+        self.moduleNameLE.textEdited.connect(self.onModuleEdited)
+        self.membersCB.activated.connect(self.onMemberSelected)
+        self.dlgBox.accepted.connect(self.accept)
+        self.dlgBox.rejected.connect(self.reject)
 
     def onModuleEdited(self):
         self.dlgBox.button(Qt.QDialogButtonBox.Ok).setEnabled(False)
@@ -123,7 +122,7 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
             return
         self.dlgBox.button(Qt.QDialogButtonBox.Ok).setEnabled(True)
         # emit a signal with a dictionary that can be used to initialize
-        self.emit(Qt.SIGNAL('memberSelected'), self.getMemberDescription())
+        self.memberSelected.emit(self.getMemberDescription())
 
     def getMemberDescription(self):
         try:
@@ -148,6 +147,8 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
 
 class BlackListValidator(Qt.QValidator):
 
+    stateChanged = Qt.pyqtSignal(int, int)
+
     def __init__(self, blackList=None, parent=None):
         Qt.QValidator.__init__(self, parent)
         if blackList is None:
@@ -166,7 +167,7 @@ class BlackListValidator(Qt.QValidator):
         else:
             state = self.Acceptable
         if state != self._previousState:
-            self.emit(Qt.SIGNAL('stateChanged'), state, self._previousState)
+            self.stateChanged.emit(state, self._previousState)
             self._previousState = state
         if self._oldMode:  # for backwards compatibility with older versions of PyQt
             return state, pos
@@ -275,8 +276,7 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
 
         self.widgetTypeLB = Qt.QLabel("<b>Widget Type:</b>")
 
-        self.connect(self.choiceWidget, Qt.SIGNAL(
-            'choiceMade'), self.onChoiceMade)
+        self.choiceWidget.choiceMade.connect(self.onChoiceMade)
 
         layout = Qt.QVBoxLayout()
         layout.addLayout(nameLayout)
@@ -290,8 +290,7 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
             pnames = gui.getPanelNames()
             v = BlackListValidator(blackList=pnames, parent=self.nameLE)
             self.nameLE.setValidator(v)
-            self.connect(v, Qt.SIGNAL('stateChanged'),
-                         self._onValidatorStateChanged)
+            v.stateChanged.connect(self._onValidatorStateChanged)
 
     def validatePage(self):
         paneldesc = self.wizard().getPanelDescription()
@@ -361,10 +360,8 @@ class AdvSettingsPage(Qt.QWizardPage):
 #        self.modelChooser = TaurusModelChooser()
 
         # connections
-        self.connect(self.modelChooserBT, Qt.SIGNAL(
-            'clicked()'), self.showModelChooser)
-        self.connect(self.modelLE, Qt.SIGNAL(
-            'editingFinished()'), self.onModelEdited)
+        self.modelChooserBT.clicked.connect(self.showModelChooser)
+        self.modelLE.editingFinished.connect(self.onModelEdited)
 
         # layout
         layout1 = Qt.QHBoxLayout()
@@ -398,11 +395,9 @@ class AdvSettingsPage(Qt.QWizardPage):
         self.commGB.setLayout(layout2)
 
         # connections
-        self.connect(self.addBT, Qt.SIGNAL(
-            'clicked()'), self.commModel.insertRows)
-        self.connect(self.removeBT, Qt.SIGNAL('clicked()'), self.onRemoveRows)
-        self.connect(self.commLV.selectionModel(), Qt.SIGNAL(
-            'currentRowChanged(QModelIndex, QModelIndex)'), self.onCommRowSelectionChanged)
+        self.addBT.clicked.connect(self.commModel.insertRows)
+        self.removeBT.clicked.connect(self.onRemoveRows)
+        self.commLV.selectionModel().currentRowChanged.connect(self.onCommRowSelectionChanged)
 
         layout.addWidget(self.modelGB)
         layout.addWidget(self.commGB)
@@ -468,6 +463,8 @@ class CommTableModel(Qt.QAbstractTableModel):
     NUMCOLS = 3
     UID, R, W = range(NUMCOLS)
 
+    dataChanged = Qt.pyqtSignal(int, int)
+
     def __init__(self, parent=None):
         Qt.QAbstractTableModel.__init__(self, parent)
         self.__table = []
@@ -525,8 +522,7 @@ class CommTableModel(Qt.QAbstractTableModel):
             column = index.column()
             value = Qt.from_qvariant(value, str)
             self.__table[row][column] = value
-            self.emit(
-                Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
+            self.dataChanged.emit(index, index)
             return True
         return False
 

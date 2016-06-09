@@ -125,9 +125,9 @@ class ActionFactory(Singleton, Logger):
         """Create a QAction"""
         action = Qt.QAction(text, parent)
         if triggered is not None:
-            parent.connect(action, Qt.SIGNAL("triggered()"), triggered)
+            action.triggered.connect(triggered)
         if toggled is not None:
-            parent.connect(action, Qt.SIGNAL("toggled(bool)"), toggled)
+            action.toggled.connect(toggled)
             action.setCheckable(True)
         if icon is not None:
             if isinstance(icon, (str, unicode)):

@@ -56,10 +56,10 @@ class TaurusArrayEditor(TaurusWidget):
         layout.addWidget(self.fromAttrBT, 1, 2)
         layout.addWidget(self.toAttrBT, 1, 3)
 
-        self.connect(self.fromFileBT, Qt.SIGNAL("clicked()"), self.onFromFile)
-        self.connect(self.toFileBT, Qt.SIGNAL("clicked()"), self.onToFile)
-        self.connect(self.fromAttrBT, Qt.SIGNAL("clicked()"), self.onFromAttr)
-        self.connect(self.toAttrBT, Qt.SIGNAL("clicked()"), self.onToAttr)
+        self.fromFileBT.clicked.connect(self.onFromFile)
+        self.toFileBT.clicked.connect(self.onToFile)
+        self.fromAttrBT.clicked.connect(self.onFromAttr)
+        self.toAttrBT.clicked.connect(self.onToAttr)
 
     def arrayEditor(self):
         return self._arrayEditor

@@ -90,6 +90,8 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
     # disabling)
     droppedEventsWarning = -1
 
+    dataChanged = Qt.pyqtSignal('QString')
+
     def __init__(self, name, parent=None, curves=None):
         Qt.QObject.__init__(self, parent)
         self.call__init__(TaurusBaseComponent, self.__class__.__name__)
@@ -271,12 +273,11 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
 
     def registerDataChanged(self, listener, meth):
         '''see :meth:`TaurusBaseComponent.registerDataChanged`'''
-        listener.connect(self, Qt.SIGNAL("dataChanged(const QString &)"), meth)
+        self.dataChanged.connect(meth)
 
     def unregisterDataChanged(self, listener, meth):
         '''see :meth:`TaurusBaseComponent.unregisterDataChanged`'''
-        listener.disconnect(self, Qt.SIGNAL(
-            "dataChanged(const QString &)"), meth)
+        self.dataChanged.disconnect(meth)
 
     def _updateHistory(self, model, value):
         '''Update the history data buffers using the latest value from the event
@@ -429,8 +430,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             c._xValues, c._yValues = self._xValues, self._yValues[:, i]
             c._updateMarkers()
 
-        self.emit(Qt.SIGNAL("dataChanged(const QString &)"),
-                  Qt.QString(self.getModel()))
+        self.dataChanged.emit(Qt.QString(self.getModel()))
 
     def _checkDataDimensions(self, value):
         '''
@@ -529,8 +529,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         '''
         if self.forcedReadingTimer is None:
             self.forcedReadingTimer = Qt.QTimer()
-            self.connect(self.forcedReadingTimer, Qt.SIGNAL(
-                'timeout()'), self.forceReading)
+            self.forcedReadingTimer.timeout.connect(self.forceReading)
 
         # stop the timer and remove the __ONLY_OWN_EVENTS filter
         self.forcedReadingTimer.stop()
@@ -584,6 +583,8 @@ class ScanTrendsSet(TaurusTrendsSet):
     .. seealso:: :class:`TaurusTrendSet`
     """
     DEFAULT_X_DATA_KEY = 'point_nb'
+
+    dataChanged = Qt.pyqtSignal('QString')
 
     def __init__(self, name, parent=None, autoClear=True, xDataKey=None):
         '''
@@ -757,8 +758,7 @@ class ScanTrendsSet(TaurusTrendsSet):
                     curve.setAppearanceProperties(prop)
                     self.addCurve(name, curve)
         self.parent().autoShowYAxes()
-        self.emit(Qt.SIGNAL("dataChanged(const QString &)"),
-                  Qt.QString(self.getModel()))
+        self.dataChanged.emit(Qt.QString(self.getModel()))
 
     def _scanLineReceived(self, recordData):
         '''Receives a recordData dictionary and updates the curves associated to it
@@ -816,8 +816,7 @@ class ScanTrendsSet(TaurusTrendsSet):
                 c._yValues = numpy.append(c._yValues, v)
                 c._updateMarkers()
 
-        self.emit(Qt.SIGNAL("dataChanged(const QString &)"),
-                  Qt.QString(self.getModel()))
+        self.dataChanged.emit(Qt.QString(self.getModel()))
 
     def connectWithQDoor(self, qdoor):
         '''connects this ScanTrendsSet to a QDoor
@@ -827,8 +826,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         from sardana.taurus.qt.qtcore.tango.sardana.macroserver import QDoor
         if not isinstance(qdoor, QDoor):
             qdoor = taurus.Device(qdoor)
-        self.connect(qdoor, Qt.SIGNAL("recordDataUpdated"),
-                     self.scanDataReceived)
+        qdoor.recordDataUpdated.connect(self.scanDataReceived)
 
     def disconnectQDoor(self, qdoor):
         '''connects this ScanTrendsSet to a QDoor
@@ -838,8 +836,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         from sardana.taurus.qt.qtcore.tango.sardana.macroserver import QDoor
         if not isinstance(qdoor, QDoor):
             qdoor = taurus.Device(qdoor)
-        self.disconnect(qdoor, Qt.SIGNAL(
-            "recordDataUpdated"), self.scanDataReceived)
+        qdoor.recordDataUpdated.disconnect(self.scanDataReceived)
 
     def getModel(self):
         return self.__model
@@ -883,6 +880,8 @@ class TaurusTrend(TaurusPlot):
 
     DEFAULT_MAX_BUFFER_SIZE = 65536  # (=2**16, i.e., 64K events))
 
+    dataChanged = Qt.pyqtSignal('QString')
+
     def __init__(self, parent=None, designMode=False):
         TaurusPlot.__init__(self, parent=parent, designMode=designMode)
         self.trendSets = CaselessDict()
@@ -914,30 +913,24 @@ class TaurusTrend(TaurusPlot):
         self._useArchivingAction = Qt.QAction("Use Archiver", None)
         self._useArchivingAction.setCheckable(True)
         self._useArchivingAction.setChecked(self.getUseArchiving())
-        self.connect(self._useArchivingAction, Qt.SIGNAL(
-            "toggled(bool)"), self._onUseArchivingAction)
+        self._useArchivingAction.toggled.connect(self._onUseArchivingAction)
         self._usePollingBufferAction = Qt.QAction("Use Polling Buffer", None)
         self._usePollingBufferAction.setCheckable(True)
         self._usePollingBufferAction.setChecked(self.getUsePollingBuffer())
-        self.connect(self._usePollingBufferAction, Qt.SIGNAL(
-            "toggled(bool)"), self.setUsePollingBuffer)
+        self._usePollingBufferAction.toggled.connect(self.setUsePollingBuffer)
         self._setForcedReadingPeriodAction = Qt.QAction(
             "Set forced reading period...", None)
-        self.connect(self._setForcedReadingPeriodAction, Qt.SIGNAL(
-            "triggered()"), self.setForcedReadingPeriod)
+        self._setForcedReadingPeriodAction.triggered[()].connect(self.setForcedReadingPeriod)
         self._clearBuffersAction = Qt.QAction("Clear Buffers", None)
-        self.connect(self._clearBuffersAction, Qt.SIGNAL(
-            "triggered()"), self.clearBuffers)
+        self._clearBuffersAction.triggered[()].connect(self.clearBuffers)
         self._setMaxBufferSizeAction = Qt.QAction(
             "Change buffers size...", None)
-        self.connect(self._setMaxBufferSizeAction, Qt.SIGNAL(
-            "triggered()"), self.setMaxDataBufferSize)
+        self._setMaxBufferSizeAction.triggered[()].connect(self.setMaxDataBufferSize)
         self._autoClearOnScanAction = Qt.QAction(
             "Auto-clear on new scans", None)
         self._autoClearOnScanAction.setCheckable(True)
         self._autoClearOnScanAction.setChecked(True)
-        self.connect(self._autoClearOnScanAction, Qt.SIGNAL(
-            "toggled(bool)"), self._onAutoClearOnScanAction)
+        self._autoClearOnScanAction.toggled.connect(self._onAutoClearOnScanAction)
 
     def isTimerNeeded(self, checkMinimized=True):
         '''checks if it makes sense to activate the replot timer.
@@ -996,8 +989,7 @@ class TaurusTrend(TaurusPlot):
                               self._startingTime)  # Set a range of 1 min
         else:
             self.setAxisScale(axis, 0, 10)  # Set a range of 10 events
-            self.disconnect(self.axisWidget(axis), Qt.SIGNAL(
-                "scaleDivChanged ()"), self.rescheduleReplot)  # disconnects the previous axis
+            self.axisWidget(axis).scaleDivChanged.disconnect(self.rescheduleReplot)  # disconnects the previous axis
         # enable/disable the archiving action
         self._useArchivingAction.setEnabled(enable)
         # call the parent class method
@@ -1008,11 +1000,9 @@ class TaurusTrend(TaurusPlot):
             if self._replotTimer is None:
                 self._dirtyPlot = True
                 self._replotTimer = Qt.QTimer()
-                self.connect(self._replotTimer, Qt.SIGNAL(
-                    'timeout()'), self.doReplot)
+                self._replotTimer.timeout.connect(self.doReplot)
             self.rescheduleReplot(axis)
-            self.connect(self.axisWidget(axis), Qt.SIGNAL(
-                "scaleDivChanged ()"), self.rescheduleReplot)  # connects the new axis
+            self.axisWidget(axis).scaleDivChanged.connect(self.rescheduleReplot)  # connects the new axis
         else:
             self._replotTimer = None
 
@@ -1347,7 +1337,7 @@ class TaurusTrend(TaurusPlot):
             self.curves_lock.release()
         self.updateLegend(self.legend())
 
-    @Qt.pyqtSignature("dataChanged(const QString &)")
+    @Qt.pyqtSlot('QString', name='dataChanged')
     def curveDataChanged(self, name):
         '''slot that is called whenever a curve emits a dataChanged signal
 
@@ -1377,7 +1367,7 @@ class TaurusTrend(TaurusPlot):
                         self.xBottom, currmin + step, currmax + step)
         finally:
             self.curves_lock.release()
-        self.emit(Qt.SIGNAL("dataChanged(const QString &)"), Qt.QString(name))
+        self.dataChanged.emit(Qt.QString(name))
         if not self.xIsTime:
             self.replot()
         else:
@@ -1593,11 +1583,9 @@ class TaurusTrend(TaurusPlot):
         if enable:
             self._archivingWarningThresshold = self._startingTime - \
                 600  # 10 min before the widget was created
-            self.connect(self.axisWidget(self.xBottom), Qt.SIGNAL(
-                "scaleDivChanged ()"), self._scaleChangeWarning)
+            self.axisWidget(self.xBottom).scaleDivChanged.connect(self._scaleChangeWarning)
         else:
-            self.disconnect(self.axisWidget(self.xBottom), Qt.SIGNAL(
-                "scaleDivChanged ()"), self._scaleChangeWarning)
+            self.axisWidget(self.xBottom).scaleDivChanged.disconnect(self._scaleChangeWarning)
             self._archivingWarningThresshold = None
         self._useArchiving = enable
         self.replot()
@@ -1617,8 +1605,7 @@ class TaurusTrend(TaurusPlot):
         # stop the scale change notification temporally (to avoid duplicate
         # warnings)
         self.setUseArchiving(False)
-        self.disconnect(self.axisWidget(self.xBottom), Qt.SIGNAL(
-            "scaleDivChanged ()"), self._scaleChangeWarning)
+        self.axisWidget(self.xBottom).scaleDivChanged.disconnect(self._scaleChangeWarning)
         # show a dialog
         dlg = Qt.QDialog(self)
         dlg.setModal(True)
@@ -1634,8 +1621,8 @@ class TaurusTrend(TaurusPlot):
             '&Keep enabled'), buttonbox.RejectRole)
         buttonbox.addButton(Qt.QPushButton('&Disable'), buttonbox.AcceptRole)
         dlg.layout().addWidget(buttonbox)
-        dlg.connect(buttonbox, Qt.SIGNAL('accepted()'), dlg.accept)
-        dlg.connect(buttonbox, Qt.SIGNAL('rejected()'), dlg.reject)
+        buttonbox.accepted.connect(dlg.accept)
+        buttonbox.rejected.connect(dlg.reject)
         dlg.layout().addWidget(rememberCB)
         dlg.exec_()
         # disable archiving if the user said so
@@ -1646,8 +1633,7 @@ class TaurusTrend(TaurusPlot):
         else:
             self.setUseArchiving(True)
             if not rememberCB.isChecked():
-                self.connect(self.axisWidget(self.xBottom), Qt.SIGNAL(
-                    "scaleDivChanged ()"), self._scaleChangeWarning)
+                self.axisWidget(self.xBottom).scaleDivChanged.connect(self._scaleChangeWarning)
 
     def setMaxDataBufferSize(self, maxSize=None):
         '''sets the maximum number of events that can be plotted in the trends
@@ -1926,8 +1912,7 @@ def main():
             w.close()
         else:
             for ts in w.trendSets.values():
-                Qt.QObject.connect(ts, Qt.SIGNAL(
-                    "dataChanged(const QString &)"), exportIfAllCurves)
+                ts.dataChanged.connect(exportIfAllCurves)
         sys.exit(app.exec_())  # exit without showing the widget
 
     # period option

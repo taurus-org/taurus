@@ -231,18 +231,23 @@ class AutoScrollTool(ToggleTool, BaseConfigurableClass):
 
     def register_plot(self, baseplot):
         ToggleTool.register_plot(self, baseplot)
-        self.connect(baseplot, SIG_ITEMS_CHANGED, self.items_changed)
+        # TODO: drop support for guiqwt2 once we support guiqwt3
+        import guiqwt
+        _guiqwt_major_version = int(guiqwt.__version__.split('.')[0])
+        if _guiqwt_major_version < 3:
+            from guiqwt.signals import SIG_ITEMS_CHANGED
+            baseplot.connect(baseplot, SIG_ITEMS_CHANGED, self.items_changed)
+        else:
+            baseplot.SIG_ITEMS_CHANGED.connect(self.items_changed)
 
     def activate_command(self, plot, checked):
         """Activate tool"""
         # retrieve current Taurus curves
         for item in self.getScrollItems(plot):
             if checked:
-                self.connect(item.getSignaller(), Qt.SIGNAL(
-                    'scrollRequested'), self.onScrollRequested)
+                item.scrollRequested.connect(self.onScrollRequested)
             else:
-                self.disconnect(item.getSignaller(), Qt.SIGNAL(
-                    'scrollRequested'), self.onScrollRequested)
+                item.scrollRequested.disconnect(self.onScrollRequested)
 
     def getScrollItems(self, plot):
         return [item for item in plot.get_items()

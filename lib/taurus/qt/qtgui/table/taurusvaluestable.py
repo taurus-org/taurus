@@ -62,6 +62,8 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                       'u': int, 'i': int, 'S': str, 'U': unicode}
     # Need to have an array
 
+    dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')
+
     def __init__(self, size, parent=None):
         Qt.QAbstractTableModel.__init__(self, parent)
         self._parent = parent
@@ -200,8 +202,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             rvalue = rvalue.to(units)
         self._rtabledata = rvalue
         self._editable = False
-        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  self.createIndex(0, 0), self.createIndex(rows - 1, columns - 1))
+        self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(rows - 1, columns - 1))
 
     def getStatus(self, index):
         '''
@@ -290,7 +291,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
     def clearChanges(self):
         '''clears the dictionary of changed values'''
         self._modifiedDict.clear()
-        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), self.createIndex(
+        self.dataChanged.emit(self.createIndex(
             0, 0), self.createIndex(self.rowCount() - 1, self.columnCount() - 1))
 
     def inAlarmRange(self, value):
@@ -363,8 +364,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             # In version 4.6 of Qt when whole table is updated it is
             # recommended to use beginReset()
             self._wtabledata = wvalue
-        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  self.createIndex(0, 0), self.createIndex(self.rowCount() - 1,
+        self.dataChanged.emit(self.createIndex(0, 0), self.createIndex(self.rowCount() - 1,
                                                            self.columnCount() - 1))
 
     def getModifiedDict(self):
@@ -454,6 +454,8 @@ class TaurusValuesIOTable(Qt.QTableView):
 
 class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
 
+    editorCreated = Qt.pyqtSignal()
+
     def __init__(self, parent=None):
         Qt.QStyledItemDelegate.__init__(self, parent)
         self._parent = parent
@@ -471,7 +473,7 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         else:
             editor = TableInlineEdit(parent)
             editor._updateValidator(index.model().getAttr())
-        self.emit(Qt.SIGNAL('editorCreated'))
+        self.editorCreated.emit()
         return editor
 
     def setEditorData(self, editor, index):
@@ -530,10 +532,8 @@ class TableInlineEdit(Qt.QLineEdit):
 
     def __init__(self, parent=None):
         super(Qt.QLineEdit, self).__init__(parent)
-        self.connect(self, Qt.SIGNAL(
-            'textEdited(const QString &)'), self.textEdited)
-        self.connect(self, Qt.SIGNAL(
-            'focusLost(const QString &)'), self.textEdited)
+        self.textEdited.connect(self.textEdited)
+        self.focusLost.connect(self.textEdited)
         self.setValidator(None)
         self._min_range = None
         self._max_range = None
@@ -614,8 +614,7 @@ class TaurusValuesTable(TaurusWidget):
         self._tableView = TaurusValuesIOTable(self)
         l = Qt.QGridLayout()
         l.addWidget(self._tableView, 1, 0)
-        self.connect(self._tableView.itemDelegate(), Qt.SIGNAL("editorCreated"),
-                     self._onEditorCreated)
+        self._tableView.itemDelegate().editorCreated.connect(self._onEditorCreated)
 
         if defaultWriteMode is None:
             self.defaultWriteMode = "rw"
@@ -630,14 +629,12 @@ class TaurusValuesTable(TaurusWidget):
 
         self._applyBT = Qt.QPushButton('Apply')
         self._cancelBT = Qt.QPushButton('Cancel')
-        self.connect(self._applyBT, Qt.SIGNAL("clicked()"), self.okClicked)
-        self.connect(self._cancelBT, Qt.SIGNAL(
-            "clicked()"), self.cancelClicked)
+        self._applyBT.clicked.connect(self.okClicked)
+        self._cancelBT.clicked.connect(self.cancelClicked)
 
         self._rwModeCB = Qt.QCheckBox()
         self._rwModeCB.setText('Write mode')
-        self.connect(self._rwModeCB, Qt.SIGNAL("toggled(bool)"),
-                     self.setWriteMode)
+        self._rwModeCB.toggled.connect(self.setWriteMode)
 
         lv = Qt.QHBoxLayout()
         lv.addWidget(self._label)
@@ -660,13 +657,11 @@ class TaurusValuesTable(TaurusWidget):
         self._pauseAction.setCheckable(True)
         self._pauseAction.setChecked(False)
         self.addAction(self._pauseAction)
-        self.connect(self._pauseAction, Qt.SIGNAL(
-            "toggled(bool)"), self.setPaused)
+        self._pauseAction.toggled.connect(self.setPaused)
         self.chooseModelAction = Qt.QAction("Choose &Model", self)
         self.chooseModelAction.setEnabled(self.isModifiableByUser())
         self.addAction(self.chooseModelAction)
-        self.connect(self.chooseModelAction, Qt.SIGNAL(
-            "triggered()"), self.chooseModel)
+        self.chooseModelAction.triggered[()].connect(self.chooseModel)
 
     def getModelClass(self):
         '''see :meth:`TaurusWidget.getModelClass`'''

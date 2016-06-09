@@ -56,10 +56,8 @@ class QDataExportDialog(Qt.QDialog):
         self._xIsTime = False
 
         # connections
-        Qt.QObject.connect(self.exportBT, Qt.SIGNAL(
-            "clicked()"), self.exportData)
-        Qt.QObject.connect(self.dataSetCB, Qt.SIGNAL(
-            "currentIndexChanged(const QString&)"), self.onDataSetCBChange)
+        self.exportBT.clicked.connect(self.exportData)
+        self.dataSetCB.currentIndexChanged[str].connect(self.onDataSetCBChange)
 
         self.setDataSets(datadict, sortedNames)
 

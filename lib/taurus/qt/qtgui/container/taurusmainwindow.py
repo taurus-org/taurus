@@ -49,7 +49,7 @@ class CommandArgsLineEdit(Qt.QLineEdit):
     def __init__(self, extapp, *args):
         Qt.QLineEdit.__init__(self, *args)
         self._extapp = extapp
-        self.connect(self, Qt.SIGNAL("textEdited(QString)"), self.setCmdText)
+        self.textEdited.connect(self.setCmdText)
 
     def setCmdText(self, cmdargs):
         if not isinstance(cmdargs, (basestring, Qt.QString)):
@@ -93,8 +93,7 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
         editWidget = CommandArgsLineEdit(extapp, " ".join(extapp.cmdArgs()))
         #editWidget = Qt.QLineEdit(" ".join(extapp.cmdArgs()))
         self.externalAppsPage.widget().layout().addRow(label, editWidget)
-        self.connect(extapp, Qt.SIGNAL(
-            "cmdArgsChanged"), editWidget.setCmdText)
+        extapp.cmdArgsChanged.connect(editWidget.setCmdText)
 
     def deleteExternalAppConfig(self, extapp):
         '''Remove the given external application configuration from
@@ -147,7 +146,7 @@ class Rpdb2WaitDialog(Qt.QMessageBox):
         self.setText(text)
         self.button(Qt.QMessageBox.Ok).setEnabled(False)
 
-        self.connect(parent, Qt.SIGNAL("rpdb2Started"), self.onStarted)
+        parent.rpdb2Started.connect(self.onStarted)
 
     def onStarted(self):
         self.setWindowTitle("Rpdb2 running!")
@@ -175,7 +174,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             - Help (accessible by derived classes  as `self.helpMenu`)
 
     '''
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
+    modelChanged = Qt.pyqtSignal('const QString &')
+    perspectiveChanged = Qt.pyqtSignal(str)
 
     # customization options:
     # blinking semi-period in ms. Set to None for not showing the Heart beat
@@ -379,73 +379,61 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''initializes the application-wide actions'''
         self.quitApplicationAction = Qt.QAction(
             getThemeIcon("process-stop"), 'Exit Application', self)
-        self.connect(self.quitApplicationAction,
-                     Qt.SIGNAL("triggered()"), self.close)
+        self.quitApplicationAction.triggered[()].connect(self.close)
         self.changeTangoHostAction = Qt.QAction(getThemeIcon(
             "network-server"), 'Change Tango Host ...', self)
         self.changeTangoHostAction.setShortcut(Qt.QKeySequence("Ctrl+P"))
-        self.connect(self.changeTangoHostAction, Qt.SIGNAL(
-            "triggered()"), self._onChangeTangoHostAction)
+        self.changeTangoHostAction.triggered[()].connect(self._onChangeTangoHostAction)
 
         self.loadPerspectiveAction = Qt.QAction(getThemeIcon(
             "document-open"), 'Load Perspective ...', self)
-        self.connect(self.loadPerspectiveAction, Qt.SIGNAL(
-            "triggered()"), self.loadPerspective)
+        self.loadPerspectiveAction.triggered[()].connect(self.loadPerspective)
 
         self.savePerspectiveAction = Qt.QAction(getThemeIcon(
             "document-save"), 'Save Perspective ...', self)
-        self.connect(self.savePerspectiveAction, Qt.SIGNAL(
-            "triggered()"), self.savePerspective)
+        self.savePerspectiveAction.triggered[()].connect(self.savePerspective)
 
         self.deletePerspectiveAction = Qt.QAction(
             getIcon(":/actions/edit-delete.svg"), 'Delete Perspective ...', self)
-        self.connect(self.deletePerspectiveAction, Qt.SIGNAL(
-            "triggered()"), self.removePerspective)
+        self.deletePerspectiveAction.triggered[()].connect(self.removePerspective)
 
         self.exportSettingsFileAction = Qt.QAction(
             getThemeIcon("document-save"), 'Export Settings ...', self)
-        self.connect(self.exportSettingsFileAction, Qt.SIGNAL(
-            "triggered()"), self.exportSettingsFile)
+        self.exportSettingsFileAction.triggered[()].connect(self.exportSettingsFile)
 
         self.importSettingsFileAction = Qt.QAction(
             getThemeIcon("document-open"), 'Import Settings ...', self)
-        self.connect(self.importSettingsFileAction, Qt.SIGNAL(
-            "triggered()"), self.importSettingsFile)
+        self.importSettingsFileAction.triggered[()].connect(self.importSettingsFile)
 
         #self.resetSettingsAction = Qt.QAction(getThemeIcon("edit-undo"),'Reset Settings', self)
         #self.connect(self.resetSettingsAction, Qt.SIGNAL("triggered()"), self.resetSettings)
 
         self.configurationAction = Qt.QAction(getThemeIcon(
             "preferences-system"), 'Configurations ...', self)
-        self.connect(self.configurationAction, Qt.SIGNAL(
-            "triggered()"), self.configurationDialog.show)
+        self.configurationAction.triggered[()].connect(self.configurationDialog.show)
 
         #self.rpdb2Action = Qt.QAction("Spawn rpdb2", self)
         self.spawnRpdb2Shortcut = Qt.QShortcut(self)
         self.spawnRpdb2Shortcut.setKey(Qt.QKeySequence(Qt.Qt.Key_F9))
-        self.connect(self.spawnRpdb2Shortcut, Qt.SIGNAL(
-            "activated()"), self._onSpawnRpdb2)
+        self.spawnRpdb2Shortcut.activated.connect(self._onSpawnRpdb2)
 
         #self.rpdb2Action = Qt.QAction("Spawn rpdb2", self)
         self.spawnRpdb2Shortcut = Qt.QShortcut(self)
         rpdb2key = Qt.QKeySequence(
             Qt.Qt.CTRL + Qt.Qt.ALT + Qt.Qt.Key_0, Qt.Qt.Key_1)
         self.spawnRpdb2Shortcut.setKey(rpdb2key)
-        self.connect(self.spawnRpdb2Shortcut, Qt.SIGNAL(
-            "activated()"), self._onSpawnRpdb2)
+        self.spawnRpdb2Shortcut.activated.connect(self._onSpawnRpdb2)
 
         self.spawnRConsoleShortcut = Qt.QShortcut(self)
         rconsolekey = Qt.QKeySequence(
             Qt.Qt.CTRL + Qt.Qt.ALT + Qt.Qt.Key_0, Qt.Qt.Key_2)
         self.spawnRConsoleShortcut.setKey(rconsolekey)
-        self.connect(self.spawnRConsoleShortcut, Qt.SIGNAL(
-            "activated()"), self._onSpawnRConsole)
+        self.spawnRConsoleShortcut.activated.connect(self._onSpawnRConsole)
 
         self.toggleFullScreenAction = Qt.QAction(
             getIcon(":/actions/view-fullscreen.svg"), 'Show FullScreen', self)
         self.toggleFullScreenAction.setCheckable(True)
-        self.connect(self.toggleFullScreenAction, Qt.SIGNAL(
-            "toggled(bool)"), self._onToggleFullScreen)
+        self.toggleFullScreenAction.toggled.connect(self._onToggleFullScreen)
 
         # In Qt <= 4.4 setting the QAction shortcut at the application level
         # doesn't work when trying to get out of fullscreen so we create a
@@ -454,8 +442,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         # self.toggleFullScreenAction.setShortcutContext(Qt.Qt.ApplicationShortcut)
         self.fullScreenShortcut = Qt.QShortcut(self)
         self.fullScreenShortcut.setKey(Qt.QKeySequence(Qt.Qt.Key_F11))
-        self.connect(self.fullScreenShortcut, Qt.SIGNAL(
-            "activated()"), self._onToggleFullScreen)
+        self.fullScreenShortcut.activated.connect(self._onToggleFullScreen)
 
     @protectTaurusMessageBox
     def _onSpawnRpdb2(self):
@@ -714,7 +701,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
                 return
         self.loadSettings(settings=settings,
                           group="Perspectives/%s" % name, ignoreGeometry=True)
-        self.emit(Qt.SIGNAL('perspectiveChanged'), name)
+        self.perspectiveChanged.emit(name)
 
     def getPerspectivesList(self, settings=None):
         '''Returns the list of saved perspectives
@@ -977,8 +964,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             return False
         else:
             self.socketServer = QtNetwork.QLocalServer(self)
-            self.connect(self.socketServer, Qt.SIGNAL(
-                "newConnection()"), self.onIncommingSocketConnection)
+            self.socketServer.newConnection.connect(self.onIncommingSocketConnection)
             ok = self.socketServer.listen(key)
             if not ok:
                 AddressInUseError = QtNetwork.QAbstractSocket.AddressInUseError
@@ -1035,11 +1021,11 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     # Public slots for apply/restore changes
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    @Qt.pyqtSignature("applyPendingChanges()")
+    @Qt.pyqtSlot()
     def applyPendingChanges(self):
         self.applyPendingOperations()
 
-    @Qt.pyqtSignature("resetPendingChanges()")
+    @Qt.pyqtSlot()
     def resetPendingChanges(self):
         self.resetPendingOperations()
 

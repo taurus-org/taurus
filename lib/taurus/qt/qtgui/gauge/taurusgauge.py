@@ -40,8 +40,6 @@ from taurus.qt.qtgui.base import TaurusBaseWidget
 
 class TaurusLinearGauge(qtcontrols.ELinearGauge, TaurusBaseWidget):
 
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
-
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
         self.call__init__wo_kw(qtcontrols.ELinearGauge, parent)
@@ -131,8 +129,6 @@ class TaurusLinearGauge(qtcontrols.ELinearGauge, TaurusBaseWidget):
 
 class TaurusCircularGauge(qtcontrols.ECircularGauge, TaurusBaseWidget):
 
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
-
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
@@ -219,7 +215,7 @@ class TaurusCircularGauge(qtcontrols.ECircularGauge, TaurusBaseWidget):
     def getLogScale(self):
         return self._logScale
 
-    @Qt.pyqtSignature("setLogScale(bool)")
+    @Qt.pyqtSlot(bool)
     def setLogScale(self, val):
         self._logScale = bool(val)
         self.updateStyle()

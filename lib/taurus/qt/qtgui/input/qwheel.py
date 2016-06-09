@@ -183,13 +183,12 @@ class QWheelEdit(Qt.QFrame):
     """A widget designed to handle numeric scalar values. It allows interaction
     based on single digit as well as normal value edition."""
 
-    NumberChangedStr = 'numberChanged(double)'
-    NumberEditedStr = 'numberEdited(double)'
+    numberChanged = Qt.pyqtSignal(float)
+    numberEdited = Qt.pyqtSignal(float)
+    returnPressed = Qt.pyqtSignal()
 
     DefaultIntDigitCount = 6
     DefaultDecDigitCount = 2
-
-    __pyqtSignals__ = (NumberChangedStr, NumberEditedStr)
 
     def __init__(self, parent=None):
         """__init__(self, parent = None) -> QWheelEdit
@@ -313,16 +312,12 @@ class QWheelEdit(Qt.QFrame):
                 l.addWidget(down, 2, col)
             l.addWidget(d, 1, col)
 
-        self.connect(self._upButtons,
-                     Qt.SIGNAL('buttonClicked(QAbstractButton *)'),
-                     self.buttonPressed)
-        self.connect(self._downButtons,
-                     Qt.SIGNAL('buttonClicked(QAbstractButton *)'),
-                     self.buttonPressed)
+        self._upButtons.buttonClicked.connect(self.buttonPressed)
+        self._downButtons.buttonClicked.connect(self.buttonPressed)
 
         ed = _NumericEditor(self)
-        self.connect(ed, Qt.SIGNAL('returnPressed()'), self.editingFinished)
-        self.connect(ed, Qt.SIGNAL('lostFocus()'), ed.hide)
+        ed.returnPressed.connect(self.editingFinished)
+        ed.lostFocus.connect(ed.hide)
         rect = Qt.QRect(l.cellRect(1, 0).topLeft(), l.cellRect(1,
                                                                l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
@@ -338,12 +333,8 @@ class QWheelEdit(Qt.QFrame):
 
         Clears this widget sub-items"""
 
-        self.disconnect(self._upButtons,
-                        Qt.SIGNAL('buttonClicked(QAbstractButton *)'),
-                        self.buttonPressed)
-        self.disconnect(self._downButtons,
-                        Qt.SIGNAL('buttonClicked(QAbstractButton *)'),
-                        self.buttonPressed)
+        self._upButtons.buttonClicked.disconnect(self.buttonPressed)
+        self._downButtons.buttonClicked.disconnect(self.buttonPressed)
 
         for b in self._upButtons.buttons():
             self._upButtons.removeButton(b)
@@ -464,10 +455,10 @@ class QWheelEdit(Qt.QFrame):
             self._digitLabels[i].setText(c)
 
         if trigValueChanged:
-            self.emit(Qt.SIGNAL(QWheelEdit.NumberChangedStr), v)
+            self.numberChanged.emit(v)
 
         if trigValueEdited:
-            self.emit(Qt.SIGNAL(QWheelEdit.NumberEditedStr), v)
+            self.numberEdited.emit(v)
 
     def setRoundFunc(self, roundFunc):
         """setRoundFunc(self, roundFunc) -> None
@@ -824,7 +815,7 @@ class QWheelEdit(Qt.QFrame):
                 self.hideEditWidget()
                 self._editing = False
             else:
-                self.emit(Qt.SIGNAL('returnPressed()'))
+                self.returnPressed.emit()
 
         # TODO Decide when to emit editingFinished for completeness
         Qt.QWidget.keyPressEvent(self, key_event)
@@ -916,17 +907,13 @@ def main():
     minv.setValue(arrowWidget.getMinValue())
     maxv.setValue(arrowWidget.getMaxValue())
     showarrowbutton.setChecked(arrowWidget.getShowArrowButtons())
-    Qt.QObject.connect(isb, Qt.SIGNAL("valueChanged(int)"),
-                       arrowWidget.setIntDigitCount)
-    Qt.QObject.connect(dsb, Qt.SIGNAL("valueChanged(int)"),
-                       arrowWidget.setDecDigitCount)
-    Qt.QObject.connect(minv, Qt.SIGNAL(
-        "valueChanged(double)"), arrowWidget.setMinValue)
-    Qt.QObject.connect(showarrowbutton, Qt.SIGNAL(
-        "stateChanged(int)"), arrowWidget.setShowArrowButtons)
-    Qt.QObject.connect(nanbutton, Qt.SIGNAL("clicked()"), setNAN)
-    Qt.QObject.connect(nonebutton, Qt.SIGNAL("clicked()"), setNone)
-    Qt.QObject.connect(resetbutton, Qt.SIGNAL("clicked()"), resetAll)
+    isb.valueChanged.connect(arrowWidget.setIntDigitCount)
+    dsb.valueChanged.connect(arrowWidget.setDecDigitCount)
+    minv.valueChanged.connect(arrowWidget.setMinValue)
+    showarrowbutton.stateChanged.connect(arrowWidget.setShowArrowButtons)
+    nanbutton.clicked.connect(setNAN)
+    nonebutton.clicked.connect(setNone)
+    resetbutton.clicked.connect(resetAll)
     panel.setVisible(True)
     a.exec_()
 

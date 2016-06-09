@@ -133,7 +133,7 @@ def Assistant(collection_file, auto_create=True, parent=None):
                 del __ASSISTANTS[collection_file]
         assistant = _Assistant(collection_file, parent=parent)
         __ASSISTANTS[collection_file] = assistant
-        assistant.connect(assistant, Qt.SIGNAL('finished(int)'), finished)
+        assistant.finished.connect(finished)
     return assistant
 
 
@@ -162,8 +162,8 @@ def main():
         if assistant:
             assistant.terminate()
 
-    goButton.connect(goButton, Qt.SIGNAL('clicked()'), go)
-    terminateButton.connect(terminateButton, Qt.SIGNAL('clicked()'), terminate)
+    goButton.clicked.connect(go)
+    terminateButton.clicked.connect(terminate)
     window.show()
     sys.exit(app.exec_())
 

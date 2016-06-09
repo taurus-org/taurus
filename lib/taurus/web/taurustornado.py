@@ -165,7 +165,7 @@ class TaurusWebConfiguration(object):
             data['html'] = getattr(modelObj, self.param)
             data['title'] = modelObj.description
 
- #       data['css']['font-size'] = "24pt";
+        # data['css']['font-size'] = "24pt";
         data['model'] = self.name
         json_data = json_encode(data)
         self.write_message(json_data)

@@ -145,6 +145,8 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
     ''' A Qt data model for describing curves
     '''
 
+    dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')
+
     def __init__(self, curves=None):
         if curves is None:
             curves = []
@@ -261,8 +263,7 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
                 curve.y.processSrc(value)
             elif column == TITLE:
                 curve.curveparam.label = value
-            self.emit(
-                Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
+            self.dataChanged.emit(index, index)
             return True
         return False
 
@@ -345,6 +346,9 @@ class CurveItemConfDlg(Qt.QWidget):
     and title of data
     '''
 
+    dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')
+    applied = Qt.pyqtSignal()
+
     def __init__(self, parent=None, curves=None, showXcol=True):
         super(CurveItemConfDlg, self).__init__(parent)
         self.loadUi()
@@ -391,13 +395,11 @@ class CurveItemConfDlg(Qt.QWidget):
         self.ui.tangoTree.setModel(host)
 
         # Connections
-        self.connect(self.ui.applyBT, Qt.SIGNAL("clicked()"), self.onApply)
-        self.connect(self.ui.reloadBT, Qt.SIGNAL("clicked()"), self.onReload)
-        self.connect(self.ui.cancelBT, Qt.SIGNAL("clicked()"), self.close)
-        self.connect(self.ui.tangoTree, Qt.SIGNAL(
-            "addModels"), self.onModelsAdded)
-        self.connect(self.ui.curvesTable, Qt.SIGNAL(
-            "customContextMenuRequested(QPoint)"), self.onTableContextMenu)
+        self.ui.applyBT.clicked.connect(self.onApply)
+        self.ui.reloadBT.clicked.connect(self.onReload)
+        self.ui.cancelBT.clicked.connect(self.close)
+        self.ui.tangoTree.addModels.connect(self.onModelsAdded)
+        self.ui.curvesTable.customContextMenuRequested.connect(self.onTableContextMenu)
 
     def onTableContextMenu(self, pos):
         index = self.ui.curvesTable.indexAt(pos)
@@ -433,7 +435,7 @@ class CurveItemConfDlg(Qt.QWidget):
                 group.edit()
                 c.x.processSrc(c.taurusparam.xModel)
                 c.y.processSrc(c.taurusparam.yModel)
-                self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), self.model.index(
+                self.dataChanged.emit(self.model.index(
                     row, 0), self.model.index(row, self.model.rowCount()))
 
     def onModelsAdded(self, models):
@@ -468,13 +470,13 @@ class CurveItemConfDlg(Qt.QWidget):
         w = CurveItemConfDlg(parent=parent, curves=curves)
         layout.addWidget(w)
         dlg.setLayout(layout)
-        dlg.connect(w, Qt.SIGNAL('applied'), dlg.accept)
-        dlg.connect(w.ui.cancelBT, Qt.SIGNAL("clicked()"), dlg.close)
+        w.applied.connect(dlg.accept)
+        w.ui.cancelBT.clicked.connect(dlg.close)
         dlg.exec_()
         return w.getCurveItemConfs(), (dlg.result() == dlg.Accepted)
 
     def onApply(self):
-        self.emit(Qt.SIGNAL('applied'))
+        self.applied.emit()
 
     def onReload(self):
         print "RELOAD!!! (todo)"

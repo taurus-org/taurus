@@ -257,6 +257,8 @@ class TaurusMessagePanel(Qt.QWidget):
             msgbox = TaurusMessagePanel(*exc_info)
             msgbox.show()"""
 
+    toggledDetails = Qt.pyqtSignal(bool)
+
     def __init__(self, err_type=None, err_value=None, err_traceback=None, parent=None, designMode=False):
         Qt.QWidget.__init__(self, parent)
         self.loadUi()
@@ -267,10 +269,8 @@ class TaurusMessagePanel(Qt.QWidget):
         self._ui._checkBox.setCheckState(Qt.Qt.Unchecked)
         self._initReportCombo()
 
-        Qt.QObject.connect(self._ui._showDetailsButton,
-                           Qt.SIGNAL("toggled(bool)"), self._onShowDetails)
-        Qt.QObject.connect(self._ui._reportComboBox,
-                           Qt.SIGNAL("activated(int)"), self._onReportTriggered)
+        self._ui._showDetailsButton.toggled.connect(self._onShowDetails)
+        self._ui._reportComboBox.activated.connect(self._onReportTriggered)
 
         pixmap = getThemePixmap("emblem-important")
         self.setIconPixmap(pixmap)
@@ -309,7 +309,7 @@ class TaurusMessagePanel(Qt.QWidget):
             text = "Show details..."
         self._ui._showDetailsButton.setText(text)
         self.adjustSize()
-        self.emit(Qt.SIGNAL("toggledDetails(bool)"), show)
+        self.toggledDetails.emit(show)
 
     def reportComboBox(self):
         return self._ui._reportComboBox
@@ -603,18 +603,18 @@ def demo():
 
     m1 = Qt.QPushButton("Python exception")
     layout.addWidget(m1)
-    Qt.QObject.connect(m1, Qt.SIGNAL("clicked()"), py_exc)
+    m1.clicked.connect(py_exc)
     m2 = Qt.QPushButton("Tango exception")
     layout.addWidget(m2)
-    Qt.QObject.connect(m2, Qt.SIGNAL("clicked()"), tg_exc)
+    m2.clicked.connect(tg_exc)
     layout.addWidget(m2)
     m3 = Qt.QPushButton("Tango server exception")
     layout.addWidget(m3)
-    Qt.QObject.connect(m3, Qt.SIGNAL("clicked()"), tg_serv_exc)
+    m3.clicked.connect(tg_serv_exc)
     layout.addWidget(m3)
     m4 = Qt.QPushButton("Python tango server exception")
     layout.addWidget(m4)
-    Qt.QObject.connect(m4, Qt.SIGNAL("clicked()"), py_tg_serv_exc)
+    m4.clicked.connect(py_tg_serv_exc)
     layout.addWidget(m4)
     return panel
 

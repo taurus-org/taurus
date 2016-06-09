@@ -367,6 +367,8 @@ class QLoggingTable(Qt.QTableView):
 
 class LoggingToolBar(FilterToolBar):
 
+    scrollLockToggled = Qt.pyqtSignal(bool)
+
     def __init__(self, view=None, parent=None, designMode=False):
         FilterToolBar.__init__(self, view=view, parent=parent,
                                designMode=designMode)
@@ -378,9 +380,7 @@ class LoggingToolBar(FilterToolBar):
             logLevelComboBox.addItem(
                 level, Qt.QVariant(getattr(taurus, level)))
         logLevelComboBox.setCurrentIndex(0)
-        Qt.QObject.connect(logLevelComboBox,
-                           Qt.SIGNAL("currentIndexChanged(int)"),
-                           self.onLogLevelChanged)
+        logLevelComboBox.currentIndexChanged.connect(self.onLogLevelChanged)
         logLevelComboBox.setToolTip("Filter by log level")
 
         self._filterLevelAction = self.addWidget(logLevelComboBox)
@@ -396,7 +396,7 @@ class LoggingToolBar(FilterToolBar):
         self.addAction(self._scrollLockAction)
 
     def onToggleScrollLock(self, yesno):
-        self.emit(Qt.SIGNAL("scrollLockToggled(bool)"), yesno)
+        self.scrollLockToggled.emit(yesno)
 
     def onLogLevelChanged(self, index):
         self.onFilterChanged()
@@ -498,8 +498,7 @@ class QLoggingWidget(QBaseTableWidget):
     def createToolArea(self):
         tb = QBaseTableWidget.createToolArea(self)
         filterBar = self.getFilterBar()
-        Qt.QObject.connect(filterBar, Qt.SIGNAL("scrollLockToggled(bool)"),
-                           self.onScrollLockToggled)
+        filterBar.scrollLockToggled.connect(self.onScrollLockToggled)
         return tb
 
     def onScrollLockToggled(self, yesno):

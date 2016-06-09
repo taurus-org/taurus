@@ -174,8 +174,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
                 item.src = value
             elif role == Qt.Qt.DisplayRole:
                 item.display = value
-            self.emit(
-                Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
+            self.dataChanged.emit(index, index)
             return True
         return False
 
@@ -214,8 +213,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
         '''swap the items described by index1 and index2 in the list'''
         r1, r2 = index1.row(), index2.row()
         self.items[r1], self.items[r2] = self.items[r2], self.items[r1]
-        self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  index1, index2)
+        self.dataChanged.emit(index1, index2)
 
     def mimeTypes(self):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
@@ -279,6 +277,8 @@ class TaurusModelList(Qt.QListView):
     associated with it. It also allows drag and drop of models and sorting.
     '''
 
+    dataChanged = Qt.pyqtSignal(list)
+
     def __init__(self, parent=None, items=None, designMode=False):
         super(TaurusModelList, self).__init__(parent)
         if items is None:
@@ -308,14 +308,10 @@ class TaurusModelList(Qt.QListView):
 
         # signal connections
         selectionmodel = self.selectionModel()
-        self.connect(selectionmodel, Qt.SIGNAL(
-            "selectionChanged(QItemSelection, QItemSelection)"), self._onSelectionChanged)
-        self.connect(self._model, Qt.SIGNAL(
-            "dataChanged (QModelIndex, QModelIndex)"), self._onDataChanged)
-        self.connect(self._model, Qt.SIGNAL(
-            "rowsInserted (QModelIndex, int, int)"), self._onDataChanged)
-        self.connect(self._model, Qt.SIGNAL(
-            "rowsRemoved (QModelIndex, int, int)"), self._onDataChanged)
+        selectionmodel.selectionChanged.connect(self._onSelectionChanged)
+        self._model.dataChanged.connect(self._onDataChanged)
+        self._model.rowsInserted.connect(self._onDataChanged)
+        self._model.rowsRemoved.connect(self._onDataChanged)
         self._onSelectionChanged(Qt.QItemSelection(), Qt.QItemSelection())
 
     def clear(self):
@@ -349,7 +345,7 @@ class TaurusModelList(Qt.QListView):
 
     def _onDataChanged(self, *args):
         '''emits a signal containing the current data as a list of strings'''
-        self.emit(Qt.SIGNAL("dataChanged"), self.getModelItems())
+        self.dataChanged.emit(self.getModelItems())
 
     def contextMenuEvent(self, event):
         '''see :meth:`QWidget.contextMenuEvent`'''

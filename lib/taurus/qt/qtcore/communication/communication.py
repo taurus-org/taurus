@@ -33,6 +33,15 @@ import weakref
 _DEBUG = False
 
 
+def get_signal(obj, signalname):
+    """Return signal from object and signal name."""
+    if '(' not in signalname:
+        return getattr(obj, signalname)
+    name, dtype = signalname.strip(')').split('(')
+    dtype = tuple(dtype.split(','))
+    return getattr(obj, name)[dtype]
+
+
 class DataModel(QtCore.QObject):
     '''
     An object containing one piece of data which is intended to be shared. The
@@ -44,6 +53,8 @@ class DataModel(QtCore.QObject):
     which uses :meth:`SharedDataManager.__getDataModel` to ensure that the
     DataModels are singletons.
     '''
+
+    dataChanged = QtCore.pyqtSignal(object)
 
     def __init__(self, parent, dataUID, defaultData=None):
         '''
@@ -86,7 +97,7 @@ class DataModel(QtCore.QObject):
         '''
         self.__data = data
         self.__isDataSet = True
-        self.emit(QtCore.SIGNAL("dataChanged"), self.__data)
+        self.dataChanged.emit(self.__data)
 
     def connectReader(self, slot, readOnConnect=True):
         '''
@@ -102,7 +113,7 @@ class DataModel(QtCore.QObject):
 
         .. seealso:: :meth:`connectWriter`, :meth:`getData`
         '''
-        self.connect(self, QtCore.SIGNAL("dataChanged"), slot)
+        self.dataChanged.connect(slot)
         if readOnConnect and self.__isDataSet:
             slot(self.__data)
         obj = getattr(slot, '__self__', slot)
@@ -120,7 +131,7 @@ class DataModel(QtCore.QObject):
 
         .. seealso:: :meth:`connectReader`, :meth:`setData`
         '''
-        self.connect(writer, QtCore.SIGNAL(signalname), self.setData)
+        get_signal(writer, signalname).connect(self.setData)
         self.__writerSignals.append((weakref.ref(writer), signalname))
 
     def disconnectWriter(self, writer, signalname):
@@ -131,7 +142,7 @@ class DataModel(QtCore.QObject):
 
         .. seealso:: :meth:`SharedDataManager.disconnectWriter`
         '''
-        ok = self.disconnect(writer, QtCore.SIGNAL(signalname), self.setData)
+        ok = get_signal(writer, signalname).disconnect(self.setData)
         self.__writerSignals.remove((weakref.ref(writer), signalname))
 
     def disconnectReader(self, slot):
@@ -142,7 +153,7 @@ class DataModel(QtCore.QObject):
 
         .. seealso:: :meth:`SharedDataManager.disconnectReader`, :meth:`getData`
         '''
-        ok = self.disconnect(self, QtCore.SIGNAL("dataChanged"), slot)
+        ok = self.dataChanged.disconnect(slot)
         self.__readerSlots.remove((weakref.ref(slot.__self__), slot.__name__))
 
     def isDataSet(self):

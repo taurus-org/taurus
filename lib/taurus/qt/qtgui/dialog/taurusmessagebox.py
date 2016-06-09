@@ -76,10 +76,8 @@ class TaurusMessageBox(Qt.QDialog):
                                self, designMode)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._panel)
-        self.connect(self.panel().buttonBox(), Qt.SIGNAL("accepted()"),
-                     self.accept)
-        self.connect(self._panel, Qt.SIGNAL("toggledDetails(bool)"),
-                     self._onShowDetails)
+        self.panel().buttonBox().accepted.connect(self.accept)
+        self._panel.toggledDetails.connect(self._onShowDetails)
 
     def _onShowDetails(self, show):
         self.adjustSize()
@@ -360,18 +358,18 @@ def demo():
 
     m1 = Qt.QPushButton("Python exception")
     layout.addWidget(m1)
-    Qt.QObject.connect(m1, Qt.SIGNAL("clicked()"), py_exc)
+    m1.clicked.connect(py_exc)
     m2 = Qt.QPushButton("Tango exception")
     layout.addWidget(m2)
-    Qt.QObject.connect(m2, Qt.SIGNAL("clicked()"), tg_exc)
+    m2.clicked.connect(tg_exc)
     layout.addWidget(m2)
     m3 = Qt.QPushButton("Tango server exception")
     layout.addWidget(m3)
-    Qt.QObject.connect(m3, Qt.SIGNAL("clicked()"), tg_serv_exc)
+    m3.clicked.connect(tg_serv_exc)
     layout.addWidget(m3)
     m4 = Qt.QPushButton("Python tango server exception")
     layout.addWidget(m4)
-    Qt.QObject.connect(m4, Qt.SIGNAL("clicked()"), py_tg_serv_exc)
+    m4.clicked.connect(py_tg_serv_exc)
     layout.addWidget(m4)
 
     panel.show()

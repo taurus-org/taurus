@@ -63,8 +63,8 @@ class QDoubleListDlg(Qt.QDialog):
         self.setList1(list1)
         self.setList2(list2)
 
-        self.connect(self.ui.to1BT, Qt.SIGNAL('clicked(bool)'), self.onTo1)
-        self.connect(self.ui.to2BT, Qt.SIGNAL('clicked(bool)'), self.onTo2)
+        self.ui.to1BT.clicked.connect(self.onTo1)
+        self.ui.to2BT.clicked.connect(self.onTo2)
 
     def _moveItem(self, fromlist, tolist):
         selected = fromlist.selectedItems()
