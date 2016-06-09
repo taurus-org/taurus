@@ -192,11 +192,11 @@ class QBaseDictionaryEditor(Qt.QDialog, TaurusBaseContainer):
         self.layout().addWidget(self.baddRow, 7, 0, 1, 1)
         self.layout().addWidget(self.baccept, 8, 3, 1, 1)
         self.layout().addWidget(self.bcancel, 8, 4, 1, 1)
-        self.connect(self.baccept, Qt.SIGNAL("clicked()"), self.save)
-        self.connect(self.bcancel, Qt.SIGNAL("clicked()"), self.close)
-        self.connect(self.baddRow, Qt.SIGNAL("clicked()"), self.addRow)
-        self.connect(self.baddColumn, Qt.SIGNAL("clicked()"), self.addColumn)
-        self.connect(self, Qt.SIGNAL("reject()"), self.close)
+        self.baccept.clicked.connect(self.save)
+        self.bcancel.clicked.connect(self.close)
+        self.baddRow.clicked.connect(self.addRow)
+        self.baddColumn.clicked.connect(self.addColumn)
+        self.reject.connect(self.close)
 
     def addRow(self):
         self.table.setRowCount(self.table.rowCount() + 1)

@@ -151,8 +151,7 @@ class DefaultLabelWidget(TaurusLabel):
             cm_action = menu.addAction("Compact")
             cm_action.setCheckable(True)
             cm_action.setChecked(self.taurusValueBuddy().isCompact())
-            self.connect(cm_action, Qt.SIGNAL("toggled(bool)"),
-                         self.taurusValueBuddy().setCompact)
+            cm_action.toggled.connect(self.taurusValueBuddy().setCompact)
         menu.exec_(event.globalPos())
         event.accept()
 
@@ -303,7 +302,6 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         It is designed to be instantiated by a :class:`TaurusForm` class, since it
         breaks some conventions on the way it manages layouts of its parent model.
     '''
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
     _compact = False
 
     def __init__(self, parent=None, designMode=False, customWidgetMap=None):
@@ -436,7 +434,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def getAllowWrite(self):
         return self._allowWrite
 
-    @Qt.pyqtSignature("setAllowWrite(bool)")
+    @Qt.pyqtSlot(bool)
     def setAllowWrite(self, mode):
         self._allowWrite = mode
 
@@ -446,7 +444,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def getPreferredRow(self):
         return self._preferredRow
 
-    @Qt.pyqtSignature("setPreferredRow(int)")
+    @Qt.pyqtSlot(int)
     def setPreferredRow(self, row):
         self._preferredRow = row
 
@@ -853,8 +851,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             # hide getPendingOperations of the writeWidget so that containers don't get duplicate lists
             #self._writeWidget._getPendingOperations = self._writeWidget.getPendingOperations
             #self._writeWidget.getPendingOperations = lambda : []
-            self.connect(self._writeWidget, Qt.SIGNAL(
-                'valueChanged'), self.updatePendingOpsStyle)
+            self._writeWidget.valueChangedSignal.connect(self.updatePendingOpsStyle)
             self._writeWidget.setDangerMessage(self.getDangerMessage())
             self._writeWidget.setForceDangerousOperations(
                 self.getForceDangerousOperations())
@@ -966,7 +963,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 parent.layout().addWidget(self._extraWidget, self._row,
                                           5, 1, 1, alignment)
 
-    @Qt.pyqtSignature("parentModelChanged(const QString &)")
+    @Qt.pyqtSlot('QString')
     def parentModelChanged(self, parentmodel_name):
         """Invoked when the parent model changes
 
@@ -981,7 +978,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self.updateUnitsWidget()
             self.updateExtraWidget()
 
-    @Qt.pyqtSignature("setLabelWidget(QString)")
+    @Qt.pyqtSlot('QString', name='setLabelWidget')
     def setLabelWidgetClass(self, classID):
         '''substitutes the current widget by a new one. classID can be one of:
         None, 'Auto', a TaurusWidget class name, or any class'''
@@ -994,7 +991,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetLabelWidgetClass(self):
         self.labelWidgetClassID = 'Auto'
 
-    @Qt.pyqtSignature("setReadWidget(QString)")
+    @Qt.pyqtSlot('QString', name='setReadWidget')
     def setReadWidgetClass(self, classID):
         '''substitutes the current widget by a new one. classID can be one of:
         None, 'Auto', a TaurusWidget class name, or any class'''
@@ -1007,7 +1004,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetReadWidgetClass(self):
         self.readWidgetClassID = 'Auto'
 
-    @Qt.pyqtSignature("setWriteWidget(QString)")
+    @Qt.pyqtSlot('QString', name='setWriteWidget')
     def setWriteWidgetClass(self, classID):
         '''substitutes the current widget by a new one. classID can be one of:
         None, 'Auto', a TaurusWidget class name, or any class'''
@@ -1020,7 +1017,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetWriteWidgetClass(self):
         self.writeWidgetClassID = 'Auto'
 
-    @Qt.pyqtSignature("setUnitsWidget(QString)")
+    @Qt.pyqtSlot('QString', name='setUnitsWidget')
     def setUnitsWidgetClass(self, classID):
         '''substitutes the current widget by a new one. classID can be one of:
         None, 'Auto', a TaurusWidget class name, or any class'''
@@ -1033,7 +1030,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetUnitsWidgetClass(self):
         self.unitsWidgetClassID = 'Auto'
 
-    @Qt.pyqtSignature("setCustomWidget(QString)")
+    @Qt.pyqtSlot('QString', name='setCustomWidget')
     def setCustomWidgetClass(self, classID):
         '''substitutes the current widget by a new one. classID can be one of:
         None, 'Auto', a TaurusWidget class name, or any class'''
@@ -1046,7 +1043,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetCustomWidgetClass(self):
         self.customWidgetClassID = 'Auto'
 
-    @Qt.pyqtSignature("setExtraWidget(QString)")
+    @Qt.pyqtSlot('QString', name='setExtraWidget')
     def setExtraWidgetClass(self, classID):
         '''substitutes the current widget by a new one. classID can be one of:
         None, 'Auto', a TaurusWidget class name, or any class'''
@@ -1138,7 +1135,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                         widget.applyConfig(widget_configdict[
                                            'delegate'], **kwargs)
 
-    @Qt.pyqtSignature("setModel(QString)")
+    @Qt.pyqtSlot('QString')
     def setModel(self, model):
         """extending :meth:`TaurusBaseWidget.setModel` to change the modelclass
         dynamically and to update the subwidgets"""
@@ -1207,7 +1204,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def getLabelConfig(self):
         return self._labelConfig
 
-    @Qt.pyqtSignature("setLabelConfig(QString)")
+    @Qt.pyqtSlot('QString')
     def setLabelConfig(self, config):
         self._labelConfig = config
         self.updateLabelWidget()
@@ -1263,7 +1260,7 @@ class TaurusValuesFrame(TaurusFrame):
 
     _model = []
 
-    @Qt.pyqtSignature("setModel(QStringList)")
+    @Qt.pyqtSlot('QStringList')
     def setModel(self, model):
         self._model = model
         for tv in self.getTaurusValues():
@@ -1359,8 +1356,7 @@ if __name__ == "__main__":
     if models == []:
         from taurus.qt.qtgui.panel import TaurusModelChooser
         modelChooser = TaurusModelChooser()
-        form.connect(modelChooser, Qt.SIGNAL(
-            "updateModels"), container.setModel)
+        modelChooser.updateModels.connect(container.setModel)
         modelChooser.show()
 
     sys.exit(app.exec_())

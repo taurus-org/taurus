@@ -74,6 +74,9 @@ class TaurusTreeNodeContainer(object):
     """
     _icon_map = {}  # A dictionary like {device_regexp:pixmap_url}
 
+    addAttrSelected = Qt.pyqtSignal('QStringList')
+    removeAttrSelected = Qt.pyqtSignal('QStringList')
+
     def __init__(self):
         raise Exception(
             'This class is just an interface, do not instantiate it!')
@@ -280,8 +283,7 @@ class TaurusTreeNodeContainer(object):
 
     def addAttrToPlot(self, attr):
         """ This method will send a signal with the given attr name, in a separate method to be called with a pre-filled list  """
-        self.emit(Qt.SIGNAL("addAttrSelected(QStringList)"),
-                  Qt.QStringList([str(attr)]))
+        self.addAttrSelected.emit(Qt.QStringList([str(attr)]))
 
     def removeFromPlot(self):
         """ This method will send a signal with the current selected node """
@@ -295,8 +297,7 @@ class TaurusTreeNodeContainer(object):
 
     def removeAttrFromPlot(self, attr):
         """ This method will send a signal with the given attr name, in a separate method to be called with a pre-filled list """
-        self.emit(Qt.SIGNAL("removeAttrSelected(QStringList)"),
-                  Qt.QStringList([str(attr)]))
+        self.removeAttrSelected.emit(Qt.QStringList([str(attr)]))
 
 
 ###############################################################################
@@ -309,14 +310,6 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     addModels merges the tree with new models
     setFilters clears previous models and adds new one
     '''
-    __pyqtSignals__ = (
-        "modelChanged(const QString &)",
-        "deviceSelected(QString)",
-        "addAttrSelected(QStringList)",
-        "removeAttrSelected(QStringList)",
-        "refreshTree",
-        "nodeFound"
-    )
     __properties__ = (
         'ModelInConfig',
         'modifiableByUser',
@@ -344,6 +337,12 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     )
 
     TRACE_ALL = False
+
+    refreshTree = Qt.pyqtSignal()
+    nodeFound = Qt.pyqtSignal()
+    deviceSelected = Qt.pyqtSignal('QString')
+    addAttrSelected = Qt.pyqtSignal('QStringList')
+    removeAttrSelected = Qt.pyqtSignal('QStringList')
 
     def __init__(self, parent=None, designMode=False):
         name = "TaurusDevTree"
@@ -386,11 +385,8 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         self.initConfig()
 
         # Signal
-        Qt.QObject.connect(self, Qt.SIGNAL(
-            "itemClicked(QTreeWidgetItem *,int)"), self.deviceClicked)
-        Qt.QObject.connect(self, Qt.SIGNAL("nodeFound"),
-                           self, Qt.SLOT("expandNode"))
-
+        self.itemclicked.connect(self.deviceClicked)
+        self.nodeFound.connect(self.expandNode)
         self.setDragDropMode(Qt.QAbstractItemView.DragDrop)
         self.setModifiableByUser(True)
         self.setModelInConfig(False)  # We store Filters instead!
@@ -509,8 +505,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         self.setGeometry(Qt.QRect(90, 60, 256, 192))
         self.actionFindInTree = Qt.QAction(self)
         self.actionFindInTree.setShortcut(Qt.QKeySequence.Find)
-        self.connect(self.actionFindInTree, Qt.SIGNAL(
-            "triggered()"), self.findDialog)
+        self.actionFindInTree.triggered[()].connect(self.findDialog)
         #self.connect(self, Qt.SIGNAL("itemClicked"), self.clickedEvent)
         from taurus.qt.qtgui.table.qdictionary import QDictionaryEditor, QListEditor
         self.ExpertMenu.append(
@@ -587,7 +582,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         self.trace('setModelCheck(%s)' % str(model)[:80])
         self.loadTree(model)
 
-    @Qt.pyqtSignature("addModels(QStringList)")
+    @Qt.pyqtSlot('QStringList')
     def addModels(self, modelNames):
         '''Adds models to the existing ones:
         :param modelNames:  (sequence<str>) the names of the models to be added
@@ -608,7 +603,6 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     ##########################################################################
     # Loading/Cleaning the tree
 
-    #@Qt.pyqtSignature("loadTree(QString)")
     # def loadTree(self,filters,clear=False):
         #'''
         # This method show a list of instances and devices depending on the given servers in QTProperty or in another widget,
@@ -707,7 +701,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
 
     def refreshTree(self):
         self.loadTree(self._filters)
-        self.emit(Qt.SIGNAL("refreshTree"))
+        self.refreshTree.emit()
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # @name Methods for building server/devices/attributes tree
@@ -924,7 +918,6 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     ###########################################################################
     # New expand/search methods
 
-    #@Qt.pyqtSignature("expandNode")
     def expandNode(self, node=None, expand=True):
         """ Needed to do threaded expansion of the tree """
         if node is None:
@@ -943,7 +936,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         self.findInTree(str(Qt.QInputDialog.getText(
             self, 'Search ...', 'Write a part of the name', Qt.QLineEdit.Normal)[0]))
 
-    @Qt.pyqtSignature("findInTree(const QString &)")
+    @Qt.pyqtSlot('QString')
     def findInTree(self, regexp, collapseAll=None, exclude=None, select=True, queue=True):
         self.trace('In TauTree.findInTree(%s)' % regexp)
         if collapseAll is None:
@@ -1026,7 +1019,6 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     ###########################################################################
     # Update node colors
 
-    #@Qt.pyqtSignature("setIcons")
     def setIcons(self, dct={}, root_name=None, regexps=True):
         '''
         This method change the icons depending of the status of the devices
@@ -1127,8 +1119,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
             # Signal
             self.trace('TaurusTree emit deviceSelected(%s) signal ...' %
                        device_name)
-            self.emit(Qt.SIGNAL("deviceSelected(QString)"),
-                      Qt.QString(device_name))
+            self.deviceSelected.emit(Qt.QString(device_name))
         except:
             self.error(traceback.format_exc())
             pass
@@ -1290,8 +1281,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                     if k:
                         configDialogAction = menu.addAction(k)
                         if action:
-                            self.connect(configDialogAction,
-                                         Qt.SIGNAL("triggered()"), action)
+                            configDialogAction.triggered.connect(action)
                         else:
                             configDialogAction.setEnabled(False)
                         last_was_separator = False
@@ -1312,8 +1302,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                     if k:
                         configDialogAction = expert.addAction(k)
                         if action:
-                            self.connect(configDialogAction,
-                                         Qt.SIGNAL("triggered()"), action)
+                            configDialogAction.triggered.connect(action)
                         else:
                             configDialogAction.setEnabled(False)
                         last_was_separator = False
@@ -1360,8 +1349,8 @@ class TaurusTreeNode(Qt.QTreeWidgetItem, TaurusBaseComponent):
     #-------------------------------------------------------------------------
     # Write your own code here to define the signals generated by this widget
     #
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
-    #__pyqtSignals__ = ("refreshIcon",)
+
+    modelChanged = Qt.pyqtSignal('const QString &')
 
     def __init__(self, name=None, parent=None):
         name = name or self.__class__.__name__
@@ -1477,12 +1466,11 @@ class TaurusTreeNode(Qt.QTreeWidgetItem, TaurusBaseComponent):
 
 class TaurusDevTreeOptions(Qt.QWidget):
     """ This class provides a search(QString) signal to be connected to TaurusDevTree.findInTree slot """
-    __pyqtSignals__ = (
-        "search(QString)",
-        "loadTree(QString)",
-        "hideUnexported",
-        "hideUnarchived",
-    )
+
+    search = Qt.pyqtSignal('QString')
+    loadTree = Qt.pyqtSignal('QString')
+    hideUnarchived = Qt.pyqtSignal()
+    hideUnexported = Qt.pyqtSignal()
 
     def __init__(self, parent=None, icon=None):
         Qt.QWidget.__init__(self, parent)
@@ -1499,19 +1487,18 @@ class TaurusDevTreeOptions(Qt.QWidget):
         self._edit = Qt.QLineEdit()
         self._button = Qt.QPushButton()
         self._button.setText('Search')
-        self.connect(self._edit, Qt.SIGNAL(
-            'returnPressed()'), self._button.animateClick)
-        self.connect(self._button, Qt.SIGNAL('clicked()'), self._emitSearch)
+        self._edit.returnPressed.connect(self._button.animateClick)
+        self._button.clicked.connect(self._emitSearch)
         self.layout().addWidget(self._edit)
         self.layout().addWidget(self._button)
 
     def connectWithTree(self, tree):
-        Qt.QObject.connect(self, Qt.SIGNAL("search(QString)"), tree.findInTree)
+        self.search.connect(tree.findInTree)
 
     def _emitSearch(self):
         text = self._edit.text()
         if text:
-            self.emit(Qt.SIGNAL("search(QString)"), text)
+            self.search.emit(text)
         return
 
 SearchEdit = TaurusDevTreeOptions
@@ -1627,15 +1614,6 @@ class TaurusSearchTree(TaurusWidget):
     """
     This Class is a mere wrapper providing a TaurusDevTree connected with an options panel and some optional checkboxes.
     """
-    __pyqtSignals__ = list(getattr(TaurusWidget, '__pyqtSignals__', [])) + [
-        "search(QString)",
-        "modelChanged(const QString &)",
-        "deviceSelected(QString)",
-        "addAttrSelected(QStringList)",
-        "removeAttrSelected(QStringList)",
-        "refreshTree",
-        "nodeFound"
-    ]
     __slots__ = (
         "setTangoHost",
         #"setModel",
@@ -1646,6 +1624,14 @@ class TaurusSearchTree(TaurusWidget):
         "expandAll",
         "loadTree",
     )
+
+    refreshTree = Qt.pyqtSignal()
+    nodeFound = Qt.pyqtSignal()
+    deviceSelected = Qt.pyqtSignal('QString')
+    addAttrSelected = Qt.pyqtSignal('QStringList')
+    removeAttrSelected = Qt.pyqtSignal('QStringList')
+    modelChanged = Qt.pyqtSignal('const QString &')
+    search = Qt.pyqtSignal('QString')
 
     @staticmethod
     def method_forwarder(*args, **kwargs):
@@ -1673,11 +1659,16 @@ class TaurusSearchTree(TaurusWidget):
             except Exception, e:
                 self.warning('Unable to add slot %s: %s' % (k, e))
         # Event forwarding ...
-        for signal in TaurusDevTree.__pyqtSignals__:
-            # Qt.QObject.connect(self,Qt.SIGNAL("search(QString)"),tree.findInTree)
-            #self.emit(Qt.SIGNAL("search(QString)"), text)
-            Qt.QObject.connect(self.tree, Qt.SIGNAL(
-                signal), lambda args, f=self, s=signal: f.emit(Qt.SIGNAL(s), args))
+        self.tree.refreshTree.connect(self.refreshTree)
+        self.tree.nodeFound.connect(self.nodeFound)
+        self.tree.deviceSelected[str].connect(self.deviceSelected)
+        self.tree.search[str].connect(self.search)
+        self.tree.addAttrSelected[str].connect(self.addAttrSelected)
+        self.tree.removeAttrSelected[str].connect(self.removeAttrSelected)
+        self.tree.modelChanged[str].connect(self.modelChanged)
+        #for signal in TaurusDevTree.__pyqtSignals__:
+        #    getattr(self.tree, signal).connect(
+        #        lambda args, f=self, s=signal: getattr(f, signal).emit(args))
         self.edit.connectWithTree(self)
         return
 

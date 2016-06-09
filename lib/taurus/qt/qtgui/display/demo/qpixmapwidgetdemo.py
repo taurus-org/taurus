@@ -97,16 +97,11 @@ def demo():
             valign_widget.addItem("Center", Qt.QVariant(Qt.Qt.AlignVCenter))
             valign_widget.addItem("Bottom", Qt.QVariant(Qt.Qt.AlignBottom))
 
-            Qt.QObject.connect(pixmap_widget, Qt.SIGNAL(
-                "textChanged(const QString &)"), self.changePixmap)
-            Qt.QObject.connect(aspect_ratio_widget, Qt.SIGNAL(
-                "currentIndexChanged(int)"), self.changeAspectRatio)
-            Qt.QObject.connect(transformation_widget, Qt.SIGNAL(
-                "currentIndexChanged(int)"), self.changeTransformationMode)
-            Qt.QObject.connect(halign_widget, Qt.SIGNAL(
-                "currentIndexChanged(int)"), self.changeAlignment)
-            Qt.QObject.connect(valign_widget, Qt.SIGNAL(
-                "currentIndexChanged(int)"), self.changeAlignment)
+            pixmap_widget.textChanged.connect(self.changePixmap)
+            aspect_ratio_widget.currentIndexChanged.connect(self.changeAspectRatio)
+            transformation_widget.currentIndexChanged.connect(self.changeTransformationMode)
+            halign_widget.currentIndexChanged.connect(self.changeAlignment)
+            valign_widget.currentIndexChanged.connect(self.changeAlignment)
 
             self.w = w
             self.w_pixmap = pixmap_widget

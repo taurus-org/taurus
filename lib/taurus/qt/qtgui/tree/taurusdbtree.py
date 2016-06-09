@@ -255,7 +255,7 @@ class _TaurusTreePanel(Qt.QWidget, TaurusBaseWidget):
     def getModelClass(self):
         return TaurusAuthority
 
-    @Qt.pyqtSignature("setModel(QString)")
+    @Qt.pyqtSlot('QString')
     def setModel(self, model):
         """Sets/unsets the model name for this component
 

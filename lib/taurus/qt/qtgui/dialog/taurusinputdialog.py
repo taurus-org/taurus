@@ -135,8 +135,8 @@ class TaurusInputDialog(Qt.QDialog):
         self._panel = panel = input_panel_klass(input_data, self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._panel)
-        self.connect(panel.buttonBox(), Qt.SIGNAL("accepted()"), self.accept)
-        self.connect(panel.buttonBox(), Qt.SIGNAL("rejected()"), self.reject)
+        panel.buttonBox().accepted.connect(self.accept)
+        panel.buttonBox().rejected.connect(self.reject)
         self._panel.setInputFocus()
 
     def panel(self):

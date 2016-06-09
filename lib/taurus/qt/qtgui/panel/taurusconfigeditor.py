@@ -44,6 +44,8 @@ import shutil
 class QConfigEditorModel(Qt.QStandardItemModel):
     '''A custom Model for QConfigEditor'''
 
+    showError = Qt.pyqtSignal(str, str)
+
     def __init__(self, parent=None, designMode=False):
         super(Qt.QStandardItemModel, self).__init__()
         self._temporaryFile = None
@@ -64,7 +66,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         try:
             self.valueChanged(value_str, index)
         except:
-            self.emit(Qt.SIGNAL("showError"), 'Wrong value!',
+            self.showError.emit('Wrong value!',
                       'The value you entered is wrong. The old value will be restored.')
             return Qt.QStandardItemModel.setData(self, index, index.data(), role)
         return Qt.QStandardItemModel.setData(self, index, value, role)
@@ -426,7 +428,7 @@ class QConfigEditor(TaurusWidget):
             "edit-undo"), "Reload from file", self.restoreOriginal)
         self.layout().setMenuBar(self._toolbar)
         self.setWindowTitle('TaurusConfigEditor')
-        self.connect(self.tree, Qt.SIGNAL("showError"), self._showError)
+        self.tree.showError.connect(self._showError)
 
     def contextMenuEvent(self, event):
         '''Reimplemented from :meth:`QWidget.contextMenuEvent`'''

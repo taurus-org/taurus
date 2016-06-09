@@ -214,8 +214,7 @@ class QLed(QPixmapWidget):
         if interval > 0:
             if self._timer is None:
                 self._timer = Qt.QTimer(self)
-                self.connect(self._timer, Qt.SIGNAL(
-                    'timeout()'), self.toggleLedStatus)
+                self._timer.timeout.connect(self.toggleLedStatus)
             self._timer.start(interval)
         else:
             if self._timer is not None:

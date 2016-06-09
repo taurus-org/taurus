@@ -52,7 +52,7 @@ class TaurusFrame(Qt.QFrame, TaurusBaseContainer):
         stateWidget.useParentModel = True
         stateWidget.model = '/state'"""
 
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
+    modelChanged = Qt.pyqtSignal('const QString &')
 
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
@@ -63,11 +63,11 @@ class TaurusFrame(Qt.QFrame, TaurusBaseContainer):
     # Public slots for apply/restore changes
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    @Qt.pyqtSignature("applyPendingChanges()")
+    @Qt.pyqtSlot()
     def applyPendingChanges(self):
         self.applyPendingOperations()
 
-    @Qt.pyqtSignature("resetPendingChanges()")
+    @Qt.pyqtSlot()
     def resetPendingChanges(self):
         self.resetPendingOperations()
 

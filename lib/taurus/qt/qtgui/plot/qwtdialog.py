@@ -181,46 +181,33 @@ class TaurusPlotConfigDialog(Qt.QDialog):
             self.ui.peaksComboBox.setCurrentIndex(3)
 
         # connect signals
-        self.connect(self.ui.buttonBox.button(
-            Qt.QDialogButtonBox.Close), Qt.SIGNAL("clicked()"), self.hide)
-        self.connect(self.ui.buttonBox.button(
-            Qt.QDialogButtonBox.Apply), Qt.SIGNAL("clicked()"), self.apply)
-        self.connect(self.ui.xAutoGroupBox,  Qt.SIGNAL(
-            "toggled (bool)"), self.toggledAutoScale)
-        self.connect(self.ui.y1AutoGroupBox, Qt.SIGNAL(
-            "toggled (bool)"), self.toggledAutoScale)
-        self.connect(self.ui.y2AutoGroupBox, Qt.SIGNAL(
-            "toggled (bool)"), self.toggledAutoScale)
+        self.ui.buttonBox.button(
+            Qt.QDialogButtonBox.Close).clicked.connect(self.hide)
+        self.ui.buttonBox.button(
+            Qt.QDialogButtonBox.Apply).clicked.connect(self.apply)
+        self.ui.xAutoGroupBox.toggled.connect(self.toggledAutoScale)
+        self.ui.y1AutoGroupBox.toggled.connect(self.toggledAutoScale)
+        self.ui.y2AutoGroupBox.toggled.connect(self.toggledAutoScale)
 #        self.connect(self.ui.xEditMin,  Qt.SIGNAL("returnPressed()"),self.apply)
 #        self.connect(self.ui.xEditMax,  Qt.SIGNAL("returnPressed()"),self.apply)
 #        self.connect(self.ui.y1EditMin, Qt.SIGNAL("returnPressed()"),self.apply)
 #        self.connect(self.ui.y1EditMax, Qt.SIGNAL("returnPressed()"),self.apply)
 #        self.connect(self.ui.y2EditMin, Qt.SIGNAL("returnPressed()"),self.apply)
 #        self.connect(self.ui.y2EditMax, Qt.SIGNAL("returnPressed()"),self.apply)
-        self.connect(self.ui.xModeComboBox, Qt.SIGNAL(
-            "currentIndexChanged(const QString&)"), self.modeComboChanged)
-        self.connect(self.ui.xDynScaleCheckBox, Qt.SIGNAL(
-            "toggled (bool)"), self.setXDynScale)
+        self.ui.xModeComboBox.currentIndexChanged.connect(self.modeComboChanged)
+        self.ui.xDynScaleCheckBox.toggled.connect(self.setXDynScale)
         #self.connect(self.ui.xRangeCB, Qt.SIGNAL("currentIndexChanged(const QString&)"),self.apply)
-        self.connect(self.ui.y1ModeComboBox, Qt.SIGNAL(
-            "currentIndexChanged(const QString&)"), self.modeComboChanged)
-        self.connect(self.ui.y2ModeComboBox, Qt.SIGNAL(
-            "currentIndexChanged(const QString&)"), self.modeComboChanged)
-        self.connect(self.ui.peaksComboBox, Qt.SIGNAL(
-            "currentIndexChanged(int)"), self.peaksComboChanged)
+        self.ui.y1ModeComboBox.currentIndexChanged.connect(self.modeComboChanged)
+        self.ui.y2ModeComboBox.currentIndexChanged.connect(self.modeComboChanged)
+        self.ui.peaksComboBox.currentIndexChanged.connect(self.peaksComboChanged)
         # self.connect(self.curvesAppearanceChooser,
         # Qt.SIGNAL("controlChanged"),self.apply) #"autoapply" mode for *all*
         # the curve appearance controls
-        self.connect(self.curvesAppearanceChooser.assignToY1BT,
-                     Qt.SIGNAL("clicked()"), self.setCurvesYAxis)
-        self.connect(self.curvesAppearanceChooser.assignToY2BT,
-                     Qt.SIGNAL("clicked()"), self.setCurvesYAxis)
-        self.connect(self.curvesAppearanceChooser.bckgndBT,
-                     Qt.SIGNAL("clicked()"), self.changeBackgroundColor)
-        self.connect(self.curvesAppearanceChooser.changeTitlesBT,
-                     Qt.SIGNAL("clicked()"), self.onChangeTitles)
-        self.connect(self.curvesAppearanceChooser.curvesLW, Qt.SIGNAL(
-            "CurveTitleEdited"), self.onCurveTitleEdited)
+        self.curvesAppearanceChooser.assignToY1BT.clicked[()].connect(self.setCurvesYAxis)
+        self.curvesAppearanceChooser.assignToY2BT.clicked[()].connect(self.setCurvesYAxis)
+        self.curvesAppearanceChooser.bckgndBT.clicked.connect(self.changeBackgroundColor)
+        self.curvesAppearanceChooser.changeTitlesBT.clicked.connect(self.onChangeTitles)
+        self.curvesAppearanceChooser.CurveTitleEdited.connect(self.onCurveTitleEdited)
 
         # finally adjust size
         self.adjustSize()

@@ -173,7 +173,7 @@ def _parse_spec(spec):
         elif ch.isalpha():
             raise ValueError("Unknown conversion specified " + ch)
         else:
-             break
+            break
     return result
 
 
@@ -195,6 +195,6 @@ def format_unit(unit, spec):
 
 def remove_custom_flags(spec):
     for flag in _KNOWN_TYPES:
-         if flag:
-             spec = spec.replace(flag, '')
+        if flag:
+            spec = spec.replace(flag, '')
     return spec

@@ -411,7 +411,7 @@ def main():
     w = TaurusInputPanel(d)
     l = Listener()
     l.panel = w
-    w.connect(w.buttonBox(), Qt.SIGNAL("accepted()"), l.on_accept)
+    w.buttonBox().accepted.connect(l.on_accept)
     w.show()
     app.exec_()
 

@@ -150,6 +150,8 @@ class CurvesTableModel(Qt.QAbstractTableModel):
     ''' A model to manage information about curves to be plotted an their appearance
     '''
 
+    dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')
+
     def __init__(self, curves=None):
         if curves is None:
             curves = []
@@ -277,7 +279,7 @@ class CurvesTableModel(Qt.QAbstractTableModel):
             curve = self.curves[row]
             if role == PROPS_ROLE:
                 self.curves[row].properties = value
-                self.emit(Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), self.index(
+                self.dataChanged.emit(self.index(
                     row, 0), self.index(row, self.ncolumns - 1))
             else:
                 column = index.column()
@@ -290,8 +292,7 @@ class CurvesTableModel(Qt.QAbstractTableModel):
                     curve.title = value
                 elif column == VIS:
                     curve.vis = value
-                self.emit(
-                    Qt.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
+                self.dataChanged.emit(index, index)
             return True
         return False
 
@@ -409,28 +410,17 @@ class CurvePropertiesView(Qt.QAbstractItemView):
         self.showProperties(self._emptyProps)
 
         # Connections
-        self.connect(self.ui.sStyleCB, Qt.SIGNAL(
-            "currentIndexChanged(const QString&)"), self._onSymbolStyleChanged)
-        self.connect(self.ui.sStyleCB, Qt.SIGNAL(
-            "currentIndexChanged(int)"), self.onPropertyControlChanged)
-        self.connect(self.ui.lStyleCB, Qt.SIGNAL(
-            "currentIndexChanged(int)"), self.onPropertyControlChanged)
-        self.connect(self.ui.lStyleCB, Qt.SIGNAL(
-            "currentIndexChanged(int)"), self.onPropertyControlChanged)
-        self.connect(self.ui.lColorCB, Qt.SIGNAL(
-            "currentIndexChanged(int)"), self.onPropertyControlChanged)
-        self.connect(self.ui.sColorCB, Qt.SIGNAL(
-            "currentIndexChanged(int)"), self.onPropertyControlChanged)
-        self.connect(self.ui.cStyleCB, Qt.SIGNAL(
-            "currentIndexChanged(int)"), self.onPropertyControlChanged)
-        self.connect(self.ui.sSizeSB, Qt.SIGNAL(
-            "valueChanged(int)"), self.onPropertyControlChanged)
-        self.connect(self.ui.lWidthSB, Qt.SIGNAL(
-            "valueChanged(int)"), self.onPropertyControlChanged)
-        self.connect(self.ui.sFillCB, Qt.SIGNAL(
-            "stateChanged(int)"), self.onPropertyControlChanged)
-        self.connect(self.ui.cFillCB, Qt.SIGNAL(
-            "stateChanged(int)"), self.onPropertyControlChanged)
+        self.ui.sStyleCB.currentIndexChanged.connect(self._onSymbolStyleChanged)
+        self.ui.sStyleCB.currentIndexChanged.connect(self.onPropertyControlChanged)
+        self.ui.lStyleCB.currentIndexChanged.connect(self.onPropertyControlChanged)
+        self.ui.lStyleCB.currentIndexChanged.connect(self.onPropertyControlChanged)
+        self.ui.lColorCB.currentIndexChanged.connect(self.onPropertyControlChanged)
+        self.ui.sColorCB.currentIndexChanged.connect(self.onPropertyControlChanged)
+        self.ui.cStyleCB.currentIndexChanged.connect(self.onPropertyControlChanged)
+        self.ui.sSizeSB.valueChanged.connect(self.onPropertyControlChanged)
+        self.ui.lWidthSB.valueChanged.connect(self.onPropertyControlChanged)
+        self.ui.sFillCB.stateChanged.connect(self.onPropertyControlChanged)
+        self.ui.cFillCB.stateChanged.connect(self.onPropertyControlChanged)
 
     #-------------------------------------------------------------------------
     # Reimplemented functions from base class

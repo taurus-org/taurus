@@ -33,6 +33,7 @@ __all__ = ["TaurusImageItem", "TaurusRGBImageItem", "TaurusTrend2DItem",
 from taurus.external.pint import Quantity
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
+from taurus.qt.qtcore.util.signal import baseSignal
 import taurus.core
 from taurus.core.util.containers import ArrayBuffer
 
@@ -45,14 +46,7 @@ import numpy
 class TaurusBaseImageItem(TaurusBaseComponent):
     '''A ImageItem that gets its data from a taurus attribute'''
 
-    def __init__(self, classname):
-        TaurusBaseComponent.__init__(self, classname)
-        self._signalGen = Qt.QObject()
-
-    def getSignaller(self):
-        '''reimplemented from TaurusBaseComponent because TaurusImageItem is
-        not (and cannot be) a QObject'''
-        return self._signalGen
+    dataChanged = baseSignal('dataChanged')
 
     def setModel(self, model):
         # do the standard stuff
@@ -84,7 +78,7 @@ class TaurusBaseImageItem(TaurusBaseComponent):
         if lut_range[0] == lut_range[1]:
             lut_range = None
         self.set_data(v, lut_range=lut_range)
-        self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
+        self.dataChanged.emit()
         p = self.plot()
 
         if p is not None:
@@ -230,11 +224,13 @@ class TaurusEncodedRGBImageItem(RGBImageItem, TaurusEncodedBaseImageItem):
 class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
     '''A XYImageItem that is constructed by stacking 1D arrays from events from a Taurus 1D attribute'''
 
+    scrollRequested = baseSignal('scrollRequested', object, object, object)
+    dataChanged = baseSignal('dataChanged')
+
     def __init__(self, param=None, buffersize=512, stackMode='datetime'):
         XYImageItem.__init__(self, numpy.arange(2), numpy.arange(
             2), numpy.zeros((2, 2)), param=param)
         TaurusBaseComponent.__init__(self, self.__class__.__name__)
-        self._signalGen = Qt.QObject()
         self.maxBufferSize = buffersize
         self._yValues = None
         self._xBuffer = None
@@ -242,11 +238,6 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         self.stackMode = stackMode
         self.set_interpolation(INTERP_NEAREST)
         self.__timeOffset = None
-
-    def getSignaller(self):
-        '''reimplemented from TaurusBaseComponent because TaurusImageItem is
-        not (and cannot be) a QObject'''
-        return self._signalGen
 
     def setBufferSize(self, buffersize):
         '''sets the size of the stack
@@ -365,14 +356,14 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         self.set_xy(x, y)
 
         # signal data changed and replot
-        self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
+        self.dataChanged.emit()
 
         if plot is not None:
             value = x[-1]
             axis = self.xAxis()
             xmin, xmax = plot.get_axis_limits(axis)
             if value > xmax or value < xmin:
-                self.getSignaller().emit(Qt.SIGNAL('scrollRequested'), plot, axis, value)
+                self.scrollRequested.emit(plot, axis, value)
             plot.update_colormap_axis(self)
             plot.replot()
 
@@ -497,14 +488,14 @@ class TaurusTrend2DScanItem(TaurusTrend2DItem):
         self.set_xy(x, y)
 
         # signal data changed and replot
-        self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
+        self.dataChanged.emit()
         plot = self.plot()
         if plot is not None:
             value = x[-1]
             axis = self.xAxis()
             xmin, xmax = plot.get_axis_limits(axis)
             if value > xmax or value < xmin:
-                self.getSignaller().emit(Qt.SIGNAL('scrollRequested'), plot, axis, value)
+                self.scrollRequested.emit(plot, axis, value)
             plot.update_colormap_axis(self)
             plot.replot()
 
@@ -514,8 +505,7 @@ class TaurusTrend2DScanItem(TaurusTrend2DItem):
         :param doorname: (str) the QDoor name
         '''
         qdoor = taurus.Device(doorname)
-        qdoor.connect(qdoor, Qt.SIGNAL("recordDataUpdated"),
-                      self.scanDataReceived)
+        qdoor.recordDataUpdated.connect(self.scanDataReceived)
 
     def getModel(self):
         return self.__model
@@ -572,8 +562,7 @@ def taurusImageMain():
         plot.add_item(img)
         # IMPORTANT: connect the cross section plots to the taurusimage so that
         # they are updated when the taurus data changes
-        win.connect(img.getSignaller(), Qt.SIGNAL(
-            "dataChanged"), win.update_cross_sections)
+        img.dataChanged.connect(win.update_cross_sections)
 
     win.exec_()
 
@@ -612,7 +601,7 @@ def test1():
 #    win.get_itemlist_panel().show()
 
     # IMPORTANT: connect the cross section plots to the taurusimage so that they are updated when the taurus data changes
-    #win.connect(taurusimage.getSignaller(), Qt.SIGNAL("dataChanged"), win.update_cross_sections)
+    # taurusimage.dataChanged.connect(win.update_cross_sections)
 
     win.exec_()
 

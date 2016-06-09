@@ -39,12 +39,8 @@ class _HelpBrowser(Qt.QTextBrowser):
         self.__help_engine = help_engine
         content_widget = help_engine.contentWidget()
         index_widget = help_engine.indexWidget()
-        content_widget.connect(content_widget,
-                               Qt.SIGNAL('linkActivated (QUrl)'),
-                               self.setSource)
-        index_widget.connect(index_widget,
-                             Qt.SIGNAL('linkActivated (QUrl)'),
-                             self.setSource)
+        content_widget.linkActivated.connect(self.setSource)
+        index_widget.linkActivated.connect(self.setSource)
 
     def loadResource(self, type, url):
         if url.scheme() == "qthelp":

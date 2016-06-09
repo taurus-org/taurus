@@ -67,8 +67,7 @@ class QFallBackWidget(Qt.QWidget):
         if exc_info is not None and exc_info[0] is not None:
             self.details_button = Qt.QPushButton("Details...", self)
             layout.addWidget(self.details_button, 0, Qt.Qt.AlignTop)
-            Qt.QObject.connect(self.details_button, Qt.SIGNAL("clicked()"),
-                               self.onShowDetails)
+            self.details_button.clicked.connect(self.onShowDetails)
         layout.addStretch(1)
 
     def onShowDetails(self):

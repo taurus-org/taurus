@@ -54,8 +54,7 @@ class GraphicalChoiceDlg(Qt.QDialog):
                                                 horizontalScrollBarPolicy=horizontalScrollBarPolicy,
                                                 verticalScrollBarPolicy=verticalScrollBarPolicy)
         self.layout().addWidget(self._iconsArea)
-        self.connect(self._iconsArea, Qt.SIGNAL(
-            'choiceMade'), self.onChoiceMade)
+        self._iconsArea.choiceMade.connect(self.onChoiceMade)
 
     def setHorizontalScrollBarPolicy(self, policy):
         '''sets horizontal scrollbar policy of scrollArea'''
@@ -119,6 +118,8 @@ class GraphicalChoiceDlg(Qt.QDialog):
 
 class GraphicalChoiceWidget(Qt.QScrollArea):
     '''A widget that presents a 2D grid of buttons'''
+
+    choiceMade = Qt.pyqtSignal(str)
 
     def __init__(self, parent=None, designMode=False, choices=None, pixmaps=None, iconSize=128,
                  defaultPixmap=None, horizontalScrollBarPolicy=Qt.Qt.ScrollBarAsNeeded,
@@ -188,13 +189,13 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
         button.setIcon(Qt.QIcon(pixmap))
         button.setIconSize(Qt.QSize(self._iconSize, self._iconSize))
         button.setToolTip(tooltip)
-        self.connect(button, Qt.SIGNAL("clicked()"), self.onClick)
+        button.clicked.connect(self.onClick)
         self.gridLayout.addWidget(button, row, col, Qt.Qt.AlignCenter)
 
     def onClick(self):
         '''slot called when a button is clicked'''
         self._chosen = unicode(self.sender().text())
-        self.emit(Qt.SIGNAL('choiceMade'), self._chosen)
+        self.choiceMade.emit(self._chosen)
 
     def getChosen(self):
         '''

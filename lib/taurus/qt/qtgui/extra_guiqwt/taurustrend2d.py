@@ -144,8 +144,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
             self.debug('cannot set units for colormap axis')
             self.traceback()
 
-        self.connect(self.trendItem.getSignaller(), Qt.SIGNAL(
-            "dataChanged"), self.update_cross_sections)
+        self.trendItem.dataChanged.connect(self.update_cross_sections)
 
     def getModel(self):
         """reimplemented from :class:`TaurusBaseWidget`"""

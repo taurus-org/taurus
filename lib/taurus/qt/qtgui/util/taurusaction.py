@@ -45,6 +45,8 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
     """
     DEFAULT_ICON_NAME = 'application-x-executable'
 
+    cmdArgsChanged = Qt.pyqtSignal(list)
+
     def __init__(self, cmdargs, text=None, icon=None, parent=None, interactive=True):
         '''creator
 
@@ -74,7 +76,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         self.interactive = interactive
         self._process = []
         self.setCmdArgs(cmdargs)
-        self.connect(self, Qt.SIGNAL("triggered()"), self.actionTriggered)
+        self.triggered.connect(self.actionTriggered)
         self.setToolTip("Launches %s (external application)" % text)
         self.registerConfigProperty(self.cmdArgs, self.setCmdArgs, 'cmdArgs')
 
@@ -93,12 +95,12 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
             cmdargs = shlex.split(str(cmdargs))
         self.__cmdargs = cmdargs
         if emitsignal:
-            self.emit(Qt.SIGNAL("cmdArgsChanged"), self.__cmdargs)
+            self.cmdArgsChanged.emit(self.__cmdargs)
 
     def cmdArgs(self):
         return self.__cmdargs
 
-    @Qt.pyqtSignature("triggered()")
+    @Qt.pyqtSlot(name='triggered', result=bool)
     def actionTriggered(self, args=None):
         '''launches the external application as a subprocess'''
         import subprocess
@@ -192,9 +194,8 @@ class TaurusAction(Qt.QAction):
 
         Qt.QAction.__init__(self, parent)
 
-        self.connect(parent, Qt.SIGNAL(
-            'modelChanged(const QString &)'), self.modelChanged)
-        self.connect(self, Qt.SIGNAL("triggered()"), self.actionTriggered)
+        parent.modelChanged.connect(self.modelChanged)
+        self.triggered.connect(self.actionTriggered)
 
         self.update()
 
@@ -202,11 +203,11 @@ class TaurusAction(Qt.QAction):
         model = self.parent().getModelObj()
         self.setDisabled(model is None)
 
-    @Qt.pyqtSignature("modelChanged(const QString &)")
+    @Qt.pyqtSlot('QString')
     def modelChanged(self, modelName):
         self.update()
 
-    @Qt.pyqtSignature("triggered()")
+    @Qt.pyqtSlot(name='triggered')
     def actionTriggered(self):
         pass
 

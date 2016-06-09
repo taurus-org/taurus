@@ -38,7 +38,7 @@ from taurus.qt.qtgui.resource import getStandardIcon
 
 class TaurusValueSpinBox(Qt.QAbstractSpinBox):
 
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
+    modelChanged = Qt.pyqtSignal('const QString &')
 
     def __init__(self, qt_parent=None, designMode=False):
         Qt.QAbstractSpinBox.__init__(self, qt_parent)
@@ -51,8 +51,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         lineEdit = TaurusValueLineEdit(designMode=designMode)
         self.setLineEdit(lineEdit)
         self.setAccelerated(True)
-        self.connect(self, Qt.SIGNAL("editingFinished()"),
-                     self.writeValue)
+        self.editingFinished.connect(self.writeValue)
 
     def __getattr__(self, name):
         return getattr(self.lineEdit(), name)
@@ -72,7 +71,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         self.setValue(self.getValue() + self.getSingleStep() * steps)
 
         if self.lineEdit().getAutoApply():
-            self.lineEdit().emit(Qt.SIGNAL('editingFinished()'))
+            self.lineEdit().editingFinished.emit()
         else:
             kmods = Qt.QCoreApplication.instance().keyboardModifiers()
             controlpressed = bool(kmods & Qt.Qt.ControlModifier)
@@ -140,7 +139,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
     def getSingleStep(self):
         return self._singleStep
 
-    @Qt.pyqtSignature("setSingleStep(double)")
+    @Qt.pyqtSlot(float)
     def setSingleStep(self, step):
         self._singleStep = step
 

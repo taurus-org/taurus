@@ -51,18 +51,18 @@ and other Debian-based distros). You can install it and all its dependencies by
 doing (as root)::
 
        aptitude install python-taurus
-       
+
 (see more detailed instructions in `this step-by-step howto
 <https://sourceforge.net/p/sardana/wiki/Howto-SardanaFromScratch/>`__)
 
-    
+
 Windows
 ~~~~~~~
 
 #. Download the latest windows binary from http://pypi.python.org/pypi/taurus
 #. Run the installation excecutable
 #. test the installation::
-       
+
        C:\Python26\python -c "import taurus; print taurus.Release.version"
 
 Windows installation shortcut
@@ -89,8 +89,8 @@ necessary to run taurus on your windows machine
 Working from Git source without installing
 ------------------------------------------
 
-Sometimes it is convenient to work directly from the git source without 
-installing. 
+Sometimes it is convenient to work directly from the git source without
+installing.
 
 You can clone taurus from our main git repository::
 
@@ -101,10 +101,10 @@ Then, if you decide to work directly from Git code (without installing):
     1. add <taurus_root_dir>/lib to PYTHONPATH
     2. add <taurus_root_dir>/scripts to PATH
     3. build the resources::
-    
+
         cd <taurus_root_dir>
         python setup.py build_resources
-        
+
 
 
 
@@ -126,19 +126,19 @@ Dependencies
         PyQwt       [shape=box,label="PyQwt >=5.2.0"];
         Qub         [shape=box,label="Qub >=1.1.0"];
         qtcontrols  [shape=box,label="qtcontrols >=1.1.0"];
-        PyMca       [shape=box,label="PyMca >=4.4.1"];
+        PyMca5       [shape=box,label="PyMca5 >=5.1.2"];
         ply         [shape=box,label="PLY"];
-        
+
         Taurus -> Python;
         Taurus -> PyTango;
         Taurus -> PyQt         [label="taurus.qt only"];
         Taurus -> PyQwt        [label="taurus.qt only"];
         Taurus -> Qub          [style=dotted, label="taurus.qt.qtgui.image only"];
         Taurus -> qtcontrols   [style=dotted, label="taurus.qt.qtgui.gauge only"];
-        Taurus -> PyMca        [style=dotted, label="taurus.qt.qtgui.extra_nexus only"];
+        Taurus -> PyMca5       [style=dotted, label="taurus.qt.qtgui.extra_nexus only"];
         Taurus -> ply          [style=dotted, label="taurus.qt.qtgui.graphic.jdraw only"];
         Taurus -> numpy;
-    } 
+    }
 
 Taurus has dependencies on some python libraries. After you installed taurus you
 can check the state of the dependencies by doing::
@@ -154,7 +154,7 @@ can check the state of the dependencies by doing::
     Checking OPTIONAL dependencies of taurus.qt...
         Checking for Qub >=1.0.0... [OK] (Found 1.0.0)
         Checking for qtcontrols >=1.0.0... [OK] (Found 1.0.0)
-    
+
 - You may already have PyTango_ installed. You will need PyTango 7 or later.
   You can check by doing::
 
@@ -180,14 +180,14 @@ Optional packages
 - The image widgets are provided by the guiqwt_ library. The widgets based on
   this library replace the previously used Qub_-based image widget which is now
   considered deprecated in Taurus
-    
+
 - The Gauge widgets are only available if you have the python extension of
   qtcontrols. qtcontrols is part of QTango_.
 
-- The JDraw synoptics widgets are only available if you have the :mod:`ply` 
+- The JDraw synoptics widgets are only available if you have the :mod:`ply`
   package installed.
-  
-- The NeXus browser widget is only available if you have PyMca_ installed
+
+- The NeXus browser widget is only available if you have PyMca5_ installed
 
 
 .. _numpy: http://numpy.scipy.org/
@@ -203,4 +203,4 @@ Optional packages
 .. _guiqwt: http://code.google.com/p/guiqwt/
 .. _IPython: http://ipython.scipy.org/
 .. _Qub: http://www.blissgarden.org/projects/qub/
-.. _PyMca: http://pymca.sourceforge.net/
+.. _PyMca5: http://pymca.sourceforge.net/

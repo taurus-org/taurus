@@ -29,6 +29,7 @@ __all__ = ["TaurusCurveItem"]
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
+from taurus.qt.qtcore.util.signal import baseSignal
 import taurus
 from guiqwt.curve import CurveItem
 from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam, TaurusTrendParam
@@ -40,24 +41,19 @@ import numpy
 class TaurusCurveItem(CurveItem, TaurusBaseComponent):
     '''A CurveItem that autoupdates its values & params when x or y components change'''
 
+    dataChanged = baseSignal('dataChanged')
+
     def __init__(self, curveparam=None, taurusparam=None):
         CurveItem.__init__(self, curveparam=curveparam)
         TaurusBaseComponent.__init__(self, self.__class__.__name__)
-        self._signalGen = Qt.QObject()
         # I need to do this because I am not using the standard model attach
         # mechanism
-        self._signalGen.connect(self._signalGen, Qt.SIGNAL(
-            'taurusEvent'), self.filterEvent)
+        self.taurusEvent.connect(self.filterEvent)
         self._xcomp = None
         self._ycomp = None
         if taurusparam is None:
             taurusparam = TaurusCurveParam()
         self.taurusparam = taurusparam
-
-    def getSignaller(self):
-        '''reimplemented from TaurusBaseComponent because TaurusCurveItem is
-        not (and cannot be) a QObject'''
-        return self._signalGen
 
     def setModels(self, x, y):
         # create/get new components
@@ -93,7 +89,7 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
             return
         if evt_src is self._xcomp or evt_src is self._ycomp:
             self.onCurveDataChanged()
-            self.getSignaller().emit(Qt.SIGNAL('dataChanged'))
+            self.dataChanged.emit()
 
     def onCurveDataChanged(self):
         # TODO: Take units into account for displaying curves, axis, etc.
@@ -134,10 +130,12 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
 class TaurusTrendItem(CurveItem, TaurusBaseComponent):
     '''A CurveItem that listens to events from a Taurus scalar attribute and appends new values to it'''
 
+    dataChanged = baseSignal('dataChanged')
+    scrollRequested = baseSignal('scrollRequested', object, object, object)
+
     def __init__(self, curveparam=None, taurusparam=None):
         CurveItem.__init__(self, curveparam=curveparam)
         TaurusBaseComponent.__init__(self, self.__class__.__name__)
-        self._signalGen = Qt.QObject()
 
         self.__xBuffer = None
         self.__yBuffer = None
@@ -148,11 +146,6 @@ class TaurusTrendItem(CurveItem, TaurusBaseComponent):
             taurusparam = TaurusTrendParam()
         self.taurusparam = taurusparam
         self.updateTaurusParams()
-
-    def getSignaller(self):
-        '''reimplemented from TaurusBaseComponent because TaurusCurveItem is
-        not (and cannot be) a QObject'''
-        return self._signalGen
 
     def setBufferSize(self, buffersize):
         '''sets the size of the stack.
@@ -239,14 +232,14 @@ class TaurusTrendItem(CurveItem, TaurusBaseComponent):
         self.set_data(x, y)
 
         # signal data changed and replot
-        self.getSignaller().emit(Qt.SIGNAL('dataChanged'), self)
+        self.dataChanged.emit()
 
         if plot is not None:
             value = x[-1]
             axis = self.xAxis()
             xmin, xmax = plot.get_axis_limits(axis)
             if value > xmax or value < xmin:
-                self.getSignaller().emit(Qt.SIGNAL('scrollRequested'), plot, axis, value)
+                self.scrollRequested.emit(plot, axis, value)
             plot.replot()
 
     def get_item_parameters(self, itemparams):

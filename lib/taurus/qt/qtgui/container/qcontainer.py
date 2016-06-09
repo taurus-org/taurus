@@ -159,8 +159,7 @@ class QGroupWidget(Qt.QWidget):
         self._titleLabel = Qt.QLabel()
         self._upDownButton = Qt.QToolButton()
         self._upDownButton.setStyleSheet("border: 0px")
-        Qt.QObject.connect(self._upDownButton, Qt.SIGNAL(
-            "clicked()"), self.switchContentVisible)
+        self._upDownButton.clicked.connect(self.switchContentVisible)
         l.addWidget(self._titleButton, 0)
         l.addWidget(self._titleLabel, 1)
         l.addWidget(self._upDownButton, 0)

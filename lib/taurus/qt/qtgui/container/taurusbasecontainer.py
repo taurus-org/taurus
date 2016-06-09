@@ -131,10 +131,6 @@ class TaurusBaseContainer(TaurusBaseWidget):
                 ret |= child.hasPendingOperations()
         return ret
 
-    @Qt.pyqtSignature("setModel(QString)")
-    def setModel(self, model):
-        TaurusBaseWidget.setModel(self, model)
-
     def handleEvent(self, evt_src, evt_type, evt_value):
         if not self._setText or not self.getShowText():
             return

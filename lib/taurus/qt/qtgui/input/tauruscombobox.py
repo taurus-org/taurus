@@ -42,8 +42,6 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     '''This widget shows a combobox that offers a limited choice of values that
     can be set on an attribute.'''
 
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
-
     def __init__(self, parent=None, designMode=False):
         self._previousModelName = None
         self._lastValueByUser = None
@@ -71,18 +69,14 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     def preAttach(self):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         TaurusBaseWritableWidget.preAttach(self)
-        Qt.QObject.connect(self, Qt.SIGNAL("currentIndexChanged(int)"),
-                           self.writeIndexValue)
-        Qt.QObject.connect(self, Qt.SIGNAL("applied()"),
-                           self.writeValue)
+        self.currentIndexChanged.connect(self.writeIndexValue)
+        self.applied.connect(self.writeValue)
 
     def postDetach(self):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         TaurusBaseWritableWidget.postDetach(self)
-        Qt.QObject.disconnect(self, Qt.SIGNAL("currentIndexChanged(int)"),
-                              self.writeIndexValue)
-        Qt.QObject.disconnect(self, Qt.SIGNAL("applied()"),
-                              self.writeValue)
+        self.currentIndexChanged.disconnect(self.writeIndexValue)
+        self.applied.disconnect(self.writeValue)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWritableWidget overwriting / Pending operations
@@ -134,18 +128,18 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     # signals, gui events... things related to "write" in the end
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    @Qt.pyqtSignature("currentIndexChanged(int)")
+    @Qt.pyqtSlot(int, name='currentIndexChanged')
     def writeIndexValue(self, index):
         '''slot called to emit a valueChanged signal when the currentIndex is changed'''
         self.emitValueChanged()
         if self.getAutoApply():
-            self.emit(Qt.SIGNAL("applied()"))
+            self.applied.emit()
 
     def keyPressEvent(self, event):
         '''reimplemented to emit an 'applied()' signal when Enter (or Return)
         key is pressed'''
         if event.key() in [Qt.Qt.Key_Return, Qt.Qt.Key_Enter]:
-            self.emit(Qt.SIGNAL("applied()"))
+            self.applied.emit()
             event.accept()
         else:
             return Qt.QComboBox.keyPressEvent(self, event)
@@ -277,8 +271,6 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
 
 
 class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
-
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
 
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__

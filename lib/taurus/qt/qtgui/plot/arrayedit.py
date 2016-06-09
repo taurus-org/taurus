@@ -37,6 +37,8 @@ from curvesAppearanceChooserDlg import CurveAppearanceProperties
 @UILoadable
 class ControllerBox(Qt.QWidget):
 
+    selected = Qt.pyqtSignal(int)
+
     def __init__(self, parent=None, x=0, y=0, corr=0):
         Qt.QWidget.__init__(self, parent)
         self.loadUi()
@@ -51,12 +53,12 @@ class ControllerBox(Qt.QWidget):
         #self.connect(self.corrSB, Qt.SIGNAL('valueChanged(double)'), self.enableScale)
 
     def mousePressEvent(self, event):
-        self.emit(Qt.SIGNAL('selected'), self._x)
+        self.selected.emit(self._x)
         # print 'SELECTED', self
         #Qt.QDoubleSpinBox.focusInEvent(self.corrSB, event)
 
     def corrSB_focusInEvent(self, event):
-        self.emit(Qt.SIGNAL('selected'), self._x)
+        self.selected.emit(self._x)
         # print 'GOT FOCUS', self
         Qt.QDoubleSpinBox.focusInEvent(self.corrSB, event)
 
@@ -153,16 +155,11 @@ class ArrayEditor(Qt.QWidget):
         # Qt.QTimer.singleShot(0, <method>)
 
         # connections
-        self.connect(self.addCPointsBT, Qt.SIGNAL(
-            'clicked (bool)'), self._addCPointsDialog.show)
-        self.connect(self._addCPointsDialog.editBT, Qt.SIGNAL(
-            'clicked (bool)'), self.showEditCPointsDialog)
-        self.connect(self._addCPointsDialog.cleanBT, Qt.SIGNAL(
-            'clicked (bool)'), self.resetCorrection)
-        self.connect(self._addCPointsDialog.addSingleCPointBT,
-                     Qt.SIGNAL('clicked (bool)'), self.onAddSingleCPointBT)
-        self.connect(self._addCPointsDialog.addRegEspCPointsBT,
-                     Qt.SIGNAL('clicked (bool)'), self.onAddRegEspCPointsBT)
+        self.addCPointsBT.clicked.connect(self._addCPointsDialog.show)
+        self._addCPointsDialog.editBT.clicked.connect(self.showEditCPointsDialog)
+        self._addCPointsDialog.cleanBT.clicked.connect(self.resetCorrection)
+        self._addCPointsDialog.addSingleCPointBT.clicked.connect(self.onAddSingleCPointBT)
+        self._addCPointsDialog.addRegEspCPointsBT.clicked.connect(self.onAddRegEspCPointsBT)
 
     def plot1MousePressEvent(self, event):
         self.plotMousePressEvent(event, self.plot1)
@@ -232,13 +229,12 @@ class ArrayEditor(Qt.QWidget):
         self.scrollArea.ensureWidgetVisible(ctrl)
 
     def connectToController(self, ctrl):
-        self.connect(ctrl, Qt.SIGNAL('selected'), self.changeCPointSelection)
-        self.connect(ctrl.corrSB, Qt.SIGNAL(
-            'valueChanged (double)'), self.onCorrSBChanged)
-        self.connect(ctrl.lCopyBT, Qt.SIGNAL('clicked (bool)'), self.onLCopy)
-        self.connect(ctrl.rCopyBT, Qt.SIGNAL('clicked (bool)'), self.onRCopy)
-        self.connect(ctrl.lScaleBT, Qt.SIGNAL('clicked (bool)'), self.onLScale)
-        self.connect(ctrl.rScaleBT, Qt.SIGNAL('clicked (bool)'), self.onRScale)
+        ctrl.selected.connect(self.changeCPointSelection)
+        ctrl.corrSB.valueChanged.connect(self.onCorrSBChanged)
+        ctrl.lCopyBT.clicked.connect(self.onLCopy)
+        ctrl.rCopyBT.clicked.connect(self.onRCopy)
+        ctrl.lScaleBT.clicked.connect(self.onLScale)
+        ctrl.rScaleBT.clicked.connect(self.onRScale)
 
     def onAddSingleCPointBT(self):
         x = self._addCPointsDialog.singleCPointXSB.value()

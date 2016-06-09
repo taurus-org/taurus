@@ -93,18 +93,12 @@ def demo():
                                 "wvalue.units", "state", "quality", "none"])
             bg_widget.addItems(["quality", "state", "none"])
 
-            Qt.QObject.connect(model_widget, Qt.SIGNAL(
-                "textChanged(const QString &)"), w.setModel)
-            Qt.QObject.connect(fg_widget, Qt.SIGNAL(
-                "currentIndexChanged(const QString &)"), w.setFgRole)
-            Qt.QObject.connect(bg_widget, Qt.SIGNAL(
-                "currentIndexChanged(const QString &)"), w.setBgRole)
-            Qt.QObject.connect(prefix_widget, Qt.SIGNAL(
-                "textChanged(const QString &)"), w.setPrefixText)
-            Qt.QObject.connect(suffix_widget, Qt.SIGNAL(
-                "textChanged(const QString &)"), w.setSuffixText)
-            Qt.QObject.connect(model_index_widget, Qt.SIGNAL(
-                "textChanged(const QString &)"), w.setModelIndex)
+            model_widget.textChanged.connect(w.setModel)
+            fg_widget.currentIndexChanged[str].connect(w.setFgRole)
+            bg_widget.currentIndexChanged[str].connect(w.setBgRole)
+            prefix_widget.textChanged.connect(w.setPrefixText)
+            suffix_widget.textChanged.connect(w.setSuffixText)
+            model_index_widget.textChanged.connect(w.setModelIndex)
 
             model_widget.setText("sys/tg_test/1/double_scalar")
             fg_widget.setCurrentIndex(0)

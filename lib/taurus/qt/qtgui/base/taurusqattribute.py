@@ -70,6 +70,9 @@ class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
     It stores the value in a numpy array and emits a
     dataChanged signal when the data has changed.
     '''
+
+    dataChanged = Qt.pyqtSignal()
+
     pyVar_RegExp = re.compile(
         "[a-zA-Z_][a-zA-Z0-9_]*")  # regexp for a variable/method name (symbol)
     # regexp for references to qAttrs in extended models
@@ -135,8 +138,7 @@ class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
         """
         # disconnect previously referenced qAttrs and clean the list
         for c in self._referencedQAttrs:
-            self.disconnect(c, Qt.SIGNAL("dataChanged"),
-                            self.applyTransformation)
+            c.dataChanged.disconnect(self.applyTransformation)
         self._referencedQAttrs = []
 
         # reset symbols
@@ -167,7 +169,7 @@ class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
         its id to the safe evaluation symbols. It returns the qAttr.
         '''
         c = taurusQAttributeFactory.getQAttr(ref)
-        self.connect(c, Qt.SIGNAL("dataChanged"), self.applyTransformation)
+        c.dataChanged.connect(self.applyTransformation)
         self.sev.addSafe({c.id: c.value})
         self._referencedQAttrs.append(c)
         return c
@@ -178,7 +180,7 @@ class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
             if isinstance(sender, TaurusQAttribute):
                 self.sev.addSafe({sender.id: sender.value})
             self.value = self.sev.eval(self._transformationString)
-            self.emit(Qt.SIGNAL("dataChanged"))
+            self.dataChanged.emit()
         except Exception, e:
             self.warning("the function '%s' could not be evaluated. Reason: %s" % (
                 self._transformationString, repr(e)))
@@ -191,7 +193,7 @@ class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
         model = src if src is not None else self.getModelObj()
         if model is None:
             self._values = None
-            self.emit(Qt.SIGNAL('dataChanged'))
+            self.dataChanged.emit()
             return
         if isinstance(val, (TaurusAttrValue, PyTango.DeviceAttribute)):
             value = val
@@ -201,4 +203,4 @@ class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
                 "Could not get TaurusAttrValue value for this event. Dropping")
             return
         self.value = value.value
-        self.emit(Qt.SIGNAL('dataChanged'))
+        self.dataChanged.emit()

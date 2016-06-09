@@ -244,8 +244,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
         self.setAlignment(self.DefaultAlignment)
 
-        self.connect(self, Qt.SIGNAL("linkActivated (const QString &)"),
-                     self.showValueDialog)
+        self.linkActivated.connect(self.showValueDialog)
 
         # if we are in design mode there will be no events so we force the
         # creation of a controller object

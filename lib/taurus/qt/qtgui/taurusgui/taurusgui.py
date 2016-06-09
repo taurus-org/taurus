@@ -67,11 +67,9 @@ class AssociationDialog(Qt.QDialog):
         self.loadUi()
 
         self.refresh()
-        self.connect(self.ui.instrumentCB, Qt.SIGNAL(
-            'activated (QString)'), self.onInstrumentChanged)
-        self.connect(self.ui.buttonBox, Qt.SIGNAL(
-            "clicked(QAbstractButton *)"), self.onDialogButtonClicked)
-        self.connect(self.ui.refreshBT, Qt.SIGNAL("clicked()"), self.refresh)
+        self.ui.instrumentCB.activated.connect(self.onInstrumentChanged)
+        self.ui.buttonBox.clicked.connect(self.onDialogButtonClicked)
+        self.ui.refreshBT.clicked.connect(self.refresh)
 
     def refresh(self):
         currentinstrument = self.ui.instrumentCB.currentText()
@@ -274,6 +272,11 @@ class TaurusGui(TaurusMainWindow):
 
     '''
 
+    SelectedInstrument = Qt.pyqtSignal(str)
+    doorNameChanged = Qt.pyqtSignal(str)
+    macroserverNameChanged = Qt.pyqtSignal(str)
+    newShortMessage = Qt.pyqtSignal(str)
+
     IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
 
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
@@ -323,7 +326,7 @@ class TaurusGui(TaurusMainWindow):
 
         # emit a short message informing that we are ready to go
         msg = '%s is ready' % Qt.qApp.applicationName()
-        self.emit(Qt.SIGNAL('newShortMessage'), msg)
+        self.newShortMessage.emit(msg)
 
         if self.defaultConfigRecursionDepth >= 0:
             Qt.QMessageBox.information(self, "Fail-proof mode",
@@ -380,12 +383,10 @@ class TaurusGui(TaurusMainWindow):
         self.__panelsMenu.addSeparator()
         self.__permPanelsMenu = Qt.QMenu('Permanent Panels', self)
         self.__panelsMenu.addMenu(self.__permPanelsMenu)
-        self.connect(self.__permPanelsMenu, Qt.SIGNAL(
-            'aboutToShow()'), self.__updatePanelsMenu)
+        self.__permPanelsMenu.aboutToShow.connect(self.__updatePanelsMenu)
         self.__tempPanelsMenu = Qt.QMenu('Temporary Panels', self)
         self.__panelsMenu.addMenu(self.__tempPanelsMenu)
-        self.connect(self.__tempPanelsMenu, Qt.SIGNAL(
-            'aboutToShow()'), self.__updatePanelsMenu)
+        self.__tempPanelsMenu.aboutToShow.connect(self.__updatePanelsMenu)
         self.__panelsMenu.addSeparator()
 
     def __initViewMenu(self):
@@ -396,8 +397,7 @@ class TaurusGui(TaurusMainWindow):
         self._lockviewAction = Qt.QAction(getThemeIcon(
             "system-lock-screen"), "Lock View", self)
         self._lockviewAction.setCheckable(True)
-        self.connect(self._lockviewAction, Qt.SIGNAL(
-            "toggled(bool)"), self.setLockView)
+        self._lockviewAction.toggled.connect(self.setLockView)
         self._lockviewAction.setChecked(not self.isModifiableByUser())
         self.viewMenu.addAction(self._lockviewAction)
 
@@ -660,8 +660,7 @@ class TaurusGui(TaurusMainWindow):
         self.__panels[name] = panel
 
         # connect the panel visibility changes
-        self.connect(panel, Qt.SIGNAL('visibilityChanged(bool)'),
-                     self._onPanelVisibilityChanged)
+        panel.visibilityChanged.connect(self._onPanelVisibilityChanged)
 
         return panel
 
@@ -803,7 +802,7 @@ class TaurusGui(TaurusMainWindow):
                          registerconfig=False, instrumentkey=paneldesc.instrumentkey,
                          permanent=False)
         msg = 'Panel %s created. Drag items to it or use the context menu to customize it' % w.name
-        self.emit(Qt.SIGNAL('newShortMessage'), msg)
+        self.newShortMessage.emit(msg)
 
     def createMainSynoptic(self, synopticname):
         '''
@@ -827,7 +826,7 @@ class TaurusGui(TaurusMainWindow):
                 sys.exit()
 
         Qt.qApp.SDM.connectWriter(
-            "SelectedInstrument", synoptic, "graphicItemSelected(QString)")
+            "SelectedInstrument", synoptic, "graphicItemSelected")
         Qt.qApp.SDM.connectReader(
             "SelectedInstrument", synoptic.selectGraphicItem)
 
@@ -1086,12 +1085,12 @@ class TaurusGui(TaurusMainWindow):
             from taurus.qt.qtgui.taurusgui import MacroBroker
             self.__macroBroker = MacroBroker(self)
         if MACROSERVER_NAME:
-            self.emit(Qt.SIGNAL("macroserverNameChanged"), MACROSERVER_NAME)
+            self.macroserverNameChanged.emit(MACROSERVER_NAME)
 
         DOOR_NAME = getattr(conf, 'DOOR_NAME',
                             self.__getVarFromXML(xmlroot, "DOOR_NAME", ''))
         if DOOR_NAME:
-            self.emit(Qt.SIGNAL("doorNameChanged"), DOOR_NAME)
+            self.doorNameChanged.emit(DOOR_NAME)
 
         MACROEDITORS_PATH = getattr(conf, 'MACROEDITORS_PATH', self.__getVarFromXML(
             xmlroot, "MACROEDITORS_PATH", ''))
@@ -1412,7 +1411,7 @@ class TaurusGui(TaurusMainWindow):
             panelname = unicode(self.sender().objectName())
             instrumentname = self.__panelToInstrumentMap.get(panelname)
             if instrumentname is not None:
-                self.emit(Qt.SIGNAL('SelectedInstrument'), instrumentname)
+                self.SelectedInstrument.emit(instrumentname)
 
     def onSelectedInstrument(self, instrumentname):
         ''' Slot to be called when the selected instrument has changed (e.g. by user

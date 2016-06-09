@@ -132,12 +132,9 @@ class TaurusBaseEditor(Qt.QSplitter):
         font = Qt.QFont("Monospace")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
-        self.connect(editorstack, Qt.SIGNAL('close_file(int)'),
-                     self.close_file_in_all_editorstacks)
-        self.connect(editorstack, Qt.SIGNAL("create_new_window()"),
-                     self.create_new_window)
-        self.connect(editorstack, Qt.SIGNAL('plugin_load(QString)'),
-                     self.load)
+        editorstack.close_file.connect(self.close_file_in_all_editorstacks)
+        editorstack.create_new_window.connect(self.create_new_window)
+        editorstack.plugin_load.connect(self.load)
 
     def unregister_editorstack(self, editorstack):
         self.editorstacks.pop(self.editorstacks.index(editorstack))
@@ -157,8 +154,7 @@ class TaurusBaseEditor(Qt.QSplitter):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        self.connect(window, Qt.SIGNAL("destroyed()"),
-                     lambda win=window: self.unregister_editorwindow(win))
+        window.destroyed.connect(lambda win=window: self.unregister_editorwindow(win))
 
     def register_editorwindow(self, window):
         self.editorwindows.append(window)

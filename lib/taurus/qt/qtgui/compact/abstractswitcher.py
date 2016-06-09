@@ -95,8 +95,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
     writeWClass = None
 
     enterEditTriggers = (Qt.Qt.Key_F2, Qt.QEvent.MouseButtonDblClick)
-    exitEditTriggers = (Qt.Qt.Key_Escape, Qt.QEvent.FocusOut,
-                        TaurusBaseWritableWidget.appliedSignalSignature)
+    exitEditTriggers = (Qt.Qt.Key_Escape, Qt.QEvent.FocusOut, 'applied')
 
     def __init__(self, parent=None, designMode=False,
                  readWClass=None, writeWClass=None,
@@ -136,10 +135,8 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         self.exitEditAction.setShortcutContext(
             Qt.Qt.WidgetWithChildrenShortcut)
         self.addAction(self.exitEditAction)
-        self.connect(self.enterEditAction, Qt.SIGNAL(
-            "triggered()"), self._onEnterEditActionTriggered)
-        self.connect(self.exitEditAction, Qt.SIGNAL(
-            "triggered()"), self._onExitEditActionTriggered)
+        self.enterEditAction.triggered[()].connect(self._onEnterEditActionTriggered)
+        self.exitEditAction.triggered[()].connect(self._onExitEditActionTriggered)
 
         # add read and write widgets
         if self.readWClass is not None:
@@ -161,7 +158,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
             elif isinstance(e, Qt.QEvent.Type):
                 eventTypes.append(e)
             elif isinstance(e, (basestring, Qt.QString)):
-                signals.append(Qt.SIGNAL(e))
+                signals.append(e)
             else:
                 raise TypeError('Unsupported trigger type: %s' % repr(type(e)))
         return shortcuts, eventTypes, signals
@@ -194,7 +191,10 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         if self.enterEditEventTypes:
             self.readWidget.installEventFilter(self)
         for sig in self.enterEditSignals:
-            self.connect(self.readWidget, sig, self.enterEdit)
+            try:
+                getattr(self.readWidget, sig).connect(self.enterEdit)
+            except Exception, e:
+                self.debug('Cannot connect signal. Reason: %s', e)
         # update size policy
         self._updateSizePolicy()
         # register configuration (we use the class name to avoid mixing configs
@@ -218,7 +218,10 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         if self.exitEditEventTypes:
             self.writeWidget.installEventFilter(self)
         for sig in self.exitEditSignals:
-            self.connect(self.writeWidget, sig, self.exitEdit)
+            try:
+                getattr(self.writeWidget, sig).connect(self.exitEdit)
+            except Exception, e:
+                self.debug('Cannot connect signal. Reason: %s', e)
         # update size policy
         self._updateSizePolicy()
         # register configuration (we use the class name to avoid mixing configs

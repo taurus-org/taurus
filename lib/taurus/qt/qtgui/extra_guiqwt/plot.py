@@ -51,6 +51,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
     .. seealso:: :class:`TaurusCurveWidget`
     '''
     _modifiableByUser = True
+    modelChanged = Qt.pyqtSignal([], ['QStringList'], [str])
 
     def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
@@ -85,7 +86,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
             modelNames = modelNames.split()
         return modelNames
 
-    @Qt.pyqtSignature("setModel(QStringList)")
+    @Qt.pyqtSlot('QStringList')
     def setModel(self, modelNames):
         '''Removes current TaurusCurveItems and adds new ones.
 
@@ -158,7 +159,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
                               linestyle=linestyle, linewidth=2)
             item.set_readonly(not self.isModifiableByUser())
             plot.add_item(item)
-        self.emit(Qt.SIGNAL("modelChanged()"))
+        self.modelChanged.emit()
 
     def getModel(self):
         """reimplemented from :class:`TaurusBaseWidget`"""
@@ -195,6 +196,8 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
     .. seealso:: :class:`TaurusTrendDialog`
     '''
     _modifiableByUser = True
+
+    modelChanged = Qt.pyqtSignal([], ['QStringList'], [str])
 
     def __init__(self, parent=None, designMode=False, taurusparam=None, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
@@ -237,7 +240,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
             modelNames = modelNames.split()
         return modelNames
 
-    @Qt.pyqtSignature("setModel(QStringList)")
+    @Qt.pyqtSlot('QStringList')
     def setModel(self, modelNames):
         '''Removes current TaurusCurveItems and adds new ones.
 
@@ -293,7 +296,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
             item.update_params()
 
         self.setStackMode(self.defaultTaurusparam.stackMode)
-        self.emit(Qt.SIGNAL("modelChanged()"))
+        self.modelChanged.emit()
 
     def getModel(self):
         """reimplemented from :class:`TaurusBaseWidget`"""
@@ -486,8 +489,7 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
         self.imgItem.set_readonly(not self.isModifiableByUser())
         # IMPORTANT: connect the cross section plots to the taurusimage so that
         # they are updated when the taurus data changes
-        self.connect(self.imgItem.getSignaller(), Qt.SIGNAL(
-            "dataChanged"), self.update_cross_sections)
+        self.imgItem.dataChanged.connect(self.update_cross_sections)
 
     def getModel(self):
         '''reimplemented from :class:`TaurusBaseWidget`'''
@@ -661,6 +663,6 @@ def taurusImageDlgMain():
 
 
 if __name__ == "__main__":
-    #    taurusCurveDlgMain()
-    taurusTrendDlgMain()
+    taurusCurveDlgMain()
+    # taurusTrendDlgMain()
 #    taurusImageDlgMain()

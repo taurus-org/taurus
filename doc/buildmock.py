@@ -322,7 +322,7 @@ def build_mocks_for_taurus(output='mock.zip'):
     else:
         zfile, outdir = None, output
 
-    module_names = ['PyTango', 'PyMca', 'numpy', 'PyQt4', 'sip', 'lxml',
+    module_names = ['PyTango', 'PyMca5', 'numpy', 'PyQt4', 'sip', 'lxml',
                     'guidata', 'guiqwt', 'spyderlib', 'IPython', 'ply']
     #module_names = ['numpy']
 

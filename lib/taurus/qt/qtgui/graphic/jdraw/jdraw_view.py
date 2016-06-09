@@ -74,8 +74,10 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
      allows to configure custom context menus for graphic items using a list
      of tuples. Empty tuples will insert separators in the menu.
     '''
-    __pyqtSignals__ = ("itemsChanged", "modelsChanged",
-                       "graphicItemSelected(QString)", "graphicSceneClicked(QPoint)")
+    itemsChanged = Qt.pyqtSignal(str, dict)
+    modelsChanged = Qt.pyqtSignal(list)
+    graphicItemSelected = Qt.pyqtSignal('QString')
+    graphicSceneClicked = Qt.pyqtSignal('QPoint')
 
     def __init__(self, parent=None, designMode=False, updateMode=None, alias=None, resizable=True, panelClass=None):
         name = self.__class__.__name__
@@ -150,31 +152,30 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                     continue
                 item_colors[item._name] = item._currBgBrush.color().name()
             if emit:
-                self.emit(Qt.SIGNAL("itemsChanged"), self.modelName.split(
+                self.itemsChanged.emit(self.modelName.split(
                     '/')[-1].split('.')[0], item_colors)
         except:
             self.warning('Unable to emitColors: %s' % traceback.format_exc())
         return item_colors
 
-    #@Qt.pyqtSignature("selectGraphicItem(QString)")
-    @Qt.pyqtSignature("selectGraphicItem(const QString &)")
+    @Qt.pyqtSlot('QString')
     def selectGraphicItem(self, item_name):
         self.scene().selectGraphicItem(item_name)
         return False
 
     def _graphicItemSelected(self, item_name):
         self.debug(' => graphicItemSelected(QString)(%s)' % item_name)
-        self.emit(Qt.SIGNAL("graphicItemSelected(QString)"), item_name)
+        self.graphicItemSelected.emit(item_name)
 
     def _graphicSceneClicked(self, point):
         self.debug('In TaurusJDrawSynopticsView.graphicSceneClicked(%s,%s)' % (
             point.x(), point.y()))
-        self.emit(Qt.SIGNAL("graphicSceneClicked(QPoint)"), point)
+        self.graphicSceneClicked.emit(point)
 
-    def modelsChanged(self):
+    def __modelsChanged(self):
         items = self.get_item_list()
         self.debug('modelsChanged(%s)' % len(items))
-        self.emit(Qt.SIGNAL("modelsChanged"), items)
+        self.modelsChanged.emit(items)
 
     def emitColors(self):
         '''emit signal which is used to refresh the tree and colors of icons depend of the current status in jdrawSynoptic'''
@@ -360,7 +361,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         else:
             return self._panelClass
 
-    @Qt.pyqtSignature("setModel(QString)")
+    @Qt.pyqtSlot('QString')
     def setModel(self, model, alias=None, delayed=False, trace=False):
         self.modelName = str(model)
         self._currF = str(model)
@@ -390,14 +391,11 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 else:
                     self.debug('JDrawView.sceneRect() is NONE!!!')
                 self.setScene(scene)
-                Qt.QObject.connect(self.scene(), Qt.SIGNAL(
-                    "graphicItemSelected(QString)"), self._graphicItemSelected)
-                Qt.QObject.connect(self.scene(), Qt.SIGNAL(
-                    "graphicSceneClicked(QPoint)"), self._graphicSceneClicked)
-                # Qt.QObject.connect(Qt.QApplication.instance(),
-                # Qt.SIGNAL("lastWindowClosed()"), self.close) #It caused a
+                self.scene().graphicItemSelected.connect(self._graphicItemSelected)
+                self.scene().graphicSceneClicked.connect(self._graphicSceneClicked)
+                # Qt.QApplication.instance().lastWindowClosed.connect(self.close) #It caused a
                 # segfault!
-                self.modelsChanged()
+                self.__modelsChanged()
                 self.setWindowTitle(self.modelName)
                 # The emitted signal contains the filename and a dictionary
                 # with the name of items and its color

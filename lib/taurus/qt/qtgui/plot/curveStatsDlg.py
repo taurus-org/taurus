@@ -41,6 +41,8 @@ class CurveStatsDialog(Qt.QDialog):
     A dialog for configuring and displaying statistics from  curves of a plot
     """
 
+    closed = Qt.pyqtSignal()
+
     statColumns = ('points', 'min', 'max', 'mean', 'std', 'rms')
 
     def __init__(self, parent=None):
@@ -112,35 +114,23 @@ class CurveStatsDialog(Qt.QDialog):
         refreshAction = Qt.QAction(getThemeIcon(
             'view-refresh'), "Refresh available curves", self.ui.statsTW)
         refreshAction.setShortcut(Qt.Qt.Key_F5)
-        self.connect(refreshAction, Qt.SIGNAL(
-            "triggered()"), self.refreshCurves)
+        refreshAction.triggered[()].connect(self.refreshCurves)
         self.ui.statsTW.addAction(refreshAction)
 
         # connections
         for cb in cbs:
-            self.connect(cb, Qt.SIGNAL('toggled(bool)'), self.onStatToggled)
-        self.connect(self.ui.calculatePB, Qt.SIGNAL(
-            'clicked()'), self.onCalculate)
-        self.connect(self.ui.selectMinPB, Qt.SIGNAL(
-            'clicked()'), self.onSelectMin)
-        self.connect(self.ui.selectMaxPB, Qt.SIGNAL(
-            'clicked()'), self.onSelectMax)
-        self.connect(self.minPicker, Qt.SIGNAL(
-            'selected(QwtDoublePoint)'), self.minSelected)
-        self.connect(self.maxPicker, Qt.SIGNAL(
-            'selected(QwtDoublePoint)'), self.maxSelected)
-        self.connect(self.ui.minSB, Qt.SIGNAL(
-            'valueChanged(double)'), self.onMinChanged)
-        self.connect(self.ui.minDTE, Qt.SIGNAL(
-            'dateTimeChanged(QDateTime)'), self.onMinChanged)
-        self.connect(self.ui.maxSB, Qt.SIGNAL(
-            'valueChanged(double)'), self.onMaxChanged)
-        self.connect(self.ui.maxDTE, Qt.SIGNAL(
-            'dateTimeChanged(QDateTime)'), self.onMaxChanged)
-        self.connect(self.ui.minCB, Qt.SIGNAL(
-            'toggled(bool)'), self.onMinChanged)
-        self.connect(self.ui.maxCB, Qt.SIGNAL(
-            'toggled(bool)'), self.onMaxChanged)
+            cb.toggled.connect(self.onStatToggled)
+        self.ui.calculatePB.clicked.connect(self.onCalculate)
+        self.ui.selectMinPB.clicked.connect(self.onSelectMin)
+        self.ui.selectMaxPB.clicked.connect(self.onSelectMax)
+        self.minPicker.selected.connect(self.minSelected)
+        self.maxPicker.selected.connect(self.maxSelected)
+        self.ui.minSB.valueChanged.connect(self.onMinChanged)
+        self.ui.minDTE.dateTimeChanged.connect(self.onMinChanged)
+        self.ui.maxSB.valueChanged.connect(self.onMaxChanged)
+        self.ui.maxDTE.dateTimeChanged.connect(self.onMaxChanged)
+        self.ui.minCB.toggled.connect(self.onMinChanged)
+        self.ui.maxCB.toggled.connect(self.onMaxChanged)
 
     def _timestamptToQDateTime(self, ts):
         dt = datetime.fromtimestamp(ts)
@@ -327,7 +317,7 @@ class CurveStatsDialog(Qt.QDialog):
     def closeEvent(self, event):
         '''See :meth:`Qwidget.closeEvent`'''
         self.restorePlot()
-        self.emit(Qt.SIGNAL('closed'))
+        self.closed.emit()
 
     def showEvent(self, event):
         '''See :meth:`Qwidget.showEvent`'''

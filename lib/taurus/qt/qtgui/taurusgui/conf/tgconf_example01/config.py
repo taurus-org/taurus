@@ -106,7 +106,7 @@ connectionDemo = PanelDescription('Selected Instrument',
                                   classname='PyQt4.Qt.QLineEdit',
                                   sharedDataRead={
                                       'SelectedInstrument': 'setText'},
-                                  sharedDataWrite={'SelectedInstrument': 'textEdited(QString)'})
+                                  sharedDataWrite={'SelectedInstrument': 'textEdited'})
 
 #=========================================================================
 # Define custom toolbars to be shown. To define a toolbar, instantiate a

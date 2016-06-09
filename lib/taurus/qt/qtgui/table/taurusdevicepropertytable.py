@@ -42,7 +42,6 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
     @todo add a frame for Add, Delete and Refresh buttons!
     '''
     # TODO This widget is Tango-centric
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
 
     def __init__(self, parent=None, designMode=False):
         try:
@@ -114,7 +113,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
     # My methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    @QtCore.pyqtSignature("setTable(QString)")
+    @QtCore.pyqtSlot('QString')
     def setTable(self, dev_name):
         """
         Fills the table with the names of properties and their values for the
@@ -126,8 +125,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         elif self.db is None:
             self.warning('Model must be set before calling setTable')
             return
-        QtCore.QObject.disconnect(self, QtCore.SIGNAL("cellChanged(int, int)"),
-                                  self.valueChanged)
+        self.cellChanged.disconnect(self.valueChanged)
         dev_name = str(dev_name)
         self.list_prop = list(self.db.get_device_property_list(dev_name, '*'))
         self.setRowCount(len(self.list_prop))
@@ -195,14 +193,11 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         self.info('TaurusPropTable.contextMenuEvent()')
         menu = Qt.QMenu(self)
         configDialogAction = menu.addAction("Add new property")
-        self.connect(configDialogAction, QtCore.SIGNAL(
-            "triggered()"), self.addProperty)
+        configDialogAction.triggered[()].connect(self.addProperty)
         configDialogAction = menu.addAction("Delete property")
-        self.connect(configDialogAction, QtCore.SIGNAL(
-            "triggered()"), self.deleteProperty)
+        configDialogAction.triggered[()].connect(self.deleteProperty)
         configDialogAction = menu.addAction("Edit property")
-        self.connect(configDialogAction, QtCore.SIGNAL(
-            "triggered()"), self.editProperty)
+        configDialogAction.triggered[()].connect(self.editProperty)
         menu.addSeparator()
         menu.exec_(event.globalPos())
         del menu
@@ -373,10 +368,9 @@ class EditTextDialog(QtGui.QDialog):
         self.show()
         self.result = 0
         # Signals
-        QtCore.QObject.connect(
-            self.buttonBox, QtCore.SIGNAL("accepted()"), self.pressOK)
-        QtCore.QObject.connect(
-            self.buttonBox, QtCore.SIGNAL("rejected()"), self.close)
+
+        self.buttonBox.accepted.connect(self.pressOK)
+        self.buttonBox.rejected.connect(self.close)
 
     def initComponents(self):
         widgetLayout = QtGui.QVBoxLayout(self)

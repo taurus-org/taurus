@@ -40,8 +40,6 @@ from taurus.core import DataType, DataFormat, TaurusEventType
 
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
-
     def __init__(self, qt_parent=None, designMode=False):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QLineEdit, qt_parent)
@@ -52,13 +50,10 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
 
-        self.connect(self, Qt.SIGNAL(
-            'textChanged(const QString &)'), self.valueChanged)
-        self.connect(self, Qt.SIGNAL('returnPressed()'), self.writeValue)
-        self.connect(self, Qt.SIGNAL('valueChanged'),
-                     self.updatePendingOperations)
-        self.connect(self, Qt.SIGNAL('editingFinished()'),
-                     self._onEditingFinished)
+        self.textChanged.connect(self.notifyValueChanged)
+        self.returnPressed.connect(self.writeValue)
+        self.valueChangedSignal.connect(self.updatePendingOperations)
+        self.editingFinished.connect(self._onEditingFinished)
 
     def _updateValidator(self, value):
         '''This method sets a validator depending on the data type'''
@@ -101,7 +96,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWritableWidget overwriting
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    def valueChanged(self, *args):
+    def notifyValueChanged(self, *args):
         '''reimplement to avoid autoapply on every partial edition'''
         self.emitValueChanged()
 

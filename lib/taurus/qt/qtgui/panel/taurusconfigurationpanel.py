@@ -49,18 +49,16 @@ class TangoConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.call__init__(TaurusBaseWritableWidget,
                           name, designMode=designMode)
 
-        self.connect(self, Qt.SIGNAL(
-            'textChanged(const QString &)'), self.valueChanged)
-        self.connect(self, Qt.SIGNAL('returnPressed()'), self.writeValue)
-        self.connect(self, Qt.SIGNAL('editingFinished()'),
-                     self._onEditingFinished)
+        self.textChanged.connect(self.notifyValueChanged)
+        self.returnPressed.connect(self.writeValue)
+        self.editingFinished.connect(self._onEditingFinished)
 
     def _onEditingFinished(self):
         if self._autoApply:
             self.writeValue()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        self.valueChanged()
+        self.notifyValueChanged()
 
     def getModelClass(self):
         return TaurusAttribute
@@ -122,7 +120,7 @@ class TangoConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return None
         return self._getAttrInfoExMember(self.modelFragmentName)
 
-    def valueChanged(self):
+    def notifyValueChanged(self):
         if str(self.text()) != str(self.getValue()):
             style = 'TangoConfigLineEdit {color: %s; font-weight: %s}' %\
                     ('blue', 'bold')
@@ -141,7 +139,7 @@ class TangoConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def setModel(self, model):
         TaurusBaseWritableWidget.setModel(self, model)
-        self.valueChanged()
+        self.notifyValueChanged()
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -185,14 +183,10 @@ class TaurusConfigurationPanel(Qt.QWidget):
         Qt.QWidget.__init__(self, parent)
         self.loadUi()
 
-        Qt.QObject.connect(self._ui.pushButtonOk,
-                           Qt.SIGNAL("clicked()"), self._onOk)
-        Qt.QObject.connect(self._ui.pushButtonApply,
-                           Qt.SIGNAL("clicked()"), self._onApply)
-        Qt.QObject.connect(self._ui.pushButtonCancel,
-                           Qt.SIGNAL("clicked()"), self._onCancel)
-        Qt.QObject.connect(self._ui.pushButtonRestore,
-                           Qt.SIGNAL("clicked()"), self._onRestore)
+        self._ui.pushButtonOk.clicked.connect(self._onOk)
+        self._ui.pushButtonApply.clicked.connect(self._onApply)
+        self._ui.pushButtonCancel.clicked.connect(self._onCancel)
+        self._ui.pushButtonRestore.clicked.connect(self._onRestore)
 
     def _onOk(self):
         self._onApply()
