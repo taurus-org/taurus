@@ -46,7 +46,8 @@ def run(disableLogger=True):
         taurus.disableLogOutput()
     # discover all tests within the taurus/lib directory
     loader = unittest.defaultTestLoader
-    suite = loader.discover(os.path.dirname(taurus.__file__))
+    start_dir = os.path.dirname(taurus.__file__)
+    suite = loader.discover(start_dir, top_level_dir=os.path.dirname(start_dir))
     # use the basic text test runner that outputs to sys.stderr
     runner = unittest.TextTestRunner(descriptions=True, verbosity=2)
     # run the test suite
