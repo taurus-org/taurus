@@ -38,6 +38,10 @@ import os
 from taurus.external import unittest
 import taurus
 
+def get_suite():
+    loader = unittest.defaultTestLoader
+    start_dir = os.path.dirname(taurus.__file__)
+    return loader.discover(start_dir, top_level_dir=os.path.dirname(start_dir))
 
 def run(disableLogger=True):
     """Runs all tests for the taurus package"""
@@ -45,9 +49,7 @@ def run(disableLogger=True):
     if disableLogger:
         taurus.disableLogOutput()
     # discover all tests within the taurus/lib directory
-    loader = unittest.defaultTestLoader
-    start_dir = os.path.dirname(taurus.__file__)
-    suite = loader.discover(start_dir, top_level_dir=os.path.dirname(start_dir))
+    suite = get_suite()
     # use the basic text test runner that outputs to sys.stderr
     runner = unittest.TextTestRunner(descriptions=True, verbosity=2)
     # run the test suite

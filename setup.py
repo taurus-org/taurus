@@ -156,4 +156,5 @@ setup(name='taurus',
       provides=provides,
       requires=requires,
       extras_require=extras_require,
+      test_suite='taurus.test.testsuite.get_suite',
       )
