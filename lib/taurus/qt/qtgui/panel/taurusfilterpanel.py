@@ -35,16 +35,14 @@ from taurus.external.qt import Qt
 import taurus.core
 import taurus.core.util
 import taurus.qt.qtgui.base
-import taurus.qt.qtgui.resource
+import taurus.qt.qtgui.icon
 
 from taurus.core.tango.tangodatabase import (TangoAttrInfo, TangoDevInfo,
                                              TangoServInfo)
 
 ElemType = taurus.core.taurusbasetypes.TaurusElementType
-getElementTypeIcon = taurus.qt.qtgui.resource.getElementTypeIcon
-getPixmap = taurus.qt.qtgui.resource.getPixmap
-getThemeIcon = taurus.qt.qtgui.resource.getThemeIcon
-getThemePixmap = taurus.qt.qtgui.resource.getThemePixmap
+getElementTypeIcon = taurus.qt.qtgui.icon.getElementTypeIcon
+getThemePixmap = taurus.qt.qtgui.icon.getThemePixmap
 
 
 class BaseFilter(object):
@@ -495,7 +493,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
             def __call__(self):
                 self._cb.setCurrentIndex(-1)
 
-        clear_icon = getThemeIcon("edit-clear")
+        clear_icon = Qt.QIcon.fromTheme("edit-clear")
         for combo, clearButton in zip(self.combos(), self.clearButtons()):
             combo.currentIndexChanged.connect(self._updateStatusBar)
             clearButton.clicked.connect(clearSelection(combo))

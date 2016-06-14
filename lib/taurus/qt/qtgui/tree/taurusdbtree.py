@@ -36,7 +36,7 @@ from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusauthority import TaurusAuthority
 from taurus.qt.qtcore.model import *
 from taurus.qt.qtgui.base import TaurusBaseWidget
-from taurus.qt.qtgui.resource import getThemeIcon, getElementTypeIcon, getElementTypeIconName
+from taurus.qt.qtgui.icon import getElementTypeIcon, getElementTypeIconName
 from taurustree import TaurusBaseTreeWidget
 
 
@@ -94,7 +94,7 @@ class TaurusDbTreeWidget(TaurusBaseTreeWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.tree'
         ret['group'] = 'Taurus Views'
-        ret['icon'] = ":/designer/listview.png"
+        ret['icon'] = "designer:listview.png"
         return ret
 
 
@@ -117,7 +117,7 @@ class _TaurusTreePanel(Qt.QWidget, TaurusBaseWidget):
 
 #        tb = self._toolbar = Qt.QToolBar("Taurus tree panel toolbar")
 #        tb.setFloatable(False)
-#        refreshAction = self._refreshAction = tb.addAction(getThemeIcon("view-refresh"),"Refresh", self.refresh)
+#        refreshAction = self._refreshAction = tb.addAction(Qt.QIcon.fromTheme("view-refresh"),"Refresh", self.refresh)
 
 #        l.addWidget(tb, 0, 0)
 

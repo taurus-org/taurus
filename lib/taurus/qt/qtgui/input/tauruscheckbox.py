@@ -93,7 +93,7 @@ class TaurusValueCheckBox(Qt.QCheckBox, TaurusBaseWritableWidget):
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWritableWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.input'
-        ret['icon'] = ":/designer/checkbox.png"
+        ret['icon'] = "designer:checkbox.png"
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

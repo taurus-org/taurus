@@ -77,7 +77,7 @@ class TaurusFrame(Qt.QFrame, TaurusBaseContainer):
         if cls is TaurusFrame:
             ret['module'] = 'taurus.qt.qtgui.container'
             ret['group'] = 'Taurus Containers'
-            ret['icon'] = ":/designer/frame.png"
+            ret['icon'] = "designer:frame.png"
             ret['container'] = True
         return ret
 

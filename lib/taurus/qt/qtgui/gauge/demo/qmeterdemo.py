@@ -37,9 +37,7 @@ def demo():
     import sys
     import taurus.qt.qtgui.application
     import taurus.qt.qtgui.gauge
-    import taurus.qt.qtgui.resource
 
-    getPixmap = taurus.qt.qtgui.resource.getPixmap
     Application = taurus.qt.qtgui.application.TaurusApplication
     QManoMeter = taurus.qt.qtgui.gauge.QManoMeter
 

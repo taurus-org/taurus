@@ -33,7 +33,6 @@ import copy
 
 from taurus.external.qt import Qt, Qwt5
 from taurus.core.util.containers import CaselessDict
-from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.util.ui import UILoadable
 
 
@@ -128,7 +127,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
         self.setCurves(curvePropDict)
         # set the icon for the background button (stupid designer limitations
         # forces to do it programatically)
-        self.bckgndBT.setIcon(getIcon(":/color-fill.svg"))
+        self.bckgndBT.setIcon(Qt.QIcon(":color-fill.svg"))
 
         # connections.
         # Note: The assignToY1BT and assignToY2BT buttons are not connected to anything

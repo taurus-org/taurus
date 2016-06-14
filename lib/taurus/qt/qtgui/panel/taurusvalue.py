@@ -243,13 +243,13 @@ class _AbstractTaurusValueButton(TaurusLauncherButton):
 class TaurusPlotButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusPlot'''
     _widgetClassName = 'TaurusPlot'
-    _icon = ':/designer/qwtplot.png'
+    _icon = 'designer:qwtplot.png'
 
 
 class TaurusArrayEditorButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusArrayEditor'''
     _widgetClassName = 'TaurusArrayEditor'
-    _icon = ':/designer/arrayedit.png'
+    _icon = 'designer:arrayedit.png'
     _text = 'Edit'
 
 
@@ -262,7 +262,7 @@ class TaurusImageButton(_AbstractTaurusValueButton):
 class TaurusValuesTableButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusValuesTable'''
     _widgetClassName = 'TaurusValuesTable'
-    _icon = ':/designer/table.png'
+    _icon = 'designer:table.png'
     _kwargs = {'defaultWriteMode': 'r'}
 
 
@@ -1227,7 +1227,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         return None
         #ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         #ret['module'] = 'taurus.qt.qtgui.panel'
-        #ret['icon'] = ":/designer/label.png"
+        #ret['icon'] = "designer:label.png"
         # return ret
 
     ########################################################

@@ -33,7 +33,7 @@ import sys
 
 from taurus.external.qt import Qt
 from taurus.core.util.enumeration import Enumeration
-from taurus.qt.qtgui.resource import getPixmap
+from taurus.qt.qtgui.icon import getCachedPixmap
 from taurus.qt.qtgui.display.qpixmapwidget import QPixmapWidget
 
 LedColor = Enumeration("LedColor",  [
@@ -44,8 +44,7 @@ LedSize = Enumeration("LedSize",   [("SMALL", 24), ("LARGE", 48)])
 
 class QLed(QPixmapWidget):
     """A Led"""
-
-    DefaultLedPattern = ":leds/images256/led_{color}_{status}.png"
+    DefaultLedPattern = "leds_images256:led_{color}_{status}.png"
     DefaultLedColor = "green"
     DefaultLedStatus = True
     DefaultLedInverted = False
@@ -104,7 +103,7 @@ class QLed(QPixmapWidget):
     def _refresh(self):
         """internal usage only"""
         self._ledName = self.toLedName()
-        pixmap = getPixmap(self._ledName)
+        pixmap = getCachedPixmap(self._ledName)
         self.setPixmap(pixmap)
         return self.update()
 
@@ -113,7 +112,7 @@ class QLed(QPixmapWidget):
         return {
             'module': 'taurus.qt.qtgui.display',
             'group': 'Taurus Display',
-            'icon': ":/designer/ledred.png",
+            'icon': "designer:ledred.png",
             'container': False,
         }
 

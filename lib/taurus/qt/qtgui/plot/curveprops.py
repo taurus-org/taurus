@@ -36,7 +36,6 @@ import re
 from taurus.external.qt import Qt, Qwt5
 import taurus
 import taurus.core
-from taurus.qt.qtgui.resource import getThemeIcon
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.util.ui import UILoadable
 
@@ -103,30 +102,30 @@ class Component(object):
         # for formulas
         if src.startswith('='):
             #@todo: evaluate/validate the expression
-            return src, src[1:].strip(), getThemeIcon('accessories-calculator'), True
+            return src, src[1:].strip(), Qt.QIcon.fromTheme('accessories-calculator'), True
         # for tango attributes
         if self._attrnamevalidator.isValid(src):
             pars = self._attrnamevalidator.getUriGroups(src)
             dev = self._dbCache.getDevice(pars['devname'])
             if dev is None:
-                return src, src, getThemeIcon('network-error'), False
+                return src, src, Qt.QIcon.fromTheme('network-error'), False
             attr = dev.getAttribute(pars['_shortattrname'])
             if attr is None:
-                return src, pars['_shortattrname'], getThemeIcon('network-error'), False
-            return src, attr.name(), getThemeIcon('network-server'), True
+                return src, pars['_shortattrname'], Qt.QIcon.fromTheme('network-error'), False
+            return src, attr.name(), Qt.QIcon.fromTheme('network-server'), True
         # for nexus files
         m = re.match(NEXUS_SRC, src)
         if m is not None:
             host, path, nxpath, slice = m.group(4, 5, 9, 10)
             #@todo:open file and check the data is accessible
-            return src, nxpath, getThemeIcon('x-office-spreadsheet'), True
+            return src, nxpath, Qt.QIcon.fromTheme('x-office-spreadsheet'), True
         # for ascii files
         m = re.match(ASCII_SRC, src)
         if m is not None:
             host, path, = m.group(4, 5)
         #@todo: open and check the file
         # If nothing matches...
-        return src, src, getThemeIcon('dialog-warning'), False
+        return src, src, Qt.QIcon.fromTheme('dialog-warning'), False
 
 
 class CurveConf(object):

@@ -33,9 +33,10 @@ __docformat__ = 'restructuredtext'
 
 import re
 import traceback
+
+import taurus
 from taurus.external.qt import Qt
 
-import taurus.qt.qtgui.resource
 from taurus.core.taurusbasetypes import TaurusDevState, TaurusElementType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
@@ -247,8 +248,7 @@ class TaurusDevicePanel(TaurusWidget):
         self._header.setLayout(Qt.QGridLayout())
 
         self._dup = Qt.QPushButton()
-        qpixmap = taurus.qt.qtgui.resource.getPixmap(
-            ':/actions/window-new.svg')
+        qpixmap = Qt.QIcon("actions:window-new.svg")
         self._dup.setIcon(Qt.QIcon(qpixmap))
         self._dup.setIconSize(Qt.QSize(15, 15))
         self._dup.pressed.connect(self.duplicate)
@@ -337,7 +337,7 @@ class TaurusDevicePanel(TaurusWidget):
                 if qpixmap.width() > .9 * IMAGE_SIZE[0]:
                     qpixmap = qpixmap.scaledToWidth(.9 * IMAGE_SIZE[0])
             else:
-                qpixmap = taurus.qt.qtgui.resource.getPixmap(':/logo.png')
+                qpixmap = Qt.QIcon('logos:taurus.png').pixmap(48)
 
             self._image.setPixmap(qpixmap)
             self._state.setModel(model + '/state')  # TODO: Tango-centric

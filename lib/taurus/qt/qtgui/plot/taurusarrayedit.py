@@ -192,6 +192,6 @@ class TaurusArrayEditor(TaurusWidget):
         ret = TaurusWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.plot'
         ret['group'] = 'Taurus Input'
-        ret['icon'] = ':/designer/arrayedit.png'
+        ret['icon'] = 'designer:arrayedit.png'
         ret['container'] = False
         return ret

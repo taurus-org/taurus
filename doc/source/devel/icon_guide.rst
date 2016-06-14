@@ -18,7 +18,7 @@ For example, suppose you want to add a toolbox in your application's main window
 where the first button triggers an "open file dialog". All you have to do is 
 search for the icon name representing the action of your button in the 
 :ref:`catalog <icon-catalog>` (in our case it should be **document-open**),
-get the icon from taurus using :func:`taurus.qt.qtugui.resource.getThemeIcon`
+get the icon from taurus using :func:`Qt.QIcon.fromTheme`
 and insert it into your widget. Here is an example code:
 
 .. literalinclude:: icon_example.py

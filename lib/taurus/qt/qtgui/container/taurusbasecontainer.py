@@ -149,18 +149,18 @@ class TaurusBaseContainer(TaurusBaseWidget):
 #        The dictionary returned by this method should contain *at least* the
 #        following keys and values:
 #        - 'module' : a string representing the full python module name (ex.: 'taurus.qt.qtgui.base')
-#        - 'icon' : a string representing valid resource icon (ex.: ':/designer/combobox.png')
+#        - 'icon' : a string representing valid resource icon (ex.: 'designer:combobox.png')
 #        - 'container' : a bool telling if this widget is a container widget or not.
 #
 #        This default implementation returns the following dictionary:
 #            { 'group'     : 'Taurus Containers',
-#              'icon'      : ':/designer/widget.png',
+#              'icon'      : 'designer:widget.png',
 #              'container' : True }
 #
 #        :return: (dict) a map with pertinent designer information"""
 #        ret = TaurusBaseWidget.getQtDesignerPluginInfo()
 #        ret['module'] = 'taurus.qt.qtgui.container'
 #        ret['group'] = 'Taurus Containers'
-#        ret['icon'] = ":/designer/widget.png"
+#        ret['icon'] = "designer:widget.png"
 #        ret['container'] = True
 #        return ret

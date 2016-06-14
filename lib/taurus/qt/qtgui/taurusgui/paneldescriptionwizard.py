@@ -32,7 +32,7 @@ from taurus.external.qt import Qt
 import sys
 import weakref
 from taurus.qt.qtgui.taurusgui.utils import PanelDescription
-from taurus.qt.qtgui.resource import getPixmap, getThemeIcon, getIcon
+from taurus.qt.qtgui.icon import getCachedPixmap
 from taurus.qt.qtgui.input import GraphicalChoiceWidget
 from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
@@ -228,7 +228,7 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
                     pixmaps[k] = None
                 else:
                     try:
-                        pixmaps[k] = getPixmap(s)
+                        pixmaps[k] = getCachedPixmap(s)
                         if pixmaps[k].isNull():
                             raise Exception('Invalid Pixmap')
                     except:
@@ -270,7 +270,7 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
         row.append(self.OTHER_TXT)
         choices.append(row)
 
-        # defaultPixmap=getPixmap(':/taurus.png')
+        # defaultPixmap=getPixmap('logos:taurus.png')
         self.choiceWidget = GraphicalChoiceWidget(
             choices=choices, pixmaps=pixmaps)
 
@@ -356,7 +356,7 @@ class AdvSettingsPage(Qt.QWizardPage):
         # @todo: add a regexp validator (it should return valid on TAURUS_MODEL_LIST_MIME_TYPE)
         self.modelLE = Qt.QLineEdit()
         self.modelChooserBT = Qt.QToolButton()
-        self.modelChooserBT.setIcon(getIcon(':/designer/devs_tree.png'))
+        self.modelChooserBT.setIcon(Qt.QIcon('designer:devs_tree.png'))
 #        self.modelChooser = TaurusModelChooser()
 
         # connections
@@ -380,9 +380,9 @@ class AdvSettingsPage(Qt.QWizardPage):
         self.commLV.setEditTriggers(self.commLV.AllEditTriggers)
         self.selectedComm = self.commLV.selectionModel().currentIndex()
         self.addBT = Qt.QToolButton()
-        self.addBT.setIcon(getThemeIcon('list-add'))
+        self.addBT.setIcon(Qt.QIcon.fromTheme('list-add'))
         self.removeBT = Qt.QToolButton()
-        self.removeBT.setIcon(getThemeIcon('list-remove'))
+        self.removeBT.setIcon(Qt.QIcon.fromTheme('list-remove'))
         self.removeBT.setEnabled(False)
 
         # layout
@@ -682,7 +682,7 @@ def main():
 
     form.show()
 
-    paneldesc, ok = PanelDescriptionWizard.getDialog(form, extraWidgets=[('PyQt4.Qt.QLineEdit', ':/taurus.png'),
+    paneldesc, ok = PanelDescriptionWizard.getDialog(form, extraWidgets=[('PyQt4.Qt.QLineEdit', 'logos:taurus.png'),
                                                                          ('PyQt4.Qt.QTextEdit', None)])
     if ok:
         w = paneldesc.getWidget(sdm=Qt.qApp.SDM)

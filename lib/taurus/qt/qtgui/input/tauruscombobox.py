@@ -243,7 +243,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         ret = TaurusBaseWritableWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.input'
-        ret['icon'] = ":/designer/combobox.png"
+        ret['icon'] = "designer:combobox.png"
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

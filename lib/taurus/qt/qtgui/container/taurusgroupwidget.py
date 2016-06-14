@@ -78,7 +78,7 @@ class TaurusGroupWidget(QGroupWidget, TaurusBaseContainer):
         if cls is TaurusGroupWidget:
             ret['module'] = 'taurus.qt.qtgui.container'
             ret['group'] = 'Taurus Containers'
-            ret['icon'] = ":/designer/groupwidget.png"
+            ret['icon'] = "designer:groupwidget.png"
             ret['container'] = True
         return ret
 
@@ -103,7 +103,6 @@ def demo():
     """Group widget"""
 
     import taurus.qt.qtgui.display
-    import taurus.qt.qtgui.resource
     w = Qt.QWidget()
     w.setWindowTitle(Qt.QApplication.instance().applicationName())
     layout = Qt.QGridLayout()
@@ -111,8 +110,7 @@ def demo():
 
     groupwidget = TaurusGroupWidget()
     groupwidget.model = "sys/tg_test/1"
-    groupwidget.titleIcon = taurus.qt.qtgui.resource.getThemeIcon(
-        "video-x-generic")
+    groupwidget.titleIcon = Qt.QIcon.fromTheme("video-x-generic")
 
     layout.addWidget(groupwidget, 0, 0)
     layout1 = Qt.QFormLayout()

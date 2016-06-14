@@ -116,14 +116,14 @@ class TaurusQAttribute(Qt.QObject, TaurusBaseComponent):
 #        if m is not None:
 #            host,path,nxpath,slice = m.group(4,5,9,10)
 #            #@todo:open file and check the data is accessible
-#            return model, nxpath, getThemeIcon('x-office-spreadsheet'), True
+#            return model, nxpath, Qt.QIcon.fromTheme('x-office-spreadsheet'), True
 #        #for ascii files
 #        m = re.match(ASCII_src,model)
 #        if m is not None:
 #            host,path, = m.group(4,5)
 #        #@todo: open and check the file
 #        #If nothing matches...
-#        return model, model, getThemeIcon('dialog-warning'), False
+#        return model, model, Qt.QIcon.fromTheme('dialog-warning'), False
 
     def preProcessTransformation(self, trstring):
         """

@@ -34,7 +34,6 @@ import xml.dom.minidom
 
 from taurus.external.qt import Qt
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
-from taurus.qt.qtgui.resource import getThemeIcon
 
 
 class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
@@ -65,9 +64,9 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         if text is None:
             text = os.path.basename(cmdargs and cmdargs[0] or '')
         if icon is None:
-            icon = getThemeIcon(self.DEFAULT_ICON_NAME)
+            icon = Qt.QIcon.fromTheme(self.DEFAULT_ICON_NAME)
         elif isinstance(icon, basestring):
-            tmp = getThemeIcon(icon)
+            tmp = Qt.QIcon.fromTheme(icon)
             if not tmp.isNull():
                 icon = tmp
 

@@ -31,7 +31,6 @@ curvesAppearanceChooserDlg.py:
 
 from taurus.external.qt import Qt, Qwt5
 from datetime import datetime
-from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.util.ui import UILoadable
 
 
@@ -61,7 +60,7 @@ class CurveStatsDialog(Qt.QDialog):
         self.ui.maxSB.setMinimum(float('-inf'))
         self.ui.maxSB.setMaximum(float('inf'))
 
-        icon = getIcon(':/actions/system-search.svg')
+        icon = Qt.QIcon('actions:system-search.svg')
         self.ui.selectMinPB.setIcon(icon)
         self.ui.selectMaxPB.setIcon(icon)
 
@@ -111,7 +110,7 @@ class CurveStatsDialog(Qt.QDialog):
             self.ui.minSB.setValue(xmin)
             self.ui.maxSB.setValue(xmax)
 
-        refreshAction = Qt.QAction(getThemeIcon(
+        refreshAction = Qt.QAction(Qt.QIcon.fromTheme(
             'view-refresh'), "Refresh available curves", self.ui.statsTW)
         refreshAction.setShortcut(Qt.Qt.Key_F5)
         refreshAction.triggered[()].connect(self.refreshCurves)

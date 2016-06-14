@@ -36,8 +36,7 @@ import taurus
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusexception import TaurusException
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
-from taurus.qt.qtgui.resource import getThemeIcon, getElementTypeIcon, getIcon
-
+from taurus.qt.qtgui.icon import getElementTypeIcon
 
 # set some named constants
 SRC_ROLE = Qt.Qt.UserRole + 1
@@ -85,7 +84,7 @@ class TaurusModelItem(object):
                 ), getElementTypeIcon(TaurusElementType.Device), True
                 return
             else:
-                self.display, self.icon, self.ok = src, getThemeIcon(
+                self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
                     'network-error'), False
                 return
         except:
@@ -94,15 +93,15 @@ class TaurusModelItem(object):
                 attr = taurus.Attribute(src)
                 dev = attr.getParentObj()
             except TaurusException:
-                self.display, self.icon, self.ok = src, getThemeIcon(
+                self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
                     'dialog-warning'), False
                 return
             except Exception:  # @todo: this catchall except is here as an emergency bugfix, but should probably be narrowed to PyTango DevFailed.
-                self.display, self.icon, self.ok = src, getThemeIcon(
+                self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
                     'network-error'), False
                 return
             if dev.getDeviceProxy() is None:
-                self.display, self.icon, self.ok = src, getThemeIcon(
+                self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
                     'network-error'), False
                 return
             self.display, self.icon, self.ok = attr.getSimpleName(
@@ -290,18 +289,21 @@ class TaurusModelList(Qt.QListView):
         self.setSelectionMode(self.ExtendedSelection)
 
         self._contextMenu = Qt.QMenu(self)
-        self.addRowAction = self._contextMenu.addAction(getThemeIcon(
+        self.addRowAction = self._contextMenu.addAction(Qt.QIcon.fromTheme(
             'list-add'), 'Add new row', self.newRow, Qt.QKeySequence.New)
-        self.removeSelectedAction = self._contextMenu.addAction(getThemeIcon(
-            'list-remove'), 'Remove Selected', self.removeSelected, Qt.QKeySequence.Delete)
-        self.removeAllAction = self._contextMenu.addAction(getThemeIcon(
+        self.removeSelectedAction = self._contextMenu.addAction(
+            Qt.QIcon.fromTheme('list-remove'), 'Remove Selected',
+            self.removeSelected, Qt.QKeySequence.Delete)
+        self.removeAllAction = self._contextMenu.addAction(Qt.QIcon.fromTheme(
             'edit-clear'), 'Clear all', self.clear, Qt.QKeySequence("Ctrl+Del"))
-        self.moveUpAction = self._contextMenu.addAction(getThemeIcon(
+        self.moveUpAction = self._contextMenu.addAction(Qt.QIcon.fromTheme(
             'go-up'), 'Move up in the list', self._onMoveUpAction, Qt.QKeySequence("Alt+Up"))
-        self.moveDownAction = self._contextMenu.addAction(getThemeIcon(
+        self.moveDownAction = self._contextMenu.addAction(Qt.QIcon.fromTheme(
             'go-down'), 'Move down in the list', self._onMoveDownAction, Qt.QKeySequence("Alt+Down"))
-        self.editDisplayAction = self._contextMenu.addAction(getIcon(
-            ':/actions/format-text-italic.svg'), 'Edit the display (leave the source)', self._onEditDisplay, Qt.QKeySequence("Alt+D"))
+        self.editDisplayAction = self._contextMenu.addAction(
+            Qt.QIcon("actions:format-text-italic.svg"),
+            'Edit the display (leave the source)', self._onEditDisplay,
+            Qt.QKeySequence("Alt+D"))
 
         self.addActions([self.addRowAction, self.removeSelectedAction, self.removeAllAction,
                          self.moveUpAction, self.moveDownAction, self.editDisplayAction])
@@ -424,7 +426,7 @@ class TaurusModelList(Qt.QListView):
     def getQtDesignerPluginInfo(cls):
         return {
             'group': 'Taurus Input',
-            'icon': ':/designer/taurus.png',
+            'icon': 'logos:taurus.png',
             'container': False,
             'module': 'taurus.qt.qtgui.panel'
         }

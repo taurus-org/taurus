@@ -36,7 +36,7 @@ from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.qt.qtcore.model import *
 from taurus.core.taurusauthority import TaurusAuthority
-from taurus.qt.qtgui.resource import getElementTypeIcon, getElementTypeIconName
+from taurus.qt.qtgui.icon import getElementTypeIcon, getElementTypeIconName
 from taurustable import TaurusBaseTableWidget
 
 
@@ -80,7 +80,7 @@ class TaurusDbTableWidget(TaurusBaseTableWidget):
         ret = TaurusBaseTableWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.table'
         ret['group'] = 'Taurus Views'
-        ret['icon'] = ":/designer/table.png"
+        ret['icon'] = "designer:table.png"
         return ret
 
 

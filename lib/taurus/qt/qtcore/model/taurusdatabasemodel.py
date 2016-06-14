@@ -51,32 +51,32 @@ ElemType = TaurusElementType
 
 def getElementTypeIcon(*args, **kwargs):
     """Wrapper to prevent loading qtgui when this module is imported"""
-    import taurus.qt.qtgui.resource
-    return taurus.qt.qtgui.resource.getElementTypeIcon(*args, **kwargs)
+    from taurus.qt.qtgui.icon import getElementTypeIcon
+    return getElementTypeIcon(*args, **kwargs)
 
 
 def getElementTypeToolTip(*args, **kwargs):
     """Wrapper to prevent loading qtgui when this module is imported"""
-    import taurus.qt.qtgui.resource
-    return taurus.qt.qtgui.resource.getElementTypeToolTip(*args, **kwargs)
+    from taurus.qt.qtgui.icon import getElementTypeToolTip
+    return getElementTypeToolTip(*args, **kwargs)
 
 
 def getElementTypeSize(*args, **kwargs):
     """Wrapper to prevent loading qtgui when this module is imported"""
-    import taurus.qt.qtgui.resource
-    return taurus.qt.qtgui.resource.getElementTypeSize(*args, **kwargs)
+    from taurus.qt.qtgui.icon import getElementTypeSize
+    return getElementTypeSize(*args, **kwargs)
 
 
 def getDevStateIcon(*args, **kwargs):
     """Wrapper to prevent loading qtgui when this module is imported"""
-    import taurus.qt.qtgui.resource
-    return taurus.qt.qtgui.resource.getDevStateIcon(*args, **kwargs)
+    from taurus.qt.qtgui.icon import getDevStateIcon
+    return getDevStateIcon(*args, **kwargs)
 
 
 def getDevStateToolTip(*args, **kwargs):
     """Wrapper to prevent loading qtgui when this module is imported"""
-    import taurus.qt.qtgui.resource
-    return taurus.qt.qtgui.resource.getDevStateToolTip(*args, **kwargs)
+    from taurus.qt.qtgui.icon import getDevStateToolTip
+    return getDevStateToolTip(*args, **kwargs)
 
 
 class TaurusTreeDbBaseItem(TaurusBaseTreeItem):

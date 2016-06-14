@@ -93,7 +93,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.table'
         ret['group'] = 'Taurus Views'
-        ret['icon'] = ":/designer/table.png"
+        ret['icon'] = "designer:table.png"
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

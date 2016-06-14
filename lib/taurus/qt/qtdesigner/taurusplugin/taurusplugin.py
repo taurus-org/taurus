@@ -139,10 +139,9 @@ class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         elif isinstance(icon, Qt.QIcon):
             return icon
         else:
-            if not icon.startswith(":"):
-                icon = ':/designer/%s' % icon
-            import taurus.qt.qtgui.resource
-            return taurus.qt.qtgui.resource.getIcon(icon)
+            if icon.find(":") == -1:
+                icon = 'designer:%s' % icon
+            return Qt.QIcon(icon)
 
     def domXml(self):
         name = str(self.name())

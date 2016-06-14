@@ -32,7 +32,6 @@ __docformat__ = 'restructuredtext'
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.resource import getThemeIcon
 
 import taurusaction
 
@@ -131,7 +130,7 @@ class ActionFactory(Singleton, Logger):
             action.setCheckable(True)
         if icon is not None:
             if isinstance(icon, (str, unicode)):
-                icon = getThemeIcon(icon)
+                icon = Qt.QIcon.fromTheme(icon)
             action.setIcon(icon)
         if shortcut is not None:
             action.setShortcut(shortcut)

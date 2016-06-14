@@ -33,7 +33,7 @@ from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from tauruslineedit import TaurusValueLineEdit
-from taurus.qt.qtgui.resource import getStandardIcon
+from taurus.qt.qtgui.icon import getStandardIcon
 
 
 class TaurusValueSpinBox(Qt.QAbstractSpinBox):
@@ -150,7 +150,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
     def getQtDesignerPluginInfo(cls):
         return {
             'group': 'Taurus Input',
-            'icon': ':/designer/spinbox.png',
+            'icon': 'designer:spinbox.png',
             'module': 'taurus.qt.qtgui.input',
             'container': False}
 

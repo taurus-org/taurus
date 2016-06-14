@@ -35,7 +35,6 @@ __docformat__ = 'restructuredtext'
 from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.util import ActionFactory
-from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.base import TaurusBaseWidget
 
 
@@ -74,7 +73,7 @@ class FilterToolBar(BaseToolBar):
 
         af = ActionFactory()
         self._clearFilterAction = af.createAction(self, "Clear",
-                                                  icon=getThemeIcon(
+                                                  icon=Qt.QIcon.fromTheme(
                                                       "edit-clear"),
                                                   tip="Clears the filter",
                                                   triggered=self.onClearFilter)
@@ -116,27 +115,29 @@ class EditorToolBar(BaseToolBar):
 
         af = ActionFactory()
         self._addAction = af.createAction(self, "New item",
-                                          icon=getThemeIcon("list-add"),
+                                          icon=Qt.QIcon.fromTheme("list-add"),
                                           tip="Add new item",
                                           triggered=self.onAdd)
         self._removeAction = af.createAction(self, "Remove item",
-                                             icon=getThemeIcon("list-remove"),
+                                             icon=Qt.QIcon.fromTheme(
+                                                 "list-remove"),
                                              tip="Remove item",
                                              triggered=self.onRemove)
         self._moveTopAction = af.createAction(self, "To top",
-                                              icon=getThemeIcon("go-top"),
+                                              icon=Qt.QIcon.fromTheme("go-top"),
                                               tip="Move selected item to top",
                                               triggered=self.onMoveTop)
         self._moveUpAction = af.createAction(self, "Move up",
-                                             icon=getThemeIcon("go-up"),
+                                             icon=Qt.QIcon.fromTheme("go-up"),
                                              tip="Move selected item up one level",
                                              triggered=self.onMoveUp)
         self._moveDownAction = af.createAction(self, "Move down",
-                                               icon=getThemeIcon("go-down"),
+                                               icon=Qt.QIcon.fromTheme(
+                                                   "go-down"),
                                                tip="Move selected item down one level",
                                                triggered=self.onMoveDown)
         self._moveBottomAction = af.createAction(self, "To bottom",
-                                                 icon=getThemeIcon(
+                                                 icon=Qt.QIcon.fromTheme(
                                                      "go-bottom"),
                                                  tip="Move selected item to bottom",
                                                  triggered=self.onMoveBottom)
@@ -178,12 +179,12 @@ class SelectionToolBar(BaseToolBar):
 
         af = ActionFactory()
         self._selectAllAction = af.createAction(self, "Select All",
-                                                icon=getThemeIcon(
+                                                icon=Qt.QIcon.fromTheme(
                                                     "edit-select-all"),
                                                 tip="Select all items",
                                                 triggered=self.onSelectAll)
         self._clearSelectionAction = af.createAction(self, "Clear selection",
-                                                     icon=getThemeIcon(
+                                                     icon=Qt.QIcon.fromTheme(
                                                          "edit-clear"),
                                                      tip="Clears current selection",
                                                      triggered=self.onclearSelection)
@@ -208,7 +209,7 @@ class RefreshToolBar(BaseToolBar):
 
         af = ActionFactory()
         self._refreshAction = af.createAction(self, "Refresh",
-                                              icon=getThemeIcon(
+                                              icon=Qt.QIcon.fromTheme(
                                                   "view-refresh"),
                                               tip="Refresh view",
                                               triggered=self.onRefresh)
@@ -237,7 +238,7 @@ class PerspectiveToolBar(BaseToolBar):
         af = ActionFactory()
         for persp, persp_data in view.KnownPerspectives.items():
             label = persp_data["label"]
-            icon = getIcon(persp_data["icon"])
+            icon = Qt.QIcon.fromTheme(persp_data["icon"])
             tip = persp_data["tooltip"]
             action = af.createAction(self, label, icon=icon, tip=tip,
                                      triggered=self.onSwitchPerspective)

@@ -32,7 +32,6 @@ __docformat__ = 'restructuredtext'
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.model import QBaseModelWidget, BaseToolBar
 from taurus.qt.qtgui.util import ActionFactory
-from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 
 
 class _NavigationWidget(Qt.QFrame):
@@ -92,15 +91,15 @@ class NavigationToolBar(BaseToolBar):
 
         af = ActionFactory()
         self._goIntoAction = af.createAction(self, "Go Into",
-                                             icon=getThemeIcon("go-down"),
+                                             icon=Qt.QIcon.fromTheme("go-down"),
                                              tip="Go into the selected item",
                                              triggered=self.goInto)
         self._goUpAction = af.createAction(self, "Go Up",
-                                           icon=getThemeIcon("go-up"),
+                                           icon=Qt.QIcon.fromTheme("go-up"),
                                            tip="Go up one level",
                                            triggered=self.goUp)
         self._goTopAction = af.createAction(self, "Go Top",
-                                            icon=getThemeIcon("go-top"),
+                                            icon=Qt.QIcon.fromTheme("go-top"),
                                             tip="Go to top level",
                                             triggered=self.goTop)
         self.addAction(self._goIntoAction)
@@ -141,23 +140,23 @@ class ExpansionBar(BaseToolBar):
 
         af = ActionFactory()
         self._expandAllAction = af.createAction(self, "Expand All",
-                                                icon=getIcon(
-                                                    ":/actions/expand.png"),
+                                                icon=Qt.QIcon(
+                                                    "actions:expand.png"),
                                                 tip="Expand all items",
                                                 triggered=self.onExpandAll)
         self._collapseAllAction = af.createAction(self, "Collapse All",
-                                                  icon=getIcon(
-                                                      ":/actions/collapse.png"),
+                                                  icon=Qt.QIcon(
+                                                      "actions:collapse.png"),
                                                   tip="Collapse all items",
                                                   triggered=self.onCollapseAll)
         self._expandSelectionAction = af.createAction(self, "Expand selection",
-                                                      icon=getIcon(
-                                                          ":/actions/expand-selection.png"),
+                                                      icon=Qt.QIcon(
+                                                          "actions:expand-selection.png"),
                                                       tip="Expand selection",
                                                       triggered=self.onExpandSelection)
         self._collapseSelectionAction = af.createAction(self, "Collapse All",
-                                                        icon=getIcon(
-                                                            ":/actions/collapse-selection.png"),
+                                                        icon=Qt.QIcon(
+                                                            "actions:collapse-selection.png"),
                                                         tip="Collapse selection",
                                                         triggered=self.onCollapseSelection)
         self.addAction(self._expandAllAction)

@@ -281,7 +281,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         ret = TaurusWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.compact'
         ret['group'] = 'Taurus R+W'
-        ret['icon'] = ":/designer/frame.png"
+        ret['icon'] = "designer:frame.png"
         if (cls.readWClass or cls.readWClass) is None:
             ret['container'] = True  # for base classes
         else:

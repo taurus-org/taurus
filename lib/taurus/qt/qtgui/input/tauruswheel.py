@@ -105,7 +105,7 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWritableWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.input'
-        ret['icon'] = ":/designer/wheeledit.png"
+        ret['icon'] = "designer:wheeledit.png"
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

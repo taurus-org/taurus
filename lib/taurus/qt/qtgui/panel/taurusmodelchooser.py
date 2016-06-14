@@ -35,7 +35,6 @@ from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.tree import TaurusDbTreeWidget
 from taurus.core.util.containers import CaselessList
 from taurusmodellist import TaurusModelList
-import taurus.qt.qtgui.resource
 
 #@todo: tango-centric!!
 from taurus.core.tango.tangodatabase import TangoDevInfo, TangoAttrInfo
@@ -63,7 +62,7 @@ class TaurusModelSelectorTree(TaurusWidget):
         self._toolbar.setIconSize(Qt.QSize(16, 16))
         self._toolbar.setFloatable(False)
         self._addSelectedAction = self._toolbar.addAction(
-            taurus.qt.qtgui.resource.getThemeIcon("list-add"), "Add selected", self.onAddSelected)
+            Qt.QIcon.fromTheme("list-add"), "Add selected", self.onAddSelected)
 
         # defines the layout
         self.setButtonsPos(buttonsPos)
@@ -130,7 +129,7 @@ class TaurusModelSelectorTree(TaurusWidget):
     def getQtDesignerPluginInfo(cls):
         ret = TaurusWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.panel'
-        ret['icon'] = ":/designer/listview.png"
+        ret['icon'] = "designer:listview.png"
         ret['container'] = False
         ret['group'] = 'Taurus Views'
         return ret
@@ -178,8 +177,7 @@ class TaurusModelChooser(TaurusWidget):
         applyBT = Qt.QToolButton()
         applyBT.setToolButtonStyle(Qt.Qt.ToolButtonTextBesideIcon)
         applyBT.setText('Apply')
-        applyBT.setIcon(taurus.qt.qtgui.resource.getIcon(
-            ":/status/available.svg"))
+        applyBT.setIcon(Qt.QIcon("status:available.svg"))
 
         self.setSingleModelMode(singleModel)
 
@@ -317,7 +315,7 @@ class TaurusModelChooser(TaurusWidget):
         '''
         dlg = Qt.QDialog(parent)
         dlg.setWindowTitle(windowTitle)
-        dlg.setWindowIcon(taurus.qt.qtgui.resource.getIcon(":/taurus.png"))
+        dlg.setWindowIcon(Qt.QIcon("logos:taurus.png"))
         layout = Qt.QVBoxLayout()
         w = TaurusModelChooser(
             parent=parent, selectables=selectables, host=host, singleModel=singleModel)

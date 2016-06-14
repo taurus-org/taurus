@@ -172,7 +172,7 @@ class TaurusQubDataImageDisplay(QubDataImageDisplay, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.image'
         ret['group'] = 'Taurus Display'
-        ret['icon'] = ":/designer/camera_photo.png"
+        ret['icon'] = "designer:camera_photo.png"
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

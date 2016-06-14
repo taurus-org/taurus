@@ -62,7 +62,7 @@ class TaurusWidget(Qt.QWidget, TaurusBaseContainer):
         if cls is TaurusWidget:
             ret['module'] = 'taurus.qt.qtgui.container'
             ret['group'] = 'Taurus Containers'
-            ret['icon'] = ":/designer/frame.png"
+            ret['icon'] = "designer:frame.png"
             ret['container'] = True
         return ret
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

@@ -37,7 +37,6 @@ from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.plot import TaurusPlot
-import taurus.qt.qtgui.resource
 
 
 class NeXusInfoWidget(Qt.QTabWidget):
@@ -84,10 +83,10 @@ class TaurusNeXusBrowser(TaurusWidget):
 
         # Actions
         self.setContextMenuPolicy(Qt.Qt.ActionsContextMenu)
-        self.openFileAction = Qt.QAction(taurus.qt.qtgui.resource.getThemeIcon(
-            "document-open"), "Open Data File...", self)
-        self.togglePreviewAction = Qt.QAction(taurus.qt.qtgui.resource.getIcon(
-            ":/actions/view.svg"), "Show/Hide preview", self)
+        self.openFileAction = Qt.QAction(Qt.QIcon.fromTheme("document-open"),
+                                         "Open Data File...", self)
+        self.togglePreviewAction = Qt.QAction(Qt.QIcon("actions:view.svg"),
+                                              "Show/Hide preview", self)
         self.togglePreviewAction.setCheckable(True)
         self.togglePreviewAction.setChecked(True)
         self.addActions([self.openFileAction, self.togglePreviewAction])
@@ -179,7 +178,7 @@ class TaurusNeXusBrowser(TaurusWidget):
     def getQtDesignerPluginInfo(cls):
         ret = TaurusWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.extra_nexus'
-        ret['icon'] = ":/designer/listview.png"
+        ret['icon'] = "designer:listview.png"
         ret['container'] = False
         ret['group'] = 'Taurus Views'
         return ret

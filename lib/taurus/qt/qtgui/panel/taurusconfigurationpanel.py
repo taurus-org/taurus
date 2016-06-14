@@ -145,7 +145,7 @@ class TangoConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def getQtDesignerPluginInfo(cls):
         ret = TaurusBaseWritableWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.input'
-        ret['icon'] = ":/designer/lineedit.png"
+        ret['icon'] = "designer:lineedit.png"
         return ret
 
 #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

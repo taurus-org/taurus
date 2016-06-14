@@ -163,7 +163,7 @@ class QBaseDictionaryEditor(Qt.QDialog, TaurusBaseContainer):
         dialog.setModal(modal)
         dialog.setCallback(callback)
         dialog.setModifiableByUser(True)
-        dialog.setWindowTitle(title or self.title or klass.__name__)
+        dialog.setWindowTitle(title or klass.__name__)
         if args:
             dialog.setModel(args)  # [0] if isSequence(args) else args)
         dialog.show()
@@ -182,8 +182,8 @@ class QBaseDictionaryEditor(Qt.QDialog, TaurusBaseContainer):
         self.bcancel = Qt.QPushButton('Cancel')
         self.baddColumn = Qt.QPushButton()
         self.baddRow = Qt.QPushButton()
-        [(b.setFixedSize(Qt.QSize(20, 20)), b.setIcon(taurus.qt.qtgui.resource.getIcon(
-            ':/designer/plus.png'))) for b in (self.baddColumn, self.baddRow)]
+        [(b.setFixedSize(Qt.QSize(20, 20)), b.setIcon(Qt.Qicon(
+            'designer:plus.png'))) for b in (self.baddColumn, self.baddRow)]
         self.setLayout(Qt.QGridLayout())
         self.layout().addWidget(self.label, 0, 0, 1, 5)
         # self.layout().addWidget(self.value,1,0,1,3)

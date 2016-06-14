@@ -62,5 +62,5 @@ class TaurusGraphicsView(Qt.QGraphicsView, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.graphic'
         ret['group'] = 'Taurus Display'
-        ret['icon'] = ":/designer/graphicsview.png"
+        ret['icon'] = "designer:graphicsview.png"
         return ret

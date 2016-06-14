@@ -427,7 +427,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['group'] = 'Taurus Display'
         ret['module'] = 'taurus.qt.qtgui.graphic'
-        ret['icon'] = ":/designer/graphicsview.png"
+        ret['icon'] = "designer:graphicsview.png"
         return ret
 
     model = Qt.pyqtProperty("QString", getModel, setModel)
