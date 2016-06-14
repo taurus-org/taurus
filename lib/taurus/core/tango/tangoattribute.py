@@ -213,7 +213,7 @@ class TangoAttrValue(TaurusAttrValue):
     def __fix_int(self, value):
         '''cast value to int if  it is an integer.
         Works on scalar and non-scalar values'''
-        if self.type != DataType.Integer:
+        if self._attrRef.type is None or self._attrRef.type != DataType.Integer:
             return value
         try:
             return int(value)
