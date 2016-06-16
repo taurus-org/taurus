@@ -16,9 +16,9 @@ branches:
 before_install:
   # run cpascual/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
   - docker pull cpascual/taurus-test
-  - docker run -d --name=taurus-test -e HOSTNAME=taurus-test --volume=`pwd`:/taurus cpascual/taurus-test
+  - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus cpascual/taurus-test
   - sleep 10
   
 script:
-  - docker exec taurus-test python /taurus/setup.py install
-  - docker exec -ti taurus-test python /taurus/lib/taurus/test/testsuite.py
+  - docker exec taurus-test /bin/bash -c "cd taurus ; python setup.py install"
+  - docker exec taurus-test /bin/bash -c "cd taurus ; python setup.py test"
