@@ -35,17 +35,12 @@ from taurus.core.util.singleton import Singleton
 from taurus.core.util.log import Logger
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusfactory import TaurusFactory
-from epicsattribute import EpicsAttribute
+try:
+    from epicsattribute import EpicsAttribute
+except ImportError:
+    EpicsAttribute = None
 from epicsdevice import EpicsDevice
 from epicsauthority import EpicsAuthority
-
-try:
-    import epics
-except ImportError:
-    from taurus.core.util.log import debug
-    debug('cannot import epics module. ' +
-          'Taurus will not support the "epics" scheme')
-    raise
 
 
 class EpicsFactory(Singleton, TaurusFactory, Logger):
@@ -71,6 +66,10 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
         name = self.__class__.__name__
         self.call__init__(Logger, name)
         self.call__init__(TaurusFactory)
+        if EpicsAttribute is None:
+            self.debug('cannot import epics module.'
+                       'Taurus will not support the "epics" scheme')
+            raise Exception('"epics" module is not available')
         self.epics_attrs = weakref.WeakValueDictionary()
         self.epics_devs = weakref.WeakValueDictionary()
 
