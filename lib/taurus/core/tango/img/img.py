@@ -36,29 +36,26 @@ from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.core.tango import TangoDevice
 from taurus.core.util.containers import CaselessDict, CaselessList
 
+
 class ImageDevice(TangoDevice):
     """A class encapsulating a generic image device"""
-    
-    def __init__(self, name, image_name='image', image_ct='imagecounter', **kw):
-        self._image_data = CaselessDict()
-        self.call__init__(ImageDevice, name, image_name, **kw)
-        self._image_id_attr_name = image_ct
-        self._busy = False
-        self._image_id_attr = self.getAttribute(self._image_id_attr_name)
-        self._image_id_attr.addListener(self)
+
+    def __init__(self, name, image_name='image', **kw):
+        self.call__init__(TangoDevice, name, **kw)
+        self.setImageAttrName(image_name)
 
     def addImageAttrName(self, attr_name):
         if attr_name in self._image_attr_names:
             return
         self._image_attr_names.append(attr_name)
-            
+
     def setImageAttrName(self, attr_name):
         self._image_attr_names = CaselessList()
         self.addImageAttrName(attr_name)
-        
+
     def getImageAttrName(self, idx=0):
         return self._image_attr_names[0]
-    
+
     def getImageAttrNames(self):
         return self._image_attr_names
 
@@ -66,11 +63,13 @@ class ImageDevice(TangoDevice):
 class ImageCounterDevice(ImageDevice):
     """A class encapsulating a generic image device that has an image counter
     attribute"""
-    
-    def __init__(self, name, image_name='image', **kw):
+
+    def __init__(self, name, image_name='image', image_ct='imagecounter', **kw):
         self._image_data = CaselessDict()
-        self.call__init__(ImageDevice, name, **kw)
-        self._image_id_attr = self.getAttribute(self.getImageIDAttrName())
+        self._image_id_attr_name = image_ct
+        self.call__init__(ImageDevice, name, image_name, **kw)
+        self._busy = False
+        self._image_id_attr = self.getAttribute(self._image_id_attr_name)
         self._image_id_attr.addListener(self)
 
     def _setDirty(self, names=None):
@@ -90,18 +89,6 @@ class ImageCounterDevice(ImageDevice):
 
     def getImageIDAttrName(self):
         return self._image_id_attr_name
-
-    def _emitImageEvents(self, evt_type, images):
-        for attr_image_name in images:
-            image_value = images[attr_image_name][1]
-            if hasattr(image_value, 'is_empty') and not image_value.is_empty:
-                self.debug("fireEvent for %s attribute" % attr_image_name)
-                if not hasattr(image_value, 'rvalue'):
-                    image_value.rvalue = image_value.value
-                # Only emit to upper layers the events where
-                # something has been read.
-                attr_image = self.getAttribute(image_value.name)
-                attr_image.fireEvent(evt_type, image_value)
 
     def eventReceived(self, evt_src, evt_type, evt_value):
         if evt_src == self._image_id_attr:
@@ -124,14 +111,26 @@ class ImageCounterDevice(ImageDevice):
         else:
             ImageDevice.eventReceived(self, evt_src, evt_type, evt_value)
 
+    def _emitImageEvents(self, evt_type, images):
+        for attr_image_name in images:
+            image_value = images[attr_image_name][1]
+            if hasattr(image_value, 'is_empty') and not image_value.is_empty:
+                self.debug("fireEvent for %s attribute" % attr_image_name)
+                if not hasattr(image_value, 'rvalue'):
+                    image_value.rvalue = image_value.value
+                # Only emit to upper layers the events where
+                # something has been read.
+                attr_image = self.getAttribute(image_value.name)
+                attr_image.fireEvent(evt_type, image_value)
+
     def getImageData(self, names=None):
         if names is None:
             names = self.getImageAttrNames()
         elif isinstance(names, str):
             names = (names,)
-        
+
         fetch = self._getDirty(names)
-        
+
         try:
             data = self.read_attributes(fetch)
             for d in data:
@@ -144,14 +143,16 @@ PyImageViewer = ImageCounterDevice
 ImgGrabber = ImageCounterDevice
 CCDPVCAM = ImageCounterDevice
 
+
 class Falcon(ImageCounterDevice):
 
     def __init__(self, name, image_name='image', **kw):
         self._color = False
-        self.call__init__(ImageCounterDevice, name, image_name=image_name, **kw)
+        self.call__init__(ImageCounterDevice, name,
+                          image_name=image_name, **kw)
         self.imgFormat_Attr = self.getAttribute("imageformat")
         self.imgFormat_Attr.addListener(self)
-    
+
     def eventReceived(self, evt_src, evt_type, evt_value):
         if evt_src == self.getAttribute("imageformat"):
             if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
@@ -164,34 +165,19 @@ class Falcon(ImageCounterDevice):
         if self._color:
             for k, v in data.items():
                 s = v[1].value.shape
-                v[1].value = v[1].value.reshape((s[0], s[1]/3, 3))
+                v[1].value = v[1].value.reshape((s[0], s[1] / 3, 3))
         return data
 
 
 class ImgBeamAnalyzer(ImageCounterDevice):
-    
+
     def __init__(self, name, image_name='roiimage', **kw):
         self.call__init__(ImageCounterDevice, name, image_name, **kw)
 
+
 class LimaCCDs(ImageCounterDevice):
 
-    def __init__(self, name, image_name='video_last_image', **kw):
-        self.processing = False
-        self.rlock = RLock()
-        self.call__init__(ImageCounterDevice, name, image_name, **kw)
-
-    def getImageIDAttrName(self):
-        return 'video_last_image_counter'
-
-    def eventReceived(self, evt_src, evt_type, evt_value):
-        if evt_src == self._image_id_attr and self.processing == False:
-            if evt_type == TaurusEventType.Change:
-                with self.rlock:
-                    self.processing = True
-                    attr_image = self.getAttribute('video_last_image')
-                    evt_value = attr_image.read(False)
-                    attr_image.fireEvent(evt_type, evt_value)
-                    self.processing = False
-
-        else:
-            ImageCounterDevice.eventReceived(self, evt_src, evt_type, evt_value)
+    def __init__(self, name, image_name='video_last_image', image_ct='video_last_image_counter', **kw):
+        self.call__init__(ImageCounterDevice, name, image_name, image_ct, **kw)
+        self.debug("Prepared to listen image counter (%s) for the %s images"
+                   % (self.getImageIDAttrName(), self.getImageAttrNames()))
