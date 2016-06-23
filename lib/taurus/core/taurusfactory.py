@@ -253,7 +253,7 @@ class TaurusFactory(object):
     def isPollingEnabled(self):
         """Tells if the local tango polling is enabled
 
-           :return: (bool) wheter or not the polling is enabled
+           :return: (bool) whether or not the polling is enabled
         """
         return self._polling_enabled
 
