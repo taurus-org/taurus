@@ -48,7 +48,7 @@ as in the examples below, or if you require more control, use the
 Here are some examples:
 
 The Taurus Authority associated with the Tango database
-running on host "machine01" and port 10000 is named "//machine:1000"
+running on host "machine01" and port 10000 is named "//machine:10000"
 (note that Taurus authority names are always prefixed by "//", to comply with
 RFC3986). And you can get the corresponding Taurus Authority object as:
 
