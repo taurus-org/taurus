@@ -124,7 +124,7 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
 
         :return: (EpicsAttribute)
 
-        @throws TaurusException if the given name is invalid.
+        :raises: :TaurusException: if the given name is invalid.
         """
         validator = self.getAttributeNameValidator()
         names = validator.getNames(attr_name)

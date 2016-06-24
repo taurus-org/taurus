@@ -103,13 +103,15 @@ class TaurusFactory(object):
     def setSerializationMode(self, mode):
         """Sets the serialization mode for the system.
 
-        :param mode: (TaurusSerializationMode) the new serialization mode"""
+        :param mode: (TaurusSerializationMode) the new serialization mode
+        """
         self._serialization_mode = mode
 
     def getSerializationMode(self):
         """Gives the serialization operation mode.
 
-        :return: (TaurusSerializationMode) the current serialization mode"""
+        :return: (TaurusSerializationMode) the current serialization mode
+        """
         return self._serialization_mode
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -124,13 +126,13 @@ class TaurusFactory(object):
         If the corresponding authority object already exists, the existing
         instance is returned. Otherwise a new instance is stored and returned.
 
-        @param[in] db_name authority name string. It should be formed like:
+        :param db_name: [in] authority name string. It should be formed like:
                            <scheme>://<authority>. If <scheme> is ommited then
                            it will use the default scheme. if db_name is None,
                            the default authority is used
 
-        @return a taurus.core.taurusauthority.TaurusAuthority object
-        @throws TaurusException if the given name is invalid.
+        :return: a taurus.core.taurusauthority.TaurusAuthority object
+        :raises: :TaurusException: if the given name is invalid.
         """
         raise NotImplementedError("getAuthority cannot be called for abstract"
                                   " TaurusFactory")
@@ -142,14 +144,14 @@ class TaurusFactory(object):
         corresponding device already exists, the existing instance is returned.
         Otherwise a new instance is stored and returned.
 
-        @param[in] dev_name the device name string. It should be formed like:
+        :param dev_name: [in] the device name string. It should be formed like:
                             <scheme>://<authority>/<device name>. If <scheme>
                             is ommited then it will use the default scheme.
                             If authority is ommited then it will use the
                             default authority for the scheme.
 
-        @return a taurus.core.taurusdevice.TaurusDevice object
-        @throws TaurusException if the given name is invalid.
+        :return: a taurus.core.taurusdevice.TaurusDevice object
+        :raises: :TaurusException: if the given name is invalid.
         """
         raise NotImplementedError("getDevice cannot be called for abstract"
                                   " TaurusFactory")
@@ -161,10 +163,10 @@ class TaurusFactory(object):
         If the corresponding attribute already exists, the existing instance
         is returned. Otherwise a new instance is stored and returned.
 
-        @param[in] attr_name string attribute name
+        :param attr_name: [in] string attribute name
 
-        @return a taurus.core.taurusattribute.TaurusAttribute object
-        @throws TaurusException if the given name is invalid.
+        :return: a taurus.core.taurusattribute.TaurusAttribute object
+        :raises: :TaurusException: if the given name is invalid.
         """
         raise NotImplementedError("getAttribute cannot be called for abstract"
                                   " TaurusFactory")
