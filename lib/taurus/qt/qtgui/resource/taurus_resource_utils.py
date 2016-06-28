@@ -175,19 +175,19 @@ if __name__ == '__main__':
 
     icons = [
 
-        Qt.QIcon('actions:edit-cut.svg'),
-        Qt.QIcon('actions:edit-cut.svg'),
+        getIcon('actions:edit-cut.svg'),
+        getIcon(':/actions/edit-cut.svg'),
 
-        Qt.QIcon("apps:preferences-system-session.svg"),
-        Qt.QIcon("designer:devs_tree.png"),
+        getIcon(":/apps/preferences-system-session.svg"),
+        getIcon(":/designer/devs_tree.png"),
 
-        Qt.QIcon("actions:process-stop.svg"),  # from tango-icons/actions
-        Qt.QIcon("actions:add.svg"), # from rrze-icons/actions
-        Qt.QIcon("actions:stop.svg"), # from extra-icons/actions
+        getIcon(":/actions/process-stop.svg"), # from tango-icons/actions
+        getIcon(":/actions/add.svg"), # from rrze-icons/actions
+        getIcon(":/actions/stop.svg"), # from extra-icons/actions
 
-        Qt.QIcon("logos:taurus.svg"),
-        Qt.QIcon.fromTheme("computer"),  # theme Icon via getIcon
-        Qt.QIcon.fromTheme("computer"),  # theme Icon via getThemeIcon
+        getIcon(":taurus.svg"),
+        getIcon("computer"), # theme Icon via getIcon
+        getThemeIcon("computer"), # theme Icon via getThemeIcon
         ]
 
     w = Qt.QWidget()
