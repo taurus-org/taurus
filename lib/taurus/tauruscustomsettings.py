@@ -143,3 +143,6 @@ QT_THEME_FORCE_ON_LINUX = True
 # None (or not set) indicates no limit. -1 indicates that an exception should
 # be raised instead of logging the message (useful for finding obsolete code)
 _MAX_DEPRECATIONS_LOGGED = 1
+
+# Custom organization logo. It is the path of an image file.
+#ORGANIZATION_LOGO = path/to/image/file

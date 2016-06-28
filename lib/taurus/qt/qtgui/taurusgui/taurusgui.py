@@ -39,6 +39,7 @@ import inspect
 from lxml import etree
 
 import taurus
+from taurus import tauruscustomsettings
 from taurus.external.qt import Qt
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.communication import SharedDataManager
@@ -1033,8 +1034,12 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.setOrganizationName(ORGNAME)
         Qt.QApplication.instance().basicConfig()
 
-        ORGANIZATIONLOGO = getattr(conf, 'ORGANIZATION_LOGO', self.__getVarFromXML(
-            xmlroot, "ORGANIZATION_LOGO", 'logos:logo.png'))
+        logo = getattr(tauruscustomsettings, 'ORGANIZATION_LOGO',
+                       "logos:taurus.png")
+        ORGANIZATIONLOGO = getattr(conf, 'ORGANIZATION_LOGO',
+                                   self.__getVarFromXML(xmlroot,
+                                                        "ORGANIZATION_LOGO",
+                                                        logo))
         ##
         if ORGANIZATIONLOGO.startswith(':'):
             organizationIcon = Qt.Icon(ORGANIZATIONLOGO)

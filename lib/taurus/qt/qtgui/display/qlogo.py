@@ -31,6 +31,7 @@ __all__ = ["QLogo"]
 
 __docformat__ = 'restructuredtext'
 
+from taurus import tauruscustomsettings
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.icon import getCachedPixmap
 
@@ -47,7 +48,9 @@ class QLogo(Qt.QLabel):
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
         self.setScaledContents(True)
-        self.setPixmap(getCachedPixmap("logo.png"))
+        logo = getattr(tauruscustomsettings, 'ORGANIZATION_LOGO',
+                       "logos:taurus.png")
+        self.setPixmap(getCachedPixmap(logo))
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

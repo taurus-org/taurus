@@ -34,6 +34,7 @@ __docformat__ = 'restructuredtext'
 import os
 import sys
 
+from taurus import tauruscustomsettings
 from taurus.external.qt import Qt
 from taurusbasecontainer import TaurusBaseContainer
 
@@ -370,7 +371,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         tb.setObjectName('Taurus Toolbar')
 #        tb.addAction(self.changeTangoHostAction)
 #        tb.addWidget(self.taurusLogo)
-        tb.addAction(Qt.QIcon("logos:logo.png"), Qt.qApp.organizationName())
+        logo = getattr(tauruscustomsettings, 'ORGANIZATION_LOGO',
+                       "logos:taurus.png")
+        tb.addAction(Qt.QIcon(logo), Qt.qApp.organizationName())
         tb.setIconSize(Qt.QSize(50, 50))
         return tb
 

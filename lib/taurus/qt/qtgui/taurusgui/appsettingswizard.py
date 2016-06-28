@@ -43,6 +43,7 @@ import copy
 import datetime
 from lxml import etree
 
+from taurus import tauruscustomsettings
 from taurus.external.qt import Qt
 import taurus.qt.qtgui.panel
 import taurus.qt.qtgui.taurusgui.paneldescriptionwizard
@@ -371,7 +372,9 @@ class CustomLogoPage(BasePage):
 
     def __init__(self, parent=None):
         BasePage.__init__(self, parent)
-        self._customLogoDefaultPath = "logos:logo.png"
+        self._customLogoDefaultPath = getattr(tauruscustomsettings,
+                                              "ORGANIZATION_LOGO",
+                                              "logos:taurus.png")
         self._customLogoPath = self._customLogoDefaultPath
 
     def initializePage(self):
