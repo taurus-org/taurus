@@ -1042,7 +1042,7 @@ class TaurusGui(TaurusMainWindow):
                                                         logo))
         ##
         if Qt.QFile.exists(ORGANIZATIONLOGO):
-            organizationIcon = Qt.Icon(ORGANIZATIONLOGO)
+            organizationIcon = Qt.QIcon(ORGANIZATIONLOGO)
         else:
             organizationIcon = Qt.QIcon(os.path.join(
                 self._confDirectory, ORGANIZATIONLOGO))
