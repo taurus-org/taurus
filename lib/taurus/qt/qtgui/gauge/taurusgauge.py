@@ -229,7 +229,7 @@ class TaurusCircularGauge(qtcontrols.ECircularGauge, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['group'] = 'Taurus Display'
         ret['module'] = 'taurus.qt.qtgui.gauge'
-        ret['icon'] = ":/designer/circular_gauge.png"
+        ret['icon'] = "designer:circular_gauge.png"
         return ret
 
     logScale = Qt.pyqtProperty("bool", getLogScale, setLogScale, resetLogScale)

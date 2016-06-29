@@ -163,7 +163,7 @@ class QBaseDictionaryEditor(Qt.QDialog, TaurusBaseContainer):
         dialog.setModal(modal)
         dialog.setCallback(callback)
         dialog.setModifiableByUser(True)
-        dialog.setWindowTitle(title or klass.__name__)
+        dialog.setWindowTitle(title or klass.title or klass.__name__)
         if args:
             dialog.setModel(args)  # [0] if isSequence(args) else args)
         dialog.show()

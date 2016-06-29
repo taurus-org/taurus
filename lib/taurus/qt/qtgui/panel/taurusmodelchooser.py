@@ -329,7 +329,7 @@ class TaurusModelChooser(TaurusWidget):
     def getQtDesignerPluginInfo(cls):
         ret = TaurusWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.panel'
-        ret['icon'] = ":/designer/listview.png"
+        ret['icon'] = "designer:listview.png"
         ret['container'] = False
         ret['group'] = 'Taurus Views'
         return ret

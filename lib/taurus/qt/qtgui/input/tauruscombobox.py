@@ -328,7 +328,7 @@ class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['group'] = 'Taurus Input'
         ret['module'] = 'taurus.qt.qtgui.input'
-        ret['icon'] = ":/designer/combobox.png"
+        ret['icon'] = "designer:combobox.png"
         return ret
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

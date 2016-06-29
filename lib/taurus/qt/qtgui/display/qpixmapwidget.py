@@ -29,10 +29,7 @@ __all__ = ["QPixmapWidget"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt.qtgui.icon import getCachedPixmap
 from taurus.external.qt import Qt
-
-getPixmap = getCachedPixmap
 
 
 class QPixmapWidget(Qt.QWidget):

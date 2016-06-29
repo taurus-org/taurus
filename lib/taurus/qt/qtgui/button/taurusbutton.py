@@ -545,10 +545,10 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
 
 class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
 
-    _LOCK_MAP = {LockStatus.Unlocked: ":/lock_unlocked.svg",
-                 LockStatus.Locked: ":/lock_locked_unpreviledged.svg",
-                 LockStatus.LockedMaster: ":/lock_locked.svg",
-                 LockStatus.Unknown: ":/lock_unknown.svg"}
+    _LOCK_MAP = {LockStatus.Unlocked: "extra_icon:lock_unlocked.svg",
+                 LockStatus.Locked: "extra_icon:lock_locked_unpreviledged.svg",
+                 LockStatus.LockedMaster: "extra_icon:lock_locked.svg",
+                 LockStatus.Unknown: "extra_icon:lock_unknown.svg"}
 
     def __init__(self, parent=None, designMode=False):
         self._lock_info = TaurusLockInfo()

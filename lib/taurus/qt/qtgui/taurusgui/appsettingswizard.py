@@ -475,32 +475,20 @@ class CustomLogoPage(BasePage):
 
     def _changeImage(self):
         fileName = str(self._customLogoLineEdit.text())
-        if (len(fileName)):
-            if fileName.find(":") != -1:
-                pixmap = Qt.QIcon(fileName).pixmap(48)
-                if (pixmap.height()):
-                    image = pixmap.toImage()
+        if len(fileName):
+            if (os.path.exists(fileName)):
+                image = Qt.QImage()
+                if image.load(fileName):
                     self._setImage(image)
                     self._customLogoPath = fileName
                     self._setStatus("Press next button to continue")
                     self._customLogoRemoveButton.show()
                 else:
                     self._setNoImage()
-                    self._setStatus("The resource is invalid")
+                    self._setStatus("The file is invalid")
             else:
-                if (os.path.exists(fileName)):
-                    image = Qt.QImage()
-                    if image.load(fileName):
-                        self._setImage(image)
-                        self._customLogoPath = fileName
-                        self._setStatus("Press next button to continue")
-                        self._customLogoRemoveButton.show()
-                    else:
-                        self._setNoImage()
-                        self._setStatus("The file is invalid")
-                else:
-                    self._setNoImage()
-                    self._setStatus("The file does not exist")
+                self._setNoImage()
+                self._setStatus("The file does not exist")
         else:
             self._setNoImage()
             self._setStatus("No image")
