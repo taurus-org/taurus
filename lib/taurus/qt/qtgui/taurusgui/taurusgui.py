@@ -1025,7 +1025,7 @@ class TaurusGui(TaurusMainWindow):
             xmlroot, "ORGANIZATION", str(Qt.qApp.organizationName()) or 'Taurus'))
         CUSTOMLOGO = getattr(conf, 'CUSTOM_LOGO', getattr(
             conf, 'LOGO', self.__getVarFromXML(xmlroot, "CUSTOM_LOGO", 'logos:taurus.png')))
-        if CUSTOMLOGO.startswith(':'):
+        if Qt.QFile.exists(CUSTOMLOGO):
             customIcon = Qt.QIcon(CUSTOMLOGO)
         else:
             customIcon = Qt.QIcon(os.path.join(
@@ -1041,7 +1041,7 @@ class TaurusGui(TaurusMainWindow):
                                                         "ORGANIZATION_LOGO",
                                                         logo))
         ##
-        if ORGANIZATIONLOGO.startswith(':'):
+        if Qt.QFile.exists(ORGANIZATIONLOGO):
             organizationIcon = Qt.Icon(ORGANIZATIONLOGO)
         else:
             organizationIcon = Qt.QIcon(os.path.join(
@@ -1073,7 +1073,7 @@ class TaurusGui(TaurusMainWindow):
         for classname, pixmapname in EXTRA_CATALOG_WIDGETS:
             # If a relative file name is given, the conf directory will be used
             # as base path
-            if pixmapname and not pixmapname.startswith(":"):
+            if pixmapname and not Qt.QFile.exists(pixmapname):
                 pixmapname = os.path.join(self._confDirectory, pixmapname)
             self._extraCatalogWidgets.append((classname, pixmapname))
 
