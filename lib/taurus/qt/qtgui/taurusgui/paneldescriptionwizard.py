@@ -263,7 +263,7 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
             if cname in available or '.' in cname:
                 row.append(cname)
                 if cname not in pixmaps:
-                    pixmaps[cname] = getPixmap(':/snapshot/%s.png' % cname)
+                    pixmaps[cname] = getCachedPixmap('snapshot:%s.png' % cname)
                 if len(row) == 3:
                     choices.append(row)
                     row = []
