@@ -55,6 +55,8 @@ from taurus.core.taurusbasetypes import TaurusAttrValue
                                 quality=AttrQuality.ATTR_VALID,
                                 error=None,
                                 ),
+            test_skip='There are troubles in the docker container. '
+                      'This test will be skipped till we fix it'
             )
 @unittest.skipIf(sys.modules.has_key('epics') is False,
                  "epics module is not available")
