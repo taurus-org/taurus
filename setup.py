@@ -78,6 +78,7 @@ extras_require = {
 }
 
 console_scripts = [
+    'taurustestsuite = taurus.test.testsuite:main',
     # TODO: taurusdoc,
 ]
 
@@ -110,7 +111,7 @@ gui_scripts = [
     # TODO: taurusdemo
 ]
 
-entry_points={#'console_scripts': console_scripts,
+entry_points={'console_scripts': console_scripts,
               'gui_scripts': gui_scripts,
               }
 
