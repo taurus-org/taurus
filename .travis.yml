@@ -21,4 +21,4 @@ before_install:
   
 script:
   - docker exec taurus-test /bin/bash -c "cd taurus ; python setup.py install"
-  - docker exec taurus-test /bin/bash -c "cd taurus ; python setup.py test"
+  - docker exec taurus-test /bin/bash -c "taurustestsuite"

@@ -55,8 +55,7 @@ def run(disableLogger=True):
     # run the test suite
     return runner.run(suite)
 
-
-if __name__ == '__main__':
+def main():
     import sys
     from taurus.external import argparse
     parser = argparse.ArgumentParser(description='Main test suite for Taurus')
@@ -76,3 +75,7 @@ if __name__ == '__main__':
     else:
         exit_code = 1
     sys.exit(exit_code)
+
+
+if __name__ == '__main__':
+    main()
