@@ -77,35 +77,6 @@ def _build_doc_api():
 
 _build_doc_api()
 
-# -- RTD hack -----------------------------------------------------------------
-# This code is to allow RTD to build the catalog and the api
-# it has no effect on local builds
-
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd:
-    import imp
-
-    def _build_catalog():
-        # import setup.py as a module
-        name = 'setup'
-        data = imp.find_module(name, [_setup_dir])
-        setupmod = imp.load_module(name, *data)
-        catalog = setupmod.build_catalog()
-        # build
-        fname = os.path.join(_doc_dir, 'source', 'devel', 'catalog.html')
-        catalog.fname = fname
-        catalog.builder_target_dir = _this_dir
-        catalog.thumbnails_source = os.path.join(_doc_dir, 'thumbnails.zip')
-        catalog.verbose = True
-        catalog.out = sys.stdout
-        catalog.run()
-
-    # build the catalog
-    _build_catalog()
-
-# ------------------------------------------------------------------------------
-
-
 # -- General configuration -----------------------------------------------
 
 #autosummary_generate = True
