@@ -48,8 +48,6 @@ class QIconCatalogPage(GraphicalChoiceWidget):
         self.gridLayout.addItem(spacer, self.gridLayout.rowCount(),
                                 self.gridLayout.columnCount())
 
-        self.choiceMade.connect(self.onChoiceMade)
-
     def __build_catalog(self, prefix, columns=10):
         """explores paths registered under the given prefix and selects unique
         pixmaps (performs an md5 check to discard duplicated icon files)
@@ -106,26 +104,29 @@ class QIconCatalogPage(GraphicalChoiceWidget):
                 hash_md5.update(chunk)
         return hash_md5.hexdigest()
 
-    def onChoiceMade(self, chosen):
-        """slot called on clicks of an icon
-
-        :param chosen: (str) choice text
+    def onClick(self):
+        """Reimplemented :class:`GraphicalChoiceWidget`
         """
+        # From all alternatives, extract the one with the shortest name
+        chosen = self.sender().text()
         alts = chosen.splitlines()
         alts = sorted(alts, key=lambda s: len(s.split()[0]))
         name, absname = alts[0].split()
+
+        # Store chosen name and emit signal using name
+        self._chosen = name
+        self.choiceMade.emit(name)
+
+        # show a message dialob with more info on the selected icon
         dlg = Qt.QMessageBox()
         dlg.setWindowTitle(name)
-
         text = 'You can access the selected icon as:\n%s\n\n' % name
         text += 'Or, by absolute name:\n%s\n\n' % absname
         if len(alts) > 1:
             text += 'Other alternative names:\n\n' + '\n\n'.join(alts[1:])
-
         dlg.setText(text)
         dlg.setIconPixmap(getCachedPixmap(name, size=128))
         dlg.exec_()
-
 
 class QIconCatalog(Qt.QTabWidget):
     """
@@ -134,7 +135,10 @@ class QIconCatalog(Qt.QTabWidget):
     Clicking on an icon provides info on how to use it from a taurus
     application.
     """
-    def __init__(self):
+
+    iconSelected = Qt.pyqtSignal(str)
+
+    def __init__(self, parent=None):
         Qt.QTabWidget.__init__(self)
         nprefix = len(REGISTERED_PREFIXES)
         progress = Qt.QProgressDialog('Building icon catalog...', None,
@@ -145,6 +149,7 @@ class QIconCatalog(Qt.QTabWidget):
         for i, prefix in enumerate(sorted(REGISTERED_PREFIXES)):
             progress.setValue(i)
             page = QIconCatalogPage(prefix)
+            page.choiceMade.connect(self.iconSelected)
 
             self.addTab(page, prefix)
         progress.setValue(nprefix)
