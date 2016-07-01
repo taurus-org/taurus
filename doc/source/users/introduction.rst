@@ -4,39 +4,51 @@
 Introduction
 ============
 
-taurus was originally conceived as a library for connecting client side
-applications (CLIs and GUIs) to Tango_ device servers. 
+Taurus was originally conceived as a library for connecting client side
+applications (CLIs and GUIs) to Tango_ device servers. Since v4.0
+the Taurus core became control-system agnostic, and it supports other control
+systems (such as EPICS_) and data sources.
 
-.. note:: More recently, the scope of Taurus
-          has been broadened and it is moving towards supporting pluggins for
-          other control systems (e.g. Epics_, Spec_...). While many concepts of
-          Taurus Design are heavily influenced by the Tango philosophy, the goal
-          is to eventually provide a control-system agnostic API allowing
-          different control systems to be used even simultaneously.
-          Nevertheless, due to its Tango roots, this documentation may assume
-          that you are using Tango.
+.. note:: due to its Tango origin, this documentation will tend to use many
+          tango-related examples. We intend to gradually introduce more 
+          non-Tango examples
 
 Taurus was developed within the Sardana_ project, but since it has being found 
-to be useful for other projects not related to Sardana, it has been 
+useful for other projects not related to Sardana, it has been 
 moved to a separate project (although both projects are kept in sync and share 
 most of their developers).
 
-For its Tango interface, Taurus uses PyTango_ which is a python binding
-for the Tango_ library. It provides an abstraction layer that allows Tango to be
-accessed in a pythonic, object oriented way. For the GUI part, taurus is built
-on top of the graphical library PyQt_ which is a python binding for Qt_.
+Taurus uses the Model-View-Controller (MVC) pattern to build interfaces. 
 
-The goals of this library are:
- - provide a simple Tango (and other control systems) API to the end-user application
- - speed up development of tango (and other control systems) based applications
- - provide a standardized look-and-feel
+The :mod:`taurus.core` module uses plugins (known as schemes) to provide TaurusModel 
+objects that abstract the interactions with specific sources of data and/or 
+control objects(See the :ref:`taurus-core-tutorial`). Some schemes are already 
+implemented for accessing control system libraries (the "tango" and "epics" schemes) 
+as well as for data-processing via a Python interpreter (the "evaluation" scheme).
+
+The Taurus view and controller components are typically implemented as PyQt_ based
+GUIs, but it may also consist on command line interfaces such as Sardana's spock or
+web based applications such as those demonstrated in the :mod`taurus.web` module 
+(just a proof of concept for now).
+
+The :mod:`taurus.qt` module provides a set of basic widgets (labels, LEDs, editors, 
+forms, plots, tables, buttons, synoptics,...) that extend related Qt widgets with 
+the capability of attaching to Taurus core models in order to display and/or change 
+their data in pre-defined ways. For example, a TaurusPlot widget will display a curve
+for each attribute model to which it is attached if its value is a one-dimensional 
+numerical array. Similarly, a TaurusForm widget will allow the user to interact with 
+the data represented by its attached models. The actual association of a view (widget) 
+with a model is done by providing the model name to the widget. 
+
+The goals of Taurus are:
+ - provide simple access to a controls system (or other sources of data)
+ - speed up development of Tango (and other control systems) based applications
+ - provide a standardized look-and-feel in the applications
  
-
 For example, to display the values of four attributes (state, position, velocity, acceleration)
-of a device (motor/icepap/01)::
+of a Tango device (motor/icepap/01)::
 
     import sys
-    from taurus.external.qt import Qt
     from taurus.qt.qtgui.panel import TaurusForm
     from taurus.qt.qtgui.application import TaurusApplication
     
@@ -54,42 +66,19 @@ of a device (motor/icepap/01)::
   :scale: 50
   :align: center
   
-  The generated GUI by the above code
+  The GUI resulting from the above code
 
 The above example can even be achieved even without typing any code::
 
     % cd taurus/qt/qtgui/panel
     % python taurusform.py motor/icepap/01/state motor/icepap/01/position motor/icepap/01/velocity
   
-In many aspects, taurus follows the same approach as the tango java application 
-toolkit: Tango ATK_. If you know ATK_ you will find many things in taurus familiar.
-
-Throughout the documentation we will assume that you have a basic knowledge of 
-Tango_/PyTango_ and Qt_/PyQt_.
-
-Although taurus is written primarily in pure python, it makes heavy use of 
-PyTango_, numpy_, PyQt_ and PyQwt_ to provide good performance even when 
+Taurus is a pure-python module, but it makes heavy use of PyTango_, numpy_,
+PyQt_, etc. to provide good performance even when 
 large amounts of data are involved.
 
-taurus is designed with the philosophy that you should be able to create simple 
-applications that are able to connect to tango servers with just a few lines of 
-code or even with no code at all!
 
-The concepts were not born from scratch. It is not our intention to reinvent the 
-way applications are written. Many of the concepts were borrowed from the 
-existing java tango library called ATK_. If you have used ATK_ before you will 
-find many concepts familiar.
 
-.. image:: /_static/taurus_layers.png
-  :scale: 80
-  :align: center
-
-The taurus library provides a core module that does not depend on PyQt and which
-is in charge of abstracting the lower level comunication with the control system
-(:ref:`taurus-core-tutorial`). On top of the core, the qt module provides a
-collection of widgets that can be used inside any PyQt_ based GUI
-(:ref:`examples`). Recently, the proof-of-concept web module is being
-implemented for providing web widgets.
 
 .. _Sardana: http://www.sardana-controls.org/
 .. _Tango: http://www.tango-controls.org/
