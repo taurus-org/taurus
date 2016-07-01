@@ -32,8 +32,6 @@ __docformat__ = 'restructuredtext'
 from taurus.external.qt import Qt
 from guiqwt.tools import (CommandTool, ToggleTool, DefaultToolbarID,
                           QActionGroup, add_actions)
-from guiqwt.signals import SIG_ITEMS_CHANGED
-
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.extra_guiqwt.builder import make
