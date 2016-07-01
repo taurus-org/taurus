@@ -22,9 +22,10 @@ Taurus uses the Model-View-Controller (MVC) pattern to build interfaces.
 
 The :mod:`taurus.core` module uses plugins (known as schemes) to provide TaurusModel 
 objects that abstract the interactions with specific sources of data and/or 
-control objects(See the :ref:`taurus-core-tutorial`). Some schemes are already 
-implemented for accessing control system libraries (the "tango" and "epics" schemes) 
-as well as for data-processing via a Python interpreter (the "evaluation" scheme).
+control objects. Some schemes are already implemented for accessing control system 
+libraries (the "tango" and "epics" schemes) as well as for data-processing via a 
+Python interpreter (the "evaluation" scheme). see the :ref:`taurus-core-tutorial`
+for more information on the taurus core.
 
 The Taurus view and controller components are typically implemented as PyQt_ based
 GUIs, but it may also consist on command line interfaces such as Sardana's spock or
@@ -40,13 +41,9 @@ numerical array. Similarly, a TaurusForm widget will allow the user to interact 
 the data represented by its attached models. The actual association of a view (widget) 
 with a model is done by providing the model name to the widget. 
 
-The goals of Taurus are:
- - provide simple access to a controls system (or other sources of data)
- - speed up development of Tango (and other control systems) based applications
- - provide a standardized look-and-feel in the applications
- 
-For example, to display the values of four attributes (state, position, velocity, acceleration)
-of a Tango device (motor/icepap/01)::
+The following is an example on how to create a widget allows to interact with
+four attributes (state, position, velocity, acceleration) of a Tango device 
+(`motor/icepap/01`)::
 
     import sys
     from taurus.qt.qtgui.panel import TaurusForm
@@ -73,6 +70,8 @@ The above example can even be achieved even without typing any code::
     % cd taurus/qt/qtgui/panel
     % python taurusform.py motor/icepap/01/state motor/icepap/01/position motor/icepap/01/velocity
   
+For many more examples, See the :ref:`examples` page.
+
 Taurus is a pure-python module, but it makes heavy use of PyTango_, numpy_,
 PyQt_, etc. to provide good performance even when 
 large amounts of data are involved.
