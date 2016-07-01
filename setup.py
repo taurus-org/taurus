@@ -95,6 +95,7 @@ gui_scripts = [
     'taurustrend1d = taurus.qt.qtgui.extra_guiqwt.plot:taurusTrendDlgMain',
     'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain',
     'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
+    'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main',
     # 'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main [Taurus-Qt]',
     # 'taurusplot = taurus.qt.qtgui.plot.taurusplot:main [Taurus-Qt-Plot]',
     # 'taurustrend = taurus.qt.qtgui.plot.taurustrend:main [Taurus-Qt-Plot]',

@@ -29,3 +29,4 @@ sources of icons.
 """
 
 from icon import *
+from catalog import QIconCatalog

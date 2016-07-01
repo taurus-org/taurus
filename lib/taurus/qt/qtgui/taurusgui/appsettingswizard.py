@@ -51,13 +51,6 @@ import taurus.qt.qtgui.input
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.util import ExternalAppAction
 
-try:
-    from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
-        TaurusMacroConfigurationDialog
-    SARDANA_INSTALLED = True
-except:
-    SARDANA_INSTALLED = False
-
 
 class BooleanWidget(Qt.QWidget):
     """
@@ -663,6 +656,8 @@ class MacroServerInfoPage(BasePage):
         self._macroGroupBox.setStyleSheet(
             " QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
         self._horizontalLayout = Qt.QHBoxLayout(self._macroGroupBox)
+        from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
+                TaurusMacroConfigurationDialog
         self._confWidget = TaurusMacroConfigurationDialog(self)
         self._confWidget.setWindowFlags(Qt.Qt.Widget)
         self._confWidget.setModal(False)
@@ -942,8 +937,7 @@ class ExternalAppEditor(Qt.QDialog):
         self._execFileLineEdit.setMinimumSize(150, 25)
         # self._execFileLineEdit.setReadOnly(True)
         self._execFileButton = Qt.QPushButton()
-        self._execFileButton.setIcon(
-            Qt.QIcon.fromTheme("folder-open").pixmap(48))
+        self._execFileButton.setIcon(Qt.QIcon.fromTheme("folder-open"))
         self._execFileButton.setToolTip("Browse...")
         self._execFileButton.setMaximumSize(80, 25)
         self._layout1.addWidget(self._execFileLabel, 2, 0, Qt.Qt.AlignRight)
@@ -962,12 +956,8 @@ class ExternalAppEditor(Qt.QDialog):
 
         self._iconLabel = Qt.QLabel("Icon:")
         self._iconLogo = Qt.QPushButton()
-        self._iconLogo.setIcon(Qt.QIcon(
-            Qt.QIcon.fromTheme("image-missing").pixmap(48)))
+        self._iconLogo.setIcon(Qt.QIcon("status:image-missing.svg"))
         self._iconLogo.setIconSize(Qt.QSize(60, 60))
-        self._iconLogo.setStyleSheet(
-            " QPushButton:flat { border: none; /* no border for a flat push button */} ")
-        self._iconLogo.setFlat(True)
         self._layout1.addWidget(self._iconLabel, 5, 0, Qt.Qt.AlignRight)
         self._layout1.addWidget(self._iconLogo, 5, 1, Qt.Qt.AlignCenter)
         self._spacerItem1 = Qt.QSpacerItem(
@@ -1009,58 +999,21 @@ class ExternalAppEditor(Qt.QDialog):
         return str(self._execFileLineEdit.text())
 
     def _selectIcon(self):
-        iconNameList = []
-        pixmapList = {}
-        rowIconName = []
-        # rowPixmap=[]
-        rowSize = 7
-        r = 0
-        i = 0
-
-        progressBar = Qt.QProgressDialog("Loading icons...", "Abort", 0, len(
-            taurus.qt.qtgui.resource.getThemeMembers().items()), self)
-        progressBar.setModal(True)
-        progressBar.setMinimumDuration(0)
-
-
-        for k, v in taurus.qt.qtgui.resource.getThemeMembers().items():
-            progressBar.setValue(progressBar.value() + 1)
-            progressBar.setLabelText(k)
-            for iconName in v:
-                if (not progressBar.wasCanceled()):
-                    p = Qt.QPixmap(iconName)
-                    rowIconName.append(iconName)
-                    pixmapList[iconName] = p
-                    i = i + 1
-                    if r == rowSize - 1:
-                        r = 0
-                        iconNameList.append(rowIconName)
-                        rowIconName = []
-                    else:
-                        r = r + 1
-
-        if (len(rowIconName) > 0) and not (progressBar.wasCanceled()):
-            iconNameList.append(rowIconName)
-
-        if not progressBar.wasCanceled():
-            progressBar.close()
-            name, ok = taurus.qt.qtgui.input.GraphicalChoiceDlg.getChoice(
-                parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=iconNameList, pixmaps=pixmapList, iconSize=60)
-            if ok:
-                self._setIcon(name)
-        else:
-            progressBar.close()
+        from taurus.qt.qtgui.icon import QIconCatalog
+        catalog = QIconCatalog()
+        dlg = Qt.QDialog(self)
+        dlg.setLayout(Qt.QVBoxLayout())
+        dlg.layout().addWidget(catalog)
+        dlg.setWindowTitle('Icon Catalog')
+        catalog.iconSelected.connect(self._setIcon)
+        catalog.iconSelected.connect(dlg.accept)
+        dlg.exec_()
 
     def _setIcon(self, name):
-        if taurus.qt.qtgui.resource.getThemePixmap(name).width() != 0:
-            self._iconLogo.setIcon(
-                Qt.QIcon(Qt.QPixmap(name)))
-            self._iconLogo.setIconSize(Qt.QSize(60, 60))
-            self._iconLogo.setText("")
-            self._icon = name
-        else:
-            self._iconLogo.setText(name)
-            self._icon = name
+        self._iconLogo.setIcon(Qt.QIcon(name))
+        self._iconLogo.setIconSize(Qt.QSize(60, 60))
+        self._iconLogo.setText("")
+        self._icon = name
 
     def _getParams(self):
         return str(self._paramsLineEdit.text())
@@ -1552,6 +1505,12 @@ class AppSettingsWizard(Qt.QWizard):
         synoptic_page = SynopticPage()
         self.setPage(self.Pages.SynopticPage, synoptic_page)
 
+        try:
+            from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
+                TaurusMacroConfigurationDialog
+            SARDANA_INSTALLED = True
+        except:
+            SARDANA_INSTALLED = False
         if SARDANA_INSTALLED:
             synoptic_page.setNextPageId(self.Pages.MacroServerInfo)
 
