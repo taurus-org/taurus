@@ -168,7 +168,6 @@ if __name__ == '__main__':
 
     app = TaurusApplication()
 
-    print getThemeMembers()
 
 
     themekey = 'computer'
@@ -182,13 +181,13 @@ if __name__ == '__main__':
         getIcon(":/apps/preferences-system-session.svg"),
         getIcon(":/designer/devs_tree.png"),
 
-        getIcon(":/actions/process-stop.svg"),  # from tango-icons/actions
+        getIcon(":/actions/process-stop.svg"), # from tango-icons/actions
         getIcon(":/actions/add.svg"), # from rrze-icons/actions
         getIcon(":/actions/stop.svg"), # from extra-icons/actions
 
         getIcon(":taurus.svg"),
-        getIcon("computer"),  # theme Icon via getIcon
-        getThemeIcon("computer"),  # theme Icon via getThemeIcon
+        getIcon("computer"), # theme Icon via getIcon
+        getThemeIcon("computer"), # theme Icon via getThemeIcon
         ]
 
     w = Qt.QWidget()

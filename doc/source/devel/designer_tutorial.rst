@@ -104,7 +104,7 @@ taurus widget and it offers to generate an additional file for it::
     Python super class name (TaurusWidget) ?
     Generate Qt designer info (Y/n) ? y
     Qt group (Taurus Containers) ? My Taurus
-    Qt icon (:/designer/widget.png) ?
+    Qt icon (designer:widget.png) ?
     Qt container (N/y) ?
 
 At this time, several questions are asked, all of them have default values:
@@ -134,7 +134,7 @@ At this time, several questions are asked, all of them have default values:
     - If you choose to generate qt designer information:
         - Qt group (Taurus Containers) ?
             - in which group of widgets should your widget appear in the designer
-        - Qt icon (:/designer/widget.png) ?
+        - Qt icon (designer:widget.png) ?
             - which would be the icon in the designer
         - Qt container (Y/n) ?
             - wheater or not the widget you created is a container widget.

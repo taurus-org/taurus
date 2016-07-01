@@ -1515,7 +1515,7 @@ class TaurusTrend(TaurusPlot):
         return {
             'module': 'taurus.qt.qtgui.plot',
             'group': 'Taurus Display',
-            'icon': ':/designer/qwtplot.png',
+            'icon': 'designer:qwtplot.png',
             'container': False}
 
     def setEventFilters(self, filters=None, tsetnames=None, preqt=False):

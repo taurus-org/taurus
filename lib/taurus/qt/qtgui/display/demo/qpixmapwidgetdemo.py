@@ -37,9 +37,7 @@ def demo():
     import sys
     import taurus.qt.qtgui.application
     import taurus.qt.qtgui.display
-    import taurus.qt.qtgui.resource
-
-    getPixmap = taurus.qt.qtgui.resource.getPixmap
+    from taurus.qt.qtgui.icon import getCachedPixmap
     Application = taurus.qt.qtgui.application.TaurusApplication
     QPixmapWidget = taurus.qt.qtgui.display.QPixmapWidget
 
@@ -110,14 +108,15 @@ def demo():
             self.w_halign = halign_widget
             self.w_valign = valign_widget
 
-            pixmap_widget.setText(":leds/images256/led_red_on.png")
+            name = "leds_images256:led_red_on.png"
+            pixmap_widget.setText(name)
             aspect_ratio_widget.setCurrentIndex(1)
             transformation_widget.setCurrentIndex(1)
             halign_widget.setCurrentIndex(0)
             valign_widget.setCurrentIndex(1)
 
         def changePixmap(self, name):
-            self.w.pixmap = getPixmap(name)
+            self.w.pixmap = getCachedPixmap(name)
 
         def changeAspectRatio(self, i):
             v = Qt.Qt.IgnoreAspectRatio

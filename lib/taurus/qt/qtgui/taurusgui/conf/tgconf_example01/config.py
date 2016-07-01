@@ -165,7 +165,7 @@ pymca = ExternalApp(['pymca'])
 # -screenshot can either be a resource URL, a file name (either relative to
 # the application dir or with an absolute path) or None
 #=========================================================================
-EXTRA_CATALOG_WIDGETS = [('PyQt4.Qt.QLineEdit', ':/taurus.png'),  # a resource
+EXTRA_CATALOG_WIDGETS = [('PyQt4.Qt.QLineEdit', 'logos:taurus.png'),  # a resource
                          ('PyQt4.Qt.QSpinBox', 'images/syn2.jpg'),  # relative
                          #('PyQt4.Qt.QTextEdit','/tmp/foo.png'),  # absolute
                          ('PyQt4.Qt.QLabel', None)]                # none

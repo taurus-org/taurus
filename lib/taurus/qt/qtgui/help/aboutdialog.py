@@ -178,7 +178,7 @@ class AboutDialog(Qt.QDialog):
         :return: the current dialog pixmap
         :rtype: Qt.QPixmap
         """
-        pixmap = self.logo_widget.pixmap()
+        pixmap = self.logo_widget.getPixmap()
         if pixmap is None:
             pixmap = Qt.QPixmap()
         return pixmap
@@ -191,9 +191,8 @@ class AboutDialog(Qt.QDialog):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        from taurus.qt.qtgui.resource import getThemeIcon
         return {'group': 'Taurus Help',
-                'icon': getThemeIcon("help"),
+                'icon': Qt.QIcon.fromTheme("help"),
                 'module': 'taurus.qt.qtgui.help',
                 'container': False}
 
@@ -235,8 +234,7 @@ def main():
     app.setOrganizationDomain("http://www.taurus-scada.org/")
     about_dialog = AboutDialog()
 #    about_dialog.setText(txt)
-    from taurus.qt.qtgui.resource import getThemeIcon
-    pixmap = getThemeIcon("folder-open").pixmap(64, 64)
+    pixmap = Qt.QIcon.fromTheme("folder-open").pixmap(64, 64)
     about_dialog.setPixmap(pixmap)
     about_dialog.exec_()
 

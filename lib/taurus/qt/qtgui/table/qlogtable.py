@@ -46,7 +46,6 @@ from taurus.core.util.decorator.memoize import memoized
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.model import FilterToolBar
 from taurus.qt.qtgui.util import ActionFactory
-from taurus.qt.qtgui.resource import getThemeIcon
 
 from qtable import QBaseTableWidget
 
@@ -388,7 +387,7 @@ class LoggingToolBar(FilterToolBar):
 
         af = ActionFactory()
         self._scrollLockAction = af.createAction(self, "Refresh",
-                                                 icon=getThemeIcon(
+                                                 icon=Qt.QIcon.fromTheme(
                                                      "system-lock-screen"),
                                                  tip="Scroll lock",
                                                  toggled=self.onToggleScrollLock)
@@ -555,7 +554,7 @@ class QLoggingWidget(QBaseTableWidget):
         return {
             'module': 'taurus.qt.qtgui.table',
             'group': 'Taurus Views',
-            'icon': ':/designer/table.png',
+            'icon': 'designer:table.png',
             'container': False}
 
 

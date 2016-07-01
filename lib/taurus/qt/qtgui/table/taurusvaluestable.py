@@ -37,7 +37,6 @@ from taurus.core.taurusbasetypes import (DataFormat, DataType, TaurusEventType,
                                          TaurusElementType)
 from taurus.qt.qtgui.util import PintValidator
 from taurus.qt.qtgui.display import TaurusLabel
-from taurus.qt.qtgui.resource import getThemeIcon, getThemePixmap
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.core.util.enumeration import Enumeration
 
@@ -123,11 +122,11 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 if self.getAttr().type in [DataType.Integer, DataType.Float]:
                     value = self._modifiedDict[(index.row(), index.column())]
                     if not self.inAlarmRange(value):
-                        icon = getThemeIcon('document-save')
+                        icon = Qt.QIcon.fromTheme('document-save')
                     else:
-                        icon = getThemeIcon('emblem-important')
+                        icon = Qt.QIcon.fromTheme('emblem-important')
                 else:
-                    icon = getThemeIcon('document-save')
+                    icon = Qt.QIcon.fromTheme('document-save')
                 return Qt.QVariant(icon)
         elif role == Qt.Qt.EditRole:
             value = None
@@ -431,13 +430,13 @@ class TaurusValuesIOTable(Qt.QTableView):
         '''
         buttonBox = Qt.QMessageBox(self)
         buttonBox.setLayout(Qt.QGridLayout(self))
-        icon = getThemePixmap('document-save')
+        icon = Qt.QIcon.fromTheme('document-save').pixmap(48, 48)
         l = Qt.QLabel()
         l.setPixmap(icon)
         buttonBox.layout().addWidget(l, 0, 0)
         buttonBox.layout().addWidget(Qt.QLabel(
             '- value is valid and will be saved if changes will be accepted'), 0, 1)
-        icon = getThemePixmap('dialog-warning')
+        icon = Qt.QIcon.fromTheme('ddialog-warning').pixmap(48, 48)
         l = Qt.QLabel()
         l.setPixmap(icon)
         buttonBox.layout().addWidget(l, 1, 0)
@@ -752,13 +751,13 @@ class TaurusValuesTable(TaurusWidget):
             if index.isValid():
                 val = self._tableView.model().getReadValue(index)
                 if self._tableView.model().getModifiedDict().has_key((index.row(), index.column())):
-                    menu.addAction(getThemeIcon(
+                    menu.addAction(Qt.QIcon.fromTheme(
                         'edit-undo'), "Reset to original value (%s) " % repr(val), self._tableView.removeChange)
                     menu.addSeparator()
-                menu.addAction(getThemeIcon('process-stop'),
+                menu.addAction(Qt.QIcon.fromTheme('process-stop'),
                                "Reset all table", self.askCancel)
                 menu.addSeparator()
-                menu.addAction(getThemeIcon('help-browser'),
+                menu.addAction(Qt.QIcon.fromTheme('help-browser'),
                                "Help", self._tableView.showHelp)
         menu.exec_(globalPos)
         event.accept()
@@ -862,7 +861,7 @@ class TaurusValuesTable(TaurusWidget):
         ret = TaurusWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.table'
         ret['group'] = 'Taurus Views'
-        ret['icon'] = ":/designer/table.png"
+        ret['icon'] = "designer:table.png"
         return ret
 
     def chooseModel(self):

@@ -33,7 +33,7 @@ import sys
 import json
 
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.resource import getThemePixmap, getThemeIcon, getStandardIcon
+from taurus.qt.qtgui.icon import getStandardIcon
 
 _TitleBarStyleExpanded = """.QFrame {{
 border-width: 0px;
@@ -194,7 +194,7 @@ class QGroupWidget(Qt.QWidget):
     def getQtDesignerPluginInfo(cls):
         return {'module': 'taurus.qt.qtgui.container',
                 'group': 'Taurus Containers',
-                'icon': ":/designer/groupwidget.png",
+                'icon': "designer:groupwidget.png",
                 'container': True}
 
     def content(self):
@@ -268,7 +268,7 @@ class QGroupWidget(Qt.QWidget):
 
         #if show: icon_name = "go-previous"
         # else: icon_name = "go-down"
-        #icon = getThemeIcon(icon_name)
+        #icon = Qt.QIcon.fromTheme(icon_name)
 
         if show:
             icon_name = Qt.QStyle.SP_TitleBarShadeButton
@@ -487,7 +487,7 @@ def demo():
 
     panel = QGroupWidget()
     panel.title = "Hello world"
-    panel.titleIcon = getThemeIcon("video-x-generic")
+    panel.titleIcon = Qt.QIcon.fromTheme("video-x-generic")
     panel.setTitleStyle({
         'start_color': 'rgb(255, 60, 60)',
         'stop_color': 'rgb(200, 0, 0)',
@@ -509,7 +509,7 @@ def demo():
 
     panel = QGroupWidget()
     panel.title = "Hello world 2"
-    panel.titleIcon = getThemeIcon("network-server")
+    panel.titleIcon = Qt.QIcon.fromTheme("network-server")
     panel.titleVisible = False
     contentLayout = Qt.QFormLayout()
     panel.content().setLayout(contentLayout)
@@ -519,12 +519,12 @@ def demo():
 
     panel = QGroupWidget()
     panel.title = "5"
-    panel.titleIcon = getThemeIcon("folder")
+    panel.titleIcon = Qt.QIcon.fromTheme("folder")
     contentLayout = Qt.QVBoxLayout()
     panel.content().setLayout(contentLayout)
     panel2 = QGroupWidget()
     panel2.title = "5.1"
-    panel2.titleIcon = getThemeIcon("folder")
+    panel2.titleIcon = Qt.QIcon.fromTheme("folder")
     panel2.titleHeight = 48
     contentLayout2 = Qt.QFormLayout()
     panel2.content().setLayout(contentLayout2)

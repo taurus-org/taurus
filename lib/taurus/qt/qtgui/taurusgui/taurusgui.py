@@ -39,8 +39,8 @@ import inspect
 from lxml import etree
 
 import taurus
+from taurus import tauruscustomsettings
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtgui.util import TaurusWidgetFactory
@@ -370,15 +370,19 @@ class TaurusGui(TaurusMainWindow):
         self.__panelsMenu = Qt.QMenu('Panels', self)
         self.menuBar().insertMenu(self.helpMenu.menuAction(), self.__panelsMenu)
         self.hideAllPanelsAction = self.__panelsMenu.addAction(
-            getIcon(':/actions/hide.svg'), "Hide all panels", self.hideAllPanels)
+            Qt.QIcon('actions:hide.svg'), "Hide all panels", self.hideAllPanels)
         self.showAllPanelsAction = self.__panelsMenu.addAction(
-            getIcon(':/actions/show.svg'), "Show all panels", self.showAllPanels)
+            Qt.QIcon('actions:show.svg'), "Show all panels", self.showAllPanels)
         self.newPanelAction = self.__panelsMenu.addAction(
-            getThemeIcon("window-new"), "New Panel...", self.createCustomPanel)
+            Qt.QIcon.fromTheme("window-new"), "New Panel...",
+            self.createCustomPanel)
         self.removePanelAction = self.__panelsMenu.addAction(
-            getThemeIcon("edit-clear"), "Remove Panel...", self.removePanel)
-        self.__panelsMenu.addAction(getThemeIcon("preferences-desktop-personal"),
-                                    "Switch temporary/permanent status...", self.updatePermanentCustomPanels)
+            Qt.QIcon.fromTheme("edit-clear"), "Remove Panel...",
+            self.removePanel)
+        self.__panelsMenu.addAction(Qt.QIcon.fromTheme(
+            "preferences-desktop-personal"),
+            "Switch temporary/permanent status...",
+            self.updatePermanentCustomPanels)
         # temporary and permanent panels submenus
         self.__panelsMenu.addSeparator()
         self.__permPanelsMenu = Qt.QMenu('Permanent Panels', self)
@@ -394,7 +398,7 @@ class TaurusGui(TaurusMainWindow):
         self.viewMenu.addSeparator()
         # view locking
         self.viewMenu.addSeparator()
-        self._lockviewAction = Qt.QAction(getThemeIcon(
+        self._lockviewAction = Qt.QAction(Qt.QIcon.fromTheme(
             "system-lock-screen"), "Lock View", self)
         self._lockviewAction.setCheckable(True)
         self._lockviewAction.toggled.connect(self.setLockView)
@@ -446,20 +450,21 @@ class TaurusGui(TaurusMainWindow):
         if self.toolsMenu is None:
             self.toolsMenu = Qt.QMenu("Tools")
         tm = self.toolsMenu
-        tm.addAction(getIcon(":/apps/preferences-system-session.svg"),
+        tm.addAction(Qt.QIcon("apps:preferences-system-session.svg"),
                      "manage instrument-panel associations", self.onShowAssociationDialog)
-        tm.addAction(getThemeIcon("document-save"), "Export current Panel configuration to XML",
+        tm.addAction(Qt.QIcon.fromTheme("document-save"),
+                     "Export current Panel configuration to XML",
                      self.onExportCurrentPanelConfiguration)
-        tm.addAction(getIcon(":/actions/data-transfer.svg"),
+        tm.addAction(Qt.QIcon("actions:data-transfer.svg"),
                      "Show Shared Data Manager connections", self.showSDMInfo)
 
         # tools->external apps submenu
         self.addExternalApplicationAction = self.externalAppsMenu.addAction(
-            getThemeIcon('list-add'),
+            Qt.QIcon.fromTheme('list-add'),
             'Add external application launcher...',
             self.createExternalApp)
         self.removeExternalApplicationAction = self.externalAppsMenu.addAction(
-            getThemeIcon('list-remove'),
+            Qt.QIcon.fromTheme('list-remove'),
             'Remove external appication launcher...',
             self.removeExternalApp)
         self.externalAppsMenu.addSeparator()
@@ -841,7 +846,8 @@ class TaurusGui(TaurusMainWindow):
             i += 1
 
         synopticpanel = self.createPanel(synoptic, name, permanent=True,
-                                         icon=getThemeIcon('image-x-generic'))
+                                         icon=Qt.QIcon.fromTheme(
+                                             'image-x-generic'))
         toggleSynopticAction = synopticpanel.toggleViewAction()
         self.quickAccessToolBar.addAction(toggleSynopticAction)
 
@@ -854,7 +860,8 @@ class TaurusGui(TaurusMainWindow):
             return
         console = TaurusConsole(kernels=kernels)
         consolePanel = self.createPanel(console, "Console", permanent=True,
-                                        icon=getThemeIcon('utilities-terminal'))
+                                        icon=Qt.QIcon.fromTheme(
+                                            'utilities-terminal'))
         toggleConsoleAction = consolePanel.toggleViewAction()
         self.quickAccessToolBar.addAction(toggleConsoleAction)
 
@@ -1017,9 +1024,9 @@ class TaurusGui(TaurusMainWindow):
         ORGNAME = getattr(conf, 'ORGANIZATION', self.__getVarFromXML(
             xmlroot, "ORGANIZATION", str(Qt.qApp.organizationName()) or 'Taurus'))
         CUSTOMLOGO = getattr(conf, 'CUSTOM_LOGO', getattr(
-            conf, 'LOGO', self.__getVarFromXML(xmlroot, "CUSTOM_LOGO", ':/taurus.png')))
-        if CUSTOMLOGO.startswith(':'):
-            customIcon = getIcon(CUSTOMLOGO)
+            conf, 'LOGO', self.__getVarFromXML(xmlroot, "CUSTOM_LOGO", 'logos:taurus.png')))
+        if Qt.QFile.exists(CUSTOMLOGO):
+            customIcon = Qt.QIcon(CUSTOMLOGO)
         else:
             customIcon = Qt.QIcon(os.path.join(
                 self._confDirectory, CUSTOMLOGO))
@@ -1027,11 +1034,15 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.setOrganizationName(ORGNAME)
         Qt.QApplication.instance().basicConfig()
 
-        ORGANIZATIONLOGO = getattr(conf, 'ORGANIZATION_LOGO', self.__getVarFromXML(
-            xmlroot, "ORGANIZATION_LOGO", ':/logo.png'))
+        logo = getattr(tauruscustomsettings, 'ORGANIZATION_LOGO',
+                       "logos:taurus.png")
+        ORGANIZATIONLOGO = getattr(conf, 'ORGANIZATION_LOGO',
+                                   self.__getVarFromXML(xmlroot,
+                                                        "ORGANIZATION_LOGO",
+                                                        logo))
         ##
-        if ORGANIZATIONLOGO.startswith(':'):
-            organizationIcon = getIcon(ORGANIZATIONLOGO)
+        if Qt.QFile.exists(ORGANIZATIONLOGO):
+            organizationIcon = Qt.QIcon(ORGANIZATIONLOGO)
         else:
             organizationIcon = Qt.QIcon(os.path.join(
                 self._confDirectory, ORGANIZATIONLOGO))
@@ -1062,7 +1073,7 @@ class TaurusGui(TaurusMainWindow):
         for classname, pixmapname in EXTRA_CATALOG_WIDGETS:
             # If a relative file name is given, the conf directory will be used
             # as base path
-            if pixmapname and not pixmapname.startswith(":"):
+            if pixmapname and not Qt.QFile.exists(pixmapname):
                 pixmapname = os.path.join(self._confDirectory, pixmapname)
             self._extraCatalogWidgets.append((classname, pixmapname))
 
@@ -1073,7 +1084,7 @@ class TaurusGui(TaurusMainWindow):
         self.setHelpManualURI(MANUAL_URI)
 
         self.createPanel(self.helpManualBrowser, 'Manual', permanent=True,
-                         icon=getThemeIcon('help-browser'))
+                         icon=Qt.QIcon.fromTheme('help-browser'))
 
         # configure the macro infrastructure
         MACROSERVER_NAME = getattr(conf, 'MACROSERVER_NAME', self.__getVarFromXML(

@@ -45,7 +45,7 @@ from taurus.qt.qtgui.base import updateLabelBackground
 _QT_PLUGIN_INFO = {
     'module': 'taurus.qt.qtgui.display',
     'group': 'Taurus Display',
-    'icon': ":/designer/lcdnumber.png",
+    'icon': "designer:lcdnumber.png",
 }
 
 TaurusModelType = TaurusElementType

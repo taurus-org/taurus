@@ -957,7 +957,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.table'
         ret['group'] = 'Taurus Views'
-        ret['icon'] = ":/designer/grid.png"
+        ret['icon'] = "designer:grid.png"
         return ret
 
 

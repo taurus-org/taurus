@@ -206,7 +206,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.plot'
         ret['group'] = 'Taurus Display'
-        ret['icon'] = ':/designer/qwtplot.png'
+        ret['icon'] = 'designer:qwtplot.png'
         return ret
 
     def setModifiableByUser(self, modifiable):

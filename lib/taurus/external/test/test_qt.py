@@ -106,8 +106,8 @@ class QtTestCase(unittest.TestCase):
 
     def test_icons(self):
         '''check that theme icons work'''
-        from taurus.qt.qtgui.resource import getThemeIcon
-        icon = getThemeIcon("folder-open")
+        from taurus.external.qt import Qt
+        icon = Qt.QIcon.fromTheme("folder-open")
         msg = ('Theme icons not available ' + 
                '(if PyQt<4.6, make sure to build resources first!)')
         self.assertFalse(icon.isNull(), msg)

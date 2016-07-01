@@ -37,7 +37,6 @@ from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import eventfilters
-from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
 
 
@@ -95,7 +94,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         button.setModel('a/b/c/attrname') # attr name, which will be set at the TaurusLabel when clicking
 
         #same as the previous one, but using the parent model and putting a custom text and icon:
-        button =  TaurusLauncherButton(widget = TaurusLabel(), text='click me', icon=':/taurus.png')
+        button =  TaurusLauncherButton(widget = TaurusLabel(), text='click me', icon='logos:taurus.png')
         button.setUseParentModel(True)  #let's assume that the button's parent has a model of type "/a/b/c"
         button.setModel('/attrname')
 
@@ -124,7 +123,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
         self._dialog = _ButtonDialog(self)
         if icon is None and self._icon is not None:
-            icon = getIcon(self._icon)
+            icon = Qt.QIcon(self._icon)
         if icon is not None:
             self.setIcon(Qt.QIcon(icon))
         if text is not None:
@@ -236,7 +235,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
     def getQtDesignerPluginInfo(cls):
         return {
             'group': 'Taurus Buttons',
-            'icon': ':/designer/pushbutton.png',
+            'icon': 'designer:pushbutton.png',
             'module': 'taurus.qt.qtgui.button',
             'container': False}
 
@@ -257,11 +256,11 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
     Code examples::
 
         # a button that executes the "status" command for the 'a/b/c' device server
-        button =  TaurusCommandButton(command = 'Status', icon=':/taurus.png')
+        button =  TaurusCommandButton(command = 'Status', icon='logos:taurus.png')
         button.setModel('a/b/c')
 
         #  a button that executes the "exec" command for the 'a/b/c' device server with one parameter
-        button =  TaurusCommandButton(command = 'Status', parameters=['2+2'],icon=':/taurus.png')
+        button =  TaurusCommandButton(command = 'Status', parameters=['2+2'],icon='logos:taurus.png')
         button.setModel('a/b/c')
 
     .. seealso:: :class:`TaurusCommandsForm` provides a good example of use of
@@ -516,7 +515,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
     def getQtDesignerPluginInfo(cls):
         return {
             'group': 'Taurus Buttons',
-            'icon': ':/designer/pushbutton.png',
+            'icon': 'designer:pushbutton.png',
             'module': 'taurus.qt.qtgui.button',
             'container': False}
 
@@ -546,10 +545,10 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
 
 class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
 
-    _LOCK_MAP = {LockStatus.Unlocked: ":/lock_unlocked.svg",
-                 LockStatus.Locked: ":/lock_locked_unpreviledged.svg",
-                 LockStatus.LockedMaster: ":/lock_locked.svg",
-                 LockStatus.Unknown: ":/lock_unknown.svg"}
+    _LOCK_MAP = {LockStatus.Unlocked: "extra_icon:lock_unlocked.svg",
+                 LockStatus.Locked: "extra_icon:lock_locked_unpreviledged.svg",
+                 LockStatus.LockedMaster: "extra_icon:lock_locked.svg",
+                 LockStatus.Unknown: "extra_icon:lock_unknown.svg"}
 
     def __init__(self, parent=None, designMode=False):
         self._lock_info = TaurusLockInfo()
@@ -566,7 +565,7 @@ class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
     def getQtDesignerPluginInfo(cls):
         return {
             'group': 'Taurus Buttons',
-            'icon': ':/designer/pushbutton.png',
+            'icon': 'designer:pushbutton.png',
             'module': 'taurus.qt.qtgui.button',
             'container': False}
 
@@ -587,7 +586,7 @@ class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
         if lock_info is None:
             lock_info = self.get_lock_info()
         status = lock_info.status
-        self.setIcon(getIcon(self._LOCK_MAP[status]))
+        self.setIcon(Qt.QIcon(self._LOCK_MAP[status]))
         self.setDown(status in (LockStatus.Locked, LockStatus.LockedMaster))
         self.setToolTip(lock_info.status_msg)
         self.update()
@@ -661,7 +660,7 @@ def commandButtonMain():
 
     app = TaurusApplication()
     form = TaurusCommandButton(parent=None, designMode=False, command='DevBoolean', parameters=[
-                               123], icon=':/taurus.png', text='launch: DevBoolean 123')
+                               123], icon='logos:taurus.png', text='launch: DevBoolean 123')
     form.setModel('sys/tg_test/1')
     form.setDangerMessage(
         'Booo scary command!!\n Maybe you should think twice!')
@@ -683,18 +682,18 @@ def launcherButtonMain():
     # from taurus.qt.qtgui.plot import TaurusPlot
     # w = TaurusPlot()
     # form = TaurusLauncherButton(parent=None, designMode=False, widget=w,
-    #                             icon=':/taurus.png'), text='show')
+    #                             icon='logos:taurus.png'), text='show')
 
     # Creating button giving the widget class name
     # form = TaurusLauncherButton(parent=None, designMode=False,
-    #                             widget='TaurusPlot', icon=':/taurus.png',
+    #                             widget='TaurusPlot', icon='logos:taurus.png',
     #                             text='show')
 
     # Creating button using a derived class with the name widget class
     # hardcoded
     class MyButton(TaurusLauncherButton):
         _widgetClassName = 'TaurusPlot'
-        _icon = ':/taurus.png'
+        _icon = 'logos:taurus.png'
         _text = 'show'
     form = MyButton()
 

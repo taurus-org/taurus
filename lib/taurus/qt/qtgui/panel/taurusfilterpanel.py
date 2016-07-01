@@ -32,19 +32,16 @@ import re
 
 from taurus.external.qt import Qt
 
-import taurus.core
-import taurus.core.util
+from taurus.core.taurusauthority import TaurusAuthority
+from taurus.core.taurusbasetypes import TaurusElementType as ElemType
 import taurus.qt.qtgui.base
-import taurus.qt.qtgui.resource
 
 from taurus.core.tango.tangodatabase import (TangoAttrInfo, TangoDevInfo,
                                              TangoServInfo)
 
-ElemType = taurus.core.taurusbasetypes.TaurusElementType
-getElementTypeIcon = taurus.qt.qtgui.resource.getElementTypeIcon
-getPixmap = taurus.qt.qtgui.resource.getPixmap
-getThemeIcon = taurus.qt.qtgui.resource.getThemeIcon
-getThemePixmap = taurus.qt.qtgui.resource.getThemePixmap
+from taurus.qt.qtgui.icon import getElementTypeIcon
+
+
 
 
 class BaseFilter(object):
@@ -302,7 +299,7 @@ class TaurusFilterPanelOld1(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.taurusauthority.TaurusAuthority
+        return TaurusAuthority
 
     #: This property holds the unique URI string representing the model name
     #: with which this widget will get its data from. The convention used for
@@ -390,7 +387,7 @@ class TaurusFilterPanelOld2(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.taurusauthority.TaurusAuthority
+        return TaurusAuthority
 
     def setModel(self, m):
         taurus.qt.qtgui.base.TaurusBaseWidget.setModel(self, m)
@@ -432,7 +429,7 @@ class _MessageWidget(Qt.QWidget):
         self.setLayout(l)
         self._icon = Qt.QLabel()
         if pixmap is None:
-            pixmap = getThemePixmap("dialog-warning", 16)
+            pixmap = Qt.QIcon.fromTheme("dialog-warning").pixmap(16, 16)
         self._icon.setPixmap(pixmap)
         self._label = Qt.QLabel()
         l.addWidget(self._icon)
@@ -495,7 +492,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
             def __call__(self):
                 self._cb.setCurrentIndex(-1)
 
-        clear_icon = getThemeIcon("edit-clear")
+        clear_icon = Qt.QIcon.fromTheme("edit-clear")
         for combo, clearButton in zip(self.combos(), self.clearButtons()):
             combo.currentIndexChanged.connect(self._updateStatusBar)
             clearButton.clicked.connect(clearSelection(combo))
@@ -705,7 +702,7 @@ class TaurusFilterPanel(Qt.QWidget, taurus.qt.qtgui.base.TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        return taurus.core.taurusauthority.TaurusAuthority
+        return TaurusAuthority
 
     def setModel(self, m):
         taurus.qt.qtgui.base.TaurusBaseWidget.setModel(self, m)

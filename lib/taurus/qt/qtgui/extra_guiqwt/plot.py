@@ -178,7 +178,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.extra_guiqwt'
         ret['group'] = 'Taurus Display'
-        ret['icon'] = ':/designer/qwtplot.png'
+        ret['icon'] = 'designer:qwtplot.png'
         return ret
 
     model = Qt.pyqtProperty("QStringList", getModel,
@@ -407,7 +407,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.extra_guiqwt'
         ret['group'] = 'Taurus Display'
-        ret['icon'] = ':/designer/qwtplot.png'
+        ret['icon'] = 'designer:qwtplot.png'
         return ret
 
     model = Qt.pyqtProperty("QStringList", getModel,
@@ -511,7 +511,7 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.extra_guiqwt'
         ret['group'] = 'Taurus Display'
-        ret['icon'] = ':/designer/qwtplot.png'
+        ret['icon'] = 'designer:qwtplot.png'
         return ret
 
     model = Qt.pyqtProperty("QString", getModel, setModel,

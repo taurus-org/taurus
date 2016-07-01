@@ -1005,9 +1005,8 @@ def taurusFormMain():
     dialog.registerConfigProperty(dialog.saveGeometry, dialog.restoreGeometry,
                                   'MainWindowGeometry')
 
-    from taurus.qt.qtgui.resource import getThemeIcon
     quitApplicationAction = Qt.QAction(
-        getThemeIcon("process-stop"), 'Close Form', dialog)
+        Qt.QIcon.fromTheme("process-stop"), 'Close Form', dialog)
     quitApplicationAction.triggered[()].connect(dialog.close)
 
     saveConfigAction = Qt.QAction("Save current settings...", dialog)

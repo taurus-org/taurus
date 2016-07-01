@@ -495,7 +495,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.tree'
         ret['group'] = 'Taurus Views'
-        ret['icon'] = ":/designer/listview.png"
+        ret['icon'] = "designer:listview.png"
         return ret
 
     def defineStyle(self):

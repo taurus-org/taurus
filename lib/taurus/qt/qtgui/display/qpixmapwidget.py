@@ -30,9 +30,6 @@ __all__ = ["QPixmapWidget"]
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
-import taurus.qt.qtgui.resource
-
-getPixmap = taurus.qt.qtgui.resource.getPixmap
 
 
 class QPixmapWidget(Qt.QWidget):
@@ -101,7 +98,7 @@ class QPixmapWidget(Qt.QWidget):
         return {
             'module': 'taurus.qt.qtgui.display',
             'group': 'Taurus Display',
-            'icon': ":/designer/graphicsview.png",
+            'icon': "designer:graphicsview.png",
             'container': False,
         }
 

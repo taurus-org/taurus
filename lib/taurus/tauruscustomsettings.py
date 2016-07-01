@@ -143,3 +143,9 @@ QT_THEME_FORCE_ON_LINUX = True
 # None (or not set) indicates no limit. -1 indicates that an exception should
 # be raised instead of logging the message (useful for finding obsolete code)
 _MAX_DEPRECATIONS_LOGGED = 1
+
+# Custom organization logo. Set the absolute path to an image file to be used as your
+# organization logo. Qt registered paths can also be used. 
+# If not set, it defaults to 'logos:taurus.png" 
+# (note that "logos:" is a Qt a registered path for "<taurus>/qt/qtgui/icon/logos/")
+# ORGANIZATION_LOGO = "logos:taurus.png"

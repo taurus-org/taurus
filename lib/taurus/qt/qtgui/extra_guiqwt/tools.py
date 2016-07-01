@@ -32,11 +32,8 @@ __docformat__ = 'restructuredtext'
 from taurus.external.qt import Qt
 from guiqwt.tools import (CommandTool, ToggleTool, DefaultToolbarID,
                           QActionGroup, add_actions)
-from guiqwt.signals import SIG_ITEMS_CHANGED
-
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
-from taurus.qt.qtgui.resource import getIcon
 from taurus.qt.qtgui.extra_guiqwt.builder import make
 from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendItem
 from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DItem
@@ -53,7 +50,7 @@ class TaurusCurveChooserTool(CommandTool):
 
     def __init__(self, manager, toolbar_id=DefaultToolbarID):
         super(TaurusCurveChooserTool, self).__init__(
-                manager, "Taurus Models...", getIcon(":/taurus.png"),
+                manager, "Taurus Models...", Qt.QIcon("logos:taurus.png"),
                 toolbar_id=toolbar_id)
 
     def activate_command(self, plot, checked):
@@ -84,7 +81,7 @@ class TaurusImageChooserTool(CommandTool):
 
     def __init__(self, manager, toolbar_id=DefaultToolbarID):
         super(TaurusImageChooserTool, self).__init__(
-                manager, "Add Taurus images...", getIcon(":/taurus.png"),
+                manager, "Add Taurus images...", Qt.QIcon("logos:taurus.png"),
                 toolbar_id=toolbar_id)
 
     def activate_command(self, plot, checked):
@@ -107,7 +104,7 @@ class TaurusModelChooserTool(CommandTool):
 
     def __init__(self, manager, toolbar_id=DefaultToolbarID, singleModel=False):
         super(TaurusModelChooserTool, self).__init__(
-                manager, "Change Taurus Model...", getIcon(":/taurus.png"),
+                manager, "Change Taurus Model...", Qt.QIcon("logos:taurus.png"),
                 toolbar_id=toolbar_id)
         self.singleModel = singleModel
 
@@ -136,7 +133,7 @@ class TimeAxisTool(CommandTool):
 
     def __init__(self, manager):
         super(TimeAxisTool, self).__init__(
-                manager, "Time Scale", icon=getIcon(":/status/awaiting.svg"),
+                manager, "Time Scale", icon=Qt.QIcon("status:awaiting.svg"),
                 tip=None, toolbar_id=None)
         self.action.setEnabled(True)
 

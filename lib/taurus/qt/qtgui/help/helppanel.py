@@ -138,9 +138,8 @@ class HelpPanel(Qt.QWidget):
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        from taurus.qt.qtgui.resource import getThemeIcon
         return {'group': 'Taurus Help',
-                'icon': getThemeIcon("help"),
+                'icon': Qt.QIcon.fromTheme("help"),
                 'module': 'taurus.qt.qtgui.help',
                 'container': False}
 

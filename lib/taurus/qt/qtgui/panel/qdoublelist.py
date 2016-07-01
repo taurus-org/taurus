@@ -117,7 +117,7 @@ class QDoubleListDlg(Qt.QDialog):
 #        return {
 #            'module' : 'taurus.qt.qtgui.panel',
 #            'group' : 'Taurus Input',
-#            #'icon' : ":/designer/ledred.png",
+#            #'icon' : "designer:ledred.png",
 #            'container' : False,
 #        }
 #------------------------------------------------------------------------------

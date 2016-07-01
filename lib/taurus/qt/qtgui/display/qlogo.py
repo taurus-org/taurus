@@ -31,8 +31,9 @@ __all__ = ["QLogo"]
 
 __docformat__ = 'restructuredtext'
 
+from taurus import tauruscustomsettings
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.resource import getPixmap
+from taurus.qt.qtgui.icon import getCachedPixmap
 
 
 class QLogo(Qt.QLabel):
@@ -47,7 +48,9 @@ class QLogo(Qt.QLabel):
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
         self.setScaledContents(True)
-        self.setPixmap(getPixmap(":/logo.png"))
+        logo = getattr(tauruscustomsettings, 'ORGANIZATION_LOGO',
+                       "logos:taurus.png")
+        self.setPixmap(getCachedPixmap(logo))
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -58,20 +61,20 @@ class QLogo(Qt.QLabel):
         following keys and values:
 
             - 'module' : a string representing the full python module name (ex.: 'taurus.qt.qtgui.base')
-            - 'icon' : a string representing valid resource icon (ex.: ':/designer/combobox.png')
+            - 'icon' : a string representing valid resource icon (ex.: 'designer:combobox.png')
             - 'container' : a bool telling if this widget is a container widget or not.
 
         This default implementation returns the following dictionary:
 
             { 'module'    : 'taurus.qt.qtgui.base',
               'group'     : 'Taurus Widgets',
-              'icon'      : ':/designer/taurus.svg',
+              'icon'      : 'logos:taurus.svg',
               'container' : False }
 
         :return: (dict) a map with pertinent designer information"""
         return {
             'group': 'Taurus Widgets',
-            'icon': ':/designer/taurus.png',
+            'icon': 'logos:taurus.png',
             'container': False}
 
 

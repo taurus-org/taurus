@@ -48,7 +48,6 @@ import PyTango
 
 from taurus.core.util.report import TaurusMessageReportHandler
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.resource import getThemePixmap
 from taurus.qt.qtgui.util.ui import UILoadable
 
 
@@ -272,7 +271,7 @@ class TaurusMessagePanel(Qt.QWidget):
         self._ui._showDetailsButton.toggled.connect(self._onShowDetails)
         self._ui._reportComboBox.activated.connect(self._onReportTriggered)
 
-        pixmap = getThemePixmap("emblem-important")
+        pixmap = Qt.QIcon.fromTheme("emblem-important").pixmap(48, 48)
         self.setIconPixmap(pixmap)
 
         if err_value is not None:

@@ -39,6 +39,7 @@ __all__ = [
     'getDevStateToolTip',
     'getDevStateIcon',
     'getDevStatePixmap',
+    'REGISTERED_PREFIXES',
 ]
 
 __docformat__ = 'restructuredtext'
@@ -110,6 +111,9 @@ _STATE_MAP = {
                                "Element state undefined")
 }
 
+# set of registered prefixes (updated by registerPathFiles() )
+REGISTERED_PREFIXES = set()
+
 
 def sanitizePrefix(prefix):
     """strips any leading '/' and substitutes non alphanumeric characters by '_'
@@ -140,7 +144,7 @@ def registerPathFiles(pathfilenames):
             prefix = sanitizePrefix(prefix)
             path = os.path.join(base_dir, path)  # no effect if path is absolute
             Qt.QDir.addSearchPath(prefix, path)
-
+            REGISTERED_PREFIXES.add(prefix)
 
 
 def registerTheme(name='Tango', path='', force=False):

@@ -80,7 +80,7 @@ class TaurusWidgetFactory(Singleton, Logger):
         wf = TaurusWidgetFactory()
         print wf.getTaurusWidgetClassNames()"""
 
-    skip_modules = ('widget', 'util', 'qtdesigner', 'uic')
+    skip_modules = ('widget', 'util', 'qtdesigner', 'uic', 'resource')
 
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""
@@ -101,8 +101,6 @@ class TaurusWidgetFactory(Singleton, Logger):
 
         if Qt.QApplication.instance() is None:
             app = Qt.QApplication([])
-            # raise Exception("Cannot build widget list without an instance of "\
-            #                "QApplication. Please create one before.")
 
         elems = os.listdir(path)
         taurus_ret, qt_ret = {}, {}

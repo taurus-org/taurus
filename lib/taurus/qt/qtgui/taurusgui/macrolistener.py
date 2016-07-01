@@ -35,14 +35,11 @@ to be used within a TaurusGui for managing panels for:
 __all__ = ['MacroBroker', 'DynamicPlotManager']
 __docformat__ = 'restructuredtext'
 
-#import os, sys
 import datetime
 
 from taurus.core.util.containers import CaselessList
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.qt.qtgui.resource import getThemeIcon, getIcon
-#from taurus.qt.qtgui.taurusgui.utils import PanelDescription
 from sardana.taurus.core.tango.sardana import PlotType
 from sardana.taurus.core.tango.sardana.pool import getChannelConfigs
 
@@ -384,7 +381,7 @@ class MacroBroker(DynamicPlotManager):
         self.__macroConfigurationDialog = \
             TaurusMacroConfigurationDialog(mainwindow)
         self.macroConfigurationAction = mainwindow.taurusMenu.addAction(
-            getThemeIcon("preferences-system-session"),
+            Qt.QIcon.fromTheme("preferences-system-session"),
             "Macro execution configuration...",
             self.__macroConfigurationDialog.show)
 
@@ -404,7 +401,7 @@ class MacroBroker(DynamicPlotManager):
         mainwindow.createPanel(self.__expDescriptionEditor,
                                'Experiment Config',
                                registerconfig=True,
-                               icon=getThemeIcon('preferences-system'),
+                               icon=Qt.QIcon.fromTheme('preferences-system'),
                                permanent=True)
         ###############################
         # TODO: These lines can be removed once the door does emit
@@ -494,7 +491,7 @@ class MacroBroker(DynamicPlotManager):
         # add panic button for aborting the door
         text = "Panic Button: stops the pool (double-click for abort)"
         self.doorAbortAction = mainwindow.jorgsBar.addAction(
-            getIcon(":/actions/process-stop.svg"),
+            Qt.QIcon("actions:process-stop.svg"),
             text, self.__onDoorAbort)
 
         # store beginning of times as a datetime

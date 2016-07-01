@@ -34,12 +34,12 @@ __docformat__ = 'restructuredtext'
 import os
 import sys
 
+from taurus import tauruscustomsettings
 from taurus.external.qt import Qt
 from taurusbasecontainer import TaurusBaseContainer
 
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.util import ExternalAppAction
-from taurus.qt.qtgui.resource import getIcon, getThemeIcon
 from taurus.qt.qtgui.dialog import protectTaurusMessageBox
 
 
@@ -312,7 +312,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''adds a "Help" Menu'''
         self.helpMenu = self.menuBar().addMenu("Help")
         self.helpMenu.addAction("About ...", self.showHelpAbout)
-        self.helpMenu.addAction(getThemeIcon(
+        self.helpMenu.addAction(Qt.QIcon.fromTheme(
             "help-browser"), "Manual", self.onShowManual)
 
     def createPerspectivesToolBar(self):
@@ -323,7 +323,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         # it may have been created earlier (for the view menu)
         if not hasattr(self, 'perspectivesMenu'):
             self.perspectivesMenu = Qt.QMenu("Load Perspectives", self)
-        self.perspectivesMenu.setIcon(getThemeIcon("document-open"))
+        self.perspectivesMenu.setIcon(Qt.QIcon.fromTheme("document-open"))
         pbutton.setToolTip("Load Perspectives")
         pbutton.setText("Load Perspectives")
         pbutton.setPopupMode(Qt.QToolButton.InstantPopup)
@@ -371,44 +371,46 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         tb.setObjectName('Taurus Toolbar')
 #        tb.addAction(self.changeTangoHostAction)
 #        tb.addWidget(self.taurusLogo)
-        tb.addAction(getIcon(":/logo.png"), Qt.qApp.organizationName())
+        logo = getattr(tauruscustomsettings, 'ORGANIZATION_LOGO',
+                       "logos:taurus.png")
+        tb.addAction(Qt.QIcon(logo), Qt.qApp.organizationName())
         tb.setIconSize(Qt.QSize(50, 50))
         return tb
 
     def __createActions(self):
         '''initializes the application-wide actions'''
         self.quitApplicationAction = Qt.QAction(
-            getThemeIcon("process-stop"), 'Exit Application', self)
+            Qt.QIcon.fromTheme("process-stop"), 'Exit Application', self)
         self.quitApplicationAction.triggered[()].connect(self.close)
-        self.changeTangoHostAction = Qt.QAction(getThemeIcon(
+        self.changeTangoHostAction = Qt.QAction(Qt.QIcon.fromTheme(
             "network-server"), 'Change Tango Host ...', self)
         self.changeTangoHostAction.setShortcut(Qt.QKeySequence("Ctrl+P"))
         self.changeTangoHostAction.triggered[()].connect(self._onChangeTangoHostAction)
 
-        self.loadPerspectiveAction = Qt.QAction(getThemeIcon(
+        self.loadPerspectiveAction = Qt.QAction(Qt.QIcon.fromTheme(
             "document-open"), 'Load Perspective ...', self)
         self.loadPerspectiveAction.triggered[()].connect(self.loadPerspective)
 
-        self.savePerspectiveAction = Qt.QAction(getThemeIcon(
+        self.savePerspectiveAction = Qt.QAction(Qt.QIcon.fromTheme(
             "document-save"), 'Save Perspective ...', self)
         self.savePerspectiveAction.triggered[()].connect(self.savePerspective)
 
         self.deletePerspectiveAction = Qt.QAction(
-            getIcon(":/actions/edit-delete.svg"), 'Delete Perspective ...', self)
+            Qt.QIcon("actions:edit-delete.svg"), 'Delete Perspective ...', self)
         self.deletePerspectiveAction.triggered[()].connect(self.removePerspective)
 
         self.exportSettingsFileAction = Qt.QAction(
-            getThemeIcon("document-save"), 'Export Settings ...', self)
+            Qt.QIcon.fromTheme("document-save"), 'Export Settings ...', self)
         self.exportSettingsFileAction.triggered[()].connect(self.exportSettingsFile)
 
         self.importSettingsFileAction = Qt.QAction(
-            getThemeIcon("document-open"), 'Import Settings ...', self)
+            Qt.QIcon.fromTheme("document-open"), 'Import Settings ...', self)
         self.importSettingsFileAction.triggered[()].connect(self.importSettingsFile)
 
-        #self.resetSettingsAction = Qt.QAction(getThemeIcon("edit-undo"),'Reset Settings', self)
+        #self.resetSettingsAction = Qt.QAction(Qt.QIcon.fromTheme("edit-undo"),'Reset Settings', self)
         #self.connect(self.resetSettingsAction, Qt.SIGNAL("triggered()"), self.resetSettings)
 
-        self.configurationAction = Qt.QAction(getThemeIcon(
+        self.configurationAction = Qt.QAction(Qt.QIcon.fromTheme(
             "preferences-system"), 'Configurations ...', self)
         self.configurationAction.triggered[()].connect(self.configurationDialog.show)
 
@@ -431,7 +433,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.spawnRConsoleShortcut.activated.connect(self._onSpawnRConsole)
 
         self.toggleFullScreenAction = Qt.QAction(
-            getIcon(":/actions/view-fullscreen.svg"), 'Show FullScreen', self)
+            Qt.QIcon("actions:view-fullscreen.svg"), 'Show FullScreen', self)
         self.toggleFullScreenAction.setCheckable(True)
         self.toggleFullScreenAction.toggled.connect(self._onToggleFullScreen)
 

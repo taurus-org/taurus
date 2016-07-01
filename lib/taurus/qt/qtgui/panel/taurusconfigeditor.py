@@ -36,7 +36,6 @@ import cPickle as pickle
 import os
 import tempfile
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
-from taurus.qt.qtgui.resource import getThemeIcon
 from taurus.qt.qtgui.container import TaurusWidget
 import shutil
 
@@ -179,9 +178,10 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         self.itemFromIndex(index.sibling(index.row(), 1)
                            ).setText(str(type(eval(value))))
         changedItem.setData(Qt.QVariant(
-            'Value has been changed. Old value: ' + str(changedItem.text())), Qt.Qt.ToolTipRole)
-        itemToMark.setData(Qt.QVariant(getThemeIcon(
-            'emblem-important')), Qt.Qt.DecorationRole)
+            'Value has been changed. Old value: ' + str(changedItem.text())),
+            Qt.Qt.ToolTipRole)
+        itemToMark.setData(Qt.QVariant(Qt.QIcon.fromTheme('emblem-important')),
+                           Qt.Qt.DecorationRole)
         while(itemToMark is not None):
             itemToMark.setData(Qt.QVariant(
                 Qt.QFont("Arial", 10, Qt.QFont.Bold)), Qt.Qt.FontRole)
@@ -420,11 +420,11 @@ class QConfigEditor(TaurusWidget):
             ['Configuration key', 'type', 'value'])
         self.layout().addWidget(self.treeview)
         self._toolbar = Qt.QToolBar("QConfigViewer Main toolBar")
-        self._toolbar.addAction(getThemeIcon(
+        self._toolbar.addAction(Qt.QIcon.fromTheme(
             "document-open"), "Open File", self.loadFile)
-        self._toolbar.addAction(getThemeIcon(
+        self._toolbar.addAction(Qt.QIcon.fromTheme(
             "document-save"), "Save File", self.saveFile)
-        self._toolbar.addAction(getThemeIcon(
+        self._toolbar.addAction(Qt.QIcon.fromTheme(
             "edit-undo"), "Reload from file", self.restoreOriginal)
         self.layout().setMenuBar(self._toolbar)
         self.setWindowTitle('TaurusConfigEditor')
@@ -438,10 +438,10 @@ class QConfigEditor(TaurusWidget):
         if self.tree._toDeleteIndex.column() in [1, 2] or text in ['LAST', '[custom]'] or text in self.tree.perspectives:
             return
         menu = Qt.QMenu()
-        menu.addAction(getThemeIcon('process-stop'),
+        menu.addAction(Qt.QIcon.fromTheme('process-stop'),
                        "Delete branch: " + text, self.tree.deleteBranch)
         menu.addSeparator()
-        menu.addAction(getThemeIcon('help-browser'), "Help")
+        menu.addAction(Qt.QIcon.fromTheme('help-browser'), "Help")
         menu.exec_(event.globalPos())
         event.accept()
 

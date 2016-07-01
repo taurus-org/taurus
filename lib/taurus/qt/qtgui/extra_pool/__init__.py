@@ -21,4 +21,5 @@
 ##
 #############################################################################
 
-from sardana.taurus.qt.qtgui.extra_pool import *
+raise ImportError('Deprecated module.' +
+                  'Use sardana.taurus.qt.qtgui.extra_pool')

@@ -100,7 +100,7 @@ class TaurusScrollArea(Qt.QScrollArea, TaurusBaseContainer):
         if cls is TaurusScrollArea:
             ret['module'] = 'taurus.qt.qtgui.container'
             ret['group'] = 'Taurus Containers'
-            ret['icon'] = ":/designer/scrollarea.png"
+            ret['icon'] = "designer:scrollarea.png"
             ret['container'] = True
         return ret
 

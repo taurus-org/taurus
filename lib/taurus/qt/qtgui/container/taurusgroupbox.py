@@ -116,7 +116,7 @@ class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):
         if cls is TaurusGroupBox:
             ret['module'] = 'taurus.qt.qtgui.container'
             ret['group'] = 'Taurus Containers'
-            ret['icon'] = ":/designer/groupbox.png"
+            ret['icon'] = "designer:groupbox.png"
             ret['container'] = True
         return ret
 

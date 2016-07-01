@@ -145,10 +145,11 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
         if choices is not None:
             self.setChoices(choices, pixmaps)
         elif designMode:
-            import taurus.qt.qtgui.resource
-            pm = taurus.qt.qtgui.resource.getPixmap(':/taurus.png')
-            self.setChoices([['choice1', 'choice2'], ['choice3', 'choice4']], dict(
-                choice1=pm, choice2=pm, choice3=pm, choice4=pm))
+            from taurus.qt.qtgui.icon import getCachedPixmap
+            pm = getCachedPixmap('logos:taurus.png')
+            self.setChoices([['choice1', 'choice2'], ['choice3', 'choice4']],
+                            dict(choice1=pm, choice2=pm, choice3=pm,
+                                 choice4=pm))
 
     def setChoices(self, choices, pixmaps=None):
         '''
@@ -212,20 +213,20 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
         The dictionary returned by this method should contain *at least* the
         following keys and values:
         - 'module' : a string representing the full python module name (ex.: 'taurus.qt.qtgui.base')
-        - 'icon' : a string representing valid resource icon (ex.: ':/designer/combobox.png')
+        - 'icon' : a string representing valid resource icon (ex.: 'designer:combobox.png')
         - 'container' : a bool telling if this widget is a container widget or not.
 
         This default implementation returns the following dictionary::
 
             { 'group'     : 'Taurus Widgets',
-              'icon'      : ':/designer/taurus.png',
+              'icon'      : 'logos:taurus.png',
               'container' : False }
 
         :return: (dict) a map with pertinent designer information"""
         return {
             'module': 'taurus.qt.qtgui.input',
             'group': 'Taurus Input',
-            'icon': ':/designer/taurus.png',
+            'icon': 'logos:taurus.png',
             'container': False}
 
 
@@ -241,15 +242,14 @@ def testWidget():
 
 def main():
     import sys
-    import taurus.qt.qtgui.resource
+    from taurus.qt.qtgui.icon import getCachedPixmap
     app = Qt.QApplication(sys.argv)
 
     pixmaps = {}
     choices = [['TaurusForm', 'TaurusTrend'], ['TaurusPlot', 'Qub']]
     for row in choices:
         for k in row:
-            pixmaps[k] = taurus.qt.qtgui.resource.getPixmap(
-                ':/snapshot/%s.png' % k)
+            pixmaps[k] = getCachedPixmap('snapshot:%s.png' % k)
 
     print GraphicalChoiceDlg.getChoice(parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=choices, pixmaps=pixmaps)
 

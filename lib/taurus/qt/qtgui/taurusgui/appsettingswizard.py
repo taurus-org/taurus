@@ -43,20 +43,13 @@ import copy
 import datetime
 from lxml import etree
 
+from taurus import tauruscustomsettings
 from taurus.external.qt import Qt
-import taurus.qt.qtgui.resource
 import taurus.qt.qtgui.panel
 import taurus.qt.qtgui.taurusgui.paneldescriptionwizard
 import taurus.qt.qtgui.input
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.util import ExternalAppAction
-
-try:
-    from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
-        TaurusMacroConfigurationDialog
-    SARDANA_INSTALLED = True
-except:
-    SARDANA_INSTALLED = False
 
 
 class BooleanWidget(Qt.QWidget):
@@ -188,7 +181,7 @@ class IntroPage(BasePage):
 
     def _setupUI(self):
         self.setTitle('Introduction')
-        self.setPixmap(Qt.QWizard.WatermarkPixmap, taurus.qt.qtgui.resource.getThemeIcon(
+        self.setPixmap(Qt.QWizard.WatermarkPixmap, Qt.QIcon.fromTheme(
             "document-properties").pixmap(120, 120))
         label = Qt.QLabel(self.getIntroText())
         label.setWordWrap(True)
@@ -226,8 +219,8 @@ class ProjectPage(BasePage):
         self._projectDirLE.setMinimumSize(150, 30)
         self._projectDirLE.setToolTip(
             'This directory will be used to store all files needed by the application.')
-        self._projectDirBT = Qt.QPushButton(
-            taurus.qt.qtgui.resource.getThemeIcon("document-properties"), '...')
+        self._projectDirBT = Qt.QPushButton(Qt.QIcon.fromTheme(
+            "document-properties"), '...')
         self._layout.addWidget(self._projectDirLabel, 1, 0)
         self._layout.addWidget(self._projectDirLE, 1, 1)
         self._layout.addWidget(self._projectDirBT, 1, 2)
@@ -372,7 +365,9 @@ class CustomLogoPage(BasePage):
 
     def __init__(self, parent=None):
         BasePage.__init__(self, parent)
-        self._customLogoDefaultPath = ":/logo.png"
+        self._customLogoDefaultPath = getattr(tauruscustomsettings,
+                                              "ORGANIZATION_LOGO",
+                                              "logos:taurus.png")
         self._customLogoPath = self._customLogoDefaultPath
 
     def initializePage(self):
@@ -393,8 +388,7 @@ class CustomLogoPage(BasePage):
         self._customLogoLineEdit.setReadOnly(False)
         self._customLogoButton = Qt.QPushButton()
         self._customLogoButton.setToolTip("Browse...")
-        self._customLogoButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("folder-open"))
+        self._customLogoButton.setIcon(Qt.QIcon.fromTheme("folder-open"))
         self._customLogoButton.setMaximumSize(80, 25)
         self._spacerItem1 = Qt.QSpacerItem(
             30, 30, Qt.QSizePolicy.Fixed, Qt.QSizePolicy.Fixed)
@@ -404,13 +398,12 @@ class CustomLogoPage(BasePage):
         self._customLogoDefaultButton = Qt.QPushButton()
         self._customLogoDefaultButton.setToolTip("Default")
         self._customLogoDefaultButton.setMaximumSize(80, 25)
-        self._customLogoDefaultButton.setIcon(
-            taurus.qt.qtgui.resource.getIcon(":/actions/edit-undo.svg"))
+        self._customLogoDefaultButton.setIcon(Qt.QIcon("actions:edit-undo.svg"))
         self._customLogoRemoveButton = Qt.QPushButton()
         self._customLogoRemoveButton.setToolTip("Remove")
         self._customLogoRemoveButton.setMaximumSize(80, 25)
         self._customLogoRemoveButton.setIcon(
-            taurus.qt.qtgui.resource.getIcon(":/emblems/emblem-unreadable.svg"))
+            Qt.QIcon("emblems:emblem-unreadable.svg"))
         self._spacerItem2 = Qt.QSpacerItem(
             30, 30, Qt.QSizePolicy.Expanding, Qt.QSizePolicy.Fixed)
 
@@ -453,7 +446,7 @@ class CustomLogoPage(BasePage):
 
     def _setNoImage(self):
         self._customLogo.setPixmap(
-            taurus.qt.qtgui.resource.getThemePixmap("image-missing").scaled(50, 50))
+            Qt.QIcon.fromTheme("image-missing").pixmap(50, 50))
         self._customLogoPath = None
         self._customLogoRemoveButton.hide()
 
@@ -475,32 +468,20 @@ class CustomLogoPage(BasePage):
 
     def _changeImage(self):
         fileName = str(self._customLogoLineEdit.text())
-        if (len(fileName)):
-            if fileName[0] == ":":
-                pixmap = taurus.qt.qtgui.resource.getPixmap(fileName)
-                if (pixmap.height()):
-                    image = pixmap.toImage()
+        if len(fileName):
+            if (os.path.exists(fileName)):
+                image = Qt.QImage()
+                if image.load(fileName):
                     self._setImage(image)
                     self._customLogoPath = fileName
                     self._setStatus("Press next button to continue")
                     self._customLogoRemoveButton.show()
                 else:
                     self._setNoImage()
-                    self._setStatus("The resource is invalid")
+                    self._setStatus("The file is invalid")
             else:
-                if (os.path.exists(fileName)):
-                    image = Qt.QImage()
-                    if image.load(fileName):
-                        self._setImage(image)
-                        self._customLogoPath = fileName
-                        self._setStatus("Press next button to continue")
-                        self._customLogoRemoveButton.show()
-                    else:
-                        self._setNoImage()
-                        self._setStatus("The file is invalid")
-                else:
-                    self._setNoImage()
-                    self._setStatus("The file does not exist")
+                self._setNoImage()
+                self._setStatus("The file does not exist")
         else:
             self._setNoImage()
             self._setStatus("No image")
@@ -514,7 +495,7 @@ class CustomLogoPage(BasePage):
                 image).scaled(60, 200, Qt.Qt.KeepAspectRatio))
         else:
             self._customLogo.setPixmap(
-                taurus.qt.qtgui.resource.getThemePixmap("image-missing").scaled(50, 50))
+                Qt.QPixmap("image-missing").scaled(50, 50))
             self._customLogoPath = None
 
     def _setStatus(self, text):
@@ -571,13 +552,10 @@ class SynopticPage(BasePage):
         self._downButton.setStyleSheet("text-align: left;")
         self._verticalLayout.addWidget(self._downButton)
         self._horizontalLayout.addLayout(self._verticalLayout)
-        self._addButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("list-add"))
-        self._removeButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
-        self._upButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-up"))
-        self._downButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("go-down"))
+        self._addButton.setIcon(Qt.QIcon.fromTheme("list-add"))
+        self._removeButton.setIcon(Qt.QIcon.fromTheme("list-remove"))
+        self._upButton.setIcon(Qt.QIcon.fromTheme("go-up"))
+        self._downButton.setIcon(Qt.QIcon.fromTheme("go-down"))
         self._addButton.clicked.connect(self._addSynoptic)
         self._removeButton.clicked.connect(self._removeSynoptic)
         self._upButton.clicked.connect(self._moveUp)
@@ -678,6 +656,8 @@ class MacroServerInfoPage(BasePage):
         self._macroGroupBox.setStyleSheet(
             " QGroupBox::title {  subcontrol-position: top left; padding: 5 5px; }")
         self._horizontalLayout = Qt.QHBoxLayout(self._macroGroupBox)
+        from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
+                TaurusMacroConfigurationDialog
         self._confWidget = TaurusMacroConfigurationDialog(self)
         self._confWidget.setWindowFlags(Qt.Qt.Widget)
         self._confWidget.setModal(False)
@@ -838,13 +818,10 @@ class PanelsPage(BasePage):
         self._downButton.setStyleSheet("text-align: left;")
         self._verticalLayout.addWidget(self._downButton)
         self._horizontalLayout.addLayout(self._verticalLayout)
-        self._addButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("list-add"))
-        self._removeButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
-        self._upButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-up"))
-        self._downButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("go-down"))
+        self._addButton.setIcon(Qt.QIcon.fromTheme("list-add"))
+        self._removeButton.setIcon(Qt.QIcon.fromTheme("list-remove"))
+        self._upButton.setIcon(Qt.QIcon.fromTheme("go-up"))
+        self._downButton.setIcon(Qt.QIcon.fromTheme("go-down"))
         self._addButton.clicked.connect(self._addPanel)
         self._removeButton.clicked.connect(self._removePanel)
         self._upButton.clicked.connect(self._moveUp)
@@ -960,8 +937,7 @@ class ExternalAppEditor(Qt.QDialog):
         self._execFileLineEdit.setMinimumSize(150, 25)
         # self._execFileLineEdit.setReadOnly(True)
         self._execFileButton = Qt.QPushButton()
-        self._execFileButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("folder-open"))
+        self._execFileButton.setIcon(Qt.QIcon.fromTheme("folder-open"))
         self._execFileButton.setToolTip("Browse...")
         self._execFileButton.setMaximumSize(80, 25)
         self._layout1.addWidget(self._execFileLabel, 2, 0, Qt.Qt.AlignRight)
@@ -980,12 +956,8 @@ class ExternalAppEditor(Qt.QDialog):
 
         self._iconLabel = Qt.QLabel("Icon:")
         self._iconLogo = Qt.QPushButton()
-        self._iconLogo.setIcon(
-            Qt.QIcon(taurus.qt.qtgui.resource.getThemePixmap("image-missing")))
+        self._iconLogo.setIcon(Qt.QIcon("status:image-missing.svg"))
         self._iconLogo.setIconSize(Qt.QSize(60, 60))
-        self._iconLogo.setStyleSheet(
-            " QPushButton:flat { border: none; /* no border for a flat push button */} ")
-        self._iconLogo.setFlat(True)
         self._layout1.addWidget(self._iconLabel, 5, 0, Qt.Qt.AlignRight)
         self._layout1.addWidget(self._iconLogo, 5, 1, Qt.Qt.AlignCenter)
         self._spacerItem1 = Qt.QSpacerItem(
@@ -1027,57 +999,21 @@ class ExternalAppEditor(Qt.QDialog):
         return str(self._execFileLineEdit.text())
 
     def _selectIcon(self):
-        iconNameList = []
-        pixmapList = {}
-        rowIconName = []
-        # rowPixmap=[]
-        rowSize = 7
-        r = 0
-        i = 0
-
-        progressBar = Qt.QProgressDialog("Loading icons...", "Abort", 0, len(
-            taurus.qt.qtgui.resource.getThemeMembers().items()), self)
-        progressBar.setModal(True)
-        progressBar.setMinimumDuration(0)
-
-        for k, v in taurus.qt.qtgui.resource.getThemeMembers().items():
-            progressBar.setValue(progressBar.value() + 1)
-            progressBar.setLabelText(k)
-            for iconName in v:
-                if (not progressBar.wasCanceled()):
-                    p = taurus.qt.qtgui.resource.getThemePixmap(iconName)
-                    rowIconName.append(iconName)
-                    pixmapList[iconName] = p
-                    i = i + 1
-                    if r == rowSize - 1:
-                        r = 0
-                        iconNameList.append(rowIconName)
-                        rowIconName = []
-                    else:
-                        r = r + 1
-
-        if (len(rowIconName) > 0) and not (progressBar.wasCanceled()):
-            iconNameList.append(rowIconName)
-
-        if not progressBar.wasCanceled():
-            progressBar.close()
-            name, ok = taurus.qt.qtgui.input.GraphicalChoiceDlg.getChoice(
-                parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=iconNameList, pixmaps=pixmapList, iconSize=60)
-            if ok:
-                self._setIcon(name)
-        else:
-            progressBar.close()
+        from taurus.qt.qtgui.icon import QIconCatalog
+        catalog = QIconCatalog()
+        dlg = Qt.QDialog(self)
+        dlg.setLayout(Qt.QVBoxLayout())
+        dlg.layout().addWidget(catalog)
+        dlg.setWindowTitle('Icon Catalog')
+        catalog.iconSelected.connect(self._setIcon)
+        catalog.iconSelected.connect(dlg.accept)
+        dlg.exec_()
 
     def _setIcon(self, name):
-        if taurus.qt.qtgui.resource.getThemePixmap(name).width() != 0:
-            self._iconLogo.setIcon(
-                Qt.QIcon(taurus.qt.qtgui.resource.getThemePixmap(name)))
-            self._iconLogo.setIconSize(Qt.QSize(60, 60))
-            self._iconLogo.setText("")
-            self._icon = name
-        else:
-            self._iconLogo.setText(name)
-            self._icon = name
+        self._iconLogo.setIcon(Qt.QIcon(name))
+        self._iconLogo.setIconSize(Qt.QSize(60, 60))
+        self._iconLogo.setText("")
+        self._icon = name
 
     def _getParams(self):
         return str(self._paramsLineEdit.text())
@@ -1150,13 +1086,10 @@ class ExternalAppPage(BasePage):
         self._downButton.setStyleSheet("text-align: left;")
         self._verticalLayout.addWidget(self._downButton)
         self._horizontalLayout.addLayout(self._verticalLayout)
-        self._addButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("list-add"))
-        self._removeButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("list-remove"))
-        self._upButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("go-up"))
-        self._downButton.setIcon(
-            taurus.qt.qtgui.resource.getThemeIcon("go-down"))
+        self._addButton.setIcon(Qt.QIcon.fromTheme("list-add"))
+        self._removeButton.setIcon(Qt.QIcon.fromTheme("list-remove"))
+        self._upButton.setIcon(Qt.QIcon.fromTheme("go-up"))
+        self._downButton.setIcon(Qt.QIcon.fromTheme("go-down"))
         self._addButton.clicked.connect(self._addApplication)
         self._removeButton.clicked.connect(self._removeApplication)
         self._upButton.clicked.connect(self._moveUp)
@@ -1264,15 +1197,13 @@ class MonitorPage(BasePage):
         self._monitorLineEdit.setReadOnly(False)
         self._monitorButton = Qt.QPushButton()
         self._monitorButton.setToolTip("Browse...")
-        # self._monitorButton.setIcon(taurus.qt.qtgui.resource.getThemeIcon("system-search"))
-        self._monitorButton.setIcon(
-            taurus.qt.qtgui.resource.getIcon(":/designer/devs_tree.png"))
+        # self._monitorButton.setIcon(Qt.QIcon.fromTheme("system-search"))
+        self._monitorButton.setIcon(Qt.QIcon("designer:devs_tree.png"))
         self._monitorButton.setMaximumSize(80, 25)
         self._monitorClearButton = Qt.QPushButton()
         self._monitorClearButton.setToolTip("Clear")
         self._monitorClearButton.setMaximumSize(80, 25)
-        self._monitorClearButton.setIcon(
-            taurus.qt.qtgui.resource.getIcon(":/actions/edit-clear.svg"))
+        self._monitorClearButton.setIcon(Qt.QIcon("actions:edit-clear.svg"))
         self._layout.addWidget(self._monitorLabel, 2, 0, Qt.Qt.AlignRight)
         self._layout.addWidget(self._monitorLineEdit, 2, 1, Qt.Qt.AlignRight)
         self._layout.addWidget(self._monitorButton, 2, 2, Qt.Qt.AlignLeft)
@@ -1574,6 +1505,12 @@ class AppSettingsWizard(Qt.QWizard):
         synoptic_page = SynopticPage()
         self.setPage(self.Pages.SynopticPage, synoptic_page)
 
+        try:
+            from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
+                TaurusMacroConfigurationDialog
+            SARDANA_INSTALLED = True
+        except:
+            SARDANA_INSTALLED = False
         if SARDANA_INSTALLED:
             synoptic_page.setNextPageId(self.Pages.MacroServerInfo)
 

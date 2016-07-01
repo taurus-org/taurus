@@ -38,7 +38,6 @@ from guiqwt.builder import make
 import taurus
 from taurus.core.taurusexception import TaurusException
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
-from taurus.qt.qtgui.resource import getThemeIcon, getIcon
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam
 
@@ -76,21 +75,22 @@ class Component(object):
         if src.startswith('='):
             #@todo: evaluate/validate the expression
             self.display, self.icon, self.ok = src[
-                1:].strip(), getThemeIcon('accessories-calculator'), True
+                1:].strip(), Qt.QIcon.fromTheme('accessories-calculator'), True
             return
         # for tango attributes
         try:
             attr = taurus.Attribute(src)
             dev = attr.getParentObj()
         except TaurusException:
-            self.display, self.icon, self.ok = src, getThemeIcon(
+            self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
                 'dialog-warning'), False
             return
         if not dev.isValidDev():
-            self.display, self.icon, self.ok = src, getThemeIcon(
+            self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
                 'network-error'), False
             return
-        self.display, self.icon, self.ok = attr.getSimpleName(), getIcon(':/taurus.png'), True
+        self.display, self.icon, self.ok = attr.getSimpleName(),\
+                                           Qt.QIcon('logos:taurus.png'), True
 
 
 class CurveItemConf(object):
@@ -406,14 +406,14 @@ class CurveItemConfDlg(Qt.QWidget):
         row = index.row()
         menu = Qt.QMenu(self.ui.curvesTable)
         if row >= 0:
-            removeThisAction = menu.addAction(getThemeIcon(
+            removeThisAction = menu.addAction(Qt.QIcon.fromTheme(
                 'list-remove'), 'Remove this curve', self._onRemoveThisAction)
-        removeAllAction = menu.addAction(getThemeIcon(
+        removeAllAction = menu.addAction(Qt.QIcon.fromTheme(
             'edit-clear'), 'Clear all', self.model.clearAll)
-        addRowAction = menu.addAction(getThemeIcon(
+        addRowAction = menu.addAction(Qt.QIcon.fromTheme(
             'list-add'), 'Add new row', self.model.insertRows)
         if row >= 0:
-            editParsAction = menu.addAction(getThemeIcon(
+            editParsAction = menu.addAction(Qt.QIcon.fromTheme(
                 'preferences-system'), 'Edit parameters of this curve...', self._onEditParsAction)
 
         menu.exec_(Qt.QCursor.pos())
