@@ -65,7 +65,7 @@ The quality of an attribute (example, voltage of a power supply) defines it's
 "state". If the value of an attribute can be read then its quality is *valid*.
 If for some reason there is a problem when trying to read the attribute value
 from the equipement and it cannot be displayed, then the quality is set to
-*invalid*. If the value is below or above the warning or alarm thresolds, then
+*invalid*. If the value is below or above the warning or alarm thresholds, then
 the quality is set to *alarm*.
 The quality is set to *changing* when the value is being changed over time
 (example, the position of a motor is changing during a motion).

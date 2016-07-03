@@ -8,7 +8,7 @@ taurus was originally conceived as a library for connecting client side
 applications (CLIs and GUIs) to Tango_ device servers. 
 
 .. note:: More recently, the scope of Taurus
-          has been broadened and it is moving towards supporting pluggins for
+          has been broadened and it is moving towards supporting plugins for
           other control systems (e.g. Epics_, Spec_...). While many concepts of
           Taurus Design are heavily influenced by the Tango philosophy, the goal
           is to eventually provide a control-system agnostic API allowing

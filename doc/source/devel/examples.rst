@@ -336,7 +336,7 @@ formula!
 Plotting Trends
 """""""""""""""
 
-Many times we are interested in showing how an scalar attribute evolves with
+Many times we are interested in showing how a scalar attribute evolves with
 time. A close-cousin of the TaurusPlot called :class:`plot.TaurusTrend`
 is here to help you:
 

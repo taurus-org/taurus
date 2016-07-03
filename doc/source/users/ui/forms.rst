@@ -73,7 +73,7 @@ representing its attributes and/or widgets.
   sys/tg_test/1/float_image`
 
 
-For the attributes, TaurusForm checks the type of attribute (whether it is an
+For the attributes, TaurusForm checks the type of attribute (whether it is a
 scalar or an array, whether it is a number or a string or a boolean, whether it
 is writable or read-only, etc.). For certain attributes, more than one widget
 may be adequate, and the form allows the user to switch between them (See the
