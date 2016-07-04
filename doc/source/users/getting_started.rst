@@ -94,7 +94,7 @@ You can clone taurus from our main git repository::
 
     git clone git://git.code.sf.net/p/tauruslib/taurus.git taurus
 
-Then, to work on develop mode, just do:
+Then, to work on develop mode, just do::
 
     cd taurus
     python setup.py develop
@@ -108,26 +108,26 @@ Dependencies
 
     digraph dependencies {
         size="8,3";
-        Taurus      [shape=box,label="taurus 2.0"];
-        PyTango     [shape=box,label="PyTango 7.1.0"];
+        Taurus      [shape=box,label="taurus 4.0"];
         Python      [shape=box,label="Python >=2.6"];
         numpy       [shape=box,label="numpy >=1.1.0"];
+        PyTango     [shape=box,label="PyTango >=7.1.0"];
+        pyepics     [shape=box,label="pyepics >=3.2.4"];
         PyQt        [shape=box,label="PyQt >=4.8"];
         PyQwt       [shape=box,label="PyQwt >=5.2.0"];
         guiqwt      [shape=box,label="guiqwt >=2.3.0"];
-        qtcontrols  [shape=box,label="qtcontrols >=1.1.0"];
         PyMca5      [shape=box,label="PyMca5 >=5.1.2"];
-        ply         [shape=box,label="PLY"];
+        ply         [shape=box,label="PLY >=2.3"];
 
         Taurus -> Python;
-        Taurus -> PyTango;     [style=dotted, label="only for using tango"];
+        Taurus -> numpy;
+        Taurus -> PyTango;     [style=dotted, label="only for using Tango"];
+        Taurus -> pyepics;     [style=dotted, label="only for using EPICS"];
         Taurus -> PyQt         [label="taurus.qt only"];
         Taurus -> PyQwt        [label="taurus.qt only"];
         Taurus -> guiqwt       [style=dotted, label="taurus.qt.qtgui.extra_guiqwt only"];
-        Taurus -> qtcontrols   [style=dotted, label="taurus.qt.qtgui.gauge only"];
         Taurus -> PyMca5       [style=dotted, label="taurus.qt.qtgui.extra_nexus only"];
         Taurus -> ply          [style=dotted, label="taurus.qt.qtgui.graphic.jdraw only"];
-        Taurus -> numpy;
     }
 
 Taurus has dependencies on some python libraries. After you installed taurus you
@@ -136,47 +136,39 @@ can check the state of the dependencies by doing::
     import taurus
     taurus.check_dependencies()
     
-- If you want to interact with a a Tango controls system, you need PyTango_ 7 or later
+- If you want to interact with a Tango controls system, you need PyTango_ 7 or later
   installed. You can check by doing::
 
     python -c 'import PyTango; print PyTango.Release.version'
+    
+- If you want to interact with an EPICS controls system,you need pyepics_
 
-  If that fails or it reports and older version follow the `PyTango installation steps`_
-  to properly install PyTango.
-
-- You may already have PyQt_ installed. You will need PyQt 4.8 or later.
+- For using the taurus Qt widgets, you will need PyQt 4.8 or later.
   You can check by doing::
 
     python -c 'import PyQt4.Qt; print PyQt4.Qt.QT_VERSION_STR'
 
-Optional packages
-~~~~~~~~~~~~~~~~~
-
-- The plotting widgets are only available if you have PyQwt_.
-  You may already have PyQwt_ installed. You will need PyQwt 5.2.0 or later.
-  You can check it by doing::
+- The :mod:`taurus.qt.qtgui.plot` module requires PyQwt 5.2.0 or later.
+  (this dependency will be dropped soon). You can check it by doing::
 
       python -c 'import PyQt4.Qwt5; print PyQt4.Qwt5.QWT_VERSION_STR'
 
-- The image widgets are provided by the guiqwt_ library.
+- The image widgets require the guiqwt_ library.
 
-- The JDraw synoptics widgets are only available if you have the :mod:`ply`
-  package installed.
+- The JDraw synoptics widgets require the :mod:`ply` package.
 
-- The NeXus browser widget is only available if you have PyMca5_ installed
+- The NeXus browser widget requires PyMca5_.
 
 
-.. _numpy: http://numpy.scipy.org/
+.. _numpy: http://numpy.org/
 .. _PLY: http://www.dabeaz.com/ply/
 .. _Python(x,y): http://python-xy.github.io/
 .. _Tango: http://www.tango-controls.org/
 .. _PyTango: http://packages.python.org/PyTango/
-.. _`PyTango installation steps`: http://packages.python.org/PyTango/start.html#getting-started
-.. _QTango: http://www.tango-controls.org/download/index_html#qtango3
 .. _Qt: http://qt.nokia.com/products/
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
 .. _PyQwt: http://pyqwt.sourceforge.net/
-.. _guiqwt: http://code.google.com/p/guiqwt/
-.. _IPython: http://ipython.scipy.org/
-.. _Qub: http://www.blissgarden.org/projects/qub/
+.. _guiqwt: https://pypi.python.org/pypi/guiqtw
+.. _IPython: http://ipython.or/g
 .. _PyMca5: http://pymca.sourceforge.net/
+.. _pyepics: http://pypi.python.org/pypi/pyepics
