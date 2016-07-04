@@ -148,7 +148,7 @@ can check the state of the dependencies by doing::
 
     python -c 'import PyQt4.Qt; print PyQt4.Qt.QT_VERSION_STR'
 
-- The :mod:`taurus.qt.qtgui.plot` module requires PyQwt 5.2.0 or later.
+- The :mod:`taurus.qt.qtgui.plot` module requires PyQwt_ 5.2.0 or later.
   (this dependency will be dropped soon). You can check it by doing::
 
       python -c 'import PyQt4.Qwt5; print PyQt4.Qwt5.QWT_VERSION_STR'
