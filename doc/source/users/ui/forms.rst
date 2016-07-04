@@ -79,15 +79,16 @@ is writable or read-only, etc.). For certain attributes, more than one widget
 may be adequate, and the form allows the user to switch between them (See the
 `Changing the contents of a form`_ section).
 
-For the devices, the class of the device is searched in the map defined in
-`<taurus>/TaurusCustomSettings.py` and the given widget is used if there is a
+For Tango devices, the Tango Class of the device is searched in the 
+T_FORM_CUSTOM_WIDGET_MAP map defined in
+`<taurus>/tauruscustomsettings.py` and the given widget is used if there is a
 match. Otherwise, the default device representation is used, which shows a
 button that launches an :class:`AttributeForm` showing *all* the attributes for
 that device.
 
-For an example on how a custom widget can be used for a certain type of device,
-see the :class:`taurus.qt.qtgui.extra_pool.PoolChannelTV` or
-:class:`taurus.qt.qtgui.extra_pool.PoolMotorTV` widgets.
+For an example on how a custom widget can be used for a certain class of Tango device,
+see the :class:`sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV` or
+:class:`sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV` widgets.
 
 Changing the contents of a form
 -------------------------------
@@ -104,12 +105,19 @@ and *how* it is shown in the form.
     TaurusForm, or a :ref:`TaurusModelChooser <modelchooser>`). See the `Drag and
     Drop support`_ section for more details.
   
-- Regarding *how* it is shown, you can change which widget is used for
-  displaying the read value or the write value of a given item. This is done by
-  right-clicking on the label of the item and selecting the `change Read Widget`
-  (or `change write widget`) option. As before, this will only be possible if user
-  modifications are allowed for the form.
-
+- Regarding *how* it is shown, you can change the following (provided that 
+  user modifications are allowed for this form):
+  
+  - which widget is used for displaying the read value or the write value of a 
+    given item. This is done by right-clicking on the label of the item and 
+    selecting the `change Read Widget` (or `change write widget`) option. 
+  
+  - Whether to use *compact mode* or not. See `Compact mode`_ section for more details
+    
+  - The text shown in the label widget for a value can be customised via the 
+    'Change Label' option in the label's context menu. It can also be changed for 
+    all values in a form with the 'Change Labels' option of the form's context menu.
+    
 .. tip:: You can use the `Modify contents` option to re-order what is shown.
    
 Drag and Drop support
@@ -129,8 +137,26 @@ its current list of displayed models and shows them.
 .. tip:: If you accidentally dropped a model and want to remove the new item,
    just use the `Modify contents` option from the form's context menu.
    
-Interacting with the control system: writing to attributes
-----------------------------------------------------------
+Compact Mode
+------------
+
+When in compact mode, a value in a form is shown with only one column for both 
+the read and write widget. Normally the read widget is shown, and only when 
+the user triggers the edition mode, the write widget is shown. The edit triggers are, 
+tipically:
+
+- the F2 key
+- Double-clicking on the read widget
+
+The edition mode is left when the write widget loses focus, or the changes 
+have been applied. Also, in many cases, when the "ESC" key is pressed.
+
+You can enable/disable the compact mode for a value by right-clicking on its 
+label and selecting 'compact mode'. You can also set the compact mode for all
+values in the form via the context menu of the form.
+   
+Writing to attributes
+----------------------
 
 Taurus attributes can be read-only or allow writing. Those attributes that are
 writable have two values: the *read value* and the *write value*. The read value
@@ -143,6 +169,9 @@ equal. The write value is a "set point", or "desired value" while the read value
 gives the actual value as read by the control system (for example, in a power
 supply device, the read value of its voltage attribute oscillate around the write value
 due to ripple).
+Also note that the units associated to the read and write values may not be the 
+same (In Tango, they are internally the same, but other schemes may have ways of 
+defining them independently)
 
 Since writing wrong values may be dangerous for some equipment, the default
 behaviour of write widgets is not to apply new values directly as you type the
