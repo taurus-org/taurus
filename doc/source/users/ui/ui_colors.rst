@@ -46,6 +46,8 @@ If the value is below or above the warning or alarm thresholds, then the quality
 is set to *alarm*.
 The quality is set to *changing* when the value is being changed at the time of 
 reading (e.g, the position of a motor is changing during a motion).
+
+Taurus Attribute Value qualities are represented by the following colors:
       
 .. raw:: html
 
@@ -83,7 +85,7 @@ Tango-specific Device state colors
 
 Tango Device states are richer than the generic ones. The following is a table of 
 the colors used to represent Tango-specific device states handled by the :mod:`taurus.core.tango`
-scheme
+scheme:
 
 .. raw:: html
 
