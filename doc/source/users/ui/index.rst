@@ -10,7 +10,6 @@ User's Interface
     
     Color meaning <ui_colors>
     Forms <forms>
-    Attribute Chooser <attributechooser>
     Model Chooser <modelchooser>
     Plots <plot>
     Trends <trend>
