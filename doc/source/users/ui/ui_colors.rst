@@ -10,6 +10,10 @@ main things:
 - the state of a taurus device 
 - the quality of (the reading of) an attribute.
 
+
+Taurus Device state colors
+---------------------------
+
 Taurus Device states are represented by the following colors:
 
 
@@ -37,6 +41,8 @@ Taurus Device states are represented by the following colors:
     </html>
 
 
+Taurus Attribute Value Quality colors
+-------------------------------------
 
 The quality of an attribute measures the reliability of the current read value for
 that attribute. If the value of an attribute can be read then its quality is *valid*.
