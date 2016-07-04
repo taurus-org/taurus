@@ -17,13 +17,10 @@ User's Interface
     Array Editor <arrayeditor>
     Synoptics <synoptics>
     TaurusPanel & TaurusDevicePanel <devpanels>
-    Macros <macros/index>
     TaurusGui <taurusgui>
     TaurusDemo <taurusdemo>
     Logs <logs>
     Configurations <configurations>
-    Experiment Configuration <experimentconfiguration>
-    Sardana Editor <sardanaeditor>
     
     
 
