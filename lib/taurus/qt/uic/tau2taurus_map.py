@@ -151,8 +151,6 @@ TAU_2_TAURUS_LIST = [
     ["tau.widget.utils", "initTauQtLogger",
         "taurus.qt.qtcore.util", "initTaurusQtLogger"],
     ["tau.widget.utils", "getQtLogger", "taurus.qt.qtcore.util", "getQtLogger"],
-    ["tau.widget.extra_xterm", "XTermWidget",
-        "taurus.qt.qtgui.extra_xterm", "QXTermWidget"],
     ["tau.widget.extra_tauservers", "TauServersWidget",
         "taurus.qt.qtgui.extra_tauservers", "TaurusServersWidget"],
     ["tau.widget.extra_motor", "TauMotorH",
