@@ -5,8 +5,30 @@ Taurus colors
 ================
 
 Taurus uses color codes on many of its widgets. Colors are used to represent two
-main things: the state of a device and the quality level of an attribute.
-The state represents the summary condition of a certain device. For example, a
+main things: 
+
+- the state of a device 
+- the quality of (the reading of) an attribute.
+
+Taurus Device states are represented by the following colors:
+
+
+.. raw:: html
+
+    <html>
+    <head>
+    <title>Taurus color guide</title>
+    <style type="text/css">
+    .Ready      { background: rgb(  0, 255,   0); color: rgb(  0,   0,   0); text-align: center; }
+    .NotReady   { background: rgb(255,   0,   0); color: rgb(  0,   0,   0); text-align: center; }
+        "TaurusDevState.NotReady": ("Red", 255, 0, 0, 0),
+        "TaurusDevState.Undefined": ("Gray", 128, 128, 128, 0),
+
+
+Tango Device states are richer than the generic ones. The following is a table of 
+the colors used to represent Tango-specific device states.
+
+The device state represents the summary condition of a certain device. For example, a
 power supply, maybe report to be *On* if it is working properly, *Off* if it is
 shutdown or *Fault* if there is a communication problem between the software and
 the physical device. Taurus allows for a reduced set of these states, each of which
