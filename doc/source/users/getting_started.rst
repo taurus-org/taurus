@@ -143,8 +143,8 @@ can check the state of the dependencies by doing::
     
 - If you want to interact with an EPICS controls system,you need pyepics_
 
-- For using the taurus Qt widgets, you will need PyQt 4.8 or later.
-  You can check by doing::
+- For using the taurus Qt widgets, you will need PyQt_ 4.8 or later 
+  (PyQt5 support comming soon). You can check by doing::
 
     python -c 'import PyQt4.Qt; print PyQt4.Qt.QT_VERSION_STR'
 
