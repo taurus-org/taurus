@@ -14,7 +14,7 @@ the term "model" to refer to the model component in an MVC driven architecture).
 An scheme is a plugin for Taurus that provides the glue between Taurus and a
 given source of data and/or of objects that can be controlled. For example, 
 schemes exist for various control system libraries (such as
-Tango_, SPEC_, or EPICS_) as well as for processing data (e.g. the 
+Tango_, or EPICS_) as well as for processing data (e.g. the
 :mod:`taurus.core.evaluation` scheme).
 
 Each scheme implements at least a Factory (derived from 
@@ -41,8 +41,7 @@ Notes:
 
 A model object (also referred to occasionally as Taurus Element) is an instance 
 of a class derived from one of :class:`taurus.core.TaurusAuthority`, 
-:class:`taurus.core.TaurusDevice`, :class:`taurus.core.TaurusAttribute`, or 
-:class:`taurus.core.TaurusConfiguration`.    
+:class:`taurus.core.TaurusDevice`, :class:`taurus.core.TaurusAttribute`.
 
 
 Examples of model names
@@ -53,33 +52,39 @@ provide.
 
 The following are some examples for the :mod:`taurus.core.tango` scheme:
 
-The full Taurus model name for a Tango device `sys/tg_test/1` is: 
+The full Taurus model name for a Tango device `sys/tg_test/1` registered in
+a Tango Database running on `machine:10000` is:
 
 ``tango://machine:10000/sys/tg_test/1``
 
-Now, if we assume that ``tango`` is set as the default scheme and that 
-``machine:10000`` is set as the default TANGO_HOST and that the data base 
-The same device assuming that ``tgtest1`` is set as an alias of 
-``sys/tg_test/1``, the same Tango device could be accessed as: 
+Now, if we assume that:
+
+  - ``tango`` is set as the default scheme and that
+  - ``machine:10000`` is set as the default TANGO_HOST
+  - and that ``tgtest1`` is set as an alias of ``sys/tg_test/1``
+
+then the same Tango device could be accessed as:
 
 ``tgtest1``
 
-In the case of Tango attributes, here are some examples:
+In the case of Tango attributes, here are some equivalent examples given the
+above assumptions:
   
 ``tango://machine:10000/sys/tg_test/1/double_scalar``,
  
-``sys/tg_test/1/double_scalar``, 
+``sys/tg_test/1/double_scalar``,
 
-``tango:tg_test1/double_scalar``, 
+``tango:tgtest1/double_scalar``,
 
-``tg_test1/double_scalar``
+``tgtest1/double_scalar``
 
 See :mod:`taurus.core.tango` for a more exhaustive description and more
 examples related to Tango.
 
 The following are some examples for the :mod:`taurus.core.evaluation` scheme.
 
-An evaluation attribute that generates an array of random values when read:
+An evaluation attribute that generates an array of dimensionless random
+values when read:
     
 ``eval:rand(256)``
 
@@ -124,14 +129,13 @@ model name:
 - :func:`taurus.Authority`
 - :func:`taurus.Device`
 - :func:`taurus.Attribute`
-- :func:`taurus.Configuration`
 - :func:`taurus.Object`
 
 The first four helpers require you to know which type of Element (e.g., 
 Attribute, Device,...) is represented by the model name. If you do not know that
 beforehand, you can use :meth:`taurus.Object` which will automatically find the 
 type and provide you with the corresponding model object (but of course this is 
-slightly less efficient than using one of the first four helpers). 
+slightly less efficient than using one of the first three helpers).
 
 These helpers will automatically find out which scheme corresponds to the given 
 model and will delegate the creation of the model object to the corresponding 
@@ -158,8 +162,7 @@ EPICS Process Variable called "my:example.RBV" is just::
 
     import taurus
     testDev = taurus.Attribute('epics:my:example.RBV')
- 
-    
+
 Taurus also provides other helpers to access lower level objects for dealing
 with models:
 
@@ -188,8 +191,8 @@ the most important ones.
     application. 
 
 *model unicity:*
-    you may request as many times as you like for the same model name and taurus
-    will give you the same object::
+    you may request the same model many times without performance hit, since
+    taurus will give you the same object::
         
         >>> import taurus
         >>> sim1 = taurus.Device('sys/tg_test/1')
@@ -228,15 +231,5 @@ the most important ones.
     
 .. _Tango: http://www.tango-controls.org/
 .. _PyTango: http://packages.python.org/PyTango/
-.. _QTango: http://www.tango-controls.org/download/index_html#qtango3
-.. _`PyTango installation steps`: http://packages.python.org/PyTango/start.html#getting-started
-.. _Qt: http://qt.nokia.com/products/
-.. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
-.. _PyQwt: http://pyqwt.sourceforge.net/
-.. _IPython: http://ipython.scipy.org/
-.. _ATK: http://www.tango-controls.org/Documents/gui/atk/tango-application-toolkit
-.. _Qub: http://www.blissgarden.org/projects/qub/
-.. _numpy: http://numpy.scipy.org/
-.. _SPEC: http://www.certif.com/
 .. _EPICS: http://www.aps.anl.gov/epics/
 .. _RFC3986: https://tools.ietf.org/html/rfc3986
