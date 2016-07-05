@@ -109,7 +109,7 @@ Dependencies
     digraph dependencies {
         size="8,3";
         Taurus      [shape=box,label="taurus 4.0"];
-        Python      [shape=box,label="Python >=2.6"];
+        Python      [shape=box,label="Python >=2.7"];
         numpy       [shape=box,label="numpy >=1.1.0"];
         PyTango     [shape=box,label="PyTango >=7.1.0"];
         pyepics     [shape=box,label="pyepics >=3.2.4"];
