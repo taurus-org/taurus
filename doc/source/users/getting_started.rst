@@ -155,7 +155,7 @@ can check the state of the dependencies by doing::
 
 - The image widgets require the guiqwt_ library.
 
-- The JDraw synoptics widgets require the :mod:`ply` package.
+- The JDraw synoptics widgets require the PLY_ package.
 
 - The NeXus browser widget requires PyMca5_.
 
