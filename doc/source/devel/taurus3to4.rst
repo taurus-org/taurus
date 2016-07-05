@@ -10,15 +10,16 @@ to taurus 4.x.
 .. todo::
     This section needs to be expanded. **Help wanted!**.
     In the meanwhile, the following documents may be useful:
+
     - TEP3_
     - TEP14_
-    - `Taurus 4 API changes <Taurus4_API_Changes>`_
-    - `Taurus 4 slides <taurus4_slides>`_
+    - `Taurus 4 API changes`_
+    - `Taurus 4 slides`_
 
 
 
 
 .. _TEP3: http://sf.net/p/tauruslib/wiki/TEP3
 .. _TEP14: http://sf.net/p/tauruslib/wiki/TEP14
-.. _Taurus4_API_Changes: http://sf.net/p/tauruslib/wiki/Taurus4-API_changes
-.. _taurus4_slides: https://indico.esrf.fr/indico/event/4/session/6/contribution/17/material/slides/0.pdf
+.. _`Taurus 4 API changes`: http://sf.net/p/tauruslib/wiki/Taurus4-API_changes
+.. _`Taurus 4 slides`: https://indico.esrf.fr/indico/event/4/session/6/contribution/17/material/slides/
