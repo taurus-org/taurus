@@ -121,8 +121,8 @@ Dependencies
 
         Taurus -> Python;
         Taurus -> numpy;
-        Taurus -> PyTango;     [style=dotted, label="only for using Tango"];
-        Taurus -> pyepics;     [style=dotted, label="only for using EPICS"];
+        Taurus -> PyTango      [style=dotted, label="only for using Tango"];
+        Taurus -> pyepics      [style=dotted, label="only for using EPICS"];
         Taurus -> PyQt         [label="taurus.qt only"];
         Taurus -> PyQwt        [label="taurus.qt only"];
         Taurus -> guiqwt       [style=dotted, label="taurus.qt.qtgui.extra_guiqwt only"];
