@@ -30,4 +30,3 @@ __docformat__ = 'restructuredtext'
 
 from .taurusbase import *
 from .tauruscontroller import *
-from .taurusqattribute import *
