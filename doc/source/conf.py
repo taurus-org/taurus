@@ -59,8 +59,15 @@ def _build_doc_api():
     auto_rst4api = imp.load_module(name, *data)
     API_Creator = auto_rst4api.Auto_rst4API_Creator
     # prepare api creator
-    excl = ['_[^\.]*[^_]', '.*.extra_sardana', '.*.extra_pool',
-            '.*.extra_macroexecutor', 'taurus.external']
+    excl = ['_[^\.]*[^_]',
+            '.*\.test',
+            'taurus\.external',
+            'taurus\.qt\.qtgui\.extra_sardana',
+            'taurus\.qt\.qtgui\.extra_pool',
+            'taurus\.qt\.qtgui\.extra_macroexecutor',
+            'taurus\.qt\.qtgui\.resource',
+            'taurus\.qt\.qtgui\.taurusgui\.conf',
+            ]
     rstCreator = API_Creator(exclude_patterns=excl,
                              templatespath=_doc_dir,
                              overwrite_old=True,
