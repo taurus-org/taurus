@@ -24,7 +24,8 @@
 ##
 #############################################################################
 
-"""This module contains the base class for a taurus attribute configuration"""
+"""[DEPRECATED since taurus v4]
+This module contains the base class for a taurus attribute configuration"""
 
 __all__ = ["TaurusConfigurationProxy", "TaurusConfiguration"]
 

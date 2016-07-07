@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-"""This module contains all taurus tango attribute configuration"""
+"""This module provides the `TangoFactory` object"""
 
 __all__ = ["TangoFactory"]
 
@@ -59,8 +59,7 @@ _Device = TangoDevice
 
 class TangoFactory(Singleton, TaurusFactory, Logger):
     """A :class:`TaurusFactory` singleton class to provide Tango-specific
-    Taurus Element objects (TangoAuthority, TangoDevice, TangoAttribute,
-    TangoConfiguration)
+    Taurus Element objects (TangoAuthority, TangoDevice, TangoAttribute)
 
     Tango model names are URI based See https://tools.ietf.org/html/rfc3986.
     For example, a TangoAttribute would be::
@@ -76,11 +75,12 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     For Tango Elements:
 
         - The 'scheme' must be the string "tango" (lowercase mandatory)
-        - The 'authority' is the Tango database (<hostname> and <port> mandatory)
-        - The 'path' is the Tango object, which can be a Device or Attribute.
-          For device it must have the format _/_/_ or alias
-          For attribute it must have the format _/_/_/_ or devalias/_
-        - The 'fragment' is optional and it refers to an attribute of the model
+        - The 'authority' identifies the Tango database (<hostname> and <port>
+          are mandatory if authority is given)
+        - The 'path' identifies Tango Device and Attributes.
+          For devices it must have the format _/_/_ or alias
+          For attributes it must have the format _/_/_/_ or devalias/_
+        - The 'fragment' is optional and it refers to a member of the model
           object, thus not being part of the model name itself
     """
 
@@ -398,7 +398,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            If the corresponding configuration already exists, the existing instance
            is returned. Otherwise a new instance is stored and returned.
 
-           :param param: (taurus.core.taurusattribute.TaurusAttribute or str) attribute object or full configuration name
+           :param param: (taurus.core.taurusattribute.TaurusAttribute or str)
+                         attribute object or full configuration name
 
            :return: (taurus.core.tango.TangoAttribute) configuration object
         """

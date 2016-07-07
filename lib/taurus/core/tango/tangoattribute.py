@@ -742,8 +742,8 @@ class TangoAttribute(TaurusAttribute):
         return self.getTangoWritable(cache) == PyTango.AttrWriteType.READ_WRITE
 
     def getTangoWritable(self, cache=True):
-        '''like TaurusConfiguration.getWritable, but it returns a
-         PyTango.AttrWriteType instead of a bool'''
+        """like TaurusAttribute.isWritable(), but it returns a
+        PyTango.AttrWriteType instead of a bool"""
         return self.tango_writable
 
     def getLabel(self, cache=True):

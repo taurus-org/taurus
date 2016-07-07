@@ -405,7 +405,7 @@ def getValidTypesForName(name, strict=None):
                    considered valid.
 
     :return: (list<TaurusElementType.element>) where element can be one of:
-             `Configuration`, `Attribute`, `Device` or `Authority`
+             `Attribute`, `Device` or `Authority`
     '''
     try:
         factory = Factory(scheme=getSchemeFromName(name))
@@ -427,7 +427,7 @@ def isValidName(name, etypes=None, strict=None):
     :param etypes: (seq<TaurusElementType>) if given, names will only be
                    considered valid if they represent one of the given
                    element types. Supported element types are:
-                   `Configuration`, `Attribute`, `Device` and `Authority`
+                   `Attribute`, `Device` and `Authority`
     :param strict: (bool) If True, names that are not RFC3986-compliant but
                    which would be accepted for backwards compatibility are
                    considered valid.

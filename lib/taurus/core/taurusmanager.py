@@ -40,7 +40,6 @@ from .taurusbasetypes import OperationMode, ManagerState, TaurusSerializationMod
 from .taurusauthority import TaurusAuthority
 from .taurusdevice import TaurusDevice
 from .taurusattribute import TaurusAttribute
-from .taurusconfiguration import TaurusConfiguration
 from .taurusexception import TaurusException
 from .taurusfactory import TaurusFactory
 from .taurushelper import getSchemeFromName

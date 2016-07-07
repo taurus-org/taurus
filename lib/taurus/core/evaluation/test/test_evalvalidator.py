@@ -194,7 +194,7 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @invalid(name='eval://dev=foo;x*y?x=2;y=3')
 @invalid(name='eval://x+y+z?x=1;y=2;z=3')
 @invalid(name='eval://a*x?a={tango://a/b/c/d};x=2')
-# TODO #1 maybe we can check if the sustitutions can be done
+# TODO #1 maybe we can check if the substitutions can be done
 @valid(name='eval://configuration?configuration=1', strict=False)
 @valid(name='eval://config?config=1', strict=False)
 @valid(name='eval://configurationfoo?configurationfoo=1', strict=False)

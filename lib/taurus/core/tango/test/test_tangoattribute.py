@@ -54,7 +54,7 @@ _UINT8_IMG = _UCHAR_IMG.view('uint8')
 _UINT8_SPE = _UINT8_IMG[1, :]
 
 # ==============================================================================
-# Test writing configuration values
+# Test writing fragment values
 ##
 # DISABLED: these tests break test isolation (looks like Reset is not working
 #           for configurations). Until we solve it, we disable all these tests
@@ -731,7 +731,7 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
             return None
 
     def write_read_conf(self, attr_name, cfg, value, expected):
-        """ Helper for checking the write-and-read read/write the Tango
+        """ Helper for checking the write-and-read of the Tango
         attribute configuration (existing in Taurus).
         """
         attr_fullname = '%s/%s' % (self.DEV_NAME, attr_name)

@@ -28,9 +28,8 @@
   Factory in Taurus must inherit.
 
   The Factory objects are the basic block for building and interacting with a
-  given scheme in Taurus. They provide Taurus Element objects (TaurusAuthority,
-  TaurusDevice, TaurusAttribute or TaurusConfiguration) for a given taurus model
-  name.
+  given scheme in Taurus. They provide Taurus model objects (TaurusAuthority,
+  TaurusDevice or TaurusAttribute) for a given taurus model name.
 
   Taurus model naming is URI based (see <https://tools.ietf.org/html/rfc3986>)
 
@@ -316,7 +315,7 @@ class TaurusFactory(object):
         :param name: (str) taurus model name
 
         :return: (list<TaurusElementType.element>) where element can be one of:
-                 `Configuration`, `Attribute`, `Device` or `Authority`
+                 `Attribute`, `Device` or `Authority`
         '''
         ret = []
         if self.getAttributeNameValidator().isValid(name, strict=strict):
@@ -340,7 +339,6 @@ class TaurusFactory(object):
               elementTypesMap = {TaurusElementType.Authority: FooAuthority,
                                  TaurusElementType.Device: FooDevice,
                                  TaurusElementType.Attribute: FooAttribute,
-                                 TaurusElementType.Configuration: FooConfiguration
                                  }
               (...)
 

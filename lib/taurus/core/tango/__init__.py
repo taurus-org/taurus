@@ -30,17 +30,16 @@ objects. The official scheme name is, obviously, 'tango'.
 
 This extension maps the (Py)Tango objects into Taurus objects as follows:
 
-- A Tango database is represented as a subclass of :class:`TaurusAuthority`
+- A Tango database is represented as a subclass of
+ :class:`taurus.core.TaurusAuthority`
 - A Tango device is represented as a subclass of
   :class:`taurus.core.TaurusDevice`
 - A Tango device attribute is represented as a subclass
   :class:`taurus.core.TaurusAttribute`
-- The configuration of a Tango attribute is represented as a subclass of
-  :class:`taurus.core.TaurusConfiguration`
 
 You should never create objects from the above classes directly. Instead, you
 should use :meth:`taurus.Authority`, :meth:`taurus.Device`,
-:meth:`taurus.Attribute` and :meth:`taurus.Configuration` helper functions,
+and :meth:`taurus.Attribute` helper functions,
 as in the examples below, or if you require more control, use the
 :class:`taurus.core.taurusmanager.TaurusManager` or
 :class:`taurus.core.taurusfactory.TaurusFactory` APIs.
@@ -91,22 +90,13 @@ to :meth:`taurus.Attribute`:
 - ``sys/tg_test/1/ampli``
 - ``tgtest1/ampli``
 
-And TaurusConfiguration objects representing the Tango attribute
-configuration properties can be accessed as::
-
-    >>> import taurus
-    >>> my_config = taurus.Configuration('sys/tg_test/1/ampli#')
-
-(in this example I assumed ``tango`` being set as the default scheme and
-``machine:10000`` being the default database)
-
 Finally, the TangoFactory object can be accessed as::
 
     >>> import taurus
     >>> tg_factory = taurus.Factory('tango')
 
 
-.. note:: Previous to SEP3, a RFC3986 non-compliant syntax was used for the
+.. note:: Previous to TEP3, a RFC3986 non-compliant syntax was used for the
           Tango scheme (e.g., allowing names such as ``tango://a/b/c/d`` -note
           the double slash which should not be there).
           This syntax is now deprecated and should not be used. Taurus will
