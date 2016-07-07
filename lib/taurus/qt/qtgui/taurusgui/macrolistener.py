@@ -104,13 +104,13 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
         if 'JsonRecorder' not in door.getEnvironment():
             msg = ('JsonRecorder environment variable is not set, but it ' +
                    'is needed for displaying trend plots.\n' +
-                   'Enable it globally for %s?') % door.name()
+                   'Enable it globally for %s?') % door.fullname
             result = Qt.QMessageBox.question(self.parent(),
                                              'JsonRecorder not set', msg,
                                              Qt.QMessageBox.Yes | Qt.QMessageBox.No)
             if result == Qt.QMessageBox.Yes:
                 door.putEnvironment('JsonRecorder', True)
-                self.info('JsonRecorder Enabled for %s' % door.name())
+                self.info('JsonRecorder Enabled for %s' % door.fullname)
 
     def onExpConfChanged(self, expconf):
         '''
@@ -194,7 +194,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
             if axes not in self._trends1d:
                 w = TaurusTrend()
                 w.setXIsTime(False)
-                w.setScanDoor(self.getModelObj().name())
+                w.setScanDoor(self.getModelObj().fullname)
                 # TODO: use a standard key for <idx> and <mov>
                 w.setScansXDataKey(axes[0])
                 pname = u'Trend1D - %s' % ":".join(axes)
@@ -253,7 +253,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
                     w = TaurusTrend2DDialog(stackMode='event')
                     plot = w.get_plot()
                     t2d = TaurusTrend2DScanItem(chname, axis,
-                                                self.getModelObj().name())
+                                                self.getModelObj().fullname)
                     plot.add_item(t2d)
                     self.createPanel(w, pname, registerconfig=False,
                                      permanent=False)
@@ -483,10 +483,10 @@ class MacroBroker(DynamicPlotManager):
                                registerconfig=False, permanent=True)
 
         # puts sardanaEditor
-        self.__sardanaEditor = SardanaEditor()
-        SDM.connectReader("macroserverName", self.__sardanaEditor.setModel)
-        mainwindow.createPanel(self.__sardanaEditor, 'SardanaEditor',
-                               registerconfig=False, permanent=True)
+        # self.__sardanaEditor = SardanaEditor()
+        # SDM.connectReader("macroserverName", self.__sardanaEditor.setModel)
+        # mainwindow.createPanel(self.__sardanaEditor, 'SardanaEditor',
+        #                        registerconfig=False, permanent=True)
 
         # add panic button for aborting the door
         text = "Panic Button: stops the pool (double-click for abort)"
