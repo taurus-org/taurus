@@ -23,6 +23,12 @@
 ##
 ##############################################################################
 
+"""
+This module provides a simple HTML help browser.
+"""
+
+__all__ = ["HelpPanel"]
+
 from taurus.external.qt import Qt
 from taurus.external.qt import QtHelp
 

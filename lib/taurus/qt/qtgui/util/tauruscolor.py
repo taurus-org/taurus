@@ -25,6 +25,11 @@
 
 """This module provides Qt color management for taurus"""
 
+__all__ = ["QtColorPalette",
+           "QT_DEVICE_STATE_PALETTE",
+           "QT_ATTRIBUTE_QUALITY_PALETTE",
+           ]
+
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt

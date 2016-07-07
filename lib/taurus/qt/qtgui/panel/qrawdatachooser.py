@@ -27,6 +27,8 @@
 RawDataChooser.py:  widget for importing RawData (from file or from a function)
 """
 
+__all__ = ["QRawDataWidget"]
+
 import numpy
 
 from taurus.external.qt import Qt

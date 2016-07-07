@@ -27,6 +27,7 @@
 AttributeChooser.py: widget for choosing (a list of) attributes from a tango DB
 """
 
+__all__ = ["TaurusModelSelectorTree", "TaurusModelChooser"]
 
 import sys
 from taurus.external.qt import Qt
