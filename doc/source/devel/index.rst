@@ -13,6 +13,7 @@ Developer's Guide
     Designer tutorial <designer_tutorial>
     Icon guide <icon_guide>
     Core tutorial <core_tutorial>
+    Taurus Custom Settings <tauruscustomsettings>
     Examples <examples>
     API <api/taurus>
     All Classes <api/taurus_AllClasses.rst>
