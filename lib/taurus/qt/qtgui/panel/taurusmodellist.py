@@ -37,6 +37,7 @@ from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusexception import TaurusException
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.icon import getElementTypeIcon
+from taurus.qt.qtcore.util.signal import baseSignal
 
 # set some named constants
 SRC_ROLE = Qt.Qt.UserRole + 1
@@ -276,7 +277,7 @@ class TaurusModelList(Qt.QListView):
     associated with it. It also allows drag and drop of models and sorting.
     '''
 
-    dataChanged = Qt.pyqtSignal(list)
+    dataChangedSignal = baseSignal("dataChanged", list)
 
     def __init__(self, parent=None, items=None, designMode=False):
         super(TaurusModelList, self).__init__(parent)
@@ -347,7 +348,7 @@ class TaurusModelList(Qt.QListView):
 
     def _onDataChanged(self, *args):
         '''emits a signal containing the current data as a list of strings'''
-        self.dataChanged.emit(self.getModelItems())
+        self.dataChangedSignal.emit(self.getModelItems())
 
     def contextMenuEvent(self, event):
         '''see :meth:`QWidget.contextMenuEvent`'''
