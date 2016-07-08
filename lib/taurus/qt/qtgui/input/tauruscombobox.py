@@ -77,7 +77,6 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         TaurusBaseWritableWidget.postDetach(self)
 
         if self.receivers(self.currentIndexChanged.signal) > 0:
-            self.currentIndexChanged.name
             self.currentIndexChanged.disconnect(self.writeIndexValue)
             self.applied.disconnect(self.writeValue)
 
