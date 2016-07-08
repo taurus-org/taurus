@@ -8,7 +8,7 @@ Usually the application/widget you are developing will require some icons.
 Some of these icons will be used to represent a standard actions, applications,
 places or status like "open a file", "desktop" or "preferences".
 
-Qt (and therefore, taurus) supports `theme icons`_ for many common cases.
+Qt (and therefore, Taurus) supports `theme icons`_ for many common cases.
 You can access them via the standard :meth:`QIcon.fromTheme` method. Using theme icons will make
 your application be more integrated with the rest of the system, but keep in mind
 that different people will see the icons differently depending on their default

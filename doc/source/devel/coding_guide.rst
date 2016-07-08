@@ -53,7 +53,7 @@ Coding conventions
   should also consider being compatible with python3.5 (to prepare for
   python3 support)
 - Every python module file should contain license information (see template below).
-  The preferred license os the LGPL_. If you need/want to use a different one,
+  The preferred license is the LGPL_. If you need/want to use a different one,
   it should be compatible with the LGPL v3+.
 - avoid polluting namespace by making private definitions private (``__`` prefix)
   or/and implementing ``__all__`` (see template below)
@@ -150,7 +150,7 @@ PyQt4, PyQt5 and PySide versions.
      PySide or in the new PyQt4 API 2. Code like::
 
           def setData(self, index, qvalue, role=Qt.Qt.EditRole):
-              value = qvalue.toString()  # this assumes value to be a :class:`QVariant`
+              value = qvalue.toString()  # this assumes qvalue to be a :class:`QVariant`
               self.buffer[index.column()] = value
 
           def data(self, index, role=Qt.Qt.DisplayRole):
@@ -184,8 +184,8 @@ PyQt4, PyQt5 and PySide versions.
        class MyWidget(Qt.QWidget):
 
        def foo(self):
-           self.connect(self, Qt.SIGNAL('mySignal(int)', self.bar)
-           self.emit(Qt.SIGNAL('mySignal(int)', 123)
+           self.connect(self, Qt.SIGNAL('mySignal(int)', self.bar))
+           self.emit(Qt.SIGNAL('mySignal(int)', 123))
 
    Should be replaced by::
 

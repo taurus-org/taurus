@@ -10,7 +10,7 @@ the Taurus core became control-system agnostic, and it supports other control
 systems (such as EPICS_) and data sources.
 
 .. note:: due to its Tango origin, this documentation will tend to use many
-          tango-related examples. We intend to gradually introduce more 
+          Tango-related examples. We intend to gradually introduce more 
           non-Tango examples
 
 Taurus was developed within the Sardana_ project, but since it has being found 
@@ -41,7 +41,7 @@ numerical array. Similarly, a TaurusForm widget will allow the user to interact 
 the data represented by its attached models. The actual association of a view (widget) 
 with a model is done by providing the model name to the widget. 
 
-The following is an example on how to create a widget allows to interact with
+The following is an example on how to create a widget that allows to interact with
 four attributes (state, position, velocity, acceleration) of a Tango device 
 (`motor/icepap/01`)::
 

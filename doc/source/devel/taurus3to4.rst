@@ -4,8 +4,8 @@
 Taurus 3.x to 4.x migration guide
 ==================================
 
-This chapter explains how to migrate from an application written using taurus 3.x
-to taurus 4.x.
+This chapter explains how to migrate from an application written using Taurus 3.x
+to Taurus 4.x.
 
 .. todo::
     This section needs to be expanded. **Help wanted!**.

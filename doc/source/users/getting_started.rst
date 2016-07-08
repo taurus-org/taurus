@@ -13,7 +13,7 @@ Installing
 Installing with pip (platform-independent)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Taurus can be installed Using pip. The following command will automatically
+Taurus can be installed using pip. The following command will automatically
 download and install the latest release of Taurus (see pip --help for options)::
 
        pip install taurus
@@ -81,7 +81,7 @@ necessary to run taurus on your windows machine
 #. Finally:
     #. Download and install latest `PLY`_ from `PLY downdoad page <http://www.dabeaz.com/ply>`_ (necessary for jdraw synoptics only)
     #. Download and install latest `PyTango`_ from `PyTango downdoad page <http://pypi.python.org/pypi/PyTango>`_
-    #. Download and install latest taurus from `Taurus downdoad page <http://pypi.python.org/pypi/taurus>`_
+    #. Download and install latest Taurus from `Taurus downdoad page <http://pypi.python.org/pypi/taurus>`_
 
 Working from Git source directly (in develop mode)
 --------------------------------------------------

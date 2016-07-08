@@ -81,7 +81,7 @@ above assumptions:
 See :mod:`taurus.core.tango` for a more exhaustive description and more
 examples related to Tango.
 
-The following are some examples for the :mod:`taurus.core.evaluation` scheme.
+The following are some examples for the :mod:`taurus.core.evaluation` scheme:
 
 An evaluation attribute that generates an array of dimensionless random
 values when read:
