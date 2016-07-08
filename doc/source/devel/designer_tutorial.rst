@@ -29,7 +29,7 @@ You can use the Taurus Qt Designer to define a full GUI, but instead
 we recommend to create the GUIs using the
 :ref:`TaurusGUI framework <taurusgui_newgui>` and use the
 Taurus Qt Designer just for creating widgets to be inserted as panels in a
-:class:`TaurusGui`-based GUI.
+:class:`taurus.qt.qtgui.taurusgui.TaurusGui`-based GUI.
 
 
 
@@ -39,7 +39,7 @@ Using the .ui file
 The Qt designer will produce a .ui file that is an XML representation of the
 application/widget that you designed.
 
-This .ui file can then be loaded by your application using the mechanisms
-provided by the :mod:`taurus.qt.qtgui.util.ui` module.
+This .ui file can then be used in your own widget by using the
+:func:`taurus.qt.qtgui.util.UILoadable` decorator.
 
 See `TEP11 <http://sf.net/p/sardana/wiki/SEP11/>`_ for more details.
