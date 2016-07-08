@@ -75,8 +75,11 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     def postDetach(self):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         TaurusBaseWritableWidget.postDetach(self)
-        self.currentIndexChanged.disconnect(self.writeIndexValue)
-        self.applied.disconnect(self.writeValue)
+
+        if self.receivers(self.currentIndexChanged.signal) > 0:
+            self.currentIndexChanged.name
+            self.currentIndexChanged.disconnect(self.writeIndexValue)
+            self.applied.disconnect(self.writeValue)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWritableWidget overwriting / Pending operations
@@ -90,7 +93,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         model = self.getModelObj()
         if model is None:
             return None
-        dtype = model.getConfig().getType()
+        dtype = model.type
         new_value = self.itemData(self.currentIndex())
         if new_value is None:
             return None
@@ -179,7 +182,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
             # of the newly added names. This is kinda a refresh:
             mv = self.getModelValueObj()
             if mv is not None:
-                self.setValue(mv.w_value)
+                self.setValue(mv.wvalue)
         finally:
             self.blockSignals(bs)
 
