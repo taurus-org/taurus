@@ -32,7 +32,7 @@ __all__ = ["TaurusConfigurationProxy", "TaurusConfiguration"]
 __docformat__ = "restructuredtext"
 
 from .taurusmodel import TaurusModel
-from .util.log import tep14_deprecation
+from .util.log import taurus4_deprecation
 
 
 class TaurusConfigurationProxy(object):
@@ -45,7 +45,7 @@ class TaurusConfigurationProxy(object):
     That's why to the outside world we don't give access to it directly
     but to objects of this new TaurusConfigurationProxy class.
     """
-    @tep14_deprecation(dbg_msg='Do not use this class')
+    @taurus4_deprecation(dbg_msg='Do not use this class')
     def __init__(self, parent):
         self.__parent = parent
 
@@ -58,6 +58,6 @@ class TaurusConfigurationProxy(object):
 
 class TaurusConfiguration(TaurusModel):
 
-    @tep14_deprecation(alt='TaurusAttribute', dbg_msg='Do not use this class')
+    @taurus4_deprecation(alt='TaurusAttribute', dbg_msg='Do not use this class')
     def __init__(self, name, parent, storeCallback=None):
         pass

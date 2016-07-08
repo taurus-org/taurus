@@ -35,7 +35,7 @@ from taurus.core.taurusbasetypes import SubscriptionState, TaurusEventType, \
 from taurus.core.taurusexception import TaurusException
 from taurus.core.taurushelper import Attribute, Manager
 from taurus.core import DataFormat
-from taurus.core.util.log import debug, tep14_deprecation
+from taurus.core.util.log import debug, taurus4_deprecation
 
 from taurus.core.evaluation.evalvalidator import QUOTED_TEXT_RE, PY_VAR_RE
 
@@ -51,7 +51,7 @@ class EvaluationAttrValue(TaurusAttrValue):
         TaurusAttrValue.__init__(self)
         if config is not None:
             from taurus.core.util.log import deprecated
-            deprecated(dep='"config" kwarg', alt='"attr"', rel='tep14')
+            deprecated(dep='"config" kwarg', alt='"attr"', rel='4.0')
             attr = config
         if attr is None:
             self._attrRef = None
@@ -68,13 +68,13 @@ class EvaluationAttrValue(TaurusAttrValue):
         # return the attr but only after warning
         from taurus.core.util.log import deprecated
         deprecated(dep='EvaluationAttrValue.%s' % name,
-                   alt='EvaluationAttribute.%s' % name, rel='tep14')
+                   alt='EvaluationAttribute.%s' % name, rel='4.0')
         return ret
 
     # --------------------------------------------------------
     # This is for backwards compat with the API of taurus < 4
     #
-    @tep14_deprecation(alt='.rvalue')
+    @taurus4_deprecation(alt='.rvalue')
     def _get_value(self):
         '''for backwards compat with taurus < 4'''
         debug(repr(self))
@@ -83,7 +83,7 @@ class EvaluationAttrValue(TaurusAttrValue):
         except AttributeError:
             return self.rvalue
 
-    @tep14_deprecation(alt='.rvalue')
+    @taurus4_deprecation(alt='.rvalue')
     def _set_value(self, value):
         '''for backwards compat with taurus < 4'''
         debug('Setting %r to %s' % (value, self.name))
@@ -103,7 +103,7 @@ class EvaluationAttrValue(TaurusAttrValue):
 
     value = property(_get_value, _set_value)
 
-    @tep14_deprecation(alt='.wvalue')
+    @taurus4_deprecation(alt='.wvalue')
     def _get_w_value(self):
         '''for backwards compat with taurus < 4'''
         debug(repr(self))
@@ -112,7 +112,7 @@ class EvaluationAttrValue(TaurusAttrValue):
         except AttributeError:
             return self.wvalue
 
-    @tep14_deprecation(alt='.wvalue')
+    @taurus4_deprecation(alt='.wvalue')
     def _set_w_value(self, value):
         '''for backwards compat with taurus < 4'''
         debug('Setting %r to %s' % (value, self.name))
@@ -133,7 +133,7 @@ class EvaluationAttrValue(TaurusAttrValue):
     w_value = property(_get_w_value, _set_w_value)
 
     @property
-    @tep14_deprecation(alt='.error')
+    @taurus4_deprecation(alt='.error')
     def has_failed(self):
         return self.error
 

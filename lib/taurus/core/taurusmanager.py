@@ -33,7 +33,7 @@ import os
 import atexit
 
 from .util.singleton import Singleton
-from .util.log import Logger, tep14_deprecation
+from .util.log import Logger, taurus4_deprecation
 from .util.threadpool import ThreadPool
 
 from .taurusbasetypes import OperationMode, ManagerState, TaurusSerializationMode
@@ -255,7 +255,7 @@ class TaurusManager(Singleton, Logger):
         """
         return self.getObject(TaurusAttribute, name)
 
-    @tep14_deprecation(alt='getAttribute')
+    @taurus4_deprecation(alt='getAttribute')
     def getConfiguration(self, name):
         """Returns a configuration object for the given name
 

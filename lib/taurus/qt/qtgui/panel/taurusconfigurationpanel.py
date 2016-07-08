@@ -38,7 +38,7 @@ from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusoperation import WriteAttrOperation
-from taurus.core.util.log import tep14_deprecation
+from taurus.core.util.log import taurus4_deprecation
 
 
 class TangoConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
@@ -167,7 +167,7 @@ class TangoConfigLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
 class TaurusConfigLineEdit(TangoConfigLineEdit):
 
-    @tep14_deprecation(alt='TangoConfigLineEdit')
+    @taurus4_deprecation(alt='TangoConfigLineEdit')
     def __init__(self, qt_parent=None, designMode=False):
         TangoConfigLineEdit.__init__(self, qt_parent=None, designMode=False)
 

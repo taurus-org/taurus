@@ -44,7 +44,7 @@ from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusbasetypes import OperationMode
 from taurus.core.taurusexception import TaurusException, DoubleRegistration
 from taurus.core.tauruspollingtimer import TaurusPollingTimer
-from taurus.core.util.log import Logger, tep14_deprecation
+from taurus.core.util.log import Logger, taurus4_deprecation
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.containers import CaselessWeakValueDict, CaselessDict
 
@@ -392,7 +392,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         attr = self.getAttribute(full_attr_name)
         return attr
 
-    @tep14_deprecation(alt='getAttribute')
+    @taurus4_deprecation(alt='getAttribute')
     def getConfiguration(self, param):
         """Obtain the object corresponding to the given attribute or full name.
            If the corresponding configuration already exists, the existing instance

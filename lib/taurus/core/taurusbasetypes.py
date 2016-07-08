@@ -38,7 +38,7 @@ __docformat__ = "restructuredtext"
 import datetime
 
 from .util.enumeration import Enumeration
-from .util.log import tep14_deprecation
+from .util.log import taurus4_deprecation
 from taurus.external.enum import IntEnum
 
 
@@ -288,7 +288,7 @@ class TaurusAttrValue(TaurusModelValue):
 
 class TaurusConfigValue(object):
 
-    @tep14_deprecation(alt='TaurusAttrValue')
+    @taurus4_deprecation(alt='TaurusAttrValue')
     def __init__(self):
         pass
 

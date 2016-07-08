@@ -268,7 +268,7 @@ class TaurusLed(QLed, TaurusBaseWidget):
     def setFgRole(self, fgRole):
         role = self._deprecatedRoles.get(fgRole, fgRole)
         if fgRole != role:
-            self.deprecated(rel='tep14', dep='setFgRole(%s)' % fgRole,
+            self.deprecated(rel='4.0', dep='setFgRole(%s)' % fgRole,
                             alt='setFgRole(%s)' % role)
         self._fgRole = str(role)
         self.controller().update()

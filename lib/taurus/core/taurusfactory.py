@@ -234,12 +234,12 @@ class TaurusFactory(object):
         # For backward compatibility
         elif issubclass(cls, TaurusConfiguration):
             self.deprecated(dep='TaurusConfiguration', alt='TaurusAttribute',
-                            rel='taurus 4', dbg_msg=t4_msg)
+                            rel='4.0', dbg_msg=t4_msg)
             return self.getAttribute(name)
         elif issubclass(cls, TaurusConfigurationProxy):
             self.deprecated(dep='TaurusConfigurationProxy',
                             alt='TaurusAttribute',
-                            rel='taurus 4', dbg_msg=t4_msg)
+                            rel='4.0', dbg_msg=t4_msg)
             return self.getAttribute(name)
         else:
             return None

@@ -48,7 +48,7 @@ import os
 
 from taurus.external.qt import Qt
 
-from taurus.core.util.log import (deprecated, tep14_deprecation,
+from taurus.core.util.log import (deprecated, taurus4_deprecation,
                                   deprecation_decorator)
 
 from taurus.qt.qtgui.icon import *
@@ -144,17 +144,17 @@ def getThemeIcon(key):
     return Qt.QIcon.fromTheme(key)
 
 
-@tep14_deprecation(alt='getDevStateToolTip')
+@taurus4_deprecation(alt='getDevStateToolTip')
 def getSWDevHealthToolTip(state):
     return getDevStateToolTip(state)
 
 
-@tep14_deprecation(alt='getDevStateIcon')
+@taurus4_deprecation(alt='getDevStateIcon')
 def getSWDevHealthIcon(state, fallback=None):
     return getDevStateIcon(state, fallback=fallback)
 
 
-@tep14_deprecation(alt='getDevStatePixmap')
+@taurus4_deprecation(alt='getDevStatePixmap')
 def getSWDevHealthPixmap(state, fallback=None):
     return getDevStatePixmap(state, fallback=fallback)
 

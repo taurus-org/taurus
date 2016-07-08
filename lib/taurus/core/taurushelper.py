@@ -41,7 +41,7 @@ __docformat__ = "restructuredtext"
 import sys
 import re
 from taurus import tauruscustomsettings
-from .util.log import tep14_deprecation
+from .util.log import taurus4_deprecation
 
 
 # regexp for finding the scheme
@@ -541,10 +541,10 @@ def Attribute(dev_or_attr_name, attr_name=None):
         return dev.getAttribute(attr_name)
 
 
-@tep14_deprecation(alt='Attribute')
+@taurus4_deprecation(alt='Attribute')
 def Configuration(attr_or_conf_name, conf_name=None):
-    """Returns the taurus configuration for either the pair (attribute name, conf name)
-    or full conf name
+    """Returns the taurus configuration for either the pair
+    (attribute name, conf name) or full conf name
 
     - Configuration(full_conf_name)
     - Configuration(attribute_name, conf_name)
@@ -569,13 +569,13 @@ def Configuration(attr_or_conf_name, conf_name=None):
     :param conf_name: conf name
     :type conf_name: str or None
     :return: a taurus configuration
-    :rtype: :class:`taurus.core.taurusconfiguration.TaurusConfiguration`"""
+    :rtype: :class:`taurus.core.taurusconfiguration.TaurusConfiguration`
+    """
     return Attribute(attr_or_conf_name)
 
 
-@tep14_deprecation(alt='Authority')
+@taurus4_deprecation(alt='Authority')
 def Database(name=None):
-    '''Database() is deprecated. Use Authority instead'''
     return Authority(name=name)
 
 

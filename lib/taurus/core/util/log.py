@@ -31,7 +31,7 @@ __all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
            "LogFilter",
            "_log", "trace", "debug", "info", "warning", "error", "fatal",
            "critical", "deprecated", "deprecation_decorator",
-           "tep14_deprecation"]
+           "taurus4_deprecation"]
 
 __docformat__ = "restructuredtext"
 
@@ -858,7 +858,7 @@ class Logger(Object):
                 raise TypeError('deprecated takes either msg or dep argument')
             msg = '%s is deprecated' % dep
             if rel is not None:
-                msg += ' (from %s)' % rel
+                msg += ' since %s' % rel
             if alt is not None:
                 msg += '. Use %s instead' % alt
 
@@ -1046,10 +1046,28 @@ def deprecation_decorator(func=None, alt=None, rel=None, dbg_msg=None):
         deprecated(dep=func.__name__, alt=alt, rel=rel, dbg_msg=dbg_msg)
         return func(*args, **kwargs)
 
+    doc = (func.__doc__ or '')
+    doc += '\n.. deprecated:: %s\n' % (rel or '')
+    if alt:
+        doc += '   Use %s instead\n' % alt
+
     new_func.__name__ = func.__name__
-    new_func.__doc__ = '(Deprecated)\n' + (func.__doc__ or '')
+    new_func.__doc__ = doc
     new_func.__dict__.update(func.__dict__)
     return new_func
 
 
-tep14_deprecation = functools.partial(deprecation_decorator, rel='tep14')
+taurus4_deprecation = functools.partial(deprecation_decorator, rel='4.0')
+
+
+if __name__ == '__main__':
+
+    @taurus4_deprecation(alt='bar')
+    def foo(x):
+        """Does this and that and also:
+
+        - baz
+        - zab
+        """
+
+    print foo.__doc__
