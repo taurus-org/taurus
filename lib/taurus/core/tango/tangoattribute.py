@@ -1135,6 +1135,15 @@ class TangoAttribute(TaurusAttribute):
     def description(self):
         return self._description
 
+    @property
+    def dev_alias(self):
+        self.deprecated(dep='dev_alias', alt='getParentObj().name', rel='tep14')
+        parent = self.getParentObj()
+        if parent is None:
+            return None
+        else:
+            return parent.name
+
     @description.setter
     def description(self, descr):
         if descr != self._description:
