@@ -35,15 +35,15 @@ aspects of Taurus.
 # device_class_name:(classname_with_full_module_path, args, kwargs)
 # where the args and kwargs will be passed to the constructor of the class
 T_FORM_CUSTOM_WIDGET_MAP = \
-    {'SimuMotor': ('taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
-     'Motor': ('taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
-     'PseudoMotor': ('taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
-     'PseudoCounter': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'CTExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'ZeroDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'OneDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'TwoDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'IORegister': ('taurus.qt.qtgui.extra_pool.PoolIORegisterTV', (), {})
+    {'SimuMotor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
+     'Motor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
+     'PseudoMotor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
+     'PseudoCounter': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+     'CTExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+     'ZeroDExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+     'OneDExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+     'TwoDExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+     'IORegister': ('sardana.taurus.qt.qtgui.extra_pool.PoolIORegisterTV', (), {})
      }
 
 # Compact mode for widgets
