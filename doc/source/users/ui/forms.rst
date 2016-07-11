@@ -80,15 +80,15 @@ may be adequate, and the form allows the user to switch between them (See the
 `Changing the contents of a form`_ section).
 
 For Tango devices, the Tango Class of the device is searched in the 
-T_FORM_CUSTOM_WIDGET_MAP map defined in
-`<taurus>/tauruscustomsettings.py` and the given widget is used if there is a
+`T_FORM_CUSTOM_WIDGET_MAP` map defined in
+:ref:`tauruscustomsettings` and the given widget is used if there is a
 match. Otherwise, the default device representation is used, which shows a
 button that launches an :class:`AttributeForm` showing *all* the attributes for
 that device.
 
-For an example on how a custom widget can be used for a certain class of Tango device,
-see the :class:`sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV` or
-:class:`sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV` widgets.
+As an example, Sardana_ makes heavy use of `T_FORM_CUSTOM_WIDGET_MAP` in order
+to display specific widgets for its motor and channel devices.
+
 
 Changing the contents of a form
 -------------------------------
@@ -233,3 +233,6 @@ the same time you will be aware of them.
 
 .. tip:: Remember that you can check the cause of a pending operation by
          consulting the write widget tooltip.
+
+
+.. _Sardana: http://www.sardana-controls.org/
