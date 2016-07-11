@@ -259,6 +259,7 @@ class ArrayEditor(Qt.QWidget):
             # delete previous controllers
             for c in self._controllers:
                 c.setParent(None)
+                c.deleteLater()
             self._controllers = []
             # and create them anew
             new_xp = numpy.zeros(table.rowCount())
