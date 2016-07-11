@@ -1047,7 +1047,7 @@ def deprecation_decorator(func=None, alt=None, rel=None, dbg_msg=None):
         return func(*args, **kwargs)
 
     doc = (func.__doc__ or '')
-    doc += '\n.. deprecated:: %s\n' % (rel or '')
+    doc += '\n\n.. deprecated:: %s\n' % (rel or '')
     if alt:
         doc += '   Use %s instead\n' % alt
 
