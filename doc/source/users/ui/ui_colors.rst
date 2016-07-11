@@ -14,7 +14,8 @@ main things:
 Taurus Device state colors
 ---------------------------
 
-Taurus Device states are represented by the following colors:
+Taurus Device states, as defined in :class:`taurus.core.TaurusDevState` are
+represented by the following colors:
 
 
 .. raw:: html

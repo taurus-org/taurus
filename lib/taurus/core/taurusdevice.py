@@ -68,9 +68,13 @@ class TaurusDevice(TaurusModel):
     @property
     def state(self):
         """Returns a scheme-agnostic representation of the state of a Taurus
-        device. This default implementation returns always TaurusDevState.Ready
+        device. This default implementation always returns
+        `TaurusDevState.Ready`
 
-        :return: (TaurusDevState)
+        Subclasses of TaurusDevice may reimplement it to return other
+        :class:`taurus.core.TaurusDevState` enumeration values.
+
+        :return: (TaurusDevState) `TaurusDevState.Ready`
         """
         return TaurusDevState.Ready
 
