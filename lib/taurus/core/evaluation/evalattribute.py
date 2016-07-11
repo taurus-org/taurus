@@ -150,8 +150,7 @@ class EvaluationAttrValue(TaurusAttrValue):
 
 
 class EvaluationAttribute(TaurusAttribute):
-    '''
-    A :class:`TaurusAttribute` that can be used to perform mathematical
+    """A :class:`TaurusAttribute` that can be used to perform mathematical
     operations involving other arbitrary Taurus attributes. The mathematical
     operation is described in the attribute name itself. An Evaluation Attribute
     will keep references to any other attributes being referenced and it will
@@ -161,8 +160,8 @@ class EvaluationAttribute(TaurusAttribute):
 
     .. warning:: In most cases this class should not be instantiated directly.
                  Instead it should be done via the
-                    :meth:`EvaluationFactory.getAttribute`
-    '''
+                 :meth:`EvaluationFactory.getAttribute`
+    """
     # helper class property that stores a reference to the corresponding
     # factory
     _factory = None

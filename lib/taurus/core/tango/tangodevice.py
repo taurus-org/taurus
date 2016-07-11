@@ -207,9 +207,9 @@ class TangoDevice(TaurusDevice):
             self._deviceObj = self._createHWObject()
         return self._deviceObj
 
-    @taurus4_deprecation(alt='.getDeviceProxy() is not None')
+    @taurus4_deprecation(alt='getDeviceProxy() is not None')
     def isValidDev(self):
-        '''see: :meth:`TaurusDevice.isValid`'''
+        """see: :meth:`TaurusDevice.isValid`"""
         return self._deviceObj is not None
 
     def lock(self, force=False):

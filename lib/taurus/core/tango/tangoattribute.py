@@ -63,8 +63,9 @@ from .util.tango_taurus import (description_from_tango,
 
 
 class TangoAttrValue(TaurusAttrValue):
-    '''A TaurusAttrValue specialization to decode PyTango.DeviceAttribute
-    objects'''
+    """A TaurusAttrValue specialization to decode PyTango.DeviceAttribute
+    objects
+    """
 
     def __init__(self, attr=None, pytango_dev_attr=None, config=None):
         # config parameter is kept for backwards compatibility only
@@ -149,7 +150,7 @@ class TangoAttrValue(TaurusAttrValue):
     #
     @taurus4_deprecation(alt='.rvalue')
     def _get_value(self):
-        '''for backwards compat with taurus < 4'''
+        """for backwards compat with taurus < 4"""
         debug(repr(self))
         try:
             return self.__fix_int(self.rvalue.magnitude)
@@ -158,7 +159,7 @@ class TangoAttrValue(TaurusAttrValue):
 
     @taurus4_deprecation(alt='.rvalue')
     def _set_value(self, value):
-        '''for backwards compat with taurus < 4'''
+        """for backwards compat with taurus < 4"""
         debug('Setting %r to %s' % (value, self.name))
 
         if self.rvalue is None:  # we do not have a previous rvalue
@@ -178,7 +179,7 @@ class TangoAttrValue(TaurusAttrValue):
 
     @taurus4_deprecation(alt='.wvalue')
     def _get_w_value(self):
-        '''for backwards compat with taurus < 4'''
+        """for backwards compat with taurus < 4"""
         debug(repr(self))
         try:
             return self.__fix_int(self.wvalue.magnitude)
@@ -187,7 +188,7 @@ class TangoAttrValue(TaurusAttrValue):
 
     @taurus4_deprecation(alt='.wvalue')
     def _set_w_value(self, value):
-        '''for backwards compat with taurus < 4'''
+        """for backwards compat with taurus < 4"""
         debug('Setting %r to %s' % (value, self.name))
 
         if self.wvalue is None:  # we do not have a previous wvalue
@@ -211,8 +212,9 @@ class TangoAttrValue(TaurusAttrValue):
         return self.error
 
     def __fix_int(self, value):
-        '''cast value to int if  it is an integer.
-        Works on scalar and non-scalar values'''
+        """cast value to int if  it is an integer.
+        Works on scalar and non-scalar values
+        """
         if self._attrRef.type is None or self._attrRef.type != DataType.Integer:
             return value
         try:
@@ -995,7 +997,7 @@ class TangoAttribute(TaurusAttribute):
 
     @taurus4_deprecation(alt='self')
     def getConfig(self):
-        """ Returns the current configuration of the attribute."""
+        """Returns the current configuration of the attribute."""
         return weakref.proxy(self)
 
     def getAttributeInfoEx(self):

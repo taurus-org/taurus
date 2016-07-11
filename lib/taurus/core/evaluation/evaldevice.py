@@ -31,8 +31,7 @@ from taurus.core.taurusbasetypes import TaurusDevState, TaurusAttrValue
 
 
 class EvaluationDevice(TaurusDevice, SafeEvaluator):
-    '''
-    The evaluator object. It is a :class:`TaurusDevice` and is used as the
+    """The evaluator object. It is a :class:`TaurusDevice` and is used as the
     parent of :class:`EvaluationAttribute` objects for which it performs the
     mathematical evaluation.
 
@@ -40,8 +39,8 @@ class EvaluationDevice(TaurusDevice, SafeEvaluator):
 
     .. warning:: In most cases this class should not be instantiated directly.
                  Instead it should be done via the
-                    :meth:`EvaluationFactory.getDevice`
-    '''
+                 :meth:`EvaluationFactory.getDevice`
+    """
     _symbols = []
     # helper class property that stores a reference to the corresponding
     # factory
@@ -70,6 +69,7 @@ class EvaluationDevice(TaurusDevice, SafeEvaluator):
         return self.factory().getAttribute(full_attrname)
 
     def decode(self, event_value):
+        # TODO: Is this method ever called? (or maybe just garbage from 3.x?)
         if isinstance(event_value, int):  # TaurusSWDevState
             new_sw_state = event_value
         else:

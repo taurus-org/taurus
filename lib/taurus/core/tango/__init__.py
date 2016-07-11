@@ -31,7 +31,7 @@ objects. The official scheme name is, obviously, 'tango'.
 This extension maps the (Py)Tango objects into Taurus objects as follows:
 
 - A Tango database is represented as a subclass of
- :class:`taurus.core.TaurusAuthority`
+  :class:`taurus.core.TaurusAuthority`
 - A Tango device is represented as a subclass of
   :class:`taurus.core.TaurusDevice`
 - A Tango device attribute is represented as a subclass
