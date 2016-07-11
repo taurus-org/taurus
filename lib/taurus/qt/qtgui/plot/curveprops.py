@@ -73,7 +73,8 @@ SRC_ROLE = Qt.Qt.UserRole + 1
 PROPS_ROLE = Qt.Qt.UserRole + 2
 
 # TODO: Tango-centric (use agnostic validation)
-ATTRNAMEVALIDATOR = taurus.core.tango.tangovalidator.TangoAttributeNameValidator()
+from taurus.core.tango.tangovalidator import TangoAttributeNameValidator
+ATTRNAMEVALIDATOR = TangoAttributeNameValidator()
 
 
 class Component(object):
