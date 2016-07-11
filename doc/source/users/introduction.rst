@@ -28,9 +28,7 @@ Python interpreter (the "evaluation" scheme). see the :ref:`taurus-core-tutorial
 for more information on the taurus core.
 
 The Taurus view and controller components are typically implemented as PyQt_ based
-GUIs, but it may also consist on command line interfaces such as Sardana's spock or
-web based applications such as those demonstrated in the :mod`taurus.web` module 
-(just a proof of concept for now).
+GUIs, but it may also consist on command line interfaces such as Sardana's spock.
 
 The :mod:`taurus.qt` module provides a set of basic widgets (labels, LEDs, editors, 
 forms, plots, tables, buttons, synoptics,...) that extend related Qt widgets with 
