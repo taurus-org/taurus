@@ -328,7 +328,15 @@ class TangoAttribute(TaurusAttribute):
 
     def isBoolean(self, inc_array=False):
         tgtype = self._tango_data_type
-        return PyTango.is_bool_type(tgtype, inc_array=inc_array)
+        # PyTango.is_bool_type is not implemented in Tango7 and neither in
+        # some Tango8, at least 8.1.1. Avoid to use is_bool_type method
+        # while taurus is still compatible with these versions.
+        # PyTango.is_bool_type(tgtype, inc_array=inc_array)
+        if tgtype == PyTango.CmdArgType.DevBoolean:
+            return True
+        if inc_array and tgtype == PyTango.CmdArgType.DevVarBooleanArray:
+            return True
+        return False
 
     def isState(self):
         tgtype = self._tango_data_type
