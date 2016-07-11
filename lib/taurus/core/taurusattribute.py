@@ -382,7 +382,7 @@ class TaurusAttribute(TaurusModel):
         low, high = limits
         assert isinstance(self.rvalue, Quantity), "rvalue is not a Quantity"
         assert isinstance(low, Quantity), "low is not a Quantity"
-        assert isinstance(high, Quantity), "igh is not a Quantity"
+        assert isinstance(high, Quantity), "high is not a Quantity"
         assert self.rvalue.dimensionality == low.dimensionality, \
             "low and rvalue have different dimensionality"
         assert self.rvalue.dimensionality == high.dimensionality, \
