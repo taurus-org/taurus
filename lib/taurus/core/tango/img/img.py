@@ -95,7 +95,7 @@ class ImageCounterDevice(ImageDevice):
         if evt_src == self._image_id_attr:
             if evt_type == TaurusEventType.Change:
                 if not self._busy:
-                    self.debug("Processing image %d" % evt_value.value)
+                    self.debug("Processing image %d" % evt_value.rvalue)
                     # discared events if there is one being processed
                     self._busy = True
                     # read the related Image attributes
