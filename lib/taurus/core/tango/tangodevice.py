@@ -139,19 +139,26 @@ class TangoDevice(TaurusDevice):
 
         :return: (TaurusDevState)
         """
+        self._deviceState = TaurusDevState.NotReady
         try:
-            self.stateObj.read(cache)
-            state = TaurusDevState.Ready  # Ready if the state attr can be read
+            taurus_tango_state = self.stateObj.read(cache).rvalue
         except:
             try:
                 if self.getDeviceProxy().import_info().exported:
-                    state = TaurusDevState.Undefined
+                    self._deviceState = TaurusDevState.Undefined
+                    return self._deviceState  # Undefined
                 else:
-                    state = TaurusDevState.NotReady
+                    return self._deviceState  # NotReady
             except:
-                state = TaurusDevState.NotReady
-        self._deviceState = state
-        return state
+                return self._deviceState  # NotReady
+        from taurus.core.tango.enums import DevState as TaurusTangoDevState
+        if taurus_tango_state == TaurusTangoDevState.UNKNOWN:
+            self._deviceState = TaurusDevState.Undefined
+        elif taurus_tango_state not in (TaurusTangoDevState.FAULT,
+                                      TaurusTangoDevState.DISABLE,
+                                      TaurusTangoDevState.INIT):
+            self._deviceState = TaurusDevState.Ready
+        return self._deviceState
 
     @tep14_deprecation(alt="state [agnostic] or stateObj.read [Tango]")
     def getValueObj(self, cache=True):
