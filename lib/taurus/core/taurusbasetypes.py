@@ -31,7 +31,7 @@ __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "MatchLevel", "TaurusElementType", "LockStatus", "DataFormat",
            "AttrQuality", "AttrAccess", "DisplayLevel", "ManagerState",
            "TaurusTimeVal", "TaurusAttrValue", "TaurusConfigValue", "DataType",
-           "TaurusLockInfo", "DevState", "TaurusDevState", "TaurusModelValue"]
+           "TaurusLockInfo", "TaurusDevState", "TaurusModelValue"]
 
 __docformat__ = "restructuredtext"
 
@@ -180,6 +180,7 @@ class AttrQuality(IntEnum):
     ATTR_WARNING = 4
 
     def __str__(self):
+        # Todo: BEWARE!! This alters the usual behaviour of IntEnum!
         return self.name
 
 AttrAccess = Enumeration(
@@ -216,8 +217,6 @@ class DeprecatedEnum(object):
                            (self.__name, self.__alt))
 
 
-DevState = DeprecatedEnum('taurus.core.DevState',
-                          'taurus.core.tango.util.DevState')
 TaurusSWDevState = DeprecatedEnum('TaurusSWDevState', 'TaurusDevState')
 TaurusSWDevHealth = DeprecatedEnum('TaurusSWDevHealth', 'TaurusDevState')
 

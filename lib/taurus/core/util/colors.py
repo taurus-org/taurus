@@ -53,6 +53,22 @@ DEVICE_STATE_DATA = {
     "DISABLE": ("Magenta", 255,   0, 255, 0),
     "UNKNOWN": ("Gray", 128, 128, 128, 0),
     str(None): ("Gray", 128, 128, 128, 0),
+    # Support also explicit keys from str representations of
+    # taurus.core.tango.util.enums.DevState
+    "DevState.ON": ("Dead Frog Green", 0, 255, 0, 0),
+    "DevState.OFF": ('White', 255, 255, 255, 0),
+    "DevState.CLOSE": ("White", 255, 255, 255, 3),
+    "DevState.OPEN": ("Green", 0, 255, 0, 0),
+    "DevState.INSERT": ("White", 255, 255, 255, 0),
+    "DevState.EXTRACT": ("Green", 0, 255, 0, 0),
+    "DevState.MOVING": ("Light Blue", 128, 160, 255, 0),
+    "DevState.STANDBY": ("Yellow", 255, 255, 0, 0),
+    "DevState.FAULT": ("Red", 255, 0, 0, 0),
+    "DevState.INIT": ("Grenoble", 204, 204, 122, 0),
+    "DevState.RUNNING": ("Light Blue", 128, 160, 255, 0),
+    "DevState.ALARM": ("Tangorange", 255, 140,   0, 1),
+    "DevState.DISABLE": ("Magenta", 255,   0, 255, 0),
+    "DevState.UNKNOWN": ("Gray", 128, 128, 128, 0),
 }
 
 ATTRIBUTE_QUALITY_DATA = {
@@ -147,25 +163,49 @@ class ColorPalette(object):
         return txt
 
 
-class _DevStatePalette(ColorPalette):
+class _DeprecationDecoder(list):
+    def __init__(self, palette, elements):
+        self.palette = palette
+        list.__init__(self, elements)
 
-    def _decoder(self, elem):
-        if type(elem) == types.IntType or type(elem) == types.LongType:
-            from taurus.core.taurusbasetypes import DevState
-            elem = DevState.get(elem)  # TODO: Adapt to tep14
-        return str(elem)
+    def get(self, i):
+        from taurus.core.util.log import deprecated
+        deprecated(dep='Using ints for accessing elements of %s' % self.palette,
+                   alt='"%s"' % self[i], rel='4.0')
+        return self[i]
 
 
-class _AttrQualityPalette(ColorPalette):
+_PYTANGO_DEVSTATE_INT_DECODER = _DeprecationDecoder(
+        'DEVICE_STATE_PALETTE',
+        ["ON",
+         "OFF",
+         "CLOSE",
+         "OPEN",
+         "INSERT",
+         "EXTRACT",
+         "MOVING",
+         "STANDBY",
+         "FAULT",
+         "INIT",
+         "RUNNING",
+         "ALARM",
+         "DISABLE",
+         "UNKNOWN",])
 
-    def _decoder(self, elem):
-        if type(elem) == types.IntType or type(elem) == types.LongType:
-            from taurus.core.taurusbasetypes import AttrQuality
-            elem = AttrQuality.get(elem)  # TODO: Adapt to tep14
-        return str(elem)
+_PYTANGO_ATTRQUALITY_INT_DECODER = _DeprecationDecoder(
+        'ATTRIBUTE_QUALITY_PALETTE',
+        ["ATTR_VALID",
+         "ATTR_INVALID",
+         "ATTR_ALARM",
+         "ATTR_CHANGING",
+         "ATTR_WARNING",])
 
-DEVICE_STATE_PALETTE = _DevStatePalette(DEVICE_STATE_DATA)
-ATTRIBUTE_QUALITY_PALETTE = _AttrQualityPalette(ATTRIBUTE_QUALITY_DATA)
+
+DEVICE_STATE_PALETTE = ColorPalette(DEVICE_STATE_DATA,
+                                    _PYTANGO_DEVSTATE_INT_DECODER)
+
+ATTRIBUTE_QUALITY_PALETTE = ColorPalette(ATTRIBUTE_QUALITY_DATA,
+                                         _PYTANGO_ATTRQUALITY_INT_DECODER)
 
 
 def print_color_palette(pal):
@@ -181,3 +221,10 @@ def print_color_palette(pal):
 if __name__ == "__main__":
     print_color_palette(DEVICE_STATE_PALETTE)
     print_color_palette(ATTRIBUTE_QUALITY_PALETTE)
+    from taurus.core import TaurusDevState
+    import PyTango
+    print
+    print DEVICE_STATE_PALETTE.rgb(TaurusDevState.Ready)
+    print DEVICE_STATE_PALETTE.rgb('TaurusDevState.Ready')
+    print DEVICE_STATE_PALETTE.rgb(PyTango.DevState.ON)
+    print DEVICE_STATE_PALETTE.rgb(0)
