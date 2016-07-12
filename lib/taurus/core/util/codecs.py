@@ -527,8 +527,6 @@ class VideoImageCodec(Codec):
         :return: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object"""
 
         if data[0].startswith('VIDEO_IMAGE'):
-            self.warning(('"VIDEO_IMAGE" format name is deprecated.' +
-                          'Use "videoimage" instead'))
             fixedformat = data[0].replace('VIDEO_IMAGE', 'videoimage')
             _, _, fmt = fixedformat.partition('_')
         elif data[0].startswith('videoimage'):
