@@ -361,7 +361,7 @@ def getSchemeFromName(name, implicit=True):
     :param implicit: (bool) controls whether to return the default scheme
                      (if implicit is True -default-) or None (if implicit is
                      False) in case `model` does not contain the scheme name
-                     explicitly. The default schema may be defined in
+                     explicitly. The default scheme may be defined in
                      :ref:`tauruscustomsettings` ('tango' is assumed if
                      not defined)
     """
