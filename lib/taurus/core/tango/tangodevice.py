@@ -152,8 +152,11 @@ class TangoDevice(TaurusDevice):
             except:
                 return self._deviceState  # NotReady
         from taurus.core.tango.enums import DevState as TaurusTangoDevState
-        if taurus_tango_state not in (TaurusTangoDevState.FAULT,
-                                      TaurusTangoDevState.DISABLE):
+        if taurus_tango_state is TaurusTangoDevState.UNKNOWN:
+            self._deviceState = TaurusDevState.Undefined
+        elif taurus_tango_state not in (TaurusTangoDevState.FAULT,
+                                      TaurusTangoDevState.DISABLE,
+                                      TaurusTangoDevState.INIT):
             self._deviceState = TaurusDevState.Ready
         return self._deviceState
 
