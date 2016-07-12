@@ -3216,10 +3216,13 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         models = []
         for m in modelNames:
             scheme = getSchemeFromName(m)
-            if taurus.Factory(scheme).caseSensitive:
-                models.append(str(m))
-            else:
+            # scan is not a scheme, but a "legacy" way in which Sardana plots
+            # the scan data comming from the door; as Tango scheme it is
+            # case insensitive
+            if scheme == "scan" or not taurus.Factory(scheme).caseSensitive:
                 models.append(str(m).lower())
+            else:
+                models.append(str(m))
         return models
 
     @Qt.pyqtSlot('QStringList')
