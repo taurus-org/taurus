@@ -77,8 +77,13 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         TaurusBaseWritableWidget.postDetach(self)
 
         if self.receivers(self.currentIndexChanged.signal) > 0:
+        try:
             self.currentIndexChanged.disconnect(self.writeIndexValue)
             self.applied.disconnect(self.writeValue)
+        except TypeError:
+            # In new style-signal if a signal is disconnected without
+            # previously was connected it, it raises a TypeError
+            pass
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWritableWidget overwriting / Pending operations
