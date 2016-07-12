@@ -144,17 +144,24 @@ class TaurusArrayEditor(TaurusWidget):
                     self, 'Error Reading Attribute', 'Cannot read master curve')
             return False
 
-        answer = Qt.QMessageBox.question(self,'Read from attributes?',
-                                         'Read Master curve from attributes?',
-                                         Qt.QMessageBox.Yes|Qt.QMessageBox.No)
-        if quiet or Qt.QMessageBox.Yes == answer:
+        if quiet:
+            should_set = True
+        else:
+            answer = Qt.QMessageBox.question(
+                    self, 'Read from attributes?',
+                    'Read Master curve from attributes?',
+                    Qt.QMessageBox.Yes|Qt.QMessageBox.No
+            )
+            should_set = (answer == Qt.QMessageBox.Yes == answer)
+
+        if should_set:
             try:
                 self._arrayEditor.setMaster(x, y)
             except ValueError:
                 self.error('Cannot set master curve from attributes')
                 if not quiet:
-                    Qt.QMessageBox.warning(
-                        self, 'Error', 'Cannot set master curve from attributes')
+                    Qt.QMessageBox.warning(self, 'Error',
+                            'Cannot set master curve from attributes')
                 return False
         return True
 
