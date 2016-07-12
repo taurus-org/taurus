@@ -75,8 +75,13 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     def postDetach(self):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         TaurusBaseWritableWidget.postDetach(self)
-        self.currentIndexChanged.disconnect(self.writeIndexValue)
-        self.applied.disconnect(self.writeValue)
+        try:
+            self.currentIndexChanged.disconnect(self.writeIndexValue)
+            self.applied.disconnect(self.writeValue)
+        except TypeError:
+            # In new style-signal if a signal is disconnected without
+            # previously was connected it, it raises a TypeError
+            pass
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWritableWidget overwriting / Pending operations
@@ -90,7 +95,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         model = self.getModelObj()
         if model is None:
             return None
-        dtype = model.getConfig().getType()
+        dtype = model.type
         new_value = self.itemData(self.currentIndex())
         if new_value is None:
             return None
@@ -179,7 +184,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
             # of the newly added names. This is kinda a refresh:
             mv = self.getModelValueObj()
             if mv is not None:
-                self.setValue(mv.w_value)
+                self.setValue(mv.wvalue)
         finally:
             self.blockSignals(bs)
 
