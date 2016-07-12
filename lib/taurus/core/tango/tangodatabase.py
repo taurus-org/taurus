@@ -40,7 +40,7 @@ from taurus import Device
 from taurus.core.taurusbasetypes import TaurusDevState, TaurusEventType
 from taurus.core.taurusauthority import TaurusAuthority
 from taurus.core.util.containers import CaselessDict
-from taurus.core.util.log import tep14_deprecation
+from taurus.core.util.log import taurus4_deprecation
 
 
 InvalidAlias = "nada"
@@ -191,7 +191,7 @@ class TangoDevInfo(TangoInfo):
     def setAttributes(self, attributes):
         self._attributes = attributes
 
-    @tep14_deprecation(alt="getDeviceProxy()")
+    @taurus4_deprecation(alt="getDeviceProxy()")
     def getHWObj(self):
         return self.getDeviceProxy()
 
@@ -714,14 +714,14 @@ class TangoAuthority(TaurusAuthority):
             return getattr(self.dbObj, name)
         return None
 
-    @tep14_deprecation(alt='getTangoDB')
+    @taurus4_deprecation(alt='getTangoDB')
     def getValueObj(self, cache=True):
         return self.getTangoDB()
 
     def getTangoDB(self):
         return self.dbObj
 
-    @tep14_deprecation(alt='getFullName')
+    @taurus4_deprecation(alt='getFullName')
     def getDisplayValue(self, cache=True):
         return self.getDisplayDescription(cache)
 
@@ -826,7 +826,7 @@ class TangoAuthority(TaurusAuthority):
         except:
             return None
 
-    @tep14_deprecation(alt=".description")
+    @taurus4_deprecation(alt=".description")
     def getDescription(self, cache=True):
         return self.description
 

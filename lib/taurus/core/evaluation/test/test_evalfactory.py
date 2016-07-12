@@ -40,27 +40,25 @@ from taurus.test import insertTest
 @insertTest(helper_name='checkAttributeID', model='1')
 @insertTest(helper_name='checkAttributeID', model='eval:1')
 class EvaluationFactoryTestCase(unittest.TestCase):
-    configurations = ['#',
-                      '#label',
-                      '#units']
+    fragments = ['#', '#label', '#units']
 
     def setUp(self):
         self.f = taurus.Factory('eval')
 
-    def convert2oldstyle(self, conf):
-        if conf == '#':
+    def convert2oldstyle(self, fragment):
+        if fragment == '#':
             return '?configuration'
-        return re.sub("#(?=.+)", "?configuration=", conf)
+        return re.sub("#(?=.+)", "?configuration=", fragment)
 
     def checkAttributeID(self, model, oldstyle=False):
         '''Helper for test the attributes (by ID) when some different models
         of the same attribute are given (adding fragments in the models)
         '''
         attr = self.f.getAttribute(model)
-        for conf in self.configurations:
+        for fragment in self.fragments:
             if oldstyle:
-                conf = self.convert2oldstyle(conf)
-            attr2 = self.f.getAttribute(model + conf)
+                fragment = self.convert2oldstyle(fragment)
+            attr2 = self.f.getAttribute(model + fragment)
             msg = '%s and %s has different id' % (attr.getFullName(),
                                                   attr2.getFullName())
             self.assertTrue(id(attr) == id(attr2), msg)
@@ -70,10 +68,10 @@ class EvaluationFactoryTestCase(unittest.TestCase):
         with different models (adding fragments in the models)
         '''
         attr = self.f.getAttribute(model)
-        for conf in self.configurations:
+        for fragment in self.fragments:
             if oldstyle:
-                conf = self.convert2oldstyle(conf)
-            attr2 = self.f.getAttribute(model + conf)
+                fragment = self.convert2oldstyle(fragment)
+            attr2 = self.f.getAttribute(model + fragment)
             msg = '%s and %s has different ' % (attr.getFullName(),
                                                 attr2.getFullName())
             self.assertTrue(attr.getFullName() == attr2.getFullName(),

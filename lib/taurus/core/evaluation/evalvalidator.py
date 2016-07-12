@@ -513,13 +513,4 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
 
 
 if __name__ == '__main__':
-
-    cfgval = EvaluationAttributeNameValidator()
-#     print cfgval.namePattern
-#     print cfgval.getNames('eval:1#')
-#     print cfgval.getNames('eval:1#label')
-#     print cfgval.getNames('eval://1?configuration')
-#     print cfgval.getNames('eval://1?configuration=label')
-    print cfgval.getNames('eval://a+b?a=2;b=3?configuration=label')
-    print cfgval.isValid('eval://a+b?a=2;b=3?configuration=label')
     pass

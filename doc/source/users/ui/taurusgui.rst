@@ -213,7 +213,7 @@ store your preferred arrangement as a perspective using the
 perspective` option).
 
 .. tip:: If you want to backup your current perspectives, or you want to use
-  some perspectives you created in one computer to another computer (or another
+  some perspectives you created in one computer in another computer (or another
   user of the same computer) you can do so by using the `File->Export Settings`
   option. Similarly, use the `File->Import Settings` option to update the application
   perspectives with those contained in the imported file.
@@ -260,7 +260,7 @@ option of the `Tools->External Applications` menu.
   External application editor. You can associate  a command, a text and
   an icon to a new launcher
 
-Just as with the `custom panels <panelcreation>`, when you close the application
+Just as with the :ref:`custom panels <panelcreation>`, when you close the application
 (or when you save a :ref:`perspective <perspectives>`), a dialog will be
 shown if you have created any custom launchers. In this dialog you can choose
 which of the custom launchers you want to keep for future use and which are
@@ -278,7 +278,7 @@ Sardana integration (Macroserver & Pool)
 Macro execution panels
 ''''''''''''''''''''''''
 
-Many TaurusGui-based applications are used to interact with a Sardana `Pool` and
+Many TaurusGui-based applications are used to interact with a Sardana_ `Pool` and
 `MacroServer` in order to run macros (e.g. scans). In these cases several macro-
 related panels will be available:
 
@@ -318,7 +318,7 @@ Server about the Control System to automatically create :ref:`TaurusForm
 <forms>` panels containing all the controls related to the various instruments
 to be controlled by the GUI. An important characteristic is that, since these
 so-called *instrument panels* are created dynamically when launching the
-application, their number and/or contents may vary ,reflecting changes in the
+application, their number and/or contents may vary, reflecting changes in the
 pool configuration.
 
 .. _taurusguiexamples:
@@ -353,3 +353,6 @@ Cannot drop a panel (it stays floating)
 This typically occurs because there is no enought room to acomodate the panel
 width or height in any of the available "slots". Try to make room by hiding some
 other panel, or tabifying other panels together, or increasing the main window size. 
+
+
+.. _Sardana: http://www.sardana-controls.org/

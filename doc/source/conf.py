@@ -59,8 +59,15 @@ def _build_doc_api():
     auto_rst4api = imp.load_module(name, *data)
     API_Creator = auto_rst4api.Auto_rst4API_Creator
     # prepare api creator
-    excl = ['_[^\.]*[^_]', '.*.extra_sardana', '.*.extra_pool',
-            '.*.extra_macroexecutor', 'taurus.external']
+    excl = ['_[^\.]*[^_]',
+            '.*\.test',
+            'taurus\.external',
+            'taurus\.qt\.qtgui\.extra_sardana',
+            'taurus\.qt\.qtgui\.extra_pool',
+            'taurus\.qt\.qtgui\.extra_macroexecutor',
+            'taurus\.qt\.qtgui\.resource',
+            'taurus\.qt\.qtgui\.taurusgui\.conf',
+            ]
     rstCreator = API_Creator(exclude_patterns=excl,
                              templatespath=_doc_dir,
                              overwrite_old=True,
@@ -288,9 +295,10 @@ inheritance_graph_attrs = dict(rankdir="UD", ratio='compress')
 # -- Options for reference to other documentation ------------------------
 
 intersphinx_mapping = {
-    'http://docs.python.org/dev': None,
-    'http://docs.scipy.org/doc/scipy/reference': None,
-    'http://docs.scipy.org/doc/numpy': None,
-    'http://www.esrf.fr/computing/cs/tango/tango_doc/kernel_doc/pytango/latest/': None,
-    'http://pyqt.sourceforge.net/Docs/PyQt4/': None,
+    'python': ('http://docs.python.org/dev', None),
+    'numpy': ('http://www.numpy.org', None),
+    'sardana': ('http://www.sardana-controls.org/en/stable/', None),
+    'pint': ('http://pint.readthedocs.io/en/stable/', None),
+    'PyTango': ('http://www.esrf.fr/computing/cs/tango/tango_doc/kernel_doc/pytango/latest/', None),
+    'PyQt4': ('http://pyqt.sourceforge.net/Docs/PyQt4/', None),
 }

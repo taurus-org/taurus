@@ -41,7 +41,7 @@ __docformat__ = "restructuredtext"
 import sys
 import re
 from taurus import tauruscustomsettings
-from .util.log import tep14_deprecation
+from .util.log import taurus4_deprecation
 
 
 # regexp for finding the scheme
@@ -355,16 +355,16 @@ def _check_dependencies(forlog=False):
 
 
 def getSchemeFromName(name, implicit=True):
-    '''Return the scheme from a taurus name.
+    """Return the scheme from a taurus name.
 
     :param name: (str) taurus model name URI.
     :param implicit: (bool) controls whether to return the default scheme
                      (if implicit is True -default-) or None (if implicit is
                      False) in case `model` does not contain the scheme name
-                     explicitly. The default schema may be defined in
-                     :module:`taurus.tauruscusmsettings` ('tango' is assumed if
+                     explicitly. The default scheme may be defined in
+                     :ref:`tauruscustomsettings` ('tango' is assumed if
                      not defined)
-    '''
+    """
     m = __SCHEME_RE.match(name)
     if m is not None:
         return m.groups()[0]
@@ -375,7 +375,7 @@ def getSchemeFromName(name, implicit=True):
 
 
 def makeSchemeExplicit(name, default=None):
-    '''return the name guaranteeing that the scheme is present. If name already
+    """return the name guaranteeing that the scheme is present. If name already
     contains the scheme, it is returned unchanged.
 
     :param name: (str) taurus model name URI.
@@ -384,7 +384,7 @@ def makeSchemeExplicit(name, default=None):
                      used.
 
     :return: the name with the explicit scheme.
-    '''
+    """
     if getSchemeFromName(name, implicit=False) is None:
         if default is None:
             default = getattr(tauruscustomsettings, 'DEFAULT_SCHEME', "tango")
@@ -394,7 +394,7 @@ def makeSchemeExplicit(name, default=None):
 
 
 def getValidTypesForName(name, strict=None):
-    '''
+    """
     Returns a list of all Taurus element types for which `name` is a valid
     model name (while in many cases a name may only be valid for one
     element type, this is not necessarily true in general)
@@ -405,8 +405,8 @@ def getValidTypesForName(name, strict=None):
                    considered valid.
 
     :return: (list<TaurusElementType.element>) where element can be one of:
-             `Configuration`, `Attribute`, `Device` or `Authority`
-    '''
+             `Attribute`, `Device` or `Authority`
+    """
     try:
         factory = Factory(scheme=getSchemeFromName(name))
     except:
@@ -415,7 +415,7 @@ def getValidTypesForName(name, strict=None):
 
 
 def isValidName(name, etypes=None, strict=None):
-    '''Returns True is the given name is a valid Taurus model name. If
+    """Returns True is the given name is a valid Taurus model name. If
     `etypes` is passed, it returns True only if name is valid for at least
     one of the given the element types. Otherwise it returns False.
     For example::
@@ -427,13 +427,13 @@ def isValidName(name, etypes=None, strict=None):
     :param etypes: (seq<TaurusElementType>) if given, names will only be
                    considered valid if they represent one of the given
                    element types. Supported element types are:
-                   `Configuration`, `Attribute`, `Device` and `Authority`
+                   `Attribute`, `Device` and `Authority`
     :param strict: (bool) If True, names that are not RFC3986-compliant but
                    which would be accepted for backwards compatibility are
                    considered valid.
 
     :return: (bool)
-    '''
+    """
     validtypes = getValidTypesForName(name, strict=strict)
     if etypes is None:
         return bool(validtypes)
@@ -454,7 +454,8 @@ def Manager():
     :return: the TaurusManager
     :rtype: :class:`taurus.core.taurusmanager.TaurusManager`
 
-    .. seealso:: :class:`taurus.core.taurusmanager.TaurusManager`"""
+    .. seealso:: :class:`taurus.core.taurusmanager.TaurusManager`
+    """
     from taurus.core.taurusmanager import TaurusManager
     return TaurusManager()
 
@@ -471,7 +472,8 @@ def Factory(scheme=None):
     :param scheme: a string representing the scheme. Default value is None meaning ``tango`` scheme
     :type scheme: str
     :return: a taurus factory
-    :rtype: :class:`taurus.core.taurusfactory.TaurusFactory`"""
+    :rtype: :class:`taurus.core.taurusfactory.TaurusFactory`
+    """
     manager = Manager()
     f = manager.getFactory(scheme=scheme)
     if f is None:
@@ -497,7 +499,8 @@ def Device(device_name):
     :param device_name: the device name
     :type device_name: str
     :return: a taurus device
-    :rtype: :class:`taurus.core.taurusdevice.TaurusDevice`"""
+    :rtype: :class:`taurus.core.taurusdevice.TaurusDevice`
+    """
     return Factory(scheme=getSchemeFromName(device_name)).getDevice(device_name)
 
 
@@ -528,7 +531,8 @@ def Attribute(dev_or_attr_name, attr_name=None):
     :param attr_name: attribute name
     :type attr_name: str
     :return: a taurus attribute
-    :rtype: :class:`taurus.core.taurusattribute.TaurusAttribute`"""
+    :rtype: :class:`taurus.core.taurusattribute.TaurusAttribute`
+    """
     import types
 
     if attr_name is None:
@@ -541,10 +545,10 @@ def Attribute(dev_or_attr_name, attr_name=None):
         return dev.getAttribute(attr_name)
 
 
-@tep14_deprecation(alt='Attribute')
+@taurus4_deprecation(alt='Attribute')
 def Configuration(attr_or_conf_name, conf_name=None):
-    """Returns the taurus configuration for either the pair (attribute name, conf name)
-    or full conf name
+    """Returns the taurus configuration for either the pair
+    (attribute name, conf name) or full conf name
 
     - Configuration(full_conf_name)
     - Configuration(attribute_name, conf_name)
@@ -569,13 +573,13 @@ def Configuration(attr_or_conf_name, conf_name=None):
     :param conf_name: conf name
     :type conf_name: str or None
     :return: a taurus configuration
-    :rtype: :class:`taurus.core.taurusconfiguration.TaurusConfiguration`"""
+    :rtype: :class:`taurus.core.taurusconfiguration.TaurusConfiguration`
+    """
     return Attribute(attr_or_conf_name)
 
 
-@tep14_deprecation(alt='Authority')
+@taurus4_deprecation(alt='Authority')
 def Database(name=None):
-    '''Database() is deprecated. Use Authority instead'''
     return Authority(name=name)
 
 
@@ -594,7 +598,8 @@ def Authority(name=None):
                  scheme is tango, it will return the default TANGO_HOST database
     :type name: str or None
     :return: a taurus authority
-    :rtype: :class:`taurus.core.taurusauthority.TaurusAuthority`"""
+    :rtype: :class:`taurus.core.taurusauthority.TaurusAuthority`
+    """
     return Factory(getSchemeFromName(name or '')).getAuthority(name)
 
 

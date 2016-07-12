@@ -109,13 +109,13 @@ code::
     w1, w2 = TaurusLabel(), TaurusLabel()
     layout.addWidget(w1)
     layout.addWidget(w2)
-    w1.model, w1.bgRole = 'sys/taurustest/1/position?configuration=label', ''
+    w1.model, w1.bgRole = 'sys/taurustest/1/position#label', ''
     w2.model = 'sys/taurustest/1/position'
     
 *Much better indeed!*
 
-Display attribute value with label and units
---------------------------------------------
+Display attribute value with label and separate units
+-----------------------------------------------------
 
 And little bit more... add the units.
 
@@ -131,9 +131,9 @@ code::
     layout.addWidget(w1)
     layout.addWidget(w2)
     layout.addWidget(w3)
-    w1.model, w1.bgRole = 'sys/taurustest/1/position?configuration=label', ''
-    w2.model = 'sys/taurustest/1/position'
-    w3.model, w3.bgRole = 'sys/taurustest/1/position?configuration=unit', ''
+    w1.model, w1.bgRole = 'sys/taurustest/1/position#label', ''
+    w2.model = 'sys/taurustest/1/position#rvalue.magnitude'
+    w3.model, w3.bgRole = 'sys/taurustest/1/position#rvalue.units', ''
 
 *Nice isn't it?*
 
@@ -172,10 +172,10 @@ code::
     layout.addWidget(w2)
     layout.addWidget(w3)
     layout.addWidget(w4)
-    w1.model, w1.bgRole = 'sys/taurustest/1/position?configuration=label', ''
+    w1.model, w1.bgRole = 'sys/taurustest/1/position#label', ''
     w2.model = 'sys/taurustest/1/position'
     w3.model = 'sys/taurustest/1/position'
-    w4.model, w4.bgRole = 'sys/taurustest/1/position?configuration=unit', ''
+    w4.model, w4.bgRole = 'sys/taurustest/1/position#rvalue.units', ''
     
 *Now it seems a little bit more useful, doesn't it?*
 
@@ -369,6 +369,5 @@ a few clicks. You can try it out by running::
 
 	taurusgui --new-gui
 	
-For more details and tricks regarding TaurusGui, check the 
-:mod:`taurus.qt.qtgui.taurusgui` module
+For more details and tricks regarding TaurusGui, check :ref:`this <taurusgui_newgui>`.
 

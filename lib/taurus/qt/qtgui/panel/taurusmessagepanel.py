@@ -472,7 +472,7 @@ class TaurusMessagePanel(Qt.QWidget):
         :param err_traceback: a traceback object which encapsulates the call
                               stack at the point where the exception originally
                               occurred
-        :type err_traceback: traceback"""
+        :type err_traceback: TracebackType"""
         i = sys.exc_info()
         self._exc_info = [err_type or i[0],
                           err_value or i[1], err_traceback or i[2]]

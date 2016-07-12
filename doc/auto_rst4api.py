@@ -214,7 +214,7 @@ def main():
     modulename, docparentpath = sys.argv[1:]
     creator = Auto_rst4API_Creator(verbose=True)
     r = creator.documentModule(
-        modulename, docparentpath, exclude_patterns=['.*/ui'])
+        modulename, docparentpath, exclude_patterns=['.*\.test'])
     print '\n\n' + '*' * 50
     print "Auto Creation of API docs for %s Finished with %i warnings:" % (modulename, len(r))
     print '\n'.join(r)

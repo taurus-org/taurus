@@ -150,7 +150,7 @@ class TaurusMessageBox(Qt.QDialog):
         :param err_traceback: a traceback object which encapsulates the call
                               stack at the point where the exception originally
                               occurred
-        :type err_traceback: traceback"""
+        :type err_traceback: TracebackType"""
         self._panel.setError(err_type, err_value, err_traceback)
 
 

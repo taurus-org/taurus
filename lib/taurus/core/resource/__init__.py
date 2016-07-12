@@ -95,7 +95,7 @@ Important: Models object type is the mapped type
 The model objects returned by the :class:`ResourcesFactory` will be of the
 mapped model type. In other words: if the model name 'eval:Q(rand())' is
 mapped to the `myattr` resource name, calling `taurus.Attribute('res:myattr')`
-will return a :class:`EvaluationAttribute`, not a `ResAttribute` (`ResAttribute
+will return a :class:`EvaluationAttribute`, not a `ResAttribute` (`ResAttribute`
 is not even defined).
 
 """

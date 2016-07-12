@@ -227,6 +227,7 @@ class TaurusScalarAttributeControllerHelper(TaurusAttributeControllerHelper):
 
 
 class TaurusConfigurationControllerHelper(object):
+    #TODO: Check if this is  used. If so, rename to avoid "Configuration"
 
     def __init__(self):
         self._configParam = None

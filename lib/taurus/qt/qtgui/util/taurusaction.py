@@ -25,7 +25,17 @@
 
 """This module is designed to provide a library of taurus Qt actions"""
 
-#__all__ = []
+__all__ = ["ExternalAppAction",
+           "TaurusMenu",
+           "TaurusAction",
+           "SeparatorAction",
+           "AttributeHistoryAction",
+           "AttributeAllConfigAction",
+           "AttributeMonitorDeviceAction",
+           "AttributeImageDisplayAction",
+           "AttributeMenu",
+           "ConfigurationMenu",
+           ]
 
 __docformat__ = 'restructuredtext'
 

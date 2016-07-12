@@ -26,7 +26,7 @@
 """This module contains the base taurus name validator classes"""
 
 __all__ = ["TangoAuthorityNameValidator", "TangoDeviceNameValidator",
-           "TangoAttributeNameValidator", "TangoConfigurationNameValidator"]
+           "TangoAttributeNameValidator"]
 
 __docformat__ = "restructuredtext"
 
@@ -206,8 +206,8 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
         """In non-strict mode, allow double-slash even if there is no Authority.
         Also allow old-style "?configuration[=cfgkey]" instead of fragment.
         If cfgkey is present, it is also stored in the "fragment" named group.
-        For example,  "tango://a/b/c/d?configuration=label" passes this
-        non-strict form, and the named group "fragment" would contain "label"
+        For example, "tango://a/b/c/d?configuration=label" passes this
+        non-strict form, and the named group "fragment" will contain "label"
         """
 
         # allow for *optional* double-slashes and *optional* ?configuration...

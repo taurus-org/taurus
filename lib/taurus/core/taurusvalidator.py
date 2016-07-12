@@ -176,7 +176,7 @@ class _TaurusBaseValidator(Singleton):
 
             note: if foo:123 wasn't the default TANGO_HOST, the normal name
             would be '//foo:123/a/b/c'. Equivalent rules apply to Attribute
-            and configuration normal names.
+            normal names.
 
         - for the attribute::
 
@@ -266,7 +266,7 @@ class TaurusDeviceNameValidator(_TaurusBaseValidator):
 
 
 class TaurusAttributeNameValidator(_TaurusBaseValidator):
-    '''Base class for Device name validators.
+    '''Base class for Attribute name validators.
     The namePattern will be composed from URI segments as follows:
 
     <scheme>:[<authority>/]<path>[?<query>][#<fragment>]

@@ -47,7 +47,7 @@ from taurus.core.taurusbasetypes import (TaurusEventType,
                                          DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
-from taurus.core.util.log import debug, tep14_deprecation
+from taurus.core.util.log import debug, taurus4_deprecation
 
 from taurus.core.tango.enums import (EVENT_TO_POLLING_EXCEPTIONS,
                                      FROM_TANGO_TO_NUMPY_TYPE,
@@ -63,15 +63,16 @@ from .util.tango_taurus import (description_from_tango,
 
 
 class TangoAttrValue(TaurusAttrValue):
-    '''A TaurusAttrValue specialization to decode PyTango.DeviceAttribute
-    objects'''
+    """A TaurusAttrValue specialization to decode PyTango.DeviceAttribute
+    objects
+    """
 
     def __init__(self, attr=None, pytango_dev_attr=None, config=None):
         # config parameter is kept for backwards compatibility only
         TaurusAttrValue.__init__(self)
         if config is not None:
             from taurus.core.util.log import deprecated
-            deprecated(dep='"config" kwarg', alt='"attr"', rel='tep14')
+            deprecated(dep='"config" kwarg', alt='"attr"', rel='4.0')
             attr = config
         if attr is None:
             self._attrRef = None
@@ -141,24 +142,24 @@ class TangoAttrValue(TaurusAttrValue):
         # return the attr but only after warning
         from taurus.core.util.log import deprecated
         deprecated(dep='TangoAttrValue.%s' % name,
-                   alt='TangoAttribute.%s' % name, rel='tep14')
+                   alt='TangoAttribute.%s' % name, rel='4.0')
         return ret
 
     # --------------------------------------------------------
     # This is for backwards compat with the API of taurus < 4
     #
-    @tep14_deprecation(alt='.rvalue')
+    @taurus4_deprecation(alt='.rvalue')
     def _get_value(self):
-        '''for backwards compat with taurus < 4'''
+        """for backwards compat with taurus < 4"""
         debug(repr(self))
         try:
             return self.__fix_int(self.rvalue.magnitude)
         except AttributeError:
             return self.rvalue
 
-    @tep14_deprecation(alt='.rvalue')
+    @taurus4_deprecation(alt='.rvalue')
     def _set_value(self, value):
-        '''for backwards compat with taurus < 4'''
+        """for backwards compat with taurus < 4"""
         debug('Setting %r to %s' % (value, self.name))
 
         if self.rvalue is None:  # we do not have a previous rvalue
@@ -176,18 +177,18 @@ class TangoAttrValue(TaurusAttrValue):
 
     value = property(_get_value, _set_value)
 
-    @tep14_deprecation(alt='.wvalue')
+    @taurus4_deprecation(alt='.wvalue')
     def _get_w_value(self):
-        '''for backwards compat with taurus < 4'''
+        """for backwards compat with taurus < 4"""
         debug(repr(self))
         try:
             return self.__fix_int(self.wvalue.magnitude)
         except AttributeError:
             return self.wvalue
 
-    @tep14_deprecation(alt='.wvalue')
+    @taurus4_deprecation(alt='.wvalue')
     def _set_w_value(self, value):
-        '''for backwards compat with taurus < 4'''
+        """for backwards compat with taurus < 4"""
         debug('Setting %r to %s' % (value, self.name))
 
         if self.wvalue is None:  # we do not have a previous wvalue
@@ -206,13 +207,14 @@ class TangoAttrValue(TaurusAttrValue):
     w_value = property(_get_w_value, _set_w_value)
 
     @property
-    @tep14_deprecation(alt='.error')
+    @taurus4_deprecation(alt='.error')
     def has_failed(self):
         return self.error
 
     def __fix_int(self, value):
-        '''cast value to int if  it is an integer.
-        Works on scalar and non-scalar values'''
+        """cast value to int if  it is an integer.
+        Works on scalar and non-scalar values
+        """
         if self._attrRef.type is None or self._attrRef.type != DataType.Integer:
             return value
         try:
@@ -750,8 +752,8 @@ class TangoAttribute(TaurusAttribute):
         return self.getTangoWritable(cache) == PyTango.AttrWriteType.READ_WRITE
 
     def getTangoWritable(self, cache=True):
-        '''like TaurusConfiguration.getWritable, but it returns a
-         PyTango.AttrWriteType instead of a bool'''
+        """like TaurusAttribute.isWritable(), but it returns a
+        PyTango.AttrWriteType instead of a bool"""
         return self.tango_writable
 
     def getLabel(self, cache=True):
@@ -900,23 +902,23 @@ class TangoAttribute(TaurusAttribute):
     # Deprecated methods
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    @tep14_deprecation(alt=".description")
+    @taurus4_deprecation(alt=".description")
     def getDescription(self, cache=True):
         return self.description
 
-    @tep14_deprecation(alt=".description")
+    @taurus4_deprecation(alt=".description")
     def setDescription(self, descr):
         self.description = descr
 
-    @tep14_deprecation()
+    @taurus4_deprecation()
     def isInformDeviceOfErrors(self):
         return False
 
-    @tep14_deprecation(dbg_msg='Deprecated method')
+    @taurus4_deprecation(dbg_msg='Deprecated method')
     def displayValue(self, value):
         return str(value)
 
-    @tep14_deprecation(alt='getLabel')
+    @taurus4_deprecation(alt='getLabel')
     def getDisplayValue(self, cache=True):
         attrvalue = self.getValueObj(cache=cache)
         if not attrvalue:
@@ -925,41 +927,41 @@ class TangoAttribute(TaurusAttribute):
 
         return self.displayValue(v)
 
-    @tep14_deprecation(alt='.rvalue.units')
+    @taurus4_deprecation(alt='.rvalue.units')
     def getStandardUnit(self, cache=True):
         try:
             return str(self.getValueObj(cache).rvalue.units)
         except:
             return None
 
-    @tep14_deprecation(alt='.rvalue.units')
+    @taurus4_deprecation(alt='.rvalue.units')
     def getDisplayUnit(self, cache=True):
         try:
             return str(self.getValueObj(cache).rvalue.units)
         except:
             return None
 
-    @tep14_deprecation(dbg_msg='Do not use')
+    @taurus4_deprecation(dbg_msg='Do not use')
     def getDisplayWriteValue(self, cache=True):
         raise NotImplementedError("Not available since Taurus4")
 
-    @tep14_deprecation(alt='isWritable')
+    @taurus4_deprecation(alt='isWritable')
     def getWritable(self, cache=True):
         return self.isWritable(cache)
 
-    @tep14_deprecation(alt='self.data_format')
+    @taurus4_deprecation(alt='self.data_format')
     def isScalar(self):
         return self.data_format == DataFormat._0D
 
-    @tep14_deprecation(alt='self.data_format')
+    @taurus4_deprecation(alt='self.data_format')
     def isSpectrum(self):
         return self.data_format == DataFormat._1D
 
-    @tep14_deprecation(alt='self.data_format')
+    @taurus4_deprecation(alt='self.data_format')
     def isImage(self):
         return self.data_format == DataFormat._2D
 
-    @tep14_deprecation(alt='getMaxDim')
+    @taurus4_deprecation(alt='getMaxDim')
     def getMaxDimX(self, cache=True):
         dim = self.getMaxDim(cache)
         if dim:
@@ -967,7 +969,7 @@ class TangoAttribute(TaurusAttribute):
         else:
             return None
 
-    @tep14_deprecation(alt='getMaxDim')
+    @taurus4_deprecation(alt='getMaxDim')
     def getMaxDimY(self, cache=True):
         dim = self.getMaxDim(cache)
         if dim:
@@ -975,7 +977,7 @@ class TangoAttribute(TaurusAttribute):
         else:
             return None
 
-    @tep14_deprecation(dbg_msg='Deprecated method')
+    @taurus4_deprecation(dbg_msg='Deprecated method')
     def getShape(self, cache=True):
         if self.isScalar(cache):
             return ()
@@ -984,7 +986,7 @@ class TangoAttribute(TaurusAttribute):
         else:
             return self.getMaxDim()
 
-    @tep14_deprecation(alt='getAttributeInfoEx')
+    @taurus4_deprecation(alt='getAttributeInfoEx')
     def getParam(self, param_name):
         """ Get attributes of AttributeInfoEx (PyTango)
         """
@@ -993,7 +995,7 @@ class TangoAttribute(TaurusAttribute):
         except:
             return None
 
-    @tep14_deprecation(alt='PyTango')
+    @taurus4_deprecation(alt='PyTango')
     def setParam(self, param_name, value):
         """ Set attributes of AttributeInfoEx (PyTango)
         """
@@ -1001,37 +1003,37 @@ class TangoAttribute(TaurusAttribute):
             setattr(self._pytango_attrinfoex, param_name, str(value))
         self._applyConfig()
 
-    @tep14_deprecation(alt='self')
+    @taurus4_deprecation(alt='self')
     def getConfig(self):
-        """ Returns the current configuration of the attribute."""
+        """Returns the current configuration of the attribute."""
         return weakref.proxy(self)
 
     def getAttributeInfoEx(self):
         return self._pytango_attrinfoex
 
-    @tep14_deprecation(alt='.rvalue.units')
+    @taurus4_deprecation(alt='.rvalue.units')
     def getUnit(self, cache=True):
         try:
             return str(self.getValueObj(cache).rvalue.units)
         except:
             return None
 
-    @tep14_deprecation(alt='.rvalue.units')
+    @taurus4_deprecation(alt='.rvalue.units')
     def _set_unit(self, value):
         '''for backwards compat with taurus < 4'''
         extra_msg = 'Ignoring setting of units of %s to %r' % (self.name,
                                                                value)
         self.debug(extra_msg)
 
-    @tep14_deprecation(alt='getMinRange')
+    @taurus4_deprecation(alt='getMinRange')
     def getMinValue(self, cache=True):
         return self.getMinRange()
 
-    @tep14_deprecation(alt='getMaxRange')
+    @taurus4_deprecation(alt='getMaxRange')
     def getMaxValue(self, cache=True):
         return self.getMaxRange()
 
-    @tep14_deprecation(alt='getRange')
+    @taurus4_deprecation(alt='getRange')
     def getCLimits(self):
         if self._pytango_attrinfoex is not None:
             value = [self._pytango_attrinfoex.min_value,
@@ -1040,7 +1042,7 @@ class TangoAttribute(TaurusAttribute):
             value = [self.not_specified, self.not_specified]
         return value
 
-    @tep14_deprecation(alt='getAlarms')
+    @taurus4_deprecation(alt='getAlarms')
     def getCAlarms(self):
         if self._pytango_attrinfoex is not None:
             value = [self._pytango_attrinfoex.min_alarm,
@@ -1049,7 +1051,7 @@ class TangoAttribute(TaurusAttribute):
             value = [self.not_specified, self.not_specified]
         return value
 
-    @tep14_deprecation(alt='getWarnings')
+    @taurus4_deprecation(alt='getWarnings')
     def getCWarnings(self):
         if self._pytango_attrinfoex is not None:
             value = [self._pytango_attrinfoex.alarms.min_warning,
@@ -1058,7 +1060,7 @@ class TangoAttribute(TaurusAttribute):
             value = [self.not_specified, self.not_specified]
         return value
 
-    @tep14_deprecation(alt='getRange + getAlarms + getWarnings')
+    @taurus4_deprecation(alt='getRange + getAlarms + getWarnings')
     def getCRanges(self):
         if self._pytango_attrinfoex is not None:
             value = [self._pytango_attrinfoex.min_value,
@@ -1073,49 +1075,49 @@ class TangoAttribute(TaurusAttribute):
                      self.not_specified, self.not_specified]
         return value
 
-    @tep14_deprecation(alt='.alarms[0]')
+    @taurus4_deprecation(alt='.alarms[0]')
     def getMinAlarm(self):
         if self._pytango_attrinfoex is None:
             return None
         return self._pytango_attrinfoex.alarms.min_alarm
 
-    @tep14_deprecation(alt='.alarms[1]')
+    @taurus4_deprecation(alt='.alarms[1]')
     def getMaxAlarm(self):
         if self._pytango_attrinfoex is None:
             return None
         return self._pytango_attrinfoex.alarms.max_alarm
 
-    @tep14_deprecation(alt='.warnings[0]')
+    @taurus4_deprecation(alt='.warnings[0]')
     def getMinWarning(self):
         if self._pytango_attrinfoex is None:
             return None
         return self._pytango_attrinfoex.alarms.min_warning
 
-    @tep14_deprecation(alt='.warnings[1]')
+    @taurus4_deprecation(alt='.warnings[1]')
     def getMaxWarning(self):
         if self._pytango_attrinfoex is None:
             return None
         return self._pytango_attrinfoex.alarms.max_warning
 
-    @tep14_deprecation(alt='.alarms')
+    @taurus4_deprecation(alt='.alarms')
     def setMinAlarm(self, value):
         if self._pytango_attrinfoex is None:
             self._pytango_attrinfoex.alarms.min_alarm = str(value)
             self._applyConfig()
 
-    @tep14_deprecation(alt='.alarms')
+    @taurus4_deprecation(alt='.alarms')
     def setMaxAlarm(self, value):
         if self._pytango_attrinfoex is None:
             self._pytango_attrinfoex.alarms.max_alarm = str(value)
             self._applyConfig()
 
-    @tep14_deprecation(alt='.warnings')
+    @taurus4_deprecation(alt='.warnings')
     def setMinWarning(self, value):
         if self._pytango_attrinfoex is None:
             self._pytango_attrinfoex.alarms.min_warning = str(value)
             self._applyConfig()
 
-    @tep14_deprecation(alt='.warnings')
+    @taurus4_deprecation(alt='.warnings')
     def setMaxWarning(self, value):
         if self._pytango_attrinfoex is None:
             self._pytango_attrinfoex.alarms.max_warning = str(value)

@@ -38,13 +38,24 @@ __docformat__ = "restructuredtext"
 import datetime
 
 from .util.enumeration import Enumeration
-from .util.log import tep14_deprecation
+from .util.log import taurus4_deprecation
 from taurus.external.enum import IntEnum
 
 
 class TaurusDevState(IntEnum):
     """Enumeration of possible states of :class:`taurus.core.TaurusDevice`
-    objects, as returned by :meth:`TaurusDevice.state`."""
+    objects. This is returned, e.g. by :meth:`TaurusDevice.state`.
+
+    The description of the values of this enumeration is:
+
+    - Ready: the device can be operated by the user and could even be
+      involved in some operation.
+    - NotReady: the device can not be operated by the user (e.g. due to
+      still being initialized, or due to a device failure,...)
+    - Undefined: it is not possible to retrieve a coherent state from the
+      device (e.g. due to communication, or to contradictory internal
+      states, ...)
+    """
     # TODO: it could be extended for more detailed description using bit masks
     Ready = 1
     NotReady = 2
@@ -287,7 +298,7 @@ class TaurusAttrValue(TaurusModelValue):
 
 class TaurusConfigValue(object):
 
-    @tep14_deprecation(alt='TaurusAttrValue')
+    @taurus4_deprecation(alt='TaurusAttrValue')
     def __init__(self):
         pass
 

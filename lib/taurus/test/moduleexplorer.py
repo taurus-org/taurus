@@ -50,7 +50,7 @@ class ModuleExplorer(object):
         for p in paterns:
             if re.match(p, name) is not None:
                 if self.verbose:
-                    print 'excluding "%s"' % name
+                    print 'excluding "%s" (matches %s)' % (name, p.pattern)
                 return True
         return False
 
@@ -114,26 +114,28 @@ class ModuleExplorer(object):
 
         submodulenames = sorted(self._getSubmodulesFromPath(modulepath))
         localclassnames = sorted(
-            self._getlocalmembernames(module, self._isclass_with_init))
+             [n for n, _ in inspect.getmembers(module, self._isclass_with_init)]
+        )
         localfunctionnames = sorted(
-            self._getlocalmembernames(module, inspect.isfunction))
+             [n for n, _ in inspect.getmembers(module, inspect.isfunction)]
+        )
         localenumerationnames = sorted([])  # @todo
         externalmembernames = sorted([])  # @todo
-#        localmembers = list(submodules) + localfunctionnames + localclassnames + localenumerationnames
+# localmembers = list(submodules) + localfunctionnames + localclassnames + localenumerationnames
 # externalmembers = [n for n,v in inspect.getmembers(object) if (n not in
 # localmembers and not n.startswith('_'))]
 
         # filter out excluded members
         submodulenames = [n for n in submodulenames if not self._matchesAnyPattern(
-            os.path.join(modulename, n), self.exclude_patterns)]
+            '.'.join((modulename, n)), self.exclude_patterns)]
         localclassnames = [n for n in localclassnames if not self._matchesAnyPattern(
-            os.path.join(modulename, n), self.exclude_patterns)]
+            '.'.join((modulename, n)), self.exclude_patterns)]
         localfunctionnames = [n for n in localfunctionnames if not self._matchesAnyPattern(
-            os.path.join(modulename, n), self.exclude_patterns)]
+            '.'.join((modulename, n)), self.exclude_patterns)]
         localenumerationnames = [n for n in localenumerationnames if not self._matchesAnyPattern(
-            os.path.join(modulename, n), self.exclude_patterns)]
+            '.'.join((modulename, n)), self.exclude_patterns)]
         externalmembernames = [n for n in externalmembernames if not self._matchesAnyPattern(
-            os.path.join(modulename, n), self.exclude_patterns)]
+            '.'.join((modulename, n)), self.exclude_patterns)]
 
         # recurse
         submodules = {}
@@ -198,7 +200,17 @@ class ModuleExplorer(object):
         return minfo, ModuleExplorer.getAll(minfo, 'warnings')
 
 
-def main(modulename='taurus', exclude_patterns=(r'taurus.qt.qtgui.extra_.*',)):
+def main(modulename='taurus', exclude_patterns=(
+                                    '_[^\.]*[^_]',
+                                    '.*\.test',
+                                    'taurus\.external',
+                                    'taurus\.qt\.qtgui\.extra_sardana',
+                                    'taurus\.qt\.qtgui\.extra_pool',
+                                    'taurus\.qt\.qtgui\.extra_macroexecutor',
+                                    'taurus\.qt\.qtgui\.resource',
+                                    'taurus\.qt\.qtgui\.taurusgui\.conf',
+                                    )
+         ):
     moduleinfo, allw = ModuleExplorer.explore(
         modulename, exclude_patterns=exclude_patterns, verbose=True)
     print '\n\n' + '*' * 50
@@ -208,6 +220,9 @@ def main(modulename='taurus', exclude_patterns=(r'taurus.qt.qtgui.extra_.*',)):
     print '*' * 50 + '\n'
     print
     assert len(allw) == 0
+
+    # import pprint
+    # pprint.pprint(moduleinfo)
 
 
 if __name__ == "__main__":

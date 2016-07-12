@@ -370,7 +370,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         # warn about deprecated roles
         role = self._deprecatedRoles.get(fgRole, fgRole)
         if fgRole != role:
-            self.deprecated(rel='tep14', dep='setFgRole(%s)' % fgRole,
+            self.deprecated(rel='4.0', dep='setFgRole(%s)' % fgRole,
                             alt='setFgRole(%s)' % role)
         self._fgRole = str(role)
         self.controllerUpdate()
@@ -582,7 +582,7 @@ def main():
     if owns_app:
         import taurus.core.util.argparse
         parser = taurus.core.util.argparse.get_taurus_parser()
-        parser.usage = "%prog [options] <full_attribute_name(s) or full configuration_name(s)>"
+        parser.usage = "%prog [options] <full_attribute_name(s)>"
         app = Application(sys.argv, cmd_line_parser=parser,
                           app_name="Taurus label demo", app_version="1.0",
                           org_domain="Taurus", org_name="Tango community")

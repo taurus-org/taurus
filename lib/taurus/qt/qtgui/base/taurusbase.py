@@ -1763,7 +1763,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         '''resets the forcedApply mode (i.e.: sets it to False)'''
         self.setForcedApply(False)
 
-    @deprecation_decorator(alt='notifyValueChanged')
+    @deprecation_decorator(rel='4.0', alt='notifyValueChanged')
     def valueChanged(self, *args):
         return self.notifyValueChanged(*args)
 

@@ -26,6 +26,8 @@
 """DataExportDlg.py: A Qt dialog for showing and exporting x-y Ascii data from
 one or more curves"""
 
+__all__ = ["QDataExportDialog"]
+
 import os.path
 from datetime import datetime
 

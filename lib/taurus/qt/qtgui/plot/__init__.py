@@ -31,7 +31,7 @@ This module is part of Taurus Widgets. It contains specialized widgets for 2D pl
 in Taurus. It depends on the `PyQwt module <http://pyqwt.sourceforge.net/>`_
 """
 
-from .qwtdialog import *
+from .qwtdialog import TaurusPlotConfigDialog
 from .scales import *
 from .taurusplot import *
 from .taurustrend import *

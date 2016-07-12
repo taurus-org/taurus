@@ -7,15 +7,14 @@ Developer's Guide
 .. toctree::
     :maxdepth: 2
     
-    tau to taurus migration guide <tau2taurus_migration_guide>
+    Taurus 3.x to Taurus 4.x migration guide <taurus3to4>
     Development guidelines <coding_guide>
-    Color guide <color_guide>
-    Icon guide <icon_guide>
+    Creating GUIs with the TaurusGUI framework <taurusgui_newgui>
     Designer tutorial <designer_tutorial>
+    Icon guide <icon_guide>
     Core tutorial <core_tutorial>
-    Widget tutorial <widget_tutorial>
-    Popup menu tutorial <popupmenu_tutorial>
+    Taurus Custom Settings <tauruscustomsettings>
+    Examples <examples>
     API <api/taurus>
     All Classes <api/taurus_AllClasses.rst>
-    Examples <examples>
     

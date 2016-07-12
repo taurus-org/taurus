@@ -25,6 +25,10 @@
 
 """utilities to load ui files for widgets"""
 
+__all__ = ["loadUi",
+           "UILoadable",
+           ]
+
 import os
 import sys
 import functools

@@ -27,7 +27,7 @@
 taurusgraphicview.py:
 """
 
-#__all__ = []
+__all__ = ['TaurusGraphicsView']
 
 __docformat__ = 'restructuredtext'
 

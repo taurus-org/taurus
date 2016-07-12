@@ -35,7 +35,7 @@ from PyTango import (DeviceProxy, DevFailed, LockerInfo, DevState)
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusbasetypes import (TaurusDevState, TaurusLockInfo,
                                          LockStatus, TaurusEventType)
-from taurus.core.util.log import tep14_deprecation
+from taurus.core.util.log import taurus4_deprecation
 
 
 class _TangoInfo(object):
@@ -109,7 +109,7 @@ class TangoDevice(TaurusDevice):
             attrname = "%s%s" % (self.getFullName(), attrname)
         return self.factory().getAttribute(attrname)
 
-    @tep14_deprecation(alt='.stateObj.read().rvalue [Tango] or ' +
+    @taurus4_deprecation(alt='.stateObj.read().rvalue [Tango] or ' +
                            '.state [agnostic]')
     def getState(self, cache=True):
         stateAttrValue = self.stateObj.read(cache=cache)
@@ -118,12 +118,12 @@ class TangoDevice(TaurusDevice):
             return DevState.values[state_rvalue.value]
         return None
 
-    @tep14_deprecation(alt='.stateObj [Tango] or ' +
+    @taurus4_deprecation(alt='.stateObj [Tango] or ' +
                            '.factory.getAttribute(state_full_name) [agnostic]')
     def getStateObj(self):
         return self.stateObj
 
-    @tep14_deprecation(alt="state")
+    @taurus4_deprecation(alt="state")
     def getSWState(self, cache=True):
         raise Exception('getSWState has been removed. Use state instead')
         # return self.getValueObj().rvalue
@@ -160,7 +160,7 @@ class TangoDevice(TaurusDevice):
             self._deviceState = TaurusDevState.Ready
         return self._deviceState
 
-    @tep14_deprecation(alt="state [agnostic] or stateObj.read [Tango]")
+    @taurus4_deprecation(alt="state [agnostic] or stateObj.read [Tango]")
     def getValueObj(self, cache=True):
         """ Deprecated by TEP14.
         ..warning::
@@ -194,7 +194,7 @@ class TangoDevice(TaurusDevice):
         self._deviceObj = None
         TaurusDevice.cleanUp(self)
 
-    @tep14_deprecation(alt='.state().name')
+    @taurus4_deprecation(alt='.state().name')
     def getDisplayValue(self, cache=True):
         return self.state(cache).name
 
@@ -205,7 +205,7 @@ class TangoDevice(TaurusDevice):
             self.warning('Could not create HW object: %s' % (e[0].desc))
             self.traceback()
 
-    @tep14_deprecation(alt="getDeviceProxy()")
+    @taurus4_deprecation(alt="getDeviceProxy()")
     def getHWObj(self):
         return self.getDeviceProxy()
 
@@ -214,9 +214,9 @@ class TangoDevice(TaurusDevice):
             self._deviceObj = self._createHWObject()
         return self._deviceObj
 
-    @tep14_deprecation(alt='.getDeviceProxy() is not None')
+    @taurus4_deprecation(alt='getDeviceProxy() is not None')
     def isValidDev(self):
-        '''see: :meth:`TaurusDevice.isValid`'''
+        """see: :meth:`TaurusDevice.isValid`"""
         return self._deviceObj is not None
 
     def lock(self, force=False):
@@ -388,7 +388,7 @@ class TangoDevice(TaurusDevice):
            server_id=info.server_id, doc_url=info.doc_url)
         return txt
 
-    @tep14_deprecation(alt=".description")
+    @taurus4_deprecation(alt=".description")
     def getDescription(self, cache=True):
         return self.description
 

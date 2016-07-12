@@ -23,7 +23,8 @@
 ##
 #############################################################################
 
-"""This module contains all taurus tango attribute configuration"""
+"""[DEPRECATED SINCE v 4.0]
+This module contains all taurus tango attribute configuration"""
 
 __all__ = ["TangoConfiguration"]
 
