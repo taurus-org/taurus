@@ -33,6 +33,7 @@ import copy
 
 from taurus.external.qt import Qt
 import taurus
+from taurus.core.taurushelper import getSchemeFromName
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusexception import TaurusException
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
@@ -100,10 +101,12 @@ class TaurusModelItem(object):
                 self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
                     'network-error'), False
                 return
-            if dev.getDeviceProxy() is None:
-                self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
-                    'network-error'), False
-                return
+            if getSchemeFromName(attr.getFullName()) == "tango" and \
+                            dev.getDeviceProxy() is None:
+                    self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
+                        'network-error'), False
+                    return
+
             self.display, self.icon, self.ok = attr.getSimpleName(
             ), getElementTypeIcon(TaurusElementType.Attribute), True
 
