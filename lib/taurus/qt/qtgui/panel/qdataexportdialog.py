@@ -101,27 +101,43 @@ class QDataExportDialog(Qt.QDialog):
             if set == self.allInSingleFile:
                 name = "all.dat"
             else:
-                # **lazy** sanitising of the set to *suggest* it as a filename
-                name = set.replace('*', '').replace('/',
-                                                    '_').replace('\\', '_') + ".dat"
-            ofile = Qt.QFileDialog.getSaveFileName(
-                self, 'Export File Name', name, 'All Files (*)')
+                #**lazy** sanitising of the set to *suggest* it as a filename
+                name = set.replace('*', '').replace('/', '_').replace('\\', '_')
+                name += ".dat"
+            ofile = Qt.QFileDialog.getSaveFileName( self, 'Export File Name',
+                                                    name, 'All Files (*)')
             if not ofile:
                 return False
         try:
             if not isinstance(ofile, file):
                 ofile = open(str(ofile), "w")
-            print >>ofile, str(self.dataTE.toPlainText())
-            ofile.close()
+            if self.dataSetCB.currentText() == self.allInMultipleFiles:
+                # 1  file per curve
+                text = "# DATASET= %s" %set
+                text += "\n# SNAPSHOT_TIME= %s\n" % self.datatime.isoformat('_')
+                xdata, ydata = self.datadict[set]
+                if self.xIsTime():
+                    for x,y in zip(xdata, ydata):
+                        t = datetime.fromtimestamp(x)
+                        text += "%s\t%g\n" %(t.isoformat('_'), y)
+                else:
+                    for x,y in zip(xdata, ydata):
+                        text+="%g\t%g\n" %(x, y)
+                print >> ofile, str(text)
+            else:
+                print >> ofile, str(self.dataTE.toPlainText())
         except:
             Qt.QMessageBox.warning(self, "File saving failed", "Failed to save file '%s'" % str(
                 ofile.name), Qt.QMessageBox.Ok)
             raise
+        finally:
+            ofile.close()
         if verbose:
-            Qt.QMessageBox.information(
-                self, "Set exported", "Set saved to '%s'" % str(ofile.name), Qt.QMessageBox.Ok)
-        if AllowCloseAfter and self.closeAfterCB.isChecked():
-            self.accept()  # closes the ExportData dialog with Accept state
+            msg = "Set saved to '%s'" % str(ofile.name)
+            Qt.QMessageBox.information(self, "Set exported", msg,
+                                       Qt.QMessageBox.Ok)
+        if AllowCloseAfter and self.closeAfterCB.isChecked(): 
+            self.accept() #closes the ExportData dialog with Accept state
         return True
 
     def exportAllData(self, preffix=None):
@@ -171,9 +187,14 @@ class QDataExportDialog(Qt.QDialog):
                     if (key == self.allInSingleFile):
                         self.dataTE.clear()
                         Qt.QMessageBox.critical(self,
-                                                "Unable to display",
-                                                "X axes of all sets in the plot must be exactly the same for saving in a single file!",
-                                                Qt.QMessageBox.Ok)
+                                    "Unable to display",
+                                    "X axes of all sets in the plot must be " +
+                                    "exactly the same for saving in a single " +
+                                    "file!. Curves will be saved each one in " +
+                                    "its own file",
+                                    Qt.QMessageBox.Ok)
+                        index = self.dataSetCB.findText(self.allInMultipleFiles)
+                        self.dataSetCB.setCurrentIndex(index)
                         return
                     else:
                         self.dataTE.clear()
