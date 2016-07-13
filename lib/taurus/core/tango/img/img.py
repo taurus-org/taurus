@@ -94,10 +94,10 @@ class ImageCounterDevice(ImageDevice):
     def eventReceived(self, evt_src, evt_type, evt_value):
         if evt_src == self._image_id_attr:
             if evt_type == TaurusEventType.Change:
+                # discard events if there is one being processed
                 if not self._busy:
-                    self.debug("Processing image %d" % evt_value.rvalue)
-                    # discared events if there is one being processed
                     self._busy = True
+                    self.debug("Processing image %d" % evt_value.rvalue)
                     # read the related Image attributes
                     # (asap and in one action)
                     images = self.getImageData()
