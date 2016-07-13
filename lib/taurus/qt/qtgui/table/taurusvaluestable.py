@@ -531,8 +531,7 @@ class TableInlineEdit(Qt.QLineEdit):
 
     def __init__(self, parent=None):
         super(Qt.QLineEdit, self).__init__(parent)
-        self.textEdited.connect(self.textEdited)
-        self.focusLost.connect(self.textEdited)
+        self.textEdited.connect(self.onTextEdited)
         self.setValidator(None)
         self._min_range = None
         self._max_range = None
@@ -540,15 +539,14 @@ class TableInlineEdit(Qt.QLineEdit):
         self._max_alarm = None
         self._default_unit = None
 
-    def textEdited(self):
-        '''
+    def onTextEdited(self):
+        """
         Paints the text while typing.
 
-        see :meth:`Qt.QLineEdit.textEdited`
-        '''
+        Slot for the `Qt.QLineEdit.textEdited` signal
+        """
         # default case: the value is in normal range with no pending changes
         color, weight = 'gray', 'normal'
-        min
         try:
             value = self.displayText()
             q = _value2Quantity(value, self._default_unit)
