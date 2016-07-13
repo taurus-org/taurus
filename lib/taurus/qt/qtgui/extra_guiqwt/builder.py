@@ -32,16 +32,15 @@ __docformat__ = 'restructuredtext'
 import guiqwt.builder
 
 from curve import TaurusCurveItem, TaurusTrendItem
-from image import TaurusImageItem, TaurusRGBImageItem, TaurusEncodedImageItem, TaurusXYImageItem
+from image import (TaurusImageItem, TaurusRGBImageItem, TaurusEncodedImageItem,
+                   TaurusEncodedRGBImageItem, TaurusXYImageItem)
 from guiqwt.curve import CurveParam
 from guiqwt.image import ImageParam, XYImageItem
 from guiqwt.styles import XYImageParam
 from guiqwt.config import _
-from guiqwt.baseplot import BasePlot
 from guiqwt.histogram import lut_range_threshold
 import numpy
 from taurus.external.pint import Quantity
-
 
 class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
     '''extension of :class:`guiqwt.builder.PlotItemBuilder` to provide tauruscurve and taurusimage items'''
@@ -117,11 +116,11 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
 
             param = ImageParam(title=_("Image"), icon='image.png')
 
+            from taurus import Attribute
             if pixel_size is None:
                 xmin, xmax = xdata
                 ymin, ymax = ydata
             else:
-                from taurus import Attribute
                 attr = Attribute(taurusmodel)
                 valueobj = attr.read()
                 data = getattr(valueobj, 'rvalue', numpy.zeros((1, 1)))
@@ -137,11 +136,14 @@ class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
                                  xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                                  xformat=xformat, yformat=yformat,
                                  zformat=zformat)
+
+            from taurus.core import DataType
             if forceRGB:
-                image = TaurusRGBImageItem(param)
+                if Attribute(taurusmodel).getType() == DataType.DevEncoded:
+                    image = TaurusEncodedRGBImageItem(param)
+                else:
+                    image = TaurusRGBImageItem(param)
             else:
-                from taurus import Attribute
-                from taurus.core import DataType
                 if Attribute(taurusmodel).getType() == DataType.DevEncoded:
                     image = TaurusEncodedImageItem(param)
                 else:
