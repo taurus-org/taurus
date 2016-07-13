@@ -410,6 +410,9 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                     self._onDroppedEvent(reason='invalid value')
                     if not self.parent().getUseArchiving():
                         return
+                elif not hasattr(value.rvalue, 'magnitude'):
+                    self._onDroppedEvent(reason='rvalue has no .magnitude')
+                    return
                 else:
                     self._checkDataDimensions(value.rvalue.magnitude)
 
