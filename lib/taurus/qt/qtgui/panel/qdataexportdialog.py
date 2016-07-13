@@ -113,22 +113,24 @@ class QDataExportDialog(Qt.QDialog):
                 ofile = open(str(ofile), "w")
             if self.dataSetCB.currentText() == self.allInMultipleFiles:
                 # 1  file per curve
-                text = "# DATASET= %s" %set
+                text = "# DATASET= %s" % set
                 text += "\n# SNAPSHOT_TIME= %s\n" % self.datatime.isoformat('_')
                 xdata, ydata = self.datadict[set]
                 if self.xIsTime():
                     for x,y in zip(xdata, ydata):
                         t = datetime.fromtimestamp(x)
-                        text += "%s\t%g\n" %(t.isoformat('_'), y)
+                        text += "%s\t%r\n" % (t.isoformat('_'), y)
                 else:
                     for x,y in zip(xdata, ydata):
-                        text+="%g\t%g\n" %(x, y)
+                        text+="%r\t%r\n" % (x, y)
                 print >> ofile, str(text)
             else:
                 print >> ofile, str(self.dataTE.toPlainText())
         except:
-            Qt.QMessageBox.warning(self, "File saving failed", "Failed to save file '%s'" % str(
-                ofile.name), Qt.QMessageBox.Ok)
+            Qt.QMessageBox.warning(self,
+                                   "File saving failed",
+                                   "Failed to save file '%s'" % str(ofile.name),
+                                   Qt.QMessageBox.Ok)
             raise
         finally:
             ofile.close()
@@ -211,10 +213,10 @@ class QDataExportDialog(Qt.QDialog):
                     t = datetime.fromtimestamp(x)
                     body += "%s" % t.isoformat('_')
                 else:
-                    body += "%s" % repr(x)
+                    body += "%r" % x
                 for curve_name in self.sortedNames:
                     xdata, ydata = self.datadict[curve_name]
-                    body += ("\t%s" % repr(ydata[i]))
+                    body += ("\t%r" % ydata[i])
                 body += "\n"
             # fill text editor
             self.dataTE.clear()
@@ -232,10 +234,10 @@ class QDataExportDialog(Qt.QDialog):
             if self.xIsTime():
                 for x, y in zip(xdata, ydata):
                     t = datetime.fromtimestamp(x)
-                    text += "%s\t%s\n"%(t.isoformat('_'), repr(y))
+                    text += "%s\t%r\n"%(t.isoformat('_'), y)
             else:
                 for x, y in zip(xdata, ydata):
-                    text += "%s\t%s\n" %(repr(x), repr(y))
+                    text += "%r\t%r\n" %(x, y)
             self.dataTE.clear()
             self.dataTE.insertPlainText(text)
             self.dataTE.moveCursor(Qt.QTextCursor.Start)
