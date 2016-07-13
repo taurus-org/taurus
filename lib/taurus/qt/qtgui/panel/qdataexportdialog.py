@@ -190,10 +190,10 @@ class QDataExportDialog(Qt.QDialog):
                     t = datetime.fromtimestamp(x)
                     body += "%s" % t.isoformat('_')
                 else:
-                    body += "%g" % x
+                    body += "%s" % repr(x)
                 for curve_name in self.sortedNames:
                     xdata, ydata = self.datadict[curve_name]
-                    body += ("\t%g" % ydata[i])
+                    body += ("\t%s" % repr(ydata[i]))
                 body += "\n"
             # fill text editor
             self.dataTE.clear()
@@ -211,10 +211,10 @@ class QDataExportDialog(Qt.QDialog):
             if self.xIsTime():
                 for x, y in zip(xdata, ydata):
                     t = datetime.fromtimestamp(x)
-                    text += "%s\t%g\n" % (t.isoformat('_'), y)
+                    text += "%s\t%s\n"%(t.isoformat('_'), repr(y))
             else:
                 for x, y in zip(xdata, ydata):
-                    text += "%g\t%g\n" % (x, y)
+                    text += "%s\t%s\n" %(repr(x), repr(y))
             self.dataTE.clear()
             self.dataTE.insertPlainText(text)
             self.dataTE.moveCursor(Qt.QTextCursor.Start)
