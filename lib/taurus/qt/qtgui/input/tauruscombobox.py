@@ -303,7 +303,7 @@ class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
         if evt_type == TaurusEventType.Error:
             return
         if not (evt_src is None or evt_value is None):
-            attrList = list(evt_value.value)
+            attrList = list(evt_value.rvalue)
             attrList.sort()
             self.addItems(attrList)
             self.updateStyle()
