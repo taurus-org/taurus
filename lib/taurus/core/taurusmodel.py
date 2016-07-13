@@ -61,10 +61,7 @@ class TaurusModel(Logger):
                 serializationMode = s_obj.getSerializationMode()
         self._serialization_mode = serializationMode
 
-        try:
-            self._parentObj = weakref.ref(parent)
-        except Exception:
-            self._parentObj = None
+        self._parentObj = parent
         self._listeners = []
 
     def __str__name__(self, name):
@@ -78,7 +75,7 @@ class TaurusModel(Logger):
 
     def cleanUp(self):
         self.trace("[TaurusModel] cleanUp")
-        #self._parentObj = None
+        self._parentObj = None
         self._listeners = None
         Logger.cleanUp(self)
 
@@ -127,12 +124,10 @@ class TaurusModel(Logger):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getParentObj(self):
-        if self._parentObj is None:
-            return None
-        return self._parentObj()
+        return self._parentObj
 
     def getChildObj(self, child_name):
-        return None
+        return None  # TODO: consider raising NotImplementedError instead
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for serialization

@@ -46,9 +46,6 @@ class TaurusAttribute(TaurusModel):
     def __init__(self, name, parent, **kwargs):
         self.call__init__(TaurusModel, name, parent)
 
-        # just to keep it alive
-        self.__parentDevice = parent
-
         # User enabled/disabled polling
         self.__enable_polling = kwargs.get('enablePolling', True)
 
