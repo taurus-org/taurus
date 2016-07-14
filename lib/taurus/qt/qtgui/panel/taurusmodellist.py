@@ -277,7 +277,7 @@ class TaurusModelList(Qt.QListView):
     associated with it. It also allows drag and drop of models and sorting.
     '''
 
-    dataChangedSignal = baseSignal("dataChanged", list)
+    dataChangedSignal = Qt.pyqtSignal(list, name="dataChanged")
 
     def __init__(self, parent=None, items=None, designMode=False):
         super(TaurusModelList, self).__init__(parent)
