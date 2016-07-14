@@ -77,7 +77,7 @@ class EditCPointsDialog(Qt.QDialog):
 
     def __init__(self, parent=None, x=0):
         Qt.QDialog.__init__(self, parent)
-        self.setupUi(self)
+        self.loadUi()
 
 
 @UILoadable
