@@ -276,6 +276,9 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
 
 
 class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
+    """Combobox whose items reflect the items read from a 1D attribute of dtype
+    str
+    """
 
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
@@ -284,9 +287,10 @@ class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
         self.insertEventFilter(eventfilters.IGNORE_CONFIG)
         self.setSizeAdjustPolicy(Qt.QComboBox.AdjustToContents)
         self.defineStyle()
+        self._lastAttrList = None
 
     def defineStyle(self):
-        """ Defines the initial style for the widget """
+        """Defines the initial style for the widget """
         self.updateStyle()
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -294,42 +298,47 @@ class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
+        """reimplemented from :class:`TaurusBaseWidget`"""
         return TaurusAttribute
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
-        self.clear()
+        """reimplemented from :class:`TaurusBaseWidget`"""
         if evt_type == TaurusEventType.Error:
-            return
-        if not (evt_src is None or evt_value is None):
+            attrList = []
+        elif evt_src is None or evt_value is None:
+            attrList = []
+        else:
             attrList = list(evt_value.rvalue)
             attrList.sort()
+        if attrList != self._lastAttrList:
+            self._lastAttrList = attrList
+            self.clear()
             self.addItems(attrList)
             self.updateStyle()
 
     def updateStyle(self):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
+        """reimplemented from :class:`TaurusBaseWidget`"""
         self.update()
 
     def setQModel(self, *args, **kwargs):
-        '''access to :meth:`QAbstractItemView.setModel`
+        """access to :meth:`QAbstractItemView.setModel`
 
         .. seealso: :meth:`setModel`
-        '''
+        """
         return Qt.QAbstractItemView.setModel(self, *args, **kwargs)
 
     def setModel(self, m):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
+        """reimplemented from :class:`TaurusBaseWidget`"""
         if isinstance(m, Qt.QAbstractItemModel):
-            self.warning(
-                "Deprecation warning: use setQModel() if you want to set a Qt Item Model. The setModel() method is reserved for Taurus models")
+            self.warning(("Deprecation warning: use setQModel() if you" +
+                          " want to set a Qt Item Model. The setModel()" +
+                          " method is reserved for Taurus models"))
             return Qt.QAbstractItemView.setQModel(self, m)
         return TaurusBaseWidget.setModel(self, m)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
+        """reimplemented from :class:`TaurusBaseWidget`"""
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['group'] = 'Taurus Input'
         ret['module'] = 'taurus.qt.qtgui.input'
@@ -353,36 +362,40 @@ class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
 #####################################################################
 # Testing
 #####################################################################
-def taurusAttrListTest():
-    '''tests taurusAttrList. Model: an attribute containing a list of strings'''
-    model = sys.argv[1]
-    a = Qt.QApplication([])
+def _taurusAttrListTest():
+    """tests taurusAttrList. Model: an attribute containing a list of strings"""
+    from taurus.qt.qtgui.application import TaurusApplication
+    a = TaurusApplication()
+    # model = sys.argv[1]
+    # model = "eval:['foo','bar']"
+    model = "sys/tg_test/1/string_spectrum"
     w = TaurusAttrListComboBox()
     w.setModel(model)
     w.show()
     return a.exec_()
 
 
-def TaurusValueComboboxTest():
-    '''tests TaurusValueCombobox '''
-    model = sys.argv[1]
+def _taurusValueComboboxTest():
+    from taurus.qt.qtgui.application import TaurusApplication
+    """tests TaurusValueCombobox """
+    # model = sys.argv[1]
+    model = 'sys/tg_test/1/short_scalar'
     names = [
         ('name0', 0),
         ('name1', 1),
         ('name2', 2),
         ('name3', 3)
     ]
-    a = Qt.QApplication([])
+    a = TaurusApplication()
     w = TaurusValueComboBox()
     w.setModel(model)
     w.addValueNames(names)
-    # w.setModel(model)
     #w.autoApply = True
     w.show()
     return a.exec_()
 
 if __name__ == '__main__':
     import sys
-    # main = TaurusValueComboboxTest #uncomment to test TaurusValueCombobox
-    main = taurusAttrListTest  # uncomment to testtaurusAttrList
+    # main = _taurusValueComboboxTest #uncomment to test TaurusValueCombobox
+    main = _taurusAttrListTest  # uncomment to testtaurusAttrList
     sys.exit(main())
