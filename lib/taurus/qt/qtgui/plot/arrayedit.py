@@ -305,7 +305,9 @@ class ArrayEditor(Qt.QWidget):
         return index
 
     def delController(self, index):
-        self._controllers.pop(index).setParent(None)
+        c = self._controllers.pop(index)
+        c.setParent(None)
+        c.deleteLater()
         self.xp = numpy.concatenate((self.xp[:index], self.xp[index + 1:]))
         self.yp = numpy.interp(self.xp, self.x, self.y)
         self.corrp = numpy.concatenate(
@@ -492,6 +494,7 @@ class ArrayEditor(Qt.QWidget):
         '''
         for c in self._controllers:
             c.setParent(None)  # destroy previous controllers
+            c.deleteLater()
         self._controllers = []
         if xp is None:
             xp = numpy.array((self.x[0], self.x[-1]))
