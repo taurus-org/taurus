@@ -114,6 +114,7 @@ class DataModel(QtCore.QObject):
         .. seealso:: :meth:`connectWriter`, :meth:`getData`
         '''
         self.dataChanged.connect(slot)
+
         if readOnConnect and self.__isDataSet:
             slot(self.__data)
         obj = getattr(slot, '__self__', slot)
@@ -131,7 +132,11 @@ class DataModel(QtCore.QObject):
 
         .. seealso:: :meth:`connectReader`, :meth:`setData`
         '''
-        get_signal(writer, signalname).connect(self.setData)
+        try:
+            get_signal(writer, signalname).connect(self.setData)
+        except AttributeError:
+            # support old-style signal
+            self.connect(writer, QtCore.SIGNAL(signalname), self.setData)
         self.__writerSignals.append((weakref.ref(writer), signalname))
 
     def disconnectWriter(self, writer, signalname):
