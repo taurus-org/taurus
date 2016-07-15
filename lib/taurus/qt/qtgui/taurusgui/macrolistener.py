@@ -30,7 +30,11 @@ to be used within a TaurusGui for managing panels for:
 - displaying results of macro executions, including creating/removing panels for
   plotting results of scans
 - editing macros
+
+.. note:: This module will be moved to sardana.taurus at some point.
 """
+
+ # TODO: move to sardana.taurus
 
 __all__ = ['MacroBroker', 'DynamicPlotManager']
 __docformat__ = 'restructuredtext'
