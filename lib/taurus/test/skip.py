@@ -74,6 +74,5 @@ def _hasgui():
     else:
         return True
 
-# Deprecated
 GUI_TESTS_ENABLED = getattr(
     tauruscustomsettings, 'ENABLE_GUI_TESTS', _hasgui())
