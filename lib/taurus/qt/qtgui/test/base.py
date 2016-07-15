@@ -28,10 +28,8 @@
 import taurus.core
 from taurus.external import unittest
 from taurus.qt.qtgui.application import TaurusApplication
-from taurus.test import skipUnlessGui
 
 
-@skipUnlessGui()
 class BaseWidgetTestCase(object):
 
     '''
@@ -85,7 +83,6 @@ class BaseWidgetTestCase(object):
         self.assertTrue(deps <= maximum, msg)
 
 
-@skipUnlessGui()
 class GenericWidgetTestCase(BaseWidgetTestCase):
 
     '''a base class for testing common cases of arbitrary Taurus widget classes
