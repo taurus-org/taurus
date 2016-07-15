@@ -30,15 +30,21 @@ __all__ = ['EpicsFactory']
 
 import weakref
 
+try:
+    import epics
+except ImportError:
+    from taurus.core.util.log import debug
+    debug('cannot import epics module. ' +
+          'Taurus will not support the "epics" scheme')
+    raise
+
 from taurus.core.taurusexception import TaurusException
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.log import Logger
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusfactory import TaurusFactory
-try:
-    from epicsattribute import EpicsAttribute
-except ImportError:
-    EpicsAttribute = None
+
+from epicsattribute import EpicsAttribute
 from epicsdevice import EpicsDevice
 from epicsauthority import EpicsAuthority
 
