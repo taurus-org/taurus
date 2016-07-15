@@ -33,14 +33,9 @@ import sys
 from taurus.external import unittest
 from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)
-try:
-    from taurus.core.epics.epicsvalidator import (EpicsAuthorityNameValidator,
-                                                  EpicsDeviceNameValidator,
-                                                  EpicsAttributeNameValidator)
-except ImportError:
-    EpicsAuthorityNameValidator = None
-    EpicsDeviceNameValidator = None
-    EpicsAttributeNameValidator = None
+from taurus.core.epics.epicsvalidator import (EpicsAuthorityNameValidator,
+                                              EpicsDeviceNameValidator,
+                                              EpicsAttributeNameValidator)
 
 # ==============================================================================
 # Tests for Epics Authority  name validation
