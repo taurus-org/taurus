@@ -31,6 +31,7 @@ __docformat__ = 'restructuredtext'
 
 from taurus.external import unittest
 from taurus import tauruscustomsettings
+from taurus import Logger
 
 
 def skipUnlessGui():
@@ -57,6 +58,8 @@ def skipUnlessGui():
         @skipunless(taurus.test.GUI_TESTS_ENABLED, 'requires GUI')
 
     '''
+    Logger.deprecated(dep='skipUnlessGui', rel='4.0',
+                      alt='taurustestsuite --exclude-pattern')
     return unittest.skipUnless(GUI_TESTS_ENABLED, 'requires GUI')
 
 
@@ -71,5 +74,6 @@ def _hasgui():
     else:
         return True
 
+# Deprecated
 GUI_TESTS_ENABLED = getattr(
     tauruscustomsettings, 'ENABLE_GUI_TESTS', _hasgui())
