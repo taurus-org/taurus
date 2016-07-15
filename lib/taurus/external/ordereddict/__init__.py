@@ -25,6 +25,12 @@
 
 from __future__ import absolute_import
 
+from taurus.core.util.log import deprecated
+
+
+deprecated(dep='taurus.external.ordereddict', rel='4.0', alt='ordereddict')
+
+
 try:
     # ordereddict from python 2.7 or from ordereddict installed package?
     from ordereddict import *
