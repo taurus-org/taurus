@@ -87,7 +87,7 @@ def main():
     # TODO: Define the default exclude patterns as a tauruscustomsettings
     # variable.
     help = """regexp pattern matching test ids to be excluded.
-    (e.g. '.*\.taurus\.core\.epics\..*')
+    (e.g. 'taurus\.core\..*' would exclude taurus.core tests)
     """
     parser.add_argument('-e', '--exclude-pattern',
                         dest='exclude_pattern',
