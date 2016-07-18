@@ -2587,7 +2587,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :param axis: (Qwt5.QwtPlot.Axis) the axis
         :param scale: (Qwt5.QwtScaleTransformation.Type) the scale
                       transformation. For convenience, the strings "Linear"
-                      and "Log" can be used as well'''
+                      and "Logarithmic" can be used as well'''
 
         if self.getXIsTime() and isinstance(self.axisScaleEngine(axis), DateTimeScaleEngine):
             raise ValueError(
