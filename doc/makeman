@@ -26,13 +26,30 @@
 #This is a quick-and-dirty solution for taurus maintenance only --don't complain about bugs!
 
 DOCDIR=`pwd`
-SCRIPTSDIR="$DOCDIR/../scripts"
+SETUPDIR="$DOCDIR/../"
 
+# Install into a temp dir to get the scripts
+TMPDIR=`mktemp -d`
+echo $TMPDIR
+TMPLIBDIR=$TMPDIR/lib
+TMPBINDIR=$TMPDIR/bin
+cd $SETUPDIR
+export PYTHONPATH=$TMPLIBDIR:$PYTHONPATH
+python setup.py install --root=$TMPDIR --install-lib=lib --install-scripts=bin
+
+
+SCRIPTSDIR=$TMPBINDIR
 cd $SCRIPTSDIR
+
+rm $DOCDIR/*.1
 
 echo $SCRIPTSDIR
 for f in `ls`
   do echo "--------------------"
-  echo help2man -N -o "$DOCDIR/man/$f.1" $f
-  help2man -N -o "$DOCDIR/man/$f.1" $f
+  echo help2man -N -o "$DOCDIR/man/$f.1" ./$f
+  help2man -N -o "$DOCDIR/man/$f.1" ./$f
   done
+
+cd $DOCDIR
+
+rm -rf $TMPDIR

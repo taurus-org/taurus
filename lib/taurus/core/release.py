@@ -52,7 +52,7 @@ name = 'taurus'
 # bdist_deb does not accept underscores (a Debian convention).
 
 
-version_info = (4, 0, 0, 'alpha', 0)
+version_info = (4, 0, 1, '', 0)
 version = '.'.join(map(str, version_info[:3]))
 revision = str(version_info[4])
 
@@ -75,6 +75,6 @@ url = 'http://www.taurus-scada.org'
 
 download_url = 'http://pypi.python.org/packages/source/t/taurus'
 
-platforms = ['Linux', 'Windows XP/2000/NT', 'Windows 95/98/ME']
+platforms = ['Linux', 'Windows']
 
-keywords = ['CLI', 'GUI', 'PyTango', 'Tango', 'Shell']
+keywords = ['CLI', 'GUI', 'PyTango', 'Tango', 'Shell', 'Epics']

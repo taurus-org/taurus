@@ -2,6 +2,7 @@ graft doc
 graft lib/taurus
 global-exclude *.pyc
 include LICENSE.txt
+include CHANGELOG.md
 include taurus.bmp
 include taurus.png
 include taurus.svg
