@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -30,7 +30,8 @@ __all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
            "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
            "LogFilter",
            "_log", "trace", "debug", "info", "warning", "error", "fatal",
-           "critical"]
+           "critical", "deprecated", "deprecation_decorator",
+           "taurus4_deprecation"]
 
 __docformat__ = "restructuredtext"
 
@@ -42,10 +43,37 @@ import warnings
 import traceback
 import inspect
 import threading
+import functools
 
 from object import Object
 from wrap import wraps
 from excepthook import BaseExceptHook
+
+# ------------------------------------------------------------------------------
+# TODO: substitute this ugly hack (below) by a more general mechanism
+from collections import defaultdict
+
+
+class _DeprecationCounter(defaultdict):
+
+    def __init__(self):
+        defaultdict.__init__(self, int)
+
+    def getTotal(self):
+        c = 0
+        for v in self.itervalues():
+            c += v
+        return c
+
+    def pretty(self):
+        from operator import itemgetter
+        sorted_items = sorted(
+            self.iteritems(), key=itemgetter(1), reverse=True)
+        ret = '\n'.join(['\t%d * "%s"' % (v, k) for k, v in sorted_items])
+        return "< Deprecation Counts (%d):\n%s >" % (self.getTotal(), ret)
+
+_DEPRECATION_COUNT = _DeprecationCounter()
+# ------------------------------------------------------------------------------
 
 TRACE = 5
 logging.addLevelName(TRACE, "TRACE")
@@ -54,7 +82,7 @@ logging.addLevelName(TRACE, "TRACE")
 # _srcfile is used when walking the stack to check when we've got the first
 # caller stack frame.
 #
-if hasattr(sys, 'frozen'): #support for py2exe
+if hasattr(sys, 'frozen'):  # support for py2exe
     _srcfile = "logging%s__init__%s" % (os.sep, __file__[-4:])
 elif __file__[-4:].lower() in ['.pyc', '.pyo']:
     _srcfile = __file__[:-4] + '.py'
@@ -63,6 +91,8 @@ else:
 _srcfile = os.path.normcase(_srcfile)
 
 # next bit filched from 1.5.2's inspect.py
+
+
 def currentframe():
     """Return the frame object for the caller's stack frame."""
     try:
@@ -70,7 +100,8 @@ def currentframe():
     except:
         return sys.exc_info()[2].tb_frame.f_back
 
-if hasattr(sys, '_getframe'): currentframe = lambda: sys._getframe(3)
+if hasattr(sys, '_getframe'):
+    currentframe = lambda: sys._getframe(3)
 # done filching
 
 
@@ -147,9 +178,12 @@ class LogIt(object):
                     pass
             in_msg = "-> %s" % fname
             if self._showargs:
-                if len(args) > 1: in_msg += str(args[1:])
-                if len(kwargs):   in_msg += str(kwargs)
-            if self._col_limit and len(in_msg) > self._col_limit: in_msg = "%s [...]" % in_msg[:self._col_limit-6]
+                if len(args) > 1:
+                    in_msg += str(args[1:])
+                if len(kwargs):
+                    in_msg += str(kwargs)
+            if self._col_limit and len(in_msg) > self._col_limit:
+                in_msg = "%s [...]" % in_msg[:self._col_limit - 6]
             log_obj.log(self._level, in_msg)
             out_msg = "<-"
             try:
@@ -163,7 +197,7 @@ class LogIt(object):
             if not ret is None and self._showret:
                 out_msg += " = %s" % str(ret)
             if self._col_limit and len(out_msg) > self._col_limit:
-                out_msg = "%s [...]" % out_msg[:self._col_limit-6]
+                out_msg = "%s [...]" % out_msg[:self._col_limit - 6]
             log_obj.log(self._level, out_msg)
             return ret
         return wrapper
@@ -181,6 +215,7 @@ class TraceIt(LogIt):
                 print "Hello world"
 
     .. seealso:: :class:`LogIt`"""
+
     def __init__(self, showargs=False, showret=False):
         LogIt.__init__(self, level=TRACE, showargs=showargs, showret=showret)
 
@@ -197,8 +232,10 @@ class DebugIt(LogIt):
                 print "Hello world"
 
     .. seealso:: :class:`LogIt`"""
+
     def __init__(self, showargs=False, showret=False):
-        LogIt.__init__(self, level=logging.DEBUG, showargs=showargs, showret=showret)
+        LogIt.__init__(self, level=logging.DEBUG,
+                       showargs=showargs, showret=showret)
 
 
 class InfoIt(LogIt):
@@ -213,8 +250,10 @@ class InfoIt(LogIt):
                 print "Hello world"
 
     .. seealso:: :class:`LogIt`"""
+
     def __init__(self, showargs=False, showret=False):
-        LogIt.__init__(self, level=logging.INFO, showargs=showargs, showret=showret)
+        LogIt.__init__(self, level=logging.INFO,
+                       showargs=showargs, showret=showret)
 
 
 class WarnIt(LogIt):
@@ -229,8 +268,10 @@ class WarnIt(LogIt):
                 print "Hello world"
 
     .. seealso:: :class:`LogIt`"""
+
     def __init__(self, showargs=False, showret=False):
-        LogIt.__init__(self, level=logging.WARN, showargs=showargs, showret=showret)
+        LogIt.__init__(self, level=logging.WARN,
+                       showargs=showargs, showret=showret)
 
 
 class ErrorIt(LogIt):
@@ -245,8 +286,10 @@ class ErrorIt(LogIt):
                 print "Hello world"
 
     .. seealso:: :class:`LogIt`"""
+
     def __init__(self, showargs=False, showret=False):
-        LogIt.__init__(self, level=logging.ERROR, showargs=showargs, showret=showret)
+        LogIt.__init__(self, level=logging.ERROR,
+                       showargs=showargs, showret=showret)
 
 
 class CriticalIt(LogIt):
@@ -261,8 +304,50 @@ class CriticalIt(LogIt):
                 print "Hello world"
 
     .. seealso:: :class:`LogIt`"""
+
     def __init__(self, showargs=False, showret=False):
-        LogIt.__init__(self, level=logging.CRITICAL, showargs=showargs, showret=showret)
+        LogIt.__init__(self, level=logging.CRITICAL,
+                       showargs=showargs, showret=showret)
+
+
+class PrintIt(object):
+    '''A decorator similar to TraceIt, DebugIt,... etc but which does not
+    require the decorated class to inherit from Logger.
+    It just uses print statements instead of logging. It is here just to be
+    used as a replacement of those decorators if you cannot use them on a
+    non-logger class.
+    '''
+
+    def __init__(self, showargs=False, showret=False):
+        self._showargs = showargs
+        self._showret = showret
+
+    def __call__(self, f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            fname = f.func_name
+            in_msg = "-> %s" % fname
+            if self._showargs:
+                if len(args) > 1:
+                    in_msg += str(args[1:])
+                if len(kwargs):
+                    in_msg += str(kwargs)
+            print
+            print in_msg
+            out_msg = "<-"
+            try:
+                ret = f(*args, **kwargs)
+            except Exception, e:
+                out_msg += " (with %s) %s" % (e.__class__.__name__, fname)
+                print out_msg
+                raise
+            out_msg += " %s" % fname
+            if not ret is None and self._showret:
+                out_msg += " = %s" % str(ret)
+            print out_msg
+            print
+            return ret
+        return wrapper
 
 
 class MemoryLogHandler(list, logging.handlers.BufferingHandler):
@@ -281,8 +366,8 @@ class MemoryLogHandler(list, logging.handlers.BufferingHandler):
            :return: (bool) wheter or not the handler should be flushed
         """
         return (len(self.buffer) >= self.capacity) or \
-                (record.levelno >= Logger.getLogLevel()) or \
-                self._handler_list_changed
+            (record.levelno >= Logger.getLogLevel()) or \
+            self._handler_list_changed
 
     def flush(self):
         """Flushes this handler"""
@@ -324,15 +409,15 @@ class LogExceptHook(BaseExceptHook):
 
 
 class _Logger(logging.Logger):
-    
+
     def findCaller(self):
         """
         Find the stack frame of the caller so that we can note the source
         file name, line number and function name.
         """
         f = currentframe()
-        #On some versions of IronPython, currentframe() returns None if
-        #IronPython isn't run with -X:Frames.
+        # On some versions of IronPython, currentframe() returns None if
+        # IronPython isn't run with -X:Frames.
         if f is not None:
             f = f.f_back
         rv = "(unknown file)", 0, "(unknown function)"
@@ -345,7 +430,7 @@ class _Logger(logging.Logger):
             rv = (co.co_filename, f.f_lineno, co.co_name)
             break
         return rv
-   
+
 
 class Logger(Object):
     """The taurus logger class. All taurus pertinent classes should inherit
@@ -353,7 +438,7 @@ class Logger(Object):
     facilities."""
 
     #: Internal usage
-    root_inited    = False
+    root_inited = False
 
     #: Internal usage
     root_init_lock = threading.Lock()
@@ -365,19 +450,19 @@ class Logger(Object):
     Fatal = logging.FATAL
 
     #: Error message level (constant)
-    Error    = logging.ERROR
+    Error = logging.ERROR
 
     #: Warning message level (constant)
-    Warning  = logging.WARNING
+    Warning = logging.WARNING
 
     #: Info message level (constant)
-    Info     = logging.INFO
+    Info = logging.INFO
 
     #: Debug message level (constant)
-    Debug    = logging.DEBUG
+    Debug = logging.DEBUG
 
     #: Trace message level (constant)
-    Trace    = TRACE
+    Trace = TRACE
 
     #: Default log level (constant)
     DftLogLevel = Info
@@ -397,7 +482,6 @@ class Logger(Object):
     #: the main stream handler
     stream_handler = None
 
-
     def __init__(self, name='', parent=None, format=None):
         """The Logger constructor
 
@@ -407,7 +491,8 @@ class Logger(Object):
         """
         self.call__init__(Object)
 
-        if format: self.log_format = format
+        if format:
+            self.log_format = format
         Logger.initRoot()
 
         if name is None or len(name) == 0:
@@ -417,7 +502,7 @@ class Logger(Object):
             self.log_full_name = '%s.%s' % (parent.log_full_name, name)
         else:
             self.log_full_name = name
-        
+
         self.log_obj = self._getLogger(self.log_full_name)
         self.log_handlers = []
 
@@ -491,7 +576,7 @@ class Logger(Object):
         cls.initRoot().removeHandler(cls.stream_handler)
 
     @classmethod
-    def setLogLevel(cls,level):
+    def setLogLevel(cls, level):
         """sets the new log level (the root log level)
 
            :param level: (int) the new log level
@@ -508,7 +593,7 @@ class Logger(Object):
         return cls.log_level
 
     @classmethod
-    def setLogFormat(cls,format):
+    def setLogFormat(cls, format):
         """sets the new log message format
 
            :param level: (str) the new log message format
@@ -605,7 +690,7 @@ class Logger(Object):
            :param child: (logging.Logger) the new child
         """
         if not self.log_children.get(id(child)):
-            self.log_children[id(child)]=weakref.ref(child)
+            self.log_children[id(child)] = weakref.ref(child)
 
     def addLogHandler(self, handler):
         """Registers a new handler in this object's logger
@@ -670,7 +755,7 @@ class Logger(Object):
         stack = stack_func(line_count)
         out = ''
         for frame_record in stack:
-            out += '\n\t' + 60*'-'
+            out += '\n\t' + 60 * '-'
             frame, filename, line, funcname, lines, index = frame_record
             #out += '\n\t    depth = %d' % frame[5]
             out += '\n\t filename = %s' % filename
@@ -679,16 +764,16 @@ class Logger(Object):
                 code = '<code could not be found>'
                 out += '\n\t     line = [%d]: %s' % (line, code)
             else:
-                lines, line_nb = [ s.strip(' \n') for s in lines ], len(lines)
+                lines, line_nb = [s.strip(' \n') for s in lines], len(lines)
                 if line_nb >= 3:
-                    out += '\n\t     line = [%d]: %s' % (line-1, lines[0])
+                    out += '\n\t     line = [%d]: %s' % (line - 1, lines[0])
                     out += '\n\t  -> line = [%d]: %s' % (line, lines[1])
-                    out += '\n\t     line = [%d]: %s' % (line+1, lines[2])
+                    out += '\n\t     line = [%d]: %s' % (line + 1, lines[2])
                 elif line_nb > 0:
                     out += '\n\t  -> line = [%d]: %s' % (line, lines[0])
             if frame:
                 out += '\n\t   locals = '
-                for k,v in frame.f_locals.items():
+                for k, v in frame.f_locals.items():
                     out += '\n\t\t%20s = ' % k
                     try:
                         cut = False
@@ -699,9 +784,11 @@ class Logger(Object):
                         else:
                             i = min(i, 80)
                             cut = True
-                        if len(v) > 80: cut = True
+                        if len(v) > 80:
+                            cut = True
                         out += v[:i]
-                        if cut: out += '[...]'
+                        if cut:
+                            out += '[...]'
                     except:
                         out += '<could not find suitable string representation>'
         return out
@@ -747,17 +834,57 @@ class Logger(Object):
         """
         self.log_obj.warning(msg, *args, **kw)
 
-    def deprecated(self, msg, *args, **kw):
-        """Record a deprecated warning message in this object's logger. Accepted *args* and
-           *kwargs* are the same as :meth:`logging.Logger.warning`.
+    def deprecated(self, msg=None, dep=None, alt=None, rel=None, dbg_msg=None,
+                   _callerinfo=None, **kw):
+        """Record a deprecated warning message in this object's logger.
+           If message is not passed, a estandard deprecation message is
+           constructued using dep, alt, rel arguments.
+           Also, an extra debug message can be recorded, followed by traceback
+           info.
 
-           :param msg: (str) the message to be recorded
-           :param args: list of arguments
-           :param kw: list of keyword arguments
+           :param msg: (str) the message to be recorded (if None passed, it will
+                       be constructed using dep (and, optionally, alt and rel)
+           :param dep: (str) name of deprecated feature (in case msg is None)
+           :param alt: (str) name of alternative feature (in case msg is None)
+           :param rel: (str) name of release from which the feature was
+                       deprecated (in case msg is None)
+           :param dbg_msg: (str) msg for debug (or None to log only the warning)
+           :param _callerinfo: for internal use only. Do not use this argument.
+           :param kw: any additional keyword arguments, are passed to
+                     :meth:`logging.Logger.warning`
         """
-        filename, lineno, func = self.log_obj.findCaller()
-        depr_msg = warnings.formatwarning(msg, DeprecationWarning, filename, lineno)
-        self.log_obj.warning(depr_msg, *args, **kw)
+        if msg is None:
+            if dep is None:
+                raise TypeError('deprecated takes either msg or dep argument')
+            msg = '%s is deprecated' % dep
+            if rel is not None:
+                msg += ' since %s' % rel
+            if alt is not None:
+                msg += '. Use %s instead' % alt
+
+        # count the number of calls (classified by msg)
+        # TODO: substitute this ugly hack (below) by a more general mechanism
+        _DEPRECATION_COUNT[msg] += 1
+        # limit the output to 1 deprecation message of each type
+        from taurus import tauruscustomsettings
+        _MAX_DEPRECATIONS_LOGGED = getattr(tauruscustomsettings,
+                                           '_MAX_DEPRECATIONS_LOGGED', None)
+        if _MAX_DEPRECATIONS_LOGGED is not None:
+            if _MAX_DEPRECATIONS_LOGGED < 0:
+                self.stack(self.Warning)
+                raise Exception(msg)
+            if _DEPRECATION_COUNT[msg] > _MAX_DEPRECATIONS_LOGGED:
+                return
+
+        if _callerinfo is None:
+            _callerinfo = self.log_obj.findCaller()
+        filename, lineno, _ = _callerinfo
+        depr_msg = warnings.formatwarning(
+            msg, DeprecationWarning, filename, lineno)
+        self.log_obj.warning(depr_msg, **kw)
+        if dbg_msg:
+            self.debug(dbg_msg)
+            self.stack()
 
     def error(self, msg, *args, **kw):
         """Record an error message in this object's logger. Accepted *args* and
@@ -833,7 +960,7 @@ class Logger(Object):
         """
         return self.log_full_name
 
-    def changeLogName(self,name):
+    def changeLogName(self, name):
         """Change the log name for this object.
 
            :param name: (str) the new log name
@@ -864,31 +991,83 @@ class LogFilter(logging.Filter):
         ok = (record.levelno == self.filter_level)
         return ok
 
+
 def __getrootlogger():
     return Logger.getLogger("TaurusRootLogger")
-    
-# cannot export log because upper package taurus.core.util imports this 'log' 
+
+# cannot export log because upper package taurus.core.util imports this 'log'
 # module and it would itself be overwritten by this log function
+
+
 def _log(level, msg, *args, **kw):
     return __getrootlogger().log(level, msg, *args, **kw)
+
 
 def trace(msg, *args, **kw):
     return _log(Logger.Trace, msg, *args, **kw)
 
+
 def debug(msg, *args, **kw):
     return __getrootlogger().debug(msg, *args, **kw)
+
 
 def info(msg, *args, **kw):
     return __getrootlogger().info(msg, *args, **kw)
 
+
 def warning(msg, *args, **kw):
     return __getrootlogger().warning(msg, *args, **kw)
+
 
 def error(msg, *args, **kw):
     return __getrootlogger().error(msg, *args, **kw)
 
+
 def fatal(msg, *args, **kw):
     return __getrootlogger().fatal(msg, *args, **kw)
 
+
 def critical(msg, *args, **kw):
     return __getrootlogger().critical(msg, *args, **kw)
+
+
+def deprecated(*args, **kw):
+    kw['_callerinfo'] = __getrootlogger().findCaller()
+    return Logger("TaurusRootLogger").deprecated(*args, **kw)
+
+
+def deprecation_decorator(func=None, alt=None, rel=None, dbg_msg=None):
+    """decorator to mark methods as deprecated"""
+    if func is None:
+        return functools.partial(deprecation_decorator, alt=alt, rel=rel,
+                                 dbg_msg=dbg_msg)
+
+    def new_func(*args, **kwargs):
+        deprecated(dep=func.__name__, alt=alt, rel=rel, dbg_msg=dbg_msg)
+        return func(*args, **kwargs)
+
+    doc = (func.__doc__ or '')
+    doc += '\n\n.. deprecated:: %s\n' % (rel or '')
+    if alt:
+        doc += '   Use %s instead\n' % alt
+
+    new_func.__name__ = func.__name__
+    new_func.__doc__ = doc
+    new_func.__dict__.update(func.__dict__)
+    return new_func
+
+
+taurus4_deprecation = functools.partial(deprecation_decorator, rel='4.0')
+
+
+if __name__ == '__main__':
+
+    @taurus4_deprecation(alt='bar')
+    def foo(x):
+        """Does this and that and also:
+
+        - baz
+        - zab
+        """
+
+    print foo.__doc__

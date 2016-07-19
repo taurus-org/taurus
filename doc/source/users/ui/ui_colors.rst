@@ -5,13 +5,92 @@ Taurus colors
 ================
 
 Taurus uses color codes on many of its widgets. Colors are used to represent two
-main things: the state of a device and the quality level of an attribute.
-The state represents the summary condition of a certain device. For example, a
-power supply, maybe report to be *On* if it is working properly, *Off* if it is
-shutdown or *Fault* if there is a communication problem between the software and
-the physical device. Taurus allows for a reduced set of these states, each of which
-has a specified color. The table below shows all possible values for the state
-and their corresponding colors.
+main things: 
+
+- the state of a taurus device 
+- the quality of (the reading of) an attribute.
+
+
+Taurus Device state colors
+---------------------------
+
+Taurus Device states, as defined in :class:`taurus.core.TaurusDevState` are
+represented by the following colors:
+
+
+.. raw:: html
+
+    <html>
+    <head>
+    <title>Taurus color guide</title>
+    <style type="text/css">
+    .Ready      { background: rgb(  0, 255,   0); color: rgb(  0,   0,   0); text-align: center; }
+    .NotReady   { background: rgb(255,   0,   0); color: rgb(  0,   0,   0); text-align: center; }
+    .Undefined  { background: rgb(128, 128, 128); color: rgb(  0,   0,   0); text-align: center; }
+    tr.state_row   { height: 40px; }
+    </style>
+    </head>
+    <body align="center">
+    <table width="100%" border="1" cellspacing="0" cellpadding="2">
+    <caption>Colors for the Taurus Device States (scheme-agnostic)</caption>
+    <tr><th>State</th><th>Background</th><th>Foreground</th><th width="80">Preview</th></tr>
+    <tr class="state_row"><td>Ready</td><td>Green (0,255,0)</td><td>Black (0,0,0)</td><td class="Ready">Ready</td></tr>
+    <tr class="state_row"><td>NotReady</td><td>Red (255,0,0)</td><td>Black (0,0,0)</td><td class="NotReady">NotReady</td></tr>
+    <tr class="state_row"><td>Undefined</td><td>Gray (128,128,128)</td><td>Black (0,0,0)</td><td class="Undefined">Undefined</td></tr>
+    </table>
+    </body>
+    </html>
+
+
+Taurus Attribute Value Quality colors
+-------------------------------------
+
+The quality of an attribute measures the reliability of the current read value for
+that attribute. The meanings of the qualities are:
+
+- *Invalid*: there was some problem when trying to read the attribute (the value should not be trusted)
+- *Valid*: the attribute was read correctly (no reason to suspect its value validity)
+- *Alarm*: the value is valid, but it exceeded its defined alarm limits
+- *Warning*: like *Alarm* but for the warning limits
+- *Changing*: the attribute was read correctly but it is being changed at the time of reading (so its value is
+  likely to differ if re-read)
+
+Taurus Attribute value qualities are represented by the following colors:
+      
+.. raw:: html
+
+    <html>
+    <head>
+    <title>Taurus color guide</title>
+    <style type="text/css">
+    .Invalid  { background: rgb(128, 128, 128); color: rgb(255, 255, 255); text-align: right; }
+    .Valid    { background: rgb(0,   255,   0); color: rgb(  0,   0,   0); text-align: right; }
+    .Alarm    { background: rgb(255, 140,   0); color: rgb(255, 255, 255); text-align: right; }
+    .Warning  { background: rgb(255, 140,   0); color: rgb(255, 255, 255); text-align: right; }
+    .Changing { background: rgb(128, 160, 255); color: rgb(  0,   0,   0); text-align: right; }
+    tr.quality_row { height: 40px; }
+    </style>
+    </head>
+    <body>
+    <table width="100%" border="1" cellspacing="0" cellpadding="2">
+    <caption>Colors for Taurus Attribute quality</caption>
+    <tr><th>Quality</th><th>Background</th><th>Foreground</th><th width="80">Preview</th></tr>
+    <tr class="quality_row"><td>Invalid</td><td>Gray (128,128,128)</td><td>White (255,255,255)</td><td class="Invalid">-----</td></tr>
+    <tr class="quality_row"><td>Valid</td><td>Dead Frog Green (0,255,0)</td><td>Black (0,0,0)</td><td class="Valid">10.89 mV</td></tr>
+    <tr class="quality_row"><td>Alarm</td><td>Orange (255,140,0)</td><td>White (255,255,255)</td><td class="Alarm">76.54 mV</td></tr>
+    <tr class="quality_row"><td>Warning</td><td>Orange (255,140,0)</td><td>White (255,255,255)</td><td class="Warning">64.23 mV</td></tr>
+    <tr class="quality_row"><td>Changing</td><td>Light Blue (128,160,255)</td><td>Black (0,0,0)</td><td class="Changing">20.45 mV</td></tr>
+    </table>
+    </body>
+    </html>
+
+
+Tango-specific Device state colors
+----------------------------------
+
+Tango Device states are richer than the generic ones. The following is a table of 
+the colors used to represent Tango-specific device states handled by the :mod:`taurus.core.tango`
+scheme:
 
 .. raw:: html
 
@@ -60,43 +139,4 @@ and their corresponding colors.
     </body>
     </html>
 
-
-The quality of an attribute (example, voltage of a power supply) defines it's 
-"state". If the value of an attribute can be read then its quality is *valid*.
-If for some reason there is a problem when trying to read the attribute value
-from the equipement and it cannot be displayed, then the quality is set to
-*invalid*. If the value is below or above the warning or alarm thresolds, then
-the quality is set to *alarm*.
-The quality is set to *changing* when the value is being changed over time
-(example, the position of a motor is changing during a motion).
-      
-.. raw:: html
-
-    <html>
-    <head>
-    <title>Taurus color guide</title>
-    <style type="text/css">
-    .ATTR_INVALID  { background: rgb(128, 128, 128); color: rgb(255, 255, 255); text-align: right; }
-    .ATTR_VALID    { background: rgb(0,   255,   0); color: rgb(  0,   0,   0); text-align: right; }
-    .ATTR_ALARM    { background: rgb(255, 140,   0); color: rgb(255, 255, 255); text-align: right; }
-    .ATTR_WARNING  { background: rgb(255, 140,   0); color: rgb(255, 255, 255); text-align: right; }
-    .ATTR_CHANGING { background: rgb(128, 160, 255); color: rgb(  0,   0,   0); text-align: right; }
-    .ATTR_UNKNOWN  { background: rgb(128, 128, 128); color: rgb(  0,   0,   0); text-align: right; }
-    .ATTR_NONE     { background: rgb(128, 128, 128); color: rgb(  0,   0,   0); text-align: right; }
-    tr.quality_row { height: 40px; }
-    </style>
-    </head>
-    <body>
-    <table width="100%" border="1" cellspacing="0" cellpadding="2">
-    <caption>color scheme for the quality</caption>
-    <tr><th>Quality</th><th>Background</th><th>Foreground</th><th width="80">Preview</th></tr>
-    <tr class="quality_row"><td>Invalid</td><td>Gray (128,128,128)</td><td>White (255,255,255)</td><td class="ATTR_INVALID">-----</td></tr>
-    <tr class="quality_row"><td>Valid</td><td>Dead Frog Green (0,255,0)</td><td>Black (0,0,0)</td><td class="ATTR_VALID">10.89 mV</td></tr>
-    <tr class="quality_row"><td>Alarm</td><td>Orange (255,140,0)</td><td>White (255,255,255)</td><td class="ATTR_ALARM">76.54 mV</td></tr>
-    <tr class="quality_row"><td>Warning</td><td>Orange (255,140,0)</td><td>White (255,255,255)</td><td class="ATTR_WARNING">64.23 mV</td></tr>
-    <tr class="quality_row"><td>Changing</td><td>Light Blue (128,160,255)</td><td>Black (0,0,0)</td><td class="ATTR_CHANGING">20.45 mV</td></tr>
-    <tr class="quality_row"><td><empty></td><td>Gray (128,128,128)</td><td>Black (0,0,0)</td><td class="ATTR_NONE">-----</td></tr>
-    </table>
-    </body>
-    </html>
 

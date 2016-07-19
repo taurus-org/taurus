@@ -3,24 +3,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -32,8 +32,8 @@ __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 
-import PyTango
-import taurus.core
+from taurus.core import DataType, TaurusEventType
+from taurus.core.taurusattribute import TaurusAttribute
 from taurus.qt.qtgui.base import TaurusBaseWidget, TaurusBaseWritableWidget
 from taurus.core.util import eventfilters
 
@@ -41,16 +41,15 @@ from taurus.core.util import eventfilters
 class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     '''This widget shows a combobox that offers a limited choice of values that
     can be set on an attribute.'''
-    
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
 
-    def __init__(self, parent = None, designMode = False):
+    def __init__(self, parent=None, designMode=False):
         self._previousModelName = None
         self._lastValueByUser = None
-        
+
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QComboBox, parent)
-        self.call__init__(TaurusBaseWritableWidget, name, designMode=designMode)
+        self.call__init__(TaurusBaseWritableWidget,
+                          name, designMode=designMode)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Helper methods
@@ -70,18 +69,19 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     def preAttach(self):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         TaurusBaseWritableWidget.preAttach(self)
-        Qt.QObject.connect(self, Qt.SIGNAL("currentIndexChanged(int)"),
-                               self.writeIndexValue)
-        Qt.QObject.connect(self, Qt.SIGNAL("applied()"),
-                               self.writeValue)
+        self.currentIndexChanged.connect(self.writeIndexValue)
+        self.applied.connect(self.writeValue)
 
     def postDetach(self):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         TaurusBaseWritableWidget.postDetach(self)
-        Qt.QObject.disconnect(self, Qt.SIGNAL("currentIndexChanged(int)"),
-                                  self.writeIndexValue)
-        Qt.QObject.disconnect(self, Qt.SIGNAL("applied()"),
-                                  self.writeValue)
+        try:
+            self.currentIndexChanged.disconnect(self.writeIndexValue)
+            self.applied.disconnect(self.writeValue)
+        except TypeError:
+            # In new style-signal if a signal is disconnected without
+            # previously was connected it, it raises a TypeError
+            pass
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWritableWidget overwriting / Pending operations
@@ -95,18 +95,18 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         model = self.getModelObj()
         if model is None:
             return None
-
+        dtype = model.type
         new_value = self.itemData(self.currentIndex())
         if new_value is None:
             return None
 
-        if PyTango.is_int_type(model.data_type):
+        if dtype == DataType.Integer:
             func = int
-        elif PyTango.is_float_type(model.data_type):
+        elif dtype == DataType.Float:
             func = float
-        elif model.data_type in (PyTango.DevString,):
+        elif dtype == DataType.String:
             func = str
-        elif model.data_type in (PyTango.DevBoolean,):
+        elif dtype == DataType.Boolean:
             func = bool
         else:
             return None
@@ -120,7 +120,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         """
         index = self.findData(Qt.QVariant(value))
         self._setCurrentIndex(index)
-    
+
     def updateStyle(self):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         if self.hasPendingOperations():
@@ -133,21 +133,21 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     # signals, gui events... things related to "write" in the end
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    @Qt.pyqtSignature("currentIndexChanged(int)")
+    @Qt.pyqtSlot(int, name='currentIndexChanged')
     def writeIndexValue(self, index):
         '''slot called to emit a valueChanged signal when the currentIndex is changed'''
         self.emitValueChanged()
         if self.getAutoApply():
-            self.emit(Qt.SIGNAL("applied()"))
+            self.applied.emit()
 
     def keyPressEvent(self, event):
-        '''reimplemented to emit an 'applied()' signal when Enter (or Return) 
+        '''reimplemented to emit an 'applied()' signal when Enter (or Return)
         key is pressed'''
-        if event.key() in [Qt.Qt.Key_Return,Qt.Qt.Key_Enter]:
-            self.emit(Qt.SIGNAL("applied()"))
+        if event.key() in [Qt.Qt.Key_Return, Qt.Qt.Key_Enter]:
+            self.applied.emit()
             event.accept()
         else:
-            return Qt.QComboBox.keyPressEvent(self,event)
+            return Qt.QComboBox.keyPressEvent(self, event)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusValueComboBox own interface
@@ -155,24 +155,24 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
 
     def setValueNames(self, names):
         '''
-        Sets the correspondence between the values to be applied and their 
+        Sets the correspondence between the values to be applied and their
         associated text to show in the combobox.
-        
-        :param names: (sequence<tuple>) A sequence of (name,value) tuples, 
+
+        :param names: (sequence<tuple>) A sequence of (name,value) tuples,
                       where each attribute value gets a name for display
         '''
         bs = self.blockSignals(True)
         self.clear()
         self.blockSignals(bs)
         self.addValueNames(names)
-        
+
     def addValueNames(self, names):
         '''
         Add new value-name associations to the combobox.
-        
+
         ... seealso: :meth:`setValueNames`
-        
-        :param names: (sequence<tuple>) A sequence of (name,value) tuples, 
+
+        :param names: (sequence<tuple>) A sequence of (name,value) tuples,
                       where each attribute value gets a name for display
         '''
         bs = self.blockSignals(True)
@@ -184,20 +184,20 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
             # of the newly added names. This is kinda a refresh:
             mv = self.getModelValueObj()
             if mv is not None:
-                self.setValue(mv.w_value)
+                self.setValue(mv.wvalue)
         finally:
             self.blockSignals(bs)
-            
+
         self.emitValueChanged()
-        
+
     def getValueString(self, value, default='UNKNOWN(%s)'):
-        """Returns the corresponding name in the combobox out of a value 
+        """Returns the corresponding name in the combobox out of a value
         (or a default value if not found).
-        
+
         :param value: value to look up
-        :param default: (str) value in case it is not found. It accepts 
+        :param default: (str) value in case it is not found. It accepts
                         a '%s' placeholder which will be substituted with
-                        str(value). It defaults to 'UNKNOWN(%s)'.        
+                        str(value). It defaults to 'UNKNOWN(%s)'.
         """
         item = self.findData(Qt.QVariant(value))
         if item < 0:
@@ -206,7 +206,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
             else:
                 return default
         return str(self.itemText(item))
-        
+
     def teachDisplayTranslationToWidget(self, widget, default='UNKNOWN(%s)'):
         """
         Makes a label object change the displayed text by the corresponding
@@ -223,14 +223,12 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         # the default, not modified by us
         model = widget.getModelObj()
         if model:
-            widget.fireEvent( model,
-                             taurus.core.taurusbasetypes.TaurusEventType.Periodic,
-                             model.getValueObj()
-            )
+            widget.fireEvent(model, TaurusEventType.Periodic,
+                             model.getValueObj())
 
     def setQModel(self, *args, **kwargs):
         '''access to :meth:`QCombobox.setModel`
-        
+
         .. seealso: :meth:`setModel`
         '''
         Qt.QComboBox.setModel(self, *args, **kwargs)
@@ -238,7 +236,8 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     def setModel(self, m):
         '''Reimplemented from :meth:`TaurusBaseWritableWidget.setModel` '''
         if isinstance(m, Qt.QAbstractItemModel):
-            self.warning("Deprecation warning: use setQModel() if you want to set a Qt Item Model. The setModel() method is reserved for Taurus models")
+            self.warning(
+                "Deprecation warning: use setQModel() if you want to set a Qt Item Model. The setModel() method is reserved for Taurus models")
             return Qt.QComboBox.setModel(self, m)
         ret = TaurusBaseWritableWidget.setModel(self, m)
         self.emitValueChanged()
@@ -249,142 +248,154 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         ret = TaurusBaseWritableWidget.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.input'
-        ret['icon'] = ":/designer/combobox.png"
+        ret['icon'] = "designer:combobox.png"
         return ret
-    
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     model = Qt.pyqtProperty("QString",
-                                TaurusBaseWidget.getModel,
-                                TaurusBaseWidget.setModel,
-                                TaurusBaseWidget.resetModel)
+                            TaurusBaseWidget.getModel,
+                            TaurusBaseWidget.setModel,
+                            TaurusBaseWidget.resetModel)
 
     useParentModel = Qt.pyqtProperty("bool",
-                                         TaurusBaseWidget.getUseParentModel,
-                                         TaurusBaseWidget.setUseParentModel,
-                                         TaurusBaseWidget.resetUseParentModel)
+                                     TaurusBaseWidget.getUseParentModel,
+                                     TaurusBaseWidget.setUseParentModel,
+                                     TaurusBaseWidget.resetUseParentModel)
 
     autoApply = Qt.pyqtProperty("bool",
-                                    TaurusBaseWritableWidget.getAutoApply,
-                                    TaurusBaseWritableWidget.setAutoApply,
-                                    TaurusBaseWritableWidget.resetAutoApply)
-    
-    forcedApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getForcedApply,
-                                 TaurusBaseWritableWidget.setForcedApply,
-                                 TaurusBaseWritableWidget.resetForcedApply)
+                                TaurusBaseWritableWidget.getAutoApply,
+                                TaurusBaseWritableWidget.setAutoApply,
+                                TaurusBaseWritableWidget.resetAutoApply)
 
-    
+    forcedApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getForcedApply,
+                                  TaurusBaseWritableWidget.setForcedApply,
+                                  TaurusBaseWritableWidget.resetForcedApply)
+
+
 class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
-    
-    __pyqtSignals__ = ("modelChanged(const QString &)",)
-    
-    def __init__(self, parent = None, designMode = False):
+    """Combobox whose items reflect the items read from a 1D attribute of dtype
+    str
+    """
+
+    def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
         self.call__init__wo_kw(Qt.QComboBox, parent)
         self.call__init__(TaurusBaseWidget, name)
         self.insertEventFilter(eventfilters.IGNORE_CONFIG)
         self.setSizeAdjustPolicy(Qt.QComboBox.AdjustToContents)
         self.defineStyle()
-    
+        self._lastAttrList = None
+
     def defineStyle(self):
-        """ Defines the initial style for the widget """
+        """Defines the initial style for the widget """
         self.updateStyle()
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget over writing
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    
+
     def getModelClass(self):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
-        return taurus.core.taurusattribute.TaurusAttribute
-            
+        """reimplemented from :class:`TaurusBaseWidget`"""
+        return TaurusAttribute
+
     def handleEvent(self, evt_src, evt_type, evt_value):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
-        self.clear()
-        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Error:
-            return
-        if not (evt_src is None or evt_value is None) :
-            attrList = list(evt_value.value)
+        """reimplemented from :class:`TaurusBaseWidget`"""
+        if evt_type == TaurusEventType.Error:
+            attrList = []
+        elif evt_src is None or evt_value is None:
+            attrList = []
+        else:
+            attrList = list(evt_value.rvalue)
             attrList.sort()
+        if attrList != self._lastAttrList:
+            self._lastAttrList = attrList
+            self.clear()
             self.addItems(attrList)
             self.updateStyle()
-    
+
     def updateStyle(self):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
+        """reimplemented from :class:`TaurusBaseWidget`"""
         self.update()
-    
+
     def setQModel(self, *args, **kwargs):
-        '''access to :meth:`QAbstractItemView.setModel`
-        
+        """access to :meth:`QAbstractItemView.setModel`
+
         .. seealso: :meth:`setModel`
-        '''
+        """
         return Qt.QAbstractItemView.setModel(self, *args, **kwargs)
-    
+
     def setModel(self, m):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
+        """reimplemented from :class:`TaurusBaseWidget`"""
         if isinstance(m, Qt.QAbstractItemModel):
-            self.warning("Deprecation warning: use setQModel() if you want to set a Qt Item Model. The setModel() method is reserved for Taurus models")
+            self.warning(("Deprecation warning: use setQModel() if you" +
+                          " want to set a Qt Item Model. The setModel()" +
+                          " method is reserved for Taurus models"))
             return Qt.QAbstractItemView.setQModel(self, m)
         return TaurusBaseWidget.setModel(self, m)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        '''reimplemented from :class:`TaurusBaseWidget`'''
+        """reimplemented from :class:`TaurusBaseWidget`"""
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['group'] = 'Taurus Input'
         ret['module'] = 'taurus.qt.qtgui.input'
-        ret['icon'] = ":/designer/combobox.png"
+        ret['icon'] = "designer:combobox.png"
         return ret
-    
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # QT properties 
+    # QT properties
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
-    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel, 
-                                           TaurusBaseWidget.setModel,
-                                           TaurusBaseWidget.resetModel)
-                                
+    model = Qt.pyqtProperty("QString", TaurusBaseWidget.getModel,
+                            TaurusBaseWidget.setModel,
+                            TaurusBaseWidget.resetModel)
+
     useParentModel = Qt.pyqtProperty("bool",
-                                         TaurusBaseWidget.getUseParentModel, 
-                                         TaurusBaseWidget.setUseParentModel,
-                                         TaurusBaseWidget.resetUseParentModel)
+                                     TaurusBaseWidget.getUseParentModel,
+                                     TaurusBaseWidget.setUseParentModel,
+                                     TaurusBaseWidget.resetUseParentModel)
 
 
 #####################################################################
-## Testing
+# Testing
 #####################################################################
-def taurusAttrListTest():
-    '''tests taurusAttrList. Model: an attribute containing a list of strings'''
-    model = sys.argv[1]
-    a = Qt.QApplication([])
+def _taurusAttrListTest():
+    """tests taurusAttrList. Model: an attribute containing a list of strings"""
+    from taurus.qt.qtgui.application import TaurusApplication
+    a = TaurusApplication()
+    # model = sys.argv[1]
+    # model = "eval:['foo','bar']"
+    model = "sys/tg_test/1/string_spectrum"
     w = TaurusAttrListComboBox()
-    w.setModel(model) 
+    w.setModel(model)
     w.show()
     return a.exec_()
-        
-        
-def TaurusValueComboboxTest():
-    '''tests TaurusValueCombobox '''
-    model = sys.argv[1]
+
+
+def _taurusValueComboboxTest():
+    from taurus.qt.qtgui.application import TaurusApplication
+    """tests TaurusValueCombobox """
+    # model = sys.argv[1]
+    model = 'sys/tg_test/1/short_scalar'
     names = [
         ('name0', 0),
         ('name1', 1),
         ('name2', 2),
         ('name3', 3)
     ]
-    a = Qt.QApplication([])
+    a = TaurusApplication()
     w = TaurusValueComboBox()
     w.setModel(model)
     w.addValueNames(names)
-    #w.setModel(model)
     #w.autoApply = True
     w.show()
     return a.exec_()
 
 if __name__ == '__main__':
     import sys
-    #main = TaurusValueComboboxTest #uncomment to test TaurusValueCombobox
-    main = taurusAttrListTest #uncomment to testtaurusAttrList
+    # main = _taurusValueComboboxTest #uncomment to test TaurusValueCombobox
+    main = _taurusAttrListTest  # uncomment to testtaurusAttrList
     sys.exit(main())

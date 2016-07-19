@@ -6,15 +6,15 @@ from taurus.qt.qtgui.plot import TaurusPlot
 
 app = Qt.QApplication(sys.argv)
 ##########################
-#BEGUIN EXAMPLE CODE
+# BEGUIN EXAMPLE CODE
 ##########################
 
 panel = TaurusPlot()
-model = ['sys/taurustest/1/abscissas','sys/taurustest/1/curve']
+model = ['sys/taurustest/1/abscissas', 'sys/taurustest/1/curve']
 panel.setModel(model)
 
 ########################
-#END EXAMPLE CODE
+# END EXAMPLE CODE
 ########################
 panel.show()
 sys.exit(app.exec_())

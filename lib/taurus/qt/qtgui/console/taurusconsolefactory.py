@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -52,11 +52,11 @@ class TaurusConsoleFactory(Singleton):
     ipython_application_class = TaurusConsoleApplication
     widget_factory_class = TaurusConsoleWidget
     kernel_manager_class = QtKernelManager
-    
+
     def init(self, *args, **kwargs):
         self.ipython_application = None
         self.ipython_args = kwargs.pop('ipython_args', [])
-    
+
     def get_ipython_application(self):
         app = self.ipython_application
         if app is None:
@@ -77,9 +77,9 @@ class TaurusConsoleFactory(Singleton):
             if inspect.isclass(obj):
                 if issubclass(obj, taurusconsoleextensions.BaseConsoleExtension):
                     if obj.is_enabled():
-                        ret[obj.Name] = obj 
+                        ret[obj.Name] = obj
         return ret
-    
+
     def get_extension(self, name):
         import inspect
         ret = {}
@@ -92,19 +92,19 @@ class TaurusConsoleFactory(Singleton):
                     if obj.is_enabled():
                         if obj.Name == name:
                             return obj
-                        ret[obj.Name] = obj 
-    
+                        ret[obj.Name] = obj
+
     def new_kernel_manager(self, **kwargs):
         return self.kernel_manager_class(**kwargs)
-    
+
     def new_frontend_widget(self, *args, **kwargs):
         return self.widget_factory_class(*args, **kwargs)
-    
+
     def new_frontend_slave(self, widget):
         app = self.get_ipython_application()
         new_widget = app.new_frontend_slave(widget)
         return new_widget
-    
+
     def new_frontend_master(self, name="ipython"):
         app = self.get_ipython_application()
         extension = self.get_extension(name)
@@ -114,8 +114,8 @@ class TaurusConsoleFactory(Singleton):
     def new_window(self, kernels=None):
         qtapp = Qt.QApplication.instance()
         window = TaurusConsoleWindow(qtapp,
-            new_frontend_factory=self.new_frontend_master, 
-            slave_frontend_factory=self.new_frontend_slave)
+                                     new_frontend_factory=self.new_frontend_master,
+                                     slave_frontend_factory=self.new_frontend_slave)
         extensions = self.get_extensions()
         for extension in extensions.values():
             window.register_kernel_extension(extension)
@@ -128,12 +128,13 @@ class TaurusConsoleFactory(Singleton):
                 window.create_tab_with_new_frontend(name=name, label=label)
         return window
 
+
 def main(argv=None):
     import taurus.core.util.argparse
     import taurus.qt.qtgui.application
-    
+
     targp = taurus.core.util.argparse
-    
+
     if argv is None:
         import sys
         argv = sys.argv

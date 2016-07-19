@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -48,7 +48,6 @@ import PyTango
 
 from taurus.core.util.report import TaurusMessageReportHandler
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.resource import getThemePixmap
 from taurus.qt.qtgui.util.ui import UILoadable
 
 
@@ -164,7 +163,6 @@ class MacroServerMessageErrorHandler(TaurusMessageErrorHandler):
         msgbox.setOriginHtml(html)
 
 
-
 def is_report_handler(report, abs_file=None):
     """Helper function to determine if a certain python object is a valid
     report handler"""
@@ -181,6 +179,8 @@ def is_report_handler(report, abs_file=None):
     return True
 
 _REPORT_HANDLERS = None
+
+
 def get_report_handlers():
     global _REPORT_HANDLERS
     if not _REPORT_HANDLERS is None:
@@ -205,7 +205,8 @@ def get_report_handlers():
             if not elem.endswith('.py'):
                 continue
             elem, _ = os.path.splitext(elem)
-            _is_report_handler = functools.partial(is_report_handler, abs_file=full_elem)
+            _is_report_handler = functools.partial(
+                is_report_handler, abs_file=full_elem)
             report_lib = __import__(elem, globals(), locals(), [], -1)
             for name, obj in inspect.getmembers(report_lib, _is_report_handler):
                 _REPORT_HANDLERS[name] = obj
@@ -226,6 +227,7 @@ An error occured in '{appName} {appVersion}' on {time}
 {origin}
 --------------------------------------------------------------------------------
 """
+
 
 @UILoadable(with_ui='_ui')
 class TaurusMessagePanel(Qt.QWidget):
@@ -254,6 +256,8 @@ class TaurusMessagePanel(Qt.QWidget):
             msgbox = TaurusMessagePanel(*exc_info)
             msgbox.show()"""
 
+    toggledDetails = Qt.pyqtSignal(bool)
+
     def __init__(self, err_type=None, err_value=None, err_traceback=None, parent=None, designMode=False):
         Qt.QWidget.__init__(self, parent)
         self.loadUi()
@@ -264,12 +268,10 @@ class TaurusMessagePanel(Qt.QWidget):
         self._ui._checkBox.setCheckState(Qt.Qt.Unchecked)
         self._initReportCombo()
 
-        Qt.QObject.connect(self._ui._showDetailsButton,
-                           Qt.SIGNAL("toggled(bool)"), self._onShowDetails)
-        Qt.QObject.connect(self._ui._reportComboBox,
-                           Qt.SIGNAL("activated(int)"), self._onReportTriggered)
+        self._ui._showDetailsButton.toggled.connect(self._onShowDetails)
+        self._ui._reportComboBox.activated.connect(self._onReportTriggered)
 
-        pixmap = getThemePixmap("emblem-important")
+        pixmap = Qt.QIcon.fromTheme("emblem-important").pixmap(48, 48)
         self.setIconPixmap(pixmap)
 
         if err_value is not None:
@@ -306,7 +308,7 @@ class TaurusMessagePanel(Qt.QWidget):
             text = "Show details..."
         self._ui._showDetailsButton.setText(text)
         self.adjustSize()
-        self.emit(Qt.SIGNAL("toggledDetails(bool)"), show)
+        self.toggledDetails.emit(show)
 
     def reportComboBox(self):
         return self._ui._reportComboBox
@@ -470,9 +472,10 @@ class TaurusMessagePanel(Qt.QWidget):
         :param err_traceback: a traceback object which encapsulates the call
                               stack at the point where the exception originally
                               occurred
-        :type err_traceback: traceback"""
+        :type err_traceback: TracebackType"""
         i = sys.exc_info()
-        self._exc_info = [ err_type or i[0], err_value or i[1], err_traceback or i[2] ]
+        self._exc_info = [err_type or i[0],
+                          err_value or i[1], err_traceback or i[2]]
 
         handler_klass = self.findErrorHandler(self._exc_info[0])
         handler_klass(self)
@@ -485,7 +488,7 @@ class TaurusMessagePanel(Qt.QWidget):
         :rtype: tuple<type, value, traceback>"""
         return self._exc_info
 
-    ErrorHandlers = { PyTango.DevFailed : TangoMessageErrorHandler }
+    ErrorHandlers = {PyTango.DevFailed: TangoMessageErrorHandler}
 
     @classmethod
     def registerErrorHandler(klass, err_type, err_handler):
@@ -510,17 +513,21 @@ class DemoException(Exception):
     """Just a plain python exception for demo purposes"""
     pass
 
+
 def s1():
     """Just a function to make the stack more interesting"""
     return s2()
+
 
 def s2():
     """Just a function to make the stack more interesting"""
     return s3()
 
+
 def s3():
     """Just a function to make the stack more interesting"""
     raise DemoException("A demo exception occurred")
+
 
 class QMessageDialog(Qt.QDialog):
     """Helper class for the demo"""
@@ -528,7 +535,7 @@ class QMessageDialog(Qt.QDialog):
     def __init__(self, msgbox, parent=None):
         Qt.QDialog.__init__(self, parent)
         l = Qt.QVBoxLayout()
-        l.setContentsMargins(0,0,0,0)
+        l.setContentsMargins(0, 0, 0, 0)
         l.addWidget(msgbox)
         l.addStretch(1)
         self.setLayout(l)
@@ -542,13 +549,16 @@ def py_exc():
         msgbox = TaurusMessagePanel(*sys.exc_info())
         QMessageDialog(msgbox).exec_()
 
+
 def tg_exc():
     """Shows a tango exception in a TaurusMessagePanel"""
     try:
-        PyTango.Except.throw_exception('TangoException', 'A simple tango exception', 'right here')
+        PyTango.Except.throw_exception(
+            'TangoException', 'A simple tango exception', 'right here')
     except PyTango.DevFailed:
         msgbox = TaurusMessagePanel(*sys.exc_info())
         QMessageDialog(msgbox).exec_()
+
 
 def tg_serv_exc():
     """Shows a tango exception from a server in a TaurusMessagePanel"""
@@ -563,21 +573,26 @@ def tg_serv_exc():
         msgbox = TaurusMessagePanel(*sys.exc_info())
         QMessageDialog(msgbox).exec_()
 
+
 def py_tg_serv_exc():
     """Shows a tango exception from a python server in a TaurusMessagePanel"""
     try:
-        PyTango.Except.throw_exception('TangoException', 'A simple tango exception', 'right here')
+        PyTango.Except.throw_exception(
+            'TangoException', 'A simple tango exception', 'right here')
     except PyTango.DevFailed, df1:
         try:
-            import traceback, StringIO
+            import traceback
+            import StringIO
             origin = StringIO.StringIO()
             traceback.print_stack(file=origin)
             origin.seek(0)
             origin = origin.read()
-            PyTango.Except.re_throw_exception(df1, 'PyDs_Exception', 'DevFailed: A simple tango exception', origin)
+            PyTango.Except.re_throw_exception(
+                df1, 'PyDs_Exception', 'DevFailed: A simple tango exception', origin)
         except PyTango.DevFailed:
             msgbox = TaurusMessagePanel(*sys.exc_info())
             QMessageDialog(msgbox).exec_()
+
 
 def demo():
     """Message panel"""
@@ -587,20 +602,21 @@ def demo():
 
     m1 = Qt.QPushButton("Python exception")
     layout.addWidget(m1)
-    Qt.QObject.connect(m1, Qt.SIGNAL("clicked()"), py_exc)
+    m1.clicked.connect(py_exc)
     m2 = Qt.QPushButton("Tango exception")
     layout.addWidget(m2)
-    Qt.QObject.connect(m2, Qt.SIGNAL("clicked()"), tg_exc)
+    m2.clicked.connect(tg_exc)
     layout.addWidget(m2)
     m3 = Qt.QPushButton("Tango server exception")
     layout.addWidget(m3)
-    Qt.QObject.connect(m3, Qt.SIGNAL("clicked()"), tg_serv_exc)
+    m3.clicked.connect(tg_serv_exc)
     layout.addWidget(m3)
     m4 = Qt.QPushButton("Python tango server exception")
     layout.addWidget(m4)
-    Qt.QObject.connect(m4, Qt.SIGNAL("clicked()"), py_tg_serv_exc)
+    m4.clicked.connect(py_tg_serv_exc)
     layout.addWidget(m4)
     return panel
+
 
 def main():
 
@@ -626,4 +642,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

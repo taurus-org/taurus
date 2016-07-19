@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -31,22 +31,29 @@ __all__ = ["QTaurusBaseListener", "QObjectTaurusListener"]
 
 __docformat__ = 'restructuredtext'
 
+from taurus.qt.qtcore.util.signal import baseSignal
+from taurus.core.util.log import deprecation_decorator
 from taurus.core.tauruslistener import TaurusListener
 from taurus.external.qt import Qt
 
 
 class QTaurusBaseListener(TaurusListener):
-    """Base class for QObjects listening to taurus events. It is not
-    instanciable! Use a class that inherits from Qt class and from this class
-    (example: :class:`QObjectTaurusListener`)"""
-    
+    """Base class for QObjects listening to taurus events.
+
+    .. note::
+           :meth:`getSignaller` is now unused and deprecated. This is because
+           `taurusEvent` is implemented using :func:`baseSignal`, that doesn't
+           require the class to inherit from QObject.
+    """
+
+    taurusEvent = baseSignal('taurusEvent', object, object, object)
+
     def __init__(self, name=None, parent=None):
         if name is None:
             name = self.__class__.__name__
         super(QTaurusBaseListener, self).__init__(name, parent=parent)
         self._eventFilters = []
-        Qt.QObject.connect(self.getSignaller(), Qt.SIGNAL('taurusEvent'),
-                           self.filterEvent)
+        self.taurusEvent.connect(self.filterEvent)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Event handling chain
@@ -75,7 +82,7 @@ class QTaurusBaseListener(TaurusListener):
         """
         self.fireEvent(evt_src, evt_type, evt_value)
 
-    def fireEvent(self, evt_src = None, evt_type = None, evt_value = None):
+    def fireEvent(self, evt_src=None, evt_type=None, evt_value=None):
         """Emits a "taurusEvent" signal.
         It is unlikely that you may need to reimplement this method in subclasses.
         Consider reimplementing :meth:`eventReceived` or :meth:`handleEvent`
@@ -87,8 +94,7 @@ class QTaurusBaseListener(TaurusListener):
         :param evt_value: (object or None) event value
         """
         try:
-            emmiter = self.getSignaller()
-            emmiter.emit(Qt.SIGNAL('taurusEvent'), evt_src, evt_type, evt_value)
+            self.taurusEvent.emit(evt_src, evt_type, evt_value)
         except:
             pass
 
@@ -102,7 +108,7 @@ class QTaurusBaseListener(TaurusListener):
         """
         r = evt_src, evt_type, evt_value
 
-        if r == (-1,-1,-1):
+        if r == (-1, -1, -1):
             # @todo In an ideal world the signature of this method should be
             # (evt_src, evt_type, evt_value). However there's a bug in PyQt:
             # If a signal is disconnected between the moment it is emitted and
@@ -114,7 +120,8 @@ class QTaurusBaseListener(TaurusListener):
 
         for f in self._eventFilters:
             r = f(*r)
-            if r is None: return
+            if r is None:
+                return
         self.handleEvent(*r)
 
     def handleEvent(self, evt_src, evt_type, evt_value):
@@ -127,7 +134,7 @@ class QTaurusBaseListener(TaurusListener):
         """
         pass
 
-    def setEventFilters(self, filters = None):
+    def setEventFilters(self, filters=None):
         """sets the taurus event filters list.
         The filters are run in order, using each output to feed the next filter.
         A filter must be a function that accepts 3 arguments ``(evt_src, evt_type, evt_value)``
@@ -141,7 +148,8 @@ class QTaurusBaseListener(TaurusListener):
 
         See also: insertEventFilter
         """
-        if filters is None: filters = []
+        if filters is None:
+            filters = []
         self._eventFilters = list(filters)
 
     def getEventFilters(self):
@@ -161,11 +169,8 @@ class QTaurusBaseListener(TaurusListener):
         """
         self._eventFilters.insert(index, filter)
 
+    @deprecation_decorator(rel='4.0')
     def getSignaller(self):
-        '''Reimplement this method if your derived class does not inherit from
-        QObject. The return value should be a permanent object capable of
-        emitting Qt signals. See :class:`TaurusImageItem` as an example
-        '''
         return self
 
 
@@ -179,21 +184,23 @@ class QObjectTaurusListener(Qt.QObject, QTaurusBaseListener):
 class ListenerDemo(QObjectTaurusListener):
 
     def eventReceived(self, evt_src, evt_type, evt_value):
-        self.info("New %s event from %s", taurus.core.taurusbasetypes.TaurusEventType[evt_type], evt_src)
+        self.info("New %s event from %s",
+                  taurus.core.taurusbasetypes.TaurusEventType[evt_type], evt_src)
         return super(ListenerDemo, self).eventReceived(evt_src, evt_type, evt_value)
-    
+
     def handleEvent(self, evt_src, evt_type, evt_value):
-        self.info("New %s event from %s", taurus.core.taurusbasetypes.TaurusEventType[evt_type], evt_src)
+        self.info("New %s event from %s",
+                  taurus.core.taurusbasetypes.TaurusEventType[evt_type], evt_src)
 
 
 if __name__ == "__main__":
     import time
     import taurus
     qlistener = ListenerDemo(name="DemoObject")
-    
+
     attr = taurus.Attribute("sys/tg_test/1/double_scalar")
     attr.addListener(qlistener)
-    
+
     try:
         while True:
             time.sleep(1)

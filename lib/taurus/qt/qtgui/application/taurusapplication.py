@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -82,8 +82,8 @@ class STD(Logger):
             # while there is no new line, just accumulate the buffer
             msgl = len(msg)
             if msgl > 0 and \
-               (msg[-1] == '\n' or msg.index('\n') >= 0 or \
-                msgl >= self.FlushWaterMark):
+               (msg[-1] == '\n' or msg.index('\n') >= 0 or
+                    msgl >= self.FlushWaterMark):
                 self.flush()
         except ValueError:
             pass
@@ -100,8 +100,8 @@ class STD(Logger):
             buff = self.buffer
             if buff is None or len(buff) == 0:
                 return
-            #take the '\n' because the output is a list of strings, each to be
-            #interpreted as a separate line in the client
+            # take the '\n' because the output is a list of strings, each to be
+            # interpreted as a separate line in the client
             if buff[-1] == '\n':
                 buff = buff[:-1]
             if self.log_handlers:
@@ -229,7 +229,8 @@ class TaurusApplication(Qt.QApplication, Logger):
                 parser._add_version_option()
 
         p, opt, args = \
-            taurus.core.util.argparse.init_taurus_args(parser=parser, args=args[0][1:])
+            taurus.core.util.argparse.init_taurus_args(
+                parser=parser, args=args[0][1:])
 
         self._cmd_line_parser = p
         self._cmd_line_options = opt
@@ -327,7 +328,7 @@ class TaurusApplication(Qt.QApplication, Logger):
             if log_file_name is None:
                 log_file_name = self.__buildLogFileName()
             f_h = logging.handlers.RotatingFileHandler(log_file_name,
-                maxBytes=maxBytes, backupCount=backupCount)
+                                                       maxBytes=maxBytes, backupCount=backupCount)
             Logger.addRootLogHandler(f_h)
             if self._out is not None:
                 self._out.std = sys.__stdout__
@@ -341,3 +342,14 @@ class TaurusApplication(Qt.QApplication, Logger):
                          log_file_name)
             self.debug("Error description", exc_info=1)
 
+    @staticmethod
+    def exec_(*args, **kwargs):
+        # TODO: substitute this ugly hack by some more general mechanism
+        try:
+            ret = Qt.QApplication.exec_(*args, **kwargs)
+        except TypeError:
+            ret = Qt.QApplication.exec_(*args)
+        from taurus.core.util.log import _DEPRECATION_COUNT
+        from taurus import info
+        info('\n*********************\n%s', _DEPRECATION_COUNT.pretty())
+        return ret

@@ -2,30 +2,30 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 """
-propertyfile.py: 
-    
+propertyfile.py:
+
 A Python replacement for java.util.Properties class
 This is modelled as closely as possible to the Java original.
 
@@ -38,13 +38,15 @@ __all__ = ["Properties"]
 
 __docformat__ = "restructuredtext"
 
-import sys,os
+import sys
+import os
 import re
 import time
 
+
 class Properties(object):
     """ A Python replacement for java.util.Properties """
-    
+
     def __init__(self, props=None):
 
         # Note: We don't take a default properties object
@@ -60,17 +62,17 @@ class Properties(object):
         # Dictionary mapping keys from property
         # dictionary to pristine dictionary
         self._keymap = {}
-        
+
         self.othercharre = re.compile(r'(?<!\\)(\s*\=)|(?<!\\)(\s*\:)')
         self.othercharre2 = re.compile(r'(\s*\=)|(\s*\:)')
         self.bspacere = re.compile(r'\\(?!\s$)')
-        
-    def __str__(self):
-        s='{'
-        for key,value in self._props.items():
-            s = ''.join((s,key,'=',value,', '))
 
-        s=''.join((s[:-2],'}'))
+    def __str__(self):
+        s = '{'
+        for key, value in self._props.items():
+            s = ''.join((s, key, '=', value, ', '))
+
+        s = ''.join((s[:-2], '}'))
         return s
 
     def __parse(self, lines):
@@ -101,26 +103,28 @@ class Properties(object):
         # key
         # This key= this value
         # key = value1 value2 value3
-        
+
         # Any line that starts with a '#' is considerered a comment
         # and skipped. Also any trailing or preceding whitespaces
         # are removed from the key/value.
-        
+
         # This is a line parser. It parses the
         # contents like by line.
 
-        lineno=0
+        lineno = 0
         i = iter(lines)
 
         for line in i:
             lineno += 1
             line = line.strip()
             # Skip null lines
-            if not line: continue
+            if not line:
+                continue
             # Skip lines which are comments
-            if line[0] == '#': continue
+            if line[0] == '#':
+                continue
             # Some flags
-            escaped=False
+            escaped = False
             # Position of first separation char
             sepidx = -1
             # A flag for performing wspace re check
@@ -139,13 +143,13 @@ class Properties(object):
                     # Check if either '=' or ':' is present
                     # in the line. If they are then it means
                     # they are preceded by a backslash.
-                    
+
                     # This means, we need to modify the
                     # wspacere a bit, not to look for
                     # : or = characters.
                     wspacere = re.compile(r'(?<![\\])(\s)')
                 start, end = 0, len(line)
-                
+
             m2 = wspacere.search(line, start, end)
             if m2:
                 # print 'Space match=>',line
@@ -159,8 +163,7 @@ class Properties(object):
                 first, last = m.span()
                 sepidx = last - 1
                 # print line[sepidx]
-                
-                
+
             # If the last character is a backslash
             # it has to be preceded by a space in which
             # case the next line is read as part of the
@@ -175,18 +178,18 @@ class Properties(object):
 
             # Now split to key,value according to separation char
             if sepidx != -1:
-                key, value = line[:sepidx], line[sepidx+1:]
+                key, value = line[:sepidx], line[sepidx + 1:]
             else:
-                key,value = line,''
+                key, value = line, ''
 
             self.processPair(key, value)
-            
+
     def processPair(self, key, value):
         """ Process a (key, value) pair """
 
         oldkey = key
         oldvalue = value
-        
+
         # Create key intelligently
         keyparts = self.bspacere.split(key)
         # print keyparts
@@ -195,7 +198,7 @@ class Properties(object):
         lastpart = keyparts[-1]
 
         if lastpart.find('\\ ') != -1:
-            keyparts[-1] = lastpart.replace('\\','')
+            keyparts[-1] = lastpart.replace('\\', '')
 
         # If no backspace is found at the end, but empty
         # space is found, strip it
@@ -206,10 +209,10 @@ class Properties(object):
         if strippable:
             key = key.strip()
             oldkey = oldkey.strip()
-        
+
         oldvalue = self.unescape(oldvalue)
         value = self.unescape(value)
-        
+
         self._props[key] = value.strip()
 
         # Check if an entry exists in pristine keys
@@ -220,34 +223,34 @@ class Properties(object):
             self._origprops[oldkey] = oldvalue.strip()
             # Store entry in keymap
             self._keymap[key] = oldkey
-        
+
     def escape(self, value):
 
         # Java escapes the '=' and ':' in the value
         # string with backslashes in the store method.
         # So let us do the same.
-        newvalue = value.replace(':','\:')
-        newvalue = newvalue.replace('=','\=')
+        newvalue = value.replace(':', '\:')
+        newvalue = newvalue.replace('=', '\=')
 
         return newvalue
 
     def unescape(self, value):
 
         # Reverse of escape
-        newvalue = value.replace('\:',':')
-        newvalue = newvalue.replace('\=','=')
+        newvalue = value.replace('\:', ':')
+        newvalue = newvalue.replace('\=', '=')
 
-        return newvalue    
-        
+        return newvalue
+
     def load(self, stream):
         """ Load properties from an open file stream """
-        
+
         # For the time being only accept file input streams
         if type(stream) is not file:
-            raise TypeError,'Argument should be a file object!'
+            raise TypeError, 'Argument should be a file object!'
         # Check for the opened mode
         if stream.mode != 'r':
-            raise ValueError,'Stream should be opened in read-only mode!'
+            raise ValueError, 'Stream should be opened in read-only mode!'
 
         try:
             lines = stream.readlines()
@@ -257,8 +260,8 @@ class Properties(object):
 
     def getProperty(self, key):
         """ Return a property for the given key """
-        
-        return self._props.get(key,'')
+
+        return self._props.get(key, '')
 
     def setProperty(self, key, value):
         """ Set the property for the given key """
@@ -266,7 +269,7 @@ class Properties(object):
         if type(key) is str and type(value) is str:
             self.processPair(key, value)
         else:
-            raise TypeError,'both key and value should be strings!'
+            raise TypeError, 'both key and value should be strings!'
 
     def propertyNames(self):
         """ Return an iterator over all the keys of the property
@@ -279,25 +282,25 @@ class Properties(object):
         stream 'out' which defaults to the standard output """
 
         out.write('-- listing properties --\n')
-        for key,value in self._props.items():
-            out.write(''.join((key,'=',value,'\n')))
+        for key, value in self._props.items():
+            out.write(''.join((key, '=', value, '\n')))
 
     def store(self, out, header=""):
         """ Write the properties list to the stream 'out' along
         with the optional 'header' """
 
         if out.mode[0] != 'w':
-            raise ValueError,'Steam should be opened in write mode!'
+            raise ValueError, 'Steam should be opened in write mode!'
 
         try:
-            out.write(''.join(('#',header,'\n')))
+            out.write(''.join(('#', header, '\n')))
             # Write timestamp
             tstamp = time.strftime('%a %b %d %H:%M:%S %Z %Y', time.localtime())
-            out.write(''.join(('#',tstamp,'\n')))
+            out.write(''.join(('#', tstamp, '\n')))
             # Write properties from the pristine dictionary
             for prop, val in self._origprops.items():
-                out.write(''.join((prop,'=',self.escape(val),'\n')))
-                
+                out.write(''.join((prop, '=', self.escape(val), '\n')))
+
             out.close()
         except IOError, e:
             raise
@@ -314,7 +317,7 @@ class Properties(object):
         """ To support direct dictionary like access """
 
         self.setProperty(name, value)
-        
+
     def __getattr__(self, name):
         """ For attributes not found in self, redirect
         to the properties dictionary """
@@ -322,19 +325,19 @@ class Properties(object):
         try:
             return self.__dict__[name]
         except KeyError:
-            if hasattr(self._props,name):
+            if hasattr(self._props, name):
                 return getattr(self._props, name)
-            
-if __name__=="__main__":
+
+if __name__ == "__main__":
     p = Properties()
     p.load(open('test2.properties'))
     p.list()
     p['hello'] = "no"
-    
+
 #    print p
 #    print p.items()
 #    print p['name3']
 #    p['name3'] = 'changed = value'
-#    print p['name3']    
+#    print p['name3']
 #    p['new key'] = 'new value'
-    p.store(open('test2.properties','w'))
+    p.store(open('test2.properties', 'w'))

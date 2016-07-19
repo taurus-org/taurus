@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -31,11 +31,13 @@ __docformat__ = "restructuredtext"
 
 from .util.log import Logger
 
+
 class TaurusOperation(Logger):
 
-    def __init__(self, name='TaurusOperation', parent=None, callbacks = None):
+    def __init__(self, name='TaurusOperation', parent=None, callbacks=None):
         self.call__init__(Logger, name, parent)
-        if callbacks is None: callbacks = []
+        if callbacks is None:
+            callbacks = []
         self._callbacks = callbacks
         self._dangerMessage = None
         self._isDangerous = False
@@ -51,7 +53,7 @@ class TaurusOperation(Logger):
 
     def execute(self):
         for f in self._callbacks:
-            f(operation = self)
+            f(operation=self)
 
     def isDangerous(self):
         return self._isDangerous
@@ -70,8 +72,9 @@ class TaurusOperation(Logger):
 
 class WriteAttrOperation(TaurusOperation):
 
-    def __init__(self, attr, value, callbacks = None):
-        self.call__init__(TaurusOperation, 'WriteAttrOperation', attr, callbacks=callbacks)
+    def __init__(self, attr, value, callbacks=None):
+        self.call__init__(TaurusOperation, 'WriteAttrOperation',
+                          attr, callbacks=callbacks)
         self.attr = attr
         self.value = value
 

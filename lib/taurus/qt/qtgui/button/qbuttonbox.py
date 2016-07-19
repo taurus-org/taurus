@@ -2,29 +2,29 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
-## 
-## http://taurus-scada.org
+# This file is part of Taurus
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-## 
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-## 
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-## 
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# http://taurus-scada.org
+##
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+##
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+##
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+##
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
 """
-qbuttonbox.py: 
+qbuttonbox.py:
 """
 
 __all__ = ["QButtonBox"]
@@ -33,67 +33,92 @@ __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 
+
 class QButtonBox(Qt.QDialogButtonBox):
-    __pyqtSignals__ = ("okClicked()","openClicked()", "saveClicked()", "cancelClicked()",
-                       "closeClicked()", "discardClicked()", "applyClicked()", "resetClicked()",
-                       "restoreDefaultsClicked()","helpClicked()","resetClicked()","saveAllClicked()",
-                       "yesClicked()","yesToAllClicked()","noClicked()","abortClicked()",
-                       "retryClicked()","ignoreClicked()")
-    
-    def __init__(self, parent = None, designMode = False, buttons = None,
-                 orientation = Qt.Qt.Horizontal):
-        
+
+    # PyQt Signals
+
+    okClicked = Qt.pyqtSignal()
+    openClicked = Qt.pyqtSignal()
+    saveClicked = Qt.pyqtSignal()
+    cancelClicked = Qt.pyqtSignal()
+    closeClicked = Qt.pyqtSignal()
+    discardClicked = Qt.pyqtSignal()
+    applyClicked = Qt.pyqtSignal()
+    resetClicked = Qt.pyqtSignal()
+    restoreDefaultsClicked = Qt.pyqtSignal()
+    helpClicked = Qt.pyqtSignal()
+    resetClicked = Qt.pyqtSignal()
+    saveAllClicked = Qt.pyqtSignal()
+    yesClicked = Qt.pyqtSignal()
+    yesToAllClicked = Qt.pyqtSignal()
+    noClicked = Qt.pyqtSignal()
+    abortClicked = Qt.pyqtSignal()
+    retryClicked = Qt.pyqtSignal()
+    ignoreClicked = Qt.pyqtSignal()
+
+    def __init__(self, parent=None, designMode=False, buttons=None,
+                 orientation=Qt.Qt.Horizontal):
+
         if buttons is None:
             buttons = Qt.QDialogButtonBox.Ok | Qt.QDialogButtonBox.Cancel
-    
+
         Qt.QDialogButtonBox.__init__(self, buttons, orientation, parent)
-        
-        Qt.QObject.connect(self, Qt.SIGNAL("clicked(QAbstractButton *)"), self.onClicked)
-        
+
+        self.clicked.connect(self.onClicked)
+
     def onClicked(self, button):
         if self.standardButton(button) == Qt.QDialogButtonBox.Ok:
-            self.emit(Qt.SIGNAL("okClicked()"))
+            self.okClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Open:
-            self.emit(Qt.SIGNAL("openClicked()"))
+            self.openClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Save:
-            self.emit(Qt.SIGNAL("saveClicked()"))
+            self.saveClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Cancel:
-            self.emit(Qt.SIGNAL("cancelClicked()"))
+            self.cancelClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Close:
-            self.emit(Qt.SIGNAL("closeClicked()"))
+            self.closeClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Discard:
-            self.emit(Qt.SIGNAL("discardClicked()"))
+            self.discardClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Apply:
-            self.emit(Qt.SIGNAL("applyClicked()"))
+            self.applyClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Reset:
-            self.emit(Qt.SIGNAL("resetClicked()"))
+            self.resetClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.RestoreDefaults:
-            self.emit(Qt.SIGNAL("restoreDefaultsClicked()"))
+            self.restoreDefaultsClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Help:
-            self.emit(Qt.SIGNAL("helpClicked()"))
+            self.helpClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.SaveAll:
-            self.emit(Qt.SIGNAL("saveAllClicked()"))
+            self.saveAllClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Yes:
-            self.emit(Qt.SIGNAL("yesClicked()"))
+            self.yesClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.YesToAll:
-            self.emit(Qt.SIGNAL("yesToAllClicked()"))
+            self.yesToAllClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.No:
-            self.emit(Qt.SIGNAL("noClicked()"))
+            self.noClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.NoToAll:
-            self.emit(Qt.SIGNAL("noToAllClicked()"))
+            self.noToAllClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Abort:
-            self.emit(Qt.SIGNAL("abortClicked()"))
+            self.abortClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Retry:
-            self.emit(Qt.SIGNAL("retryClicked()"))
+            self.retryClicked.emit()
         elif self.standardButton(button) == Qt.QDialogButtonBox.Ignore:
-            self.emit(Qt.SIGNAL("ignoreClicked()"))
+            self.ignoreClicked.emit()
 
 
 if __name__ == "__main__":
     import sys
-    
+
+    def on_ok():
+        print('OK!')
+
+    def on_cancel():
+        print('Cancel!')
+
     app = Qt.QApplication(sys.argv)
-    bb = TaurusButtonBox()
+    bb = QButtonBox()
+    bb.okClicked.connect(on_ok)
+    bb.cancelClicked.connect(on_cancel)
     bb.show()
 
     sys.exit(app.exec_())

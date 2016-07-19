@@ -26,19 +26,21 @@
 from __future__ import absolute_import
 
 try:
+    from pint import __version__
+    if __version__.split('.') < ['0','7']:
+        raise ImportError()
     from pint import *
-except ImportError:
-    # pint from local import
-    import os
-    import sys
-    import warnings
-    warnings.warn("pint not available. Using local pint", ImportWarning)
-    sys.path.append(os.path.dirname(__file__))
-    from pint import *
-    del warnings
-    del sys
-    del os
 
+except ImportError:
+    import warnings
+    warnings.warn("pint >=0.7 not available. Using local pint", ImportWarning)
+    from .pint_local import *
+    from .pint_local import __version__ as __local_pint_version
+    __version__ = __local_pint_version + '-taurus'
+    del warnings
+
+# Ininitialize the unit registry for taurus
 UR = UnitRegistry()
-UR.default_format = '~P'
-Quantity = UR.Quantity
+UR.default_format = '~' # use abbreviated units
+Q_ = Quantity = UR.Quantity
+

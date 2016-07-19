@@ -2,24 +2,24 @@
 
 #############################################################################
 ##
-## This file is part of Taurus
+# This file is part of Taurus
 ##
-## http://taurus-scada.org
+# http://taurus-scada.org
 ##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
 ##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
+# Taurus is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 ##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
+# Taurus is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Lesser General Public License
+# along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
 
@@ -38,10 +38,10 @@ class UILoadableTestCase(unittest.TestCase):
     """
     Test cases for UILoadable decorator
     """
-    
+
     @UILoadable
     class MyWidget1(Qt.QWidget):
-        
+
         def __init__(self, parent=None):
             Qt.QWidget.__init__(self, parent)
             self.loadUi()
@@ -55,13 +55,13 @@ class UILoadableTestCase(unittest.TestCase):
             path = os.path.join(os.path.dirname(__file__), "ui", "mywidget2")
             self.loadUi(filename="mywidget2_custom.ui", path=path)
             self.ui.my_button.setText("This is MY2 button")
-        
+
     def setUp(self):
         app = Qt.QApplication.instance()
         if app is None:
             app = Qt.QApplication([])
         self.__app = app
-        
+
     def test_uiloadable_default(self):
         """Test UILoadable with default arguments"""
         widget = self.MyWidget1()
@@ -80,19 +80,20 @@ class UILoadableTestCase(unittest.TestCase):
         self.assertEquals(widget.ui.my_button.text(), "This is MY2 button",
                           "button text differs from expected")
 
-         
+
 class Bug151_TestCase(BaseWidgetTestCase, unittest.TestCase):
     '''Test for bug 151: https://sourceforge.net/p/tauruslib/tickets/151/'''
+
     def test_bug151(self):
         '''Check inheritance of UILoadable classes across packages (bug #151)
         '''
         class Bug151_Widget(MyWidget3):
-                pass 
+            pass
         try:
             Bug151_Widget()
         except:
             self.fail('Inheriting from UILoadable from another package fails')
-        
+
 
 def main():
     unittest.main()

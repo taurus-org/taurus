@@ -116,7 +116,7 @@
  <customwidgets>
   <customwidget>
    <class>TaurusPlot</class>
-   <extends>QWidget</extends>
+   <extends>QwtPlot</extends>
    <header>taurus.qt.qtgui.plot</header>
   </customwidget>
  </customwidgets>

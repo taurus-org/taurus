@@ -14,20 +14,14 @@ development of taurus. So if you want to help out, read on!
 How to contribute to taurus
 ----------------------------
 
-Taurus is part of Tango_ and, more specifically, part of Sardana_. Until release
-3.1 (included) the development of Taurus was managed within the `tango-cs
-sourceforge project <https://sourceforge.net/projects/tango-cs/>`_  and its
-source code was hosted in the Tango SVN repository. Starting from right after
-the Taurus 3.1 release, the source code hosting and general project management
-(tickets, mailing list, etc) is managed within the Sardana `Sardana
-sourceforge project <https://sourceforge.net/projects/sardana/>`_.
 
-The Taurus source code is now hosted in a `subdirectory
-<http://sourceforge.net/p/sardana/sardana.git/ci/master/tree/taurus/>`_ of the
-`main Sardana git repository <http://sourceforge.net/p/sardana/sardana.git>`_. 
+Taurus is Free Software developed in open way. Contributions to code,
+documentation, etc. are always welcome.
 
-See `instructions from Sardana about cloning and forking the sardana git
-repository <http://www.sardana-controls.org/devel/guide_coding.html>`_.
+The "official" Taurus source code is hosted in a `git repository
+<http://sf.net/p/tauruslib/taurus.git>`_.
+
+The details in how to contribute are described in the TEP7_ document.
 
 
 Documentation
@@ -43,51 +37,57 @@ to this format.
 Coding conventions
 ------------------
 
-* In general, we try to follow the standard Python style conventions as
-  described in
-  `Style Guide for Python Code  <http://www.python.org/peps/pep-0008.html>`_
-* Code **must** be python 2.6 compatible
-* Use 4 spaces for indentation
-* In the same file, different classes should be separated by 2 lines
-* use ``lowercase`` for module names. If possible prefix module names with the
-  word ``taurus`` (like :file:`taurusutil.py`) to avoid import mistakes.
-* use ``CamelCase`` for class names
-* python module first line should be::
+- Code in Taurus should follow the standard Python style conventions as
+  described in PEP8_. Specially:
 
-    #!/usr/bin/env python
-* python module should contain license information (see template below)
-* avoid poluting namespace by making private definitions private (``__`` prefix)
+  - Use 4 spaces for indentation
+  - Respect the maximum of 79 characters per line
+  - Surround top-level function and class definitions with two blank lines.
+  - use ``lower_case`` for module names. If possible prefix module names with the
+    word ``taurus`` (like :file:`taurusutil.py`) to avoid import mistakes.
+  - use ``CamelCase`` for class names
+  - use ``lower_case`` for method names, except in the context of taurus.qt
+    where the prevailing convention is ``mixedCase`` due to influence from PyQt
+
+- Code must be python 2.7 compatible, and, if possible, new contributions
+  should also consider being compatible with python3.5 (to prepare for
+  python3 support)
+- Every python module file should contain license information (see template below).
+  The preferred license is the LGPL_. If you need/want to use a different one,
+  it should be compatible with the LGPL v3+.
+- avoid polluting namespace by making private definitions private (``__`` prefix)
   or/and implementing ``__all__`` (see template below)
-* whenever a python module can be executed from the command line, it should 
+- whenever a python module can be executed from the command line, it should
   contain a ``main`` function and a call to it in a ``if __name__ == "__main__"``
   like statement (see template below)
-* document all code using Sphinx_ extension to reStructuredText_
+- All public API code should be documented (modules, classes and public API) using
+  Sphinx_ extension to reStructuredText_
 
-The following code can serve as a template for writting new python modules to
+The following code can serve as a template for writing new python modules to
 taurus::
 
     #!/usr/bin/env python
 
     #############################################################################
     ##
-    ## This file is part of Taurus, a Tango User Interface Library
-    ## 
-    ## http://www.tango-controls.org/static/taurus/latest/doc/html/index.html
+    # This file is part of Taurus
     ##
-    ## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-    ## 
-    ## Taurus is free software: you can redistribute it and/or modify
-    ## it under the terms of the GNU Lesser General Public License as published by
-    ## the Free Software Foundation, either version 3 of the License, or
-    ## (at your option) any later version.
-    ## 
-    ## Taurus is distributed in the hope that it will be useful,
-    ## but WITHOUT ANY WARRANTY; without even the implied warranty of
-    ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    ## GNU Lesser General Public License for more details.
-    ## 
-    ## You should have received a copy of the GNU Lesser General Public License
-    ## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
+    # http://taurus-scada.org
+    ##
+    # Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
+    ##
+    # Taurus is free software: you can redistribute it and/or modify
+    # it under the terms of the GNU Lesser General Public License as published by
+    # the Free Software Foundation, either version 3 of the License, or
+    # (at your option) any later version.
+    ##
+    # Taurus is distributed in the hope that it will be useful,
+    # but WITHOUT ANY WARRANTY; without even the implied warranty of
+    # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    # GNU Lesser General Public License for more details.
+    ##
+    # You should have received a copy of the GNU Lesser General Public License
+    # along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
     ##
     #############################################################################
 
@@ -110,17 +110,16 @@ Special notes about Qt programming
 -----------------------------------
 
 The following Qt guidelines are intended to ensure compatibility between all 
-PyQt4/PySide versions.
+PyQt4, PyQt5 and PySide versions.
 
-1. Avoid importing PyQt4/PySide directly.
-   Imports like::
+1. Avoid importing PyQt / PySide directly. Imports like::
    
-       from PyQt4 import Qt
-       from PyQt4 import QtCore
-       from PyQt4 import QtGui
-       from PyQt4 import QtNetwork
-       from PyQt4 import QtWebKit
-       from PyQt4 import Qwt5
+        from PyQt4 import Qt
+        from PyQt4 import QtCore
+        from PyQt4 import QtGui
+        from PyQt4 import QtNetwork
+        from PyQt4 import QtWebKit
+        from PyQt4 import Qwt5
    
    Should be replaced by::
    
@@ -131,66 +130,81 @@ PyQt4/PySide versions.
        from taurus.external.qt import QtWebKit
        from taurus.external.qt import Qwt5
 
-2. Usage of :class:`~PyQt4.QString` is **discouraged**. You should always use
-   :class:`str`. QString objects don't exist in PySide or in the new PyQt4
-   API 2. Code like::
-   
-       my_string = Qt.QString(" hello ")
-       my_string2 = my_string.trimmed()
-       label.setText(my_string2)
-       print label.text()
-   
+2. Since Taurus v>=4.0, Qt-based code in Taurus may assume
+   that `PyQt API v2`_ is used. PyQt API 1 code, which was supported by Taurus 3,
+   is no longer guaranteed to work.
+
+   - Use standard python strings (e.g., use :class:`str` for Qt strings instead of
+     :class:`QString`). Code like::
+
+         my_string = Qt.QString(" hello ")
+         my_string2 = my_string.trimmed()
+
+     Should be replaced by::
+
+         my_string = " hello "
+         my_string2 = my_string.strip()
+
+
+   - Do not use :class:`QVariant`. QVariant objects don't exist in
+     PySide or in the new PyQt4 API 2. Code like::
+
+          def setData(self, index, qvalue, role=Qt.Qt.EditRole):
+              value = qvalue.toString()  # this assumes qvalue to be a :class:`QVariant`
+              self.buffer[index.column()] = value
+
+          def data(self, index, role=Qt.Qt.DisplayRole):
+              value = self.buffer[index.column()]
+
+              if role == Qt.Qt.DisplayRole:
+                  return Qt.QVariant(value)
+              else:
+                  return Qt.QVariant()
+
+     Should be replaced by::
+
+          def setData(self, index, value, role=Qt.Qt.EditRole):
+              self.buffer[index.column()] = value  # value is already a python object
+
+          def data(self, index, role=Qt.Qt.DisplayRole):
+              value = self.buffer[index.column()]
+
+              if role == Qt.Qt.DisplayRole:
+                  return value
+              else:
+                  return None
+
+     For compatibility reasons, :func:`~taurus.external.qt.Qt` defines `QVariant` and
+     `from_qvariant` which is internally used used to write code that supports both
+     API v1 and v2 for QVariant. But new code in Taurus v>=4 may assume v2 only.
+
+3. Use `new-style signals`_.
+   Old-style code like the following::
+
+       class MyWidget(Qt.QWidget):
+
+       def foo(self):
+           self.connect(self, Qt.SIGNAL('mySignal(int)', self.bar))
+           self.emit(Qt.SIGNAL('mySignal(int)', 123))
+
    Should be replaced by::
-   
-       my_string = " hello "
-       my_string2 = my_string.strip()
-       label.setText(my_string2)
-       print str(label.text())         # never assume Qt objects return str.
 
-   For compatibility reasons, QString and QStringList are always available
-   (even when using PySide or PyQt4 with API >=2) from 
-   :mod:`taurus.external.qt.Qt`.
-   Note that if you are using PySide or PyQt4 with API >=2 then QString is 
-   actually :class:`str` and QStringList is actually :class:`list`!
-   
-3. Usage of :class:`~PyQt4.QVariant` is **discouraged**. QVariant objects
-   don't exist in PySide or in the new PyQt4 API 2. Code like::
-   
-       def setData(self, index, qvalue, role=Qt.Qt.EditRole):
-           value = qvalue.toString()
-           self.buffer[index.column()] = value
-       
-       def data(self, index, role=Qt.Qt.DisplayRole):
-           value = self.buffer[index.column()]
-           
-           if role == Qt.Qt.DisplayRole:
-               return Qt.QVariant(value)
-           else:
-               return Qt.QVariant()
+       class MyWidget(Qt.QWidget):
 
-   Should be replaced by::
-   
-       def setData(self, index, qvalue, role=Qt.Qt.EditRole):
-           value = Qt.from_qvariant(qvalue, str)
-           self.buffer[index.column()] = value
-       
-       def data(self, index, role=Qt.Qt.DisplayRole):
-           value = self.buffer[index.column()]
-           
-           if role == Qt.Qt.DisplayRole:
-               return Qt.to_qvariant(value)
-           else:
-               return Qt.from_qvariant()
+           mySignal = Qt.pyqtSignal(int)
 
-   For compatibility reasons, QVariant are always available
-   (even when using PySide or PyQt4 with API >=2) from 
-   :mod:`taurus.external.qt.Qt`.
-   Note that if you are using PySide or PyQt4 with API >=2 then QVariant(pyobj)
-   if function that returns actually pyobj (exactly the same as
-   :func:`~taurus.external.qt.Qt.from_qvariant`.)
+           def foo(self):
+               self.mySignal.connect(self.bar)
+               self.mySignal.emit(123)
 
-.. _Tango: http://www.tango-controls.org/
-.. _Sardana: http://www.sardana-controls.org/
-.. _tango_cs: https://sourceforge.net/projects/tango-cs/
+4. Use of :class:`taurus.qt.qtgui.application.TaurusApplication` instead of
+   :class:`QApplication` is recommended (it takes care of various
+   initialization and exit tasks that are convenient).
+
 .. _reStructuredText:  http://docutils.sourceforge.net/rst.html
-.. _Sphinx: http://sphinx.pocoo.org/
+.. _Sphinx: http://www.sphinx-doc.org
+.. _TEP7: http://sf.net/p/tauruslib/wiki/TEP7/
+.. _PEP8: http://www.python.org/peps/pep-0008.html
+.. _LGPL: http://www.gnu.org/licenses/lgpl.html
+.. _`PyQt API v2`: http://pyqt.sourceforge.net/Docs/PyQt4/incompatible_apis.html
+.. _`new-style signals`: http://pyqt.sourceforge.net/Docs/PyQt4/new_style_signals_slots.html
