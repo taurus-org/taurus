@@ -80,6 +80,7 @@ def main():
     import sys
     import taurus.test.skip
     from taurus.external import argparse
+    from taurus import Release
     parser = argparse.ArgumentParser(description='Main test suite for Taurus')
     parser.add_argument('--skip-gui-tests', dest='skip_gui',
                         action='store_true', default=False,
@@ -93,7 +94,13 @@ def main():
                         dest='exclude_pattern',
                         default='(?!)',
                         help=help)
+    parser.add_argument('--version', action='store_true', default=False,
+                        help="show program's version number and exit")
     args = parser.parse_args()
+
+    if args.version:
+        print Release.version
+        sys.exit(0)
 
     if args.skip_gui:
         import taurus.test.skip

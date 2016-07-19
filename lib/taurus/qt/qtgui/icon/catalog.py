@@ -158,7 +158,8 @@ class QIconCatalog(Qt.QTabWidget):
 def main():
     """launcher of QIconCatalog"""
     import sys
-    app = TaurusApplication(sys.argv)
+    from taurus import Release
+    app = TaurusApplication(app_version=Release.version)
     w = QIconCatalog()
     w.setWindowTitle('Taurus Icon Catalog')
     w.show()
