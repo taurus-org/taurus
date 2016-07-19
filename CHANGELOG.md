@@ -4,23 +4,18 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 This file follows the formats and conventions from [keepachangelog.com]
 
 Note: changes in the [support-3.x] branch (which was split from 
-the master branch after [3.7.0] to be kept for legacy support 
-independently of the develop branch)  won't be reflected in 
-this file. 
+the master branch after [3.7.1] and maintained in parallel to the 
+develop branch)  won't be reflected in this file. 
 
 ## [Unreleased]
 
 
 ## [4.0.1] - 2016-07-19
-### Added
-- This CHANGELOG.md file
-
-## [4.0.0] - 2016-07-19
 Jul16 milestone. 
 First release of the Taurus 4 series.
 Largely (but not 100%) compatible with taurus 3 series.
 For a full log of commits since Jan16, run (in your git repo):
-`git log 3.7.0..4.0.0` 
+`git log 3.7.0..4.0.1` 
 
 ### Added
 - Quantities (units) support ([TEP14])
@@ -33,6 +28,7 @@ For a full log of commits since Jan16, run (in your git repo):
 - Backwards compatibility layer for migration from Taurus 3.x ([TEP14])
 - New deprecation API (`Logger.deprecated` and `deprecation_decorator`)
 - new unit tests (from ~50 to ~550 unit tests)
+- This CHANGELOG.md file
 
 ### Changed
 - Tango dependency is now **optional** ([TEP3])
@@ -95,6 +91,13 @@ exclusions)
 - [Many other issues](https://sf.net/p/tauruslib/tickets/milestone/Jul16/)
 
 
+## [3.7.1] - 2016-03-17
+Hotfix for RTD (no library changes)
+
+### Fixed
+- RTD issue (bug 273)  
+
+
 ## [3.7.0] - 2016-02-17 
 Jan16 milestone. 
 For a full log of commits since Jul15, run (in your git repo):
@@ -112,6 +115,13 @@ For a full log of commits since Jul15, run (in your git repo):
   attributes now too (#249)
 - [Many other issues](http://sf.net/p/tauruslib/tickets/milestone/Jan16/)
     
+
+## [3.6.1] - 2015-10-01
+Hotfix for docs (no library changes)
+
+### Fixed
+- documentation issues (#181, #191, #194)
+
 
 ## [3.6.0] - 2015-07-22 
 Jul15 milestone. 
@@ -139,9 +149,11 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [TEP3]: https://sf.net/p/tauruslib/wiki/TEP3/
 [TEP14]: https://sf.net/p/tauruslib/wiki/TEP14/
 [Unreleased]: https://sf.net/p/tauruslib/taurus.git/ci/develop/tree/
-[4.0.0]: https://sf.net/p/tauruslib/taurus.git/ci/4.0.0/tree/
+[4.0.1]: https://sf.net/p/tauruslib/taurus.git/ci/4.0.0/tree/
+[3.7.1]: https://sf.net/p/tauruslib/taurus.git/ci/3.7.1/tree/
 [3.7.0]: https://sf.net/p/tauruslib/taurus.git/ci/3.7.0/tree/
-[3.x]: https://sf.net/p/tauruslib/taurus.git/ci/support-3.x/tree/
+[3.6.0]: https://sf.net/p/tauruslib/taurus.git/ci/3.6.0/tree/
+[support-3.x]: https://sf.net/p/tauruslib/taurus.git/ci/support-3.x/tree/
 
 
 
