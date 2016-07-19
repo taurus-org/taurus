@@ -10,6 +10,11 @@ this file.
 
 ## [Unreleased]
 
+
+## [4.0.1] - 2016-07-19
+### Added
+- This CHANGELOG.md file
+
 ## [4.0.0] - 2016-07-19
 Jul16 milestone. 
 First release of the Taurus 4 series.
@@ -28,7 +33,6 @@ For a full log of commits since Jan16, run (in your git repo):
 - Backwards compatibility layer for migration from Taurus 3.x ([TEP14])
 - New deprecation API (`Logger.deprecated` and `deprecation_decorator`)
 - new unit tests (from ~50 to ~550 unit tests)
-- this CHANGELOG.md file
 
 ### Changed
 - Tango dependency is now **optional** ([TEP3])
