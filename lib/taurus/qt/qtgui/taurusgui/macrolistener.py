@@ -119,14 +119,15 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
                         QDoor.getExperimentDescription` 
                         for more details 
         '''
-        if expconf['ActiveMntGrp'] is None:
+        activeMntGrp = expconf['ActiveMntGrp']
+        if activeMntGrp is None:
             return
-        if expconf['ActiveMntGrp'] not in expconf['MntGrpConfigs'].keys():
+        if activeMntGrp not in expconf['MntGrpConfigs']:
             self.warning(
                 "ActiveMntGrp '%s' is not defined" %
-                expconf['ActiveMntGrp'])
+                activeMntGrp)
             return
-        mgconfig = expconf['MntGrpConfigs'][expconf['ActiveMntGrp']]
+        mgconfig = expconf['MntGrpConfigs'][activeMntGrp]
         channels = dict(getChannelConfigs(mgconfig, sort=False))
         
         #classify by type of plot:
