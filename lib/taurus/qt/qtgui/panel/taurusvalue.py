@@ -1195,11 +1195,19 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         if self._labelWidget is None:
             return
         if self.hasPendingOperations():
-            self._labelWidget.setStyleSheet(
-                '%s {border-style: solid ; border-width: 1px; border-color: blue; color: blue; border-radius:4px;}' % self._labelWidget.__class__.__name__)
+            newstyle = '%s {border-style: solid ; border-width: 1px; ' \
+                       'border-color: blue; color: blue; border-radius:4px;}' \
+                       % self._labelWidget.__class__.__name__
+            oldstyle = self._labelWidget.styleSheet()
+            if newstyle != oldstyle:
+                self._labelWidget.setStyleSheet(newstyle)
         else:
-            self._labelWidget.setStyleSheet(
-                '%s {border-style: solid; border-width: 1px; border-color: transparent; color: black;  border-radius:4px;}' % self._labelWidget.__class__.__name__)
+            newstyle = '%s {border-style: solid; border-width: 1px; ' \
+                       'border-color: transparent; color: black;  ' \
+                       'border-radius:4px;}' % self._labelWidget.__class__.__name__
+            oldstyle = self._labelWidget.styleSheet()
+            if newstyle != oldstyle:
+                self._labelWidget.setStyleSheet(newstyle)
 
     def getLabelConfig(self):
         return self._labelConfig
