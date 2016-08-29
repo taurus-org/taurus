@@ -419,7 +419,11 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         else:
             if '/' not in dev_name:  # we got an alias... find the devslashname
                 dev_name = db.getElementFullName(dev_name)
-            tango_dev_klass = db.get_class_for_device(dev_name)
+            try:
+                tango_dev_klass = db.get_class_for_device(dev_name)
+            except PyTango.DevFailed:
+                # sometimes we can't get the class (e.g. dev_name not defined)
+                return _Device
             return self.tango_dev_klasses.get(tango_dev_klass, _Device)
 
     def _storeDevice(self, dev):
