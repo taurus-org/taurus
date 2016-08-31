@@ -31,9 +31,9 @@ __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 
-from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from tauruslineedit import TaurusValueLineEdit
 from taurus.qt.qtgui.icon import getStandardIcon
+from taurus.external.pint import Quantity
 
 
 class TaurusValueSpinBox(Qt.QAbstractSpinBox):
@@ -67,8 +67,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def stepBy(self, steps):
-        #validator = self.lineEdit().validator()
-        self.setValue(self.getValue() + self.getSingleStep() * steps)
+        self.setValue(self.getValue() + self._getSingleStepQuantity() * steps)
 
         if self.lineEdit().getAutoApply():
             self.lineEdit().editingFinished.emit()
@@ -85,16 +84,32 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         if self.getModelObj().getValueObj() is None:
             return ret
 
-        le, curr_val, ss = self.lineEdit(), self.getValue(), self.getSingleStep()
+        curr_val = self.getValue()
 
         if curr_val is None:
             return ret
 
-        if not le._outOfRange(curr_val + ss):
+        ss = self._getSingleStepQuantity()
+
+        if self.validate(str(curr_val + ss), 0)[0] == Qt.QValidator.Acceptable:
             ret |= Qt.QAbstractSpinBox.StepUpEnabled
-        if not le._outOfRange(curr_val - ss):
+        if self.validate(str(curr_val - ss), 0)[0] == Qt.QValidator.Acceptable:
             ret |= Qt.QAbstractSpinBox.StepDownEnabled
         return ret
+
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # Overload from QAbstractSpinBox
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+    def validate(self, input, pos):
+        """Overloaded to use the current validator from the TaurusValueLineEdit,
+        instead of the default QAbstractSpinBox validator. If no validator is
+        set in the LineEdit, it falls back to the original behaviour
+        """
+        val = self.lineEdit().validator()
+        if val is None:
+            return Qt.QAbstractSpinBox.validate(self, input, pos)
+        return val.validate(input, pos)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Model related methods
@@ -145,6 +160,16 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
 
     def resetSingleStep(self):
         self.setSingleStep(1.0)
+
+    def _getSingleStepQuantity(self):
+        """
+        :return: (Quantity) returns a single step with the units of the current
+                 value
+        """
+        value = self.getValue()
+        if value is None:
+            return None
+        return Quantity(self.getSingleStep(), value.units)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -218,3 +243,16 @@ class TaurusValueSpinBoxEx(Qt.QWidget):
 
     def __setattr__(self, name, value):
         setattr(self.spinBox, name, value)
+
+
+if __name__ == "__main__":
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication()
+
+    w = TaurusValueSpinBox()
+    w.setModel('sys/tg_test/1/double_scalar')
+    w.resize(300, 50)
+    w.show()
+
+    sys.exit(app.exec_())
