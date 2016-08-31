@@ -51,7 +51,6 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         lineEdit = TaurusValueLineEdit(designMode=designMode)
         self.setLineEdit(lineEdit)
         self.setAccelerated(True)
-        self.editingFinished.connect(self.writeValue)
 
     def __getattr__(self, name):
         return getattr(self.lineEdit(), name)
@@ -61,6 +60,9 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
 
     def getValue(self):
         return self.lineEdit().getValue()
+
+    def keyPressEvent(self, evt):
+        return self.lineEdit().keyPressEvent(evt)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Mandatory overload from QAbstractSpinBox
