@@ -259,7 +259,7 @@ class TaurusDeviceNameValidator(_TaurusBaseValidator):
     path segment).
     '''
     pattern = r'^(?P<scheme>%(scheme)s):' + \
-              r'((?P<authority>%(authority)s)(?=/))?' + \
+              r'((?P<authority>%(authority)s)($|(?=[/#?])))?' + \
               r'(?P<path>%(path)s)' + \
               r'(\?(?P<query>%(query)s))?' + \
               r'(#(?P<fragment>%(fragment)s))?$'
@@ -285,7 +285,7 @@ class TaurusAttributeNameValidator(_TaurusBaseValidator):
     path segment).
     '''
     pattern = r'^(?P<scheme>%(scheme)s):' + \
-              r'((?P<authority>%(authority)s)(?=/))?' + \
+              r'((?P<authority>%(authority)s)($|(?=[/#?])))?' + \
               r'(?P<path>%(path)s)' + \
               r'(\?(?P<query>%(query)s))?' + \
               r'(#(?P<fragment>%(fragment)s))?$'
