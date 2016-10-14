@@ -31,7 +31,6 @@ __docformat__ = "restructuredtext"
 
 from .taurusbasetypes import TaurusDevState, TaurusElementType
 from .taurusmodel import TaurusModel
-from .taurushelper import Factory
 
 
 class TaurusDevice(TaurusModel):
@@ -51,12 +50,6 @@ class TaurusDevice(TaurusModel):
 
         if storeCallback:
             storeCallback(self)
-
-    @classmethod
-    def factory(cls):
-        if cls._factory is None:
-            cls._factory = Factory(scheme=cls._scheme)
-        return cls._factory
 
     def __contains__(self, key):
         """Reimplement in schemes if you want to support membership testing for

@@ -31,7 +31,6 @@ __docformat__ = "restructuredtext"
 
 import weakref
 
-from .taurushelper import Factory
 from .taurusmodel import TaurusModel
 from taurus.core.taurusbasetypes import TaurusElementType, DataType
 from taurus.external.pint import Quantity, UR
@@ -80,12 +79,6 @@ class TaurusAttribute(TaurusModel):
         self.trace("[TaurusAttribute] cleanUp")
         self._unsubscribeEvents()
         TaurusModel.cleanUp(self)
-
-    @classmethod
-    def factory(cls):
-        if cls._factory is None:
-            cls._factory = Factory(scheme=cls._scheme)
-        return cls._factory
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
