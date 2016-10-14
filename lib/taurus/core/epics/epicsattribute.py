@@ -125,9 +125,6 @@ class EpicsAttribute(TaurusAttribute):
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite from TaurusAttribute
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    def isNumeric(self):
-        return self.type in (DataType.Integer, DataType.Float)
-
     def isState(self):
         return False  # TODO implement generic
 

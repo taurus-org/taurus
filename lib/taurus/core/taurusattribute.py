@@ -120,13 +120,12 @@ class TaurusAttribute(TaurusModel):
     def getNameValidator(cls):
         return cls.factory().getAttributeNameValidator()
 
+    def isNumeric(self):
+        return self.type in [DataType.Float, DataType.Integer]
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite in subclass
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    def isNumeric(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute.isNumeric")
-
     def isState(self):
         raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.isState")
