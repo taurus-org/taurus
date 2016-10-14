@@ -61,18 +61,25 @@ __all__ = ["TaurusFactory"]
 __docformat__ = "restructuredtext"
 
 import atexit
+from weakref import WeakValueDictionary
 from taurusbasetypes import TaurusElementType
 from taurusauthority import TaurusAuthority
 from taurusdevice import TaurusDevice
 from taurusattribute import TaurusAttribute
 from taurusconfiguration import TaurusConfiguration, TaurusConfigurationProxy
+from taurusexception import TaurusException
 
 
 class TaurusFactory(object):
     """The base class for valid Factories in Taurus."""
 
-    schemes = ()  # reimplement in derived classes to provide the supported sche
+    schemes = ()  # reimplement in derived classes to declare supported schemes
     caseSensitive = True  # reimplement if your scheme is case insensitive
+
+    elementTypesMap = None  # reimplement in derived classes to profit from
+                            # generic implementations of getAuthority,
+                            # getDevice, getAttribute, findObjectClass, etc.
+                            # see findObjectClass for more details
 
     DefaultPollingPeriod = 3000
 
@@ -81,10 +88,14 @@ class TaurusFactory(object):
         self._polling_period = self.DefaultPollingPeriod
         self.polling_timers = {}
         self._polling_enabled = True
+        self._attrs = WeakValueDictionary()
+        self._devs = WeakValueDictionary()
+        self._auths = WeakValueDictionary()
 
         import taurusmanager
         manager = taurusmanager.TaurusManager()
         self._serialization_mode = manager.getSerializationMode()
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for cleanUp at exit
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -114,61 +125,109 @@ class TaurusFactory(object):
         return self._serialization_mode
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # Methods that must be implemented by the specific Factory
+    # API to get objects. Generic implementation. You may want to reimplement
+    # it in your scheme factory
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getAuthority(self, name=None):
-        """getAuthority(string db_name) -> taurus.core.taurusauthority.TaurusAuthority
+        """Obtain the model object corresponding to the given authority name.
+        If the corresponding authority already exists, the existing instance
+        is returned. Otherwise a new instance is stored and returned.
 
-        Obtain the object corresponding to the given authority name or the
-        default authority if db_name is None.
-        If the corresponding authority object already exists, the existing
-        instance is returned. Otherwise a new instance is stored and returned.
-
-        :param db_name: [in] authority name string. It should be formed like:
-                           <scheme>://<authority>. If <scheme> is ommited then
-                           it will use the default scheme. if db_name is None,
-                           the default authority is used
+        :param name: (str) authority name
 
         :return: a taurus.core.taurusauthority.TaurusAuthority object
         :raises: :TaurusException: if the given name is invalid.
         """
-        raise NotImplementedError("getAuthority cannot be called for abstract"
-                                  " TaurusFactory")
+        v = self.getAuthorityNameValidator()
+        if not v.isValid(name):
+            msg = "Invalid {scheme} authority name '{name}'".format(
+                    scheme=self.schemes[0], name=name)
+            raise TaurusException(msg)
 
-    def getDevice(self, dev_name, **kw):
-        """getDevice(string dev_name) -> taurus.core.taurusdevice.TaurusDevice
+        fullname, _, _ = v.getNames(name)
+        auth = self._devs.get(fullname)
+        if auth is not None:
+            return auth
 
-        Obtain the object corresponding to the given device name. If the
-        corresponding device already exists, the existing instance is returned.
-        Otherwise a new instance is stored and returned.
+        cls = self.elementTypesMap[TaurusElementType.Authority]
+        auth = cls(name=fullname)
+        self._auths[fullname] = auth
+        return auth
 
-        :param dev_name: [in] the device name string. It should be formed like:
-                            <scheme>://<authority>/<device name>. If <scheme>
-                            is ommited then it will use the default scheme.
-                            If authority is ommited then it will use the
-                            default authority for the scheme.
+    def getDevice(self, name, **kw):
+        """Obtain the model object corresponding to the given device name.
+        If the corresponding device already exists, the existing instance
+        is returned. Otherwise a new instance is stored and returned.
+
+        :param name: (str) device name
 
         :return: a taurus.core.taurusdevice.TaurusDevice object
         :raises: :TaurusException: if the given name is invalid.
         """
-        raise NotImplementedError("getDevice cannot be called for abstract"
-                                  " TaurusFactory")
+        v = self.getDeviceNameValidator()
+        if not v.isValid(name):
+            msg = "Invalid {scheme} device name '{name}'".format(
+                    scheme=self.schemes[0], name=name)
+            raise TaurusException(msg)
 
-    def getAttribute(self, attr_name):
-        """getAttribute(string attr_name) -> taurus.core.taurusattribute.TaurusAttribute
+        fullname, _, _ = v.getNames(name)
+        dev = self._devs.get(fullname)
+        if dev is not None:
+            return dev
 
-        Obtain the object corresponding to the given attribute name.
+        try:
+            # this works if the authority name is present in the dev full name
+            # (which in principle should always be the case)
+            authname = v.getUriGroups(fullname)['authority']
+            auth = self.getDevice(authname)
+        except:
+            self.debug('Cannot get device parent from name "%s"', fullname)
+            auth = None
+
+        cls = self.elementTypesMap[TaurusElementType.Device]
+        dev = cls(name=fullname, parent=auth)
+        self._devs[fullname] = dev
+        return dev
+
+    def getAttribute(self, name):
+        """ Obtain the model object corresponding to the given attribute name.
         If the corresponding attribute already exists, the existing instance
         is returned. Otherwise a new instance is stored and returned.
 
-        :param attr_name: [in] string attribute name
+        :param name: (str) attribute name
 
         :return: a taurus.core.taurusattribute.TaurusAttribute object
         :raises: :TaurusException: if the given name is invalid.
         """
-        raise NotImplementedError("getAttribute cannot be called for abstract"
-                                  " TaurusFactory")
+        v = self.getAttributeNameValidator()
+        if not v.isValid(name):
+            msg = "Invalid {scheme} attribute name '{name}'".format(
+                    scheme=self.schemes[0], name=name)
+            raise TaurusException(msg)
+
+        fullname, _, _ = v.getNames(name)
+        attr = self._devs.get(fullname)
+        if attr is not None:
+            return attr
+
+        try:
+            # this works only if the devname is present in the attr full name
+            # (not all schemes are constructed in this way)
+            devname = v.getUriGroups(fullname)['devname']
+            dev = self.getDevice(devname)
+        except:
+            self.debug('Cannot get attribute parent from name "%s"', fullname)
+            dev = None
+
+        cls = self.elementTypesMap[TaurusElementType.Attribute]
+        attr = cls(name=fullname, parent=dev)
+        self._attrs[fullname] = attr
+        return attr
+
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # Methods that must be implemented by the specific Factory
+    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getAuthorityNameValidator(self):
         raise NotImplementedError("getAuthorityNameValidator cannot be called"
@@ -252,7 +311,7 @@ class TaurusFactory(object):
         return self._polling_period
 
     def isPollingEnabled(self):
-        """Tells if the local tango polling is enabled
+        """Tells if the Taurus polling is enabled
 
            :return: (bool) whether or not the polling is enabled
         """
