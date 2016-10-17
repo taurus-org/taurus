@@ -207,7 +207,7 @@ class TaurusFactory(object):
             raise TaurusException(msg)
 
         fullname, _, _ = v.getNames(name)
-        attr = self._devs.get(fullname)
+        attr = self._attrs.get(fullname)
         if attr is not None:
             return attr
 
