@@ -180,7 +180,7 @@ class TaurusFactory(object):
             # this works if the authority name is present in the dev full name
             # (which in principle should always be the case)
             authname = v.getUriGroups(fullname)['authority']
-            auth = self.getDevice(authname)
+            auth = self.getAuthority(authname)
         except:
             self.debug('Cannot get device parent from name "%s"', fullname)
             auth = None
