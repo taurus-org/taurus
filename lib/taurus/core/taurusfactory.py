@@ -68,6 +68,7 @@ from taurusdevice import TaurusDevice
 from taurusattribute import TaurusAttribute
 from taurusconfiguration import TaurusConfiguration, TaurusConfigurationProxy
 from taurusexception import TaurusException
+from taurus.core.tauruspollingtimer import TaurusPollingTimer
 
 
 class TaurusFactory(object):
@@ -341,8 +342,9 @@ class TaurusFactory(object):
            :param period: (float) polling period (in seconds)
            :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
         """
-        raise NotImplementedError("addAttributeToPolling cannot be called"
-                                  " for abstract TaurusFactory")
+        tmr = self.polling_timers.get(period, TaurusPollingTimer(period))
+        self.polling_timers[period] = tmr
+        tmr.addAttribute(attribute, self.isPollingEnabled())
 
     def removeAttributeFromPolling(self, attribute):
         """Deactivate the polling (client side) for the given attribute. If the
@@ -350,8 +352,15 @@ class TaurusFactory(object):
 
            :param attribute: (str) attribute name.
         """
-        raise NotImplementedError("removeAttributeFromPolling cannot be"
-                                  " called for abstract TaurusFactory")
+        p = None
+        for period, timer in self.polling_timers.iteritems():
+            if timer.containsAttribute(attribute):
+                timer.removeAttribute(attribute)
+                if timer.getAttributeCount() == 0:
+                    p = period
+                break
+        if p:
+            del self.polling_timers[period]
 
     def __str__(self):
         return '{0}()'.format(self.__class__.__name__)
