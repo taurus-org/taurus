@@ -96,17 +96,30 @@ artifacts:
     - path: dist\*.msi
       name: taurus_MSI
 
+    - path: dist\*.whl
+      name: taurus_WHEEL
+
+
 ### See https://www.appveyor.com/docs/deployment/github/
 deploy:
-    #release: taurus-v$(appveyor_build_version)
-    description: 'Taurus Windows installer'
-    provider: GitHub
-    auth_token:
-        # TODO: substitute ENCRYPTED_TOKEN_HERE by the actual appveyor *encrypted* token
-        secure: ENCRYPTED_TOKEN_HERE
-    artifact: taurus_MSI
-    draft: true
-    prerelease: true
-    on:
-        branch: master                 # release from master branch only
-        appveyor_repo_tag: true        # deploy on tag push only
+    # create unnoficial pre-release
+    - provider: GitHub
+      tag: taurus-build$(appveyor_build_version)
+      description: 'Unofficial Windows release'
+      auth_token:
+          # TODO: substitute ENCRYPTED_TOKEN_HERE by the actual appveyor *encrypted* token
+          secure: ENCRYPTED_TOKEN_HERE
+      artifact: taurus_WHEEL
+      prerelease: true
+
+    # create draft release on tags to master
+    - provider: GitHub
+      description: 'Taurus Windows installer'
+      auth_token:
+          # TODO: substitute ENCRYPTED_TOKEN_HERE by the actual appveyor *encrypted* token
+          secure: ENCRYPTED_TOKEN_HERE
+      artifact: taurus_MSI,taurusWHEEL
+      draft: true
+      on:
+          branch: master                 # release from master branch only
+          appveyor_repo_tag: true        # deploy on tag push only
