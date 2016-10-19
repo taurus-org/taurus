@@ -43,7 +43,6 @@ from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusbasetypes import OperationMode
 from taurus.core.taurusexception import TaurusException, DoubleRegistration
-from taurus.core.tauruspollingtimer import TaurusPollingTimer
 from taurus.core.util.log import Logger, taurus4_deprecation
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.containers import CaselessWeakValueDict, CaselessDict
@@ -500,34 +499,6 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         full_name = attr.getFullName()
         if self.tango_attrs.has_key(full_name):
             del self.tango_attrs[full_name]
-
-    def addAttributeToPolling(self, attribute, period, unsubscribe_evts=False):
-        """Activates the polling (client side) for the given attribute with the
-           given period (seconds).
-
-           :param attribute: (taurus.core.tango.TangoAttribute) attribute name.
-           :param period: (float) polling period (in seconds)
-           :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
-        """
-        tmr = self.polling_timers.get(period, TaurusPollingTimer(period))
-        self.polling_timers[period] = tmr
-        tmr.addAttribute(attribute, self.isPollingEnabled())
-
-    def removeAttributeFromPolling(self, attribute):
-        """Deactivate the polling (client side) for the given attribute. If the
-           polling of the attribute was not previously enabled, nothing happens.
-
-           :param attribute: (str) attribute name.
-        """
-        p = None
-        for period, timer in self.polling_timers.iteritems():
-            if timer.containsAttribute(attribute):
-                timer.removeAttribute(attribute)
-                if timer.getAttributeCount() == 0:
-                    p = period
-                break
-        if p:
-            del self.polling_timers[period]
 
     def isPollingEnabled(self):
         """Tells if the local tango polling is enabled
