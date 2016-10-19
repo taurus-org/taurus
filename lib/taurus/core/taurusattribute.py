@@ -69,7 +69,7 @@ class TaurusAttribute(TaurusModel):
 
         self.writable = None
         self.data_format = None
-        self._label = None
+        self._label = self.getSimpleName()
         self.type = None
         self._range = [None, None]
         self._alarm = [None, None]
