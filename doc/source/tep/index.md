@@ -1,0 +1,40 @@
+Taurus Enhancement Proposals
+=============================
+
+This is the main index of the Taurus Enhancement Proposals (TEP).
+
+Each proposal should be in a separate file and be linked in the following table
+
+Proposals list
+--------------
+
+  Link        |  status   |        Title                                              
+  ------------| --------- | ---------------------------------------------------------
+  [TEP0][]   | ACCEPTED | Introducing Taurus Enhancement Proposal                  
+  [TEP3][]   | ACCEPTED | Tango-Independent                                        
+  [SEP5][]   | ACCEPTED  | Implementation of tests infrastructure                   
+  [TEP7][]   | ACCEPTED  | Code contribution workflow                               
+  [TEP8][]   | CANDIDATE | Remove from Taurus objects the direct Logger dependence  
+  [SEP9][]   | ACCEPTED  | Compact Read+Write widgets in Taurus                     
+  [SEP10][] | ACCEPTED  | Taurus separation                                        
+  [SEP11][] | ACCEPTED  | Direct load of .ui files                                       
+  [SEP12][] | CANDIDATE | Use python Enum instead of taurus Enumeration
+  [TEP13][] | DRAFT     | Plugins support 
+  [TEP14][] | ACCEPTED  | Core refactoring (quantities and configuration)
+  [TEP15][] | DRAFT     | fragment-based slicing support in URIs
+  [TEP16][] | DRAFT     | Moving Taurus to Github
+
+
+[TEP0]: tep/TEP0.md
+[TEP3]: tep/TEP3.md
+[SEP5]: http://sf.net/p/sardana/wiki/SEP5
+[TEP7]: tep/TEP7.md
+[TEP8]: tep/TEP8.md
+[SEP9]: http://sf.net/p/sardana/wiki/SEP9
+[SEP10]: http://sf.net/p/sardana/wiki/SEP10
+[SEP11]: http://sf.net/p/sardana/wiki/SEP11
+[SEP12]: http://sf.net/p/sardana/wiki/SEP12
+[TEP13]: tep/TEP13.md
+[TEP14]: tep/TEP14.md
+[TEP15]: tep/TEP15.md
+[TEP16]: tep/TEP16.md
