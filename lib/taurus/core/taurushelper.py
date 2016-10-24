@@ -186,10 +186,15 @@ def __get_qtcontrols_version_number():
 
 def __get_spyderlib_version():
     try:
-        import spyderlib
-        return spyderlib.__version__
+        # spyderlib got renamed to spyder in v3
+        import spyder
+        return spyder.__version__
     except:
-        pass
+        try:
+            import spyderlib
+            return spyderlib.__version__
+        except:
+            pass
 
 
 def __get_spyderlib_version_number():
@@ -226,6 +231,8 @@ def log_dependencies():
 
 def _check_dependencies(forlog=False):
     """Checks for the required and optional packages of taurus"""
+
+    # TODO: Checking dependencies should be taken care by setuptools. Remove
 
     if forlog:
         MSG = {'OK': '[OK]', 'ERR': '[ERROR]', 'WARN': '[WARNING]'}
@@ -329,7 +336,7 @@ def _check_dependencies(forlog=False):
     else:
         yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currQubStr, **MSG)
 
-    m = "Checking for spyderlib >=%s..." % r["spyderlib"][0]
+    m = "Checking for spyder[lib] >=%s..." % r["spyderlib"][0]
     minspyderlib, recspyderlib = map(
         __translate_version_str2int, r["spyderlib"])
     currspyderlib, currspyderlibStr = __get_spyderlib_version_number(
