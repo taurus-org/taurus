@@ -30,9 +30,8 @@ The following reasons are considered in favour of migrating to GH:
   Deployment
 - GH is perceived as more user friendly than SF
 - GH is perceived as providing more visibility than SF
-- Tango (with which we share a lot of developers and users) is currently doing 
-a 
-  similar transition.
+- Tango (with which we share a lot of developers and users) is currently doing
+  a similar transition.
 - Most developers already have an account in GH
 
 
@@ -49,15 +48,15 @@ This TEP obsoletes totallly or partially some previous Enhancement
 Proposals (EP), as summarized here:
 
 - TEP7: most of the contribution procedure (no longer applicable due to 
-adoption of PR-based workflow)
+  adoption of PR-based workflow)
 - TEP0: `https://sourceforge.net/p/tauruslib/wiki/TEP` is no longer the 
-index for TEPs, nor it is a wiki. The "Creating a TEP section" of TEP0 
-is superseded by the one with the same name in this TEP 
+  index for TEPs, nor it is a wiki. The "Creating a TEP section" of TEP0 
+  is superseded by the one with the same name in this TEP 
 - TEP10 / SEP10:references to SF
 - SEP1: references to SF
   
-A similar Enhancement proposal should be done to the Sardana Community, once
-the implementation is tested for this one.
+A similar Enhancement proposal should be done to the Sardana Community, 
+once the implementation is tested for this one.
 
 Goals
 -----
@@ -107,48 +106,45 @@ Bugs and feature requests should be reported via Github Issues.
 TODO: describe. (see tango migration doc)
 
 
-### Migrate TEP pages and index and define how to start new TEPs
+### Migrate TEP pages and index
 
 - A file called `TEPX.md` will be created for each existing TEP (X being the TEP 
-number). These files will be located in `<new_tep_location>` within the source 
-code repo. For example, we propose `<new_tep_location>` to be defined as 
-`doc/source/tep`.
+  number). These files will be located in `<new_tep_location>` within the source 
+  code repo. For example, we propose `<new_tep_location>` to be defined as 
+  `doc/source/tep`.
 
 - A file called `index.???` will be created in `<new_tep_location>`, containing 
-the info currently in `https://sourceforge.net/p/tauruslib/wiki/TEP`. The 
-provisions from TEP0 for that page now apply to `index.???` (i.e., TEP drivers 
-are required to update the status of their TEP in this page).
+  the info currently in `https://sourceforge.net/p/tauruslib/wiki/TEP`. The 
+  provisions from TEP0 for that page now apply to `index.???` (i.e., TEP drivers 
+  are required to update the status of their TEP in this page).
 
 TODO: decide on extension for the index file. It may be .md, or .rst, or .htm,...
 
 - One or more service-provider independent URLs (e.g., `tep.taurus-scada.org`) 
-should be configured to redirect to the new location of the TEPs and the index.
-This service-agnostic URL(s) should be used instead of the GH-specific location
-in all documentation from now on (this allows us to change the location in the 
-future without altering the docs).
+  should be configured to redirect to the new location of the TEPs and the index.
+  This service-agnostic URL(s) should be used instead of the GH-specific location
+  in all documentation from now on (this allows us to change the location in the 
+  future without altering the docs).
 
 - The wiki pages currently served under `https://sourceforge.net/p/tauruslib/wiki/TEP/`
-should now redirect to the new location (if possible, do an automatic redirection,
-but that is too much work, a link in the contents of the files would suffice)
+  should now redirect to the new location (if possible, do an automatic redirection,
+  but that is too much work, a link in the contents of the files would suffice)
 
-- In order to start a new TEP, the following should be considered:
-  - the process starts when the TEP driver submits PR containing, at least, one
+### Define how to start new TEPs
+- the process starts when the TEP driver submits PR containing, at least, one
   file called `TEPX[.md|.txt|.rst|...]`, where X is the TEP number and the 
   extension depends on the the markup language used, if any (as of today, we 
   recommend `.md`). 
-  - The discussion for this new TEP should take place using the comments and
+- The discussion for this new TEP should take place using the comments and
   similar tools within the PR itself. 
-  - If the TEP includes some proposal of implementation in code form 
+- If the TEP includes some proposal of implementation in code form 
   changes, these should be included as commits in the same PR (and reviewed
   as any other contribution).
-  - If the TEP reaches an ACCEPTED stage, the PR is merged (which, at the same 
+- If the TEP reaches an ACCEPTED stage, the PR is merged (which, at the same 
   time, will bring the source code implementation changes, if any). 
   If the TEP is REJECTED, the integrator will issue a commit in the PR 
   reverting any implementation changes (if any) and then he/she will merge the
   PR so that the whole discussion history is not lost. 
-
-
-- A note should be added to the EPs affected by this TEP 
 
 ### Define what to do with the mailing lists
 
