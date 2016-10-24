@@ -35,19 +35,29 @@ import os
 from taurus.external.qt import Qt
 
 try:
-    import spyderlib
-    v = spyderlib.__version__.split('.', 2)[:2]
-    v = map(int, v)
-    if v < [2, 1]:
-        raise Exception("TaurusEditor needs spyderlib >= 2.1")
-except ImportError:
-    raise Exception("TaurusEditor needs spyderlib >= 2.1")
+    # spyderlib got renamed to spyder in v3
+    from spyder.utils.qthelpers import create_toolbutton
+    from spyder.widgets.findreplace import FindReplace
+    from spyder.widgets.editortools import OutlineExplorerWidget
+    from spyder.widgets.editor import EditorMainWindow, EditorSplitter
+    from spyder.plugins.editor import Editor
 
-from spyderlib.utils.qthelpers import create_toolbutton
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import OutlineExplorerWidget
-from spyderlib.widgets.editor import EditorMainWindow, EditorSplitter
-from taurus.qt.qtgui.util import ActionFactory
+except ImportError:
+    try:
+        import spyderlib
+        v = spyderlib.__version__.split('.', 2)[:2]
+        v = map(int, v)
+        if v < [2, 1]:
+            raise Exception("TaurusEditor needs spyderlib >= 2.1")
+    except ImportError:
+        raise Exception("TaurusEditor needs spyderlib >= 2.1")
+
+    from spyderlib.utils.qthelpers import create_toolbutton
+    from spyderlib.widgets.findreplace import FindReplace
+    from spyderlib.widgets.editortools import OutlineExplorerWidget
+    from spyderlib.widgets.editor import EditorMainWindow, EditorSplitter
+    from spyderlib.plugins.editor import Editor
+
 
 
 class TaurusBaseEditor(Qt.QSplitter):
@@ -180,7 +190,7 @@ class TaurusBaseEditor(Qt.QSplitter):
     def refresh_save_all_action(self):
         pass
 
-from spyderlib.plugins.editor import Editor
+
 
 
 class TaurusBaseEditor2(Qt.QMainWindow):
