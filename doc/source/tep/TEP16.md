@@ -12,8 +12,7 @@ Abstract: Move Taurus project from its current hosting in SourceForge to
  workflow to make use of the Pull Request feature.
 ```
  
-Introduction
-------------
+## Introduction
 
 This TEP proposes the migration of the taurus project from its
 current hosting in SourceForge (SF) to the GitHub (GH) service, and to change 
@@ -41,14 +40,13 @@ The following reasons were considered against migrating to GH:
   the risk of lock-in). Gitlab would be preferred in this particular aspect.
 
 
-Relationship with other Enhancement Proposals
----------------------------------------------
+## Relationship with other Enhancement Proposals
 
 This TEP obsoletes totallly or partially some previous Enhancement 
 Proposals (EP), as summarized here:
 
-- TEP7: most of the contribution procedure (no longer applicable due to 
-  adoption of PR-based workflow)
+- TEP7: most of the contribution procedure is no longer applicable due 
+  to the adoption of PR-based workflow.
 - TEP0: `https://sourceforge.net/p/tauruslib/wiki/TEP` is no longer the 
   index for TEPs, nor it is a wiki. The "Creating a TEP section" of TEP0 
   is superseded by the one with the same name in this TEP 
@@ -58,8 +56,7 @@ Proposals (EP), as summarized here:
 A similar Enhancement proposal should be done to the Sardana Community, 
 once the implementation is tested for this one.
 
-Goals
------
+## Goals
 
 The goals are roughly described in order of priority:
 
@@ -70,15 +67,16 @@ The goals are roughly described in order of priority:
 5. move the TEP pages to a service-independent URL
 6. define what to do with the mailing lists
 
-Implementation
---------------
+## Implementation
 
-The implementation steps to accomplish each of the goals are listed below:
+The implementation steps to accomplish each of the goals are listed 
+below:
 
 ### Create a taurus repo within a Taurus GH organization
 
 Create an organization: the `taurus` name is already taken in GH. Use 
-`taurus-org`. (alternatively we could use `taurus-scada` or `taurus-controls`...
+`taurus-org`. (alternatively we could use `taurus-scada` or 
+`taurus-controls`...
 
 The repo will be created and the following branches pushed:
  
@@ -86,39 +84,46 @@ The repo will be created and the following branches pushed:
 - develop
 - support-3.x
 
-The Travis and Appveyor continuous integration services will be enabled for this
-repo.
+The Travis and Appveyor continuous integration services will be enabled 
+for this repo.
 
 ### Define the new contribution policy
 
-Note: A `CONTRIBUTING.md` file should be created at the taurus repo root
-
-TODO: describe new PR-based workflow
+Taurus welcomes contributions via Pull Requests against the `develop` 
+branch. For more details, see the `CONTRIBUTING.md` file at the root of 
+the repository.
 
 
 ### define the policy for bug reports / feature requests
 
-Bugs and feature requests should be reported via Github Issues. 
+Bugs and feature requests should be reported via [Github Issues][].
 
 
 ### migrate SF tickets to GH Issues
 
-TODO: describe. (see tango migration doc)
+- Existing tickets in the ticket tracker for the tauruslib project in SF 
+  will be migrated using the same tools and procedure described for 
+  migrating the tickets of the Tango projects:
 
+https://github.com/tango-controls/svn2git-migration/tree/master/utils/tickets_migration
 
-### Migrate TEP pages and index
+- The SF ticket tracker will be locked to prevent further ticket 
+  creation, and the tool will be renamed to "Old Tickets" in SF. A 
+  new SF tool menu entry called "Tickets" will be added pointing to 
+  the new taurus GH issues URL
 
-- A file called `TEPX.md` will be created for each existing TEP (X being the TEP 
-  number). These files will be located in `<new_tep_location>` within the source 
-  code repo. For example, we propose `<new_tep_location>` to be defined as 
-  `doc/source/tep`.
+### Migrate existing TEP pages and index
 
-- A file called `index.???` will be created in `<new_tep_location>`, containing 
-  the info currently in `https://sourceforge.net/p/tauruslib/wiki/TEP`. The 
-  provisions from TEP0 for that page now apply to `index.???` (i.e., TEP drivers 
-  are required to update the status of their TEP in this page).
+- A file called `TEPX.md` will be created for each existing TEP (X being
+  the TEP  number). These files will be located in `<new_tep_location>` 
+  within the source code repo. For example, we propose 
+  `<new_tep_location>` to be defined as `doc/source/tep`.
 
-TODO: decide on extension for the index file. It may be .md, or .rst, or .htm,...
+- A file called `index.md` will be created in `<new_tep_location>`, 
+  containing the info currently in `https://sourceforge.net/p/tauruslib/wiki/TEP`. 
+  The provisions in TEP0 for that page now apply to `index.md` (i.e., 
+  TEP drivers are required to update the status of their TEP in this 
+  page).
 
 - One or more service-provider independent URLs (e.g., `tep.taurus-scada.org`) 
   should be configured to redirect to the new location of the TEPs and the index.
@@ -131,24 +136,28 @@ TODO: decide on extension for the index file. It may be .md, or .rst, or .htm,..
   but that is too much work, a link in the contents of the files would suffice)
 
 ### Define how to start new TEPs
+
 - the process starts when the TEP driver submits PR containing, at least, one
   file called `TEPX[.md|.txt|.rst|...]`, where X is the TEP number and the 
-  extension depends on the the markup language used, if any (as of today, we 
+  extension depends on the the markup language used if any (as of today, we 
   recommend `.md`). 
+  
 - The discussion for this new TEP should take place using the comments and
   similar tools within the PR itself. 
-- If the TEP includes some proposal of implementation in code form 
-  changes, these should be included as commits in the same PR (and reviewed
-  as any other contribution).
-- If the TEP reaches an ACCEPTED stage, the PR is merged (which, at the same 
-  time, will bring the source code implementation changes, if any). 
+  
+- If the TEP includes some proposal of implementation in the form of code, 
+  the changes committed as part of the same PR (and reviewed with it).
+  
+- If the TEP reaches the ACCEPTED stage, the PR is merged (which, at the 
+  same time, will bring the source code implementation changes, if any). 
   If the TEP is REJECTED, the integrator will issue a commit in the PR 
-  reverting any implementation changes (if any) and then he/she will merge the
-  PR so that the whole discussion history is not lost. 
+  reverting any implementation changes (if any) and then he/she will 
+  merge the PR so that the whole discussion history is not lost. 
 
 ### Define what to do with the mailing lists
 
-GH does not provide mailing list hosting. For now, leave them as they are in SF.
+GH does not provide mailing list hosting. For now, continue using 
+the existing mailing lists provided by SF. 
 
 
 License
@@ -181,3 +190,6 @@ Changes
 - 2016-10-21 cpascual
   Initial version
 
+
+
+[Github Issues]: https://guides.github.com/features/issues/
