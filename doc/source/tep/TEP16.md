@@ -1,5 +1,5 @@
 ```
-Title: Moving Taurus to Github
+Title: Moving Taurus to GitHub
 TEP: 16
 State: DRAFT
 Date: 2016-10-21
@@ -91,7 +91,7 @@ below:
 
 ### New policy for bug reports and feature requests
 
-- Bugs and feature requests will be reported via [Github Issues][] instead of
+- Bugs and feature requests will be reported via [GitHub Issues][] instead of
   using SF tickets.
 
 ### Migration of SF tickets to GH Issues
@@ -199,5 +199,5 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-[Github Issues]: https://guides.github.com/features/issues/
+[GitHub Issues]: https://guides.github.com/features/issues/
 [cpascual]: https://github.com/cpascual
