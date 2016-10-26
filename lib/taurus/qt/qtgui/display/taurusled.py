@@ -35,7 +35,7 @@ import operator
 
 from taurus.external.qt import Qt
 
-from taurus.core import DataFormat, AttrQuality
+from taurus.core import DataFormat, AttrQuality, DataType
 from taurus.core.tango import DevState
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
@@ -225,7 +225,7 @@ class TaurusLed(QLed, TaurusBaseWidget):
             klass = _TaurusLedController
         elif model.isBoolean():
             klass = _TaurusLedControllerBool
-        elif model.isState():
+        elif model.type == DataType.DevState:
             klass = _TaurusLedControllerState
         return klass
 

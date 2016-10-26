@@ -361,9 +361,6 @@ class EvaluationAttribute(TaurusAttribute):
     def isBoolean(self):
         return isinstance(self._value.rvalue, bool)
 
-    def isState(self):
-        return False
-
     def getDisplayValue(self, cache=True):
         return str(self.read(cache=cache).rvalue)
 

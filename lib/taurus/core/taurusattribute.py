@@ -32,7 +32,8 @@ __docformat__ = "restructuredtext"
 import weakref
 
 from .taurusmodel import TaurusModel
-from taurus.core.taurusbasetypes import TaurusElementType, DataType
+from taurus.core.taurusbasetypes import TaurusElementType
+from taurus.core.util.log import deprecation_decorator
 from taurus.external.pint import Quantity, UR
 
 
@@ -116,12 +117,13 @@ class TaurusAttribute(TaurusModel):
     def isNumeric(self):
         return self.type in [DataType.Float, DataType.Integer]
 
+    @deprecation_decorator(rel='>4.0.1', alt='.type==DataType.DevState')
+    def isState(self):
+        return False
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite in subclass
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    def isState(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute.isState")
 
     def encode(self, value):
         raise NotImplementedError("Not allowed to call AbstractClass" +
