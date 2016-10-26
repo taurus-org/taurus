@@ -32,7 +32,7 @@ __docformat__ = "restructuredtext"
 import weakref
 
 from .taurusmodel import TaurusModel
-from taurus.core.taurusbasetypes import TaurusElementType
+from taurus.core.taurusbasetypes import TaurusElementType, DataType
 from taurus.core.util.log import deprecation_decorator
 from taurus.external.pint import Quantity, UR
 
