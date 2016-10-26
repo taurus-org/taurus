@@ -72,52 +72,74 @@ The goals are roughly described in order of priority:
 The implementation steps to accomplish each of the goals are listed 
 below:
 
-### Create a taurus repo within a Taurus GH organization
+### New taurus repo within a Taurus GH organization
 
-Create an organization: the `taurus` name is already taken in GH. Use 
-`taurus-org`. (alternatively we could use `taurus-scada` or 
-`taurus-controls`...
+- A GH organization called `taurus-org` will be created (the `taurus`
+  name is already taken in GH)
 
-The repo will be created and the following branches pushed:
- 
-- master
-- develop
-- support-3.x
+- A `taurus` will be created within `taurus-org` and the current `master`,
+  `develop` and `support-3.x` branches pushed to it
 
-The Travis and Appveyor continuous integration services will be enabled 
-for this repo.
+- The Travis and Appveyor continuous integration services will be enabled 
+  for this repo.
 
-### Define the new contribution policy
+### New contribution policy
 
-Taurus welcomes contributions via Pull Requests against the `develop` 
-branch. For more details, see the `CONTRIBUTING.md` file at the root of 
-the repository.
+- The new contribution policy will be detailed in the `CONTRIBUTING.md` file 
+  at the root of the repository. It should be based on Pull Requests 
+  instead of the current email-based policy described in TEP7.
 
+### New policy for bug reports and feature requests
 
-### define the policy for bug reports / feature requests
+- Bugs and feature requests will be reported via [Github Issues][] instead of
+  using SF tickets.
 
-Bugs and feature requests should be reported via [Github Issues][].
-
-
-### migrate SF tickets to GH Issues
+### Migration of SF tickets to GH Issues
 
 - Existing tickets in the ticket tracker for the tauruslib project in SF 
   will be migrated using the same tools and procedure described for 
-  migrating the tickets of the Tango projects:
-
-https://github.com/tango-controls/svn2git-migration/tree/master/utils/tickets_migration
+  migrating the tickets of the Tango projects. To this purpose, some tools
+  from https://github.com/taurus-org/svn2git-migration will be used.
 
 - The SF ticket tracker will be locked to prevent further ticket 
-  creation, and the tool will be renamed to "Old Tickets" in SF. A 
+  creation, and its SF tool menu entry will be renamed to "Old Tickets". A 
   new SF tool menu entry called "Tickets" will be added pointing to 
   the new taurus GH issues URL
+  
+- Ideally, a comment should be added to each SF ticket, indicating that it 
+  was moved to GH, and ideally with the link to the corresponding GH issue.
+  This would require a lot of work, so the following acceptable solutions 
+  are proposed in order of preference:
+  - add a generic comment to all SF tickets pointing to 
+    https://github.com/taurus-org/taurus/issues 
+  - add a `migrated_to_github` label in SF to all migrated tickets
 
-### Migrate existing TEP pages and index
+### New policy for TEPs
 
-- A file called `TEPX.md` will be created for each existing TEP (X being
-  the TEP  number). These files will be located in `<new_tep_location>` 
-  within the source code repo. For example, we propose 
-  `<new_tep_location>` to be defined as `doc/source/tep`.
+- All TEPs will be stored as files in `<new_tep_location>` in the repository. 
+  we propose `<new_tep_location>` to be defined as `doc/source/tep`.
+
+- To start a new TEP, the TEP driver submits a PR containing, at least, one
+  file called `<new_tep_location>/TEPX[.md|.txt|.rst|...]`, where X is the 
+  TEP number and the extension depends on the the markup language used 
+  (as of today, we recommend `.md`). 
+  
+- The discussion for this new TEP should take place using the comments and
+  similar tools within the PR itself. 
+  
+- If the TEP includes some proposal of implementation in the form of code, 
+  the changes committed as part of the same PR (and reviewed with it).
+  
+- If the TEP reaches the ACCEPTED stage, the PR is merged (which, at the 
+  same time, will bring the source code implementation changes, if any). 
+  If the TEP is REJECTED, the integrator will issue a commit in the PR 
+  reverting any implementation changes (if any) and then he/she will 
+  merge the PR so that the whole discussion history is not lost. 
+
+### Migration of existing TEP pages and index
+
+- A file called `<new_tep_location>/TEPX.md` will be created for each 
+  existing TEP (X being the TEP  number).
 
 - A file called `index.md` will be created in `<new_tep_location>`, 
   containing the info currently in `https://sourceforge.net/p/tauruslib/wiki/TEP`. 
@@ -135,33 +157,18 @@ https://github.com/tango-controls/svn2git-migration/tree/master/utils/tickets_mi
   should now redirect to the new location (if possible, do an automatic redirection,
   but that is too much work, a link in the contents of the files would suffice)
 
-### Define how to start new TEPs
-
-- the process starts when the TEP driver submits PR containing, at least, one
-  file called `TEPX[.md|.txt|.rst|...]`, where X is the TEP number and the 
-  extension depends on the the markup language used if any (as of today, we 
-  recommend `.md`). 
-  
-- The discussion for this new TEP should take place using the comments and
-  similar tools within the PR itself. 
-  
-- If the TEP includes some proposal of implementation in the form of code, 
-  the changes committed as part of the same PR (and reviewed with it).
-  
-- If the TEP reaches the ACCEPTED stage, the PR is merged (which, at the 
-  same time, will bring the source code implementation changes, if any). 
-  If the TEP is REJECTED, the integrator will issue a commit in the PR 
-  reverting any implementation changes (if any) and then he/she will 
-  merge the PR so that the whole discussion history is not lost. 
-
-### Define what to do with the mailing lists
+### Mailing lists
 
 GH does not provide mailing list hosting. For now, continue using 
 the existing mailing lists provided by SF. 
 
+## Links to more details and discussions
 
-License
--------
+Discussions for this TEP are conducted in its associated Pull Request:
+https://github.com/taurus-org/taurus/pull/1
+
+
+## License
 
 Copyright (c) 2016 Carlos Pascual-Izarra
 
@@ -184,12 +191,13 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Changes
--------
+## Changes
 
-- 2016-10-21 cpascual
-  Initial version
+- 2016-10-26 [cpascual][]. Several changes to get it ready for first announcement of DRAFT
+
+- 2016-10-21 [cpascual][]. Initial version
 
 
 
 [Github Issues]: https://guides.github.com/features/issues/
+[cpascual]: https://github.com/cpascual
