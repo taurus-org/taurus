@@ -4,7 +4,7 @@ TEP: 16
 State: DRAFT
 Date: 2016-10-21
 Drivers: Carlos Pascual-Izarra cpascual@cells.es
-URL: https://sourceforge.net/p/tauruslib/wiki/TEP16
+URL: https://github.com/cpascual/taurus/blob/tep16/doc/source/tep/TEP16.md
 License: http://www.jclark.com/xml/copying.txt
 Abstract: Move Taurus project from its current hosting in SourceForge to 
  GitHub. The move affects the code repository, the ticket tracker and the 
