@@ -125,8 +125,6 @@ class EpicsAttribute(TaurusAttribute):
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite from TaurusAttribute
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    def isState(self):
-        return False  # TODO implement generic
 
     def encode(self, value):
         """encodes the value passed to the write method into
