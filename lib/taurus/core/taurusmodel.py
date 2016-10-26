@@ -36,10 +36,12 @@ import threading
 from .util.log import Logger
 from .util.event import CallableRef, BoundMethodWeakref
 from .taurusbasetypes import TaurusEventType, MatchLevel
+from .taurushelper import Factory
 
 
 class TaurusModel(Logger):
 
+    _factory = None
     RegularEvent = (TaurusEventType.Change,
                     TaurusEventType.Config, TaurusEventType.Periodic)
 
@@ -85,7 +87,9 @@ class TaurusModel(Logger):
 
     @classmethod
     def factory(cls):
-        raise NotImplementedError("TaurusModel.factory cannot be called")
+        if cls._factory is None:
+            cls._factory = Factory(scheme=cls._scheme)
+        return cls._factory
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for naming

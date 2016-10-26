@@ -35,7 +35,6 @@ from evalattribute import EvaluationAttribute
 from evalauthority import EvaluationAuthority
 from evaldevice import EvaluationDevice
 from taurus.core.taurusexception import TaurusException
-from taurus.core.tauruspollingtimer import TaurusPollingTimer
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 from taurus.core.taurusfactory import TaurusFactory
@@ -218,34 +217,6 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                     "%s has already been registered before with a different object!" % name)
                 raise DoubleRegistration
         self.eval_configs[name] = config
-
-    def addAttributeToPolling(self, attribute, period, unsubscribe_evts=False):
-        """Activates the polling (client side) for the given attribute with the
-           given period (seconds).
-
-           :param attribute: (taurus.core.tango.TangoAttribute) attribute name.
-           :param period: (float) polling period (in seconds)
-           :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
-        """
-        tmr = self.polling_timers.get(period, TaurusPollingTimer(period))
-        self.polling_timers[period] = tmr
-        tmr.addAttribute(attribute, self.isPollingEnabled())
-
-    def removeAttributeFromPolling(self, attribute):
-        """Deactivate the polling (client side) for the given attribute. If the
-           polling of the attribute was not previously enabled, nothing happens.
-
-           :param attribute: (str) attribute name.
-        """
-        p = None
-        for period, timer in self.polling_timers.iteritems():
-            if timer.containsAttribute(attribute):
-                timer.removeAttribute(attribute)
-                if timer.getAttributeCount() == 0:
-                    p = period
-                break
-        if p:
-            del self.polling_timers[period]
 
     def getAuthorityNameValidator(self):
         """Return EvaluationAuthorityNameValidator"""
