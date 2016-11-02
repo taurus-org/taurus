@@ -56,9 +56,10 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
         if evt_type == TaurusEventType.Config and evt_value is not None:
             import re
             # match the format string to "%[width][.precision][f_type]"
-            m = re.match(r'%([0-9]+)?(\.([0-9]+))?([df])', evt_value.format)
+            obj = self.getModelObj()
+            m = re.match(r'%([0-9]+)?(\.([0-9]+))?([df])', obj.format)
             if m is None:
-                raise ValueError("'%s' format unsupported" % evt_value.format)
+                raise ValueError("'%s' format unsupported" % obj.format)
 
             width, _, precision, f_type = m.groups()
 
@@ -82,11 +83,11 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
 
             self.setDigitCount(int_nb=int_nb, dec_nb=dec_nb)
             try:
-                self.setMinValue(float(evt_value.min_value))
+                self.setMinValue(float(obj.min_value))
             except:
                 pass
             try:
-                self.setMaxValue(float(evt_value.max_value))
+                self.setMaxValue(float(obj.max_value))
             except:
                 pass
         TaurusBaseWritableWidget.handleEvent(
