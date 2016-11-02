@@ -1,7 +1,7 @@
 ```
 Title: Moving Taurus to GitHub
 TEP: 16
-State: DRAFT
+State: CANDIDATE
 Date: 2016-10-21
 Drivers: Carlos Pascual-Izarra cpascual@cells.es
 URL: https://github.com/cpascual/taurus/blob/tep16/doc/source/tep/TEP16.md
@@ -193,8 +193,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## Changes
 
+- 2016-11-02 [cpascual][]. Changed state from DRAFT to CANDIDATE
 - 2016-10-26 [cpascual][]. Several changes to get it ready for first announcement of DRAFT
-
 - 2016-10-21 [cpascual][]. Initial version
 
 
