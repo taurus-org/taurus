@@ -59,7 +59,7 @@ class BooleanWidget(Qt.QWidget):
     It change the value by using getValue and setValue methods
     """
 
-    valueChanged = Qt.pyqtSignal(bool, bool)
+    valueChangedSignal = Qt.pyqtSignal(bool, bool)
 
     def __init__(self, parent=None):
         Qt.QWidget.__init__(self, parent)
@@ -76,7 +76,7 @@ class BooleanWidget(Qt.QWidget):
 
     def valueChanged(self):
         if not (self.trueButton.isChecked() == self._actualValue):
-            self.valueChanged.emit(self._actualValue, not self._actualValue)
+            self.valueChangedSignal.emit(self._actualValue, not self._actualValue)
         self._actualValue = self.trueButton.isChecked()
 
     def setValue(self, value):
