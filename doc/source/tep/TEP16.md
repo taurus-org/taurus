@@ -117,7 +117,7 @@ below:
 ### New policy for TEPs
 
 - All TEPs will be stored as files in `<new_tep_location>` in the repository. 
-  we propose `<new_tep_location>` to be defined as `doc/source/tep`.
+  We propose `<new_tep_location>` to be defined as `doc/source/tep`.
 
 - To start a new TEP, the TEP driver submits a PR containing, at least, one
   file called `<new_tep_location>/TEPX[.md|.txt|.rst|...]`, where X is the 
