@@ -42,7 +42,7 @@ The following reasons were considered against migrating to GH:
 
 ## Relationship with other Enhancement Proposals
 
-This TEP obsoletes totallly or partially some previous Enhancement 
+This TEP obsoletes totally or partially some previous Enhancement 
 Proposals (EP), as summarized here:
 
 - TEP7: most of the contribution procedure is no longer applicable due 
