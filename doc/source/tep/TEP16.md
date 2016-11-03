@@ -128,7 +128,7 @@ below:
   similar tools within the PR itself. 
   
 - If the TEP includes some proposal of implementation in the form of code, 
-  the changes committed as part of the same PR (and reviewed with it).
+  the changes should be committed as part of the same PR (and reviewed with it).
   
 - If the TEP reaches the ACCEPTED stage, the PR is merged (which, at the 
   same time, will bring the source code implementation changes, if any). 
