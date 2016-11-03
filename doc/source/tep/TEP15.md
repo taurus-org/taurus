@@ -1,12 +1,12 @@
-Title: fragment-based slicing support in URIs
-TEP: 15
-State: DRAFT
-Date: 2016-06-16
-Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
-URL: https://sourceforge.net/p/tauruslib/wiki/TEP15
-License: http://www.jclark.com/xml/copying.txt
-Abstract:
-This proposal aims at defining a way for Taurus URIs to support data slicing.
+    Title: fragment-based slicing support in URIs
+    TEP: 15
+    State: DRAFT
+    Date: 2016-06-16
+    Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
+    URL: https://sourceforge.net/p/tauruslib/wiki/TEP15
+    License: http://www.jclark.com/xml/copying.txt
+    Abstract:
+     This proposal aims at defining a way for Taurus URIs to support data slicing.
 
 
 

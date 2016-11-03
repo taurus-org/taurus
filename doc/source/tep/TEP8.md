@@ -1,12 +1,13 @@
-Title: Remove from Taurus objects the direct Logger dependence.
-TEP: 8
-State: CANDIDATE
-Date: 2013-10-30
-Drivers: Carlos Falcon Torres <cfalcon@cells.es>; Tiago Coutinho Macara <tiago.coutinho@esrf.fr>
-URL: https://sourceforge.net/p/sardana/wiki/TEP8
-License: http://www.jclark.com/xml/copying.txt
-Abstract:
-This document describes the process to remove from Taurus objects the direct Logger dependence.
+    Title: Remove from Taurus objects the direct Logger dependence.
+    TEP: 8
+    State: CANDIDATE
+    Date: 2013-10-30
+    Drivers: Carlos Falcon Torres <cfalcon@cells.es>; Tiago Coutinho Macara <tiago.coutinho@esrf.fr>
+    URL: https://sourceforge.net/p/sardana/wiki/TEP8
+    License: http://www.jclark.com/xml/copying.txt
+    Abstract:
+     This document describes the process to remove from Taurus objects 
+     the direct Logger dependence.
 
 Introduction
 -----

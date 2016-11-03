@@ -1,12 +1,16 @@
-Title: core refactoring (quantities and configuration)
-TEP: 14
-State: ACCEPTED
-Date: 2016-03-16
-Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Carlos Falcon-Torres <cfalcon@cells.es>
-URL: https://sourceforge.net/p/tauruslib/wiki/TEP14
-License: http://www.jclark.com/xml/copying.txt
-Abstract:
-This proposal picks the tango.core refactoring from TEP3 and takes it a step further. While TEP3 eliminates the PyTango module dependencies, this TEP aims to get rid some of the most evident "tangoisms" still left in the code by TEP3. Among other things it implements support for Quantities and eliminates the attribute configuration classes 
+    Title: core refactoring (quantities and configuration)
+    TEP: 14
+    State: ACCEPTED
+    Date: 2016-03-16
+    Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Carlos Falcon-Torres <cfalcon@cells.es>
+    URL: https://sourceforge.net/p/tauruslib/wiki/TEP14
+    License: http://www.jclark.com/xml/copying.txt
+    Abstract:
+     This proposal picks the tango.core refactoring from TEP3 and takes it a 
+     step further. While TEP3 eliminates the PyTango module dependencies, 
+     this TEP aims to get rid some of the most evident "tangoisms" still left 
+     in the code by TEP3. Among other things it implements support for 
+     Quantities and eliminates the attribute configuration classes 
 
 
 

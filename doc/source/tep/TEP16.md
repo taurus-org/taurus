@@ -1,16 +1,15 @@
-```
-Title: Moving Taurus to GitHub
-TEP: 16
-State: CANDIDATE
-Date: 2016-10-21
-Drivers: Carlos Pascual-Izarra cpascual@cells.es
-URL: https://github.com/cpascual/taurus/blob/tep16/doc/source/tep/TEP16.md
-License: http://www.jclark.com/xml/copying.txt
-Abstract: Move Taurus project from its current hosting in SourceForge to 
- GitHub. The move affects the code repository, the ticket tracker and the 
- wiki pages. It also proposes to change the contribution and the TEP 
- workflow to make use of the Pull Request feature.
-```
+    Title: Moving Taurus to GitHub
+    TEP: 16
+    State: CANDIDATE
+    Date: 2016-10-21
+    Drivers: Carlos Pascual-Izarra cpascual@cells.es
+    URL: https://github.com/cpascual/taurus/blob/tep16/doc/source/tep/TEP16.md
+    License: http://www.jclark.com/xml/copying.txt
+    Abstract: 
+     Move Taurus project from its current hosting in SourceForge to 
+     GitHub. The move affects the code repository, the ticket tracker and the 
+     wiki pages. It also proposes to change the contribution and the TEP 
+     workflow to make use of the Pull Request feature.
  
 ## Introduction
 

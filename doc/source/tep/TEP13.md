@@ -1,17 +1,17 @@
-Title: plugins support 
-TEP: 13
-State: DRAFT
-Date: 2015-03-25
-Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
-URL: https://sourceforge.net/p/tauruslib/wiki/TEP13
-License: http://www.jclark.com/xml/copying.txt
-Abstract:
- Implement support for managing third-party code 
- (plugins) to extends Taurus. Identify, document,
- unify and systematise the various existing 
- approaches to plugins already found in Taurus, 
- and provide conventions and tools for creating more
- entry points in the future.
+    Title: plugins support 
+    TEP: 13
+    State: DRAFT
+    Date: 2015-03-25
+    Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
+    URL: https://sourceforge.net/p/tauruslib/wiki/TEP13
+    License: http://www.jclark.com/xml/copying.txt
+    Abstract:
+     Implement support for managing third-party code 
+     (plugins) to extends Taurus. Identify, document,
+     unify and systematise the various existing 
+     approaches to plugins already found in Taurus, 
+     and provide conventions and tools for creating more
+     entry points in the future.
     
 
 IMPORTANT
