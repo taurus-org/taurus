@@ -23,9 +23,9 @@ The TEP3 was created from [sardana:wiki:SEP3](https://sourceforge.net/p/sardana/
 Motivation
 ==================
 
-Taurus evolved from Tau which was conceived as a library for creating GUIs & CLIs on top of a Tango control system. As such, Taurus models incorporate concepts such as ?Device?, ?Attribute?, etc that are heavily influenced by Tango.
+Taurus evolved from Tau which was conceived as a library for creating GUIs & CLIs on top of a Tango control system. As such, Taurus models incorporate concepts such as "Device", "Attribute", etc that are heavily influenced by Tango.
 
-Lately, however, Taurus models have been extended to allow the interaction with other control systems and/or hardware via the ?schemes? extensions (current schemes are: ?tango?, ?simulation?, ?eval?, ?epics?, ?spec?).
+Lately, however, Taurus models have been extended to allow the interaction with other control systems and/or hardware via the ?schemes? extensions (current schemes are: "tango", "simulation", "eval", "epics", "spec").
 
 The tango scheme was the one initially developed, and is not completely isolated from the rest of Taurus. Taurus uses objects from the PyTango module, and assumes naming conventions in many parts of the code, making it impossible to even import taurus if Tango is not installed.
 
@@ -101,10 +101,10 @@ Keep in mind the following notes:
 - Note: the validator classes should ideally be implemented using name parsing only (e.g. avoiding to instantiate TaurusModel ojects), and, if possible, avoid requiring the import of optional modules. The base classes provided for validators allow defining a new validator by providing just a few partial regexps for each URI component.
 
 
-Generic (?scheme-agnostic?) Taurus helpers
+Generic ("scheme-agnostic") Taurus helpers
 -------------------------------------------
 
-Users of Taurus are encouraged to write ?scheme-agnostic? code whenever it is possible (e.g., code using the taurus.core should try to avoid assuming that a given attribute is of a certain scheme type). 
+Users of Taurus are encouraged to write "scheme-agnostic" code whenever it is possible (e.g., code using the taurus.core should try to avoid assuming that a given attribute is of a certain scheme type). 
 Checks should be done (whenever it is possible) against the Base/Abstract classes instead of scheme-specific.
 
 Also, taurus.core must provide the following scheme-agnostic factory functions:
