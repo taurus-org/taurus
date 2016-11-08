@@ -31,60 +31,60 @@ Taurus Logger has to be created in two steps: Taurus Logger initialization and T
 
 The gross of changes have to be done in log.py file but also the Logger dependencies have to be removed from other files:
 
-src/sardana/macroserver/macro.py
-src/sardana/macroserver/macros/examples/hooks.py
-src/sardana/macroserver/macros/standard.py
-src/sardana/macroserver/msdoor.py
-src/sardana/macroserver/scan/recorder/output.py
-src/sardana/pool/controller.py
-src/sardana/pool/pool.py
-src/sardana/pool/poolacquisition.py
-src/sardana/pool/poolcontroller.py
-src/sardana/spock/ipython_00_11/genutils.py
-src/sardana/tango/core/util.py
-src/sardana/tango/macroserver/Door.py
-src/sardana/tango/macroserver/_init_.py
-taurus/lib/taurus/core/taurusconfiguration.py
-taurus/lib/taurus/core/taurushelper.py
-taurus/lib/taurus/core/taurusmanager.py
-taurus/lib/taurus/core/taurusmodel.py
-taurus/lib/taurus/core/util/log.py
-taurus/lib/taurus/core/util/threadpool.py
-taurus/lib/taurus/qt/qtcore/util/emitter.py
-taurus/lib/taurus/qt/qtdesigner/tauruspluginplugin.py
-taurus/lib/taurus/qt/qtgui/application/taurusapplication.py
-taurus/lib/taurus/qt/qtgui/base/taurusbase.py
-taurus/lib/taurus/qt/qtgui/display/taurusvaluelabel.py
-taurus/lib/taurus/qt/qtgui/graphic/taurusgraphic.py
-taurus/lib/taurus/qt/qtgui/table/qlogtable.py
-taurus/lib/taurus/qt/qtgui/taurusgui/taurusgui.py
-taurus/lib/taurus/qt/qtgui/tree/taurusdevicetree.py
+src/sardana/macroserver/macro.py<br>
+src/sardana/macroserver/macros/examples/hooks.py<br>
+src/sardana/macroserver/macros/standard.py<br>
+src/sardana/macroserver/msdoor.py<br>
+src/sardana/macroserver/scan/recorder/output.py<br>
+src/sardana/pool/controller.py<br>
+src/sardana/pool/pool.py<br>
+src/sardana/pool/poolacquisition.py<br>
+src/sardana/pool/poolcontroller.py<br>
+src/sardana/spock/ipython_00_11/genutils.py<br>
+src/sardana/tango/core/util.py<br>
+src/sardana/tango/macroserver/Door.py<br>
+src/sardana/tango/macroserver/_init_.py<br>
+taurus/lib/taurus/core/taurusconfiguration.py<br>
+taurus/lib/taurus/core/taurushelper.py<br>
+taurus/lib/taurus/core/taurusmanager.py<br>
+taurus/lib/taurus/core/taurusmodel.py<br>
+taurus/lib/taurus/core/util/log.py<br>
+taurus/lib/taurus/core/util/threadpool.py<br>
+taurus/lib/taurus/qt/qtcore/util/emitter.py<br>
+taurus/lib/taurus/qt/qtdesigner/tauruspluginplugin.py<br>
+taurus/lib/taurus/qt/qtgui/application/taurusapplication.py<br>
+taurus/lib/taurus/qt/qtgui/base/taurusbase.py<br>
+taurus/lib/taurus/qt/qtgui/display/taurusvaluelabel.py<br>
+taurus/lib/taurus/qt/qtgui/graphic/taurusgraphic.py<br>
+taurus/lib/taurus/qt/qtgui/table/qlogtable.py<br>
+taurus/lib/taurus/qt/qtgui/taurusgui/taurusgui.py<br>
+taurus/lib/taurus/qt/qtgui/tree/taurusdevicetree.py<br>
 
 
 This is the current Taurus Logger API.
 
- Current Taurus Logger API  |
- ---------------------------|----------------------------|----------------------------|
-Logger.Critical             |Logger.addLogHandler        |Logger.error                |
-Logger.getParent            |Logger.root_inited          |Logger.exception            |   
-Logger.Debug                |Logger.addRootLogHandler    |Logger.root_init_lock       |
-Logger.getRootLog           |Logger.setLogFormat         |Logger.resetLogLevel        |
-Logger.DftLogFormat         |Logger.call__init__         |Logger.fatal                |
-Logger.info                 |Logger.setLogLevel          |Logger.DftLogLevel          |
-Logger.call__init__wo_kw    |Logger.flushOutput          |Logger.initRoot             |
-Logger.stack                |Logger.DftLogMessageFormat  |Logger.changeLogName        |
-Logger.getAttrDict          |Logger.log                  |Logger.stream_handler       |
-Logger.Error                |Logger.cleanUp              |Logger.getChildren          |
-Logger.log_format           |Logger.syncLog              |Logger.Fatal                |
-Logger.copyLogHandlers      |Logger.getLogFormat         |Logger.log_level            |
-Logger.trace                |Logger.Info                 |Logger.critical             |
-Logger.getLogFullName       |Logger.mro                  |Logger.traceback            |
-Logger.Trace                |Logger.debug                |Logger.getLogLevel          |
-Logger.removeRootLogHandler |Logger.updateAttrDict       |Logger.Warning              |
-Logger.deprecated           |Logger.getLogName           |Logger.resetLogFormat       |
-Logger.warning              |Logger.addChild             |Logger.disableLogOutput     |
-Logger.getLogObj            |Logger.addLevelName         |Logger.enableLogOutput      |
-Logger.getLogger            |
+|                            |  Current Taurus Logger API |                            |
+| ---------------------------|----------------------------|----------------------------|
+|Logger.Critical             |Logger.addLogHandler        |Logger.error                |
+|Logger.getParent            |Logger.root_inited          |Logger.exception            |   
+|Logger.Debug                |Logger.addRootLogHandler    |Logger.root_init_lock       |
+|Logger.getRootLog           |Logger.setLogFormat         |Logger.resetLogLevel        |
+|Logger.DftLogFormat         |Logger.call__init__         |Logger.fatal                |
+|Logger.info                 |Logger.setLogLevel          |Logger.DftLogLevel          |
+|Logger.call__init__wo_kw    |Logger.flushOutput          |Logger.initRoot             |
+|Logger.stack                |Logger.DftLogMessageFormat  |Logger.changeLogName        |
+|Logger.getAttrDict          |Logger.log                  |Logger.stream_handler       |
+|Logger.Error                |Logger.cleanUp              |Logger.getChildren          |
+|Logger.log_format           |Logger.syncLog              |Logger.Fatal                |
+|Logger.copyLogHandlers      |Logger.getLogFormat         |Logger.log_level            |
+|Logger.trace                |Logger.Info                 |Logger.critical             |
+|Logger.getLogFullName       |Logger.mro                  |Logger.traceback            |
+|Logger.Trace                |Logger.debug                |Logger.getLogLevel          |
+|Logger.removeRootLogHandler |Logger.updateAttrDict       |Logger.Warning              |
+|Logger.deprecated           |Logger.getLogName           |Logger.resetLogFormat       |
+|Logger.warning              |Logger.addChild             |Logger.disableLogOutput     |
+|Logger.getLogObj            |Logger.addLevelName         |Logger.enableLogOutput      |
+|Logger.getLogger            |
 
 
 
