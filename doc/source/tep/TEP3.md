@@ -16,9 +16,9 @@ Introduction
 
 This TEP describes an enhancement proposal for a refactoring of Taurus to make the Tango dependency optional instead of mandatory.
 
-PS: see also [TEP14], which extends and complements this proposal.
+PS: see also [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/), which extends and complements this proposal.
 
-The TEP3 was created from [sardana:wiki:SEP3] after the split of Taurus from sardana according to [sardana:wiki:SEP10]. 
+The TEP3 was created from [sardana:wiki:SEP3](https://sourceforge.net/p/sardana/wiki/SEP3/) after the split of Taurus from sardana according to [sardana:wiki:SEP10](https://sourceforge.net/p/sardana/wiki/SEP10/). 
 
 Motivation
 ==================
@@ -288,11 +288,11 @@ Further (post [sardana:wiki:SEP10] split) discussions about TEP3 are held on the
 Follow on and relations with other Enhancement Proposals
 ========================================================
 
-- This TEP effectively makes the Taurus core tango-independent at the import level (i.e., it makes it possible to import taurus without importing PyTango). But there many implementations details remain that are inherited from the Tango-dependency history. The [TEP14] proposes a further taurus.core refactoring that eliminates some of the most evident of these "tangoisms", thus simplifying even more the creation of new schemes.
+- This TEP effectively makes the Taurus core tango-independent at the import level (i.e., it makes it possible to import taurus without importing PyTango). But there many implementations details remain that are inherited from the Tango-dependency history. The [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/) proposes a further taurus.core refactoring that eliminates some of the most evident of these "tangoisms", thus simplifying even more the creation of new schemes.
 
-- Once the taurus.core is independent of Tango (and maybe also after [TEP14]), other proposals should be made to a) make as many widgets from taurus.qt both scheme-agnostic and Tango-independent; and b) to identify and document those that are for some reason bound to one or another scheme.
+- Once the taurus.core is independent of Tango (and maybe also after [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/)), other proposals should be made to a) make as many widgets from taurus.qt both scheme-agnostic and Tango-independent; and b) to identify and document those that are for some reason bound to one or another scheme.
 
-- The TEP3 was created from [sardana:wiki:SEP3] after the split of Taurus from sardana according to [sardana:wiki:SEP10]. The SEP3 still remains to cover the changes necessary in sardana to adapt to the TEP3 changes.
+- The TEP3 was created from [sardana:wiki:SEP3](https://sourceforge.net/p/sardana/wiki/SEP3/) after the split of Taurus from sardana according to [sardana:wiki:SEP10](https://sourceforge.net/p/sardana/wiki/SEP10/). The SEP3 still remains to cover the changes necessary in sardana to adapt to the TEP3 changes.
 
 
 APPENDIX: Implementation details history
