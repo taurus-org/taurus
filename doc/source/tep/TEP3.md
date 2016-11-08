@@ -25,7 +25,7 @@ Motivation
 
 Taurus evolved from Tau which was conceived as a library for creating GUIs & CLIs on top of a Tango control system. As such, Taurus models incorporate concepts such as "Device", "Attribute", etc that are heavily influenced by Tango.
 
-Lately, however, Taurus models have been extended to allow the interaction with other control systems and/or hardware via the ?schemes? extensions (current schemes are: "tango", "simulation", "eval", "epics", "spec").
+Lately, however, Taurus models have been extended to allow the interaction with other control systems and/or hardware via the "schemes" extensions (current schemes are: "tango", "simulation", "eval", "epics", "spec").
 
 The tango scheme was the one initially developed, and is not completely isolated from the rest of Taurus. Taurus uses objects from the PyTango module, and assumes naming conventions in many parts of the code, making it impossible to even import taurus if Tango is not installed.
 
@@ -245,7 +245,7 @@ would now be written as:
 Change in the syntax for TangoConfiguration and EvaluationConfiguration names
 -----------------------------------------------------------------------------
 
-The proposed implementation changes the model name syntax for the configuration objects of both the tango and eval schemes. Where before the suffix "?configuration" was used, now "#" is used. Similarly, when a configuration key was defined with the suffix "?configuration=<cfg_key>", now it is defined as "#<cfg_key>". 
+The proposed implementation changes the model name syntax for the configuration objects of both the tango and eval schemes. Where before the suffix "?configuration" was used, now "#" is used. Similarly, when a configuration key was defined with the suffix "?configuration=\<cfg_key\>", now it is defined as "#\<cfg_key\>". 
 
 This new syntax has the following advantages: 
 
