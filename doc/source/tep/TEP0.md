@@ -74,7 +74,7 @@ during the discussions, see below.
 Proposal states
 ---------------
 
-![TEP state diagram](https://sourceforge.net/p/tauruslib/wiki/_discuss/thread/8233c42e/746a/attachment/workflow.png)
+![TEP state diagram](figures/workflow.png)
 
 A given TEP can be in one of the following *states*:
 
