@@ -123,13 +123,13 @@ To be backward compatible, the variable ENABLE_TAURUS_LOGGER  was added to Tauru
 
 This is the new Taurus Logger API after the changes:
 
- New Taurus Logger API      |
- ---------------------------|----------------------------|----------------------------|
-Logger.call__init__         |Logger.debug                |Logger.exception            |
-Logger.log                  |Logger.traceback            |Logger.call__init__wo_kw    |
-Logger.deprecated           |Logger.getAttrDict          |Logger.mro                  |
-Logger.updateAttrDict       |Logger.critical             |Logger.error                |
-Logger.info                 |Logger.trace                |Logger.warning              |
+|                            |   New Taurus Logger API    |                            | 
+| ---------------------------|----------------------------|----------------------------|
+|Logger.call__init__         |Logger.debug                |Logger.exception            |
+|Logger.log                  |Logger.traceback            |Logger.call__init__wo_kw    |
+|Logger.deprecated           |Logger.getAttrDict          |Logger.mro                  |
+|Logger.updateAttrDict       |Logger.critical             |Logger.error                |
+|Logger.info                 |Logger.trace                |Logger.warning              |
 
 
 Recommendations
