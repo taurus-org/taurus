@@ -128,7 +128,7 @@ The integration of contributed code by an Integration Manager (or Lieutenant) us
 
 - If the contributed code is related to a feature-request in the ticket tracker, the branch *A* should be called *feature-N*, where *N* is the ticket number.
 
-- In the remaining cases, any descriptive name can be used for branch *A* (preferably lower case and reasonably short) provided that it doesn't use any of the reserved names (i.e. *master*, *develop*, *release-\**, *hotfix-\**, *tepX*, *bug-N*, *feature-N*)
+- In the remaining cases, any descriptive name can be used for branch *A* (preferably lower case and reasonably short) provided that it doesn't use any of the reserved names (i.e. master, develop, release-\*, hotfix-\*, tepX, bug-N, feature-N)
 
 Note that those who contribute code via patches do not need to worry about this convention since their local branch names do not affect the official repository history. Nevertheless, it can be a good practice to follow anyway.
  
