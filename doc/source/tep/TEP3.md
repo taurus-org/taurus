@@ -251,7 +251,7 @@ This new syntax has the following advantages:
 
 - it yields more compact names
 - it is easier to parse and handle
-- it prepares the field for [TEP14]'s merge of TaurusConfiguration objects into TaurusAttribute objects.
+- it prepares the field for [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/)'s merge of TaurusConfiguration objects into TaurusAttribute objects.
 
 
 Adapting existing schemes to TEP3
@@ -275,14 +275,14 @@ Previous to TEP3, five schemes were included in Taurus. The following list summa
 Refactoring of Value Types, enumerations, etc
 =============================================
 
-A description of a refactoring of other taurus.core features such as TaurusAttributeValue and TaurusConfigValue was included into the draft of TEP3, but it has now been moved to [TEP14].
+A description of a refactoring of other taurus.core features such as TaurusAttributeValue and TaurusConfigValue was included into the draft of TEP3, but it has now been moved to [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/).
 
 
 Links to more details and discussions
 ======================================
 
 The initial discussions about the SEP3 itself are in the sardana-devel mailing list.
-Further (post [sardana:wiki:SEP10] split) discussions about TEP3 are held on the tauruslib-devel mailing list.
+Further (post [sardana:wiki:SEP10](https://sourceforge.net/p/sardana/wiki/SEP10/) split) discussions about TEP3 are held on the tauruslib-devel mailing list.
 
 
 Follow on and relations with other Enhancement Proposals
@@ -316,7 +316,7 @@ The following compilation of tasks was started on 12/08/2014 (by then, many of t
 - <s>Change configuration model name syntax (substitute "?configuration[=cfgkey]" by "#[cfgkey]")</s>
 - <s>make sure that the installation procedure is independent of PyTango.</s>
 
-The following  tasks were previously part of the above requirements list, but have been moved to the [TEP14]:
+The following  tasks were previously part of the above requirements list, but have been moved to the [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/):
 
 - Implement quantities support 
 - TaurusConfiguration class still has some potentially tango-centric code (concepts such as "Standard unit vs Display unit" or classification into spectrum/image/scalars may require to be re-thought).
@@ -375,16 +375,16 @@ Changes
 [cpascual](http://sf.net/u/cpascual/) General update of the document based on code review and discussions with [cmft](https://sf.net/u/cmft/). Also added the "Changes" section.
 
 2014-08-14
-[cpascual](http://sf.net/u/cpascual/) Added some more tasks to implementation plan and reference to [sardana:wiki:Taurus_URIRefactoring] document
+[cpascual](http://sf.net/u/cpascual/) Added some more tasks to implementation plan and reference to [sardana:wiki:Taurus_URIRefactoring](https://sourceforge.net/p/sardana/wiki/Taurus_URIRefactoring/) document
 
 2014-10-03
 [cpascual](http://sf.net/u/cpascual/) Updated pending tasks and completed some info about validators
 
 2015-04-28
-[cpascual](http://sf.net/u/cpascual/) Adapted latest version of [sardana:wiki:SEP3] to update TEP3 and move some parts to [TEP14]
+[cpascual](http://sf.net/u/cpascual/) Adapted latest version of [sardana:wiki:SEP3](https://sourceforge.net/p/sardana/wiki/SEP3/) to update TEP3 and move some parts to [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/)
 
 2015-04-30
-[cpascual](http://sf.net/u/cpascual/) Added 'Refactoring of Model name syntax' section using info from [sardana:wiki:Taurus_URIRefactoring]. Also several other minor changes and improvements.
+[cpascual](http://sf.net/u/cpascual/) Added 'Refactoring of Model name syntax' section using info from [sardana:wiki:Taurus_URIRefactoring](https://sourceforge.net/p/sardana/wiki/Taurus_URIRefactoring/). Also several other minor changes and improvements.
 
 2015-04-30
 [cpascual](http://sf.net/u/cpascual/) passing to CANDIDATE
