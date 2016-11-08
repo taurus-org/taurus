@@ -69,7 +69,7 @@ How should one submit a proposed contribution?
 
 In general, code submissions for inclusion in the taurus repositories should take the following into account:
 
-- It must comply with the [**Taurus coding conventions**](www.taurus-scada.org/devel/coding_guide.html).
+- It must comply with the [**Taurus coding conventions**](http://www.taurus-scada.org/devel/coding_guide.html).
 - The **contributor must be clearly identified** and provide a valid email address which can be used to contact him/her.
 - Commit messages  should be [properly formatted](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 - The **licensing terms** for the contributed code must be compatible with (and preferably the same as) the license chosen for the Taurus project (at the time of writing this TEP, it is the [LGPL](http://www.gnu.org/licenses/lgpl.html), version 3 *or later*).
