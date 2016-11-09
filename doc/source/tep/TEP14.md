@@ -68,9 +68,9 @@ The following table summarizes the allowed types for the read/write values, limi
 
 DataType           | _0D         | _1D                   | _2D
 ------------------- | ------------ | ------------------- | ---------------------- 
-Boolean            | bool         | ndarray<bool> | ndarray<bool> 
+Boolean            | bool         | `ndarray<bool>` | `ndarray<bool>` 
 Integer, Float    | Quantity  | Quantity            | Quantity
-String                | str           | seq<str>          | seq<seq<str>>
+String                | str           | seq<str>          | `seq<seq<str>>`
 Bytes                 | bytes      |                          |
 
 Some important remarks:
