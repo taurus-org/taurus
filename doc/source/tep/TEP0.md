@@ -74,7 +74,7 @@ during the discussions, see below.
 Proposal states
 ---------------
 
-![TEP state diagram](figures/workflow.png)
+![TEP state diagram](res/tep0_workflow.png)
 
 A given TEP can be in one of the following *states*:
 
