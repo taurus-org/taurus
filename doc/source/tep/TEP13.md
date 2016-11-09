@@ -303,7 +303,7 @@ Recorders
 - Plot mechanisms (maybe too ambitious... but plugins could be used to provide the 
   plotting... like PyMca5 does when abstracting access to switch from pyqtgraph and
   matplotlib backends)
-- The mechanism for loading/installing specific TaurusGUI (using taurusgui \<modulename\>)
+- The mechanism for loading/installing specific TaurusGUI (using `taurusgui <modulename>`)
   could based on plugins (maybe only if the plugin system is coupled with the installation
   system as in stevedore)
 - widgets backend (e.g. taurus.qt VS taurus.web VS taurus.gtk,...) 
