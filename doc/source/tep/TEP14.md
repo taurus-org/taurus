@@ -36,7 +36,7 @@ and xxxConfigurationValue classes, and their role being taken by xxxAttribute.
 
 The resulting class relationships is then simplified, as seen in the following figure:
 
-![Attr-Conf merge figure](https://sourceforge.net/p/tauruslib/wiki/TEP14/attachment/merge_Attr_and_Conf.png)
+![Attr-Conf merge figure](res/tep14_merge_Attr_and_Conf.png)
 
 From the point of view of application code (e.g. widgets), this implies that:
 
