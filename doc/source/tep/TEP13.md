@@ -31,7 +31,7 @@ The expected benefits are:
 
 - facilitate the maintainability of the code (removing multiple different implementations and APIs)
 - Increase Taurus modularity (since many subpackages that are currently monolithic could be reimplemented as a collection of optional extensions to be loaded on-demand).
-- Sardana would also benefit from an ?official? extension API in Taurus (first, by formally registering itself as a taurus extension and second, by using the same API internally for its own plugins.
+- Sardana would also benefit from an "official" extension API in Taurus (first, by formally registering itself as a taurus extension and second, by using the same API internally for its own plugins.
 
 
 Goals and constraints
@@ -303,7 +303,7 @@ Recorders
 - Plot mechanisms (maybe too ambitious... but plugins could be used to provide the 
   plotting... like PyMca5 does when abstracting access to switch from pyqtgraph and
   matplotlib backends)
-- The mechanism for loading/installing specific TaurusGUI (using taurusgui <modulename>)
+- The mechanism for loading/installing specific TaurusGUI (using taurusgui \<modulename\>)
   could based on plugins (maybe only if the plugin system is coupled with the installation
   system as in stevedore)
 - widgets backend (e.g. taurus.qt VS taurus.web VS taurus.gtk,...) 
