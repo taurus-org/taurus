@@ -106,7 +106,7 @@ Each system/API is described according to the following template:
 Schemes
 -------
 - **Description**: access abstraction to data sources via data models
-- **Pointer**: taurus.core (taurus factory, helper, etc. Refer to [SEP3])
+- **Pointer**: taurus.core (taurus factory, helper, etc. Refer to [SEP3](https://sourceforge.net/p/sardana/wiki/SEP3/))
 - **Existing plugins**: Tango, Eval, Epics, Spec, Simulation
 - **Foreseen plugins**: Hdf5, Ascii tables, xls/ods files, SQL, archiving, ...
 - **Current discovery method**: Path based. Uses both scanning and explicit (via tauruscustomsettings.SCHEMES)
@@ -207,7 +207,7 @@ Icons
 Loggers
 -------
 - **Description**: Set the Taurus logger system (multiples loggers could be registered). 
-- **Pointer**:  taurus.core.util.log, taurus.core, taurus.qt (refer to [TEP8])
+- **Pointer**:  taurus.core.util.log, taurus.core, taurus.qt (refer to [TEP8](https://sourceforge.net/p/tauruslib/wiki/TEP8/))
 - **Existing plugins**:  Taurus logger only
 - **Foreseen plugins**: loggers from external applications using Taurus, custom loggers, ...
 - **Current discovery method**: Not discovered. Hardcoded in  taurus.core.util.log
@@ -219,7 +219,7 @@ Loggers
 
 TestSuite
 -------
-- **Description:** The unit test infrastructure (Implemented in [SEP5]). New tests for features or modules can be added. Particular tests may be (de)activated dynamically.
+- **Description:** The unit test infrastructure (Implemented in [SEP5](https://sourceforge.net/p/sardana/wiki/SEP5/)). New tests for features or modules can be added. Particular tests may be (de)activated dynamically.
 - **Pointer**:  taurus.test and test submodules of taurus modules.
 - **Existing plugins**: all "test" submodules taurus modules
 - **Foreseen plugins**: New tests.
@@ -295,7 +295,7 @@ Recorders
     - ...
 - <s>Icons (adding icons for the standard Taurus icon catalog)</s>
 - EventFilters (extend taurus.core.util.eventfilter)
-- <s>Loggers (consider this in relation to [SEP8])</s>
+- <s>Loggers (consider this in relation to [SEP8](https://sourceforge.net/p/sardana/wiki/SEP8/))</s>
 - <s>testsuite (may be interesting for enabling/disabling certain tests in the testsuite... </s>
   (e.g for substituting the lib.taurus.test.skip mechanism)
 - Qt Designer Pluggins (see https://sourceforge.net/p/tauruslib/tickets/144/)
