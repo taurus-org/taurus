@@ -3,7 +3,7 @@
     State: ACCEPTED
     Date: 2016-03-16
     Drivers: Carlos Falcon-Torres <cfalcon@cells.es>, Carlos Pascual-Izarra <cpascual@cells.es>
-    URL: https://sourceforge.net/p/tauruslib/wiki/TEP3
+    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP3.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      The goal of this TEP is to refactor the Taurus core to make the Tango 

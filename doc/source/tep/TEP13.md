@@ -3,7 +3,7 @@
     State: DRAFT
     Date: 2015-03-25
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
-    URL: https://sourceforge.net/p/tauruslib/wiki/TEP13
+    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP13.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      Implement support for managing third-party code 

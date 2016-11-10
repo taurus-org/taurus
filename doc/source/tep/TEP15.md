@@ -3,7 +3,7 @@
     State: DRAFT
     Date: 2016-06-16
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
-    URL: https://sourceforge.net/p/tauruslib/wiki/TEP15
+    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP15.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      This proposal aims at defining a way for Taurus URIs to support data slicing.

@@ -3,7 +3,7 @@
     State: ACCEPTED
     Date: 2016-04-07
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Tiago Coutinho <coutinho@esrf.fr>
-    URL: https://sourceforge.net/p/tauruslib/wiki/TEP0
+    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP0.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      Workflow for managing discussions about improvements to Taurus

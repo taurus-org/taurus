@@ -3,7 +3,7 @@
     State: ACCEPTED
     Date: 2016-03-16
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Carlos Falcon-Torres <cfalcon@cells.es>
-    URL: https://sourceforge.net/p/tauruslib/wiki/TEP14
+    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP14.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      This proposal picks the tango.core refactoring from TEP3 and takes it a 
