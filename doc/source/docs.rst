@@ -15,6 +15,8 @@ acquisition.
 
    users/index.rst
    devel/index.rst
+   tep/index.rst
+
 
 * :ref:`genindex`
 * :ref:`modindex`

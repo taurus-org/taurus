@@ -41,7 +41,6 @@ Projects related to Taurus
     Project Page <https://github.com/taurus-org>
     Download from PyPI <http://pypi.python.org/pypi/taurus>
     docs
-    tep  <tep/index.rst>
 
 :Last Update: |today|
 :Release: |release|
