@@ -3,7 +3,7 @@
     State: ACCEPTED
     Date: 2016-03-16
     Drivers: Carlos Falcon-Torres <cfalcon@cells.es>, Carlos Pascual-Izarra <cpascual@cells.es>
-    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP3.md
+    URL: http://www.taurus-scada.org/tep/?TEP3.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      The goal of this TEP is to refactor the Taurus core to make the Tango 
@@ -407,6 +407,6 @@ Changes
 
 [1]: https://en.wikipedia.org/wiki/URI_scheme#Generic_syntax
 [2]: https://tools.ietf.org/html/rfc3986
-[TEP14]: https://sourceforge.net/p/tauruslib/wiki/TEP14/
+[TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [sardana:wiki:SEP3]: https://sourceforge.net/p/sardana/wiki/SEP3/
 [sardana:wiki:SEP10]: https://sourceforge.net/p/sardana/wiki/SEP10/
