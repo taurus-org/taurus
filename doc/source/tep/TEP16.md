@@ -3,7 +3,7 @@
     State: CANDIDATE
     Date: 2016-10-21
     Drivers: Carlos Pascual-Izarra cpascual@cells.es
-    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP16.md
+    URL: http://www.taurus-scada.org/tep?TEP16.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract: 
      Move Taurus project from its current hosting in SourceForge to 
