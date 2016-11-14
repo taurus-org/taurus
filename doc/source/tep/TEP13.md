@@ -25,7 +25,7 @@ Introduction
 
 At this moment, different mechanisms to support extensions are already implemented in various subsystems of Taurus (see APPENDIX IV). Most of these mechanisms, being ad-hoc implementations, are quite specific and present limitations such as requiring the plugin to have privileged access to Taurus installation directories, or not having a well defined interface, or not allowing to define dependencies/incompatibilities among plugins.
 
-This situation can be improved by adopting a generic extension mechanism (e.g., [stevedore](https://pypi.python.org/pypi/stevedore) or [yapsy](https://pypi.python.org/pypi/Yapsy)) and using it throughout the whole Taurus library.
+This situation can be improved by adopting a generic extension mechanism (e.g., [stevedore][] or [yapsy][]) and using it throughout the whole Taurus library.
 
 The expected benefits are:
 
@@ -42,9 +42,9 @@ Goals and constraints
 APPENDIX I: Notes on terms and concepts used
 ============================================
 
-Regardless of which solution we end up proposing in the draft, we find that the analysis and naming conventions used in the [stevedore docs](http://docs.openstack.org/developer/stevedore/index.html) are quite useful for analising the various aspects to consider of a plugin system.
+Regardless of which solution we end up proposing in the draft, we find that the analysis and naming conventions used in the [stevedore docs][] are quite useful for analising the various aspects to consider of a plugin system.
 
-We will therefore be using concepts such as "Driver", "Hook", "Extension", "Loading pattern", "Enabling pattern", etc. as defined in the [stevedore docs](http://docs.openstack.org/developer/stevedore/index.html).
+We will therefore be using concepts such as "Driver", "Hook", "Extension", "Loading pattern", "Enabling pattern", etc. as defined in the [stevedore docs][].
 
 More specifically, you should read the following parts of stevedore docs:
 
@@ -75,8 +75,8 @@ What we look for in a plugin system:
 APPENDIX III: Possible candidates being explored
 =================================================
 
-- [stevedore](https://pypi.python.org/pypi/stevedore)
-- [yapsy](https://pypi.python.org/pypi/Yapsy)
+- [stevedore][]
+- [yapsy][]
 - PCA (pyutilib component architecture) from [pyutilib](https://software.sandia.gov/trac/pyutilib)
 - [Marty Alchin's 6-line plugin framework](http://martyalchin.com/2008/jan/10/simple-plugin-framework/)
 - Custom implementation
@@ -367,3 +367,7 @@ Changes
 * 2015-10-15: [cpascual](https://sourceforge.net/u/cpascual/) Moved pre-draft notes from [sardana:wiki:SEP13]
 * 2015-01-27: [cpascual](https://sourceforge.net/u/cpascual/) 
   Initial pre-draft notes collection started
+  
+[stevedore docs]: http://docs.openstack.org/developer/stevedore/index.html
+[stevedore]: https://pypi.python.org/pypi/stevedore
+[yapsy]: https://pypi.python.org/pypi/Yapsy
