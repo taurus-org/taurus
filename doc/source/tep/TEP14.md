@@ -3,7 +3,7 @@
     State: ACCEPTED
     Date: 2016-03-16
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Carlos Falcon-Torres <cfalcon@cells.es>
-    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP14.md
+    URL: http://www.taurus-scada.org/tep?TEP14.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      This proposal picks the tango.core refactoring from TEP3 and takes it a 
@@ -177,7 +177,7 @@ Implementation and Follow on
 
 A proposal of implementation was pushed to the `taurus4-preview` branch at the official repository.
 
-The mentioned branch also includes changes belonging to [TEP3](), since that is the starting implementation point for TEP14. It also includes the minimal necessary changes in Taurus widgets in order for them to work with the changes of the core due to TEP14 (note that these changes in widgets are technically out of the scope of TEP14, but they are convenient in order to properly evaluate the implementation proposal).
+The mentioned branch also includes changes belonging to [TEP3][], since that is the starting implementation point for TEP14. It also includes the minimal necessary changes in Taurus widgets in order for them to work with the changes of the core due to TEP14 (note that these changes in widgets are technically out of the scope of TEP14, but they are convenient in order to properly evaluate the implementation proposal).
 
 Apart of the minimal changes just mentioned, the taurus widgets require further changes in order to take advantage of the new features provided by this TEP (e.g., plots currently use only the magnitude information from their model values, when they should use the units info as well). Another TEP (or feature-request-driven development) should be started for that.
 
@@ -227,4 +227,4 @@ Changes
 [cpascual](http://sf.net/u/cpascual/) Passing to  ACCEPTED
 
 
-[TEP3]: https://sourceforge.net/p/tauruslib/wiki/TEP3/
+[TEP3]: http://www.taurus-scada.org/tep?TEP3.md
