@@ -245,7 +245,7 @@ would now be written as:
 Change in the syntax for TangoConfiguration and EvaluationConfiguration names
 -----------------------------------------------------------------------------
 
-The proposed implementation changes the model name syntax for the configuration objects of both the tango and eval schemes. Where before the suffix "?configuration" was used, now "#" is used. Similarly, when a configuration key was defined with the suffix "?configuration=\<cfg_key\>", now it is defined as "#\<cfg_key\>". 
+The proposed implementation changes the model name syntax for the configuration objects of both the tango and eval schemes. Where before the suffix "?configuration" was used, now "#" is used. Similarly, when a configuration key was defined with the suffix "?configuration=`<cfg_key>`", now it is defined as "`#<cfg_key>`". 
 
 This new syntax has the following advantages: 
 
