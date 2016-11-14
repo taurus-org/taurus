@@ -3,7 +3,7 @@
     State: ACCEPTED
     Date: 2014-01-23
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Tiago Coutinho <coutinho@esrf.fr>
-    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP7.md
+    URL: http://www.taurus-scada.org/tep?TEP7.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      Define the procedures for contributing code to taurus. It covers git 
