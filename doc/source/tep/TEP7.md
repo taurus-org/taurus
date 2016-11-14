@@ -62,7 +62,7 @@ Please refer to http://nvie.com/posts/a-successful-git-branching-model for a ful
 
 In the Taurus project, we use a special type of *feature* branches called *tepX* branches: unlike other *feature* branches which typically only exist in the contributor local repository (or maybe in a public fork of the official repository), the *tepX* feature branches are hosted in the oficial repository. The *tepX* branch may be created if required during the DRAFT or CANDIDATE phases of the *X*th Taurus Enhancement Proposal, and is merged to *develop* if the TEPX is APPROVED. Only the person(s) dessignated by the TEPX driver -and approved by the Taurus project Admins- can push to the official *tepX* branch. These designated person(s) are considered **"TepX Integration Lieutenants"**.
 
-**Tip**: You can find a set of practical examples on working with the taurus branching model in the [taurus git recipes](http://sf.net/p/tauruslib/wiki/git-recipes/)
+**Tip**: You can find a set of practical examples on working with the taurus branching model in the [taurus git recipes][]
 
 How should one submit a proposed contribution?
 ==============================================
@@ -94,7 +94,7 @@ Specific notes for contributing via pull requests:
 - Important: prepend the subject of your email to the mailing list with **`[PULL]`**
 - If the changes are not too big, consider using the "-p" option to *git request-pull* (it includes the diff info in the body of the email)
 
-**Tip**: You can find a set of practical examples on how to submit code according to the TEP7 specifications in the [taurus git recipes](http://sf.net/p/tauruslib/wiki/git-recipes/)
+**Tip**: You can find a set of practical examples on how to submit code according to the TEP7 specifications in the [taurus git recipes][]
 
 Who approves/rejects proposed contributions?
 ============================================
@@ -116,7 +116,7 @@ The code review process for contributions to the official taurus **core** reposi
 3- During this phase, the contributor may be asked for further clarifications and/or corrections to the contributed code (in which case a resubmission may be required).
 4- Eventually, an Integration Manager (or a TepX Integration Lieutenant if the contribution is for a *tepX* branch) may either accept the contribution and integrate it into the official repository, or reject it. In both cases, he/she is posts a message in the mailing list informing of the decision.
 
-**Tip**: You can find a set of practical examples on how to integrate contributed code according to the TEP7 specifications in the [taurus git recipes](http://sf.net/p/tauruslib/wiki/git-recipes/)
+**Tip**: You can find a set of practical examples on how to integrate contributed code according to the TEP7 specifications in the [taurus git recipes][]
 
 
 Naming convention for feature branches
@@ -178,3 +178,5 @@ Changes
 
 * 2014-01-23: [tiagocoutinho](https://sourceforge.net/u/tiagocoutinho/) 
   Initial version written (from SEP7)
+  
+  [taurus git recipes]: http://sf.net/p/tauruslib/wiki/git-recipes/
