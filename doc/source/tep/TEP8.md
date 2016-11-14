@@ -30,35 +30,36 @@ Taurus [TEP8] and Sardana [SEP8](https://sourceforge.net/p/sardana/wiki/SEP8/) c
 Taurus Logger has to be created in two steps: Taurus Logger initialization and Taurus Logger instantiation. Moreover, to have a Logger system more standard is convenient to use the python logging module as much as possible.
 
 The gross of changes have to be done in log.py file but also the Logger dependencies have to be removed from other files:
-
-src/sardana/macroserver/macro.py<br>
-src/sardana/macroserver/macros/examples/hooks.py<br>
-src/sardana/macroserver/macros/standard.py<br>
-src/sardana/macroserver/msdoor.py<br>
-src/sardana/macroserver/scan/recorder/output.py<br>
-src/sardana/pool/controller.py<br>
-src/sardana/pool/pool.py<br>
-src/sardana/pool/poolacquisition.py<br>
-src/sardana/pool/poolcontroller.py<br>
-src/sardana/spock/ipython_00_11/genutils.py<br>
-src/sardana/tango/core/util.py<br>
-src/sardana/tango/macroserver/Door.py<br>
-src/sardana/tango/macroserver/_init_.py<br>
-taurus/lib/taurus/core/taurusconfiguration.py<br>
-taurus/lib/taurus/core/taurushelper.py<br>
-taurus/lib/taurus/core/taurusmanager.py<br>
-taurus/lib/taurus/core/taurusmodel.py<br>
-taurus/lib/taurus/core/util/log.py<br>
-taurus/lib/taurus/core/util/threadpool.py<br>
-taurus/lib/taurus/qt/qtcore/util/emitter.py<br>
-taurus/lib/taurus/qt/qtdesigner/tauruspluginplugin.py<br>
-taurus/lib/taurus/qt/qtgui/application/taurusapplication.py<br>
-taurus/lib/taurus/qt/qtgui/base/taurusbase.py<br>
-taurus/lib/taurus/qt/qtgui/display/taurusvaluelabel.py<br>
-taurus/lib/taurus/qt/qtgui/graphic/taurusgraphic.py<br>
-taurus/lib/taurus/qt/qtgui/table/qlogtable.py<br>
-taurus/lib/taurus/qt/qtgui/taurusgui/taurusgui.py<br>
-taurus/lib/taurus/qt/qtgui/tree/taurusdevicetree.py<br>
+```
+src/sardana/macroserver/macro.py
+src/sardana/macroserver/macros/examples/hooks.py
+src/sardana/macroserver/macros/standard.py
+src/sardana/macroserver/msdoor.py
+src/sardana/macroserver/scan/recorder/output.py
+src/sardana/pool/controller.py
+src/sardana/pool/pool.py
+src/sardana/pool/poolacquisition.py
+src/sardana/pool/poolcontroller.py
+src/sardana/spock/ipython_00_11/genutils.py
+src/sardana/tango/core/util.py
+src/sardana/tango/macroserver/Door.py
+src/sardana/tango/macroserver/_init_.py
+taurus/lib/taurus/core/taurusconfiguration.py
+taurus/lib/taurus/core/taurushelper.py
+taurus/lib/taurus/core/taurusmanager.py
+taurus/lib/taurus/core/taurusmodel.py
+taurus/lib/taurus/core/util/log.py
+taurus/lib/taurus/core/util/threadpool.py
+taurus/lib/taurus/qt/qtcore/util/emitter.py
+taurus/lib/taurus/qt/qtdesigner/tauruspluginplugin.py
+taurus/lib/taurus/qt/qtgui/application/taurusapplication.py
+taurus/lib/taurus/qt/qtgui/base/taurusbase.py
+taurus/lib/taurus/qt/qtgui/display/taurusvaluelabel.py
+taurus/lib/taurus/qt/qtgui/graphic/taurusgraphic.py
+taurus/lib/taurus/qt/qtgui/table/qlogtable.py
+taurus/lib/taurus/qt/qtgui/taurusgui/taurusgui.py
+taurus/lib/taurus/qt/qtgui/tree/taurusdevicetree.py
+```
 
 
 This is the current Taurus Logger API.
