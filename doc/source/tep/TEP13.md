@@ -3,7 +3,7 @@
     State: DRAFT
     Date: 2015-03-25
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
-    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP13.md
+    URL: http://www.taurus-scada.org/tep?TEP13.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      Implement support for managing third-party code 
@@ -207,7 +207,7 @@ Icons
 Loggers
 -------
 - **Description**: Set the Taurus logger system (multiples loggers could be registered). 
-- **Pointer**:  taurus.core.util.log, taurus.core, taurus.qt (refer to [TEP8](https://sourceforge.net/p/tauruslib/wiki/TEP8/))
+- **Pointer**:  taurus.core.util.log, taurus.core, taurus.qt (refer to [TEP8](http://www.taurus-scada.org/tep?TEP8.md))
 - **Existing plugins**:  Taurus logger only
 - **Foreseen plugins**: loggers from external applications using Taurus, custom loggers, ...
 - **Current discovery method**: Not discovered. Hardcoded in  taurus.core.util.log
