@@ -17,7 +17,7 @@
 Introduction & motivation
 =========================
 
-This TEP is a spin-off of [TEP3](https://sourceforge.net/p/tauruslib/wiki/TEP3/). It proposes a refactoring of taurus.core to get rid of some tango-centric implementation details that were left by [TEP3](https://sourceforge.net/p/tauruslib/wiki/TEP3/). The objective is to obtain a cleaner and more scheme-agnostic API for creation of new schemes. Several inter-related aspects of the taurus core are refactored:
+This TEP is a spin-off of [TEP3][]. It proposes a refactoring of taurus.core to get rid of some tango-centric implementation details that were left by [TEP3][]. The objective is to obtain a cleaner and more scheme-agnostic API for creation of new schemes. Several inter-related aspects of the taurus core are refactored:
 
 - the  xxxConfiguration classes are merged into xxxAttribute
 - The AttributeValue members and their types are more strictly defined and unified among schemes (e.g. physical values are expected to be Quantity objects)
@@ -109,13 +109,13 @@ Note that this change is one of the possible sources of unavoidable backwards in
 Scheme-agnostic API for xxxAuthority
 ============================
 
-The concept of "Authority" models type was already introduced in [TEP3](https://sourceforge.net/p/tauruslib/wiki/TEP3/) to generalise the tango-centric "Database". This TEP defines a base API for xxxAuthority via the TaurusAuthority base class. This is the api that scheme-agnostic code can use for dealing with Authority models. 
+The concept of "Authority" models type was already introduced in [TEP3][] to generalise the tango-centric "Database". This TEP defines a base API for xxxAuthority via the TaurusAuthority base class. This is the api that scheme-agnostic code can use for dealing with Authority models. 
 
 
 Interpretation of fragments in model names
 ==========================
 
-Since [TEP3](https://sourceforge.net/p/tauruslib/wiki/TEP3/), the concept of "URI fragments" was introduced in the model names (a model name may contain a "#" symbol followed by a fragment name). In TEP3 only a limited use was done of this syntax. This proposal generalises it: 
+Since [TEP3][], the concept of "URI fragments" was introduced in the model names (a model name may contain a "#" symbol followed by a fragment name). In [TEP3][] only a limited use was done of this syntax. This proposal generalises it: 
 
 - The model name (i.e., without the fragment name) is an identifier for a model object
 - The fragment name is an identifier of a member of the model object. 
@@ -177,7 +177,7 @@ Implementation and Follow on
 
 A proposal of implementation was pushed to the `taurus4-preview` branch at the official repository.
 
-The mentioned branch also includes changes belonging to [TEP3](https://sourceforge.net/p/tauruslib/wiki/TEP3/), since that is the starting implementation point for TEP14. It also includes the minimal necessary changes in Taurus widgets in order for them to work with the changes of the core due to TEP14 (note that these changes in widgets are technically out of the scope of TEP14, but they are convenient in order to properly evaluate the implementation proposal).
+The mentioned branch also includes changes belonging to [TEP3](), since that is the starting implementation point for TEP14. It also includes the minimal necessary changes in Taurus widgets in order for them to work with the changes of the core due to TEP14 (note that these changes in widgets are technically out of the scope of TEP14, but they are convenient in order to properly evaluate the implementation proposal).
 
 Apart of the minimal changes just mentioned, the taurus widgets require further changes in order to take advantage of the new features provided by this TEP (e.g., plots currently use only the magnitude information from their model values, when they should use the units info as well). Another TEP (or feature-request-driven development) should be started for that.
 
@@ -215,7 +215,7 @@ Changes
 
 
 2015-04-28
-[cpascual](http://sf.net/u/cpascual/) First draft based on parts moved from [TEP3] and previous discussions with [tiagocoutinho](http://sf.net/u/tiagocoutinho/), [cfalcon](https://sf.net/u/cmft/) and [zreszela](http://sf.net/u/zreszela/)
+[cpascual](http://sf.net/u/cpascual/) First draft based on parts moved from [TEP3][] and previous discussions with [tiagocoutinho](http://sf.net/u/tiagocoutinho/), [cfalcon](https://sf.net/u/cmft/) and [zreszela](http://sf.net/u/zreszela/)
 
 2015-11-23
 [cpascual](http://sf.net/u/cpascual/) Implementation proposal uploaded to taurus4-preview branch of official repo
@@ -225,3 +225,6 @@ Changes
 
 2016-03-16
 [cpascual](http://sf.net/u/cpascual/) Passing to  ACCEPTED
+
+
+[TEP3]: https://sourceforge.net/p/tauruslib/wiki/TEP3/
