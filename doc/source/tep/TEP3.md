@@ -16,9 +16,9 @@ Introduction
 
 This TEP describes an enhancement proposal for a refactoring of Taurus to make the Tango dependency optional instead of mandatory.
 
-PS: see also [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/), which extends and complements this proposal.
+PS: see also [TEP14][], which extends and complements this proposal.
 
-The TEP3 was created from [sardana:wiki:SEP3](https://sourceforge.net/p/sardana/wiki/SEP3/) after the split of Taurus from sardana according to [sardana:wiki:SEP10](https://sourceforge.net/p/sardana/wiki/SEP10/). 
+The TEP3 was created from [sardana:wiki:SEP3][] after the split of Taurus from sardana according to [sardana:wiki:SEP10][]. 
 
 Motivation
 ==================
@@ -251,7 +251,7 @@ This new syntax has the following advantages:
 
 - it yields more compact names
 - it is easier to parse and handle
-- it prepares the field for [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/)'s merge of TaurusConfiguration objects into TaurusAttribute objects.
+- it prepares the field for [TEP14][]'s merge of TaurusConfiguration objects into TaurusAttribute objects.
 
 
 Adapting existing schemes to TEP3
@@ -265,34 +265,34 @@ Previous to TEP3, five schemes were included in Taurus. The following list summa
 
 - *simulation*: the proposed implementation removes the simulation scheme (which was used only by the taurusdesigner to provide an offline mock for tango and which was already broken). The necessary changes have been done in taurusdesigner.
 
-- *epics*: the epics scheme is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme was just a proof-of-concept and not used in production, so it can be adapted on a later moment (e.g. after TEP14) without blocking the TEP3 acceptance.
+- *epics*: the epics scheme is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme was just a proof-of-concept and not used in production, so it can be adapted on a later moment (e.g. after [TEP14][]) without blocking the TEP3 acceptance.
 
-- *spec*: the spec scheme is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme was just a proof-of-concept and not used in production, so it can be adapted on a later moment (e.g. after TEP14) without blocking the TEP3 acceptance.
+- *spec*: the spec scheme is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme was just a proof-of-concept and not used in production, so it can be adapted on a later moment (e.g. after [TEP14][]) without blocking the TEP3 acceptance.
 
-- *res*: the res scheme (which provides a model indirection mechanism) is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme is not used in production, so it can be adapted on a later moment (e.g. after TEP14) without blocking the TEP3 acceptance.
+- *res*: the res scheme (which provides a model indirection mechanism) is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme is not used in production, so it can be adapted on a later moment (e.g. after [TEP14][]) without blocking the TEP3 acceptance.
 
 
 Refactoring of Value Types, enumerations, etc
 =============================================
 
-A description of a refactoring of other taurus.core features such as TaurusAttributeValue and TaurusConfigValue was included into the draft of TEP3, but it has now been moved to [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/).
+A description of a refactoring of other taurus.core features such as TaurusAttributeValue and TaurusConfigValue was included into the draft of TEP3, but it has now been moved to [TEP14][].
 
 
 Links to more details and discussions
 ======================================
 
 The initial discussions about the SEP3 itself are in the sardana-devel mailing list.
-Further (post [sardana:wiki:SEP10](https://sourceforge.net/p/sardana/wiki/SEP10/) split) discussions about TEP3 are held on the tauruslib-devel mailing list.
+Further (post [sardana:wiki:SEP10][] split) discussions about TEP3 are held on the tauruslib-devel mailing list.
 
 
 Follow on and relations with other Enhancement Proposals
 ========================================================
 
-- This TEP effectively makes the Taurus core tango-independent at the import level (i.e., it makes it possible to import taurus without importing PyTango). But there many implementations details remain that are inherited from the Tango-dependency history. The [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/) proposes a further taurus.core refactoring that eliminates some of the most evident of these "tangoisms", thus simplifying even more the creation of new schemes.
+- This TEP effectively makes the Taurus core tango-independent at the import level (i.e., it makes it possible to import taurus without importing PyTango). But there many implementations details remain that are inherited from the Tango-dependency history. The [TEP14][] proposes a further taurus.core refactoring that eliminates some of the most evident of these "tangoisms", thus simplifying even more the creation of new schemes.
 
-- Once the taurus.core is independent of Tango (and maybe also after [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/)), other proposals should be made to a) make as many widgets from taurus.qt both scheme-agnostic and Tango-independent; and b) to identify and document those that are for some reason bound to one or another scheme.
+- Once the taurus.core is independent of Tango (and maybe also after [TEP14][]), other proposals should be made to a) make as many widgets from taurus.qt both scheme-agnostic and Tango-independent; and b) to identify and document those that are for some reason bound to one or another scheme.
 
-- The TEP3 was created from [sardana:wiki:SEP3](https://sourceforge.net/p/sardana/wiki/SEP3/) after the split of Taurus from sardana according to [sardana:wiki:SEP10](https://sourceforge.net/p/sardana/wiki/SEP10/). The SEP3 still remains to cover the changes necessary in sardana to adapt to the TEP3 changes.
+- The TEP3 was created from [sardana:wiki:SEP3][] after the split of Taurus from sardana according to [sardana:wiki:SEP10][]. The [SEP3][sardana:wiki:SEP3] still remains to cover the changes necessary in sardana to adapt to the TEP3 changes.
 
 
 APPENDIX: Implementation details history
@@ -316,7 +316,7 @@ The following compilation of tasks was started on 12/08/2014 (by then, many of t
 - <s>Change configuration model name syntax (substitute "?configuration[=cfgkey]" by "#[cfgkey]")</s>
 - <s>make sure that the installation procedure is independent of PyTango.</s>
 
-The following  tasks were previously part of the above requirements list, but have been moved to the [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/):
+The following  tasks were previously part of the above requirements list, but have been moved to the [TEP14][]:
 
 - Implement quantities support 
 - TaurusConfiguration class still has some potentially tango-centric code (concepts such as "Standard unit vs Display unit" or classification into spectrum/image/scalars may require to be re-thought).
@@ -381,7 +381,7 @@ Changes
 [cpascual](http://sf.net/u/cpascual/) Updated pending tasks and completed some info about validators
 
 2015-04-28
-[cpascual](http://sf.net/u/cpascual/) Adapted latest version of [sardana:wiki:SEP3](https://sourceforge.net/p/sardana/wiki/SEP3/) to update TEP3 and move some parts to [TEP14](https://sourceforge.net/p/tauruslib/wiki/TEP14/)
+[cpascual](http://sf.net/u/cpascual/) Adapted latest version of [sardana:wiki:SEP3][] to update TEP3 and move some parts to [TEP14][]
 
 2015-04-30
 [cpascual](http://sf.net/u/cpascual/) Added 'Refactoring of Model name syntax' section using info from [sardana:wiki:Taurus_URIRefactoring](https://sourceforge.net/p/sardana/wiki/Taurus_URIRefactoring/). Also several other minor changes and improvements.
@@ -407,3 +407,6 @@ Changes
 
 [1]: https://en.wikipedia.org/wiki/URI_scheme#Generic_syntax
 [2]: https://tools.ietf.org/html/rfc3986
+[TEP14]: https://sourceforge.net/p/tauruslib/wiki/TEP14/
+[sardana:wiki:SEP3]: https://sourceforge.net/p/sardana/wiki/SEP3/
+[sardana:wiki:SEP10]: https://sourceforge.net/p/sardana/wiki/SEP10/
