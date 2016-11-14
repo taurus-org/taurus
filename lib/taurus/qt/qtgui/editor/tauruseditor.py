@@ -139,7 +139,11 @@ class TaurusBaseEditor(Qt.QSplitter):
         font = Qt.QFont("Monospace")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
-        editorstack.close_file.connect(self.close_file_in_all_editorstacks)
+        try:
+            editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
+        except AttributeError:
+            # backwards compatibility with spyder < 3
+            editorstack.close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.create_new_window.connect(self.create_new_window)
         editorstack.plugin_load.connect(self.load)
 
