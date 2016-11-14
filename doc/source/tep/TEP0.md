@@ -3,7 +3,7 @@
     State: ACCEPTED
     Date: 2016-04-07
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Tiago Coutinho <coutinho@esrf.fr>
-    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP0.md
+    URL: http://www.taurus-scada.org/tep/?TEP0.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      Workflow for managing discussions about improvements to Taurus
@@ -199,7 +199,7 @@ start with a paragraph of the following RFC822-style headers:
 * Drivers: a list of drivers (names and e-mail addresses), in RFC822
   syntax for the To: header
 * URL: during DRAFT state, a link to the wiki place of the draft
-  (typically probably https://sourceforge.net/p/tauruslib/wiki/TEPxxx)
+  (typically probably http://www.taurus-scada.org/tep/?TEPxxx.md)
 * Abstract: a short paragraph describing the TEP
 
 (Additionally, REJECTED TEPs can carry a "Reason:" field describing
@@ -266,7 +266,7 @@ available number, and including the first paragraph of the TEP as
 explained above. It is very important to include the list of drivers,
 and the URL where the draft will be kept up to date. The next available
 TEP number can be obtained by consulting 
-<https://sourceforge.net/p/tauruslib/wiki/TEP>.
+<http://www.taurus-scada.org/tep>.
 
 It is also a very good idea to mention in this mail the place where the
 discussion is going to take place, with a pointer to the thread in the
@@ -276,12 +276,11 @@ The actual place where the TEP draft is going to be published is up to the TEP
 driver (e.g., it can be a plain text file or sphinx file in a code repository)
 but the taurus project provides infrastructure to host it in its wiki for
 convenience. If you decide to host the TEP draft in the taurus wiki, just
-create a new wiki page named <https://sourceforge.net/p/tauruslib/wiki/TEPxxx>,
+create a new wiki page named http://www.taurus-scada.org/tep/?TEPxxx.md,
 where xxx is the TEP number.
 
 Independently of where the draft is hosted you should edit the list of TEPs in
-<https://sourceforge.net/p/tauruslib/wiki/TEP> to add a link to the new TEP.
-
+<http://www.taurus-scada.org/tep> to add a link to the new TEP.
 
 Revising an accepted TEP
 ------------------------
