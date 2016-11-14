@@ -3,7 +3,7 @@
     State: CANDIDATE
     Date: 2013-10-30
     Drivers: Carlos Falcon Torres <cfalcon@cells.es>; Tiago Coutinho Macara <tiago.coutinho@esrf.fr>
-    URL: https://github.com/taurus-org/taurus/tree/develop/doc/source/tep/?TEP8.md
+    URL: http://www.taurus-scada.org/tep?TEP8.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      This document describes the process to remove from Taurus objects 
