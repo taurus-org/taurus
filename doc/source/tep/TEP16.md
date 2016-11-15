@@ -76,7 +76,7 @@ below:
 - A GH organization called `taurus-org` will be created (the `taurus`
   name is already taken in GH)
 
-- A `taurus` will be created within `taurus-org` and the current `master`,
+- A `taurus` project will be created within `taurus-org` and the current `master`,
   `develop` and `support-3.x` branches pushed to it
 
 - The Travis and Appveyor continuous integration services will be enabled 
@@ -105,13 +105,8 @@ below:
   new SF tool menu entry called "Tickets" will be added pointing to 
   the new taurus GH issues URL
   
-- Ideally, a comment should be added to each SF ticket, indicating that it 
-  was moved to GH, and ideally with the link to the corresponding GH issue.
-  This would require a lot of work, so the following acceptable solutions 
-  are proposed in order of preference:
-  - add a generic comment to all SF tickets pointing to 
-    https://github.com/taurus-org/taurus/issues 
-  - add a `migrated_to_github` label in SF to all migrated tickets
+- Prominent notices will be added in the SF ticket tracker indicating that
+  the new GH tracker shouold be used instead.
 
 ### New policy for TEPs
 
@@ -143,18 +138,21 @@ below:
 - A file called `index.md` will be created in `<new_tep_location>`, 
   containing the info currently in `https://sourceforge.net/p/tauruslib/wiki/TEP`. 
   The provisions in TEP0 for that page now apply to `index.md` (i.e., 
-  TEP drivers are required to update the status of their TEP in this 
-  page).
+  **TEP drivers are required to update the status of their TEP in this 
+  page**).
 
-- One or more service-provider independent URLs (e.g., `tep.taurus-scada.org`) 
-  should be configured to redirect to the new location of the TEPs and the index.
-  This service-agnostic URL(s) should be used instead of the GH-specific location
+- Service-provider independent URLs will be configured to redirect to the new 
+  locations of the TEPs and the index.
+  This service-agnostic URLs should be used instead of the SF or GH specific location
   in all documentation from now on (this allows us to change the location in the 
-  future without altering the docs).
+  future without altering the docs). In the proposed implementation, these URLs are:
+  
+  - `https://www.taurus-scada.org/tep/` (for the TEP index)
+  - `https://www.taurus-scada.org/tep/?<TEP_FILE_NAME>` (e.g., for TEP16, this agnostic 
+    URL would be https://www.taurus-scada.org/tep/?TEP16.md)
 
 - The wiki pages currently served under `https://sourceforge.net/p/tauruslib/wiki/TEP/`
-  should now redirect to the new location (if possible, do an automatic redirection,
-  but that is too much work, a link in the contents of the files would suffice)
+  should redirect to the new location
 
 ### Mailing lists
 
@@ -192,6 +190,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## Changes
 
+- 2016-11-15 [cpascual][]. Reflect the latest implementation decisions
 - 2016-11-02 [cpascual][]. Changed state from DRAFT to CANDIDATE
 - 2016-10-26 [cpascual][]. Several changes to get it ready for first announcement of DRAFT
 - 2016-10-21 [cpascual][]. Initial version
