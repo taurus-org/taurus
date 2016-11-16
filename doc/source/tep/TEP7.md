@@ -1,9 +1,12 @@
     Title: Code contribution workflow
     TEP: 7
-    State: ACCEPTED
+    State: OBSOLETE
+    Reason: 
+     TEP16 obsoletes TEP7. Most of the contribution procedure is 
+     no longer applicable due to the adoption of a workflow based on Pull Requests.
     Date: 2014-01-23
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Tiago Coutinho <coutinho@esrf.fr>
-    URL: https://sourceforge.net/p/tauruslib/wiki/TEP7
+    URL: http://www.taurus-scada.org/tep?TEP7.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      Define the procedures for contributing code to taurus. It covers git 
@@ -62,14 +65,14 @@ Please refer to http://nvie.com/posts/a-successful-git-branching-model for a ful
 
 In the Taurus project, we use a special type of *feature* branches called *tepX* branches: unlike other *feature* branches which typically only exist in the contributor local repository (or maybe in a public fork of the official repository), the *tepX* feature branches are hosted in the oficial repository. The *tepX* branch may be created if required during the DRAFT or CANDIDATE phases of the *X*th Taurus Enhancement Proposal, and is merged to *develop* if the TEPX is APPROVED. Only the person(s) dessignated by the TEPX driver -and approved by the Taurus project Admins- can push to the official *tepX* branch. These designated person(s) are considered **"TepX Integration Lieutenants"**.
 
-**Tip**: You can find a set of practical examples on working with the taurus branching model in the [taurus git recipes](http://sf.net/p/tauruslib/wiki/git-recipes/)
+**Tip**: You can find a set of practical examples on working with the taurus branching model in the [taurus git recipes][]
 
 How should one submit a proposed contribution?
 ==============================================
 
 In general, code submissions for inclusion in the taurus repositories should take the following into account:
 
-- It must comply with the [**Taurus coding conventions**](www.taurus-scada.org/devel/coding_guide.html).
+- It must comply with the [**Taurus coding conventions**](http://www.taurus-scada.org/devel/coding_guide.html).
 - The **contributor must be clearly identified** and provide a valid email address which can be used to contact him/her.
 - Commit messages  should be [properly formatted](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 - The **licensing terms** for the contributed code must be compatible with (and preferably the same as) the license chosen for the Taurus project (at the time of writing this TEP, it is the [LGPL](http://www.gnu.org/licenses/lgpl.html), version 3 *or later*).
@@ -94,7 +97,7 @@ Specific notes for contributing via pull requests:
 - Important: prepend the subject of your email to the mailing list with **`[PULL]`**
 - If the changes are not too big, consider using the "-p" option to *git request-pull* (it includes the diff info in the body of the email)
 
-**Tip**: You can find a set of practical examples on how to submit code according to the TEP7 specifications in the [taurus git recipes](http://sf.net/p/tauruslib/wiki/git-recipes/)
+**Tip**: You can find a set of practical examples on how to submit code according to the TEP7 specifications in the [taurus git recipes][]
 
 Who approves/rejects proposed contributions?
 ============================================
@@ -116,7 +119,7 @@ The code review process for contributions to the official taurus **core** reposi
 3- During this phase, the contributor may be asked for further clarifications and/or corrections to the contributed code (in which case a resubmission may be required).
 4- Eventually, an Integration Manager (or a TepX Integration Lieutenant if the contribution is for a *tepX* branch) may either accept the contribution and integrate it into the official repository, or reject it. In both cases, he/she is posts a message in the mailing list informing of the decision.
 
-**Tip**: You can find a set of practical examples on how to integrate contributed code according to the TEP7 specifications in the [taurus git recipes](http://sf.net/p/tauruslib/wiki/git-recipes/)
+**Tip**: You can find a set of practical examples on how to integrate contributed code according to the TEP7 specifications in the [taurus git recipes][]
 
 
 Naming convention for feature branches
@@ -128,7 +131,7 @@ The integration of contributed code by an Integration Manager (or Lieutenant) us
 
 - If the contributed code is related to a feature-request in the ticket tracker, the branch *A* should be called *feature-N*, where *N* is the ticket number.
 
-- In the remaining cases, any descriptive name can be used for branch *A* (preferably lower case and reasonably short) provided that it doesn't use any of the reserved names (i.e. *master*, *develop*, *release-\**, *hotfix-\**, *tepX*, *bug-N*, *feature-N*)
+- In the remaining cases, any descriptive name can be used for branch *A* (preferably lower case and reasonably short) provided that it doesn't use any of the reserved names (i.e. master, develop, release-\*, hotfix-\*, tepX, bug-N, feature-N)
 
 Note that those who contribute code via patches do not need to worry about this convention since their local branch names do not affect the official repository history. Nevertheless, it can be a good practice to follow anyway.
  
@@ -168,6 +171,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Changes
 =======
+* 2016-11-16: [mrosanes](https://github.com/sagiss/) Adapt format, 
+  modify URL and change state to OBSOLETE according to TEP16.
+  
 * 2015-05-13: [cpascual](https://sourceforge.net/u/cpascual/). Made final 
   adaptations in the "translation" from SEP7. Fixed state in header 
   (it was outdated as DRAFT, when it really inherited the ACCEPTED state 
@@ -178,3 +184,7 @@ Changes
 
 * 2014-01-23: [tiagocoutinho](https://sourceforge.net/u/tiagocoutinho/) 
   Initial version written (from SEP7)
+  
+
+
+  [taurus git recipes]: http://sf.net/p/tauruslib/wiki/git-recipes/

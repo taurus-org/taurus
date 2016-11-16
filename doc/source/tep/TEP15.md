@@ -3,7 +3,7 @@
     State: DRAFT
     Date: 2016-06-16
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
-    URL: https://sourceforge.net/p/tauruslib/wiki/TEP15
+    URL: http://www.taurus-scada.org/tep?TEP15.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      This proposal aims at defining a way for Taurus URIs to support data slicing.
@@ -105,6 +105,8 @@ Changes
 2016-06-16
 [cpascual][] First draft triggered by a [discussion about URIs][1] in the tauruslib-devel mailing list.
 
+2016-11-16:
+[mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
 
 [cpascual]: http://sf.net/u/cpascual/
 [RFC3986]: https://tools.ietf.org/html/rfc3986

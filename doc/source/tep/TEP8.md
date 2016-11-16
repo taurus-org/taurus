@@ -3,7 +3,7 @@
     State: CANDIDATE
     Date: 2013-10-30
     Drivers: Carlos Falcon Torres <cfalcon@cells.es>; Tiago Coutinho Macara <tiago.coutinho@esrf.fr>
-    URL: https://sourceforge.net/p/sardana/wiki/TEP8
+    URL: http://www.taurus-scada.org/tep?TEP8.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      This document describes the process to remove from Taurus objects 
@@ -30,7 +30,7 @@ Taurus [TEP8] and Sardana [SEP8](https://sourceforge.net/p/sardana/wiki/SEP8/) c
 Taurus Logger has to be created in two steps: Taurus Logger initialization and Taurus Logger instantiation. Moreover, to have a Logger system more standard is convenient to use the python logging module as much as possible.
 
 The gross of changes have to be done in log.py file but also the Logger dependencies have to be removed from other files:
-
+```
 src/sardana/macroserver/macro.py
 src/sardana/macroserver/macros/examples/hooks.py
 src/sardana/macroserver/macros/standard.py
@@ -59,32 +59,33 @@ taurus/lib/taurus/qt/qtgui/graphic/taurusgraphic.py
 taurus/lib/taurus/qt/qtgui/table/qlogtable.py
 taurus/lib/taurus/qt/qtgui/taurusgui/taurusgui.py
 taurus/lib/taurus/qt/qtgui/tree/taurusdevicetree.py
+```
 
 
 This is the current Taurus Logger API.
 
- Current Taurus Logger API  |
- ---------------------------|----------------------------|----------------------------|
-Logger.Critical             |Logger.addLogHandler        |Logger.error                |
-Logger.getParent            |Logger.root_inited          |Logger.exception            |   
-Logger.Debug                |Logger.addRootLogHandler    |Logger.root_init_lock       |
-Logger.getRootLog           |Logger.setLogFormat         |Logger.resetLogLevel        |
-Logger.DftLogFormat         |Logger.call__init__         |Logger.fatal                |
-Logger.info                 |Logger.setLogLevel          |Logger.DftLogLevel          |
-Logger.call__init__wo_kw    |Logger.flushOutput          |Logger.initRoot             |
-Logger.stack                |Logger.DftLogMessageFormat  |Logger.changeLogName        |
-Logger.getAttrDict          |Logger.log                  |Logger.stream_handler       |
-Logger.Error                |Logger.cleanUp              |Logger.getChildren          |
-Logger.log_format           |Logger.syncLog              |Logger.Fatal                |
-Logger.copyLogHandlers      |Logger.getLogFormat         |Logger.log_level            |
-Logger.trace                |Logger.Info                 |Logger.critical             |
-Logger.getLogFullName       |Logger.mro                  |Logger.traceback            |
-Logger.Trace                |Logger.debug                |Logger.getLogLevel          |
-Logger.removeRootLogHandler |Logger.updateAttrDict       |Logger.Warning              |
-Logger.deprecated           |Logger.getLogName           |Logger.resetLogFormat       |
-Logger.warning              |Logger.addChild             |Logger.disableLogOutput     |
-Logger.getLogObj            |Logger.addLevelName         |Logger.enableLogOutput      |
-Logger.getLogger            |
+|                            |  Current Taurus Logger API |                            |
+| ---------------------------|----------------------------|----------------------------|
+|Logger.Critical             |Logger.addLogHandler        |Logger.error                |
+|Logger.getParent            |Logger.root_inited          |Logger.exception            |   
+|Logger.Debug                |Logger.addRootLogHandler    |Logger.root_init_lock       |
+|Logger.getRootLog           |Logger.setLogFormat         |Logger.resetLogLevel        |
+|Logger.DftLogFormat         |Logger.call__init__         |Logger.fatal                |
+|Logger.info                 |Logger.setLogLevel          |Logger.DftLogLevel          |
+|Logger.call__init__wo_kw    |Logger.flushOutput          |Logger.initRoot             |
+|Logger.stack                |Logger.DftLogMessageFormat  |Logger.changeLogName        |
+|Logger.getAttrDict          |Logger.log                  |Logger.stream_handler       |
+|Logger.Error                |Logger.cleanUp              |Logger.getChildren          |
+|Logger.log_format           |Logger.syncLog              |Logger.Fatal                |
+|Logger.copyLogHandlers      |Logger.getLogFormat         |Logger.log_level            |
+|Logger.trace                |Logger.Info                 |Logger.critical             |
+|Logger.getLogFullName       |Logger.mro                  |Logger.traceback            |
+|Logger.Trace                |Logger.debug                |Logger.getLogLevel          |
+|Logger.removeRootLogHandler |Logger.updateAttrDict       |Logger.Warning              |
+|Logger.deprecated           |Logger.getLogName           |Logger.resetLogFormat       |
+|Logger.warning              |Logger.addChild             |Logger.disableLogOutput     |
+|Logger.getLogObj            |Logger.addLevelName         |Logger.enableLogOutput      |
+|Logger.getLogger            |
 
 
 
@@ -123,13 +124,13 @@ To be backward compatible, the variable ENABLE_TAURUS_LOGGER  was added to Tauru
 
 This is the new Taurus Logger API after the changes:
 
- New Taurus Logger API      |
- ---------------------------|----------------------------|----------------------------|
-Logger.call__init__         |Logger.debug                |Logger.exception            |
-Logger.log                  |Logger.traceback            |Logger.call__init__wo_kw    |
-Logger.deprecated           |Logger.getAttrDict          |Logger.mro                  |
-Logger.updateAttrDict       |Logger.critical             |Logger.error                |
-Logger.info                 |Logger.trace                |Logger.warning              |
+|                            |   New Taurus Logger API    |                            | 
+| ---------------------------|----------------------------|----------------------------|
+|Logger.call__init__         |Logger.debug                |Logger.exception            |
+|Logger.log                  |Logger.traceback            |Logger.call__init__wo_kw    |
+|Logger.deprecated           |Logger.getAttrDict          |Logger.mro                  |
+|Logger.updateAttrDict       |Logger.critical             |Logger.error                |
+|Logger.info                 |Logger.trace                |Logger.warning              |
 
 
 Recommendations
@@ -237,7 +238,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Changes
 -----
-2015-05-15 Create TEP8 using SEP8, Fix links according [TEP10], pass TEP8 to CANDIDATE
+
+2016-11-16 [mrosanes](https://github.com/sagiss/) Adapt format and URL according to TEP16
+
+2015-05-15 Create TEP8 using SEP8, Fix links according to [TEP10], pass TEP8 to CANDIDATE
+
 2014-04-24 Code review and SEP documentation
+
 2013-10-30
 [cmft](https://sourceforge.net/u/cfalcon/) Creation of SEP8
+

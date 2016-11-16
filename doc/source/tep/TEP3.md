@@ -3,7 +3,7 @@
     State: ACCEPTED
     Date: 2016-03-16
     Drivers: Carlos Falcon-Torres <cfalcon@cells.es>, Carlos Pascual-Izarra <cpascual@cells.es>
-    URL: https://sourceforge.net/p/tauruslib/wiki/TEP3
+    URL: http://www.taurus-scada.org/tep/?TEP3.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      The goal of this TEP is to refactor the Taurus core to make the Tango 
@@ -16,16 +16,16 @@ Introduction
 
 This TEP describes an enhancement proposal for a refactoring of Taurus to make the Tango dependency optional instead of mandatory.
 
-PS: see also [TEP14], which extends and complements this proposal.
+PS: see also [TEP14][], which extends and complements this proposal.
 
-The TEP3 was created from [sardana:wiki:SEP3] after the split of Taurus from sardana according to [sardana:wiki:SEP10]. 
+The TEP3 was created from [SEP3][] after the split of Taurus from sardana according to [SEP10][]. 
 
 Motivation
 ==================
 
-Taurus evolved from Tau which was conceived as a library for creating GUIs & CLIs on top of a Tango control system. As such, Taurus models incorporate concepts such as ?Device?, ?Attribute?, etc that are heavily influenced by Tango.
+Taurus evolved from Tau which was conceived as a library for creating GUIs & CLIs on top of a Tango control system. As such, Taurus models incorporate concepts such as "Device", "Attribute", etc that are heavily influenced by Tango.
 
-Lately, however, Taurus models have been extended to allow the interaction with other control systems and/or hardware via the ?schemes? extensions (current schemes are: ?tango?, ?simulation?, ?eval?, ?epics?, ?spec?).
+Lately, however, Taurus models have been extended to allow the interaction with other control systems and/or hardware via the "schemes" extensions (current schemes are: "tango", "simulation", "eval", "epics", "spec").
 
 The tango scheme was the one initially developed, and is not completely isolated from the rest of Taurus. Taurus uses objects from the PyTango module, and assumes naming conventions in many parts of the code, making it impossible to even import taurus if Tango is not installed.
 
@@ -101,10 +101,10 @@ Keep in mind the following notes:
 - Note: the validator classes should ideally be implemented using name parsing only (e.g. avoiding to instantiate TaurusModel ojects), and, if possible, avoid requiring the import of optional modules. The base classes provided for validators allow defining a new validator by providing just a few partial regexps for each URI component.
 
 
-Generic (?scheme-agnostic?) Taurus helpers
+Generic ("scheme-agnostic") Taurus helpers
 -------------------------------------------
 
-Users of Taurus are encouraged to write ?scheme-agnostic? code whenever it is possible (e.g., code using the taurus.core should try to avoid assuming that a given attribute is of a certain scheme type). 
+Users of Taurus are encouraged to write "scheme-agnostic" code whenever it is possible (e.g., code using the taurus.core should try to avoid assuming that a given attribute is of a certain scheme type). 
 Checks should be done (whenever it is possible) against the Base/Abstract classes instead of scheme-specific.
 
 Also, taurus.core must provide the following scheme-agnostic factory functions:
@@ -245,13 +245,13 @@ would now be written as:
 Change in the syntax for TangoConfiguration and EvaluationConfiguration names
 -----------------------------------------------------------------------------
 
-The proposed implementation changes the model name syntax for the configuration objects of both the tango and eval schemes. Where before the suffix "?configuration" was used, now "#" is used. Similarly, when a configuration key was defined with the suffix "?configuration=<cfg_key>", now it is defined as "#<cfg_key>". 
+The proposed implementation changes the model name syntax for the configuration objects of both the tango and eval schemes. Where before the suffix "?configuration" was used, now "#" is used. Similarly, when a configuration key was defined with the suffix "?configuration=`<cfg_key>`", now it is defined as "`#<cfg_key>`". 
 
 This new syntax has the following advantages: 
 
 - it yields more compact names
 - it is easier to parse and handle
-- it prepares the field for [TEP14]'s merge of TaurusConfiguration objects into TaurusAttribute objects.
+- it prepares the field for [TEP14][]'s merge of TaurusConfiguration objects into TaurusAttribute objects.
 
 
 Adapting existing schemes to TEP3
@@ -265,34 +265,34 @@ Previous to TEP3, five schemes were included in Taurus. The following list summa
 
 - *simulation*: the proposed implementation removes the simulation scheme (which was used only by the taurusdesigner to provide an offline mock for tango and which was already broken). The necessary changes have been done in taurusdesigner.
 
-- *epics*: the epics scheme is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme was just a proof-of-concept and not used in production, so it can be adapted on a later moment (e.g. after TEP14) without blocking the TEP3 acceptance.
+- *epics*: the epics scheme is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme was just a proof-of-concept and not used in production, so it can be adapted on a later moment (e.g. after [TEP14][]) without blocking the TEP3 acceptance.
 
-- *spec*: the spec scheme is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme was just a proof-of-concept and not used in production, so it can be adapted on a later moment (e.g. after TEP14) without blocking the TEP3 acceptance.
+- *spec*: the spec scheme is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme was just a proof-of-concept and not used in production, so it can be adapted on a later moment (e.g. after [TEP14][]) without blocking the TEP3 acceptance.
 
-- *res*: the res scheme (which provides a model indirection mechanism) is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme is not used in production, so it can be adapted on a later moment (e.g. after TEP14) without blocking the TEP3 acceptance.
+- *res*: the res scheme (which provides a model indirection mechanism) is left in an unfinished (unusable) state after the proposed implementation of TEP3. This scheme is not used in production, so it can be adapted on a later moment (e.g. after [TEP14][]) without blocking the TEP3 acceptance.
 
 
 Refactoring of Value Types, enumerations, etc
 =============================================
 
-A description of a refactoring of other taurus.core features such as TaurusAttributeValue and TaurusConfigValue was included into the draft of TEP3, but it has now been moved to [TEP14].
+A description of a refactoring of other taurus.core features such as TaurusAttributeValue and TaurusConfigValue was included into the draft of TEP3, but it has now been moved to [TEP14][].
 
 
 Links to more details and discussions
 ======================================
 
 The initial discussions about the SEP3 itself are in the sardana-devel mailing list.
-Further (post [sardana:wiki:SEP10] split) discussions about TEP3 are held on the tauruslib-devel mailing list.
+Further (post [SEP10][] split) discussions about TEP3 are held on the tauruslib-devel mailing list.
 
 
 Follow on and relations with other Enhancement Proposals
 ========================================================
 
-- This TEP effectively makes the Taurus core tango-independent at the import level (i.e., it makes it possible to import taurus without importing PyTango). But there many implementations details remain that are inherited from the Tango-dependency history. The [TEP14] proposes a further taurus.core refactoring that eliminates some of the most evident of these "tangoisms", thus simplifying even more the creation of new schemes.
+- This TEP effectively makes the Taurus core tango-independent at the import level (i.e., it makes it possible to import taurus without importing PyTango). But there many implementations details remain that are inherited from the Tango-dependency history. The [TEP14][] proposes a further taurus.core refactoring that eliminates some of the most evident of these "tangoisms", thus simplifying even more the creation of new schemes.
 
-- Once the taurus.core is independent of Tango (and maybe also after [TEP14]), other proposals should be made to a) make as many widgets from taurus.qt both scheme-agnostic and Tango-independent; and b) to identify and document those that are for some reason bound to one or another scheme.
+- Once the taurus.core is independent of Tango (and maybe also after [TEP14][]), other proposals should be made to a) make as many widgets from taurus.qt both scheme-agnostic and Tango-independent; and b) to identify and document those that are for some reason bound to one or another scheme.
 
-- The TEP3 was created from [sardana:wiki:SEP3] after the split of Taurus from sardana according to [sardana:wiki:SEP10]. The SEP3 still remains to cover the changes necessary in sardana to adapt to the TEP3 changes.
+- The TEP3 was created from [SEP3][] after the split of Taurus from sardana according to [SEP10][]. The [SEP3][] still remains to cover the changes necessary in sardana to adapt to the TEP3 changes.
 
 
 APPENDIX: Implementation details history
@@ -316,7 +316,7 @@ The following compilation of tasks was started on 12/08/2014 (by then, many of t
 - <s>Change configuration model name syntax (substitute "?configuration[=cfgkey]" by "#[cfgkey]")</s>
 - <s>make sure that the installation procedure is independent of PyTango.</s>
 
-The following  tasks were previously part of the above requirements list, but have been moved to the [TEP14]:
+The following  tasks were previously part of the above requirements list, but have been moved to the [TEP14][]:
 
 - Implement quantities support 
 - TaurusConfiguration class still has some potentially tango-centric code (concepts such as "Standard unit vs Display unit" or classification into spectrum/image/scalars may require to be re-thought).
@@ -375,16 +375,16 @@ Changes
 [cpascual](http://sf.net/u/cpascual/) General update of the document based on code review and discussions with [cmft](https://sf.net/u/cmft/). Also added the "Changes" section.
 
 2014-08-14
-[cpascual](http://sf.net/u/cpascual/) Added some more tasks to implementation plan and reference to [sardana:wiki:Taurus_URIRefactoring] document
+[cpascual](http://sf.net/u/cpascual/) Added some more tasks to implementation plan and reference to [Taurus_URIRefactoring](https://sourceforge.net/p/sardana/wiki/Taurus_URIRefactoring/) document
 
 2014-10-03
 [cpascual](http://sf.net/u/cpascual/) Updated pending tasks and completed some info about validators
 
 2015-04-28
-[cpascual](http://sf.net/u/cpascual/) Adapted latest version of [sardana:wiki:SEP3] to update TEP3 and move some parts to [TEP14]
+[cpascual](http://sf.net/u/cpascual/) Adapted latest version of [SEP3][] to update TEP3 and move some parts to [TEP14][]
 
 2015-04-30
-[cpascual](http://sf.net/u/cpascual/) Added 'Refactoring of Model name syntax' section using info from [sardana:wiki:Taurus_URIRefactoring]. Also several other minor changes and improvements.
+[cpascual](http://sf.net/u/cpascual/) Added 'Refactoring of Model name syntax' section using info from [Taurus_URIRefactoring](https://sourceforge.net/p/sardana/wiki/Taurus_URIRefactoring/). Also several other minor changes and improvements.
 
 2015-04-30
 [cpascual](http://sf.net/u/cpascual/) passing to CANDIDATE
@@ -404,6 +404,11 @@ Changes
 2016-06-13
 [cpascual](http://sf.net/u/cpascual/) Minor formatting fix
 
+2016-11-16
+[mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
 
 [1]: https://en.wikipedia.org/wiki/URI_scheme#Generic_syntax
 [2]: https://tools.ietf.org/html/rfc3986
+[TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
+[SEP3]: https://sourceforge.net/p/sardana/wiki/SEP3/
+[SEP10]: https://sourceforge.net/p/sardana/wiki/SEP10/

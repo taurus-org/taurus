@@ -3,7 +3,7 @@
     State: DRAFT
     Date: 2015-03-25
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
-    URL: https://sourceforge.net/p/tauruslib/wiki/TEP13
+    URL: http://www.taurus-scada.org/tep?TEP13.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      Implement support for managing third-party code 
@@ -25,13 +25,13 @@ Introduction
 
 At this moment, different mechanisms to support extensions are already implemented in various subsystems of Taurus (see APPENDIX IV). Most of these mechanisms, being ad-hoc implementations, are quite specific and present limitations such as requiring the plugin to have privileged access to Taurus installation directories, or not having a well defined interface, or not allowing to define dependencies/incompatibilities among plugins.
 
-This situation can be improved by adopting a generic extension mechanism (e.g., [stevedore](https://pypi.python.org/pypi/stevedore) or [yapsy](https://pypi.python.org/pypi/Yapsy)) and using it throughout the whole Taurus library.
+This situation can be improved by adopting a generic extension mechanism (e.g., [stevedore][] or [yapsy][]) and using it throughout the whole Taurus library.
 
 The expected benefits are:
 
 - facilitate the maintainability of the code (removing multiple different implementations and APIs)
 - Increase Taurus modularity (since many subpackages that are currently monolithic could be reimplemented as a collection of optional extensions to be loaded on-demand).
-- Sardana would also benefit from an ?official? extension API in Taurus (first, by formally registering itself as a taurus extension and second, by using the same API internally for its own plugins.
+- Sardana would also benefit from an "official" extension API in Taurus (first, by formally registering itself as a taurus extension and second, by using the same API internally for its own plugins.
 
 
 Goals and constraints
@@ -42,9 +42,9 @@ Goals and constraints
 APPENDIX I: Notes on terms and concepts used
 ============================================
 
-Regardless of which solution we end up proposing in the draft, we find that the analysis and naming conventions used in the [stevedore docs](http://docs.openstack.org/developer/stevedore/index.html) are quite useful for analising the various aspects to consider of a plugin system.
+Regardless of which solution we end up proposing in the draft, we find that the analysis and naming conventions used in the [stevedore docs][] are quite useful for analising the various aspects to consider of a plugin system.
 
-We will therefore be using concepts such as "Driver", "Hook", "Extension", "Loading pattern", "Enabling pattern", etc. as defined in the [stevedore docs](http://docs.openstack.org/developer/stevedore/index.html).
+We will therefore be using concepts such as "Driver", "Hook", "Extension", "Loading pattern", "Enabling pattern", etc. as defined in the [stevedore docs][].
 
 More specifically, you should read the following parts of stevedore docs:
 
@@ -75,8 +75,8 @@ What we look for in a plugin system:
 APPENDIX III: Possible candidates being explored
 =================================================
 
-- [stevedore](https://pypi.python.org/pypi/stevedore)
-- [yapsy](https://pypi.python.org/pypi/Yapsy)
+- [stevedore][]
+- [yapsy][]
 - PCA (pyutilib component architecture) from [pyutilib](https://software.sandia.gov/trac/pyutilib)
 - [Marty Alchin's 6-line plugin framework](http://martyalchin.com/2008/jan/10/simple-plugin-framework/)
 - Custom implementation
@@ -106,7 +106,7 @@ Each system/API is described according to the following template:
 Schemes
 -------
 - **Description**: access abstraction to data sources via data models
-- **Pointer**: taurus.core (taurus factory, helper, etc. Refer to [SEP3])
+- **Pointer**: taurus.core (taurus factory, helper, etc. Refer to [SEP3](https://sourceforge.net/p/sardana/wiki/SEP3/))
 - **Existing plugins**: Tango, Eval, Epics, Spec, Simulation
 - **Foreseen plugins**: Hdf5, Ascii tables, xls/ods files, SQL, archiving, ...
 - **Current discovery method**: Path based. Uses both scanning and explicit (via tauruscustomsettings.SCHEMES)
@@ -207,7 +207,7 @@ Icons
 Loggers
 -------
 - **Description**: Set the Taurus logger system (multiples loggers could be registered). 
-- **Pointer**:  taurus.core.util.log, taurus.core, taurus.qt (refer to [TEP8])
+- **Pointer**:  taurus.core.util.log, taurus.core, taurus.qt (refer to [TEP8](http://www.taurus-scada.org/tep?TEP8.md))
 - **Existing plugins**:  Taurus logger only
 - **Foreseen plugins**: loggers from external applications using Taurus, custom loggers, ...
 - **Current discovery method**: Not discovered. Hardcoded in  taurus.core.util.log
@@ -219,7 +219,7 @@ Loggers
 
 TestSuite
 -------
-- **Description:** The unit test infrastructure (Implemented in [SEP5]). New tests for features or modules can be added. Particular tests may be (de)activated dynamically.
+- **Description:** The unit test infrastructure (Implemented in [SEP5](https://sourceforge.net/p/sardana/wiki/SEP5/)). New tests for features or modules can be added. Particular tests may be (de)activated dynamically.
 - **Pointer**:  taurus.test and test submodules of taurus modules.
 - **Existing plugins**: all "test" submodules taurus modules
 - **Foreseen plugins**: New tests.
@@ -295,7 +295,7 @@ Recorders
     - ...
 - <s>Icons (adding icons for the standard Taurus icon catalog)</s>
 - EventFilters (extend taurus.core.util.eventfilter)
-- <s>Loggers (consider this in relation to [SEP8])</s>
+- <s>Loggers (consider this in relation to [SEP8](https://sourceforge.net/p/sardana/wiki/SEP8/))</s>
 - <s>testsuite (may be interesting for enabling/disabling certain tests in the testsuite... </s>
   (e.g for substituting the lib.taurus.test.skip mechanism)
 - Qt Designer Pluggins (see https://sourceforge.net/p/tauruslib/tickets/144/)
@@ -303,7 +303,7 @@ Recorders
 - Plot mechanisms (maybe too ambitious... but plugins could be used to provide the 
   plotting... like PyMca5 does when abstracting access to switch from pyqtgraph and
   matplotlib backends)
-- The mechanism for loading/installing specific TaurusGUI (using taurusgui <modulename>)
+- The mechanism for loading/installing specific TaurusGUI (using `taurusgui <modulename>`)
   could based on plugins (maybe only if the plugin system is coupled with the installation
   system as in stevedore)
 - widgets backend (e.g. taurus.qt VS taurus.web VS taurus.gtk,...) 
@@ -367,3 +367,8 @@ Changes
 * 2015-10-15: [cpascual](https://sourceforge.net/u/cpascual/) Moved pre-draft notes from [sardana:wiki:SEP13]
 * 2015-01-27: [cpascual](https://sourceforge.net/u/cpascual/) 
   Initial pre-draft notes collection started
+* 2016-11-16: [mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
+  
+[stevedore docs]: http://docs.openstack.org/developer/stevedore/index.html
+[stevedore]: https://pypi.python.org/pypi/stevedore
+[yapsy]: https://pypi.python.org/pypi/Yapsy

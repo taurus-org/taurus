@@ -1,9 +1,13 @@
     Title: Introducing Taurus Enhancement Proposals (TEPs)
     TEP: 0
-    State: ACCEPTED
+    State: OBSOLETE
+    Reason: 
+     TEP16 obsoletes TEP0. https://sourceforge.net/p/tauruslib/wiki/TEP is no 
+     longer the index for TEPs, nor it is a wiki. The "Creating a TEP section" of 
+     TEP0 is superseded by the one with the same name in TEP16.
     Date: 2016-04-07
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Tiago Coutinho <coutinho@esrf.fr>
-    URL: https://sourceforge.net/p/tauruslib/wiki/TEP0
+    URL: http://www.taurus-scada.org/tep/?TEP0.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract:
      Workflow for managing discussions about improvements to Taurus
@@ -74,7 +78,7 @@ during the discussions, see below.
 Proposal states
 ---------------
 
-![TEP state diagram](https://sourceforge.net/p/tauruslib/wiki/_discuss/thread/8233c42e/746a/attachment/workflow.png)
+![TEP state diagram](res/tep0_workflow.png)
 
 A given TEP can be in one of the following *states*:
 
@@ -266,7 +270,7 @@ available number, and including the first paragraph of the TEP as
 explained above. It is very important to include the list of drivers,
 and the URL where the draft will be kept up to date. The next available
 TEP number can be obtained by consulting 
-<https://sourceforge.net/p/tauruslib/wiki/TEP>.
+https://sourceforge.net/p/tauruslib/wiki/TEP.
 
 It is also a very good idea to mention in this mail the place where the
 discussion is going to take place, with a pointer to the thread in the
@@ -276,12 +280,11 @@ The actual place where the TEP draft is going to be published is up to the TEP
 driver (e.g., it can be a plain text file or sphinx file in a code repository)
 but the taurus project provides infrastructure to host it in its wiki for
 convenience. If you decide to host the TEP draft in the taurus wiki, just
-create a new wiki page named <https://sourceforge.net/p/tauruslib/wiki/TEPxxx>,
+create a new wiki page named https://sourceforge.net/p/tauruslib/wiki/TEPxxx,
 where xxx is the TEP number.
 
 Independently of where the draft is hosted you should edit the list of TEPs in
-<https://sourceforge.net/p/tauruslib/wiki/TEP> to add a link to the new TEP.
-
+https://sourceforge.net/p/tauruslib/wiki/TEP to add a link to the new TEP.
 
 Revising an accepted TEP
 ------------------------
@@ -338,11 +341,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Changes
 -------
 
+
+* 2016-11-16:
+  [mrosanes](https://github.com/sagiss/) Adapt TEP format, modify URL and obsolete TEP0 according to TEP16.
+  
 * 2016-04-07:
-[cpascual](https://sourceforge.net/u/cpascual/) Pass from CANDIDATE to ACCEPTED (it was in candidate for testing its application with several real cases, but its contents have been basically unaltered since its creation)
+  [cpascual](https://sourceforge.net/u/cpascual/) Pass from CANDIDATE to ACCEPTED (it was in candidate for testing its application with several real cases, but its contents have been basically unaltered since its creation)
 
 * 2015-05-13:
-[cpascual](https://sourceforge.net/u/cpascual/) Fixed date in header. Fixed state (it was outdated as DRAFT, when it should be CANDIDATE)
+  [cpascual](https://sourceforge.net/u/cpascual/) Fixed date in header. Fixed state (it was outdated as DRAFT, when it should be CANDIDATE)
 
 * 2014-01-27:
   [tiagocoutinho](https://sourceforge.net/u/tiagocoutinho/) Change main author and copyright
