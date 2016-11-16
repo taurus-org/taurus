@@ -341,17 +341,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Changes
 -------
 
+
+* 2016-11-16:
+  [mrosanes](https://github.com/sagiss/) Adapt TEP format, modify URL and obsolete TEP0 according to TEP16.
+  
 * 2016-04-07:
-[cpascual](https://sourceforge.net/u/cpascual/) Pass from CANDIDATE to ACCEPTED (it was in candidate for testing its application with several real cases, but its contents have been basically unaltered since its creation)
+  [cpascual](https://sourceforge.net/u/cpascual/) Pass from CANDIDATE to ACCEPTED (it was in candidate for testing its application with several real cases, but its contents have been basically unaltered since its creation)
 
 * 2015-05-13:
-[cpascual](https://sourceforge.net/u/cpascual/) Fixed date in header. Fixed state (it was outdated as DRAFT, when it should be CANDIDATE)
+  [cpascual](https://sourceforge.net/u/cpascual/) Fixed date in header. Fixed state (it was outdated as DRAFT, when it should be CANDIDATE)
 
 * 2014-01-27:
   [tiagocoutinho](https://sourceforge.net/u/tiagocoutinho/) Change main author and copyright
 
 * 2014-01-23:
   [tiagocoutinho](https://sourceforge.net/u/tiagocoutinho/) Initial version written as a copy of SEP0
-
-* 2016-11-16:
-  [mrosanes](https://github.com/sagiss/) Adapt TEP format, modify URL and obsolete TEP0 according to TEP16.
