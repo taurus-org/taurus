@@ -1,6 +1,8 @@
     Title: Code contribution workflow
     TEP: 7
-    State: ACCEPTED
+    State: OBSOLETE
+    Obsolete state reason: TEP16 obsoletes TEP0. Most of the contribution procedure is 
+    no longer applicable due to the adoption of PR-based workflow.
     Date: 2014-01-23
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Tiago Coutinho <coutinho@esrf.fr>
     URL: http://www.taurus-scada.org/tep?TEP7.md
