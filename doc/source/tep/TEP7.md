@@ -171,6 +171,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Changes
 =======
+* 2016-11-16: [mrosanes](https://github.com/sagiss/) Adapt format, 
+  modify URL and change state to OBSOLETE according to TEP16.
+  
 * 2015-05-13: [cpascual](https://sourceforge.net/u/cpascual/). Made final 
   adaptations in the "translation" from SEP7. Fixed state in header 
   (it was outdated as DRAFT, when it really inherited the ACCEPTED state 
@@ -182,7 +185,6 @@ Changes
 * 2014-01-23: [tiagocoutinho](https://sourceforge.net/u/tiagocoutinho/) 
   Initial version written (from SEP7)
   
-* 2016-11-16: [mrosanes](https://github.com/sagiss/) Adapt TEP format, 
-  modify URL and obsolete TEP0 according to TEP16.
+
 
   [taurus git recipes]: http://sf.net/p/tauruslib/wiki/git-recipes/
