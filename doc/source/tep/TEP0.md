@@ -353,4 +353,4 @@ Changes
   [tiagocoutinho](https://sourceforge.net/u/tiagocoutinho/) Initial version written as a copy of SEP0
 
 * 2016-11-16:
-  [mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
+  [mrosanes](https://github.com/sagiss/) Adapt TEP format, modify URL and obsolete TEP0 according to TEP16.

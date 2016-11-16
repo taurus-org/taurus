@@ -195,7 +195,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 - 2016-11-02 [cpascual][]. Changed state from DRAFT to CANDIDATE
 - 2016-10-26 [cpascual][]. Several changes to get it ready for first announcement of DRAFT
 - 2016-10-21 [cpascual][]. Initial version
-
+- 2016-11-16 [mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
 
 
 [GitHub Issues]: https://guides.github.com/features/issues/

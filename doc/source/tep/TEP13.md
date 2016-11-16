@@ -367,6 +367,7 @@ Changes
 * 2015-10-15: [cpascual](https://sourceforge.net/u/cpascual/) Moved pre-draft notes from [sardana:wiki:SEP13]
 * 2015-01-27: [cpascual](https://sourceforge.net/u/cpascual/) 
   Initial pre-draft notes collection started
+* 2016-11-16: [mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
   
 [stevedore docs]: http://docs.openstack.org/developer/stevedore/index.html
 [stevedore]: https://pypi.python.org/pypi/stevedore

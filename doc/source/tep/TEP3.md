@@ -404,6 +404,8 @@ Changes
 2016-06-13
 [cpascual](http://sf.net/u/cpascual/) Minor formatting fix
 
+2016-11-16
+[mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
 
 [1]: https://en.wikipedia.org/wiki/URI_scheme#Generic_syntax
 [2]: https://tools.ietf.org/html/rfc3986

@@ -105,6 +105,8 @@ Changes
 2016-06-16
 [cpascual][] First draft triggered by a [discussion about URIs][1] in the tauruslib-devel mailing list.
 
+2016-11-16:
+[mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
 
 [cpascual]: http://sf.net/u/cpascual/
 [RFC3986]: https://tools.ietf.org/html/rfc3986

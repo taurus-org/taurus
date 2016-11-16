@@ -226,5 +226,7 @@ Changes
 2016-03-16
 [cpascual](http://sf.net/u/cpascual/) Passing to  ACCEPTED
 
+2016-11-16:
+[mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
 
 [TEP3]: http://www.taurus-scada.org/tep?TEP3.md
