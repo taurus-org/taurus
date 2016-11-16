@@ -1,9 +1,10 @@
     Title: Introducing Taurus Enhancement Proposals (TEPs)
     TEP: 0
     State: OBSOLETE
-    Obsolete state reason: TEP16 obsoletes TEP0. https://sourceforge.net/p/tauruslib/wiki/TEP is no 
-    longer the index for TEPs, nor it is a wiki. The "Creating a TEP section" of TEP0 is superseded 
-    by the one with the same name in TEP16.
+    Reason: 
+     TEP16 obsoletes TEP0. https://sourceforge.net/p/tauruslib/wiki/TEP is no 
+     longer the index for TEPs, nor it is a wiki. The "Creating a TEP section" of 
+     TEP0 is superseded by the one with the same name in TEP16.
     Date: 2016-04-07
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>, Tiago Coutinho <coutinho@esrf.fr>
     URL: http://www.taurus-scada.org/tep/?TEP0.md
