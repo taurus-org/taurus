@@ -40,7 +40,6 @@ try:
     from spyder.widgets.findreplace import FindReplace
     from spyder.widgets.editortools import OutlineExplorerWidget
     from spyder.widgets.editor import EditorMainWindow, EditorSplitter
-    from spyder.plugins.editor import Editor
 
 except ImportError:
     try:
@@ -56,8 +55,6 @@ except ImportError:
     from spyderlib.widgets.findreplace import FindReplace
     from spyderlib.widgets.editortools import OutlineExplorerWidget
     from spyderlib.widgets.editor import EditorMainWindow, EditorSplitter
-    from spyderlib.plugins.editor import Editor
-
 
 
 class TaurusBaseEditor(Qt.QSplitter):
@@ -142,7 +139,11 @@ class TaurusBaseEditor(Qt.QSplitter):
         font = Qt.QFont("Monospace")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
-        editorstack.close_file.connect(self.close_file_in_all_editorstacks)
+        try:
+            editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
+        except AttributeError:
+            # backwards compatibility with spyder < 3
+            editorstack.close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.create_new_window.connect(self.create_new_window)
         editorstack.plugin_load.connect(self.load)
 
@@ -188,25 +189,6 @@ class TaurusBaseEditor(Qt.QSplitter):
         pass
 
     def refresh_save_all_action(self):
-        pass
-
-
-
-
-class TaurusBaseEditor2(Qt.QMainWindow):
-
-    def __init__(self, parent=None):
-        Qt.QMainWindow.__init__(self, parent)
-
-        self._editor = Editor(self)
-
-        self.setCentralWidget(self._editor)
-
-    def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          default=None):
-        pass
-
-    def show_hide_project_explorer(self):
         pass
 
 
