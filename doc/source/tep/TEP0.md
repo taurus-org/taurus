@@ -351,3 +351,6 @@ Changes
 
 * 2014-01-23:
   [tiagocoutinho](https://sourceforge.net/u/tiagocoutinho/) Initial version written as a copy of SEP0
+
+* 2016-11-16:
+  [mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
