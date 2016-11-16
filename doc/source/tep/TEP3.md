@@ -18,7 +18,7 @@ This TEP describes an enhancement proposal for a refactoring of Taurus to make t
 
 PS: see also [TEP14][], which extends and complements this proposal.
 
-The TEP3 was created from [sardana:wiki:SEP3][] after the split of Taurus from sardana according to [sardana:wiki:SEP10][]. 
+The TEP3 was created from [SEP3][] after the split of Taurus from sardana according to [SEP10][]. 
 
 Motivation
 ==================
@@ -282,7 +282,7 @@ Links to more details and discussions
 ======================================
 
 The initial discussions about the SEP3 itself are in the sardana-devel mailing list.
-Further (post [sardana:wiki:SEP10][] split) discussions about TEP3 are held on the tauruslib-devel mailing list.
+Further (post [SEP10][] split) discussions about TEP3 are held on the tauruslib-devel mailing list.
 
 
 Follow on and relations with other Enhancement Proposals
@@ -292,7 +292,7 @@ Follow on and relations with other Enhancement Proposals
 
 - Once the taurus.core is independent of Tango (and maybe also after [TEP14][]), other proposals should be made to a) make as many widgets from taurus.qt both scheme-agnostic and Tango-independent; and b) to identify and document those that are for some reason bound to one or another scheme.
 
-- The TEP3 was created from [sardana:wiki:SEP3][] after the split of Taurus from sardana according to [sardana:wiki:SEP10][]. The [SEP3][sardana:wiki:SEP3] still remains to cover the changes necessary in sardana to adapt to the TEP3 changes.
+- The TEP3 was created from [SEP3][] after the split of Taurus from sardana according to [SEP10][]. The [SEP3][] still remains to cover the changes necessary in sardana to adapt to the TEP3 changes.
 
 
 APPENDIX: Implementation details history
@@ -375,16 +375,16 @@ Changes
 [cpascual](http://sf.net/u/cpascual/) General update of the document based on code review and discussions with [cmft](https://sf.net/u/cmft/). Also added the "Changes" section.
 
 2014-08-14
-[cpascual](http://sf.net/u/cpascual/) Added some more tasks to implementation plan and reference to [sardana:wiki:Taurus_URIRefactoring](https://sourceforge.net/p/sardana/wiki/Taurus_URIRefactoring/) document
+[cpascual](http://sf.net/u/cpascual/) Added some more tasks to implementation plan and reference to [Taurus_URIRefactoring](https://sourceforge.net/p/sardana/wiki/Taurus_URIRefactoring/) document
 
 2014-10-03
 [cpascual](http://sf.net/u/cpascual/) Updated pending tasks and completed some info about validators
 
 2015-04-28
-[cpascual](http://sf.net/u/cpascual/) Adapted latest version of [sardana:wiki:SEP3][] to update TEP3 and move some parts to [TEP14][]
+[cpascual](http://sf.net/u/cpascual/) Adapted latest version of [SEP3][] to update TEP3 and move some parts to [TEP14][]
 
 2015-04-30
-[cpascual](http://sf.net/u/cpascual/) Added 'Refactoring of Model name syntax' section using info from [sardana:wiki:Taurus_URIRefactoring](https://sourceforge.net/p/sardana/wiki/Taurus_URIRefactoring/). Also several other minor changes and improvements.
+[cpascual](http://sf.net/u/cpascual/) Added 'Refactoring of Model name syntax' section using info from [Taurus_URIRefactoring](https://sourceforge.net/p/sardana/wiki/Taurus_URIRefactoring/). Also several other minor changes and improvements.
 
 2015-04-30
 [cpascual](http://sf.net/u/cpascual/) passing to CANDIDATE
@@ -410,5 +410,5 @@ Changes
 [1]: https://en.wikipedia.org/wiki/URI_scheme#Generic_syntax
 [2]: https://tools.ietf.org/html/rfc3986
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
-[sardana:wiki:SEP3]: https://sourceforge.net/p/sardana/wiki/SEP3/
-[sardana:wiki:SEP10]: https://sourceforge.net/p/sardana/wiki/SEP10/
+[SEP3]: https://sourceforge.net/p/sardana/wiki/SEP3/
+[SEP10]: https://sourceforge.net/p/sardana/wiki/SEP10/
