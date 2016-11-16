@@ -238,11 +238,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Changes
 -----
-2015-05-15 Create TEP8 using SEP8, Fix links according [TEP10], pass TEP8 to CANDIDATE
+
+2016-11-16 [mrosanes](https://github.com/sagiss/) Adapt format and URL according to TEP16
+
+2015-05-15 Create TEP8 using SEP8, Fix links according to [TEP10], pass TEP8 to CANDIDATE
 
 2014-04-24 Code review and SEP documentation
 
 2013-10-30
 [cmft](https://sourceforge.net/u/cfalcon/) Creation of SEP8
 
-2016-11-16 [mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
