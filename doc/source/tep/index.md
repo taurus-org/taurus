@@ -25,16 +25,16 @@ Proposals list
   [TEP16][] | ACCEPTED     | Moving Taurus to Github
 
 
-[TEP0]: tep/TEP0.md
-[TEP3]: tep/TEP3.md
+[TEP0]: http://www.taurus-scada.org/tep/?TEP0.md
+[TEP3]: http://www.taurus-scada.org/tep/?TEP3.md
 [SEP5]: http://sf.net/p/sardana/wiki/SEP5
-[TEP7]: tep/TEP7.md
-[TEP8]: tep/TEP8.md
+[TEP7]: http://www.taurus-scada.org/tep/?TEP7.md
+[TEP8]: http://www.taurus-scada.org/tep/?TEP8.md
 [SEP9]: http://sf.net/p/sardana/wiki/SEP9
 [SEP10]: http://sf.net/p/sardana/wiki/SEP10
 [SEP11]: http://sf.net/p/sardana/wiki/SEP11
 [SEP12]: http://sf.net/p/sardana/wiki/SEP12
-[TEP13]: tep/TEP13.md
-[TEP14]: tep/TEP14.md
-[TEP15]: tep/TEP15.md
-[TEP16]: tep/TEP16.md
+[TEP13]: http://www.taurus-scada.org/tep/?TEP13.md
+[TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
+[TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
+[TEP16]: http://www.taurus-scada.org/tep/?TEP16.md
