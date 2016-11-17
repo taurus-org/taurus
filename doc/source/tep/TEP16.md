@@ -1,7 +1,7 @@
     Title: Moving Taurus to GitHub
     TEP: 16
-    State: CANDIDATE
-    Date: 2016-10-21
+    State: ACCEPTED
+    Date: 2016-11-17
     Drivers: Carlos Pascual-Izarra cpascual@cells.es
     URL: http://www.taurus-scada.org/tep?TEP16.md
     License: http://www.jclark.com/xml/copying.txt
@@ -190,6 +190,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## Changes
 
+- 2016-11-17 [cpascual][]. Changed state to ACCEPTED
 - 2016-11-15 [cpascual][]. Reflect the latest implementation decisions
 - 2016-11-02 [cpascual][]. Changed state from DRAFT to CANDIDATE
 - 2016-10-26 [cpascual][]. Several changes to get it ready for first announcement of DRAFT
