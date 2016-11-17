@@ -12,15 +12,9 @@ develop branch)  won't be reflected in this file.
 ### Added
 - bumpversion support
 
-### Changed
 
 ### Deprecated
 - `taurus.Release.version_info` and `taurus.Release.revision` variables
-
-### Removed
-
-### Fixed
-
 
 ## [4.0.1] - 2016-07-19
 Jul16 milestone. 
