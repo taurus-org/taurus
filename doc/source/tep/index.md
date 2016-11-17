@@ -10,10 +10,10 @@ Proposals list
 
   Link        |  status   |        Title                                              
   ------------| --------- | ---------------------------------------------------------
-  [TEP0][]   | ACCEPTED | Introducing Taurus Enhancement Proposal                  
+  [TEP0][]   | OBSOLETE | Introducing Taurus Enhancement Proposal                  
   [TEP3][]   | ACCEPTED | Tango-Independent                                        
   [SEP5][]   | ACCEPTED  | Implementation of tests infrastructure                   
-  [TEP7][]   | ACCEPTED  | Code contribution workflow                               
+  [TEP7][]   | OBSOLETE  | Code contribution workflow                               
   [TEP8][]   | CANDIDATE | Remove from Taurus objects the direct Logger dependence  
   [SEP9][]   | ACCEPTED  | Compact Read+Write widgets in Taurus                     
   [SEP10][] | ACCEPTED  | Taurus separation                                        
@@ -22,7 +22,7 @@ Proposals list
   [TEP13][] | DRAFT     | Plugins support 
   [TEP14][] | ACCEPTED  | Core refactoring (quantities and configuration)
   [TEP15][] | DRAFT     | fragment-based slicing support in URIs
-  [TEP16][] | DRAFT     | Moving Taurus to Github
+  [TEP16][] | ACCEPTED     | Moving Taurus to Github
 
 
 [TEP0]: tep/TEP0.md
