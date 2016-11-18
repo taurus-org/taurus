@@ -115,27 +115,32 @@ class TaurusBaseEditor(Qt.QSplitter):
     def set_current_filename(self, filename):
         self.editorStack().set_current_filename(filename)
 
+    def is_file_opened(self, filename=None):
+        # TODO: Implement it
+        return None
+
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
             editorstack.set_fullpath_sorting_enabled(True)
-            editorstack.set_closable(len(self.editorstacks) > 1)
+            editorstack.set_closable( len(self.editorstacks) > 1 )
             editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
             oe_btn = create_toolbutton(self)
             oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
             editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
 
-        editorstack.set_io_actions(*self.io_actions)
+        if len(self.io_actions) == 0:
+            action = Qt.QAction(self)
+            editorstack.set_io_actions(action, action, action, action)
+        else:
+            editorstack.set_io_actions(*self.io_actions)
         font = Qt.QFont("Monospace")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
-        try:
-            editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
-        except AttributeError:
-            # backwards compatibility with spyder < 3
-            editorstack.close_file.connect(self.close_file_in_all_editorstacks)
+
+        editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.create_new_window.connect(self.create_new_window)
         editorstack.plugin_load.connect(self.load)
 
@@ -157,7 +162,7 @@ class TaurusBaseEditor(Qt.QSplitter):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        window.destroyed.connect(lambda win=window: self.unregister_editorwindow(win))
+        window.destroyed.connect(lambda: self.unregister_editorwindow(window))
 
     def register_editorwindow(self, window):
         self.editorwindows.append(window)
@@ -168,15 +173,18 @@ class TaurusBaseEditor(Qt.QSplitter):
     def get_focus_widget(self):
         pass
 
-    def close_file_in_all_editorstacks(self, index):
-        sender = self.sender()
+    def editorStack(self):
+        return self.editorstacks[0]
+
+    @Qt.Slot(str, int)
+    def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
-            if editorstack is not sender:
+            if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
-                editorstack.close_file(index)
+                editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
 
-    def register_widget_shortcuts(self, context, widget):
+    def register_widget_shortcuts(self, widget):
         """Fake!"""
         pass
 
@@ -187,9 +195,11 @@ class TaurusBaseEditor(Qt.QSplitter):
 def demo():
     test = TaurusBaseEditor()
     test.resize(1000, 800)
+    test.show()
+
     test.load(__file__)
     test.load("__init__.py")
-    test.show()
+
     return test
 
 
@@ -214,7 +224,7 @@ def main():
     if len(args) == 0:
         w = demo()
     else:
-        w = TaurusEditor()
+        w = TaurusBaseEditor()
         w.resize(900, 800)
         for name in args:
             w.load(name)
