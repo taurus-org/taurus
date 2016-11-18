@@ -38,7 +38,7 @@ Projects related to Taurus
     :hidden:
 
     Home Page <http://www.taurus-scada.org>
-    Project Page <https://github.com/taurus-org>
+    Project Page <The project Page link pooi>
     Download from PyPI <http://pypi.python.org/pypi/taurus>
     docs
 
