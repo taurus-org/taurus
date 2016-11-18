@@ -29,36 +29,16 @@ __all__ = ["TaurusBaseEditor"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
-import os
-
 from taurus.external.qt import Qt
 
-try:
-    # spyderlib got renamed to spyder in v3
-    from spyder.utils.qthelpers import create_toolbutton
-    from spyder.widgets.findreplace import FindReplace
-    from spyder.widgets.editortools import OutlineExplorerWidget
-    from spyder.widgets.editor import EditorMainWindow, EditorSplitter
-
-except ImportError:
-    try:
-        import spyderlib
-        v = spyderlib.__version__.split('.', 2)[:2]
-        v = map(int, v)
-        if v < [2, 1]:
-            raise Exception("TaurusEditor needs spyderlib >= 2.1")
-    except ImportError:
-        raise Exception("TaurusEditor needs spyderlib >= 2.1")
-
-    from spyderlib.utils.qthelpers import create_toolbutton
-    from spyderlib.widgets.findreplace import FindReplace
-    from spyderlib.widgets.editortools import OutlineExplorerWidget
-    from spyderlib.widgets.editor import EditorMainWindow, EditorSplitter
-
+from spyder.utils.qthelpers import create_toolbutton
+from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.editortools import OutlineExplorerWidget
+from spyder.widgets.editor import EditorMainWindow, EditorSplitter
+from spyder.py3compat import to_text_string
+from spyder.utils.introspection.manager import IntrospectionManager
 
 class TaurusBaseEditor(Qt.QSplitter):
-
     def __init__(self, parent=None):
         Qt.QSplitter.__init__(self, parent)
 
@@ -67,42 +47,54 @@ class TaurusBaseEditor(Qt.QSplitter):
 
         self.menu_actions, self.io_actions = self.createMenuActions()
 
-        self.toolbar_list = None
-        self.menu_list = None
-
         self.find_widget = FindReplace(self, enable_replace=True)
         self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
                                                      show_all_files=False)
+        self.outlineexplorer.edit_goto.connect(self.go_to_file)
+        self.editor_splitter = EditorSplitter(self, self, self.menu_actions,
+                                              first=True)
+
         editor_widgets = Qt.QWidget(self)
         editor_layout = Qt.QVBoxLayout()
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
-
-        editor_layout.addWidget(EditorSplitter(self, self, self.menu_actions,
-                                               first=True))
+        editor_layout.addWidget(self.editor_splitter)
         editor_layout.addWidget(self.find_widget)
 
         self.setContentsMargins(0, 0, 0, 0)
         self.addWidget(editor_widgets)
         self.addWidget(self.outlineexplorer)
 
-        self.setStretchFactor(0, 1)
-        self.setStretchFactor(1, 0)
+        self.setStretchFactor(0, 5)
+        self.setStretchFactor(1, 1)
 
+        self.toolbar_list = None
+        self.menu_list = None
         self.setup_window([], [])
 
-    def editorStack(self):
-        return self.editorstacks[0]
+        # Set introspector
+        introspector = IntrospectionManager()
+        editorstack = self.editor_splitter.editorstack
+        editorstack.set_introspector(introspector)
+        introspector.set_editor_widget(editorstack)
 
     def createMenuActions(self):
         return [], []
 
+    def go_to_file(self, fname, lineno, text):
+        editorstack = self.editorstacks[0]
+        editorstack.set_current_filename(to_text_string(fname))
+        editor = editorstack.get_current_editor()
+        editor.go_to_line(lineno, word=text)
+
     def closeEvent(self, event):
         for win in self.editorwindows[:]:
             win.close()
+
         event.accept()
 
     def load(self, filename, goto=None):
+        Qt.QApplication.processEvents()
         editorstack = self.editorStack()
         fileinfo = editorstack.load(filename)
         editorstack.analyze_script()
@@ -111,7 +103,7 @@ class TaurusBaseEditor(Qt.QSplitter):
 
     def reload(self, idx=None, filename=None, goto=None):
         if idx is None:
-            idx = is_file_opened(filename)
+            idx = self.is_file_opened(filename)
         if idx is not None:
             editorstack = self.editorStack()
             editorstack.reload(idx)
