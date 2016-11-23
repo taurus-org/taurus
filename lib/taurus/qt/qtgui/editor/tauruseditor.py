@@ -79,7 +79,13 @@ class TaurusBaseEditor(Qt.QSplitter):
         introspector.set_editor_widget(editorstack)
 
     def createMenuActions(self):
-        return [], []
+        """Returns a list of menu actions and a list of IO actions.
+        Reimplement in derived classes.
+        This Base (dummy) implementation creates empty menu actions and 
+        a list of 5 dummy actions for the IO actions
+        """
+        dummyaction = Qt.QAction(self)
+        return [], [dummyaction]*5
 
     def go_to_file(self, fname, lineno, text):
         editorstack = self.editorstacks[0]
@@ -131,11 +137,7 @@ class TaurusBaseEditor(Qt.QSplitter):
             oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
             editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
 
-        if len(self.io_actions) == 0:
-            action = Qt.QAction(self)
-            editorstack.set_io_actions(action, action, action, action)
-        else:
-            editorstack.set_io_actions(*self.io_actions)
+        editorstack.set_io_actions(*self.io_actions)
         font = Qt.QFont("Monospace")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
