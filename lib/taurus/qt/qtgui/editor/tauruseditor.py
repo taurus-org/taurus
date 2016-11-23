@@ -122,7 +122,10 @@ class TaurusBaseEditor(Qt.QSplitter):
         self.editorStack().set_current_filename(filename)
 
     def is_file_opened(self, filename=None):
-        # TODO: Implement it
+        """Dummy implementation that always returns None. Reimplement 
+        in derived classes to return the index of already-open files 
+        in the editor_stack, or None if the file is not already open.
+        """
         return None
 
     def register_editorstack(self, editorstack):
