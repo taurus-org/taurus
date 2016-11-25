@@ -85,7 +85,7 @@ class TaurusBaseEditor(Qt.QSplitter):
         a list of 5 dummy actions for the IO actions
         """
         dummyaction = Qt.QAction(self)
-        return [], [dummyaction]*5
+        return [], [dummyaction]*4
 
     def go_to_file(self, fname, lineno, text):
         editorstack = self.editorstacks[0]
