@@ -203,7 +203,6 @@ def demo():
     test.show()
 
     test.load(__file__)
-    test.load("__init__.py")
 
     return test
 
