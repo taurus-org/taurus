@@ -24,7 +24,7 @@
 #############################################################################
 
 """[DEPRECATED] Rope patch for better performance.
-Based on spyderlib.rope_patch"""
+Based on spyder.rope_patch"""
 
 __all__ = ["apply"]
 
@@ -64,10 +64,8 @@ def apply():
     # Patching BuiltinFunction for the calltip/doc functions to be
     # able to retrieve the function signatures with forced builtins
     from rope.base import builtins, pyobjects
-    try:
-        from spyder.utils.dochelpers import getargs
-    except:
-        from spyderlib.utils.dochelpers import getargs
+    from spyder.utils.dochelpers import getargs
+
 
     class PatchedBuiltinFunction(builtins.BuiltinFunction):
 

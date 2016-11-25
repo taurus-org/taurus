@@ -184,24 +184,19 @@ def __get_qtcontrols_version_number():
     return __translate_version_str2int(qtcontrols_str)
 
 
-def __get_spyderlib_version():
+def __get_spyder_version():
     try:
-        # spyderlib got renamed to spyder in v3
         import spyder
         return spyder.__version__
     except:
-        try:
-            import spyderlib
-            return spyderlib.__version__
-        except:
             pass
 
 
-def __get_spyderlib_version_number():
-    spyderlibver_str = __get_spyderlib_version()
-    if spyderlibver_str is None:
+def __get_spyder_version_number():
+    spyderver_str = __get_spyder_version()
+    if spyderver_str is None:
         return None
-    return __translate_version_str2int(spyderlibver_str)
+    return __translate_version_str2int(spyderver_str)
 
 
 def __w(msg):
@@ -263,7 +258,7 @@ def _check_dependencies(forlog=False):
         #    module       minimum  recommended
         "Qub": ("1.0.0", "1.0.0"),
         "qtcontrols": ("1.0.0", "1.0.0"),
-        "spyderlib": ("2.0.0", "2.0.0"),
+        "spyder": ("3.0.0", "3.0.0"),
     }
 
     yield -1, "Checking required dependencies of taurus.core..."
@@ -336,17 +331,17 @@ def _check_dependencies(forlog=False):
     else:
         yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currQubStr, **MSG)
 
-    m = "Checking for spyder[lib] >=%s..." % r["spyderlib"][0]
-    minspyderlib, recspyderlib = map(
-        __translate_version_str2int, r["spyderlib"])
-    currspyderlib, currspyderlibStr = __get_spyderlib_version_number(
-    ), __get_spyderlib_version()
-    if currspyderlib is None:
+    m = "Checking for spyder >=%s..." % r["spyder"][0]
+    minspyder, recspyder = map(
+        __translate_version_str2int, r["spyder"])
+    currspyder, currspyderStr = __get_spyder_version_number(
+    ), __get_spyder_version()
+    if currspyder is None:
         yield 1, "{msg} {WARN} (Not found])".format(msg=m, **MSG)
-    elif currspyderlib < minspyderlib:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currspyderlibStr, rec=r['spyderlib'][1], **MSG)
+    elif currspyder < minspyder:
+        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currspyderStr, rec=r['spyder'][1], **MSG)
     else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currspyderlibStr, **MSG)
+        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currspyderStr, **MSG)
 
     m = "Checking for qtcontrols >=%s..." % r["qtcontrols"][0]
     minqtcontrols, recqtcontrols = map(
