@@ -23,11 +23,16 @@
 ##
 #############################################################################
 
-"""Rope patch for better performances. Based on spyderlib.rope_patch"""
+"""[DEPRECATED] Rope patch for better performance.
+Based on spyder.rope_patch"""
 
 __all__ = ["apply"]
 
 __docformat__ = 'restructuredtext'
+
+
+from taurus.core.util.log import deprecated
+deprecated(dep='taurusropepatch module', rel='4.0.1')
 
 
 def apply():
@@ -59,7 +64,8 @@ def apply():
     # Patching BuiltinFunction for the calltip/doc functions to be
     # able to retrieve the function signatures with forced builtins
     from rope.base import builtins, pyobjects
-    from spyderlib.utils.dochelpers import getargs
+    from spyder.utils.dochelpers import getargs
+
 
     class PatchedBuiltinFunction(builtins.BuiltinFunction):
 
