@@ -46,21 +46,25 @@ Release data for the taurus project. It contains the following members:
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
 name = 'taurus'
 
-# For versions with substrings (like 0.6.16.svn), use an extra . to separate
-# the new substring.  We have to avoid using either dashes or underscores,
-# because bdist_rpm does not accept dashes (an RPM) convention, and
-# bdist_deb does not accept underscores (a Debian convention).
+# we use semantic versioning (http://semver.org/) and we update it using the
+# bumpversion script (https://github.com/peritus/bumpversion)
+version = '4.0.2-dev'
 
+# generate version_info and revision (**deprecated** since version 4.0.2-dev).
+if '-' in version:
+    _v, _rel = version.split('-')
+else:
+    _v, _rel = version, ''
+_v = tuple([int(n) for n in _v.split('.')])
+version_info = _v + (_rel, 0)   # deprecated, do not use
+revision = str(version_info[4])  # deprecated, do not use
 
-version_info = (4, 0, 1, '', 0)
-version = '.'.join(map(str, version_info[:3]))
-revision = str(version_info[4])
 
 description = "A framework for scientific/industrial CLIs and GUIs"
 
 long_description = """Taurus is a python framework for control and data
 acquisition CLIs and GUIs in scientific/industrial environments.
-It supports multiple control systems or data sources: Tango, EPICS, spec...
+It supports multiple control systems or data sources: Tango, EPICS,...
 New control system libraries can be integrated through plugins."""
 
 license = 'LGPL'
