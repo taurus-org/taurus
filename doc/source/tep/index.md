@@ -27,13 +27,13 @@ Proposals list
 
 [TEP0]: http://www.taurus-scada.org/tep/?TEP0.md
 [TEP3]: http://www.taurus-scada.org/tep/?TEP3.md
-[SEP5]: http://sf.net/p/sardana/wiki/SEP5
+[SEP5]: http:/www.sardana-controls.org/sep/?SEP5.md
 [TEP7]: http://www.taurus-scada.org/tep/?TEP7.md
 [TEP8]: http://www.taurus-scada.org/tep/?TEP8.md
-[SEP9]: http://sf.net/p/sardana/wiki/SEP9
-[SEP10]: http://sf.net/p/sardana/wiki/SEP10
-[SEP11]: http://sf.net/p/sardana/wiki/SEP11
-[SEP12]: http://sf.net/p/sardana/wiki/SEP12
+[SEP9]:  http:/www.sardana-controls.org/sep/?SEP9.md
+[SEP10]: http:/www.sardana-controls.org/sep/?SEP10.md
+[SEP11]: http:/www.sardana-controls.org/sep/?SEP11.md
+[SEP12]: http:/www.sardana-controls.org/sep/?SEP12.md
 [TEP13]: http://www.taurus-scada.org/tep/?TEP13.md
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
