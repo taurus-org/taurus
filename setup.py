@@ -137,9 +137,15 @@ classifiers = [
     'Topic :: Software Development :: Widget Sets',
 ]
 
+# Unfortunately, distutils.version.StrictVersion does not support semantic
+# versioning (www.semver.org) for pre-releases. This breaks, e.g,  bdist_msi
+# As a workaround, we normalize the version to be acceptable for StrictVersion
+# Note that the normalized version is identical to the semver except for
+# pre-releases (where '-dev' is replaced by 'a0').
+_version = release.version.replace('-dev', 'a0')
 
 setup(name='taurus',
-      version=release.version,
+      version=_version,
       description=release.description,
       long_description=release.long_description,
       author=release.authors['Tiago_et_al'][0],
