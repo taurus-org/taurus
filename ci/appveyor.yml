@@ -99,27 +99,30 @@ artifacts:
     - path: dist\*.whl
       name: taurus_WHEEL
 
-
+## TODO: re-enable deployments
+## For now, we disable deploy (we got repeated deploys for the same commit after 
+## merging PR #357.
+##
 ### See https://www.appveyor.com/docs/deployment/github/
-deploy:
-    # create unnoficial pre-release
-    - provider: GitHub
-      tag: taurus-build$(appveyor_build_version)
-      description: 'Unofficial Windows release'
-      auth_token:
-          # encrypted token for repo access by the admin bot
-          secure: 7xvY9HsADz3TiTRQ8yiumBWwCQ7GI+DrA04rlzzBo+G9DBCk7py3FvLLgfEvYW+u
-      artifact: taurus_WHEEL
-      prerelease: true
-
-    # create draft release on tags to master
-    - provider: GitHub
-      description: 'Taurus Windows installer'
-      auth_token:
-          # encrypted token for repo access by the admin bot
-          secure: 7xvY9HsADz3TiTRQ8yiumBWwCQ7GI+DrA04rlzzBo+G9DBCk7py3FvLLgfEvYW+u
-      artifact: taurus_MSI,taurusWHEEL
-      draft: true
-      on:
-          branch: master                 # release from master branch only
-          appveyor_repo_tag: true        # deploy on tag push only
+#deploy:
+#    # create unnoficial pre-release
+#    - provider: GitHub
+#      tag: taurus-build$(appveyor_build_version)
+#      description: 'Unofficial Windows release'
+#      auth_token:
+#          # encrypted token for repo access by the admin bot
+#          secure: 7xvY9HsADz3TiTRQ8yiumBWwCQ7GI+DrA04rlzzBo+G9DBCk7py3FvLLgfEvYW+u
+#      artifact: taurus_WHEEL
+#      prerelease: true
+#
+#    # create draft release on tags to master
+#    - provider: GitHub
+#      description: 'Taurus Windows installer'
+#      auth_token:
+#          # encrypted token for repo access by the admin bot
+#          secure: 7xvY9HsADz3TiTRQ8yiumBWwCQ7GI+DrA04rlzzBo+G9DBCk7py3FvLLgfEvYW+u
+#      artifact: taurus_MSI,taurusWHEEL
+#      draft: true
+#      on:
+#          branch: master                 # release from master branch only
+#          appveyor_repo_tag: true        # deploy on tag push only
