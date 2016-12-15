@@ -107,8 +107,8 @@ deploy:
       tag: taurus-build$(appveyor_build_version)
       description: 'Unofficial Windows release'
       auth_token:
-          # TODO: substitute ENCRYPTED_TOKEN_HERE by the actual appveyor *encrypted* token
-          secure: ENCRYPTED_TOKEN_HERE
+          # encrypted token for repo access by the admin bot
+          secure: 7xvY9HsADz3TiTRQ8yiumBWwCQ7GI+DrA04rlzzBo+G9DBCk7py3FvLLgfEvYW+u
       artifact: taurus_WHEEL
       prerelease: true
 
@@ -116,8 +116,8 @@ deploy:
     - provider: GitHub
       description: 'Taurus Windows installer'
       auth_token:
-          # TODO: substitute ENCRYPTED_TOKEN_HERE by the actual appveyor *encrypted* token
-          secure: ENCRYPTED_TOKEN_HERE
+          # encrypted token for repo access by the admin bot
+          secure: 7xvY9HsADz3TiTRQ8yiumBWwCQ7GI+DrA04rlzzBo+G9DBCk7py3FvLLgfEvYW+u
       artifact: taurus_MSI,taurusWHEEL
       draft: true
       on:
