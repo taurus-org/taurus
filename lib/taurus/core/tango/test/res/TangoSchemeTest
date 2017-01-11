@@ -172,6 +172,8 @@ class TangoSchemeTest(Device):
                                 **attrs['float_scalar'])
     string_scalar_ro = attribute(access=AttrWriteType.READ,
                                  **attrs['string_scalar'])
+    uchar_scalar_ro = attribute(access=AttrWriteType.READ,
+                                **attrs['uchar_scalar'])
     # SPECTRUMS
     boolean_spectrum_ro = attribute(access=AttrWriteType.READ,
                                     **attrs['bool_spectrum'])
@@ -182,6 +184,8 @@ class TangoSchemeTest(Device):
     string_spectrum_ro = attribute(access=AttrWriteType.READ,
                                    **attrs['string_spectrum'])
     # IMAGES
+    uchar_image_ro = attribute(access=AttrWriteType.READ,
+                                 **attrs['uchar_image'])
     boolean_image_ro = attribute(access=AttrWriteType.READ,
                                  **attrs['bool_image'])
     short_image_ro = attribute(access=AttrWriteType.READ,
@@ -260,6 +264,9 @@ class TangoSchemeTest(Device):
     def read_string_scalar_ro(self):
         return self.default_rvalue['string']
 
+    def read_uchar_scalar_ro(self):
+        return self.default_rvalue['uchar']
+
     # SPECTRUMS
     def read_boolean_spectrum_ro(self):
         return [self.default_rvalue['bool']] * self.DIMX
@@ -291,6 +298,9 @@ class TangoSchemeTest(Device):
 
     def read_string_image_ro(self):
         return [[self.default_rvalue['string']] * self.DIMX] * self.DIMY
+
+    def read_uchar_image_ro(self):
+        return [[self.default_rvalue['uchar']] * self.DIMX] * self.DIMY
 
     # READ/WRITE METHODS
     # SCALARS

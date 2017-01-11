@@ -534,6 +534,36 @@ _UINT8_SPE = _UINT8_IMG[1, :]
 # ==============================================================================
 # Test read of tango attributes
 @insertTest(helper_name='write_read_attr',
+            attrname='uchar_image_ro',
+            expected=dict(rvalue=numpy.array((('A',) * 3,) * 3),
+                          wvalue=None,
+                          type=DataType.Bytes
+                          ),
+            expected_attrv=dict(value=numpy.array((('A',) * 3,) * 3),
+                                w_value=None,
+                                quality=AttrQuality.ATTR_VALID
+                                ),
+            expectedshape=(3, 3),
+            )
+
+@insertTest(helper_name='write_read_attr',
+            attrname='uchar_scalar_ro',
+            expected=dict(rvalue='A',
+                          wvalue=None,
+                          type=DataType.Bytes,
+                          data_format=DataFormat._0D,
+                          writable=False,
+                          range=[None, None],
+                          alarms=[None, None],
+                          warnings=[None, None]
+                          ),
+            expected_attrv=dict(rvalue='A',
+                                value='A',
+                                quality=AttrQuality.ATTR_VALID,
+                                wvalue=None,
+                                w_value=None)
+            )
+@insertTest(helper_name='write_read_attr',
             attrname='string_image_ro',
             expected=dict(rvalue=(('hello world',) * 3,) * 3,
                           wvalue=None,
