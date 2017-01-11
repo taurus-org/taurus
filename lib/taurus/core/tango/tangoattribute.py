@@ -119,11 +119,15 @@ class TangoAttrValue(TaurusAttrValue):
             rvalue = DevState[str(rvalue)]
         elif p.type == PyTango.CmdArgType.DevUChar:
             if self._attrRef.data_format == DataFormat._0D:
-                rvalue = chr(rvalue)
-                wvalue = chr(wvalue)
+                if rvalue is not None:
+                    rvalue = chr(rvalue)
+                if wvalue is not None:
+                    wvalue = chr(wvalue)
             else:
-                rvalue = rvalue.view('S1')
-                wvalue = wvalue.view('S1')
+                if rvalue is not None:
+                    rvalue = rvalue.view('S1')
+                if wvalue is not None:
+                    wvalue = wvalue.view('S1')
 
         self.rvalue = rvalue
         self.wvalue = wvalue
