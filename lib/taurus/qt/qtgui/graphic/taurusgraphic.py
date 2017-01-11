@@ -28,7 +28,7 @@ taurusgraphic.py:
 
 __all__ = ['SynopticSelectionStyle',
            'parseTangoUri',
-           'QEmitter',
+           'QEmitter',  # TODO: QEmitter should probably be removed (kept priv)
            'TaurusGraphicsUpdateThread',
            'TaurusGraphicsScene',
            'QGraphicsTextBoxing',
@@ -100,7 +100,7 @@ def parseTangoUri(name):
 
 
 class QEmitter(Qt.QObject):
-    updateView = Qt.pyqtSignal('QGraphicsView')
+    updateView = Qt.pyqtSignal(object)
 
 
 class TaurusGraphicsUpdateThread(Qt.QThread):
@@ -151,7 +151,7 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
             for v in p.views():
                 # p.debug("emit('updateView')")
                 # emitter.updateView.emit(v)
-                self.emitter.updateView.emit(v)
+                emitter.updateView.emit(v)
             # This sleep is needed to reduce CPU usage of the application!
             self.sleep(self.period)
             # End of while
