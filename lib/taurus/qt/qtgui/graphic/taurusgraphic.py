@@ -1135,13 +1135,13 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
                 self.warning(traceback.format_exc())
 
         if v and self._userFormat:
-            try:
-                text = self._userFormat % v.rvalue
-            except:
-                self.warning('Invalid userFormat "%s" for %r', self._userFormat,
-                             v.rvalue)
-                self.info('trying with Taurus < 4 format... (deprecated)')
+            # TODO: consider extending this to use newer pyhon formatting syntax
+            if hasattr(v.rvalue, 'magnitude'):
                 text = self._userFormat % v.rvalue.magnitude
+            else:
+                text = self._userFormat % v.rvalue
+            if self._unitVisible:
+                text = "{0} {1.rvalue.units:~s}".format(text, v)
         else:
             if self._unitVisible:
                 _frName = None
