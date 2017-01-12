@@ -65,7 +65,7 @@ import Queue
 from taurus import Manager
 from taurus.core import AttrQuality, DataType
 from taurus.core.util.containers import CaselessDefaultDict
-from taurus.core.util.log import Logger
+from taurus.core.util.log import Logger, deprecation_decorator
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.util.enumeration import Enumeration
@@ -1111,14 +1111,10 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
         self._unitVisible = True
         self.call__init__(TaurusGraphicsItem, name, parent)
 
+    @deprecation_decorator(alt=".getDisplayValue(fragmentName='rvalue.units')",
+                           rel="4.0.3")
     def getUnit(self):
-        unit = ''
-        modelObj = self.getModelObj()
-        if not modelObj is None:
-            unit = modelObj.getUnit()
-            if not unit or unit == 'No unit':
-                unit = ''
-        return unit
+        return self.getDisplayValue(fragmentName='rvalue.units')
 
     def updateStyle(self):
         v = self.getModelValueObj()
@@ -1139,11 +1135,19 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
                 self.warning(traceback.format_exc())
 
         if v and self._userFormat:
-            text = self._userFormat % (v.value)
+            try:
+                text = self._userFormat % v.rvalue
+            except:
+                self.warning('Invalid userFormat "%s" for %r', self._userFormat,
+                             v.rvalue)
+                self.info('trying with Taurus < 4 format... (deprecated)')
+                text = self._userFormat % v.rvalue.magnitude
         else:
-            text = self._currText = self.getDisplayValue()
-        if self._unitVisible:
-            text = text + ' ' + self.getUnit()
+            if self._unitVisible:
+                _frName = None
+            else:
+                _frName = 'rvalue.magnitude'
+            text = self._currText = self.getDisplayValue(fragmentName=_frName)
         self._currText = text.decode('unicode-escape')
         self._currHtmlText = None
 
