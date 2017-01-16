@@ -88,8 +88,11 @@ class TangoAttrValue(TaurusAttrValue):
         if self._attrRef is None:
             return
 
-        numerical = PyTango.is_numerical_type(self._attrRef._tango_data_type,
-                                              inc_array=True)
+        numerical = (PyTango.is_numerical_type(self._attrRef._tango_data_type,
+                                              inc_array=True) or
+                     p.type == PyTango.CmdArgType.DevUChar
+                     )
+
         if p.has_failed:
             self.error = PyTango.DevFailed(*p.get_err_stack())
         else:
@@ -117,17 +120,6 @@ class TangoAttrValue(TaurusAttrValue):
                 wvalue = Quantity(wvalue, units=units)
         elif isinstance(rvalue, PyTango._PyTango.DevState):
             rvalue = DevState[str(rvalue)]
-        elif p.type == PyTango.CmdArgType.DevUChar:
-            if self._attrRef.data_format == DataFormat._0D:
-                if rvalue is not None:
-                    rvalue = chr(rvalue)
-                if wvalue is not None:
-                    wvalue = chr(wvalue)
-            else:
-                if rvalue is not None:
-                    rvalue = rvalue.view('S1')
-                if wvalue is not None:
-                    wvalue = wvalue.view('S1')
 
         self.rvalue = rvalue
         self.wvalue = wvalue
@@ -383,12 +375,7 @@ class TangoAttribute(TaurusAttribute):
                 except:
                     attrvalue = str(magnitude).lower() == 'true'
             elif tgtype == PyTango.CmdArgType.DevUChar:
-                try:
-                    # assume value to be a 1-character string repr of a byte
-                    attrvalue = ord(magnitude)
-                except TypeError:
-                    # but also support uint8 values (use ord-chr to make sure)
-                    attrvalue = ord(chr(magnitude))
+                attrvalue = int(magnitude)
             elif tgtype in (PyTango.CmdArgType.DevState,
                             PyTango.CmdArgType.DevEncoded):
                 attrvalue = magnitude
