@@ -7,14 +7,53 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch)  won't be reflected in this file. 
 
+
 ## [Unreleased]
+
+
+## [4.0.3] - 2017-01-16
+Jan17 milestone.
+Second release of the Taurus4 series. 
+Largely (but not 100%) compatible with taurus 3 series.
+For a full log of commits since Jul16, run (in your git repo):
+`git log 4.0.1..4.0.3` 
 
 ### Added
 - bumpversion support
+- TEP16: Moving Taurus to GitHub
+- Support spyder >=3 
+- Appveyor authority token
+- Generic `get{Attribute, Device, Authority}` in `TaurusFactory`
+- Configure CI service for Windows using appveyor (PR#10)
 
+### Changed
+- Migrated TEPs to .md files 
+- Clarify contribution workflow in CONTRIBUTING.md
+- Adapted TaurusValueSpinBox to use Quantities
+- Moved the factory classmethod to TaurusModel base class
+- Adapt `taurusgui.macrolistener` to Taurus4 (#260)
+- Allow empty path in Attr and Dev URIs (#269)
+- Project page point to the repo, not issues (#351)
 
 ### Deprecated
 - `taurus.Release.version_info` and `taurus.Release.revision` variables
+- `TaurusAttribute.isState`
+- `taurus.external.ordereddict`
+
+### Fixed
+- Links in contribution file CONTRIBUTING.md
+- MSI creation (#356)
+- Unit duplication and regressions in synoptics (#363)
+- `basicsswitcher` (#256)
+- Deprecation warnings in `TaurusWheelEdit` (#337)
+- Fix bugs in `TaurusValueSpinBox` (#263, #266)
+- Disable `taurusconfigurationpanel` for all schemes except Tango (#240)
+- Fix taurusgui --new-gui (#275)
+- Exception when creating non-exported tango devices (#262)
+
+### Removed
+- `TaurusBaseEditor2` class
+
 
 ## [4.0.1] - 2016-07-19
 Jul16 milestone. 
