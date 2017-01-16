@@ -48,9 +48,7 @@ _FLOAT_SPE = _INT_SPE * .1
 _BOOL_IMG = numpy.array([[True, False], [False, True]])
 _BOOL_SPE = [True, False]
 _STR = 'foo BAR |-+#@!?_[]{}'
-_UCHAR_IMG = numpy.array([['a', 'b'], ['c', 'd']], dtype='S1')
-_UCHAR_SPE = _UCHAR_IMG[1, :]
-_UINT8_IMG = _UCHAR_IMG.view('uint8')
+_UINT8_IMG = numpy.array([[1, 2], [3, 4]], dtype='uint8')
 _UINT8_SPE = _UINT8_IMG[1, :]
 
 # ==============================================================================
@@ -161,99 +159,99 @@ _UINT8_SPE = _UINT8_IMG[1, :]
 # Test encode-decode of strings, booleans and uchars
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_image',
-            setvalue=_UCHAR_IMG,
-            expected=dict(rvalue=_UCHAR_IMG,
-                          wvalue=_UCHAR_IMG,
-                          type=DataType.Bytes,
+            setvalue=Quantity(_UINT8_IMG, 'mm'),
+            expected=dict(rvalue=Quantity(_UINT8_IMG, 'mm'),
+                          wvalue=Quantity(_UINT8_IMG, 'mm'),
+                          type=DataType.Integer,
                           label='uchar_image',
                           writable=True,
                           ),
-            expected_attrv=dict(rvalue=_UCHAR_IMG,
-                                value=_UCHAR_IMG,
-                                wvalue=_UCHAR_IMG,
-                                w_value=_UCHAR_IMG,
+            expected_attrv=dict(rvalue=Quantity(_UINT8_IMG, 'mm'),
+                                value=_UINT8_IMG,
+                                wvalue=Quantity(_UINT8_IMG, 'mm'),
+                                w_value=_UINT8_IMG,
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_spectrum',
-            setvalue=_UCHAR_SPE,
-            expected=dict(rvalue=_UCHAR_SPE,
-                          wvalue=_UCHAR_SPE,
-                          type=DataType.Bytes,
+            setvalue=Quantity(_UINT8_SPE, 'mm'),
+            expected=dict(rvalue=Quantity(_UINT8_SPE, 'mm'),
+                          wvalue=Quantity(_UINT8_SPE, 'mm'),
+                          type=DataType.Integer,
                           writable=True,
                           ),
-            expected_attrv=dict(rvalue=_UCHAR_SPE,
-                                value=_UCHAR_SPE,
-                                wvalue=_UCHAR_SPE,
-                                w_value=_UCHAR_SPE,
+            expected_attrv=dict(rvalue=Quantity(_UINT8_SPE, 'mm'),
+                                value=_UINT8_SPE,
+                                wvalue=Quantity(_UINT8_SPE, 'mm'),
+                                w_value=_UINT8_SPE,
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_scalar',
-            setvalue='a',
-            expected=dict(rvalue='a',
-                          wvalue='a',
-                          type=DataType.Bytes,
+            setvalue=Quantity(12, 'mm'),
+            expected=dict(rvalue=Quantity(12, 'mm'),
+                          wvalue=Quantity(12, 'mm'),
+                          type=DataType.Integer,
                           writable=True,
                           range=[None, None],
                           alarms=[None, None],
                           warnings=[None, None]
                           ),
-            expected_attrv=dict(rvalue='a',
-                                value='a',
-                                wvalue='a',
-                                w_value='a',
+            expected_attrv=dict(rvalue=Quantity(12, 'mm'),
+                                value=12,
+                                wvalue=Quantity(12, 'mm'),
+                                w_value=12,
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_image',
-            setvalue=_UINT8_IMG,
-            expected=dict(rvalue=_UCHAR_IMG,
-                          wvalue=_UCHAR_IMG,
-                          type=DataType.Bytes,
+            setvalue=Quantity(_UINT8_IMG, 'mm'),
+            expected=dict(rvalue=Quantity(_UINT8_IMG, 'mm'),
+                          wvalue=Quantity(_UINT8_IMG, 'mm'),
+                          type=DataType.Integer,
                           label='uchar_image',
                           writable=True,
                           ),
-            expected_attrv=dict(rvalue=_UCHAR_IMG,
-                                value=_UCHAR_IMG,
-                                wvalue=_UCHAR_IMG,
-                                w_value=_UCHAR_IMG,
+            expected_attrv=dict(rvalue=Quantity(_UINT8_IMG, 'mm'),
+                                value=_UINT8_IMG,
+                                wvalue=Quantity(_UINT8_IMG, 'mm'),
+                                w_value=_UINT8_IMG,
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_spectrum',
-            setvalue=_UINT8_SPE,
-            expected=dict(rvalue=_UCHAR_SPE,
-                          wvalue=_UCHAR_SPE,
-                          type=DataType.Bytes,
+            setvalue=Quantity(_UINT8_SPE, 'mm'),
+            expected=dict(rvalue=Quantity(_UINT8_SPE, 'mm'),
+                          wvalue=Quantity(_UINT8_SPE, 'mm'),
+                          type=DataType.Integer,
                           writable=True,
                           ),
-            expected_attrv=dict(rvalue=_UCHAR_SPE,
-                                value=_UCHAR_SPE,
-                                wvalue=_UCHAR_SPE,
-                                w_value=_UCHAR_SPE,
+            expected_attrv=dict(rvalue=Quantity(_UINT8_SPE, 'mm'),
+                                value=_UINT8_SPE,
+                                wvalue=Quantity(_UINT8_SPE, 'mm'),
+                                w_value=_UINT8_SPE,
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_scalar',
-            setvalue=97,  # ord('a')-->97
-            expected=dict(rvalue='a',
-                          wvalue='a',
-                          type=DataType.Bytes,
+            setvalue=Quantity(12, 'mm'),
+            expected=dict(rvalue=Quantity(12, 'mm'),
+                          wvalue=Quantity(12, 'mm'),
+                          type=DataType.Integer,
                           writable=True,
                           range=[None, None],
                           alarms=[None, None],
                           warnings=[None, None]
                           ),
-            expected_attrv=dict(rvalue='a',
-                                value='a',
-                                wvalue='a',
-                                w_value='a',
+            expected_attrv=dict(rvalue=Quantity(12, 'mm'),
+                                value=12,
+                                wvalue=Quantity(12, 'mm'),
+                                w_value=12,
                                 quality=AttrQuality.ATTR_VALID
                                 )
             )
@@ -535,11 +533,11 @@ _UINT8_SPE = _UINT8_IMG[1, :]
 # Test read of tango attributes
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_image_ro',
-            expected=dict(rvalue=numpy.array((('A',) * 3,) * 3),
+            expected=dict(rvalue=Quantity([[1] * 3] * 3, 'mm'),
                           wvalue=None,
-                          type=DataType.Bytes
+                          type=DataType.Integer
                           ),
-            expected_attrv=dict(value=numpy.array((('A',) * 3,) * 3),
+            expected_attrv=dict(value=[[1] * 3] * 3,
                                 w_value=None,
                                 quality=AttrQuality.ATTR_VALID
                                 ),
@@ -548,17 +546,17 @@ _UINT8_SPE = _UINT8_IMG[1, :]
 
 @insertTest(helper_name='write_read_attr',
             attrname='uchar_scalar_ro',
-            expected=dict(rvalue='A',
+            expected=dict(rvalue=Quantity(1, 'mm'),
                           wvalue=None,
-                          type=DataType.Bytes,
+                          type=DataType.Integer,
                           data_format=DataFormat._0D,
                           writable=False,
                           range=[None, None],
                           alarms=[None, None],
                           warnings=[None, None]
                           ),
-            expected_attrv=dict(rvalue='A',
-                                value='A',
+            expected_attrv=dict(rvalue=Quantity(1, 'mm'),
+                                value=1,
                                 quality=AttrQuality.ATTR_VALID,
                                 wvalue=None,
                                 w_value=None)
