@@ -8,48 +8,46 @@ the master branch after [3.7.1] and maintained in parallel to the
 develop branch)  won't be reflected in this file. 
 
 
-## [Unreleased]
+## Unreleased
 
 
 ## [4.0.3] - 2017-01-16
-Jan17 milestone.
-Second release of the Taurus4 series. 
-Largely (but not 100%) compatible with taurus 3 series.
+[Jan17 milestone](https://github.com/taurus-org/taurus/milestone/1)
+Bugfix release.
 For a full log of commits since Jul16, run (in your git repo):
 `git log 4.0.1..4.0.3` 
 
 ### Added
-- bumpversion support
-- TEP16: Moving Taurus to GitHub
-- Support spyder >=3 
-- Appveyor authority token
-- Generic `get{Attribute, Device, Authority}` in `TaurusFactory`
-- Configure CI service for Windows using appveyor (PR#10)
+- Generic Attribute, Device and  Authority getters in TaurusFactory`
+- spyder >=3 support (#343)
+- bumpversion support (for maintainers) (#347)
+- Contribution policy explicited in CONTRIBUTING.md
+- Continuous Integration for Windows support (Appveyor) (PR#10)
 
 ### Changed
-- Migrated TEPs to .md files 
-- Clarify contribution workflow in CONTRIBUTING.md
-- Adapted TaurusValueSpinBox to use Quantities
-- Moved the factory classmethod to TaurusModel base class
-- Adapt `taurusgui.macrolistener` to Taurus4 (#260)
+- TangoAttribute now decodes uchars as integers instead of strings (#367)
 - Allow empty path in Attr and Dev URIs (#269)
-- Project page point to the repo, not issues (#351)
+- Project migrated to Github (TEP16)
+- Versioning policy (use of `-alpha` suffix for unreleased branches)
 
 ### Deprecated
 - `taurus.Release.version_info` and `taurus.Release.revision` variables
-- `TaurusAttribute.isState`
-- `taurus.external.ordereddict`
+- `TaurusAttribute.isState` (#2)
+- `taurus.external.ordereddict` (#8)
 
 ### Fixed
-- Links in contribution file CONTRIBUTING.md
-- MSI creation (#356)
-- Unit duplication and regressions in synoptics (#363)
-- `basicsswitcher` (#256)
+- Taurus4 regressions in:
+    - TaurusValueSpinBox (#7)
+    - taurusgui --new-gui (#275)
+    - Synoptics (#363)
+    - TaurusValueLineEdit (#265)
+    - taurusgui.macrolistener` (#260)
+    - TaurusEditor (#343)
+- Bug causing high CPU usage in TaurusForms (#247)
 - Deprecation warnings in `TaurusWheelEdit` (#337)
-- Fix bugs in `TaurusValueSpinBox` (#263, #266)
-- Disable `taurusconfigurationpanel` for all schemes except Tango (#240)
-- Fix taurusgui --new-gui (#275)
+- Exceptions in `taurusconfigurationpanel` for non-tango models (#354)
 - Exception when creating non-exported tango devices (#262)
+- Documentation issues(#351, #350, #349)
 
 ### Removed
 - `TaurusBaseEditor2` class
@@ -191,14 +189,15 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 
 
 [keepachangelog.com]: http://keepachangelog.com
-[TEP3]: https://sf.net/p/tauruslib/wiki/TEP3/
-[TEP14]: https://sf.net/p/tauruslib/wiki/TEP14/
-[Unreleased]: https://sf.net/p/tauruslib/taurus.git/ci/develop/tree/
-[4.0.1]: https://sf.net/p/tauruslib/taurus.git/ci/4.0.0/tree/
-[3.7.1]: https://sf.net/p/tauruslib/taurus.git/ci/3.7.1/tree/
-[3.7.0]: https://sf.net/p/tauruslib/taurus.git/ci/3.7.0/tree/
-[3.6.0]: https://sf.net/p/tauruslib/taurus.git/ci/3.6.0/tree/
-[support-3.x]: https://sf.net/p/tauruslib/taurus.git/ci/support-3.x/tree/
+[TEP3]: http://www.taurus-scada.org/tep/?TEP3.md
+[TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
+[Unreleased]: https://github.com/taurus-org/taurus/tree/develop
+[4.0.3]: https://github.com/taurus-org/taurus/tree/4.0.3
+[4.0.1]: https://github.com/taurus-org/taurus/tree/4.0.1
+[3.7.1]: https://github.com/taurus-org/taurus/tree/3.7.1
+[3.7.0]: https://github.com/taurus-org/taurus/tree/3.7.0
+[3.6.0]: https://github.com/taurus-org/taurus/tree/3.6.0
+[support-3.x]: https://github.com/taurus-org/taurus/tree/support-3.x
 
 
 
