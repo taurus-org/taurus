@@ -37,8 +37,8 @@ build_script:
     # Install wheel
     - "pip install --upgrade wheel"
 
-    # Build taurus msi and wheel
-    - "python setup.py bdist_wheel bdist_msi"
+    # Build taurus sdist, msi and wheel
+    - "python setup.py sdist bdist_wheel bdist_msi"
     - ps: "ls dist"
 
     # Leave build virtualenv
@@ -92,7 +92,10 @@ test_script:
 
 
 artifacts:
-    # Archive the generated wheel package in the ci.appveyor.com build report.
+    # Archive the generated sdist, wheel and msi packages in the ci.appveyor.com build report.
+    - path: dist\*.tar.gz
+      name: taurus_SDIST
+
     - path: dist\*.msi
       name: taurus_MSI
 
