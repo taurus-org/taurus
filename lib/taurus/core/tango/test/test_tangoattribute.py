@@ -764,7 +764,8 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
         if setvalue is None:
             read_value = a.read()
         else:
-            read_value = a.write(setvalue,  with_read=True)
+            a.write(setvalue)
+            read_value = a.read(cache=False)
 
         msg = ('read() for "%s" did not return a TangoAttrValue (got a %s)' %
                (attrname, read_value.__class__.__name__))
