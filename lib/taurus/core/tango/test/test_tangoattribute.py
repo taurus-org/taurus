@@ -55,58 +55,55 @@ _UINT8_SPE = _UINT8_IMG[1, :]
 
 # ==============================================================================
 # Test writing fragment values
-##
-# DISABLED: these tests break test isolation (looks like Reset is not working
-#           for configurations). Until we solve it, we disable all these tests
-#
-# @insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
-#             cfg='range', value=[float('-inf'), float('inf')],
-#             expected=[Quantity(float('-inf')), Quantity(float('inf'))]
-#             )
-# @insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
-#             cfg='range', value=[Quantity(float('-inf')),
-#                                 Quantity(float('inf'))],
-#             expected=[Quantity(float('-inf')), Quantity(float('inf'))])
-# @insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
-#             cfg='range', value=[100, 300],
-#             expected=[Quantity(100), Quantity(300)])
-# @insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
-#             cfg='range', value=[Quantity(100), Quantity(300)],
-#             expected=[Quantity(100), Quantity(300)])
-# @insertTest(helper_name='write_read_conf', attr_name='float_scalar',
-#             cfg='range', value=[Quantity(-5, 'mm'), Quantity(5, 'mm')],
-#             expected=[Quantity(-0.005, 'm'), Quantity(5, 'mm')])
-# @insertTest(helper_name='write_read_conf', attr_name='short_spectrum',
-#             cfg='label', value='Just a Test',
-#             expected='Just a Test')
-# @insertTest(helper_name='write_read_conf', attr_name='boolean_spectrum',
-#             cfg='label', value='Just_a_Test',
-#             expected='Just_a_Test')
-# @insertTest(helper_name='write_read_conf', attr_name='short_scalar',
-#             cfg='warnings', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
-#             expected=[Quantity(-2, 'mm'), Quantity(0.002, 'm')])
-# @insertTest(helper_name='write_read_conf', attr_name='short_image',
-#             cfg='warnings', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
-#             expected=[Quantity(-0.002, 'm'), Quantity(2, 'mm')])
-# @insertTest(helper_name='write_read_conf', attr_name='float_image',
-#             cfg='warnings', value=[Quantity(-0.75, 'mm'),
-#                                         Quantity(0.75, 'mm')],
-#             expected=[Quantity(-0.00075, 'm'), Quantity(0.75, 'mm')])
-# @insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
-#             cfg='warnings', value=[100, 300],
-#             expected=[Quantity(100), Quantity(300)])
-# @insertTest(helper_name='write_read_conf', attr_name='short_scalar',
-#             cfg='alarms', value=[Quantity(-50, 'mm'), Quantity(50, 'mm')],
-#             expected=[Quantity(-50, 'mm'), Quantity(50, 'mm')])
-# @insertTest(helper_name='write_read_conf', attr_name='short_image',
-#             cfg='alarms', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
-#             expected=[Quantity(-0.002, 'm'), Quantity(2, 'mm')])
-# @insertTest(helper_name='write_read_conf', attr_name='float_image',
-#             cfg='alarms', value=[Quantity(-0.75, 'mm'), Quantity(0.75, 'mm')],
-#             expected=[Quantity(-0.00075, 'm'), Quantity(0.75, 'mm')])
-# @insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
-#             cfg='alarms', value=[100, 300],
-#             expected=[Quantity(100), Quantity(300)])
+
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='range', value=[float('-inf'), float('inf')],
+            expected=[Quantity(float('-inf')), Quantity(float('inf'))]
+            )
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='range', value=[Quantity(float('-inf')),
+                                Quantity(float('inf'))],
+            expected=[Quantity(float('-inf')), Quantity(float('inf'))])
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='range', value=[100, 300],
+            expected=[Quantity(100), Quantity(300)])
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='range', value=[Quantity(100), Quantity(300)],
+            expected=[Quantity(100), Quantity(300)])
+@insertTest(helper_name='write_read_conf', attr_name='float_scalar',
+            cfg='range', value=[Quantity(-5, 'mm'), Quantity(5, 'mm')],
+            expected=[Quantity(-0.005, 'm'), Quantity(5, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='short_spectrum',
+            cfg='label', value='Just a Test',
+            expected='Just a Test')
+@insertTest(helper_name='write_read_conf', attr_name='boolean_spectrum',
+            cfg='label', value='Just_a_Test',
+            expected='Just_a_Test')
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar',
+            cfg='warnings', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
+            expected=[Quantity(-2, 'mm'), Quantity(0.002, 'm')])
+@insertTest(helper_name='write_read_conf', attr_name='short_image',
+            cfg='warnings', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
+            expected=[Quantity(-0.002, 'm'), Quantity(2, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='float_image',
+            cfg='warnings', value=[Quantity(-0.75, 'mm'),
+                                        Quantity(0.75, 'mm')],
+            expected=[Quantity(-0.00075, 'm'), Quantity(0.75, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='warnings', value=[100, 300],
+            expected=[Quantity(100), Quantity(300)])
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar',
+            cfg='alarms', value=[Quantity(-50, 'mm'), Quantity(50, 'mm')],
+            expected=[Quantity(-50, 'mm'), Quantity(50, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='short_image',
+            cfg='alarms', value=[Quantity(-2, 'mm'), Quantity(2, 'mm')],
+            expected=[Quantity(-0.002, 'm'), Quantity(2, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='float_image',
+            cfg='alarms', value=[Quantity(-0.75, 'mm'), Quantity(0.75, 'mm')],
+            expected=[Quantity(-0.00075, 'm'), Quantity(0.75, 'mm')])
+@insertTest(helper_name='write_read_conf', attr_name='short_scalar_nu',
+            cfg='alarms', value=[100, 300],
+            expected=[Quantity(100), Quantity(300)])
 
 # ==============================================================================
 # Test encode-decode of empty arrays
