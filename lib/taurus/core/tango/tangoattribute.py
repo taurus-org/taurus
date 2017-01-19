@@ -262,8 +262,6 @@ class TangoAttribute(TaurusAttribute):
 
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
 
-        self._events_working = False
-
         attr_info = None
         if parent:
             attr_name = self.getSimpleName()
@@ -602,14 +600,14 @@ class TangoAttribute(TaurusAttribute):
             self.__subscription_state = SubscriptionState.Subscribing
             self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name, PyTango.EventType.CHANGE_EVENT,
-                self, [])
+                self, [])  # connects to self.push_event callback
 
         except:
             self.__subscription_state = SubscriptionState.PendingSubscribe
             self._activatePolling()
             self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name, PyTango.EventType.CHANGE_EVENT,
-                self, [], True)
+                self, [], True)  # connects to self.push_event callback
 
     def _unsubscribeEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp
@@ -650,7 +648,7 @@ class TangoAttribute(TaurusAttribute):
             self.__cfg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name,
                 PyTango.EventType.ATTR_CONF_EVENT,
-                self, [], True)
+                self, [], True)  # connects to self.push_event callback
         except PyTango.DevFailed, e:
             self.debug("Error trying to subscribe to CONFIGURATION events.")
             self.traceback()
@@ -681,57 +679,88 @@ class TangoAttribute(TaurusAttribute):
                 self.trace(str(e))
 
     def push_event(self, event):
-        """Method invoked by the PyTango layer when a change event occurs.
-           Default implementation propagates the event to all listeners."""
+        """Method invoked by the PyTango layer when an event occurs.
+        It propagates the event to listeners and delegates other tasks to
+        specific handlers for different event types.
+        """
+        # if it is a configuration event
+        if isinstance(event, PyTango.AttrConfEventData):
+            etype, evalue = self._pushConfEvent(event)
+        # if it is an attribute event
+        else:
+            etype, evalue = self._pushAttrEvent(event)
 
-        curr_time = time.time()
+        # notify the listeners if required (i.e, if etype is not None)
+        if etype is None:
+            return
         manager = Manager()
         sm = self.getSerializationMode()
+        listeners = tuple(self._listeners)
+        if sm == TaurusSerializationMode.Concurrent:
+            manager.addJob(self.fireEvent, None, etype, evalue,
+                           listeners=listeners)
+        else:
+            self.fireEvent(etype, evalue, listeners=listeners)
+
+    def _pushAttrEvent(self, event):
+        """Handler of (non-configuration) events from the PyTango layer.
+        It handles the subscription and the (de)activation of polling
+
+        :param event: (A PyTango event)
+
+        :return: (evt_type, evt_value)  Tuple containing the event type and the
+                 event value. evt_type is a `TaurusEventType` (or None to
+                 indicate that there should not be notification to listeners).
+                 evt_value is a TaurusValue, an Exception, or None.
+        """
         if not event.err:
-            # if it is a configuration event
-            if isinstance(event, PyTango.AttrConfEventData):
-                event_type = TaurusEventType.Config
-                self._decodeAttrInfoEx(event.attr_conf)
-                # make sure that there is a self.__attr_value
-                if self.__attr_value is None:
-                    # TODO: maybe we can avoid this read?
-                    self.__attr_value = self.getValueObj(cache=False)
-            # if it is an attribute event
-            else:
-                event_type = TaurusEventType.Change
-                self.__attr_value, self.__attr_err = self.decode(
-                    event.attr_value), None
-                self.__subscription_state = SubscriptionState.Subscribed
-                self.__subscription_event.set()
-                if not self.isPollingForced():
-                    self._deactivatePolling()
-            # notify the listeners
-            listeners = tuple(self._listeners)
-            if sm == TaurusSerializationMode.Concurrent:
-                manager.addJob(self.fireEvent, None, event_type,
-                               self.__attr_value, listeners=listeners)
-            else:
-                self.fireEvent(event_type, self.__attr_value,
-                               listeners=listeners)
+            self.__attr_value, self.__attr_err = self.decode(
+                event.attr_value), None
+            self.__subscription_state = SubscriptionState.Subscribed
+            self.__subscription_event.set()
+            if not self.isPollingForced():
+                self._deactivatePolling()
+            return TaurusEventType.Change, self.__attr_value
+
         elif event.errors[0].reason in EVENT_TO_POLLING_EXCEPTIONS:
-            if self.isPollingActive():
-                return
-            self.info("Activating polling. Reason: %s", event.errors[0].reason)
-            self.__subscription_state = SubscriptionState.PendingSubscribe
-            self._activatePolling()
+            if not self.isPollingActive():
+                self.info("Activating polling. Reason: %s",
+                          event.errors[0].reason)
+                self.__subscription_state = SubscriptionState.PendingSubscribe
+                self._activatePolling()
+            return None, None
+
         else:
             self.__attr_value, self.__attr_err = None, PyTango.DevFailed(
                 *event.errors)
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
             self._deactivatePolling()
-            listeners = tuple(self._listeners)
-            if sm == TaurusSerializationMode.Concurrent:
-                manager.addJob(self.fireEvent, None, TaurusEventType.Error,
-                               self.__attr_err, listeners=listeners)
-            else:
-                self.fireEvent(TaurusEventType.Error, self.__attr_err,
-                               listeners=listeners)
+            return TaurusEventType.Error, self.__attr_err
+
+    def _pushConfEvent(self, event):
+        """Handler of AttrConfEventData events from the PyTango layer.
+
+        :param event: (PyTango.AttrConfEventData)
+
+        :return: (evt_type, evt_value)  Tuple containing the event type and the
+                 event value. evt_type is a `TaurusEventType` (or None to
+                 indicate that there should not be notification to listeners).
+                 evt_value is a TaurusValue, an Exception, or None.
+        """
+        if not event.err:
+            # update conf-related attributes
+            self._decodeAttrInfoEx(event.attr_conf)
+            # make sure that there is a self.__attr_value
+            if self.__attr_value is None:
+                # TODO: maybe we can avoid this read?
+                self.__attr_value = self.getValueObj(cache=False)
+            return TaurusEventType.Config, self.__attr_value
+
+        else:
+            self.__attr_value, self.__attr_err = None, PyTango.DevFailed(
+                *event.errors)
+            return TaurusEventType.Error, self.__attr_err
 
     def isWrite(self, cache=True):
         return self.getTangoWritable(cache) == PyTango.AttrWriteType.WRITE
