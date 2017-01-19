@@ -25,6 +25,7 @@
 
 """Utilities for creating generic tests for Taurus widgets"""
 
+import time
 import taurus.core
 from taurus.external import unittest
 from taurus.qt.qtgui.application import TaurusApplication
@@ -48,8 +49,6 @@ class BaseWidgetTestCase(object):
     initargs = []
     initkwargs = {}
 
-    _BUG_334_WORKAROUND_TIME = 1  # TODO: remove this when proper fix is done
-
     def setUp(self):
         """
         Preconditions:
@@ -71,11 +70,6 @@ class BaseWidgetTestCase(object):
 
         if self._klass is not None:
             self._widget = self._klass(*self.initargs, **self.initkwargs)
-        # ----------------------------
-        # workaround for https://sourceforge.net/p/tauruslib/tickets/334/
-        import time
-        time.sleep(self._BUG_334_WORKAROUND_TIME)
-        # ----------------------------
 
     def assertMaxDeprecations(self, maximum, msg=None):
         """Assertion method that checks that the number of deprecations issued
@@ -88,6 +82,11 @@ class BaseWidgetTestCase(object):
             msg = ('%d deprecation warnings issued (max=%d):\n%s' %
                    (deps, maximum, self._depCounter.pretty()))
         self.assertTrue(deps <= maximum, msg)
+
+    def processEvents(self, repetitions=1, sleep=0):
+         for i in xrange(repetitions):
+            time.sleep(sleep)
+            self._app.processEvents()
 
 
 class GenericWidgetTestCase(BaseWidgetTestCase):
