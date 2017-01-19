@@ -37,6 +37,7 @@ For a full log of commits since Jul16, run (in your git repo):
 
 ### Fixed
 - Taurus4 regressions in:
+    - TangoAttribute (when handling Tango config errors) (#365)
     - TaurusValueSpinBox (#7)
     - taurusgui --new-gui (#275)
     - Synoptics (#363)
@@ -47,6 +48,7 @@ For a full log of commits since Jul16, run (in your git repo):
 - Deprecation warnings in `TaurusWheelEdit` (#337)
 - Exceptions in `taurusconfigurationpanel` for non-tango models (#354)
 - Exception when creating non-exported tango devices (#262)
+- Bug causing random failures in the test suite(#261)
 - Documentation issues(#351, #350, #349)
 
 ### Removed
