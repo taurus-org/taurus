@@ -40,6 +40,8 @@ For a full log of commits since Jul16, run (in your git repo):
     - TangoAttribute (when handling Tango config errors) (#365)
     - TaurusValueSpinBox (#7)
     - taurusgui --new-gui (#275)
+    - TaurusGui Sardana instrument panels (#372)
+    - Macrolistener (affects sardana) (#373)
     - Synoptics (#363)
     - TaurusValueLineEdit (#265)
     - taurusgui.macrolistener` (#260)
