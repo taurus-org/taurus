@@ -343,16 +343,40 @@ class MacroBroker(DynamicPlotManager):
         door = self.getModelObj()
         if door is not None:  # disconnect it from *all* shared data providing
             SDM = Qt.qApp.SDM
-            SDM.disconnectWriter("macroStatus", door, "macroStatusUpdated")
-            SDM.disconnectWriter("doorOutputChanged", door, "outputUpdated")
-            SDM.disconnectWriter("doorInfoChanged", door, "infoUpdated")
-            SDM.disconnectWriter("doorWarningChanged", door, "warningUpdated")
-            SDM.disconnectWriter("doorErrorChanged", door, "errorUpdated")
-            SDM.disconnectWriter("doorDebugChanged", door, "debugUpdated")
-            SDM.disconnectWriter("doorResultChanged", door, "resultUpdated")
-            SDM.disconnectWriter("expConfChanged", door,
-                                 "experimentConfigurationChanged")
-
+            try:
+                SDM.disconnectWriter("macroStatus", door, "macroStatusUpdated")
+            except:
+                self.info("Could not disconnect macroStatusUpdated")
+            try:
+                SDM.disconnectWriter("doorOutputChanged", door, "outputUpdated")
+            except:
+                self.info("Could not disconnect outputUpdated")
+            try:
+                SDM.disconnectWriter("doorInfoChanged", door, "infoUpdated")
+            except:
+                self.info("Could not disconnect infoUpdated")
+            try:
+                SDM.disconnectWriter("doorWarningChanged", door,
+                                     "warningUpdated")
+            except:
+                self.info("Could not disconnect warningUpdated")
+            try:
+                SDM.disconnectWriter("doorErrorChanged", door, "errorUpdated")
+            except:
+                self.info("Could not disconnect errorUpdated")
+            try:
+                SDM.disconnectWriter("doorDebugChanged", door, "debugUpdated")
+            except:
+                self.info("Could not disconnect debugUpdated")
+            try:
+                SDM.disconnectWriter("doorResultChanged", door, "resultUpdated")
+            except:
+                self.info("Could not disconnect resultUpdated")
+            try:
+                SDM.disconnectWriter("expConfChanged", door,
+                                     "experimentConfigurationChanged")
+            except:
+                self.info("Could not disconnect experimentConfigurationChanged")
         # set the model
         DynamicPlotManager.setModel(self, doorname)
 
