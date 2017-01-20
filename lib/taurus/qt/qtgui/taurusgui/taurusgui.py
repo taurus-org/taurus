@@ -905,7 +905,7 @@ class TaurusGui(TaurusMainWindow):
             instrument = elem.instrument
             if instrument:
                 i_name = instrument
-                e_name = elem.full_name
+                e_name = "tango://%s" % elem.full_name
                 instrument_dict[i_name].model.append(e_name)
         # filter out empty panels
         ret = [instrument for instrument in instrument_dict.values()
