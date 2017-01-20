@@ -2,16 +2,27 @@ language: python
 
 sudo: required
 
-services:
-  - docker
+matrix:
+    include:
+        - python: 2.7
+          os: linux
+          sudo: required
+          services:
+              - docker
+          env:
+              - DOCKER_IMG=cpascual/taurus-test:latest
 
-python:
-  - "2.7"
+        - python: 2.7
+          os: linux
+          sudo: required
+          services:
+              - docker
+          env:
+              - DOCKER_IMG=cpascual/taurus-test:debian9
 
 before_install:
   # run cpascual/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
-  - docker pull cpascual/taurus-test
-  - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus cpascual/taurus-test
+  - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus $DOCKER_IMG
   - sleep 10
   
 script:
