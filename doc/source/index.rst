@@ -63,7 +63,7 @@ Projects related to Taurus
     :alt: GitHub
     
 .. image:: https://readthedocs.org/projects/taurus/badge/
-    :target: http://taurus-scada.org/
+    :target: http://taurus-scada.org/docs.html
     :alt: Documentation
     
 .. image:: https://travis-ci.org/taurus-org/taurus.svg?branch=develop
