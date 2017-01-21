@@ -59,7 +59,7 @@ class BooleanWidget(Qt.QWidget):
     It change the value by using getValue and setValue methods
     """
 
-    valueChanged = Qt.pyqtSignal(bool, bool)
+    valueChangedSignal = Qt.pyqtSignal(bool, bool)
 
     def __init__(self, parent=None):
         Qt.QWidget.__init__(self, parent)
@@ -76,7 +76,7 @@ class BooleanWidget(Qt.QWidget):
 
     def valueChanged(self):
         if not (self.trueButton.isChecked() == self._actualValue):
-            self.valueChanged.emit(self._actualValue, not self._actualValue)
+            self.valueChangedSignal.emit(self._actualValue, not self._actualValue)
         self._actualValue = self.trueButton.isChecked()
 
     def setValue(self, value):
@@ -1387,6 +1387,7 @@ class AppSettingsWizard(Qt.QWizard):
     """
     Pages = Enumeration('Pages', ('IntroPage', 'ProjectPage', 'GeneralSettings', 'CustomLogoPage', 'SynopticPage',
                                   'MacroServerInfo', 'InstrumentsPage', 'PanelsPage', 'ExternalAppPage', 'MonitorPage', 'OutroPage'))
+    SARDANA_INSTALLED = False
 
     def __init__(self, parent=None, jdrawCommand='jdraw', configFilePrefix='config'):
         Qt.QWizard.__init__(self, parent)
@@ -1508,10 +1509,10 @@ class AppSettingsWizard(Qt.QWizard):
         try:
             from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
                 TaurusMacroConfigurationDialog
-            SARDANA_INSTALLED = True
+            self.SARDANA_INSTALLED = True
         except:
-            SARDANA_INSTALLED = False
-        if SARDANA_INSTALLED:
+            self.SARDANA_INSTALLED = False
+        if self.SARDANA_INSTALLED:
             synoptic_page.setNextPageId(self.Pages.MacroServerInfo)
 
             macroserver_page = MacroServerInfoPage()
@@ -1594,7 +1595,7 @@ class AppSettingsWizard(Qt.QWizard):
                         self._projectWarnings.append((short, long))
 
         # macroserver page
-        if SARDANA_INSTALLED and self.__getitem__("macroServerName"):
+        if self.SARDANA_INSTALLED and self.__getitem__("macroServerName"):
             macroServerName = etree.SubElement(root, "MACROSERVER_NAME")
             macroServerName.text = self.__getitem__("macroServerName")
             doorName = etree.SubElement(root, "DOOR_NAME")

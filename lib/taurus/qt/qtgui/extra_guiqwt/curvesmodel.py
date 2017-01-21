@@ -435,8 +435,10 @@ class CurveItemConfDlg(Qt.QWidget):
                 group.edit()
                 c.x.processSrc(c.taurusparam.xModel)
                 c.y.processSrc(c.taurusparam.yModel)
-                self.dataChanged.emit(self.model.index(
-                    row, 0), self.model.index(row, self.model.rowCount()))
+                self.dataChanged.emit(
+                        self.model.index(row, 0),
+                        self.model.index(row, self.model.rowCount() - 1)
+                )
 
     def onModelsAdded(self, models):
         nmodels = len(models)

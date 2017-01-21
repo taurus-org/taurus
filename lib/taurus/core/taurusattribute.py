@@ -31,9 +31,9 @@ __docformat__ = "restructuredtext"
 
 import weakref
 
-from .taurushelper import Factory
 from .taurusmodel import TaurusModel
 from taurus.core.taurusbasetypes import TaurusElementType, DataType
+from taurus.core.util.log import deprecation_decorator
 from taurus.external.pint import Quantity, UR
 
 
@@ -70,7 +70,7 @@ class TaurusAttribute(TaurusModel):
 
         self.writable = None
         self.data_format = None
-        self._label = None
+        self._label = self.getSimpleName()
         self.type = None
         self._range = [None, None]
         self._alarm = [None, None]
@@ -80,12 +80,6 @@ class TaurusAttribute(TaurusModel):
         self.trace("[TaurusAttribute] cleanUp")
         self._unsubscribeEvents()
         TaurusModel.cleanUp(self)
-
-    @classmethod
-    def factory(cls):
-        if cls._factory is None:
-            cls._factory = Factory(scheme=cls._scheme)
-        return cls._factory
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusModel implementation
@@ -120,16 +114,16 @@ class TaurusAttribute(TaurusModel):
     def getNameValidator(cls):
         return cls.factory().getAttributeNameValidator()
 
+    def isNumeric(self):
+        return self.type in [DataType.Float, DataType.Integer]
+
+    @deprecation_decorator(rel='>4.0.1', alt='.type==DataType.DevState')
+    def isState(self):
+        return False
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite in subclass
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    def isNumeric(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute.isNumeric")
-
-    def isState(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute.isState")
 
     def encode(self, value):
         raise NotImplementedError("Not allowed to call AbstractClass" +

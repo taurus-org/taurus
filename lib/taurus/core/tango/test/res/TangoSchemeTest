@@ -76,7 +76,7 @@ class TangoSchemeTest(Device):
                       'int': 123,
                       'float': 1.23,
                       'string': 'hello world',
-                      'uchar': ord('A'),
+                      'uchar': 1,
                       }
 
     default_unit = {'int': "mm",
@@ -109,7 +109,8 @@ class TangoSchemeTest(Device):
              'double_scalar': dict(unit=default_unit["float"],
                                    dtype=numpy.float64),
              'string_scalar': dict(dtype=str),
-             'uchar_scalar': dict(dtype=numpy.uint8),
+             'uchar_scalar': dict(unit=default_unit["int"],
+                                  dtype=numpy.uint8),
              'bool_spectrum': dict(dtype=(bool,), max_dim_x=MAXDIMX),
              'short_spectrum': dict(unit=default_unit["int"],
                                     dtype=(numpy.int16,),
@@ -121,7 +122,9 @@ class TangoSchemeTest(Device):
                                      dtype=(numpy.float64,),
                                      max_dim_x=MAXDIMX),
              'string_spectrum': dict(dtype=(str,), max_dim_x=MAXDIMX),
-             'uchar_spectrum': dict(dtype=(numpy.uint8,), max_dim_x=MAXDIMX),
+             'uchar_spectrum': dict(unit=default_unit["int"],
+                                    dtype=(numpy.uint8,),
+                                    max_dim_x=MAXDIMX),
              'bool_image': dict(dtype=[(bool,)], max_dim_x=MAXDIMX,
                                 max_dim_y=MAXDIMY),
              'short_image': dict(unit=default_unit["int"],
@@ -135,8 +138,9 @@ class TangoSchemeTest(Device):
                                   max_dim_x=MAXDIMX, max_dim_y=MAXDIMY),
              'string_image': dict(dtype=[(str,)], max_dim_x=MAXDIMX,
                                   max_dim_y=MAXDIMY),
-             'uchar_image': dict(dtype=[(numpy.uint8,)], max_dim_x=MAXDIMX,
-                                 max_dim_y=MAXDIMY),
+             'uchar_image': dict(unit=default_unit["int"],
+                                 dtype=[(numpy.uint8,)],
+                                 max_dim_x=MAXDIMX, max_dim_y=MAXDIMY),
              }
 
     extra_cfg = {'short_scalar': dict(min_value=default_ranges['int'][0],
@@ -170,8 +174,12 @@ class TangoSchemeTest(Device):
                                    **attrs['short_scalar_nu'])
     float_scalar_ro = attribute(access=AttrWriteType.READ,
                                 **attrs['float_scalar'])
+    double_scalar_ro = attribute(access=AttrWriteType.READ,
+                                **attrs['double_scalar'])
     string_scalar_ro = attribute(access=AttrWriteType.READ,
                                  **attrs['string_scalar'])
+    uchar_scalar_ro = attribute(access=AttrWriteType.READ,
+                                **attrs['uchar_scalar'])
     # SPECTRUMS
     boolean_spectrum_ro = attribute(access=AttrWriteType.READ,
                                     **attrs['bool_spectrum'])
@@ -182,6 +190,8 @@ class TangoSchemeTest(Device):
     string_spectrum_ro = attribute(access=AttrWriteType.READ,
                                    **attrs['string_spectrum'])
     # IMAGES
+    uchar_image_ro = attribute(access=AttrWriteType.READ,
+                                 **attrs['uchar_image'])
     boolean_image_ro = attribute(access=AttrWriteType.READ,
                                  **attrs['bool_image'])
     short_image_ro = attribute(access=AttrWriteType.READ,
@@ -260,6 +270,9 @@ class TangoSchemeTest(Device):
     def read_string_scalar_ro(self):
         return self.default_rvalue['string']
 
+    def read_uchar_scalar_ro(self):
+        return self.default_rvalue['uchar']
+
     # SPECTRUMS
     def read_boolean_spectrum_ro(self):
         return [self.default_rvalue['bool']] * self.DIMX
@@ -291,6 +304,9 @@ class TangoSchemeTest(Device):
 
     def read_string_image_ro(self):
         return [[self.default_rvalue['string']] * self.DIMX] * self.DIMY
+
+    def read_uchar_image_ro(self):
+        return [[self.default_rvalue['uchar']] * self.DIMX] * self.DIMY
 
     # READ/WRITE METHODS
     # SCALARS

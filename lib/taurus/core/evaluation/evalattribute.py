@@ -358,14 +358,8 @@ class EvaluationAttribute(TaurusAttribute):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Necessary to overwrite from TaurusAttribute
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    def isNumeric(self):
-        return self.type in [DataType.Integer, DataType.Float]
-
     def isBoolean(self):
         return isinstance(self._value.rvalue, bool)
-
-    def isState(self):
-        return False
 
     def getDisplayValue(self, cache=True):
         return str(self.read(cache=cache).rvalue)

@@ -57,12 +57,14 @@ class EpicsAuthValidatorTestCase(AbstractNameValidatorTestCase,
 # ==============================================================================
 # Tests for Epics Device name validation
 # ==============================================================================
-@valid(name='ca:', groups=dict(authority=None, devname=''))
-@valid(name='epics:', groups=dict(authority=None, devname=''))
-@invalid(name='ca:/')
+@valid(name='ca:/', groups=dict(authority=None, devname='', path='/'))
+@valid(name='epics:/', groups=dict(authority=None, devname='', path='/'))
+@valid(name='ca:///', groups=dict(authority='//', devname='', path='/'))
+@invalid(name='ca:')  # device requires absolute non-empty path
+@invalid(name='epics:')  # device requires absolute non-empty path
 @invalid(name='ca://')  # this is an auth
-@invalid(name='ca:///')
-@invalid(name='ca:foo')
+@invalid(name='ca:foo')  #  device requires absolute path
+@invalid(name='ca:/foo')  # devname must be empty (for now)
 @invalid(name='ca:@foo')
 @unittest.skipIf(sys.modules.has_key('epics') is False,
                  "epics module is not available")

@@ -106,11 +106,24 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         TaurusBaseWritableWidget.handleEvent(
             self, evt_src, evt_type, evt_value)
 
+    def isTextValid(self):
+        """
+        Validates current text
+
+        :return: (bool) Returns False if there is a validator and the current
+                 text is not Acceptable. Returns True otherwise.
+        """
+        val = self.validator()
+        if val is None:
+            return True
+        return val.validate(str(self.text()), 0)[0] == val.Acceptable
+
     def updateStyle(self):
         TaurusBaseWritableWidget.updateStyle(self)
 
         value = self.getValue()
-        if value is None:
+
+        if value is None or not self.isTextValid():
             # invalid value
             color, weight = 'gray', 'normal'
         else:
@@ -196,14 +209,14 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             model_type = model_obj.type
             model_format = model_obj.data_format
             if model_type in [DataType.Integer, DataType.Float]:
-                if val is None or \
-                        val.validate(str(text), 0)[0] != val.Acceptable:
+                try:
+                    q = Quantity(text)
+                    # allow implicit units (assume wvalue.units implicitly)
+                    if q.dimensionless:
+                        q = Quantity(q.magnitude, val.units)
+                    return q
+                except:
                     return None
-                q = Quantity(text)
-                # allow implicit units (assume wvalue.units implicitly)
-                if q.dimensionless:
-                    q = Quantity(q.magnitude, val.units)
-                return q
             elif model_type == DataType.Boolean:
                 if model_format == DataFormat._0D:
                     return bool(int(eval(text)))

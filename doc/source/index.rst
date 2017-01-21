@@ -20,12 +20,12 @@ and economical API which abstracts data sources as "models".
 
 Of course, Taurus is Free Software (under LGPL). You can download it from PyPi_,
 access its Documentation_ or get support from its community and the latest code
-from the `project page <http://sourceforge.net/projects/sardana>`_.
+from the `project page <https://github.com/taurus-org/taurus>`_.
 
 Projects related to Taurus
 ---------------------------
 
-- Taurus uses PyQt_ for the GUIs (Pyside_ support planned)
+- Taurus uses PyQt_ for the GUIs 
 - Tango_ is supported vis PyTango_ 
 - Taurus is part of the Sardana_ suite
 
@@ -38,7 +38,7 @@ Projects related to Taurus
     :hidden:
 
     Home Page <http://www.taurus-scada.org>
-    Project Page <http://sourceforge.net/projects/tauruslib>
+    Project Page <https://github.com/taurus-org/taurus>
     Download from PyPI <http://pypi.python.org/pypi/taurus>
     docs
 
@@ -50,8 +50,7 @@ Projects related to Taurus
 .. _EPICS: http://www.aps.anl.gov/epics/
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
 .. _Sardana: http://sardana-controls.org
-.. _PySide: http://pyside.org
 .. _LGPL: http://www.gnu.org/licenses/lgpl.html
 .. _PyPi: http://pypi.python.org/pypi/taurus 
-.. _Documentation: http://taurus.readthedocs.org
+.. _Documentation: http://taurus-scada.org/docs.html
 

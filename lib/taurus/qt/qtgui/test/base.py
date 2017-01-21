@@ -25,6 +25,7 @@
 
 """Utilities for creating generic tests for Taurus widgets"""
 
+import time
 import taurus.core
 from taurus.external import unittest
 from taurus.qt.qtgui.application import TaurusApplication
@@ -81,6 +82,11 @@ class BaseWidgetTestCase(object):
             msg = ('%d deprecation warnings issued (max=%d):\n%s' %
                    (deps, maximum, self._depCounter.pretty()))
         self.assertTrue(deps <= maximum, msg)
+
+    def processEvents(self, repetitions=1, sleep=0):
+         for i in xrange(repetitions):
+            time.sleep(sleep)
+            self._app.processEvents()
 
 
 class GenericWidgetTestCase(BaseWidgetTestCase):

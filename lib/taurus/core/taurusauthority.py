@@ -32,7 +32,6 @@ __docformat__ = "restructuredtext"
 
 from .taurusbasetypes import TaurusElementType
 from .taurusmodel import TaurusModel
-from .taurushelper import Factory
 
 
 class TaurusAuthority(TaurusModel):
@@ -48,12 +47,6 @@ class TaurusAuthority(TaurusModel):
     def cleanUp(self):
         self.trace("[TaurusAuthority] cleanUp")
         TaurusModel.cleanUp(self)
-
-    @classmethod
-    def factory(cls):
-        if cls._factory is None:
-            cls._factory = Factory(scheme=cls._scheme)
-        return cls._factory
 
     @classmethod
     def getTaurusElementType(cls):

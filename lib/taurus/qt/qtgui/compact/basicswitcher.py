@@ -26,7 +26,7 @@
 """This module provides some basic usable widgets based on TaurusReadWriteSwitcher
 """
 
-__all__ = ["TaurusLabelEditRW", "TaurusLabelEditRW"]
+__all__ = ["TaurusLabelEditRW", "TaurusBoolRW"]
 
 __docformat__ = 'restructuredtext'
 

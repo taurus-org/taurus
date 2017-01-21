@@ -112,8 +112,12 @@ class Starter(object):
             if self.isRunning():
                 _log.info('Server %s has been started' % self.ds_name)
                 ##############################################################
-                # TODO: this workaround doesn't seem necessary (see isRunning)
-                # time.sleep(3)
+                # Workaround to avoid race conditions
+                # TODO: Find root cause of race condition and fix
+                _wait = float(os.environ.get('TAURUS_STARTER_WAIT', 0))
+                if _wait:
+                    _log.info('Waiting %g s after start' % _wait)
+                    time.sleep(_wait)
                 ##############################################################
                 return
             else:

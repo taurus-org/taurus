@@ -29,29 +29,16 @@ __all__ = ["TaurusBaseEditor"]
 
 __docformat__ = 'restructuredtext'
 
-import sys
-import os
-
 from taurus.external.qt import Qt
 
-try:
-    import spyderlib
-    v = spyderlib.__version__.split('.', 2)[:2]
-    v = map(int, v)
-    if v < [2, 1]:
-        raise Exception("TaurusEditor needs spyderlib >= 2.1")
-except ImportError:
-    raise Exception("TaurusEditor needs spyderlib >= 2.1")
-
-from spyderlib.utils.qthelpers import create_toolbutton
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import OutlineExplorerWidget
-from spyderlib.widgets.editor import EditorMainWindow, EditorSplitter
-from taurus.qt.qtgui.util import ActionFactory
-
+from spyder.utils.qthelpers import create_toolbutton
+from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.editortools import OutlineExplorerWidget
+from spyder.widgets.editor import EditorMainWindow, EditorSplitter
+from spyder.py3compat import to_text_string
+from spyder.utils.introspection.manager import IntrospectionManager
 
 class TaurusBaseEditor(Qt.QSplitter):
-
     def __init__(self, parent=None):
         Qt.QSplitter.__init__(self, parent)
 
@@ -60,42 +47,60 @@ class TaurusBaseEditor(Qt.QSplitter):
 
         self.menu_actions, self.io_actions = self.createMenuActions()
 
-        self.toolbar_list = None
-        self.menu_list = None
-
         self.find_widget = FindReplace(self, enable_replace=True)
         self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
                                                      show_all_files=False)
+        self.outlineexplorer.edit_goto.connect(self.go_to_file)
+        self.editor_splitter = EditorSplitter(self, self, self.menu_actions,
+                                              first=True)
+
         editor_widgets = Qt.QWidget(self)
         editor_layout = Qt.QVBoxLayout()
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
-
-        editor_layout.addWidget(EditorSplitter(self, self, self.menu_actions,
-                                               first=True))
+        editor_layout.addWidget(self.editor_splitter)
         editor_layout.addWidget(self.find_widget)
 
         self.setContentsMargins(0, 0, 0, 0)
         self.addWidget(editor_widgets)
         self.addWidget(self.outlineexplorer)
 
-        self.setStretchFactor(0, 1)
-        self.setStretchFactor(1, 0)
+        self.setStretchFactor(0, 5)
+        self.setStretchFactor(1, 1)
 
+        self.toolbar_list = None
+        self.menu_list = None
         self.setup_window([], [])
 
-    def editorStack(self):
-        return self.editorstacks[0]
+        # Set introspector
+        introspector = IntrospectionManager()
+        editorstack = self.editor_splitter.editorstack
+        editorstack.set_introspector(introspector)
+        introspector.set_editor_widget(editorstack)
 
     def createMenuActions(self):
-        return [], []
+        """Returns a list of menu actions and a list of IO actions.
+        Reimplement in derived classes.
+        This Base (dummy) implementation creates empty menu actions and 
+        a list of 5 dummy actions for the IO actions
+        """
+        dummyaction = Qt.QAction(self)
+        return [], [dummyaction]*4
+
+    def go_to_file(self, fname, lineno, text):
+        editorstack = self.editorstacks[0]
+        editorstack.set_current_filename(to_text_string(fname))
+        editor = editorstack.get_current_editor()
+        editor.go_to_line(lineno, word=text)
 
     def closeEvent(self, event):
         for win in self.editorwindows[:]:
             win.close()
+
         event.accept()
 
     def load(self, filename, goto=None):
+        Qt.QApplication.processEvents()
         editorstack = self.editorStack()
         fileinfo = editorstack.load(filename)
         editorstack.analyze_script()
@@ -104,7 +109,7 @@ class TaurusBaseEditor(Qt.QSplitter):
 
     def reload(self, idx=None, filename=None, goto=None):
         if idx is None:
-            idx = is_file_opened(filename)
+            idx = self.is_file_opened(filename)
         if idx is not None:
             editorstack = self.editorStack()
             editorstack.reload(idx)
@@ -116,12 +121,19 @@ class TaurusBaseEditor(Qt.QSplitter):
     def set_current_filename(self, filename):
         self.editorStack().set_current_filename(filename)
 
+    def is_file_opened(self, filename=None):
+        """Dummy implementation that always returns None. Reimplement 
+        in derived classes to return the index of already-open files 
+        in the editor_stack, or None if the file is not already open.
+        """
+        return None
+
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
             editorstack.set_fullpath_sorting_enabled(True)
-            editorstack.set_closable(len(self.editorstacks) > 1)
+            editorstack.set_closable( len(self.editorstacks) > 1 )
             editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
             oe_btn = create_toolbutton(self)
@@ -132,7 +144,8 @@ class TaurusBaseEditor(Qt.QSplitter):
         font = Qt.QFont("Monospace")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
-        editorstack.close_file.connect(self.close_file_in_all_editorstacks)
+
+        editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
         editorstack.create_new_window.connect(self.create_new_window)
         editorstack.plugin_load.connect(self.load)
 
@@ -154,7 +167,7 @@ class TaurusBaseEditor(Qt.QSplitter):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        window.destroyed.connect(lambda win=window: self.unregister_editorwindow(win))
+        window.destroyed.connect(lambda: self.unregister_editorwindow(window))
 
     def register_editorwindow(self, window):
         self.editorwindows.append(window)
@@ -165,47 +178,32 @@ class TaurusBaseEditor(Qt.QSplitter):
     def get_focus_widget(self):
         pass
 
-    def close_file_in_all_editorstacks(self, index):
-        sender = self.sender()
+    def editorStack(self):
+        return self.editorstacks[0]
+
+    @Qt.Slot(str, int)
+    def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
-            if editorstack is not sender:
+            if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
-                editorstack.close_file(index)
+                editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
 
-    def register_widget_shortcuts(self, context, widget):
+    def register_widget_shortcuts(self, widget):
         """Fake!"""
         pass
 
     def refresh_save_all_action(self):
         pass
 
-from spyderlib.plugins.editor import Editor
-
-
-class TaurusBaseEditor2(Qt.QMainWindow):
-
-    def __init__(self, parent=None):
-        Qt.QMainWindow.__init__(self, parent)
-
-        self._editor = Editor(self)
-
-        self.setCentralWidget(self._editor)
-
-    def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          default=None):
-        pass
-
-    def show_hide_project_explorer(self):
-        pass
-
 
 def demo():
     test = TaurusBaseEditor()
     test.resize(1000, 800)
-    test.load(__file__)
-    test.load("__init__.py")
     test.show()
+
+    test.load(__file__)
+
     return test
 
 
@@ -230,7 +228,7 @@ def main():
     if len(args) == 0:
         w = demo()
     else:
-        w = TaurusEditor()
+        w = TaurusBaseEditor()
         w.resize(900, 800)
         for name in args:
             w.load(name)

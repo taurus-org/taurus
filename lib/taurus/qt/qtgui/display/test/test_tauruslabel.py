@@ -143,7 +143,7 @@ class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
         self._widget.setModel(model)
         if fgRole is not None:
             self._widget.setFgRole(fgRole)
-        self._app.processEvents()
+        self.processEvents(repetitions=10, sleep=.1)
         got = str(self._widget.text())
         msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
                (model, expected, got))
@@ -156,11 +156,11 @@ class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
     #  expected: (0, 255, 0)
     #  got: (239, 240, 241)  # <-- these values change (unitialized garbage?)
     # ~~~~~~~~~~~~~~~~~~~~~~~
-    @unittest.skip('bgRole tests fail randomly. Skip until fixed.')
+    #@unittest.skip('bgRole tests fail randomly. Skip until fixed.')
     def bgRole(self, model=None, expected=None, bgRole=None, maxdepr=0):
         '''Check that the label text'''
         self._widget.setModel(model)
-        self._app.processEvents()
+        self.processEvents(repetitions=10, sleep=.1)
         if bgRole is not None:
             self._widget.setBgRole(bgRole)
         p = self._widget.palette()

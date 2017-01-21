@@ -1,0 +1,131 @@
+# fetch repository as zip archive
+shallow_clone: true
+
+environment:
+    global:
+        VENV_BUILD_DIR: "venv_build"
+        VENV_TEST_DIR: "venv_test"
+
+    matrix:
+        # Python 2.7 (64)
+        - PYTHON_DIR: "C:\\Python27-x64"
+          QT_BINDINGS: "PyQt4"
+
+#        # Python 2.7
+#        - PYTHON_DIR: "C:\\Python27"
+#          QT_BINDINGS: "PyQt4"
+
+
+install:
+
+    # Add Python to PATH
+    - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
+
+    # Upgrade/install distribution modules
+    - "pip install --upgrade setuptools"
+    - "python -m pip install --upgrade pip"
+
+    # Install virtualenv
+    - "pip install --upgrade virtualenv"
+    - "virtualenv --version"
+
+build_script:
+    # Create build virtualenv
+    - "virtualenv --clear %VENV_BUILD_DIR%"
+    - "%VENV_BUILD_DIR%\\Scripts\\activate.bat"
+
+    # Install wheel
+    - "pip install --upgrade wheel"
+
+    # Build taurus sdist, msi and wheel
+    - "python setup.py sdist bdist_wheel bdist_msi"
+    - ps: "ls dist"
+
+    # Leave build virtualenv
+    - "%VENV_BUILD_DIR%\\Scripts\\deactivate.bat"
+    - "rmdir %VENV_BUILD_DIR% /s /q"
+
+
+test_script:
+    # Create test virtualenv
+    - "virtualenv --clear %VENV_TEST_DIR%"
+    - "%VENV_TEST_DIR%\\Scripts\\activate.bat"
+
+    # Install numpy
+    - "pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ --upgrade numpy"
+
+    # Install Qt binding
+    # Install PyQt4 from www.silx.org and PyQt5/PySide from pypi
+    - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ %QT_BINDINGS%"
+
+    # Install lxml
+    - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ lxml==3.7.0"
+
+    # Install h5py 
+    - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py"
+
+    # Install scipy 
+    - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ scipy"
+
+    # Install guiqwt 
+    # TODO, install guiqwt from pypi
+    # - "pip install --upgrade guiqwt"
+
+    # Install the generated taurus wheel package to test it
+    # Make sure it does not come from cache or pypi
+    # At this point all install_requires dependencies MUST be installed
+    # as this is installing only from dist/
+    - "pip install --pre --find-links dist/ --no-cache-dir --no-index taurus"
+
+    # Print Python info
+    - "pip list"
+    
+    # launch tests (for now only a trivial import, since the testsuite
+    # would fail due to missing tango and epics)
+    - "python -c \"import taurus\""
+    # TODO: run testsuite
+    #- "taurustestsuite"
+
+    # Leave test virtualenv
+    - "%VENV_TEST_DIR%\\Scripts\\deactivate.bat"
+    - "rmdir %VENV_TEST_DIR% /s /q"
+
+
+artifacts:
+    # Archive the generated sdist, wheel and msi packages in the ci.appveyor.com build report.
+    - path: dist\*.tar.gz
+      name: taurus_SDIST
+
+    - path: dist\*.msi
+      name: taurus_MSI
+
+    - path: dist\*.whl
+      name: taurus_WHEEL
+
+## TODO: re-enable deployments
+## For now, we disable deploy (we got repeated deploys for the same commit after 
+## merging PR #357.
+##
+### See https://www.appveyor.com/docs/deployment/github/
+#deploy:
+#    # create unnoficial pre-release
+#    - provider: GitHub
+#      tag: taurus-build$(appveyor_build_version)
+#      description: 'Unofficial Windows release'
+#      auth_token:
+#          # encrypted token for repo access by the admin bot
+#          secure: 7xvY9HsADz3TiTRQ8yiumBWwCQ7GI+DrA04rlzzBo+G9DBCk7py3FvLLgfEvYW+u
+#      artifact: taurus_WHEEL
+#      prerelease: true
+#
+#    # create draft release on tags to master
+#    - provider: GitHub
+#      description: 'Taurus Windows installer'
+#      auth_token:
+#          # encrypted token for repo access by the admin bot
+#          secure: 7xvY9HsADz3TiTRQ8yiumBWwCQ7GI+DrA04rlzzBo+G9DBCk7py3FvLLgfEvYW+u
+#      artifact: taurus_MSI,taurusWHEEL
+#      draft: true
+#      on:
+#          branch: master                 # release from master branch only
+#          appveyor_repo_tag: true        # deploy on tag push only

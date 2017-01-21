@@ -21,8 +21,8 @@ The taurus GUI thus created can be populated with *panels* containing
 any Qt widget (typically from Taurus, but it may also be from any
 other arbitrary module).
 
-The GUI can also be modified and extended at execution time asexplained
-in :ref:`this section of the user guide <taurusgui_ui>`
+The GUI can also be modified and extended at execution time as explained
+in :ref:`this section of the user guide <taurusgui_ui>`.
 
 The Taurus widgets can be associated with models when they are added
 to the GUI and, in many cases, they may also accept drag & drop of the

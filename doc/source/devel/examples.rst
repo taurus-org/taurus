@@ -142,7 +142,9 @@ Interactively display attribute
 
 Humm... Now suppose the user wants to change this value. :class:`input.TaurusValueLineEdit`
 does this job well (and so does :class:`input.TaurusValueSpinBox` and 
-:class:`input.TaurusWheelEdit` :-)
+:class:`input.TaurusWheelEdit` |smile| )
+
+.. |smile| unicode:: U+1F603 .. smiling face with open mouth
 
 .. figure:: /_static/edit01.png
   :align: center

@@ -92,7 +92,7 @@ to re-install on each change.
 
 You can clone taurus from our main git repository::
 
-    git clone git://git.code.sf.net/p/tauruslib/taurus.git taurus
+    git clone https://github.com/taurus-org/taurus.git taurus
 
 Then, to work on develop mode, just do::
 

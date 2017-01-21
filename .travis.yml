@@ -2,23 +2,29 @@ language: python
 
 sudo: required
 
-services:
-  - docker
+matrix:
+    include:
+        - python: 2.7
+          os: linux
+          sudo: required
+          services:
+              - docker
+          env:
+              - DOCKER_IMG=cpascual/taurus-test:latest
 
-python:
-  - "2.7"
-
-branches:
-  only:
-    - develop
-    - support-3.x
+        - python: 2.7
+          os: linux
+          sudo: required
+          services:
+              - docker
+          env:
+              - DOCKER_IMG=cpascual/taurus-test:debian9
 
 before_install:
   # run cpascual/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
-  - docker pull cpascual/taurus-test
-  - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus cpascual/taurus-test
+  - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus $DOCKER_IMG
   - sleep 10
   
 script:
   - docker exec taurus-test /bin/bash -c "cd taurus ; python setup.py install"
-  - docker exec taurus-test /bin/bash -c "taurustestsuite"
+  - docker exec taurus-test /bin/bash -c "TAURUS_STARTER_WAIT=5 taurustestsuite -e 'taurus\.core\.util\.test\.test_timer'"

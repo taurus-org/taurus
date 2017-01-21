@@ -68,8 +68,7 @@ class EpicsDeviceNameValidator(TaurusDeviceNameValidator):
 
     scheme = '(ca|epics)'
     authority = EpicsAuthorityNameValidator.authority
-    devname = r'(?P<devname>)'  # (only empty string allowed for now)
-    path = devname
+    path = r'/(?P<devname>)'  # (only empty string allowed for now)
     query = '(?!)'
     fragment = '(?!)'
 

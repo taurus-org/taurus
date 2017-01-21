@@ -43,6 +43,7 @@ import os
 import xml.dom.minidom
 
 from taurus.external.qt import Qt
+from taurus.core.taurushelper import getSchemeFromName
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 
 
@@ -334,3 +335,7 @@ class ConfigurationMenu(TaurusMenu):
     def __init__(self, parent):
         TaurusMenu.__init__(self, parent)
         self.build(self.menuData)
+
+        # TODO: AttrConfigMenu is tangocentric avoid to use with other schemes
+        if parent and getSchemeFromName(parent.getModelName()) != "tango":
+            self.setEnabled(False)
