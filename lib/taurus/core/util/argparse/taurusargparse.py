@@ -171,7 +171,11 @@ def init_taurus_args(parser=None, args=None, values=None):
     # initialize tango host
     if options.tango_host is not None:
         tango_factory = taurus.Factory("tango")
-        tango_factory.set_default_tango_host(options.tango_host)
+        tango_host = options.tango_host
+        # Translate the tango host to a valid taurus authority URI
+        if not "//" in tango_host:
+            tango_host = "//{0}".format(options.tango_host)
+        tango_factory.set_default_tango_host(tango_host)
 
     # initialize taurus polling period
     if options.taurus_polling_period is not None:
