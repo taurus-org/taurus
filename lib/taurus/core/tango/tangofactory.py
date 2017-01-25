@@ -176,6 +176,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         """Retruns the current default tango host
         """
         return self._default_tango_host
+
     def registerAttributeClass(self, attr_name, attr_klass):
         """Registers a new attribute class for the attribute name.
 
@@ -286,16 +287,20 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            :raise: (taurus.core.taurusexception.TaurusException) if the given
                    dev_name is invalid.
         """
+        validator = _Device.getNameValidator()
+        groups = validator.getUriGroups(dev_name)
+
+        if groups is None:
+            raise TaurusException("Invalid Tango device name '%s'" % dev_name)
+
         d = self.tango_devs.get(dev_name)
         if d is None:
             d = self.tango_alias_devs.get(dev_name)
-        if d is not None:
-            return d
-
-        validator = _Device.getNameValidator()
-        groups = validator.getUriGroups(dev_name)
-        if groups is None:
-            raise TaurusException("Invalid Tango device name '%s'" % dev_name)
+            if d is not None:
+                auth = validator.getUriGroups(d.getFullName()).get('authority')
+                # Check is the alias belongs to the same authority
+                if auth == groups.get('authority'):
+                    return d
 
         full_dev_name, _, _ = validator.getNames(dev_name)
 
