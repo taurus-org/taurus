@@ -166,9 +166,16 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
 
         :param tango_host: (str) the new tango host
         """
+        # Translate to Authority URI
+        if "//" not in tango_host:
+            tango_host = "//{0}".format(tango_host)
         self._default_tango_host = tango_host
         self.dft_db = None
 
+    def get_default_tango_host(self):
+        """Retruns the current default tango host
+        """
+        return self._default_tango_host
     def registerAttributeClass(self, attr_name, attr_klass):
         """Registers a new attribute class for the attribute name.
 
