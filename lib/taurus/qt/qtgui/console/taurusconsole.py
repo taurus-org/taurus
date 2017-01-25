@@ -33,48 +33,72 @@ __all__ = ["TaurusConsole"]
 
 __docformat__ = 'restructuredtext'
 
+###############################################################################
+# required to avoid qtcoconsole importing PyQt5 by default
 from taurus.external.qt import Qt
-from taurusconsolefactory import TaurusConsoleFactory
+###############################################################################
+
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtconsole.inprocess import QtInProcessKernelManager
 
 
-class TaurusConsole(Qt.QWidget):
+class TaurusConsole(RichJupyterWidget):
+    """
+    TaurusConsole is a widget providing a self-contained Jupyter (IPython)
+    console. "Self-contained" here means that it provides a
+    :class:`qtconsole.rich_jupyter_widget.RichJupyterWidget` which by default
+    also takes care of running its own in-process IPython kernel Manager and
+    start the  kernel client threads, so that the console is initialized and
+    ready to accept commands. See the parameter `start_on_init` of the
+    constructor.
 
-    def __init__(self, parent=None, kernels=None):
-        super(TaurusConsole, self).__init__(parent)
-        l = Qt.QVBoxLayout(self)
-        l.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(l)
-        self._window = window = TaurusConsoleFactory().new_window(kernels=kernels)
-        l.addWidget(window)
+    """
 
-    def window(self):
-        return self._window
+    def __init__(self, *args, **kw):
+        """
+        :param start_on_init: (bool) If True (default), the kernel manager will
+                              be initialized and the kernel threads will be
+                              started
 
-    def __getattr__(self, name):
-        return getattr(self.window(), name)
+        .. note:: `TaurusConsole.__init__` also accepts all args and kwargs
+                  of :class:`qtconsole.rich_jupyter_widget.RichJupyterWidget`
+
+        """
+        self.kernel_manager = None
+        start_on_init = kw.pop('start_on_init', True)
+        RichJupyterWidget.__init__(self, *args, **kw)
+        if start_on_init:
+            self.startKernelClient()
+
+    @staticmethod
+    def getKernelManager():
+        """
+        Returns a QtInProcessKernelManager, already initialized.
+
+        :return: `qtconsole.inprocess.QtInProcessKernelManager`
+        """
+        kernel_manager = QtInProcessKernelManager()
+        kernel_manager.start_kernel(show_banner=False)
+        kernel_manager.kernel.gui = 'qt4'
+        return kernel_manager
+
+    def startKernelClient(self):
+        """Initializes a client from the existing kernel manager (it initializes
+         the manager if it did not exist) and starts the communication channels
+        """
+        if self.kernel_manager is None:
+            self.kernel_manager = self.getKernelManager()
+        self.kernel_client = self.kernel_manager.client()
+        self.kernel_client.start_channels()
 
 
-def main(argv=None):
-    import taurus.core.util.argparse
+def main():
+
     import taurus.qt.qtgui.application
-
-    targp = taurus.core.util.argparse
-
-    if argv is None:
-        import sys
-        argv = sys.argv
-
-    parser = targp.get_taurus_parser()
-    taurus_args, ipython_args = targp.split_taurus_args(parser, args=argv)
-
-    app = taurus.qt.qtgui.application.TaurusApplication(taurus_args,
-                                                        cmd_line_parser=parser)
-    TaurusConsoleFactory(ipython_args=ipython_args)
-    console = TaurusConsole()
-    console.window().create_tab_with_new_frontend(name='tango', label="Tango")
-    console.show()
+    app = taurus.qt.qtgui.application.TaurusApplication()
+    w = TaurusConsole()
+    w.show()
     app.exec_()
-
 
 if __name__ == '__main__':
     main()
