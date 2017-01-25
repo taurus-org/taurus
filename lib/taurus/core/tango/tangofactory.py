@@ -164,10 +164,11 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def set_default_tango_host(self, tango_host):
         """Sets the new default tango host.
 
-        :param tango_host: (str) the new tango host
+        :param tango_host: (str) the new tango host or None to use the defined
+        by $TANGO_HOST env. var
         """
         # Translate to Authority URI
-        if "//" not in tango_host:
+        if tango_host and "//" not in tango_host:
             tango_host = "//{0}".format(tango_host)
         self._default_tango_host = tango_host
         self.dft_db = None
