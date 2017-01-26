@@ -171,6 +171,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         if tango_host and "//" not in tango_host:
             tango_host = "//{0}".format(tango_host)
         self._default_tango_host = tango_host
+        self.tango_alias_devs.clear()
         self.dft_db = None
 
     def get_default_tango_host(self):
@@ -288,20 +289,17 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            :raise: (taurus.core.taurusexception.TaurusException) if the given
                    dev_name is invalid.
         """
+        d = self.tango_devs.get(dev_name)
+        if d is None:
+            d = self.tango_alias_devs.get(dev_name)
+        if d is not None:
+            return d
+
         validator = _Device.getNameValidator()
         groups = validator.getUriGroups(dev_name)
 
         if groups is None:
             raise TaurusException("Invalid Tango device name '%s'" % dev_name)
-
-        d = self.tango_devs.get(dev_name)
-        if d is None:
-            d = self.tango_alias_devs.get(dev_name)
-            if d is not None:
-                auth = validator.getUriGroups(d.getFullName()).get('authority')
-                # Check is the alias belongs to the same authority
-                if auth == groups.get('authority'):
-                    return d
 
         full_dev_name, _, _ = validator.getNames(dev_name)
 
