@@ -170,7 +170,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         # Translate to Authority URI
         if tango_host and "//" not in tango_host:
             tango_host = "//{0}".format(tango_host)
-        self._default_tango_host = tango_host
+        v = self.getAuthorityNameValidator()
+        self._default_tango_host = v.getUriGroups(tango_host)["authority"]
         self.tango_alias_devs.clear()
         self.dft_db = None
 
