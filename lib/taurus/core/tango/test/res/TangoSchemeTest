@@ -23,8 +23,9 @@
 ##
 #############################################################################
 import numpy
+from time import time
 
-from PyTango import DeviceProxy, AttrWriteType, DevState
+from PyTango import DeviceProxy, AttrWriteType, DevState, AttrQuality
 from PyTango.server import Device, DeviceMeta, attribute, run, command
 
 
@@ -256,7 +257,7 @@ class TangoSchemeTest(Device):
         return self.default_rvalue['bool']
 
     def read_short_scalar_ro(self):
-        return self.default_rvalue['int']
+        return self.default_rvalue['int'], time(), self._quality
 
     def read_short_scalar_ro_nu(self):
         return self.default_rvalue['int']
@@ -444,6 +445,17 @@ class TangoSchemeTest(Device):
         # To setUp the state
         Device.init_device(self)
         self.set_state(DevState.ON)
+        self._quality = AttrQuality.ATTR_VALID
+
+    @command(dtype_in=str)
+    def ChangeShortScalarROQuality(self, quality):
+        quality_states = {"valid": AttrQuality.ATTR_VALID,
+                          "invalid": AttrQuality.ATTR_INVALID,
+                          "changing": AttrQuality.ATTR_CHANGING,
+                          "alarm": AttrQuality.ATTR_ALARM,
+                          "warning": AttrQuality.ATTR_WARNING
+                          }
+        self._quality = quality_states.get(quality) or AttrQuality.ATTR_VALID
 
     @command
     def Reset(self):
@@ -454,6 +466,7 @@ class TangoSchemeTest(Device):
         # so is not possible to use the PyTango.Device API
         dev = DeviceProxy(self.get_name())
         attr_list = list(dev.get_attribute_list())
+        self._quality = AttrQuality.ATTR_VALID
         for attr in attr_list:
             attrInfoex = dev.get_attribute_config(attr)
             if attr.startswith('string') or attr.startswith('boolean') or \
