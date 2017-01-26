@@ -96,7 +96,8 @@ class TangoAttrValue(TaurusAttrValue):
         if p.has_failed:
             self.error = PyTango.DevFailed(*p.get_err_stack())
         else:
-            if p.is_empty:  # spectra and images can be empty without failing
+            # spectra and images can be empty without failing
+            if p.is_empty and self._attrRef.data_format != DataFormat._0D:
                 dtype = FROM_TANGO_TO_NUMPY_TYPE.get(
                     self._attrRef._tango_data_type)
                 if self._attrRef.data_format == DataFormat._1D:
