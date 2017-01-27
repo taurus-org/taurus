@@ -164,6 +164,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def set_default_tango_host(self, tango_host):
         """Sets the new default tango host. The method will transform the given
         name to an Authority URI.
+        
+        .. note:: Calling this method also clears the device alias cache.
 
         :param tango_host: (str) the new tango host. It accepts any valid Tango
         authority name or None to use the defined by $TANGO_HOST env. var.
