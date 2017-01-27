@@ -162,10 +162,11 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         return dict(self.tango_db)
 
     def set_default_tango_host(self, tango_host):
-        """Sets the new default tango host.
+        """Sets the new default tango host. The method will transform the given
+        name to an Authority URI.
 
-        :param tango_host: (str) the new tango host or None to use the defined
-        by $TANGO_HOST env. var
+        :param tango_host: (str) the new tango host. It accepts any valid Tango
+        authority name or None to use the defined by $TANGO_HOST env. var.
         """
         # Translate to Authority URI
         if tango_host and "//" not in tango_host:
