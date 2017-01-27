@@ -102,7 +102,7 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
 
         authority = groups.get('authority')
         if authority is None:
-            groups['authority'] = authority = format(default_authority)
+            groups['authority'] = authority = default_authority
 
         db = None
         if queryAuth:
