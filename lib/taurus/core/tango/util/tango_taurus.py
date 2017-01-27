@@ -118,7 +118,7 @@ def unit_from_tango(unit):
         unit = None
     try:
         return UR.parse_units(unit)
-    except UndefinedUnitError:
+    except (UndefinedUnitError, UnicodeDecodeError):
         # TODO: Maybe we could dynamically register the unit in the UR
         from taurus import warning
         warning('Unknown unit "%s (will be treated as dimensionless)"', unit)
