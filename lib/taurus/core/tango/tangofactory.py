@@ -162,12 +162,26 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         return dict(self.tango_db)
 
     def set_default_tango_host(self, tango_host):
-        """Sets the new default tango host.
+        """Sets the new default tango host. The method will transform the given
+        name to an Authority URI.
+        
+        .. note:: Calling this method also clears the device alias cache.
 
-        :param tango_host: (str) the new tango host
+        :param tango_host: (str) the new tango host. It accepts any valid Tango
+        authority name or None to use the defined by $TANGO_HOST env. var.
         """
-        self._default_tango_host = tango_host
+        # Translate to Authority URI
+        if tango_host and "//" not in tango_host:
+            tango_host = "//{0}".format(tango_host)
+        v = self.getAuthorityNameValidator()
+        self._default_tango_host = v.getUriGroups(tango_host)["authority"]
+        self.tango_alias_devs.clear()
         self.dft_db = None
+
+    def get_default_tango_host(self):
+        """Retruns the current default tango host
+        """
+        return self._default_tango_host
 
     def registerAttributeClass(self, attr_name, attr_klass):
         """Registers a new attribute class for the attribute name.
@@ -287,6 +301,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
 
         validator = _Device.getNameValidator()
         groups = validator.getUriGroups(dev_name)
+
         if groups is None:
             raise TaurusException("Invalid Tango device name '%s'" % dev_name)
 
