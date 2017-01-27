@@ -23,13 +23,18 @@
 ##
 #############################################################################
 
-"""This package contains a collection of taurus console widgets"""
+"""DEPRECATED since 4.0,4. Use `silx.gui.console`"""
 
 __docformat__ = 'restructuredtext'
 
-try:
-    from .taurusconsole import TaurusConsole
 
+from taurus.core.util.log import deprecated
+
+deprecated(dep='TaurusConsole', alt='silx.gui.console.IPythonWidget',
+           rel='4.0.4')
+
+try:
+    from silx.gui.console import IPythonWidget as TaurusConsole
 except Exception, e:
     from taurus.qt.qtgui.display import TaurusFallBackWidget
 

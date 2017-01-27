@@ -854,18 +854,17 @@ class TaurusGui(TaurusMainWindow):
     def createConsole(self, kernels):
         msg = ('createConsole() and the "CONSOLE" configuration key are ' +
                'deprecated since 4.0.4. Add a panel with a ' +
-               'TaurusConsole  widdget instead')
+               'silx.gui.console.IPythonWidget  widdget instead')
         self.deprecated(msg)
         try:
-            from taurus.qt.qtgui.console import TaurusConsole
+            from silx.gui.console import IPythonWidget
         except ImportError:
             self.warning('Cannot import taurus.qt.qtgui.console. ' +
                          'The Console Panel will not be available')
             return
-        console = TaurusConsole()
-        consolePanel = self.createPanel(console, "Console", permanent=True,
-                                        icon=Qt.QIcon.fromTheme(
-                                            'utilities-terminal'))
+        console = IPythonWidget()
+        self.createPanel(console, "Console", permanent=True,
+                         icon=Qt.QIcon.fromTheme('utilities-terminal'))
 
     def createInstrumentsFromPool(self, macroservername):
         '''
@@ -1144,8 +1143,8 @@ class TaurusGui(TaurusMainWindow):
             POOLINSTRUMENTS = []
 
         #######################################################################
-        # Deprecated CONSOLE command (if you need a IPythonConsole, just add a
-        # Panel with a `taurus.qt.qtgui.console.TaurusConsole` widget
+        # Deprecated CONSOLE command (if you need a IPython Console, just add a
+        # Panel with a `silx.gui.console.IPythonWidget`
         # TODO: remove this block when deprecation grace time is due
         CONSOLE = getattr(conf, 'CONSOLE', self.__getVarFromXML(
             xmlroot, "CONSOLE", []))
