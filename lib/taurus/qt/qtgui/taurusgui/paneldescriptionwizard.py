@@ -214,7 +214,7 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
     defaultCandidates = ['TaurusForm', 'TaurusTrend', 'TaurusPlot',
                          'TaurusImageDialog', 'TaurusTrend2DDialog', 'TaurusNeXusBrowser',
                          'TaurusDbTreeWidget', 'TaurusArrayEditor',
-                         'TaurusShell', 'SardanaEditor', 'TaurusJDrawSynopticsView',
+                         'SardanaEditor', 'TaurusJDrawSynopticsView',
                          'TaurusDevicePanel']
 
     def __init__(self, parent=None, designMode=False, extraWidgets=None):

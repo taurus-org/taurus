@@ -852,18 +852,19 @@ class TaurusGui(TaurusMainWindow):
         self.quickAccessToolBar.addAction(toggleSynopticAction)
 
     def createConsole(self, kernels):
+        msg = ('createConsole() and the "CONSOLE" configuration key are ' +
+               'deprecated since 4.0.4. Add a panel with a ' +
+               'silx.gui.console.IPythonWidget  widdget instead')
+        self.deprecated(msg)
         try:
-            from taurus.qt.qtgui.console import TaurusConsole
+            from silx.gui.console import IPythonWidget
         except ImportError:
-            self.warning(
-                'Cannot import taurus.qt.qtgui.console. The Console Panel will not be available')
+            self.warning('Cannot import taurus.qt.qtgui.console. ' +
+                         'The Console Panel will not be available')
             return
-        console = TaurusConsole(kernels=kernels)
-        consolePanel = self.createPanel(console, "Console", permanent=True,
-                                        icon=Qt.QIcon.fromTheme(
-                                            'utilities-terminal'))
-        toggleConsoleAction = consolePanel.toggleViewAction()
-        self.quickAccessToolBar.addAction(toggleConsoleAction)
+        console = IPythonWidget()
+        self.createPanel(console, "Console", permanent=True,
+                         icon=Qt.QIcon.fromTheme('utilities-terminal'))
 
     def createInstrumentsFromPool(self, macroservername):
         '''
@@ -1141,10 +1142,15 @@ class TaurusGui(TaurusMainWindow):
         else:
             POOLINSTRUMENTS = []
 
+        #######################################################################
+        # Deprecated CONSOLE command (if you need a IPython Console, just add a
+        # Panel with a `silx.gui.console.IPythonWidget`
+        # TODO: remove this block when deprecation grace time is due
         CONSOLE = getattr(conf, 'CONSOLE', self.__getVarFromXML(
-            xmlroot, "CONSOLE", ['ipython']))
+            xmlroot, "CONSOLE", []))
         if CONSOLE:
-            self.createConsole(CONSOLE)
+            self.createConsole([])
+        #######################################################################
 
         # get custom panel descriptions from the python config file
         CUSTOM_PANELS = [obj for name, obj in inspect.getmembers(
