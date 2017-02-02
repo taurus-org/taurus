@@ -812,10 +812,10 @@ class TangoAttribute(TaurusAttribute):
         low, high = limits
         low = Quantity(low)
         if low.dimensionless:
-            low = Quantity(low, self._units)
+            low = Quantity(low.magnitude, self._units)
         high = Quantity(high)
         if high.dimensionless:
-            high = Quantity(high, self._units)
+            high = Quantity(high.magnitude, self._units)
         TaurusAttribute.setRange(self, [low, high])
         infoex = self._pytango_attrinfoex
         if low.magnitude != float('-inf'):
@@ -834,10 +834,10 @@ class TangoAttribute(TaurusAttribute):
         low, high = limits
         low = Quantity(low)
         if low.dimensionless:
-            low = Quantity(low, self._units)
+            low = Quantity(low.magnitude, self._units)
         high = Quantity(high)
         if high.dimensionless:
-            high = Quantity(high, self._units)
+            high = Quantity(high.magnitude, self._units)
         TaurusAttribute.setWarnings(self, [low, high])
         infoex = self._pytango_attrinfoex
         if low.magnitude != float('-inf'):
@@ -856,10 +856,10 @@ class TangoAttribute(TaurusAttribute):
         low, high = limits
         low = Quantity(low)
         if low.dimensionless:
-            low = Quantity(low, self._units)
+            low = Quantity(low.magnitude, self._units)
         high = Quantity(high)
         if high.dimensionless:
-            high = Quantity(high, self._units)
+            high = Quantity(high.magnitude, self._units)
         TaurusAttribute.setAlarms(self, [low, high])
         infoex = self._pytango_attrinfoex
         if low.magnitude != float('-inf'):
