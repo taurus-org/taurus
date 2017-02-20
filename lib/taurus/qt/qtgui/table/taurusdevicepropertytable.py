@@ -125,8 +125,10 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         elif self.db is None:
             self.warning('Model must be set before calling setTable')
             return
-        try: self.cellChanged.disconnect(self.valueChanged)
-        except: pass
+        try: 
+            self.cellChanged.disconnect(self.valueChanged)
+        except: 
+            pass
 
         dev_name = str(dev_name)
         self.list_prop = list(self.db.get_device_property_list(dev_name, '*'))
