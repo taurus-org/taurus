@@ -267,7 +267,7 @@ class TaurusTreeNodeContainer(object):
         import taurus.qt.qtgui.table
         device = self.getNodeText()
         nameclass = taurus.qt.qtgui.table.TaurusPropTable()
-        nameclass.setTable(device)
+        nameclass.setModel(device)
         nameclass.show()
         # Dialog is used to make new floating panels persistent
         PopupDialog(self, nameclass)
@@ -385,7 +385,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         self.initConfig()
 
         # Signal
-        self.itemclicked.connect(self.deviceClicked)
+        self.itemClicked.connect(self.deviceClicked)
         self.nodeFound.connect(self.expandNode)
         self.setDragDropMode(Qt.QAbstractItemView.DragDrop)
         self.setModifiableByUser(True)
@@ -963,7 +963,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                     nodes[0].setSelected(True)
                     self.setCurrentItem(nodes[0])
                     # Searches must not trigger events!
-                    self.deviceSelected(self.getNodeDeviceName(nodes[0]))
+                    self.emitSelected(self.getNodeDeviceName(nodes[0]))
                     self.debug('The selected node is %s' %
                                self.getNodeText(nodes[0]))
                 # Then proceed to expand/close the rest of nodes
@@ -1106,11 +1106,11 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
 
     def deviceClicked(self, item, column):
         self.trace("In TaurusDevTree.deviceClicked(%s)" % item.text(column))
-        self.deviceSelected(self.getNodeDeviceName())
+        self.emitSelected(self.getNodeDeviceName())
 
-    def deviceSelected(self, device_name=''):
+    def emitSelected(self, device_name=''):
         '''QSIGNAL: this method is used to emit deviceSelected(QString) signal'''
-        self.trace("In TaurusDevTree.deviceSelected(%s)" % device_name)
+        self.trace("In TaurusDevTree.emitSelected(%s)" % device_name)
         try:
             #item = self.currentItem()
             device_name = device_name or self.getNodeDeviceName()  # item.text(0)
