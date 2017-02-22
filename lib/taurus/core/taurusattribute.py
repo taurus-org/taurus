@@ -296,12 +296,12 @@ class TaurusAttribute(TaurusModel):
             obj.append(('description', _descr))
 
         if isinstance(self.rvalue, Quantity):
-            idDimensionless = self.rvalue.dimensionless
+            _unitless = self.rvalue.unitless
             range = self._range
             alarm = self._alarm
             warning = self._warning
             if range != [None, None]:
-                if not idDimensionless:
+                if not _unitless:
                     low = range[0]
                     high = range[1]
                 else:
@@ -309,7 +309,7 @@ class TaurusAttribute(TaurusModel):
                     high = range[1].magnitude
                 obj.append(('range', "[%s, %s]" % (low, high)))
             if alarm != [None, None]:
-                if not idDimensionless:
+                if not _unitless:
                     low = alarm[0]
                     high = alarm[1]
                 else:
@@ -317,7 +317,7 @@ class TaurusAttribute(TaurusModel):
                     high = alarm[1].magnitude
                 obj.append(('alarm', "[%s, %s]" % (low, high)))
             if warning != [None, None]:
-                if not idDimensionless:
+                if not _unitless:
                     low = warning[0]
                     high = warning[1]
                 else:
