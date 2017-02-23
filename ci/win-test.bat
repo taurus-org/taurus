@@ -8,12 +8,6 @@ pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/p
 :: Install lxml
 pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ lxml==3.7.0
 
-:: Install h5py 
-pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py
-
-:: Install scipy 
-pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ scipy
-
 :: Install guiqwt 
 :: TODO, install guiqwt from pypi
 :: pip install --upgrade guiqwt
