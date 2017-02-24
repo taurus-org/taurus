@@ -204,7 +204,10 @@ class TaurusApplication(Qt.QApplication, Logger):
         # [xcb] Aborting, sorry about that.
         #
         # According to http://stackoverflow.com/a/31967769 , it is fixed by:
-        Qt.QCoreApplication.setAttribute(Qt.Qt.AA_X11InitThreads)
+        try:
+            Qt.QCoreApplication.setAttribute(Qt.Qt.AA_X11InitThreads)
+        except AttributeError:
+            pass  # Qt < 4.8 does not define AA_X11InitThreads
         ######################################################################
 
         try:
