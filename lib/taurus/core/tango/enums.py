@@ -65,6 +65,7 @@ EVENT_TO_POLLING_EXCEPTIONS = ('API_AttributePollingNotStarted',
                                'API_EventTimeout',
                                'API_EventPropertiesNotSet',
                                'API_CommandNotFound',
+                               'API_PollObjNotFound',
                                )
 #                                   'API_BadConfigurationProperty')
 
