@@ -212,7 +212,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 try:
                     q = Quantity(text)
                     # allow implicit units (assume wvalue.units implicitly)
-                    if q.dimensionless:
+                    if q.unitless:
                         q = Quantity(q.magnitude, val.units)
                     return q
                 except:
