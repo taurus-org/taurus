@@ -1,0 +1,191 @@
+    Title: Implement plots with pyqtgraph
+    TEP: 17
+    State: DRAFT
+    Date: 2017-03-10
+    Drivers: Carlos Pascual-Izarra cpascual@cells.es
+    URL: http://www.taurus-scada.org/tep?TEP17.md
+    License: http://www.jclark.com/xml/copying.txt
+    Abstract: 
+     Deprecate qwt and guiqwt-based widgets and substitute them by 
+     pyqtgraph-based ones
+ 
+## Introduction
+
+Taurus currently depends on [PyQwt5][] for its `taurus.qt.qtgui.plot` 
+module. The `taurus.qt.qtgui.extra_guiqwt` also partially depends on it
+for the date-time scales.
+
+PyQwt5 has been unmaintained for a long time and is likely to disapear 
+from most linux distros (apart from not providing support for PyQt5 or 
+Python3).
+
+So it is about time to deal with the migration to a newer, maintained
+library for our plots.
+
+The main objective is to cover the use cases currently handled by:
+
+- TaurusPlot
+- TaurusTrend
+- TaurusImageDialog
+- TaurusTrend2DDialog
+
+Note: the `taurus.qt.qtgui.extra_guiqwt` module also provides 2 other 
+plot widgets: `TaurusCurveDialog` and `TaurusTrend1DDialog` which are 
+unfinished attempts to replace `TaurusPlot` and `TaurusTrend` 
+respectively using `guiqwt`. The uncertainties with the future of guiqwt
+put a stop on the development of those replacements and therefore we 
+only consider them in this TEP as possible inspirations for the proposed
+new implementation.
+ 
+The main library candidates considered for the new plotting system are:
+
+- [guiqwt](https://pythonhosted.org/guiqwt/)
+- [pyqtgraph](http://pyqtgraph.org/)
+- [silx](http://www.silx.org/)
+
+This TEP proposes to choose pyqtgraph as the base of the new plotting 
+infrastructure because:
+
+- It matches perfectly with the technology stack in taurus
+- It provides 2D and 3D plotting
+- It is reasonably well documented and provides comprehensive examples
+- .... TODO
+ 
+## Goals
+
+For the scope of this TEP, only a basic set of features currently 
+supported in the deprecated modules would be implemented in the new
+ones, and the rest would be treated as future enhancements. The 
+following is a list of features, with a rough classification using a 
+[MoSCoW][] code followed by cost estimation in hours:
+
+### For 1D plots/trends
+
+  - 1D plot: plot of multiple 1D models with auto-changing color and 
+    availability of legend (M8)
+  - Date-time support on X axis (display only, see "UI for
+    setting scale limits *in date/time format*" below) (M16)
+  - Stand-alone widget (M2)
+  - Zooming & panning with "restore original view" option (not the same 
+    as zoom stacking, see below) (M0)
+  - Possibility to use (at least) 2 Y-scales (M12)
+  - UI for adding taurus curves via ModelChooser. See also
+    "Improved Model Chooser" below  (M4)
+  - Store/retreive configuration (save/load settings) (M8)
+  - Support for non-taurus curves in same plot (aka "raw data") (S0)
+  - UI for setting scale limits and lin/log options (S0)
+  - UI for setting scale limits *in date/time format* (S16)
+  - Point-picking (aka "inspect mode") (S4)
+  - Export data as ascii: without date-time support (S0)
+  - Export data as ascii: date-time support (S24)
+  - Export plot as image (S0)
+  - Plot freeze (pause) (S8)
+  - UI for moving a curve from one Y-scale to another (S12)
+  - UI for choosing line color, thickness symbol, filling... (S16)
+  - Improved Model Chooser: replacement of the "input data selection"
+    dialog allowing to choose *both* X and Y models (see curve selection
+    dialog in extra_guiqwt's tauruscurve) (C16)
+  - Drop support for taurus attributes (C4)
+  - Arbitrary Label scale (aka FixedLabelsScale) (C8)
+  - Zoom stack: possibility of stacking zoom levels and navigating back 
+    one level at a time. (C16)
+  - Cursor position info (display X-Y position of cursor in active axis
+    coords) (C2)
+  - 1D ROI selector (C2)
+  - Curve statistics calculator (mean, stdev...) as in curve stats
+    dialog of TaurusPlot/Trend (C8)
+  - UI for changing curve names (C8)
+  - Peak locator: Visual label min/max of curves (C12)
+  - UI for adding raw data (W8)
+  - *Relative* date/times display support (aka, deltatime scale) (W8)
+
+### For 1D trends
+
+Most of the features mentioned for 1D plots affect the 1D trends as
+well. Apart from those, here is a list of more specific features of
+trends:
+
+  - "1D trends": plot of scalars vs event number or timestamp (M16)
+  - "Trend sets": plot of 1D attribute vs time interpreting it as a set
+    of 1D scalars (M16)
+  - Fixed-range scale (aka oscilloscope mode) (M8)
+  - UI to switch between fixed and free scale mode (S12)
+  - Accessing Archived values (M40)
+  - Accessing Tango Polling buffer (W24)
+  - Support for forced-reading of attributes (aka "-r mode") (M10)
+  - UI for forced-reading mode (C2)
+  - Support for limiting curve buffers (C8)
+  - UI for curve buffers (C2)
+
+
+### For 2D plots (images)
+
+  - Plot a single image (M0)
+  - UI for Add/remove image (M
+  - Cross sections (slicing) (S4)
+  - Slicing (S4)
+  - 2D ROI Selector (S4)
+  - LUT/contrast control (S0)
+  - Drop support for taurus attributes (C4)
+  - LogZ scale (C?)
+  - Annotation/measure tools (C16)
+  - "calibrated" XYImage (assigning values to X and Y scale, as in
+    guiqwt's XYImageItem)
+
+
+### For 2D trends (spectrograms)
+
+Most of the features for 2D plots affect also the 2D trends. Apart
+from those, here is a list of more specific features of 2D trends:
+
+  - Absolute date-time scale (display, see same feat in TaurusPlot)
+  - Fixed-range scale (aka oscilloscope mode, same as for 1Dtrends) (M8)
+  - Fixed-range scale (aka oscilloscope mode, same as for 1Dtrends) (M8)
+  - UI to switch between fixed and free scale mode (S12)
+
+
+
+
+## Implementation
+
+TODO
+
+## Links to more details and discussions
+
+Discussions for this TEP are conducted in its associated Pull Request:
+https://github.com/taurus-org/taurus/pull/<TODO>
+
+
+## License
+
+Copyright (c) 2017 Carlos Pascual-Izarra
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Changes
+
+
+- 2017-03-10 [cpascual][]. Initial version
+
+
+[PyQwt5]: http://pyqwt.sourceforge.net/
+[MoSCoW]: https://en.wikipedia.org/wiki/MoSCoW_method
+[cpascual]: https://github.com/cpascual
+
