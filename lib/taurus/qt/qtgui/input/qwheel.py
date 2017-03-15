@@ -316,9 +316,9 @@ class QWheelEdit(Qt.QFrame):
 
         ed = _NumericEditor(self)
         ed.returnPressed.connect(self.editingFinished)
-        ed.lostFocus.connect(ed.hide)
-        rect = Qt.QRect(l.cellRect(1, 0).topLeft(), l.cellRect(1,
-                                                               l.columnCount() - 1).bottomRight())
+        ed.editingFinished.connect(ed.hide)
+        rect = Qt.QRect(l.cellRect(1, 0).topLeft(),
+                        l.cellRect(1, l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
         ed.setAlignment(Qt.Qt.AlignRight)
         ed.validator().setRange(self.getMinValue(), self.getMaxValue(),
