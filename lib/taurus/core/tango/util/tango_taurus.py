@@ -113,7 +113,7 @@ def quantity_from_tango_str(value_str, dtype=None, units=None, fmt=None,
         return None
 
 
-def unit_from_tango(unit):
+def unit_from_tango(unit, owner=None):
     if unit == PyTango.constants.UnitNotSpec:
         unit = None
     try:
@@ -121,7 +121,8 @@ def unit_from_tango(unit):
     except (UndefinedUnitError, UnicodeDecodeError):
         # TODO: Maybe we could dynamically register the unit in the UR
         from taurus import warning
-        warning('Unknown unit "%s (will be treated as unitless)"', unit)
+        warning('%sUnknown unit "%s (will be treated as unitless)"',
+                "In %s " % owner if owner else "", unit)
         return UR.parse_units(None)
 
 

@@ -277,7 +277,8 @@ class TangoAttribute(TaurusAttribute):
         dis_level = PyTango.DispLevel.OPERATOR
         self.display_level = display_level_from_tango(dis_level)
         self.tango_writable = PyTango.AttrWriteType.READ
-        self._units = unit_from_tango(PyTango.constants.UnitNotSpec)
+        self._units = unit_from_tango(PyTango.constants.UnitNotSpec,
+                                      self.getSimpleName())
         # decode the Tango configuration attribute (adds extra members)
         self._pytango_attrinfoex = None
         self._decodeAttrInfoEx(attr_info)
@@ -893,7 +894,7 @@ class TangoAttribute(TaurusAttribute):
             ###############################################################
             # changed in taurus4: range, alarm and warning now return
             # quantities if appropriate
-            units = unit_from_tango(i.unit)
+            units = unit_from_tango(i.unit, self.getSimpleName())
             if PyTango.is_numerical_type(i.data_type, inc_array=True):
                 Q_ = partial(quantity_from_tango_str, units=units,
                              dtype=i.data_type)
