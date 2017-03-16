@@ -592,12 +592,10 @@ def main():
     if len(args) == 0:
         w = demo()
     else:
-        models = map(str.lower, args)
-
         w = Qt.QWidget()
         layout = Qt.QGridLayout()
         w.setLayout(layout)
-        for model in models:
+        for model in args:
             label = TaurusLabel()
             label.model = model
             layout.addWidget(label)
