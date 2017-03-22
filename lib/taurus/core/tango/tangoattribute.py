@@ -38,7 +38,7 @@ import numpy
 from functools import partial
 
 from taurus import Manager
-from taurus.external.pint import Quantity
+from taurus.external.pint import Quantity, UR, UndefinedUnitError
 
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import (TaurusEventType,
@@ -57,7 +57,7 @@ from .util.tango_taurus import (description_from_tango,
                                 display_level_from_tango,
                                 quality_from_tango,
                                 standard_display_format_from_tango,
-                                UR, quantity_from_tango_str,
+                                quantity_from_tango_str,
                                 str_2_obj, data_format_from_tango,
                                 data_type_from_tango)
 
