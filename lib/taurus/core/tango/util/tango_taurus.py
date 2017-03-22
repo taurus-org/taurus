@@ -114,6 +114,9 @@ def quantity_from_tango_str(value_str, dtype=None, units=None, fmt=None,
 
 
 def unit_from_tango(unit):
+    from taurus import deprecated
+    deprecated(dep='unit_from_tango', rel='4.0.4', alt="pint's parse_units")
+
     if unit == PyTango.constants.UnitNotSpec:
         unit = None
     try:
