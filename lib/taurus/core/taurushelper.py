@@ -34,7 +34,7 @@ __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'resetLogLevel', 'resetLogFormat',
            'enableLogOutput', 'disableLogOutput',
            'log', 'trace', 'debug', 'info', 'warning', 'error', 'fatal',
-           'critical', 'changeDefaultPollingPeriod']
+           'critical', 'deprecated', 'changeDefaultPollingPeriod']
 
 __docformat__ = "restructuredtext"
 
