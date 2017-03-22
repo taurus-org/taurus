@@ -233,6 +233,18 @@ from taurus.core.evaluation.evalattribute import EvaluationAttrValue
                                 ),
             expectedshape=(3, 3)
             )
+@insertTest(helper_name='read_attr',
+            attr_fullname='eval:@os.*/path.exists("%s")' % __file__,
+            expected=dict(rvalue=True,
+                          type=DataType.Boolean,
+                          label='path.exists("%s")' % __file__,
+                          writable=False,
+                          ),
+            expected_attrv=dict(rvalue=True,
+                                wvalue=None
+                                ),
+            expectedshape=None
+            )
 class EvalAttributeTestCase(unittest.TestCase):
 
     def read_attr(self, attr_fullname, expected={}, expected_attrv={},
