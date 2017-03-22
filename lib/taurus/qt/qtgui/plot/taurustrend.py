@@ -477,7 +477,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
 
         :param reason: (str) The reason of the drop
         '''
-        self.debug("Droping event. Reason %s", reason)
+        self.debug("Dropping event. Reason %s", reason)
         self.droppedEventsCount += 1
         self.consecutiveDroppedEventsCount += 1
         mustwarn = False
