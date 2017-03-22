@@ -94,7 +94,10 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
     def onCurveDataChanged(self):
         # TODO: Take units into account for displaying curves, axis, etc.
         try:
-            yvalue = self._ycomp.read().rvalue.magnitude
+            if self._ycomp.isNumeric():
+                yvalue = self._ycomp.read().rvalue.magnitude
+            else:
+                yvalue = self._ycomp.read().rvalue
         except:
             yvalue = None
 
@@ -103,7 +106,10 @@ class TaurusCurveItem(CurveItem, TaurusBaseComponent):
 
         # TODO: Take units into account for displaying curves, axis, etc.
         try:
-            xvalue = self._xcomp.read().rvalue.magnitude
+            if self._xcomp.isNumeric():
+                xvalue = self._xcomp.read().rvalue.magnitude
+            else:
+                xvalue = self._xcomp.read().rvalue
         except:
             xvalue = None
 
@@ -225,7 +231,10 @@ class TaurusTrendItem(CurveItem, TaurusBaseComponent):
 
         # update y
         # TODO: Take units into account for displaying curves, axis, etc.
-        self.__yBuffer.append(evt_value.rvalue.magnitude)
+        if self.__yBuffer.isNumeric():
+            self.__yBuffer.append(evt_value.rvalue.magnitude)
+        else:
+            self.__yBuffer.append(evt_value.rvalue)
 
         # update the plot data
         x, y = self.__xBuffer.contents(), self.__yBuffer.contents()
