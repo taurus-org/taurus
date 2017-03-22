@@ -148,7 +148,8 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
 
     scheme = 'eval'
     authority = EvaluationAuthorityNameValidator.authority
-    _evaluatorname = r'((?P<_evalname>[^/?#:\.=]+)|(?P<_evalclass>(\w+\.)+\w+))'
+    _evaluatorname = r'((?P<_evalname>[^/?#:\.=]+)|' + \
+                     r'(?P<_evalclass>(\w+\.)+(\w+|\*)))'
     devname = r'(?P<devname>@%s)' % _evaluatorname
     path = r'(?!//)/?%s' % devname
     query = '(?!)'
