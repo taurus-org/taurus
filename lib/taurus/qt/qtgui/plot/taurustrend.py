@@ -298,8 +298,9 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         SPECTRUM attribute with dim_x=8. Then the return value will be (X,Y)
         where X.shape=(10,) and Y.shape=(10,8); X.dtype = Y.dtype = <dtype('float64')>
         '''
+        attr = self.getModelObj()
         if value is not None:
-            if value.isNumeric():
+            if attr.isNumeric():
                 v = value.rvalue.magnitude  # TODO: check unit consistency
             else:
                 v = value.rvalue
@@ -327,7 +328,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._yBuffer = ArrayBuffer(numpy.zeros(
                 (min(128, self._maxBufferSize), ntrends), dtype='d'), maxSize=self._maxBufferSize)
         if value is not None:
-            if value.isNumeric():
+            if attr.isNumeric():
                 v = value.rvalue.magnitude
             else:
                 v = value.rvalue
@@ -417,7 +418,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                     self._onDroppedEvent(reason='invalid value')
                     if not self.parent().getUseArchiving():
                         return
-                elif value.isNumeric():
+                elif model.isNumeric():
                     if not hasattr(value.rvalue, 'magnitude'):
                         self._onDroppedEvent(reason='rvalue has no .magnitude')
                         return
