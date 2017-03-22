@@ -650,7 +650,10 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         if attr.data_format == DataFormat._1D:
             # TODO: Adapt all values to be plotted to the same Unit
             if value:
-                self._yValues = numpy.array(value.rvalue.magnitude)
+                if attr.isNumeric():
+                    self._yValues = numpy.array(value.rvalue.magnitude)
+                else:
+                    self._yValues = numpy.array(value.rvalue)
             else:
                 self._yValues = numpy.zeros(0)
             self._xValues = self.getXValues()

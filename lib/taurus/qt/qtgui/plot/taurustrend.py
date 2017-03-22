@@ -299,7 +299,10 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         where X.shape=(10,) and Y.shape=(10,8); X.dtype = Y.dtype = <dtype('float64')>
         '''
         if value is not None:
-            v = value.rvalue.magnitude  # TODO: check unit consistency
+            if value.isNumeric():
+                v = value.rvalue.magnitude  # TODO: check unit consistency
+            else:
+                v = value.rvalue
             if numpy.isscalar(v):
                 ntrends = 1
             else:
@@ -324,11 +327,15 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._yBuffer = ArrayBuffer(numpy.zeros(
                 (min(128, self._maxBufferSize), ntrends), dtype='d'), maxSize=self._maxBufferSize)
         if value is not None:
+            if value.isNumeric():
+                v = value.rvalue.magnitude
+            else:
+                v = value.rvalue
             try:
-                self._yBuffer.append(value.rvalue.magnitude)
+                self._yBuffer.append(v)
             except Exception, e:
                 self.warning('Problem updating history (%s=%s):%s',
-                             model, value.rvalue.magnitude, e)
+                             model, v, e)
                 value = None
 
         if self.parent().getXIsTime():
@@ -410,11 +417,14 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                     self._onDroppedEvent(reason='invalid value')
                     if not self.parent().getUseArchiving():
                         return
-                elif not hasattr(value.rvalue, 'magnitude'):
-                    self._onDroppedEvent(reason='rvalue has no .magnitude')
-                    return
+                elif value.isNumeric():
+                    if not hasattr(value.rvalue, 'magnitude'):
+                        self._onDroppedEvent(reason='rvalue has no .magnitude')
+                        return
+                    else:
+                        self._checkDataDimensions(value.rvalue.magnitude)
                 else:
-                    self._checkDataDimensions(value.rvalue.magnitude)
+                    self._checkDataDimensions(value.rvalue)
 
         # get the data from the event
         try:
