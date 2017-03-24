@@ -171,9 +171,7 @@ class EvaluationAttribute(TaurusAttribute):
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
         self._value = EvaluationAttrValue(attr=self)
 
-        # Evaluation Attributes are always read-only (at least for now)
         self._label = self.getSimpleName()
-        self.writable = False
         self._references = []
         self._validator = self.getNameValidator()
         self._transformation = None
@@ -187,6 +185,22 @@ class EvaluationAttribute(TaurusAttribute):
         if ok:
             self._transformation = trstring
             self.applyTransformation()
+            self._initWritable(trstring)
+
+    def _initWritable(self, trstring):
+        dev = self.getParentObj()
+        obj = dev.getSafe().get(trstring, None)
+        try:
+            #TODO: siplify
+            cls = dev.getSafe()['__self__'].__class__
+            obj = getattr(cls, trstring)
+        except Exception, e:
+            print e
+            return
+        # print dev.getSafe()
+        # print "!!!", trstring, obj
+        self.writable = hasattr(obj,'__set__')
+
 
     @staticmethod
     def getId(obj, idFormat=r'_V%i_'):
@@ -202,6 +216,8 @@ class EvaluationAttribute(TaurusAttribute):
                          `[a-zA-Z_][a-zA-Z0-9_]*`). The default is `_V%i_`
         '''
         return idFormat % id(obj)
+
+
 
     def preProcessTransformation(self, trstring):
         """
