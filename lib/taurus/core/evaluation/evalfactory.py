@@ -125,38 +125,45 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
             if d is None:
                 _safedict = {}
                 groups = validator.getUriGroups(dev_name)
-                if groups['_evalclass'] is not None:
-                    modulename, classname = groups['_evalclass'].rsplit('.', 1)
+                if groups['_evaldotname'] is not None:
+                    modulename, classname = groups['_evaldotname'].rsplit('.', 1)
+                    try:
+                        import importlib
+                        m = importlib.import_module(modulename)
+                    except:
+                        self.warning('Problem importing "%s"' % modulename)
+                        raise
                     if classname == '*':
-                        # Use a EvaluationDevice with all symbols from the
-                        # given module included
+                        # Add all symbols from the module
+                        _safedict = m.__dict__
+                    elif classname.endswith('()'):
+                        # Instantiate the class & add symbols from the instance
                         try:
-                            import importlib
-                            m = importlib.import_module(modulename)
-                            DevClass = EvaluationDevice
-                            _safedict = m.__dict__
+                            klass = getattr(m, classname[:-2])
+                            instance = klass()
                         except:
-                            self.warning('Problem importing "%s"' % modulename)
+                            self.warning('Problem instantiating "%s"' % devname)
                             raise
+                        _safedict['__self__'] = instance
+                        for key in klass.__dict__:
+                            _safedict[key] = getattr(instance, key)
                     else:
-                        # Use the given class as Evaluator
+                        # Add symbols from the class
                         try:
-                            m = __import__(modulename, globals(), locals(),
-                                           [classname], -1)
-                            DevClass = getattr(m, classname)
+                            klass = getattr(m, classname)
                         except:
                             self.warning('Problem importing "%s"' % devname)
                             raise
+                        _safedict = klass.__dict__
                 else:
-                    # Use a standard EvaluationDevice
-                    DevClass = EvaluationDevice
+                    pass
                 # Get authority (creating if necessary)
                 auth_name = groups.get('authority') or self.DEFAULT_AUTHORITY
                 authority = self.getAuthority(auth_name)
                 # Create Device (and store it in cache via self._storeDev)
-                d = DevClass(fullname, parent=authority,
-                             storeCallback=self._storeDev)
-                d.addSafe(_safedict)
+                d = EvaluationDevice(fullname, parent=authority,
+                                     storeCallback=self._storeDev)
+                d.addSafe(_safedict, permanent=True)
         return d
 
     def getAttribute(self, attr_name, **kwargs):
