@@ -126,7 +126,9 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                 _safedict = {}
                 groups = validator.getUriGroups(dev_name)
                 if groups['_evaldotname'] is not None:
-                    modulename, classname = groups['_evaldotname'].rsplit('.', 1)
+                    modulename = groups.get('_evalmodname')
+                    classname = groups.get('_evalclassname')
+                    classargs = groups.get('_evalclassargs')
                     try:
                         import importlib
                         m = importlib.import_module(modulename)
@@ -136,27 +138,18 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                     if classname == '*':
                         # Add all symbols from the module
                         _safedict = m.__dict__
-                    elif classname.endswith('()'):
-                        # Instantiate the class & add symbols from the instance
-                        try:
-                            klass = getattr(m, classname[:-2])
-                            instance = klass()
-                        except:
-                            self.warning('Problem instantiating "%s"' % devname)
-                            raise
-                        _safedict['__self__'] = instance
-                        for key in klass.__dict__:
-                            _safedict[key] = getattr(instance, key)
                     else:
-                        # Add symbols from the class
-                        try:
-                            klass = getattr(m, classname)
-                        except:
-                            self.warning('Problem importing "%s"' % devname)
-                            raise
-                        _safedict = klass.__dict__
-                else:
-                    pass
+                        klass = getattr(m, classname)
+                        if classargs:
+                            # Instantiate the class and add symbols from
+                            # the instance
+                            instance = klass()
+                            _safedict['__self__'] = instance
+                            for key in klass.__dict__:
+                                _safedict[key] = getattr(instance, key)
+                        else:
+                            # Add symbols from the class
+                            _safedict = klass.__dict__
                 # Get authority (creating if necessary)
                 auth_name = groups.get('authority') or self.DEFAULT_AUTHORITY
                 authority = self.getAuthority(auth_name)
