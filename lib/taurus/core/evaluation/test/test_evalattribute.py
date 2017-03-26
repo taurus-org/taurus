@@ -246,24 +246,21 @@ from taurus.core.evaluation.evalattribute import EvaluationAttrValue
             expectedshape=None
             )
 @insertTest(helper_name='write_read_attr',
-            attr_fullname='eval:@taurus.core.evaluation.test.res.mymod.MyClass()/foo',
+            attr_fullname='eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.foo',
             setvalue=Quantity(1, 'm'),
             expected=dict(rvalue=Quantity(1, 'm'),
                           wvalue=Quantity(1, 'm'),
                           type=DataType.Integer,
-                          label='foo',
+                          label='self.foo',
                           data_format=DataFormat._0D,
                           writable=True,
-                          range=[Quantity(float('-inf'), 'm'),
-                                 Quantity(float('inf'), 'm')],
-                          alarms=[Quantity(float('-inf'), 'm'),
-                                  Quantity(float('inf'), 'm')],
-                          warnings=[Quantity(float('-inf'), 'm'),
-                                    Quantity(float('inf'), 'm')]
+                          range=[None, None],
+                          alarms=[None, None],
+                          warnings=[None, None]
                           ),
             expected_attrv=dict(rvalue=Quantity(1, 'm'),
                                 wvalue=Quantity(1, 'm'),
-                                quality=AttrQuality.ATTR_ALARM
+                                quality=AttrQuality.ATTR_VALID
                                 )
             )
 class EvalAttributeTestCase(unittest.TestCase):
