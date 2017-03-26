@@ -30,32 +30,33 @@ This module is used for the tests of custom evaluation devices.
 import os
 from taurus.external.pint import Quantity
 
-
 modattr = 'hello world'
+
+def myfunction():
+    return 987
+
 
 class MyClass(object):
 
-    _foo = Quantity(123, "m")
+    class_member = 1234
 
+    def __init__(self):
+        self._foo = Quantity(123, "m")
 
     def get_foo(self):
         return self._foo
 
-
     def set_foo(self, value):
         self._foo = value
 
-    foo = property(get_foo, set_foo)
-
-    @property
     def bar(self):
         return int(os.environ.get('__MYMOD_TEST_BAR', '321'))
 
-    @bar.setter
     def set_bar(self, value):
         os.environ['__MYMOD_TEST_BAR'] = str(value)
 
-    # bar = property(get_bar, set_bar)
+    foo = property(get_foo, set_foo)
+    bar = property(bar, set_bar)
 
     baz = 'hello'
 
@@ -69,38 +70,41 @@ class MyClass(object):
 
 
 if __name__ == "__main__":
+
     # print bar, float_ro
     import taurus
-    # a = taurus.Attribute('eval:@taurus.core.evaluation.test.res.mymod.*/foo')
-    a = taurus.Attribute('eval:@taurus.core.evaluation.test.res.mymod.MyClass()/foo')
+    # a = taurus.Attribute('eval:@taurus.core.evaluation.test.res.mymod.*/foo()')
+    a = taurus.Attribute('eval:@c=taurus.core.evaluation.test.res.mymod.MyClass()/c.foo')
 
-    print a.read()
-    print a.range
-    # a.write(99)
-    print a.read()
-    print
-    print
+
+    print ">>>", a.read()
+    # print a.range
+    a.write(Quantity(999, "m"))
+    print "<<<", a.read(cache=False)
+    # print
+    # print
 
     models = [
       # instance models
-      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/foo',
-      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/bar',
-      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/baz',
-      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/float_ro',
-      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/__self__.__class__.__name__',
+      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.foo',
+      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.bar',
+      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.baz',
+      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.float_ro',
+      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.__class__.__name__',
+      'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass()/c.foo',
 
       # class models
-      'eval:@taurus.core.evaluation.test.res.mymod.MyClass/_foo',
-      #'eval:@taurus.core.evaluation.test.res.mymod.MyClass/classmeth()',  # <--fails
+      'eval:@taurus.core.evaluation.test.res.mymod.MyClass/class_member',
+      #'eval:@taurus.core.evaluation.test.res.mymod.MyClass/classmeth()', # <--this fails
 
       # module models
       'eval:@taurus.core.evaluation.test.res.mymod.*/modattr',
+      'eval:@taurus.core.evaluation.test.res.mymod.*/myfunction()',
       'eval:@taurus.core.evaluation.test.res.mymod.*/MyClass().foo',
 
     ]
-
+    # models=[]
     for m in models:
         print m
         a = taurus.Attribute(m)
         print "   -->", a.writable, a.read().rvalue
-
