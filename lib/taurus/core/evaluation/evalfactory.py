@@ -34,7 +34,7 @@ from taurus.core.taurusbasetypes import TaurusElementType
 from evalattribute import EvaluationAttribute
 from evalauthority import EvaluationAuthority
 from evaldevice import EvaluationDevice
-from taurus.core.taurusexception import TaurusException
+from taurus.core.taurusexception import TaurusException, DoubleRegistration
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 from taurus.core.taurusfactory import TaurusFactory
@@ -123,8 +123,17 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
             d = self.eval_devs.get(fullname, None)
             # if we do not know it, create the dev and store it in cache
             if d is None:
-                _safedict = {}
+
                 groups = validator.getUriGroups(dev_name)
+                # Get authority (creating if necessary)
+                auth_name = groups.get('authority') or self.DEFAULT_AUTHORITY
+                authority = self.getAuthority(auth_name)
+                # Create Device (and store it in cache via self._storeDev)
+                d = EvaluationDevice(fullname, parent=authority,
+                                     storeCallback=self._storeDev)
+
+                _safedict = {}
+
                 if groups['_evaldotname'] is not None:
                     modulename = groups.get('_evalmodname')
                     classname = groups.get('_evalclassname')
@@ -136,27 +145,22 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                         self.warning('Problem importing "%s"' % modulename)
                         raise
                     if classname == '*':
-                        # Add all symbols from the module
-                        _safedict = m.__dict__
+                        # Add symbols from the module
+                        for key in dir(m):
+                            _safedict[key] = getattr(m, key)
                     else:
                         klass = getattr(m, classname)
                         if classargs:
-                            # Instantiate the class and add symbols from
-                            # the instance
+                            # Instantiate and add the instance to the safe dict
+                            instancename = groups.get('_evalinstname') or "self"
                             instance = klass()
-                            _safedict['__self__'] = instance
-                            for key in klass.__dict__:
-                                _safedict[key] = getattr(instance, key)
+                            _safedict[instancename] = instance
                         else:
                             # Add symbols from the class
-                            _safedict = klass.__dict__
-                # Get authority (creating if necessary)
-                auth_name = groups.get('authority') or self.DEFAULT_AUTHORITY
-                authority = self.getAuthority(auth_name)
-                # Create Device (and store it in cache via self._storeDev)
-                d = EvaluationDevice(fullname, parent=authority,
-                                     storeCallback=self._storeDev)
-                d.addSafe(_safedict, permanent=True)
+                            for key in dir(klass):
+                                _safedict[key] = getattr(klass, key)
+
+                    d.addSafe(_safedict, permanent=True)
         return d
 
     def getAttribute(self, attr_name, **kwargs):
