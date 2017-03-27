@@ -125,13 +125,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
             if d is None:
 
                 groups = validator.getUriGroups(dev_name)
-                # Get authority (creating if necessary)
-                auth_name = groups.get('authority') or self.DEFAULT_AUTHORITY
-                authority = self.getAuthority(auth_name)
-                # Create Device (and store it in cache via self._storeDev)
-                d = EvaluationDevice(fullname, parent=authority,
-                                     storeCallback=self._storeDev)
-
+                DevClass = EvaluationDevice
                 _safedict = {}
 
                 if groups['_evaldotname'] is not None:
@@ -156,11 +150,17 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                             instance = klass()
                             _safedict[instancename] = instance
                         else:
-                            # Add symbols from the class
-                            for key in dir(klass):
-                                _safedict[key] = getattr(klass, key)
+                            # Use given class instead of EvaluationDevice
+                            DevClass = klass
 
-                    d.addSafe(_safedict, permanent=True)
+                # Get authority (creating if necessary)
+                auth_name = groups.get('authority') or self.DEFAULT_AUTHORITY
+                authority = self.getAuthority(auth_name)
+                # Create Device (and store it in cache via self._storeDev)
+                d = DevClass(fullname, parent=authority,
+                             storeCallback=self._storeDev)
+
+                d.addSafe(_safedict, permanent=True)
         return d
 
     def getAttribute(self, attr_name, **kwargs):
