@@ -50,7 +50,7 @@ class MyClass(object):
         self._foo = value
 
     def bar(self):
-        return int(os.environ.get('__MYMOD_TEST_BAR', '321'))
+        return str(os.environ.get('__MYMOD_TEST_BAR', 'hi there'))
 
     def set_bar(self, value):
         os.environ['__MYMOD_TEST_BAR'] = str(value)
@@ -76,13 +76,12 @@ if __name__ == "__main__":
     # a = taurus.Attribute('eval:@taurus.core.evaluation.test.res.mymod.*/foo()')
     a = taurus.Attribute('eval:@c=taurus.core.evaluation.test.res.mymod.MyClass()/c.foo')
 
-
     print ">>>", a.read()
     # print a.range
     a.write(Quantity(999, "m"))
     print "<<<", a.read(cache=False)
-    # print
-    # print
+    print
+    print
 
     models = [
       # instance models
@@ -92,10 +91,6 @@ if __name__ == "__main__":
       'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.float_ro',
       'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.__class__.__name__',
       'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass()/c.foo',
-
-      # class models
-      'eval:@taurus.core.evaluation.test.res.mymod.MyClass/class_member',
-      #'eval:@taurus.core.evaluation.test.res.mymod.MyClass/classmeth()', # <--this fails
 
       # module models
       'eval:@taurus.core.evaluation.test.res.mymod.*/modattr',

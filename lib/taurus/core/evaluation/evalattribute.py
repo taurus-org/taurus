@@ -190,6 +190,8 @@ class EvaluationAttribute(TaurusAttribute):
         self._initWritable(trstring)
 
     def _initWritable(self, trstring):
+        # Determine if the device supports writing to this attribute and
+        # initialize the writing infrastructure accordingly
         self.writable = False
         try:
             dev = self.getParentObj()
@@ -201,13 +203,13 @@ class EvaluationAttribute(TaurusAttribute):
         except Exception, e:
             # self.info("%r", e)
             return
-        #####################################################################
+        ######################################################################
         # This check wrongly returns false for writable properties defined with
         # the @x.setter decorator
         # TODO: Improve this
-        if hasattr(obj, 'fset') and obj.fset is not None:
-            self.writable = True
-
+        self.writable = hasattr(obj, 'fset') and obj.fset is not None
+        #######################################################################
+        if self.writable:
             def value_setter(value):
                 obj.fset(instance, value)
 

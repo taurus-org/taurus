@@ -28,10 +28,11 @@ Examples on using the evaluation scheme for exposing arbitrary non-tango quantit
 
 __all__ = ['FreeSpaceDevice']
 
-from taurus.core.evaluation import EvaluationDevice
 import os
 import platform
 import ctypes
+from taurus.core.evaluation import EvaluationDevice
+from taurus.external.pint import Quantity
 
 
 class FreeSpaceDevice(EvaluationDevice):
@@ -42,6 +43,8 @@ class FreeSpaceDevice(EvaluationDevice):
     '''
     _symbols = ['getFreeSpace']
 
+    _x =1
+
     def getFreeSpace(self, dir):
         """ return free space (in bytes).
         (Recipe adapted from `http://stackoverflow.com/questions/51658`)
@@ -50,10 +53,12 @@ class FreeSpaceDevice(EvaluationDevice):
             free_bytes = ctypes.c_ulonglong(0)
             ctypes.windll.kernel32.GetDiskFreeSpaceExW(
                 ctypes.c_wchar_p(dir), None, None, ctypes.pointer(free_bytes))
-            return free_bytes.value
+            ret = free_bytes.value
         else:
             s = os.statvfs(dir)
-            return s.f_bsize * s.f_bavail
+            ret = s.f_bsize * s.f_bavail
+
+        return Quantity(ret, 'B')
 
 
 #=========================================================================
@@ -62,26 +67,27 @@ class FreeSpaceDevice(EvaluationDevice):
 
 def test1():
     import taurus
-    # calculates free space in Mb
+    # calculates free space in Gb
     a = taurus.Attribute(
-        'eval:@taurus.core.evaluation.dev_example.FreeSpaceDevice/getFreeSpace("/")/1024/1024')
-    print "Free space: %iMb" % a.read().value
+        'eval:@taurus.core.evaluation.test.res.dev_example.FreeSpaceDevice/getFreeSpace("/").to("GiB")')
+    print "Free space: {:s}".format(a.read().rvalue), a.read().rvalue.units
 
 
 def test2():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.display import TaurusLabel
+    from taurus.qt.qtgui.panel import TaurusForm
     app = TaurusApplication()
 
-    w = TaurusLabel()
-    # calculates free space in Mb
-    attrname = 'eval:@taurus.core.evaluation.dev_example.FreeSpaceDevice/getFreeSpace("/")'
+    w = TaurusForm()
+    attrname = 'eval:@taurus.core.evaluation.test.res.dev_example.FreeSpaceDevice/getFreeSpace("/")'
 
     w.setModel(attrname)
 
     w.show()
     sys.exit(app.exec_())
 
+
 if __name__ == "__main__":
+    test1()
     test2()
