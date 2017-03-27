@@ -212,6 +212,7 @@ class EvaluationAttribute(TaurusAttribute):
                 obj.fset(instance, value)
 
             self._value_setter = value_setter
+            self._value.wvalue = self._value.rvalue
 
     @staticmethod
     def getId(obj, idFormat=r'_V%i_'):
