@@ -151,7 +151,7 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
     _evaldotname = (r'((?P<_evalinstname>\w+)=)?' +
                     r'(?P<_evalmodname>(\w+\.)*\w+)\.' +
                     r'(?P<_evalclassname>(\w+|\*))' +
-                    r'(?P<_evalclassargs>\(.*?\))?'
+                    r'(?P<_evalclassparenths>\(.*?\))?'
                     )
      # _evaldotname = r'(?P<_evaldotname>(\w+=)?(\w+\.)+(\w+(\(\))?|\*)))'
     _evaluatorname = (r'((?P<_evalname>[^/?#:\.=]+)|(?P<_evaldotname>%s))' %

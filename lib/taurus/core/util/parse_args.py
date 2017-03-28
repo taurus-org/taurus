@@ -39,8 +39,12 @@ def parse_args(s, strip_pars=False):
     """
     s = s.strip()
     if strip_pars:
+        # remove parentheses
         if s.startswith('(') and s.endswith(')'):
-            s = s[1:-1]
+            s = s[1:-1].strip()
+    if not s:
+        # empty arg list
+        return [], {}
     a = []
     kw = {}
     for e in s.split(','):
@@ -49,6 +53,7 @@ def parse_args(s, strip_pars=False):
             kw[k.strip()] = literal_eval(v.strip())
         else:
             if kw:
+                # a non-kwarg found after we already have at least one kwarg
                 raise SyntaxError('non-keyword arg after keyword arg')
             a.append(literal_eval(e.strip()))
     return a, kw

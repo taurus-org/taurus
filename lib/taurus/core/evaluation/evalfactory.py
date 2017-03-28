@@ -131,7 +131,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                 if groups['_evaldotname'] is not None:
                     modulename = groups.get('_evalmodname')
                     classname = groups.get('_evalclassname')
-                    classargs = groups.get('_evalclassargs')
+                    classargs = groups.get('_evalclassparenths')
                     try:
                         import importlib
                         m = importlib.import_module(modulename)
@@ -146,8 +146,10 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                         klass = getattr(m, classname)
                         if classargs:
                             # Instantiate and add the instance to the safe dict
+                            from taurus.core.util.parse_args import parse_args
+                            a, kw = parse_args(classargs, strip_pars=True)
                             instancename = groups.get('_evalinstname') or "self"
-                            instance = klass()
+                            instance = klass(*a, **kw)
                             _safedict[instancename] = instance
                         else:
                             # Use given class instead of EvaluationDevice
