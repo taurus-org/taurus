@@ -32,6 +32,7 @@ from taurus.external.pint import Quantity
 
 modattr = 'hello world'
 
+
 def myfunction():
     return 987
 
@@ -40,8 +41,8 @@ class MyClass(object):
 
     class_member = 1234
 
-    def __init__(self):
-        self._foo = Quantity(123, "m")
+    def __init__(self, foomag=123):
+        self._foo = Quantity(foomag, "m")
 
     def get_foo(self):
         return self._foo
@@ -66,22 +67,31 @@ class MyClass(object):
 
     @classmethod
     def classmeth(cls):
-        return cls._foo
+        return cls.class_member
+
+    @staticmethod
+    def staticmeth():
+        return 4321
 
 
 if __name__ == "__main__":
 
     # print bar, float_ro
     import taurus
-    # a = taurus.Attribute('eval:@taurus.core.evaluation.test.res.mymod.*/foo()')
-    a = taurus.Attribute('eval:@c=taurus.core.evaluation.test.res.mymod.MyClass()/c.foo')
 
-    print ">>>", a.read()
-    # print a.range
-    a.write(Quantity(999, "m"))
-    print "<<<", a.read(cache=False)
-    print
-    print
+    def test1():
+        n = 'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(987)/c.foo'
+        a = taurus.Attribute(n)
+        print "READ 1:   ", a.read()
+        # print a.range
+        print "WRITE+READ", a.write(Quantity(999, "m"))
+        print "READ 2:   ", a.read(cache=False)
+
+    def test2(models):
+        for m in models:
+            print m
+            a = taurus.Attribute(m)
+            print "   -->", a.writable, a.read().rvalue
 
     models = [
       # instance models
@@ -89,17 +99,20 @@ if __name__ == "__main__":
       'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.bar',
       'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.baz',
       'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.float_ro',
+      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.class_member',
+      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.classmeth()',
+      'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.staticmeth()',
       'eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.__class__.__name__',
+      # accessing via named instance
       'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass()/c.foo',
-
+      # passing args to the instance
+      'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(1)/c.foo',
+      'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(foomag=2)/c.foo',
       # module models
       'eval:@taurus.core.evaluation.test.res.mymod.*/modattr',
       'eval:@taurus.core.evaluation.test.res.mymod.*/myfunction()',
       'eval:@taurus.core.evaluation.test.res.mymod.*/MyClass().foo',
+      ]
 
-    ]
-    # models=[]
-    for m in models:
-        print m
-        a = taurus.Attribute(m)
-        print "   -->", a.writable, a.read().rvalue
+    test1()
+    test2(models)
