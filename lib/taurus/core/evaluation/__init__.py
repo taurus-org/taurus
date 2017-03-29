@@ -32,7 +32,8 @@ The evaluation extension is a special extension that provides evaluation
 objects. The official scheme name is 'eval'.
 
 The main usage for this extension is to provide a way of performing mathematical
-evaluations with data from other sources.
+evaluations with data from other source, as well as allowing fast interfacing
+with sources of data not supported by specific schemes.
 
 The Evaluation Factory (:class:`EvaluationFactory`) uses the following object
 naming for referring to attributes (:class:`EvaluationAttribute`):
@@ -71,16 +72,16 @@ includes a large subset of mathematical functions from the :mod:`numpy`
 module. If access to other symbols are required, a custom evaluator can
 be used. `<evaluator>` is a unique identification name for the evaluator
 device object and may define a source of additional symbols to be present
-for the evaluation. The supported syntax is:
+for the evaluation. The supported syntax for `@<evaluator>` is:
 
     - `@<ID>` (cannot contain dots or any of `/` `?` `#` `:` `=`). This
       indicates just an alternative name for the EvaluationDevice, It does not
-      add any extra symbol.
+      add any extra symbol to the evaluation context.
 
     - `@<modulename>.*` (<modulename> may include dots for submodules). It
       will make all symbols found in the given module available during the
       evaluation (i.e., it emulates doing `from <modulename> import *` in the
-      evaluation context.
+      evaluation context).
 
     - `@<modulename>.<customdeviceclass>`. Use your own custom EvaluationDevice
       based class. This allows to define custom symbols see
@@ -95,7 +96,8 @@ for the evaluation. The supported syntax is:
       available for evaluation as `self`. **IMPORTANT:** If the given class
       declares writable properties, EvaluationAttributes that access one such
       property will automatically be considered writable. See examples of usage
-      in :file:`<taurus>/core/evaluation/test/res/mymod.py`
+      in :file:`<taurus>/core/evaluation/test/res/mymod.py` and in
+      :file:`<taurus>/core/evaluation/test/res/ipap_example.py`
 
 
 Some examples of valid evaluation models are:
@@ -117,11 +119,16 @@ Some examples of valid evaluation models are:
 
         `eval:rand(256)`
 
+    - Same as above, but with units:
+
+        `eval:Q(rand(256),'V')`
+
     - An attribute that adds noise to a tango image attribute:
 
         `eval:img={tango:sys/tg_test/1/short_image_ro};img+10*rand(*img.shape)`
 
-    - An attribute that accesses a method from a given module (os.path.exists):
+    - An attribute that accesses a method from a given module (in this
+      case to use os.path.exists):
 
         `eval:@os.*/path.exists("/some/file")`
 
