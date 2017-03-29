@@ -325,8 +325,13 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 # but valid with old syntax
 @valid(name='eval:{tango://a/b/c/d}', strict=False)
 #=========================================================================
-# Tests for eval attribute name validation (when using extended instanced dev)
+# Tests for eval attribute name validation (with custom evaluation dev)
 #=========================================================================
+@valid(name='eval:@mymod.*/foo')
+@valid(name='eval:@mymod.*/foo()')
+@valid(name='eval:@mymod.*/MyClass().foo()')
+@valid(name='eval:@mymod.*/foo()+1')
+@valid(name='eval:@mymod.*/foo()+{eval:@mymod.*/bar()}')
 @valid(name='eval:@c=mymod.MyClass()/c.foo',
        groups={'devname': '@c=mymod.MyClass()',
                'attrname':'c.foo'})
