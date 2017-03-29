@@ -24,11 +24,9 @@
 #############################################################################
 
 
-import sys
-import numpy
-from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from pyqtgraph import PlotDataItem
+
 
 class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
     """A taurus-ified PlotDataItem"""
@@ -47,7 +45,11 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
 
 
 if __name__ == '__main__':
+    import sys
+    import numpy
     import pyqtgraph as pg
+    from taurus.qt.qtgui.application import TaurusApplication
+    from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
 
     app = TaurusApplication()
 

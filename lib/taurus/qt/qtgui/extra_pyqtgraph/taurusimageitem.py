@@ -26,16 +26,16 @@
 import sys
 from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from pyqtgraph import ImageView
+from pyqtgraph import ImageItem
 import numpy as np
 
 
-class TaurusImageView(ImageView, TaurusBaseComponent):
+class TaurusImageItem(ImageItem, TaurusBaseComponent):
     """
     Displays 2D and 3D image data
     """
     def __init__(self, *args, **kwargs):
-        ImageView.__init__(self, *args, **kwargs)
+        ImageItem.__init__(self, *args, **kwargs)
         TaurusBaseComponent.__init__(self, 'TaurusImageView')
 
     def handleEvent(self, evt_src, evt_type, evt_val):
@@ -54,7 +54,9 @@ if __name__ == "__main__":
     axis_view = pg.PlotItem()
 
     #set param AxisView for display the axis from the plot view
-    imv = TaurusImageView(view=axis_view)
+
+    image_item = TaurusImageItem()
+    imv = pg.ImageView(view=axis_view, imageItem=image_item)
 
     #set a custom color map
     colors = [
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     # imv.setImage(np.random.normal(size=(100,200,200)))
 
     #Add taurus 2D image data
-    imv.setModel('eval:rand(256,256)')
+    image_item.setModel('eval:rand(256,256)')
 
     imv.show()
     sys.exit(app.exec_())
