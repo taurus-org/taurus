@@ -77,10 +77,13 @@ where:
           - `<modulename>` is a python module name and
 
           - `<classname>` is the name of a class in `<modulename>` that derives
-            from :class:`EvaluationDevice`
+            from :class:`EvaluationDevice`. In the special case that <classname>
+            is "*", an EvaluationDevice will be used, but all symbols from
+            the module <modulename> will be available in it
 
       See :file:`<taurus>/core/evaluation/dev_example.py` for an example of a
-      custom Evaluator
+      custom Evaluator. Also see examples below for usage of the `@foo.*`
+      feature.
 
     - The optional `<subst>` segment is used to provide substitution symbols.
       `<subst>` is a semicolon-separated string of `<key>=<value>` strings.
@@ -108,6 +111,14 @@ Some examples of valid evaluation models are:
     - An attribute that adds noise to a tango image attribute:
 
         `eval:img={tango:sys/tg_test/1/short_image_ro};img+10*rand(*img.shape)`
+
+    - An attribute that accesses a method from a given module (os.path.exists):
+
+        `eval:@os.*/path.exists("/some/file")`
+
+    - Same as before, for getting today's date as an attribute:
+
+        'eval:@datetime.*/date.today().isoformat()'
 
     - A default evaluator device named `foo`:
 

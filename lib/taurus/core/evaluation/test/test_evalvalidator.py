@@ -74,6 +74,8 @@ class EvaluationAuthValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='eval:@foo')
 @valid(name='eval:@mymod.Myclass', groups={'devname': '@mymod.Myclass'})
 @valid(name='eval:@mymod.mysubmod.Myclass')
+@valid(name='eval:@mymod.mysubmod.*')
+@valid(name='eval:@mymod.*')
 @valid(name='eval:/@foo', groups={'devname': '@foo', 'path': '/@foo'})
 @valid(name='eval://localhost/@foo')
 @valid(name='eval:@ foo', groups={'devname': '@ foo'})
@@ -112,6 +114,8 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='eval:@foo/1')
 @valid(name='eval:@mymod.Myclass/1.2',
        groups={'attrname': '1.2', 'devname': '@mymod.Myclass'})
+@valid(name='eval:@mymod.*/bar',
+       groups={'attrname': 'bar', 'devname': '@mymod.*'})
 @valid(name='eval://linspace(-1, 1, 256)',
        groups={'attrname': 'linspace(-1, 1, 256)',
                '_expr': 'linspace(-1, 1, 256)',

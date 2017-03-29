@@ -98,9 +98,14 @@ Or one that adds noise to a tango image attribute:
     
 ``eval:img={tango:sys/tg_test/1/short_image_ro};img+10*rand(*img.shape)``
 
+And, by using custom evaluators, one can easily access virtually anything
+available from a python module. For example, using the datetime module
+to get today's date as a Taurus attribute:
+
+``eval:@datetime.*/date.today().isoformat()``
+
 See :mod:`taurus.core.evaluation` for a more exhaustive description and some 
-tricks with the Evaluation scheme (e.g. creating custom evaluators to run 
-arbitrary python code).
+tricks with the Evaluation scheme and the custom evaluators.
 
 Now an example for the :mod:`taurus.core.epics` scheme. The model name for the 
 EPICS process variable (PV) "my:example.RBV" is:

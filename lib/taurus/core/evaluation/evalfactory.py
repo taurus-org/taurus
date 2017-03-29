@@ -123,17 +123,32 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
             d = self.eval_devs.get(fullname, None)
             # if we do not know it, create the dev and store it in cache
             if d is None:
+                _safedict = {}
                 groups = validator.getUriGroups(dev_name)
                 if groups['_evalclass'] is not None:
                     modulename, classname = groups['_evalclass'].rsplit('.', 1)
-                    try:
-                        m = __import__(modulename, globals(), locals(),
-                                       [classname], -1)
-                        DevClass = getattr(m, classname)
-                    except:
-                        self.warning('Problem importing "%s"' % devname)
-                        raise
+                    if classname == '*':
+                        # Use a EvaluationDevice with all symbols from the
+                        # given module included
+                        try:
+                            import importlib
+                            m = importlib.import_module(modulename)
+                            DevClass = EvaluationDevice
+                            _safedict = m.__dict__
+                        except:
+                            self.warning('Problem importing "%s"' % modulename)
+                            raise
+                    else:
+                        # Use the given class as Evaluator
+                        try:
+                            m = __import__(modulename, globals(), locals(),
+                                           [classname], -1)
+                            DevClass = getattr(m, classname)
+                        except:
+                            self.warning('Problem importing "%s"' % devname)
+                            raise
                 else:
+                    # Use a standard EvaluationDevice
                     DevClass = EvaluationDevice
                 # Get authority (creating if necessary)
                 auth_name = groups.get('authority') or self.DEFAULT_AUTHORITY
@@ -141,6 +156,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
                 # Create Device (and store it in cache via self._storeDev)
                 d = DevClass(fullname, parent=authority,
                              storeCallback=self._storeDev)
+                d.addSafe(_safedict)
         return d
 
     def getAttribute(self, attr_name, **kwargs):
