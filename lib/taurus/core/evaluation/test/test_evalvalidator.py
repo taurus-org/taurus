@@ -88,6 +88,16 @@ class EvaluationAuthValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='eval:@foo')
 @invalid(name='eval://a/b', strict=True)
 @invalid(name='eval://d')
+# now ensure that attr names do not get validated as devs
+@invalid(name='eval:@mymod.MyClass()/c.foo')
+@invalid(name='eval:@c=mymod.MyClass(1)/c.foo()')
+@invalid(name='eval:@c=mymod.MyClass(1)/float(c.foo())')
+@invalid(name='eval:@c=mymod.MyClass("a/b",q=())/float(c.foo())')
+@valid(name='eval:@c=mymod.MyClass("a/b",q=())',
+       groups={'devname': '@c=mymod.MyClass("a/b",q=())'})
+@valid(name="eval:@c=mymod.MyClass('a/b',q=())",
+       groups={'devname': "@c=mymod.MyClass('a/b',q=())"})
+# check names
 @names(name='eval://localhost/@foo',
        out=('eval://localhost/@foo', '@foo', 'foo'))
 @names(name='eval://dev=foo',
@@ -314,6 +324,26 @@ class EvaluationDevValidatorTestCase(AbstractNameValidatorTestCase,
 @invalid(name='eval:{tango://a/b/c/d}')  # invalid because of non-strict ref
 # but valid with old syntax
 @valid(name='eval:{tango://a/b/c/d}', strict=False)
+#=========================================================================
+# Tests for eval attribute name validation (with custom evaluation dev)
+#=========================================================================
+@valid(name='eval:@mymod.*/foo')
+@valid(name='eval:@mymod.*/foo()')
+@valid(name='eval:@mymod.*/MyClass().foo()')
+@valid(name='eval:@mymod.*/foo()+1')
+@valid(name='eval:@mymod.*/foo()+{eval:@mymod.*/bar()}')
+@valid(name='eval:@c=mymod.MyClass()/c.foo',
+       groups={'devname': '@c=mymod.MyClass()',
+               'attrname':'c.foo'})
+@valid(name='eval:@c=mymod.MyClass()/c.foo()',
+       groups={'devname': '@c=mymod.MyClass()',
+               'attrname':'c.foo()'})
+@valid(name='eval:@c=mymod.MyClass(1)/float(c.foo())',
+       groups={'devname': '@c=mymod.MyClass(1)',
+               'attrname':'float(c.foo())'})
+@valid(name='eval:@c=mymod.MyClass("a/b",q=())/float(c.foo())',
+       groups={'devname': '@c=mymod.MyClass("a/b",q=())',
+               'attrname':'float(c.foo())'})
 #=========================================================================
 # Tests for eval attribute  name validation (when passing fragment / cfgkey)
 #=========================================================================
