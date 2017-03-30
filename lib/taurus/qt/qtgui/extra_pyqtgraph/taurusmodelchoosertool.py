@@ -27,6 +27,9 @@ from taurus.external.qt import QtCore
 from taurus.core import TaurusElementType
 from taurus.qt.qtgui.panel.taurusmodelchooser import TaurusModelChooser
 from taurusplotdataitem import TaurusPlotDataItem
+import taurus
+from collections import OrderedDict
+
 
 class TaurusModelChooserTool(QtGui.QAction):
 
@@ -39,6 +42,7 @@ class TaurusModelChooserTool(QtGui.QAction):
         self.plot_item = plot_item
         if self.plot_item.legend is not None:
             self.legend = self.plot_item.legend
+
         menu = self.plot_item.getViewBox().menu
         model_chooser = QtGui.QAction('Model chooser', menu)
         model_chooser.triggered.connect(self.onTriggered)
@@ -46,31 +50,35 @@ class TaurusModelChooserTool(QtGui.QAction):
 
     def onTriggered(self):
         list_items = self.plot_item.listDataItems()
-        listedModels = dict()
+        listedTaurusPlotDataItems = dict()
         listedModelNames = []
         for item in list_items:
             if isinstance(item, TaurusPlotDataItem):
-               listedModelNames.append(item.getFullModelName())
-               listedModels[item.getFullModelName()] = item
+                listedModelNames.append(item.getFullModelName())
+                listedTaurusPlotDataItems[item.getFullModelName()] = item
+
         res, ok = TaurusModelChooser.modelChooserDlg(
                     selectables=[TaurusElementType.Attribute],
                     listedModels=listedModelNames)
         if ok:
-            for model in listedModelNames:
-                if model not in res:
-                    plot_object = listedModels[model]
-                    self.plot_item.removeItem(plot_object)
-                    if self.legend is not None:
-                        self.legend.removeItem(plot_object.name())
+            models = OrderedDict()
             for r in res:
-                if r not in listedModelNames:
-                    taurusplotDataItem = TaurusPlotDataItem()
-                    taurusplotDataItem.setModel(r)
+                m = taurus.Attribute(r)
+                models[m.getFullName()] = m
+
+            for k, v in listedTaurusPlotDataItems.items():
+                self.plot_item.removeItem(v)
+                self.legend.removeItem(v.name())
+
+            for modelName, model in models.items():
+                if modelName in listedModelNames:
+                    self.plot_item.addItem(listedTaurusPlotDataItems[modelName])
+                elif modelName not in listedModelNames:
+                    # TODO use simplename for the legend label
+                    # TODO support labels
+                    taurusplotDataItem = TaurusPlotDataItem(name=model.getSimpleName())
+                    taurusplotDataItem.setModel(modelName)
                     self.plot_item.addItem(taurusplotDataItem)
-
-
-
-
 
 
 if __name__ == '__main__':
@@ -87,7 +95,7 @@ if __name__ == '__main__':
     w = pg.PlotWidget()
 
     #add legend to the plot, for that we have to give a name to plot items
-    # w.addLegend()
+    w.addLegend()
 
     # adding a regular data item (non-taurus)
     c1 = pg.PlotDataItem(name='st plot',pen='b', fillLevel=0, brush='c')
@@ -98,13 +106,11 @@ if __name__ == '__main__':
     c2 = TaurusPlotDataItem(name='st2 plot',pen='r', symbol='o')
     c2.setModel('sys/tg_test/1/wave')
 
-
     w.addItem(c2)
 
-    #pasamos PlotItem (plotWidget ?)
+    #attach plot item contained in the PlotWidget to a new TaurusModelChooserTool
     tmCt = TaurusModelChooserTool()
     tmCt.attachToPlotItem(w.getPlotItem());
-
 
     w.show()
 
