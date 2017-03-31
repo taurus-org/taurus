@@ -68,7 +68,8 @@ class TaurusModelChooserTool(QtGui.QAction):
 
             for k, v in listedTaurusPlotDataItems.items():
                 self.plot_item.removeItem(v)
-                self.legend.removeItem(v.name())
+                if self.legend is not None:
+                    self.legend.removeItem(v.name())
 
             for modelName, model in models.items():
                 if modelName in listedModelNames:
