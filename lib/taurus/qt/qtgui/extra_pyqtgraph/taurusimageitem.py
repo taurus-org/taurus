@@ -36,7 +36,7 @@ class TaurusImageItem(ImageItem, TaurusBaseComponent):
     """
     def __init__(self, *args, **kwargs):
         ImageItem.__init__(self, *args, **kwargs)
-        TaurusBaseComponent.__init__(self, 'TaurusImageView')
+        TaurusBaseComponent.__init__(self, 'TaurusImageItem')
 
     def handleEvent(self, evt_src, evt_type, evt_val):
         try:
@@ -51,30 +51,21 @@ if __name__ == "__main__":
 
     app = TaurusApplication()
 
-    axis_view = pg.PlotItem()
-
-    #set param AxisView for display the axis from the plot view
+    plot_widget = pg.PlotWidget()
+    plot_item = plot_widget.getPlotItem()
 
     image_item = TaurusImageItem()
-    imv = pg.ImageView(view=axis_view, imageItem=image_item)
-
-    #set a custom color map
-    colors = [
-        (0, 0, 0),
-        (45, 5, 61),
-        (84, 42, 55),
-        (150, 87, 60),
-        (208, 171, 141),
-        (230, 230, 230)
-    ]
-    cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
-    imv.setColorMap(cmap)
-
-    # Add random 3D image data
-    # imv.setImage(np.random.normal(size=(100,200,200)))
 
     #Add taurus 2D image data
     image_item.setModel('eval:rand(256,256)')
 
-    imv.show()
+    #add TarusImageItem to a PlotItem
+    plot_item.addItem(image_item)
+
+    #show or hide axis from the plot
+    plot_item.showAxis('left', show=True)
+    plot_item.showAxis('bottom', show=True)
+
+    plot_widget.show()
+
     sys.exit(app.exec_())
