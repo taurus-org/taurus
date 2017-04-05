@@ -26,75 +26,68 @@
 Examples on using the evaluation scheme for exposing arbitrary non-tango quantities as taurus attributes
 '''
 
-__all__ = ['IcepapDriverParam']
+__all__ = ['FreeSpaceDevice']
 
+import os
+import platform
+import ctypes
 from taurus.core.evaluation import EvaluationDevice
-import re
+from taurus.external.pint import Quantity
 
 
-class IcepapDriverParam(EvaluationDevice):
+class FreeSpaceDevice(EvaluationDevice):
     '''A simple example of usage of the evaluation scheme for
-    creating an icepap connection device to obtain icepap driver values.
+    creating a device that allows to obtain available space in a dir.
 
     Important: note that only those members listed in `_symbols` will be available
     '''
-    _symbols = ['getAxisParam']
+    _symbols = ['getFreeSpace']
 
-    def __init__(self, *args, **kwargs):
-        ''' Get from Database info the icepap host and port to connect. '''
-        self.call__init__(EvaluationDevice, *args, **kwargs)
+    _x =1
 
-        # Get the icepap host and port to connect
-        self.ipap = None
-        import pyIcePAP
+    def getFreeSpace(self, dir):
+        """ return free space (in bytes).
+        (Recipe adapted from `http://stackoverflow.com/questions/51658`)
+        """
+        if platform.system() == 'Windows':
+            free_bytes = ctypes.c_ulonglong(0)
+            ctypes.windll.kernel32.GetDiskFreeSpaceExW(
+                ctypes.c_wchar_p(dir), None, None, ctypes.pointer(free_bytes))
+            ret = free_bytes.value
+        else:
+            s = os.statvfs(dir)
+            ret = s.f_bsize * s.f_bavail
 
-        try:
-            db_name = self.getNameValidator().getDBName(self._full_name)
-            db_name = db_name.replace('eval://', '')
-            db_name = db_name.replace('db=', '')
-            host, port = db_name.split(':')
-            self.ipap = pyIcePAP.EthIcePAP(host, port)
-            self.ipap.connect()
-        except:
-            pass
-
-    def getAxisParam(self, axis, param):
-        ''' return the axis parameter value. '''
-        if self.ipap is None or not self.ipap.connected:
-            raise Exception('Not a valid icepap connection')
-
-        try:
-            value = self.ipap.readParameter(axis, param)
-            return float(value)
-        except:
-            return value
+        return Quantity(ret, 'B')
 
 
 #=========================================================================
 # Just for testing
 #=========================================================================
 
-ATTR_IPAP_POS = 'eval://db=icepap06:5000;dev=taurus.core.evaluation.ipap_example.IcepapDriverParam;getAxisParam(1,"POS")'
+def test1():
+    import taurus
+    # calculates free space in Gb
+    a = taurus.Attribute(
+        'eval:@taurus.core.evaluation.test.res.dev_example.FreeSpaceDevice/getFreeSpace("/").to("GiB")')
+    print "Free space: {:s}".format(a.read().rvalue), a.read().rvalue.units
 
 
-def _test1():
-    import taurus.core
-    a = taurus.Attribute(ATTR_IPAP_POS)
-    print "axi_s pos:", a.read().value
-
-
-def _test2():
+def test2():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.display import TaurusLabel
+    from taurus.qt.qtgui.panel import TaurusForm
     app = TaurusApplication()
 
-    tl = TaurusLabel()
-    tl.setModel(ATTR_IPAP_POS)
-    tl.show()
+    w = TaurusForm()
+    attrname = 'eval:@taurus.core.evaluation.test.res.dev_example.FreeSpaceDevice/getFreeSpace("/")'
 
+    w.setModel(attrname)
+
+    w.show()
     sys.exit(app.exec_())
 
+
 if __name__ == "__main__":
-    _test1()
-    _test2()
+    test1()
+    test2()
