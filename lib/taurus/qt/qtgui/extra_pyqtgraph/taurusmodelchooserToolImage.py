@@ -25,39 +25,51 @@
 from taurus.external.qt import QtGui
 from taurus.core import TaurusElementType
 from taurus.qt.qtgui.panel.taurusmodelchooser import TaurusModelChooser
-import taurus
+from taurus.qt.qtgui.extra_pyqtgraph.taurusimageitem import TaurusImageItem
 
 
 class TaurusModelChooserToolImage(QtGui.QAction):
 
     def __init__(self, parent=None):
         QtGui.QAction.__init__(self, parent)
-        self.image_item = None
+        self._plot_item = None
 
-    def attachToImageItem(self, plot_item):
-        self.image_item = plot_item.items[0]
-        view_from_image = plot_item.getViewBox()
-        menu = view_from_image.menu
+    def attachToPlotItem(self, plot_item):
+        self._plot_item = plot_item
+        view = plot_item.getViewBox()
+        menu = view.menu
         model_chooser = QtGui.QAction('Model chooser', menu)
         model_chooser.triggered.connect(self.onTriggered)
         menu.addAction(model_chooser)
 
     def onTriggered(self):
-        item = self.image_item
-        listModelName = []
-        print(item.getFullModelName())
-        if item.getFullModelName() is None:
-            listModelName = None
+
+        imageItem = None
+
+        for item in self._plot_item.items:
+            if isinstance(item, TaurusImageItem):
+                imageItem = item
+                break
+
+        if imageItem is None:
+            imageItem = TaurusImageItem()
+        modelName = imageItem.getFullModelName()
+        if modelName is None:
+            listedModels = []
         else:
-            listModelName.append(item.getFullModelName())
+            listedModels = [modelName]
 
         res, ok = TaurusModelChooser.modelChooserDlg(
                     selectables=[TaurusElementType.Attribute],
-                    singleModel=True, listedModels=listModelName)
+                    singleModel=True, listedModels=listedModels)
+        print(ok)
         if ok:
-            if len(res) != 0:
-                model = taurus.Attribute(res[0])
-                item.setModel(model.getFullName())
+            if res:
+                model = res[0]
+            else:
+                model = None
+            imageItem.setModel(model)
+
 
 
 if __name__ == '__main__':
@@ -76,13 +88,14 @@ if __name__ == '__main__':
 
     # Add taurus 2D image data
     image_item.setModel('eval:rand(256,256)')
+
     plot_item.addItem(image_item)
 
     plot_item.showAxis('left', show=False)
-    plot_item.showAxis('bottom', show=True)
+    plot_item.showAxis('bottom', show=False)
 
     tmCt = TaurusModelChooserToolImage()
-    tmCt.attachToImageItem(plot_item)
+    tmCt.attachToPlotItem(plot_item)
 
     plot_widget.show()
     sys.exit(app.exec_())
