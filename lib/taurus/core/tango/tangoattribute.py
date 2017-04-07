@@ -30,6 +30,7 @@ __all__ = ["TangoAttribute", "TangoAttributeEventListener", "TangoAttrValue"]
 __docformat__ = "restructuredtext"
 
 # -*- coding: utf-8 -*-
+import re
 import time
 import threading
 import weakref
@@ -921,6 +922,9 @@ class TangoAttribute(TaurusAttribute):
             ###############################################################
             self.format = standard_display_format_from_tango(i.data_type,
                                                              i.format)
+            match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", self.format)
+            if match:
+                self.precision = int(match.group(1))
             # self._units and self._display_format is to be used by
             # TangoAttrValue for performance reasons. Do not rely on it in other
             # code
