@@ -181,3 +181,26 @@ def standard_display_format_from_tango(dtype, fmt):
 def display_format_from_tango(dtype, fmt):
     fmt = standard_display_format_from_tango(dtype, fmt)
     return fmt.replace('%s', '!s').replace('%r', '!r').replace('%', '')
+
+
+def tangoFormatter(dtype=None, basecomponent=None, **kwargs):
+    """
+    The tango formatter callable. Returns the string formatting base on
+    the Tango Attribute configuration `format` (Display.Format in Tango DB)
+
+    :param dtype: (object) data type
+    :param basecomponent: widget
+    :param kwargs: other keyword arguments
+
+    :return: the string formatting
+    """
+    fmt = "{0}"
+    if basecomponent is not None:
+        # get the TangoAttribute Spec format
+        spec_format = basecomponent.modelObj.format[1:]
+        if dtype is Quantity:
+            fmt = "{{:~{spec_format}}}".format(tformat=spec_format)
+        else:
+            fmt = "{{:{spec_format}}}".format(tformat=spec_format)
+
+    return fmt
