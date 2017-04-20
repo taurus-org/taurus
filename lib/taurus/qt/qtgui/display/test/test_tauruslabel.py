@@ -95,7 +95,7 @@ testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
 
 
 @testOldFgroles(fgRole='value', expected='1.23 mm')
-@testOldFgroles(fgRole='w_value', expected='0.0 mm')
+@testOldFgroles(fgRole='w_value', expected='0.00 mm')
 @testOldFgroles(fgRole='state', expected='Ready')
 @testOldFgroles(fgRole='quality', expected='ATTR_VALID')
 @testOldFgroles(fgRole='none', expected='')
