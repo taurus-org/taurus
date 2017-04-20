@@ -26,7 +26,7 @@ from .compat import string_types, ndarray, np, _to_magnitude, long_type
 from .util import (logger, UnitsContainer, SharedRegistryObject,
                    to_units_container, infer_base_unit,
                    fix_str_conversions)
-from pint.compat import Loc
+from .compat import Loc
 
 
 def _eq(first, second, check_all):

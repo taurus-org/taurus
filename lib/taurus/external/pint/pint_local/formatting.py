@@ -14,7 +14,7 @@ from __future__ import division, unicode_literals, print_function, absolute_impo
 import re
 
 from .babel_names import _babel_units, _babel_lengths
-from pint.compat import babel_units, Loc
+from .compat import babel_units, Loc
 
 __JOIN_REG_EXP = re.compile("\{\d*\}")
 
