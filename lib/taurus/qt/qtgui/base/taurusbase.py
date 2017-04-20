@@ -733,7 +733,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param dtype: (object) data type
         :param kwargs: other keyword arguments
         """
-        if not isinstance(self.FORMAT, str):
+        if not isinstance(self.FORMAT, basestring):
             # unbound method to callable
             if isinstance(self.FORMAT, MethodType):
                 self.FORMAT = self.FORMAT.__func__
