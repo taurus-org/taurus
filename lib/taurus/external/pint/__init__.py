@@ -27,13 +27,13 @@ from __future__ import absolute_import
 
 try:
     from pint import __version__
-    if __version__.split('.') < ['0','7']:
+    if __version__.split('.') < ['0','8']:
         raise ImportError()
     from pint import *
 
 except ImportError:
     import warnings
-    warnings.warn("pint >=0.7 not available. Using local pint", ImportWarning)
+    warnings.warn("pint >=0.8 not available. Using local pint", ImportWarning)
     from .pint_local import *
     from .pint_local import __version__ as __local_pint_version
     __version__ = __local_pint_version + '-taurus'
