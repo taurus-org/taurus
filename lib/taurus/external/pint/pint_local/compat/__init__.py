@@ -51,15 +51,6 @@ else:
 
     long_type = long
 
-if sys.version_info < (2, 7):
-    try:
-        import unittest2 as unittest
-    except ImportError:
-        raise Exception("Testing Pint in Python 2.6 requires package 'unittest2'")
-else:
-    import unittest
-
-
 try:
     from collections import Chainmap
 except ImportError:
@@ -127,3 +118,13 @@ except ImportError:
     ufloat = None
     HAS_UNCERTAINTIES = False
 
+try:
+    from babel import Locale as Loc
+    from babel import units as babel_units
+    HAS_BABEL = True
+    HAS_PROPER_BABEL = hasattr(babel_units, 'format_unit')
+except ImportError:
+    HAS_PROPER_BABEL = HAS_BABEL = False
+
+if not HAS_PROPER_BABEL:
+    Loc = babel_units = None
