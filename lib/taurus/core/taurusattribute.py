@@ -75,7 +75,7 @@ class TaurusAttribute(TaurusModel):
         self._range = [None, None]
         self._alarm = [None, None]
         self._warning = [None, None]
-        self._precision = None
+        self.precision = None
 
     def cleanUp(self):
         self.trace("[TaurusAttribute] cleanUp")
@@ -402,12 +402,6 @@ class TaurusAttribute(TaurusModel):
         v = self.read(cache)
         return isinstance(v.rvalue, bool)
 
-    def setPrecision(self, value):
-        self._precision = value
-
-    def getPrecision(self):
-        return self._precision
-
     @property
     def description(self):
         return self._description
@@ -456,4 +450,3 @@ class TaurusAttribute(TaurusModel):
     range = property(getRange, setRange)
     warnings = property(getWarnings, setWarnings)
     alarms = property(getAlarms, setAlarms)
-    precision = property(getPrecision, setPrecision)
