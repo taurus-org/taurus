@@ -128,6 +128,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     # Dictionary with the default sting formatting  codifications
     defaultFormatDict = {float: "{:.{precision}f}",
+                         Enum: "{0.name}",
                          Quantity: "{:~.{precision}f}"
                          }
 
@@ -695,20 +696,6 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param v: (object) the value to be translated to string
 
         :return: (str) a string representing the given value
-        """
-        if isinstance(v, Enum):
-            v = v.name
-        return self._applyFormat(v)
-
-
-    def _applyFormat(self, v):
-        """Returns a string formatting of the given value.
-        If the string format can not be applied to the given value (raise an exception)
-        the string format of the attribute will be applied.
-
-        :param v: (object) the reference value to calculate its type
-
-        :return: (str) a string formatting of the given value
         """
         if self._format is None:
             self._updateFormat(type(v))
