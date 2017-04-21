@@ -546,7 +546,6 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
                 modelName = modelClass.buildModelName(parent_model, modelName)
         self._detach()
         self.modelName = modelName
-        self.resetFormat()
         # update modelFragmentName
         try:
             scheme = self.getTaurusManager().getScheme(modelName)
@@ -1046,6 +1045,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
         :param model: (str) the new model name"""
         self.setModelCheck(model)
+        self.resetFormat()
         self.updateStyle()
 
     def setModelCheck(self, model, check=True):

@@ -192,8 +192,6 @@ class DefaultReadWidgetLabel(ExpandingLabel):
             return
         if model_obj.getType() in (DataType.Integer, DataType.Float):
             fgrole += '.magnitude'
-            # Force to recalculate the (display) format
-            self.resetFormat()
         self.setFgRole(fgrole)
 
 
