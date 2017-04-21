@@ -73,6 +73,8 @@ def defaultFormatter(dtype=None, basecomponent=None, **kwargs):
     :return: (str) The string formatting codified in the `basecomponent.defaultFormats` dict
     according the given type or the string formatting.
     """
+    if issubclass(dtype, Enum):
+        dtype = Enum
     return basecomponent.defaultFormatDict.get(dtype, "{0}")
 
 
