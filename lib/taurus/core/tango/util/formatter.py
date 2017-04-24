@@ -27,12 +27,12 @@ __all__ = ["tangoFormatter"]
 
 def tangoFormatter(dtype=None, basecomponent=None, **kwargs):
     """
-    The tango formatter callable. Returns the string formatting base on
-    the Tango Attribute configuration `format` (Display.Format in Tango DB)
+    The tango formatter callable. Returns a format string based on
+    the `format` Tango Attribute configuration (Display.Format in Tango DB)
 
-    :param dtype: (object) data type
-    :param basecomponent: widget
-    :param kwargs: other keyword arguments
+    :param dtype: (type) type of the value object
+    :param basecomponent: the widget whose display is to be formatted
+    :param kwargs: other keyword arguments (ignored)
 
     :return: the string formatting
     """

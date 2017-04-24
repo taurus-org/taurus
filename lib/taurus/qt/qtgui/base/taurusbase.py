@@ -63,15 +63,15 @@ DefaultNoneValue = "-----"
 
 def defaultFormatter(dtype=None, basecomponent=None, **kwargs):
     """
-    Default formatter callable. Returns the string formatting codification
-    according the `basecomponent.defaultFormatDict`and the given data type.
+    Default formatter callable. Returns a format string based on dtype
+    and the mapping provided by 
+    :attribute:`TaurusBaseComponent.defaultFormatDict`
 
     :param dtype: (object) data type
-    :param basecomponent: widget
+    :param basecomponent: widget whose display is to be formatted
     :param kwargs: other keyworld arguments
 
-    :return: (str) The string formatting codified in the `basecomponent.defaultFormats` dict
-    according the given type or the string formatting.
+    :return: (str) The format string corresponding to the given dtype.
     """
     if issubclass(dtype, Enum):
         dtype = Enum
@@ -89,46 +89,15 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
            `taurusEvent` is implemented using :func:`baseSignal`, that doesn't
            require the class to inherit from QObject.
 
-       TaurusBaseComponent includes an API to modify the View of the represented values.
-       The API allows to change the formatting of the represented values via class members
-       modifying any of its attributes: `FORMAT` or `defaultFormatDict`.
-
-       `FORMAT` accept a python string formatting [1] or a callable that returns a python string formatting.
-       If a callable is used. It must have the followed ketword arguments:
-       - dtype: the data type of the value to be formatted
-       - basecomponent: the affected widget
-
-        e.g.
-            # with string formatting
-            TaurusBaseComponent.FORMAT = "{:.2e}"
-            or
-            # with callable
-            def baseFormatter(dtype=None, basecomponent=None, **kwargs):
-                return "{:.1f}"
-
-            TaurusBaseComponent.FORMAT = baseFormatter
-
-        `defaultFormatDict` is the dictionary with the codification between attribute type and the string formmatting.
-        It can be extended or modified.
-
-        e.g.
-            # Add a custom string formmating for str types: e.g. using its repr()
-            TaurusBaseComponent.defaultFormatDict.update({"str": "{!r}"})
-
-        Or via instance with the `setFormat` method to modified the `FORMAT` attribute,
-        this method accepts also a string formmatting or a callable. Moreover modified the `FORMAT` attribute
-        this method resets the current string format.
-
-        [1] https://docs.python.org/2/library/string.html
     """
     _modifiableByUser = False
     _showQuality = True
     _eventBufferPeriod = 0
 
-    # Python string format or Formatter
+    # Python format string or Formatter callable
     FORMAT = defaultFormatter
 
-    # Dictionary with the default sting formatting  codifications
+    # Dictionary mapping dtypes to format strings
     defaultFormatDict = {float: "{:.{precision}f}",
                          Enum: "{0.name}",
                          Quantity: "{:~.{precision}f}"
@@ -692,7 +661,45 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         return ret
 
     def displayValue(self, v):
-        """Returns a string representation applying it corresponding string formatting of the given value
+        """Returns a string representation of the given value
+
+        This method will use a format string which is determined 
+        dynamically from :attribute:`FORMAT`.
+
+        By default `TaurusBaseComponent.FORMAT` is set to 
+        :function:`defaultFormatter`, which makes use of 
+        :attribute:`defaultFormatDict`. 
+ 
+        In order to customize the formatting behaviour, one can change
+        :attribute:`defaultFormatDict` or :attribute:`FORMAT` directly
+        at class level, or use :method:`setFormat` to alter the 
+        format string of an specific instance
+        
+        `FORMAT` can be set to a python format string [1] or a callable 
+        that returns a python format string.
+        If a callable is used, it will be called with the following 
+        keyword arguments:
+        - dtype: the data type of the value to be formatted
+        - basecomponent: the affected widget    
+  
+        The following are some examples for customizing the formatting:
+
+        - Change FORMAT for all widgets (using a string):
+
+            TaurusBaseComponent.FORMAT = "{:.2e}"
+            
+        - Change FORMAT for all TaurusLabels (using a callable):
+        
+            def baseFormatter(dtype=None, basecomponent=None, **kwargs):
+                return "{:.1f}"
+
+            TaurusLabel.FORMAT = baseFormatter
+
+        - Use the defaultFormatter but modify the format string for dtype=str:
+
+            TaurusBaseComponent.defaultFormatDict.update({"str": "{!r}"})
+
+        [1] https://docs.python.org/2/library/string.html
 
         :param v: (object) the value to be translated to string
 
@@ -714,34 +721,39 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         return fmt_v
 
     def _updateFormat(self, dtype, **kwargs):
-        """ Method to update the `_format` string attribute.
-        The value of `_format` depends on the `FORMAT` attribute. `FORMAT` could be string or a callable
-        that returns a string (in that case it will be evaluated)
+        """ Method to update the internal format string used by 
+        :meth:`displayValue`
+        The internal format string is calculated using :attribute:`FORMAT`,
+        which can be a string or a callable that returns a string
+        (see :meth:`displayValue`).
 
         :param dtype: (object) data type
-        :param kwargs: other keyword arguments
+        :param kwargs: keyword arguments that will be passed to
+                       :attribute:`FORMAT` if it is a callable
         """
         if not isinstance(self.FORMAT, basestring):
             # unbound method to callable
             if isinstance(self.FORMAT, MethodType):
                 self.FORMAT = self.FORMAT.__func__
-            self._format = self.FORMAT(dtype=dtype, basecomponent=self,  **kwargs)
+            self._format = self.FORMAT(dtype=dtype, basecomponent=self,  
+                                       **kwargs)
         else:
             self._format = self.FORMAT
 
     def setFormat(self, format):
-        """ Method to initialize the `FORMAT` attribute.
-        Call this method forces to recalculate the string format in the next evaluation.
+        """ Method to set the `FORMAT` attribute for this instance.
+        It also resets the internal format string, which will be recalculated
+        in the next call to :method"`displayValue`
 
-        :param format: A string formatting or a callable that returns a string
-
+        :param format: (str or callable) A format string or a callable 
+                       that returns it 
         """
         self.FORMAT = format
         self.resetFormat()
 
     def resetFormat(self):
-        """Reset the current string format. Setting it to None forces to recalcule it
-        in the next evaluation.
+        """Reset the internal format string. It forces a recalculation
+        in the next call to :method:`displayValue`.
         """
         self._format = None
 
