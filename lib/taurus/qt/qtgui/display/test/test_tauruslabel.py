@@ -212,11 +212,11 @@ def baseFormatter2(dtype, **kwargs):
             model='eval:1.2345',
             formatter='{:.3f}',
             expected="1.234 dimensionless")
-class TaurusLabelFormat(BaseWidgetTestCase, unittest.TestCase):
-    '''
+class TaurusLabelFormatTest(BaseWidgetTestCase, unittest.TestCase):
+    """
     Specific tests for testing the Formatting API with TaurusLabel
     instances
-    '''
+    """
 
     _klass = TaurusLabel
 
@@ -243,15 +243,15 @@ class TaurusLabelFormat(BaseWidgetTestCase, unittest.TestCase):
             model='eval:1.2345',
             formatter=None,
             expected="1.2")
-class TaurusLabelFormatClass(TaurusLabelFormat):
-    '''
+class TaurusLabelFormatClassTest(TaurusLabelFormatTest):
+    """
     Specific tests for testing the Formatting API with TaurusLabel
-    '''
+    """
 
     _klass = TaurusLabel
 
     def setUp(self):
-        TaurusLabelFormat.setUp(self)
+        TaurusLabelFormatTest.setUp(self)
         self._defaultFormatter = TaurusLabel.FORMAT
         TaurusLabel.FORMAT = baseFormatter1
 
