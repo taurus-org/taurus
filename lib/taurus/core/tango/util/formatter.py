@@ -25,24 +25,20 @@
 
 __all__ = ["tangoFormatter"]
 
-def tangoFormatter(dtype=None, basecomponent=None, **kwargs):
+from taurus.external.pint import Quantity
+
+def tangoFormatter(dtype=None, **kwargs):
     """
     The tango formatter callable. Returns a format string based on
     the `format` Tango Attribute configuration (Display.Format in Tango DB)
 
     :param dtype: (type) type of the value object
-    :param basecomponent: the widget whose display is to be formatted
     :param kwargs: other keyword arguments (ignored)
 
     :return: the string formatting
     """
-    fmt = "{0}"
-    if basecomponent is not None:
-        # get the TangoAttribute Spec format
-        spec_format = basecomponent.modelObj.format[1:]
-        if dtype is Quantity:
-            fmt = "{{:~{spec_format}}}".format(tformat=spec_format)
-        else:
-            fmt = "{{:{spec_format}}}".format(tformat=spec_format)
-
+    if dtype is Quantity:
+        fmt = "{:~{bc.modelObj.format_spec}}"
+    else:
+        fmt = "{:{bc.modelObj.format_spec}}"
     return fmt

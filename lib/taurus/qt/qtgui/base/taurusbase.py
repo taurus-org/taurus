@@ -98,9 +98,9 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     FORMAT = defaultFormatter
 
     # Dictionary mapping dtypes to format strings
-    defaultFormatDict = {float: "{:.{precision}f}",
+    defaultFormatDict = {float: "{:.{bc.modelObj.precision}f}",
                          Enum: "{0.name}",
-                         Quantity: "{:~.{precision}f}"
+                         Quantity: "{:~.{bc.modelObj.precision}f}"
                          }
 
     taurusEvent = baseSignal('taurusEvent', object, object, object)
@@ -706,16 +706,16 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :return: (str) a string representing the given value
         """
         if self._format is None:
-            self._updateFormat(type(v))
-
-        if self.modelObj is not None:
-            precision = self.modelObj.precision
-        else:
-            precision = None
-
+            try:
+                self._updateFormat(type(v))
+            except Exception, e:
+                self.warning(('Cannot update format. Reverting to default.' +
+                              ' Reason: %r'), e)
+                self.setFormat(defaultFormatter)
         try:
-            fmt_v = self._format.format(v, precision=precision)
+            fmt_v = self._format.format(v, bc=self)
         except Exception:
+            self.debug("Invalid format %r for %r. Using '{0}'", self._format, v)
             fmt_v = "{0}".format(v)
 
         return fmt_v

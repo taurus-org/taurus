@@ -922,6 +922,7 @@ class TangoAttribute(TaurusAttribute):
             ###############################################################
             self.format = standard_display_format_from_tango(i.data_type,
                                                              i.format)
+            self.format_spec = self.format.lstrip('%')  # format specifier
             match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", self.format)
             if match:
                 self.precision = int(match.group(1))
