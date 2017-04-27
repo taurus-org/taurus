@@ -26,3 +26,5 @@
 """The sardana package. It contains specific part of sardana"""
 
 __docformat__ = 'restructuredtext'
+
+from formatter import tangoFormatter

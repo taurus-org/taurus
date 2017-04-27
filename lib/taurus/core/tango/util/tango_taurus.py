@@ -181,3 +181,5 @@ def standard_display_format_from_tango(dtype, fmt):
 def display_format_from_tango(dtype, fmt):
     fmt = standard_display_format_from_tango(dtype, fmt)
     return fmt.replace('%s', '!s').replace('%r', '!r').replace('%', '')
+
+
