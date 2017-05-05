@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     app = TaurusApplication()
 
-    # a standard pyqtgraph widget
+    # a standard pyqtgraph plot_item
     w = pg.PlotWidget()
 
     #add legend to the plot, for that we have to give a name to plot items
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     w.addItem(c1)
 
     # adding a taurus data item
-    c2 = TaurusPlotDataItem(name='st2 plot',pen='r', symbol='o')
+    c2 = TaurusPlotDataItem(name='st2 plot', pen='r', symbol='o')
     c2.setModel('eval:Quantity(rand(256),"m")')
 
     w.addItem(c2)

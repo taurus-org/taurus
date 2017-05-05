@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
     app = TaurusApplication()
 
-    # a standard pyqtgraph widget
+    # a standard pyqtgraph plot_item
     w = pg.PlotWidget()
 
     #add legend to the plot, for that we have to give a name to plot items
