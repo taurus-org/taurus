@@ -334,14 +334,16 @@ class EvaluationAttribute(TaurusAttribute):
         try:
             evaluator = self.getParentObj()
             rvalue = evaluator.eval(self._transformation)
-            # TODO: Workarround for pint issue #509
-            # https://github.com/hgrecco/pint/issues/509
+            # --------------------------------------------------------- 
+            # Workaround for https://github.com/hgrecco/pint/issues/509
             # The numpy.shape method over a Quantity mutates
             # the type of its magnitude.
+            # TODO: remove "if" when the bug is solved in pint
             if hasattr(rvalue, "magnitude"):
                 value_dimension = len(numpy.shape(rvalue.magnitude))
             else:
                 value_dimension = len(numpy.shape(rvalue))
+            # ---------------------------------------------------------
             value_dformat = DataFormat(value_dimension)
             self.data_format = value_dformat
             self.type = self._encodeType(rvalue, value_dformat)
