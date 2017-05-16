@@ -182,8 +182,7 @@ def baseFormatter2(dtype, **kwargs):
 @insertTest(helper_name='checkFormat',
             model='eval:Q(5)#rvalue.magnitude',
             formatter=baseFormatter2,
-            expected="int",
-            test_skip="Skipped test due to bug #433")
+            expected="int")
 @insertTest(helper_name='checkFormat',
             model='eval:Q("5m")#rvalue.units',
             formatter=baseFormatter2,
