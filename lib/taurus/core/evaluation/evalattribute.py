@@ -334,7 +334,10 @@ class EvaluationAttribute(TaurusAttribute):
         try:
             evaluator = self.getParentObj()
             rvalue = evaluator.eval(self._transformation)
-            value_dimension = len(numpy.shape(rvalue))
+            if hasattr(rvalue, "magnitude"):
+                value_dimension = len(numpy.shape(rvalue.magnitude))
+            else:
+                value_dimension = len(numpy.shape(rvalue))
             value_dformat = DataFormat(value_dimension)
             self.data_format = value_dformat
             self.type = self._encodeType(rvalue, value_dformat)
