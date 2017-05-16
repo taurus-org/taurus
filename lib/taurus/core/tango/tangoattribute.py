@@ -503,7 +503,12 @@ class TangoAttribute(TaurusAttribute):
         if self.__attr_err is not None:
             raise self.__attr_err
         return self.__attr_value
-
+    
+    def getAttributeProxy(self):
+        """Convenience method that creates and returns a PyTango.AttributeProxy
+        object"""
+        return PyTango.AttributeProxy(self.getFullName())
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
