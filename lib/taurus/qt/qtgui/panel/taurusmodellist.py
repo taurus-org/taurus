@@ -406,6 +406,7 @@ class TaurusModelList(Qt.QListView):
 
         :param models: (list<str>) sequence of model names to be added
         '''
+
         self._model.insertItems(-1, models)
 
     def getModelItems(self):
