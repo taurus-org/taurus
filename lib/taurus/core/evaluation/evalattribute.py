@@ -171,13 +171,12 @@ class EvaluationAttribute(TaurusAttribute):
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
         self._value = EvaluationAttrValue(attr=self)
 
-        # Evaluation Attributes are always read-only (at least for now)
         self._label = self.getSimpleName()
-        self.writable = False
         self._references = []
         self._validator = self.getNameValidator()
         self._transformation = None
         self.__subscription_state = SubscriptionState.Unsubscribed
+        self._value_setter = None
 
         # This should never be None because the init already ran the validator
         trstring = self._validator.getExpandedExpr(str(name))
@@ -187,6 +186,35 @@ class EvaluationAttribute(TaurusAttribute):
         if ok:
             self._transformation = trstring
             self.applyTransformation()
+
+        self._initWritable(trstring)
+
+    def _initWritable(self, trstring):
+        # Determine if the device supports writing to this attribute and
+        # initialize the writing infrastructure accordingly
+        self.writable = False
+        try:
+            dev = self.getParentObj()
+            names = trstring.split('.')
+            obj = instance = dev.getSafe()[names[0]]
+            for n in names[1:-1]:
+                obj = getattr(obj, n)
+            obj = getattr(obj.__class__, names[-1])
+        except Exception, e:
+            # self.info("%r", e)
+            return
+        ######################################################################
+        # This check wrongly returns false for writable properties defined with
+        # the @x.setter decorator
+        # TODO: Improve this
+        self.writable = hasattr(obj, 'fset') and obj.fset is not None
+        #######################################################################
+        if self.writable:
+            def value_setter(value):
+                obj.fset(instance, value)
+
+            self._value_setter = value_setter
+            self._value.wvalue = self._value.rvalue
 
     @staticmethod
     def getId(obj, idFormat=r'_V%i_'):
@@ -306,7 +334,16 @@ class EvaluationAttribute(TaurusAttribute):
         try:
             evaluator = self.getParentObj()
             rvalue = evaluator.eval(self._transformation)
-            value_dimension = len(numpy.shape(rvalue))
+            # --------------------------------------------------------- 
+            # Workaround for https://github.com/hgrecco/pint/issues/509
+            # The numpy.shape method over a Quantity mutates
+            # the type of its magnitude.
+            # TODO: remove "if" when the bug is solved in pint
+            if hasattr(rvalue, "magnitude"):
+                value_dimension = len(numpy.shape(rvalue.magnitude))
+            else:
+                value_dimension = len(numpy.shape(rvalue))
+            # ---------------------------------------------------------
             value_dformat = DataFormat(value_dimension)
             self.data_format = value_dformat
             self.type = self._encodeType(rvalue, value_dformat)
@@ -371,7 +408,15 @@ class EvaluationAttribute(TaurusAttribute):
         return attr_value
 
     def write(self, value, with_read=True):
-        raise TaurusException('Evaluation attributes are read-only')
+        if not self.isWritable():
+            raise TaurusException('Attempt to write on read-only attribute %s',
+                                  self.getFullName())
+        self._value_setter(value)
+        self._value.wvalue = value
+
+        if with_read:
+            ret=self.read(cache=False)
+            return ret
 
     def read(self, cache=True):
         '''returns the value of the attribute.
@@ -382,6 +427,7 @@ class EvaluationAttribute(TaurusAttribute):
 
         :return: attribute value
         '''
+
         if not cache:
             symbols = {}
             for ref in self._references:

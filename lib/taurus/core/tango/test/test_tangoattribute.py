@@ -32,14 +32,13 @@ __docformat__ = 'restructuredtext'
 import numpy
 import PyTango
 from taurus.external import unittest
-from taurus.external.pint import Quantity
+from taurus.external.pint import Quantity, UR, UndefinedUnitError
 import taurus
 from taurus.core import DataType, DataFormat
 from taurus.core.tango.tangoattribute import TangoAttrValue
 from taurus.core.tango.test import TangoSchemeTestLauncher
 from taurus.test import insertTest
 from taurus.core.taurusbasetypes import AttrQuality
-from taurus.core.tango.util.tango_taurus import unit_from_tango
 
 _INT_IMG = numpy.arange(2 * 3, dtype='int16').reshape((2, 3))
 _INT_SPE = _INT_IMG[1, :]
@@ -733,7 +732,10 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
         """
         dev = PyTango.DeviceProxy(self.DEV_NAME)
         infoex = dev.get_attribute_config_ex(attr_name)[0]
-        unit = unit_from_tango(infoex.unit)
+        try:
+            unit =  UR.parse_units(infoex.unit)
+        except (UndefinedUnitError, UnicodeDecodeError):
+            unit = UR.parse_units(None)
         if cfg in ['range', 'alarms', 'warnings']:
             if cfg == 'range':
                 low = infoex.min_value

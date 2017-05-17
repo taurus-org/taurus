@@ -10,6 +10,15 @@ develop branch)  won't be reflected in this file.
 
 ## Unreleased
 
+### Added
+- Formatting API in TaurusBaseComponent (#444)
+- TangoAttribute.format_spec and taurus.core.util.tangoFormatter
+
+### Deprecated
+- TangoAttribute.format
+
+### Fixed
+- Taurus4 does not follow Tango format (#392)
 
 ## [4.0.3] - 2017-01-16
 [Jan17 milestone](https://github.com/taurus-org/taurus/milestone/1)

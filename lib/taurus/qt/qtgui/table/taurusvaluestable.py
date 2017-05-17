@@ -43,15 +43,15 @@ from taurus.core.util.enumeration import Enumeration
 
 def _value2Quantity(value, units):
     '''
-    Creates a Quantity from value and forces units if the vaule is dimensionless
+    Creates a Quantity from value and forces units if the vaule is unitless
 
     :param value: (int, float or str) a number or a string from which a quantity
                   can be created
-    :param units: (str or Pint units) Units to use if the value is dimensionless
+    :param units: (str or Pint units) Units to use if the value is unitless
     :return: (Quantity)
     '''
     q = Quantity(value)
-    if q.dimensionless:
+    if q.unitless:
         q = Quantity(q, units)
     return q
 

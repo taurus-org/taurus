@@ -3,7 +3,7 @@
     pint.quantity
     ~~~~~~~~~~~~~
 
-    :copyright: 2013 by Pint Authors, see AUTHORS for more details.
+    :copyright: 2016 by Pint Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
@@ -14,14 +14,19 @@ import math
 import operator
 import functools
 import bisect
+import warnings
+import numbers
 
-from .formatting import remove_custom_flags
+from .formatting import (remove_custom_flags, siunitx_format_unit, ndarray_to_latex,
+                         ndarray_to_latex_parts)
 from .errors import (DimensionalityError, OffsetUnitCalculusError,
                      UndefinedUnitError)
 from .definitions import UnitDefinition
 from .compat import string_types, ndarray, np, _to_magnitude, long_type
 from .util import (logger, UnitsContainer, SharedRegistryObject,
-                   to_units_container, infer_base_unit)
+                   to_units_container, infer_base_unit,
+                   fix_str_conversions)
+from .compat import Loc
 
 
 def _eq(first, second, check_all):
@@ -39,6 +44,7 @@ class _Exception(Exception):            # pragma: no cover
         self.internal = internal
 
 
+@fix_str_conversions
 class _Quantity(SharedRegistryObject):
     """Implements a class to describe a physical quantity:
     the product of a numerical value and a unit of measurement.
@@ -118,14 +124,71 @@ class _Quantity(SharedRegistryObject):
 
     def __format__(self, spec):
         spec = spec or self.default_format
+
+        if 'L' in spec:
+            allf = plain_allf = r'{0}\ {1}'
+        else:
+            allf = plain_allf = '{0} {1}'
+
+        mstr, ustr = None, None
+
+        # If Compact is selected, do it at the beginning
         if '#' in spec:
             spec = spec.replace('#', '')
             obj = self.to_compact()
         else:
             obj = self
+
+        # the LaTeX siunitx code
+        if 'Lx' in spec:
+            spec = spec.replace('Lx','')
+            # todo: add support for extracting options
+            opts = ''
+            ustr = siunitx_format_unit(obj.units)
+            allf = r'\SI[%s]{{{0}}}{{{1}}}'% opts
+        else:
+            ustr = format(obj.units, spec)
+
+        mspec = remove_custom_flags(spec)
+        if isinstance(self.magnitude, ndarray):
+            if 'L' in spec:
+                mstr = ndarray_to_latex(obj.magnitude, mspec)
+            elif 'H' in spec:
+                # this is required to have the magnitude and unit in the same line
+                allf = r'\[{0} {1}\]'
+                parts = ndarray_to_latex_parts(obj.magnitude, mspec)
+
+                if len(parts) > 1:
+                    return '\n'.join(allf.format(part, ustr) for part in parts)
+
+                mstr = parts[0]
+            else:
+                mstr = format(obj.magnitude, mspec).replace('\n', '')
+        else:
+            mstr = format(obj.magnitude, mspec).replace('\n', '')
+
+        if allf == plain_allf and ustr.startswith('1 /'):
+            # Write e.g. "3 / s" instead of "3 1 / s"
+            ustr = ustr[2:]
+        return allf.format(mstr, ustr).strip()
+
+    def format_babel(self, spec='', **kwspec):
+        spec = spec or self.default_format
+
+        # standard cases
+        if '#' in spec:
+            spec = spec.replace('#', '')
+            obj = self.to_compact()
+        else:
+            obj = self
+        kwspec = dict(kwspec)
+        if 'length' in kwspec:
+            kwspec['babel_length'] = kwspec.pop('length')
+        kwspec['locale'] = Loc.parse(kwspec['locale'])
+        kwspec['babel_plural_form'] = kwspec['locale'].plural_form(obj.magnitude)
         return '{0} {1}'.format(
             format(obj.magnitude, remove_custom_flags(spec)),
-            format(obj.units, spec))
+            obj.units.format_babel(spec, **kwspec)).replace('\n', '')
 
     # IPython related code
     def _repr_html_(self):
@@ -146,13 +209,13 @@ class _Quantity(SharedRegistryObject):
         """
         return self._magnitude
 
-    def m_as(self, unit):
+    def m_as(self, units):
         """Quantity's magnitude expressed in particular units.
 
-        :param other: destination units.
-        :type other: Quantity, str or dict
+        :param units: destination units
+        :type units: Quantity, str or dict
         """
-        return (self / unit).to('').magnitude
+        return self.to(units).magnitude
 
     @property
     def units(self):
@@ -184,16 +247,23 @@ class _Quantity(SharedRegistryObject):
 
         return not bool(tmp.dimensionality)
 
+    _dimensionality = None
+
     @property
     def dimensionality(self):
         """Quantity's dimensionality (e.g. {length: 1, time: -1})
         """
-        try:
-            return self._dimensionality
-        except AttributeError:
+        if self._dimensionality is None:
             self._dimensionality = self._REGISTRY._get_dimensionality(self._units)
 
         return self._dimensionality
+
+    @classmethod
+    def from_tuple(cls, tup):
+        return cls(tup[0], UnitsContainer(tup[1]))
+
+    def to_tuple(self):
+        return self.m, tuple(self._units.items())
 
     def compatible_units(self, *contexts):
         if contexts:
@@ -296,7 +366,15 @@ class _Quantity(SharedRegistryObject):
         >>> (1e-2*ureg('kg m/s^2')).to_compact('N')
         <Quantity(10.0, 'millinewton')>
         """
-        if self.unitless:
+        if not isinstance(self.magnitude, numbers.Number):
+            msg = ("to_compact applied to non numerical types "
+                    "has an undefined behavior.")
+            w = RuntimeWarning(msg)
+            warnings.warn(w, stacklevel=2)
+            return self
+
+        if (self.unitless or self.magnitude==0 or 
+            math.isnan(self.magnitude) or math.isinf(self.magnitude)):
             return self
 
         SI_prefixes = {}
@@ -325,9 +403,9 @@ class _Quantity(SharedRegistryObject):
         unit_power = list(q_base._units.items())[0][1]
 
         if unit_power > 0:
-            power = int(math.floor(math.log10(magnitude) / unit_power / 3)) * 3
+            power = int(math.floor(math.log10(abs(magnitude)) / unit_power / 3)) * 3
         else:
-            power = int(math.ceil(math.log10(magnitude) / unit_power / 3)) * 3
+            power = int(math.ceil(math.log10(abs(magnitude)) / unit_power / 3)) * 3
 
         prefix = SI_bases[bisect.bisect_left(SI_powers, power)]
 
@@ -616,15 +694,13 @@ class _Quantity(SharedRegistryObject):
             self._units = units_op(self._units, UnitsContainer())
             return self
 
-        if not isinstance(other, _Quantity):
-            self._magnitude = magnitude_op(self._magnitude, 1)
-            self._units = units_op(self._units, other._units)
-            return self
+        if isinstance(other, self._REGISTRY.Unit):
+            other = 1.0 * other
 
         if not self._ok_for_muldiv(no_offset_units_self):
             raise OffsetUnitCalculusError(self._units, other._units)
         elif no_offset_units_self == 1 and len(self._units) == 1:
-            self.ito_root_units()
+                self.ito_root_units()
 
         no_offset_units_other = len(other._get_non_multiplicative_units())
 
@@ -676,10 +752,8 @@ class _Quantity(SharedRegistryObject):
 
             return self.__class__(magnitude, units)
 
-        if not isinstance(other, _Quantity):
-            magnitude = self._magnitude
-            units = units_op(self._units, other._units)
-            return self.__class__(magnitude, units)
+        if isinstance(other, self._REGISTRY.Unit):
+            other = 1.0 * other
 
         new_self = self
 
@@ -720,15 +794,6 @@ class _Quantity(SharedRegistryObject):
     def __truediv__(self, other):
         return self._mul_div(other, operator.truediv)
 
-    def __ifloordiv__(self, other):
-        if not isinstance(self._magnitude, ndarray):
-            return self._mul_div(other, operator.floordiv, units_op=operator.itruediv)
-        else:
-            return self._imul_div(other, operator.ifloordiv, units_op=operator.itruediv)
-
-    def __floordiv__(self, other):
-        return self._mul_div(other, operator.floordiv, units_op=operator.truediv)
-
     def __rtruediv__(self, other):
         try:
             other_magnitude = _to_magnitude(other, self.force_ndarray)
@@ -742,24 +807,77 @@ class _Quantity(SharedRegistryObject):
             self = self.to_root_units()
 
         return self.__class__(other_magnitude / self._magnitude, 1 / self._units)
-
-    def __rfloordiv__(self, other):
-        try:
-            other_magnitude = _to_magnitude(other, self.force_ndarray)
-        except TypeError:
-            return NotImplemented
-
-        no_offset_units_self = len(self._get_non_multiplicative_units())
-        if not self._ok_for_muldiv(no_offset_units_self):
-            raise OffsetUnitCalculusError(self._units, '')
-        elif no_offset_units_self == 1 and len(self._units) == 1:
-            self = self.to_root_units()
-
-        return self.__class__(other_magnitude // self._magnitude, 1 / self._units)
-
     __div__ = __truediv__
     __rdiv__ = __rtruediv__
     __idiv__ = __itruediv__
+
+    def __ifloordiv__(self, other):
+        if self._check(other):
+            self._magnitude //= other.to(self._units)._magnitude
+        elif self.dimensionless:
+            self._magnitude = self.to('')._magnitude // other
+        else:
+            raise DimensionalityError(self._units, 'dimensionless')
+        self._units = UnitsContainer({})
+        return self
+
+    def __floordiv__(self, other):
+        if self._check(other):
+            magnitude = self._magnitude // other.to(self._units)._magnitude
+        elif self.dimensionless:
+            magnitude = self.to('')._magnitude // other
+        else:
+            raise DimensionalityError(self._units, 'dimensionless')
+        return self.__class__(magnitude, UnitsContainer({}))
+
+    def __rfloordiv__(self, other):
+        if self._check(other):
+            magnitude = other._magnitude // self.to(other._units)._magnitude
+        elif self.dimensionless:
+            magnitude = other // self.to('')._magnitude
+        else:
+            raise DimensionalityError(self._units, 'dimensionless')
+        return self.__class__(magnitude, UnitsContainer({}))
+
+    def __imod__(self, other):
+        if not self._check(other):
+            other = self.__class__(other, UnitsContainer({}))
+        self._magnitude %= other.to(self._units)._magnitude
+        return self
+
+    def __mod__(self, other):
+        if not self._check(other):
+            other = self.__class__(other, UnitsContainer({}))
+        magnitude = self._magnitude % other.to(self._units)._magnitude
+        return self.__class__(magnitude, self._units)
+
+    def __rmod__(self, other):
+        if self._check(other):
+            magnitude = other._magnitude % self.to(other._units)._magnitude
+            return self.__class__(magnitude, other._units)
+        elif self.dimensionless:
+            magnitude = other % self.to('')._magnitude
+            return self.__class__(magnitude, UnitsContainer({}))
+        else:
+            raise DimensionalityError(self._units, 'dimensionless')
+
+    def __divmod__(self, other):
+        if not self._check(other):
+            other = self.__class__(other, UnitsContainer({}))
+        q, r = divmod(self._magnitude, other.to(self._units)._magnitude)
+        return (self.__class__(q, UnitsContainer({})),
+                self.__class__(r, self._units))
+
+    def __rdivmod__(self, other):
+        if self._check(other):
+            q, r = divmod(other._magnitude, self.to(other._units)._magnitude)
+            unit = other._units
+        elif self.dimensionless:
+            q, r = divmod(other, self.to('')._magnitude)
+            unit = UnitsContainer({})
+        else:
+            raise DimensionalityError(self._units, 'dimensionless')
+        return (self.__class__(q, UnitsContainer({})), self.__class__(r, unit))
 
     def __ipow__(self, other):
         if not isinstance(self._magnitude, ndarray):
@@ -775,9 +893,21 @@ class _Quantity(SharedRegistryObject):
 
             if isinstance(getattr(other, '_magnitude', other), ndarray):
                 # arrays are refused as exponent, because they would create
-                #  len(array) quanitites of len(set(array)) different units
-                if np.size(other) > 1:
-                    raise DimensionalityError(self._units, 'dimensionless')
+                # len(array) quantities of len(set(array)) different units
+                # unless the base is dimensionless.
+                if self.dimensionless:
+                    if getattr(other, 'dimensionless', False):
+                        self._magnitude **= other.m_as('')
+                        return self
+                    elif not getattr(other, 'dimensionless', True):
+                        raise DimensionalityError(other._units, 'dimensionless')
+                    else:
+                        self._magnitude **= other
+                        return self
+                elif np.size(other) > 1:
+                    raise DimensionalityError(self._units, 'dimensionless',
+                                              extra_msg='Quantity array exponents are only allowed '
+                                                        'if the base is dimensionless')
 
             if other == 1:
                 return self
@@ -812,9 +942,19 @@ class _Quantity(SharedRegistryObject):
 
             if isinstance(getattr(other, '_magnitude', other), ndarray):
                 # arrays are refused as exponent, because they would create
-                #  len(array) quantities of len(set(array)) different units
-                if np.size(other) > 1:
-                    raise DimensionalityError(self._units, 'dimensionless')
+                # len(array) quantities of len(set(array)) different units
+                # unless the base is dimensionless.
+                if self.dimensionless:
+                    if getattr(other, 'dimensionless', False):
+                        return self.__class__(self.m ** other.m_as(''))
+                    elif not getattr(other, 'dimensionless', True):
+                        raise DimensionalityError(other._units, 'dimensionless')
+                    else:
+                        return self.__class__(self.m ** other)
+                elif np.size(other) > 1:
+                    raise DimensionalityError(self._units, 'dimensionless',
+                                              extra_msg='Quantity array exponents are only allowed '
+                                                        'if the base is dimensionless')
 
             new_self = self
             if other == 1:
@@ -934,6 +1074,7 @@ class _Quantity(SharedRegistryObject):
     #: will set on output.
     __set_units = {'cos': '', 'sin': '', 'tan': '',
                    'cosh': '', 'sinh': '', 'tanh': '',
+                   'log': '', 'exp': '',
                    'arccos': __radian, 'arcsin': __radian,
                    'arctan': __radian, 'arctan2': __radian,
                    'arccosh': __radian, 'arcsinh': __radian,
@@ -946,7 +1087,7 @@ class _Quantity(SharedRegistryObject):
     #: original.
     __copy_units = 'compress conj conjugate copy cumsum diagonal flatten ' \
                    'max mean min ptp ravel repeat reshape round ' \
-                   'squeeze std sum take trace transpose ' \
+                   'squeeze std sum swapaxes take trace transpose ' \
                    'ceil floor hypot rint ' \
                    'add subtract ' \
                    'copysign nextafter trunc ' \
@@ -1024,6 +1165,19 @@ class _Quantity(SharedRegistryObject):
     @property
     def T(self):
         return self.__class__(self._magnitude.T, self._units)
+
+    @property
+    def flat(self):
+        for v in self._magnitude.flat:
+            yield self.__class__(v, self._units)
+
+    @property
+    def shape(self):
+        return self._magnitude.shape
+
+    @shape.setter
+    def shape(self, value):
+        self._magnitude.shape = value
 
     def searchsorted(self, v, side='left'):
         if isinstance(v, self.__class__):
@@ -1142,9 +1296,9 @@ class _Quantity(SharedRegistryObject):
         # In ufuncs with multiple outputs, domain indicates which output
         # is currently being prepared (eg. see modf).
         # In ufuncs with a single output, domain is 0
-        uf, objs, huh = context
+        uf, objs, i_out = context
 
-        if uf.__name__ in self.__handled and huh == 0:
+        if uf.__name__ in self.__handled and i_out == 0:
             # Only one ufunc should be handled at a time.
             # If a ufunc is already being handled (and this is not another domain),
             # something is wrong..
@@ -1157,18 +1311,18 @@ class _Quantity(SharedRegistryObject):
         return obj
 
     def __array_wrap__(self, obj, context=None):
-        uf, objs, huh = context
+        uf, objs, i_out = context
 
         # if this ufunc is not handled by Pint, pass it to the magnitude.
         if uf.__name__ not in self.__handled:
             return self.magnitude.__array_wrap__(obj, context)
 
         try:
-            ufname = uf.__name__ if huh == 0 else '{0}__{1}'.format(uf.__name__, huh)
+            ufname = uf.__name__ if i_out == 0 else '{0}__{1}'.format(uf.__name__, i_out)
 
             # First, we check the units of the input arguments.
 
-            if huh == 0:
+            if i_out == 0:
                 # Do this only when the wrap is called for the first ouput.
 
                 # Store the destination units
@@ -1219,7 +1373,7 @@ class _Quantity(SharedRegistryObject):
                 out = uf(*mobjs)
 
                 # If there are multiple outputs,
-                # store them in __handling (uf, objs, huh, out0, out1, ...)
+                # store them in __handling (uf, objs, i_out, out0, out1, ...)
                 # and return the first
                 if uf.nout > 1:
                     self.__handling += out
@@ -1227,7 +1381,7 @@ class _Quantity(SharedRegistryObject):
             else:
                 # If this is not the first output,
                 # just grab the result that was previously calculated.
-                out = self.__handling[3 + huh]
+                out = self.__handling[3 + i_out]
 
             # Second, we set the units of the output value.
             if ufname in self.__set_units:
@@ -1265,7 +1419,7 @@ class _Quantity(SharedRegistryObject):
         finally:
             # If this is the last output argument for the ufunc,
             # we are done handling this ufunc.
-            if uf.nout == huh + 1:
+            if uf.nout == i_out + 1:
                 self.__handling = None
 
         return self.magnitude.__array_wrap__(obj, context)
@@ -1335,3 +1489,14 @@ class _Quantity(SharedRegistryObject):
             if next(iter(self._units.values())) != 1:
                 is_ok = False
         return is_ok
+
+
+def build_quantity_class(registry, force_ndarray=False):
+
+    class Quantity(_Quantity):
+        pass
+
+    Quantity._REGISTRY = registry
+    Quantity.force_ndarray = force_ndarray
+
+    return Quantity

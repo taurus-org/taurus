@@ -188,7 +188,7 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
         complete, normal, short = None, None, groups.get('_shortattrname')
 
         # reuse the getNames from the Device validator...
-        devname = fullname.rsplit('/', 1)[0]
+        devname = fullname.rsplit('#', 1)[0].rsplit('/', 1)[0]
         v = TangoDeviceNameValidator()
         devcomplete, devnormal, _ = v.getNames(devname, factory=factory,
                                                queryAuth=queryAuth)

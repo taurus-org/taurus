@@ -64,7 +64,7 @@ class PintValidator(Qt.QValidator):
         the unit. They will also be used for dimensionality coherence checks.
 
         :param units: (pint.Unit or None). The implicit unit. If None, implicit
-                      dimension is "dimensionless" and no dimensionality checks
+                      dimension is "unitless" and no dimensionality checks
                       will be performed (other than those inherent to range
                       enforcement)
         """
@@ -97,7 +97,7 @@ class PintValidator(Qt.QValidator):
         except:
             return Qt.QValidator.Intermediate, input, pos
         if self._implicit_units is not None:
-            if q.dimensionless:
+            if q.unitless:
                 # "cast" to implicit units
                 q = Quantity(q.magnitude, self.units)
             # check coherence with implicit units

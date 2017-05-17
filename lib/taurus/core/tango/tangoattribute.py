@@ -30,6 +30,7 @@ __all__ = ["TangoAttribute", "TangoAttributeEventListener", "TangoAttrValue"]
 __docformat__ = "restructuredtext"
 
 # -*- coding: utf-8 -*-
+import re
 import time
 import threading
 import weakref
@@ -38,7 +39,7 @@ import numpy
 from functools import partial
 
 from taurus import Manager
-from taurus.external.pint import Quantity
+from taurus.external.pint import Quantity, UR, UndefinedUnitError
 
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import (TaurusEventType,
@@ -47,7 +48,8 @@ from taurus.core.taurusbasetypes import (TaurusEventType,
                                          DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
-from taurus.core.util.log import debug, taurus4_deprecation
+from taurus.core.util.log import (debug, taurus4_deprecation,
+                                  deprecation_decorator)
 
 from taurus.core.tango.enums import (EVENT_TO_POLLING_EXCEPTIONS,
                                      FROM_TANGO_TO_NUMPY_TYPE,
@@ -57,7 +59,7 @@ from .util.tango_taurus import (description_from_tango,
                                 display_level_from_tango,
                                 quality_from_tango,
                                 standard_display_format_from_tango,
-                                unit_from_tango, quantity_from_tango_str,
+                                quantity_from_tango_str,
                                 str_2_obj, data_format_from_tango,
                                 data_type_from_tango)
 
@@ -277,7 +279,7 @@ class TangoAttribute(TaurusAttribute):
         dis_level = PyTango.DispLevel.OPERATOR
         self.display_level = display_level_from_tango(dis_level)
         self.tango_writable = PyTango.AttrWriteType.READ
-        self._units = unit_from_tango(PyTango.constants.UnitNotSpec)
+        self._units = self._unit_from_tango(PyTango.constants.UnitNotSpec)
         # decode the Tango configuration attribute (adds extra members)
         self._pytango_attrinfoex = None
         self._decodeAttrInfoEx(attr_info)
@@ -501,7 +503,12 @@ class TangoAttribute(TaurusAttribute):
         if self.__attr_err is not None:
             raise self.__attr_err
         return self.__attr_value
-
+    
+    def getAttributeProxy(self):
+        """Convenience method that creates and returns a PyTango.AttributeProxy
+        object"""
+        return PyTango.AttributeProxy(self.getFullName())
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -893,7 +900,7 @@ class TangoAttribute(TaurusAttribute):
             ###############################################################
             # changed in taurus4: range, alarm and warning now return
             # quantities if appropriate
-            units = unit_from_tango(i.unit)
+            units = self._unit_from_tango(i.unit)
             if PyTango.is_numerical_type(i.data_type, inc_array=True):
                 Q_ = partial(quantity_from_tango_str, units=units,
                              dtype=i.data_type)
@@ -919,17 +926,37 @@ class TangoAttribute(TaurusAttribute):
             self.tango_writable = i.writable
             self.max_dim = i.max_dim_x, i.max_dim_y
             ###############################################################
-            self.format = standard_display_format_from_tango(i.data_type,
-                                                             i.format)
+            fmt = standard_display_format_from_tango(i.data_type, i.format)
+            self.format_spec = fmt.lstrip('%')  # format specifier
+            match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
+            if match:
+                self.precision = int(match.group(1))
             # self._units and self._display_format is to be used by
             # TangoAttrValue for performance reasons. Do not rely on it in other
             # code
             self._units = units
 
     @property
+    @deprecation_decorator(alt='format_spec or precision', rel='4.0.4')
+    def format(self):
+        i = self._pytango_attrinfoex
+        return standard_display_format_from_tango(i.data_type, i.format)
+
+    @property
     def _tango_data_type(self):
         '''returns the *tango* (not Taurus) data type'''
         return self._pytango_attrinfoex.data_type
+
+    def _unit_from_tango(self, unit):
+        if unit == PyTango.constants.UnitNotSpec:
+            unit = None
+        try:
+            return UR.parse_units(unit)
+        except (UndefinedUnitError, UnicodeDecodeError):
+            # TODO: Maybe we could dynamically register the unit in the UR
+            self.warning('Unknown unit "%s (will be treated as unitless)"',
+                         unit)
+            return UR.parse_units(None)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Deprecated methods

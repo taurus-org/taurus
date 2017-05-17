@@ -22,9 +22,3 @@
 # along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
-
-"""The sardana package. It contains specific part of sardana"""
-
-__docformat__ = 'restructuredtext'
-
-from formatter import tangoFormatter
