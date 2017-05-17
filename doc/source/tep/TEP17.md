@@ -107,7 +107,7 @@ this TEP marked with `(*)`**:
   - UI for changing curve names (C8)
   - Peak locator: Visual label min/max of curves (C12)
   - UI for adding raw data (W8)
-  - (*)Relative* date/times display support (aka, deltatime scale) (W8)
+  - *Relative* date/times display support (aka, deltatime scale) (W8)
 
 ### For 1D trends
 
