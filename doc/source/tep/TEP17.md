@@ -50,7 +50,13 @@ infrastructure because:
 - It provides 2D and 3D plotting
 - It is reasonably well documented and provides comprehensive examples
 - It is reasonably mature and popular
-- .... TODO
+
+Guiqwt was discarded in favour of pyqtgraph because its lack of 3D
+support and the perceived less-responsive support from its author.
+
+Silx was discarded in favour of pyqtgraph because its plot API was
+considered not yet mature enough for the current needs (specially its
+object oriented API, whose first release was in May 2017).
  
 ## Goals
 
@@ -151,12 +157,12 @@ from those, here is a list of more specific features of 2D trends:
 
 See the current status of the implementation in
 
-https://github.com/taurus-org/taurus/pull/<TODO>
+https://github.com/taurus-org/taurus/pull/452
 
 ## Links to more details and discussions
 
 Discussions for this TEP are conducted in its associated Pull Request:
-https://github.com/taurus-org/taurus/pull/<TODO>
+https://github.com/taurus-org/taurus/pull/452
 
 
 ## License
