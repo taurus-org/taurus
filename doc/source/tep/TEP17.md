@@ -67,36 +67,36 @@ ones, and the rest would be treated as future enhancements.
 The following is a list of features, with a rough classification using a
 [MoSCoW][] code followed by a (very optimistic) cost estimation in
 hours. **The features selected for impementation as part of
-this TEP marked with an asterix (`*`)**:
+this TEP marked with `(*)`**:
 
 ### For 1D plots/trends
 
-  - * 1D plot: plot of multiple 1D models with auto-changing color and
+  - (*) 1D plot: plot of multiple 1D models with auto-changing color and
     availability of legend (M8)
-  - * Date-time support on X axis (display only, see "UI for
+  - (*) Date-time support on X axis (display only, see "UI for
     setting scale limits *in date/time format*" below) (M16)
-  - * Stand-alone widget (M2)
-  - * Zooming & panning with "restore original view" option (not the same
+  - (*) Stand-alone widget (M2)
+  - (*) Zooming & panning with "restore original view" option (not the same
     as zoom stacking, see below) (M0)
-  - * Possibility to use (at least) 2 Y-scales (M12)
-  - * UI for adding taurus curves via ModelChooser. See also
+  - (*) Possibility to use (at least) 2 Y-scales (M12)
+  - (*) UI for adding taurus curves via ModelChooser. See also
     "Improved Model Chooser" below  (M4)
-  - * Store/retreive configuration (save/load settings) (M8)
-  - * Support for non-taurus curves in same plot (aka "raw data") (S0)
-  - * UI for setting scale limits and lin/log options (S0)
+  - (*) Store/retreive configuration (save/load settings) (M8)
+  - (*) Support for non-taurus curves in same plot (aka "raw data") (S0)
+  - (*) UI for setting scale limits and lin/log options (S0)
   - UI for setting scale limits *in date/time format* (S16)
   - Point-picking (aka "inspect mode") (S4)
-  - * Export data as ascii: without date-time support (S0)
+  - (*) Export data as ascii: without date-time support (S0)
   - Export data as ascii: date-time support (S24)
-  - * Export plot as image (S0)
+  - (*) Export plot as image (S0)
   - Plot freeze (pause) (S8)
-  - * UI for moving a curve from one Y-scale to another (S12)
-  - * UI for choosing line color, thickness symbol, filling... (S16)
+  - (*) UI for moving a curve from one Y-scale to another (S12)
+  - (*) UI for choosing line color, thickness symbol, filling... (S16)
   - Improved Model Chooser: replacement of the "input data selection"
     dialog allowing to choose *both* X and Y models (see curve selection
     dialog in extra_guiqwt's tauruscurve) (C16)
   - Drop support for taurus attributes (C4)
-  - * Arbitrary Label scale (aka FixedLabelsScale) (C8)
+  - (*) Arbitrary Label scale (aka FixedLabelsScale) (C8)
   - Zoom stack: possibility of stacking zoom levels and navigating back 
     one level at a time. (C16)
   - Cursor position info (display X-Y position of cursor in active axis
@@ -107,7 +107,7 @@ this TEP marked with an asterix (`*`)**:
   - UI for changing curve names (C8)
   - Peak locator: Visual label min/max of curves (C12)
   - UI for adding raw data (W8)
-  - *Relative* date/times display support (aka, deltatime scale) (W8)
+  - (*)Relative* date/times display support (aka, deltatime scale) (W8)
 
 ### For 1D trends
 
@@ -115,26 +115,26 @@ Most of the features mentioned for 1D plots affect the 1D trends as
 well. Apart from those, here is a list of more specific features of
 trends:
 
-  - * "1D trends": plot of scalars vs event number or timestamp (M16)
+  - (*) "1D trends": plot of scalars vs event number or timestamp (M16)
   - "Trend sets": plot of 1D attribute vs time interpreting it as a set
     of 1D scalars (M16)
-  - * Fixed-range scale (aka oscilloscope mode) (M8)
-  - * UI to switch between fixed and free scale mode (S12)
+  - (*) Fixed-range scale (aka oscilloscope mode) (M8)
+  - (*) UI to switch between fixed and free scale mode (S12)
   - Accessing Archived values (M40)
   - Accessing Tango Polling buffer (W24)
-  - * Support for forced-reading of attributes (aka "-r mode") (M10)
-  - * UI for forced-reading mode (C2)
+  - (*) Support for forced-reading of attributes (aka "-r mode") (M10)
+  - (*) UI for forced-reading mode (C2)
   - Support for limiting curve buffers (C8)
   - UI for curve buffers (C2)
 
 
 ### For 2D plots (images)
 
-  - * Plot a single image (M0)
-  - * UI for Add/remove image (M4)
+  - (*) Plot a single image (M0)
+  - (*) UI for Add/remove image (M4)
   - Cross sections (slicing) (S4)
   - Slicing (S4)
-  - * "calibrated" XYImage (assigning values to X and Y scale, as in
+  - (*) "calibrated" XYImage (assigning values to X and Y scale, as in
     guiqwt's XYImageItem) S8
   - 2D ROI Selector (S4)
   - LUT/contrast control (S0)
@@ -148,9 +148,9 @@ trends:
 Most of the features for 2D plots affect also the 2D trends. Apart
 from those, here is a list of more specific features of 2D trends:
 
-  - * Absolute date-time scale (display, see same feat in TaurusPlot)
-  - * Fixed-range scale (aka oscilloscope mode, same as for 1Dtrends) (M8)
-  - * UI to switch between fixed and free scale mode (S12)
+  - (*) Absolute date-time scale (display, see same feat in TaurusPlot)
+  - (*) Fixed-range scale (aka oscilloscope mode, same as for 1Dtrends) (M8)
+  - (*) UI to switch between fixed and free scale mode (S12)
 
 
 ## Implementation
