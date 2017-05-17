@@ -155,9 +155,58 @@ from those, here is a list of more specific features of 2D trends:
 
 ## Implementation
 
-See the current status of the implementation in
+The current status of the implementation can be followed in:
 
 https://github.com/taurus-org/taurus/pull/452
+
+The next subsections discuss some design decissions for the proposed
+implementation:
+
+### Modular vs Monolithic approach
+
+One design decission for our initial implementation is that the
+required features not already present in pyqtgraph should be
+implemented by our module as small, self-contained "items"
+or "tools" that may be used in place of (or as a complement to) the
+generic pyqtgraph classes, with as little inter-dependency as possible
+from one another. This approach (which we call "Modular")
+is similar to what we did in `taurus.qt.qtgui.extra_guiqwt`.
+
+This contrasts with the "Monolithic" approach that we followed in the
+`taurus.qt.qtgui.plot` module, in which two main classes (`TaurusPlot`
+and `TaurusTrend`) implemented all the required features and
+provided their own API (different from the standard PyQWt5 API).
+
+### "attach-to" vs "addItem"
+
+In pyqtgraph, the typical pattern to add an item (e.g. a curve -a
+`PlotDataItem`-) to a container (e.g. a ViewBox) consists in a call
+of the type `viewBox.addItem(curve)`.
+
+Whenever possible, the classes implemented in our module should allow
+to be treated just as their generic pyqtgraph analogs. For example,
+consider `TaurusPlotDataItem`, which is a curve that autoupdates its
+values when its associated Taurus model is updated): in this case,
+adding it to a ViewBox should just be `viewBox.addItem(tauruscurve)`.
+
+But in some occasions, the pyqtgraph classes do not provide the
+required API for adding and enabling *in a simple way* a required
+feature. For example, adding a secondary Y axis to a plot requires
+several non-trivial lines of code involving linking axes,
+connecting signals, etc. In such cases, we opted for inverting the
+control and using an "attach-to" pattern. For example, the secondary
+Y axis feature is implemented as a especialised ViewBox that has a
+method called `attachToPlotItem`, so instead of a more natural
+(but unavailable) call `plotItem.addAxis(y2Axis)`, we do:
+`y2Axis.attachToPlotItem(plotItem)`
+
+This solution is not ideal but allows us to quickly prototype
+without having to fork pyqtgraph. Our intention is that once our
+implementation is past the prototyping phase, we would propose
+changes to pyqtgraph to support the more natural "direct" way
+(e.g., `PlotItem.addAxis`) and, if those are accepted, use them
+instead of the "attach-to".
+
 
 ## Links to more details and discussions
 
