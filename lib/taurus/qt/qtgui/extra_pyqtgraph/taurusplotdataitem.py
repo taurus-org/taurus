@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-
+from taurus import Attribute
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from pyqtgraph import PlotDataItem
 
@@ -34,6 +34,12 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
     def __init__(self, *args, **kwargs):
         PlotDataItem.__init__(self, *args, **kwargs)
         TaurusBaseComponent.__init__(self, 'TaurusBaseComponent')
+
+    def setXmodel(self, xmodel):
+        # TODO: Add functionallity for set x model to plotDataItem
+        self.xModel = Attribute(xmodel)
+        self._x = self.xModel.read().rvalue
+        # self.xModel.addListener(self)
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         try:
