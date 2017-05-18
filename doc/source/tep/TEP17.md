@@ -158,12 +158,12 @@ The current status of the implementation can be followed in:
 
 https://github.com/taurus-org/taurus/pull/452
 
-The next subsections discuss some design decissions for the proposed
+The next subsections discuss some design decisions for the proposed
 implementation:
 
 ### Modular vs Monolithic approach
 
-One design decission for our initial implementation is that the
+One design decision for our initial implementation is that the
 required features not already present in pyqtgraph should be
 implemented by our module as small, self-contained "items"
 or "tools" that may be used in place of (or as a complement to) the
@@ -175,6 +175,30 @@ This contrasts with the "Monolithic" approach that we followed in the
 `taurus.qt.qtgui.plot` module, in which two main classes (`TaurusPlot`
 and `TaurusTrend`) implemented all the required features and
 provided their own API (different from the standard PyQWt5 API).
+
+### High level plot widgets & compatibility with the old classes
+
+While we focus on providing a modular, tool/item based usage
+pattern, it would be useful to also provide convenience high-level
+plot widgets which incorporate by default most of the implemented
+features and which could roughly substitute `TaurusPlot`,
+`TaurusTrend`, etc. The important thing to note is that these
+high-level classes would be implemented as an aggregation of the
+smaller, modular ones, and instead of providing an ad-hoc API
+for customizing them, the specialized needs would covered buy
+building a new class from the generic pyqtgraph classes and our
+tools/items.
+
+In terms of backwards compatibility with the existing classes,
+we aim for *feature*-compatibility, but *not* for full
+*API*-compatibility. Providing full API compatibility would be
+difficult in some cases, would clutter the plot classes and would
+result in workflows that are not natural in the context of
+pyqtgraph. Still, the simplest use cases with the old classes
+(e.g. instantiating a plot and calling `setModel`) should work
+identically in the new high-level classes. This should actually
+a large majority of the GUIs to do the switch by just replacing
+an old plot class by a new one.
 
 ### "attach-to" vs "addItem"
 
