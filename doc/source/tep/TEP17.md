@@ -133,7 +133,6 @@ trends:
   - (*) Plot a single image (M0)
   - (*) UI for Add/remove image (M4)
   - Cross sections (slicing) (S4)
-  - Slicing (S4)
   - (*) "calibrated" XYImage (assigning values to X and Y scale, as in
     guiqwt's XYImageItem) S8
   - 2D ROI Selector (S4)
