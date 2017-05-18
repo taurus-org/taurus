@@ -185,7 +185,7 @@ features and which could roughly substitute `TaurusPlot`,
 `TaurusTrend`, etc. The important thing to note is that these
 high-level classes would be implemented as an aggregation of the
 smaller, modular ones, and instead of providing an ad-hoc API
-for customizing them, the specialized needs would covered buy
+for customizing them, the specialised needs would be covered by
 building a new class from the generic pyqtgraph classes and our
 tools/items.
 
@@ -196,7 +196,7 @@ difficult in some cases, would clutter the plot classes and would
 result in workflows that are not natural in the context of
 pyqtgraph. Still, the simplest use cases with the old classes
 (e.g. instantiating a plot and calling `setModel`) should work
-identically in the new high-level classes. This should actually
+identically in the new high-level classes. This should allow
 a large majority of the GUIs to do the switch by just replacing
 an old plot class by a new one.
 
