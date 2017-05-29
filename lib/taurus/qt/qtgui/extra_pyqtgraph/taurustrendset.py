@@ -59,11 +59,10 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         self._kwargs = kwargs
         self._curves = []
 
-    def _initBuffers(self, evt_value, ntrends):
-        units = evt_value.rvalue.units
-        # TODO: Using quantities with ArrayBuffer is buggy on resizeBuffer
-        self._yBuffer = ArrayBuffer(Q_(numpy.zeros(
-            (min(128, self._maxBufferSize), ntrends), dtype='d'), units),
+    def _initBuffers(self, ntrends):
+
+        self._yBuffer = ArrayBuffer(numpy.zeros(
+            (min(128, self._maxBufferSize), ntrends), dtype='d'),
             maxSize=self._maxBufferSize)
 
         self._xBuffer = ArrayBuffer((numpy.zeros(
@@ -116,13 +115,13 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         # https://github.com/hgrecco/pint/issues/509
         ntrends = numpy.size(evt_value.rvalue.magnitude)
 
-
         if not self._isDataCompatible(evt_value, ntrends):
-            self._initBuffers(evt_value, ntrends)
+            self._initBuffers(ntrends)
+            self._yUnits = evt_value.rvalue.units
             self._initCurves(ntrends)
 
         try:
-            self._yBuffer.append(evt_value.rvalue)
+            self._yBuffer.append(evt_value.rvalue.to(self._yUnits).magnitude)
         except Exception, e:
             self.warning('Problem updating buffer Y (%s):%s',
                          evt_value.rvalue, e)
@@ -145,7 +144,7 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
             return False
         rvalue = evt_value.rvalue
 
-        if rvalue.dimensionality != self._yBuffer.contents().dimensionality:
+        if rvalue.dimensionality != self._yUnits.dimensionality:
             return False
 
         current_trends = numpy.prod(self._yBuffer.contents().shape[1:])
