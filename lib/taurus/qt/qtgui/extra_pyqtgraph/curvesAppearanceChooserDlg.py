@@ -475,7 +475,7 @@ class CurvePropAdapter(object):
             pen = pyqtgraph.mkPen(opts['pen'])
             symbol_pen = pyqtgraph.mkPen(opts['symbolPen'])
             symbol_brush = pyqtgraph.mkBrush(opts['symbolBrush'])
-            title = opts['name']
+            title = opts.get('name', '---')
             sStyle = opts['symbol']
             sSize = opts['symbolSize']
 
