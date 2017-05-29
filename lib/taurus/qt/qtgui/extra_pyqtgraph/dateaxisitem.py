@@ -179,7 +179,6 @@ class DateAxisItem(AxisItem):
     def attachToPlotItem(self, plotItem):
         self.setParentItem(plotItem)
         viewBox = plotItem.getViewBox()
-        print(plotItem.axes[self.orientation])
         self.linkToView(viewBox)
         self._oldAxis = plotItem.axes[self.orientation]['item']
         self._oldAxis.hide()
