@@ -33,53 +33,60 @@ from collections import OrderedDict
 
 class TaurusModelChooserTool(QtGui.QAction):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, itemClass=None):
         QtGui.QAction.__init__(self, parent)
         self.plot_item = None
         self.legend = None
+        if itemClass is None:
+            itemClass = TaurusPlotDataItem
+        self.itemClass = itemClass
 
-    def attachToPlotItem(self,plot_item):
+    def attachToPlotItem(self, plot_item, text='Model chooser'):
         self.plot_item = plot_item
         if self.plot_item.legend is not None:
             self.legend = self.plot_item.legend
 
         menu = self.plot_item.getViewBox().menu
-        model_chooser = QtGui.QAction('Model chooser', menu)
+        model_chooser = QtGui.QAction(text, menu)
         model_chooser.triggered.connect(self.onTriggered)
         menu.addAction(model_chooser)
 
     def onTriggered(self):
-        list_items = self.plot_item.listDataItems()
-        listedTaurusPlotDataItems = dict()
-        listedModelNames = []
-        for item in list_items:
-            if isinstance(item, TaurusPlotDataItem):
-                listedModelNames.append(item.getFullModelName())
-                listedTaurusPlotDataItems[item.getFullModelName()] = item
+        currentModelItems = dict()
+        currentModelNames = []
+        for item in self.plot_item.items:
+            if isinstance(item, self.itemClass):
+                currentModelNames.append(item.getFullModelName())
+                currentModelItems[item.getFullModelName()] = item
 
         res, ok = TaurusModelChooser.modelChooserDlg(
                     selectables=[TaurusElementType.Attribute],
-                    listedModels=listedModelNames)
+                    listedModels=currentModelNames)
         if ok:
             models = OrderedDict()
             for r in res:
                 m = taurus.Attribute(r)
                 models[m.getFullName()] = m
 
-            for k, v in listedTaurusPlotDataItems.items():
+            # remove existing curves from plot (but not discarding the object)
+            # so that they can be re-added later in the correct z-order
+            for k, v in currentModelItems.items():
                 self.plot_item.removeItem(v)
                 if self.legend is not None:
                     self.legend.removeItem(v.name())
 
+            # Add all curves (creating those that did not exist previously)
+            # respecting the z-order
             for modelName, model in models.items():
-                if modelName in listedModelNames:
-                    self.plot_item.addItem(listedTaurusPlotDataItems[modelName])
-                elif modelName not in listedModelNames:
+                if modelName in currentModelNames:
+                    self.plot_item.addItem(currentModelItems[modelName])
+                elif modelName not in currentModelNames:
                     # TODO use simplename for the legend label
                     # TODO support labels
-                    taurusplotDataItem = TaurusPlotDataItem(name=model.getSimpleName())
-                    taurusplotDataItem.setModel(modelName)
-                    self.plot_item.addItem(taurusplotDataItem)
+                    item = self.itemClass(name=model.getSimpleName())
+                    item.setModel(modelName)
+                    self.plot_item.addItem(item)
+
 
 
 if __name__ == '__main__':
@@ -111,7 +118,7 @@ if __name__ == '__main__':
 
     #attach plot item contained in the PlotWidget to a new TaurusModelChooserTool
     tmCt = TaurusModelChooserTool()
-    tmCt.attachToPlotItem(w.getPlotItem());
+    tmCt.attachToPlotItem(w.getPlotItem())
 
     w.show()
 
