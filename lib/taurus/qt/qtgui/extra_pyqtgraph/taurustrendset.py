@@ -72,26 +72,39 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
     def _initCurves(self, ntrends):
         # clean previous curves
         viewBox = self.getViewBox()
-        for c in self._curves:
-            viewBox.removeItem(c)
+
+        if viewBox is not None:
+            viewBox.removeItem(self)
+
         self._curves = []
-        self._curveColors.setCurrentIndex(0)
+        self._curveColors.setCurrentIndex(-1)
 
         # create as many curves as the dim_x of the given model and add
         # them to the TrendSet
-        name = self.getModelName()
         a = self._args
         kw = self._kwargs.copy()
+        name = self.getModelName()
+
         if ntrends:
             if 'pen' not in kw:
                 self.setPen(self._curveColors.next().color())
+
+            if 'name' not in kw:
+                kw['name'] = name
+                self.opts['name'] = "%s[%i]" % (name, 0)
             self._curves.append(self)
+
+            if self.getViewBox() is None and viewBox is not None:
+                viewBox.addItem(self)
+
         for i in xrange(1, ntrends):
             subname = "%s[%i]" % (name, i)
+            kw['name'] = subname
             curve = PlotDataItem(*a, **kw)
             if 'pen' not in kw:
                 curve.setPen(self._curveColors.next().color())
             self._curves.append(curve)
+
 
         self._updateViewBox()
 
