@@ -87,6 +87,8 @@ class TaurusModelChooserTool(QtGui.QAction):
                     item.setModel(modelName)
                     self.plot_item.addItem(item)
 
+                    self.plot_item.enableAutoRange()
+
 
 
 if __name__ == '__main__':
