@@ -39,7 +39,7 @@ from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendItem
 from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DItem
 from taurus.qt.qtgui.extra_guiqwt.curvesmodel import CurveItemConfDlg
 from taurus.qt.qtgui.panel import TaurusModelChooser
-from taurus.qt.qtgui.plot import DateTimeScaleEngine
+from taurus.qt.qtgui.extra_guiqwt.scales import DateTimeScaleEngine
 
 
 class TaurusCurveChooserTool(CommandTool):
