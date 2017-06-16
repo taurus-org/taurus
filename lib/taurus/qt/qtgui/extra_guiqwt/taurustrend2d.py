@@ -94,7 +94,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
             timetool = self.get_tool(TimeAxisTool)
             timetool.set_scale_y_t(True)
         elif mode == 'deltatime':
-            from taurus.qt.qtgui.plot import DeltaTimeScaleEngine
+            from taurus.qt.qtgui.extra_guiqwt.scales import DeltaTimeScaleEngine
             plot = self.get_plot()
             DeltaTimeScaleEngine.enableInAxis(plot, plot.xBottom, rotation=-45)
         elif mode == 'event':
