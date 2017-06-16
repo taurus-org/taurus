@@ -160,7 +160,7 @@ class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
     def bgRole(self, model=None, expected=None, bgRole=None, maxdepr=0):
         '''Check that the label text'''
         self._widget.setModel(model)
-        self.processEvents(repetitions=10, sleep=.1)
+        self.processEvents(repetitions=30, sleep=.1)
         if bgRole is not None:
             self._widget.setBgRole(bgRole)
         p = self._widget.palette()
@@ -182,8 +182,7 @@ def baseFormatter2(dtype, **kwargs):
 @insertTest(helper_name='checkFormat',
             model='eval:Q(5)#rvalue.magnitude',
             formatter=baseFormatter2,
-            expected="int",
-            test_skip="Skipped test due to bug #433")
+            expected="int")
 @insertTest(helper_name='checkFormat',
             model='eval:Q("5m")#rvalue.units',
             formatter=baseFormatter2,

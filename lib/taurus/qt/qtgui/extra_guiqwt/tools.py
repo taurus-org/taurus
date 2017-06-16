@@ -244,7 +244,10 @@ class AutoScrollTool(ToggleTool, BaseConfigurableClass):
             if checked:
                 item.scrollRequested.connect(self.onScrollRequested)
             else:
-                item.scrollRequested.disconnect(self.onScrollRequested)
+                try:
+                    item.scrollRequested.disconnect(self.onScrollRequested)
+                except:
+                    pass
 
     def getScrollItems(self, plot):
         return [item for item in plot.get_items()
