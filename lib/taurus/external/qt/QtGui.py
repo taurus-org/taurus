@@ -25,13 +25,13 @@
 
 """This module exposes QtGui module"""
 
-from taurus.external.qt import getQtName, _updateQtSubModule
+from taurus.external.qt import API_NAME, _updateQtSubModule
 
-__backend = getQtName()
+__backend = API_NAME
 
 _updateQtSubModule(globals(), "QtGui")
 
 if __backend == 'PyQt5':
     _updateQtSubModule(globals(), "QtWidgets")
 
-del _updateQtSubModule, getQtName
+del _updateQtSubModule, API_NAME
