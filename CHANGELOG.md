@@ -34,6 +34,8 @@ develop branch)  won't be reflected in this file.
 - Docs issues (#397, #430)
 - [Many other issues](https://github.com/taurus-org/taurus/issues?q=milestone%3AJul17+label%3Abug)
 
+### Removed
+- Delete `taurus.external.orderdict` (#223)
 
 ## [4.0.3] - 2017-01-16
 [Jan17 milestone](https://github.com/taurus-org/taurus/milestone/1)
