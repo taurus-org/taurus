@@ -236,7 +236,7 @@ class QBaseTreeWidget(QBaseModelWidget):
         tree.clicked.connect(self._onClicked)
         tree.doubleClicked.connect(self._onDoubleClicked)
         h = tree.header()
-        h.setResizeMode(0, Qt.QHeaderView.Stretch)
+        h.setSectionResizeMode(0, Qt.QHeaderView.Stretch)
         return tree
 
     def treeView(self):
