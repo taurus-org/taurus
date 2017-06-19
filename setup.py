@@ -96,6 +96,7 @@ gui_scripts = [
     'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain',
     'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
     'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main',
+    'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main',
     # 'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main [Taurus-Qt]',
     # 'taurusplot = taurus.qt.qtgui.plot.taurusplot:main [Taurus-Qt-Plot]',
     # 'taurustrend = taurus.qt.qtgui.plot.taurustrend:main [Taurus-Qt-Plot]',
@@ -109,7 +110,6 @@ gui_scripts = [
     # 'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain [Taurus-Qt-Guiqwt]',
     # 'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain [Taurus-Qt-Guiqwt]',
     # TODO: taurusremotelogmonitor
-    # TODO: taurusdemo
 ]
 
 entry_points={'console_scripts': console_scripts,
