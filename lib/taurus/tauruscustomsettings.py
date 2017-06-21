@@ -87,7 +87,7 @@ NAMESPACE = 'taurus'
 # ----------------------------------------------------------------------------
 
 #: Set preffered API if not is already loaded
-DEFAULT_QT_API = 'PyQt4'
+DEFAULT_QT_API = 'pyqt'
 
 #: Auto initialize Qt logging to python logging
 QT_AUTO_INIT_LOG = True

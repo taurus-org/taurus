@@ -73,7 +73,7 @@ PYQT4_API = [
 #: names of the expected PySide api
 PYSIDE_API = ['pyside']
 
-os.environ.setdefault(QT_API, getattr(__config, 'DEFAULT_QT_API', 'pyqt4'))
+os.environ.setdefault(QT_API, getattr(__config, 'DEFAULT_QT_API', 'pyqt'))
 API = os.environ[QT_API].lower()
 assert API in (PYQT5_API + PYQT4_API + PYSIDE_API)
 
@@ -114,6 +114,7 @@ if API in PYQT4_API:
         PYSIDE_VERSION = None
         PYQT5 = False
         PYQT4 = True
+        API = os.environ['QT_API'] = 'pyqt'  # in case the original was "pyqt4"
     except ImportError:
         API = os.environ['QT_API'] = 'pyside'
     else:
