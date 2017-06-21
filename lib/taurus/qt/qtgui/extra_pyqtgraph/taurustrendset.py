@@ -33,6 +33,8 @@ from taurus.external.pint import Q_
 from pyqtgraph import PlotDataItem
 import numpy
 
+import taurus
+
 
 CURVE_COLORS = [Qt.QPen(Qt.Qt.red),
                 Qt.QPen(Qt.Qt.blue),
@@ -50,14 +52,16 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         PlotDataItem.__init__(self, *args, **kwargs)
         TaurusBaseComponent.__init__(self, 'TaurusBaseComponent')
 
+        self._UImodifiable = False
+
         self._maxBufferSize = 65536  # (=2**16, i.e., 64K events))
         self._xBuffer = None
         self._yBuffer = None
-        self._plotItem = None
         self._curveColors = LoopList(CURVE_COLORS)
         self._args = args
         self._kwargs = kwargs
-        self._curves = []
+        self._curves = None
+
 
     def _initBuffers(self, ntrends):
 
@@ -73,8 +77,10 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         # clean previous curves
         viewBox = self.getViewBox()
 
-        if viewBox is not None:
-            viewBox.removeItem(self)
+
+        # if viewBox is not None:
+        #     viewBox.removeItem(self)
+        #
 
         self._curves = []
         self._curveColors.setCurrentIndex(-1)
@@ -83,44 +89,37 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         # them to the TrendSet
         a = self._args
         kw = self._kwargs.copy()
-        name = self.getModelName()
 
-        if ntrends:
-            if 'pen' not in kw:
-                self.setPen(self._curveColors.next().color())
+        name = taurus.Attribute(self.getModel()).getSimpleName()
+        print name
 
-            if 'name' not in kw:
-                kw['name'] = name
-                self.opts['name'] = "%s[%i]" % (name, 0)
-            self._curves.append(self)
 
-            if self.getViewBox() is None and viewBox is not None:
-                viewBox.addItem(self)
-
-        for i in xrange(1, ntrends):
+        for i in xrange(0, ntrends):
             subname = "%s[%i]" % (name, i)
             kw['name'] = subname
             curve = PlotDataItem(*a, **kw)
             if 'pen' not in kw:
                 curve.setPen(self._curveColors.next().color())
             self._curves.append(curve)
-
-
         self._updateViewBox()
 
-    def _updateViewBox(self, curves=None):
+    def _updateViewBox(self):
         """Add/remove the "extra" curves from the viewbox if needed"""
-        if curves is None:
-            curves = self._curves[1:]
-        self.forgetViewBox()
-        viewBox = self.getViewBox()
-        for curve in curves:
-            curve.forgetViewBox()
-            curve_viewBox = curve.getViewBox()
-            if curve_viewBox is not None:
-                curve_viewBox.removeItem(curve)
-            if viewBox is not None:
-                viewBox.addItem(curve)
+        if self._curves is not None:
+            curves = self._curves
+            viewBox = self.getViewBox()
+            self.forgetViewBox()
+            for curve in curves:
+                curve.forgetViewBox()
+                curve_viewBox = curve.getViewBox()
+
+
+                print viewBox, curve_viewBox
+
+                if curve_viewBox is not None and viewBox is None:
+                    curve_viewBox.removeItem(curve)
+                if viewBox is not None:
+                    viewBox.addItem(curve)
 
     def _updateBuffers(self, evt_value):
 
@@ -168,7 +167,6 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         return True
 
     def addData(self, x, y):
-
         for i, curve in enumerate(self._curves):
             curve.setData(x=x, y=y[:, i])
 
@@ -202,8 +200,10 @@ if __name__ == '__main__':
     from taurus.qt.qtgui.extra_pyqtgraph.taurustrendset import TaurusTrendSet
     from taurus.qt.qtgui.extra_pyqtgraph.dateaxisitem import DateAxisItem
 
-    from taurus.qt.qtgui.extra_pyqtgraph.taurusmodelchoosertool import TaurusModelChooserTool
-    from taurus.qt.qtgui.extra_pyqtgraph.curvesPropertiesTool import CurvesPropertiesTool
+    from taurus.qt.qtgui.extra_pyqtgraph.taurusmodelchoosertool import(
+        TaurusModelChooserTool)
+    from taurus.qt.qtgui.extra_pyqtgraph.curvesPropertiesTool import (
+        CurvesPropertiesTool)
 
 
     from taurus.core.taurusmanager import TaurusManager
@@ -227,14 +227,13 @@ if __name__ == '__main__':
     # w.addLegend()
 
     # adding a taurus data item
-    c2 = TaurusTrendSet()
+    c2 = TaurusTrendSet(name='ffff')
 
     w.addItem(c2)
 
-    # c2.setModel('eval:rand(5)')
+    c2.setModel('eval:rand(5)')
 
-    # c2.attachToPlotItem(w.getPlotItem())
-    c2.setModel('sys/tg_test/1/wave')
+    # c2.setModel('sys/tg_test/1/wave')
 
 
 
