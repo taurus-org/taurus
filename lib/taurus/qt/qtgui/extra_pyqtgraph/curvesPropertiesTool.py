@@ -46,8 +46,7 @@ class CurvesPropertiesTool(QtGui.QAction):
 
     def onTriggered(self):
         data_items = self.plot_item.listDataItems()
-
-        # this code block checks in all ViewBoxes from plot_item,
+        # checks in all ViewBoxes from plot_item,
         # looking for a data_items (Curves).
         items = self.plot_item.scene().items()
         for item in items:
@@ -55,6 +54,12 @@ class CurvesPropertiesTool(QtGui.QAction):
                 for data in item.addedItems:
                     if data not in data_items:
                         data_items.append(data)
+
+        # The dialog allows display and/or change the properties of any curve
+        # that doesn't contain the attribute "_UImodifiable"
+        for data in data_items:
+            if getattr(data,"_UImodifiable", True) is False:
+                data_items.remove(data)
 
         curvePropAdapter = CurvePropAdapter(data_items, self.plot_item)
         curves = curvePropAdapter.getCurveProperties()
@@ -77,15 +82,6 @@ if __name__ == '__main__':
     from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.extra_pyqtgraph.curvesPropertiesTool import CurvesPropertiesTool
-
-
-    # class MyViewBox(pg.ViewBox):
-    #
-    #
-    #     def autoRange(self, *args, **kwargs):
-    #         print('1')
-    #         print(self.addedItems)
-    #         pg.ViewBox.autoRange(self, *args, **kwargs)
 
 
     app = TaurusApplication()
