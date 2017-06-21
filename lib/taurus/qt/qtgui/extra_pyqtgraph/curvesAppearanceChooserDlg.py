@@ -605,9 +605,9 @@ class CurvePropAdapter(object):
                     # if this data_item is the only one in the right axis,
                     # when we move data_item to left axis we have to delete
                     # view(Y2ViewBox) from the scene of plot item
-                    if len(view.addedItems) < 1:
-                        self.plotItem.scene().removeItem(view)
-                        self.plotItem.hideAxis('right')
+                    # if len(view.addedItems) < 1:
+                    #     self.plotItem.scene().removeItem(view)
+                    #     self.plotItem.hideAxis('right')
                     mainView.autoRange()
                     properties[name].yAxis = False
 

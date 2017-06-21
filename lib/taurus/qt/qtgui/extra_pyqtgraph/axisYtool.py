@@ -30,6 +30,7 @@ class Y2ViewBox(ViewBox):
     def __init__(self, *args, **kwargs):
         ViewBox.__init__(self, *args, **kwargs)
         self._isAttached = False
+        self.plotItem = None
 
     @staticmethod
     def getY2ViewBox(plot_item):
@@ -57,10 +58,20 @@ class Y2ViewBox(ViewBox):
         plot_item.getAxis('right').linkToView(self)
         self.setXLink(plot_item)
 
+        self.plotItem = plot_item
+
 
     def updateViews(self, viewBox):
         self.setGeometry(viewBox.sceneBoundingRect())
         self.linkedViewChanged(viewBox, self.XAxis)
+
+    def removeItem(self, item):
+        ViewBox.removeItem(self, item)
+
+        if len(self.addedItems) < 1:
+            self.plotItem.scene().removeItem(self)
+            self.plotItem.hideAxis('right')
+
 
     # def autoRange(self, *args, **kwargs):
     #     print('2')
