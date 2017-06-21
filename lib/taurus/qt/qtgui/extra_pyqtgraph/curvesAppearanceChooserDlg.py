@@ -256,6 +256,16 @@ class CurvesAppearanceChooser(Qt.QWidget):
         self.cStyleCB.setCurrentIndex(
             self.cStyleCB.findText(NamedCurveStyles[prop.cStyle]))
 
+        if prop.yAxis is CONFLICT:
+            self.assignToY1BT.setDown(False)
+            self.assignToY2BT.setDown(False)
+        elif prop.yAxis:
+            self.assignToY1BT.setDown(False)
+            self.assignToY2BT.setDown(True)
+        else:
+            self.assignToY1BT.setDown(True)
+            self.assignToY2BT.setDown(False)
+
 
         # set sSize and lWidth spinboxes. if prop.sSize is None, it puts -1
         # (which is the special value for these switchhboxes)
@@ -370,6 +380,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
         # get sSize and lWidth from the spinboxes
         prop.sSize = self.sSizeSB.value()
         prop.lWidth = self.lWidthSB.value()
+
 
 
 
@@ -578,6 +589,9 @@ class CurvePropAdapter(object):
                     # for avoid bug with auto resize of views, if its necessary remove the
                     # curve from the plot item before add it to right axis
                     self.plotItem.removeItem(dataItem)
+
+                    mainView.removeItem(dataItem)
+
                     view.addItem(dataItem)
                     mainView.autoRange()
                     view.autoRange()
@@ -597,7 +611,6 @@ class CurvePropAdapter(object):
                     mainView.autoRange()
                     properties[name].yAxis = False
 
-        print(mainView.addedItems)
 
 
 
@@ -609,7 +622,7 @@ class CurveAppearanceProperties(object):
     # to CONFLICT instead of None!!
     def __init__(self, sStyle=CONFLICT, sSize=None, sColor=None, sFill=None,
                  lStyle=CONFLICT, lWidth=None, lColor=None, cStyle=None,
-                 yAxis=None, cFill=CONFLICT, title=None, visible=None):
+                 yAxis=CONFLICT, cFill=CONFLICT, title=None, visible=None):
         """
         Creator of :class:`CurveAppearanceProperties`
         Possible keyword arguments are:
