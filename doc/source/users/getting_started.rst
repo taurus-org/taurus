@@ -141,7 +141,7 @@ installation method:
 
       pip install taurus[NAME_OF_EXTRA]
 
-- The conda Conda_ package management system may also be used to install
+- The Conda_ package management system may also be used to install
   most of the required dependencies.
 
 - The `taurus-test Docker container`_ provides a Docker container (based
