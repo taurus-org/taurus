@@ -479,6 +479,8 @@ class TangoAttribute(TaurusAttribute):
                 if self.__attr_value is not None:
                     return self.__attr_value
                 elif self.__attr_err is not None:
+                    self.debug("[Tango] read from cache failed (%s): %s",
+                               self.fullname, self.__attr_err)
                     raise self.__attr_err
 
         if not cache or (self.__subscription_state in (SubscriptionState.PendingSubscribe, SubscriptionState.Unsubscribed) and not self.isPollingActive()):
