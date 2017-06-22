@@ -172,14 +172,19 @@ class EventGenerator(Object):
         else:
             pass
 
-    def subscribeEvent(self, cb, data=None):
+    def subscribeEvent(self, cb, data=None, with_first_event=True):
         """Subscribes to the event
 
         :param cb: a callable object
         :type  cb: callable
         :param data: extra data to send each time an event is triggered on the
-                     given callback. Default is None
-        :type  data: object"""
+            given callback. Default is None.
+        :type  data: object
+        :param with_first_event: whether call the callback with the first event
+            value (the most recent value) during the subscription process.
+            Default is True.
+        :type data: boolean
+        """
         if not self.events_active:
             raise RuntimeError, ('%s does not have '
                                  'events/polling active' % self.event_name)
@@ -192,7 +197,8 @@ class EventGenerator(Object):
                 raise RuntimeError, ('Callback %s(%s) already reg. on %s' %
                                      (cb, data, self.event_name))
             self.cb_list.append((cb_ref, data))
-            cb(data, self.first_event_val)
+            if with_first_event:
+                cb(data, self.first_event_val)
         finally:
             self.unlock()
 
