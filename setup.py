@@ -50,9 +50,9 @@ provides = [
     # 'Taurus-Qt',  # [Taurus-Qt]
     # 'Taurus-Qt-PyQwt',  # [Taurus-Qt-Plot]
     # 'Taurus-Qt-Synoptic',  # [Taurus-Qt-Synoptic]
-    # 'Taurus-Qt-TaurusGUI',  # [Taurus-TaurusGUI]
-    # 'Taurus-Qt-Editor',  # [Taurus-Editor] --> or maybe move it to sardana
-    # 'Taurus-Qt-Guiqwt',
+    # 'Taurus-Qt-TaurusGUI',  # [Taurus-Qt-TaurusGUI]
+    # 'Taurus-Qt-Editor',  # [Taurus-Qt-Editor] --> or maybe move it to sardana
+    # 'Taurus-Qt-Guiqwt',  # [Taurus-Qt-Guiqwt]
 ]
 
 install_requires = [
@@ -63,7 +63,7 @@ extras_require = {
     'taurus-qt': ['qtpy',
                   # 'PyQt4 >=4.8',
                   # 'PyQt4.Qwt5 >=5.2.0',  # [Taurus-Qt-Plot]
-                  'ply >=2.3', # [Taurus-Qt-Synoptic]
+                  'ply >=2.3',  # [Taurus-Qt-Synoptic]
                   'lxml >=2.1',  # [Taurus-Qt-TaurusGUI]
                   'spyder >=3.0',  # [Taurus-Qt-Editor]
                   'guiqwt >=2.3.1',  # [Taurus-Qt-Guiqwt]
@@ -73,7 +73,7 @@ extras_require = {
     'taurus-epics': ['pyepics >=3.2.4',
                      ],
     'taurus-h5file': ['taurus_h5file',
-                    ],
+                      ],
 }
 
 console_scripts = [
@@ -98,9 +98,9 @@ gui_scripts = [
     'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main [Taurus-Qt]',
 ]
 
-entry_points={'console_scripts': console_scripts,
-              'gui_scripts': gui_scripts,
-              }
+entry_points = {'console_scripts': console_scripts,
+                'gui_scripts': gui_scripts,
+                }
 
 classifiers = [
     'Development Status :: 3 - Alpha',
