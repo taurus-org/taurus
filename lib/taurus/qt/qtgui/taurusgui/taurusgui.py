@@ -25,7 +25,7 @@
 
 """This package provides the TaurusGui class"""
 
-__all__ = ["DockWidgetPanel", "TaurusGui", "main"]
+__all__ = ["DockWidgetPanel", "TaurusGui"]
 
 __docformat__ = 'restructuredtext'
 

@@ -8,5 +8,5 @@ from config import *
 
 
 def run():
-    from taurus.qt.qtgui.taurusgui import main
+    from taurus.qt.qtgui.taurusgui.taurusgui import main
     main(confname="tgconf_{name}")
