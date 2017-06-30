@@ -75,7 +75,7 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
 
     def _initCurves(self, ntrends):
         # clean previous curves
-        viewBox = self.getViewBox()
+        # viewBox = self.getViewBox()
 
 
         # if viewBox is not None:
@@ -108,13 +108,11 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         if self._curves is not None:
             curves = self._curves
             viewBox = self.getViewBox()
+
             self.forgetViewBox()
             for curve in curves:
                 curve.forgetViewBox()
                 curve_viewBox = curve.getViewBox()
-
-
-                print viewBox, curve_viewBox
 
                 if curve_viewBox is not None and viewBox is None:
                     curve_viewBox.removeItem(curve)
@@ -191,7 +189,6 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         PlotDataItem.parentChanged(self)
 
 
-
 if __name__ == '__main__':
     import sys
     import numpy
@@ -199,6 +196,7 @@ if __name__ == '__main__':
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.extra_pyqtgraph.taurustrendset import TaurusTrendSet
     from taurus.qt.qtgui.extra_pyqtgraph.dateaxisitem import DateAxisItem
+    from taurus.qt.qtgui.extra_pyqtgraph.oscmodetool import FixedRangeScale
 
     from taurus.qt.qtgui.extra_pyqtgraph.taurusmodelchoosertool import(
         TaurusModelChooserTool)
@@ -208,7 +206,7 @@ if __name__ == '__main__':
 
     from taurus.core.taurusmanager import TaurusManager
     taurusM = TaurusManager()
-    taurusM.changeDefaultPollingPeriod(200)  # ms
+    taurusM.changeDefaultPollingPeriod(1000)  # ms
 
 
     app = TaurusApplication()
@@ -222,6 +220,11 @@ if __name__ == '__main__':
 
     cp = CurvesPropertiesTool()
     cp.attachToPlotItem(w.getPlotItem())
+
+
+
+    oscMode = FixedRangeScale()
+    oscMode.attachToPlotItem(w.getPlotItem())
 
     # add legend to the plot, for that we have to give a name to plot items
     # w.addLegend()
@@ -240,6 +243,7 @@ if __name__ == '__main__':
 
     tmct = TaurusModelChooserTool(itemClass=TaurusTrendSet)
     tmct.attachToPlotItem(w.getPlotItem())
+
 
     w.show()
 
