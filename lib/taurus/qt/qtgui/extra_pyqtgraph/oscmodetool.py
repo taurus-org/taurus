@@ -36,16 +36,25 @@ class FixedRangeScale(QtGui.QAction):
         self._timer.timeout.connect(self.updateRange)
         self._originalXAutoRange = None
         self._viewBox = None
+        self._XactionMenu = None
         self._scrollStep = 0.2
 
 
     def attachToPlotItem(self, plot_item):
         self._viewBox = plot_item.getViewBox()
         menu = self._viewBox.menu
-        menu.addAction(self)
+        # menu.addAction(self)
+        self.addToMenu(menu)
         self.setParent(menu)
         self._originalXAutoRange = self._viewBox.autoRangeEnabled()[0]
         self._viewBox.sigXRangeChanged.connect(self._onXRangeChanged)
+
+    def addToMenu(self, menu):
+        for m in menu.axes:
+            if m.title() == 'X Axis':
+                x_menu = m
+                self._XactionMenu = x_menu.actions()[0]
+                x_menu.insertAction(self._XactionMenu,self)
 
     def onToggled(self, checked):
         if checked:
@@ -58,11 +67,12 @@ class FixedRangeScale(QtGui.QAction):
             t = int(x_range/10.)*1000
             t = min(3000, t)
             t = max(50, t)
-
             self._timer.start(t)
         else:
             self._timer.stop()
             self._viewBox.enableAutoRange(x=self._originalXAutoRange)
+
+        self._XactionMenu.setEnabled(not checked)
 
     def _onXRangeChanged(self, viewBox, viewRange):
         self.setChecked(False)
@@ -72,24 +82,22 @@ class FixedRangeScale(QtGui.QAction):
         if len(self._viewBox.addedItems) < 1:
             self._timer.stop()
 
-
-
-
         children_bounds = self._viewBox.childrenBounds()
         _, boundMax = children_bounds[0]
-        axis_range = self._viewBox.state['viewRange']
-        axis_Xrange = axis_range[0]
 
-        x_range = axis_Xrange[1] - axis_Xrange[0]
+        axis_X_range, _ = self._viewBox.state['viewRange']
 
 
-        if boundMax > axis_Xrange[1] or boundMax < axis_Xrange[0]:
-            x_min = boundMax - axis_Xrange[1]
-            x_max = boundMax - axis_Xrange[0]
+        x_range = axis_X_range[1] - axis_X_range[0]
+
+
+        if boundMax > axis_X_range[1] or boundMax < axis_X_range[0]:
+            x_min = boundMax - axis_X_range[1]
+            x_max = boundMax - axis_X_range[0]
             step = min(max(x_range * self._scrollStep, x_min), x_max)
 
             self._viewBox.sigXRangeChanged.disconnect(self._onXRangeChanged)
-            self._viewBox.setXRange(axis_Xrange[0]+step, axis_Xrange[1]+step, padding=0.0, update=False)
+            self._viewBox.setXRange(axis_X_range[0]+step, axis_X_range[1]+step, padding=0.0, update=False)
             self._viewBox.sigXRangeChanged.connect(self._onXRangeChanged)
 
 
