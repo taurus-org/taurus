@@ -36,7 +36,7 @@ DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
 
 @insertTest(helper_name='texts',
             model='tango:' + DEV_NAME + '/double_scalar',
-            expected=('double_scalar', '1.23', '0.0 mm', 'mm'),
+            expected=('double_scalar', '1.23', '0.00 mm', 'mm'),
             # expected=('double_scalar', '1.23', '0.0', 'mm'),
             # TODO: change taurusvalue's line edit to hide units
             )

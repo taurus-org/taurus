@@ -10,6 +10,30 @@ develop branch)  won't be reflected in this file.
 
 ## Unreleased
 
+### Added
+- Formatting API in TaurusBaseComponent (#444)
+- TangoAttribute.format_spec and taurus.core.util.tangoFormatter
+- Write support for eval scheme (#425)
+- Arbitrary module support in eval scheme (#423)
+- TaurusModel.parentObject property (#415)
+- TangoAttribute.getAttributeProxy (#450)
+
+### Changed
+- pint_local updated to v 0.8 (#445)
+- Improve log message when reading unitless TangoAttributes (#420)
+
+### Deprecated
+- TangoAttribute.format
+- taurus.qt.qtgui.console
+
+### Fixed
+- Taurus4 does not follow Tango format (#392)
+- Bug in handling of nanoseconds by TaurusTimeVal (#453)
+- Import error when PyTango is not installed (#398)
+- Support for booleans in TaurusTrend
+- Docs issues (#397, #430)
+- [Many other issues](https://github.com/taurus-org/taurus/issues?q=milestone%3AJul17+label%3Abug)
+
 
 ## [4.0.3] - 2017-01-16
 [Jan17 milestone](https://github.com/taurus-org/taurus/milestone/1)

@@ -30,6 +30,7 @@ __all__ = ["TangoAttribute", "TangoAttributeEventListener", "TangoAttrValue"]
 __docformat__ = "restructuredtext"
 
 # -*- coding: utf-8 -*-
+import re
 import time
 import threading
 import weakref
@@ -47,7 +48,8 @@ from taurus.core.taurusbasetypes import (TaurusEventType,
                                          DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
-from taurus.core.util.log import debug, taurus4_deprecation
+from taurus.core.util.log import (debug, taurus4_deprecation,
+                                  deprecation_decorator)
 
 from taurus.core.tango.enums import (EVENT_TO_POLLING_EXCEPTIONS,
                                      FROM_TANGO_TO_NUMPY_TYPE,
@@ -501,7 +503,12 @@ class TangoAttribute(TaurusAttribute):
         if self.__attr_err is not None:
             raise self.__attr_err
         return self.__attr_value
-
+    
+    def getAttributeProxy(self):
+        """Convenience method that creates and returns a PyTango.AttributeProxy
+        object"""
+        return PyTango.AttributeProxy(self.getFullName())
+    
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -919,12 +926,21 @@ class TangoAttribute(TaurusAttribute):
             self.tango_writable = i.writable
             self.max_dim = i.max_dim_x, i.max_dim_y
             ###############################################################
-            self.format = standard_display_format_from_tango(i.data_type,
-                                                             i.format)
+            fmt = standard_display_format_from_tango(i.data_type, i.format)
+            self.format_spec = fmt.lstrip('%')  # format specifier
+            match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
+            if match:
+                self.precision = int(match.group(1))
             # self._units and self._display_format is to be used by
             # TangoAttrValue for performance reasons. Do not rely on it in other
             # code
             self._units = units
+
+    @property
+    @deprecation_decorator(alt='format_spec or precision', rel='4.0.4')
+    def format(self):
+        i = self._pytango_attrinfoex
+        return standard_display_format_from_tango(i.data_type, i.format)
 
     @property
     def _tango_data_type(self):

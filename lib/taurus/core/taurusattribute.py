@@ -75,6 +75,7 @@ class TaurusAttribute(TaurusModel):
         self._range = [None, None]
         self._alarm = [None, None]
         self._warning = [None, None]
+        self.precision = None
 
     def cleanUp(self):
         self.trace("[TaurusAttribute] cleanUp")
