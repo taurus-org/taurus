@@ -513,9 +513,10 @@ class CurvePropAdapter(object):
 
             cFill = opts['fillLevel']
 
-            curve_appearance_properties = CurveAppearanceProperties(sStyle=sStyle, sSize=sSize, sColor=sColor,sFill=sFill,
-                                                                    lStyle=lStyle, lWidth=lWidth, lColor=lColor, cStyle=cStyle,
-                                                                    cFill=cFill, yAxis=yAxis, title=title)
+            curve_appearance_properties = CurveAppearanceProperties(
+                sStyle=sStyle, sSize=sSize, sColor=sColor,sFill=sFill,
+                lStyle=lStyle, lWidth=lWidth, lColor=lColor, cStyle=cStyle,
+                cFill=cFill, yAxis=yAxis, title=title)
             curves_prop[title] = curve_appearance_properties
             self._curve_items[title] = item
         return curves_prop
@@ -589,8 +590,9 @@ class CurvePropAdapter(object):
                 if yAxis is False:
                     view = Y2ViewBox.getY2ViewBox(self.plotItem)
 
-                    # for avoid bug with auto resize of views, if its necessary remove the
-                    # curve from the plot item before add it to right axis
+                    # for avoid bug with auto resize of views, if its necessary
+                    # remove the curve from the plot item before add it to right
+                    # axis
                     self.plotItem.removeItem(dataItem)
 
                     mainView.removeItem(dataItem)
@@ -605,12 +607,6 @@ class CurvePropAdapter(object):
                     view.removeItem(dataItem)
                     mainView.addItem(dataItem)
 
-                    # if this data_item is the only one in the right axis,
-                    # when we move data_item to left axis we have to delete
-                    # view(Y2ViewBox) from the scene of plot item
-                    # if len(view.addedItems) < 1:
-                    #     self.plotItem.scene().removeItem(view)
-                    #     self.plotItem.hideAxis('right')
                     mainView.autoRange()
                     properties[name].yAxis = False
 
@@ -619,8 +615,8 @@ class CurvePropAdapter(object):
 class CurveAppearanceProperties(object):
     """An object describing the appearance of a TaurusCurve"""
 
-    #if we dont choose a curve, dialog need to be in conflict, for that we need define default values
-    # to CONFLICT instead of None!!
+    #if we dont choose a curve, dialog need to be in conflict, for that we
+    # need define default values to CONFLICT instead of None!!
     def __init__(self, sStyle=CONFLICT, sSize=None, sColor=None, sFill=None,
                  lStyle=CONFLICT, lWidth=None, lColor=None, cStyle=None,
                  yAxis=CONFLICT, cFill=CONFLICT, title=None, visible=None):
