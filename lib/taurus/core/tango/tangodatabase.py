@@ -164,7 +164,7 @@ class TangoDatabaseCache(TaurusDatabaseCache):
                 all_alias[db.get_device_alias(k)] = k
             for d in all_devs: # Very time intensive!!
                 _info = db.command_inout("DbGetDeviceInfo", d)[1]
-                name, ior, level, server, host, started, stopped = _info
+                name, ior, level, server, host, started, stopped = _info[:7]
                 klass = db.get_class_for_device(d)
                 alias = all_alias.get(d, '')
                 exported = str(int(d in all_exported))
