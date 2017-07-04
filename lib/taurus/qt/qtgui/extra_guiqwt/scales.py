@@ -148,7 +148,7 @@ class DateTimeScaleEngine(qwt.QwtLinearScaleEngine):
         #    scaleDiv.datetimeLabelFormat = "%Y/%m/%d %H:%M%S.%f"
         #    return scaleDiv
 
-        interval = qwt.QwtDoubleInterval(x1, x2).normalized()
+        interval = qwt.QwtInterval(x1, x2).normalized()
         if interval.width() <= 0:
             return qwt.QwtScaleDiv()
 
@@ -349,7 +349,7 @@ class DeltaTimeScaleEngine(qwt.QwtLinearScaleEngine):
 
         :return: (qwt.QwtScaleDiv) a scale division whose ticks are aligned with
                  the natural delta time units '''
-        interval = qwt.QwtDoubleInterval(x1, x2).normalized()
+        interval = qwt.QwtInterval(x1, x2).normalized()
         if interval.width() <= 0:
             return qwt.QwtScaleDiv()
         d_range = interval.width()
