@@ -207,7 +207,7 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
         '''Reimplementation of getUriGroups to fix the host and authority
         name using fully qualified domain name for the host.
         '''
-        ret = TaurusDeviceNameValidator.getUriGroups(self, name, strict)
+        ret = TaurusAttributeNameValidator.getUriGroups(self, name, strict)
         if ret is not None and ret.get("host", None) is not None:
             fqdn = socket.getfqdn(ret["host"])
             ret["host"] = fqdn
