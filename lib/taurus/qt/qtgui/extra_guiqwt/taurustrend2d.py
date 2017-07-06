@@ -31,6 +31,7 @@ __all__ = ["TaurusTrend2DDialog"]
 from guiqwt.plot import ImageDialog
 from taurus.external.qt import Qt
 import taurus.core
+from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DItem
 from taurus.qt.qtgui.extra_guiqwt.tools import (TaurusModelChooserTool,
@@ -95,7 +96,8 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
 
         # Config properties
         self.setModelInConfig(True)
-        self.registerConfigDelegate(self.trendItem, name='trendItem')
+        self.registerConfigDelegate(self.trendItem or BaseConfigurableClass(),
+                                    name='trendItem')
         self.registerConfigDelegate(self.get_tool(AutoScrollTool),
                                     name='AutoScrollTool')
         self.registerConfigDelegate(self.get_tool(AutoScaleXTool),
