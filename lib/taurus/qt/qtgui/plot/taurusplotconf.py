@@ -206,7 +206,7 @@ class demo(Qt.QDialog):
 def main1():
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication (sys.argv)
+    app = TaurusApplication(sys.argv)
     form = demo()
     form.show()
     sys.exit(app.exec_())
@@ -215,7 +215,7 @@ def main1():
 def main2():
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication (sys.argv)
+    app = TaurusApplication(sys.argv)
 
     curves = [curveprops.CurveConf(xsrc='', ysrc='tango://host:1000/a/b/c/d', properties=None, title="tangocurve", vis=Qwt5.QwtPlot.yLeft),
               curveprops.CurveConf(

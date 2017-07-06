@@ -1312,7 +1312,7 @@ if __name__ == "__main__":
 
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication (sys.argv)
+    app = TaurusApplication(sys.argv)
     form = Qt.QMainWindow()
     # ly=Qt.QVBoxLayout(form)
     # container=Qt.QWidget()

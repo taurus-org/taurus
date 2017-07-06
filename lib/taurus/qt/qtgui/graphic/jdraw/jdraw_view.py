@@ -467,7 +467,7 @@ def jdraw_view_main():
     taurus.setLogLevel(taurus.Info)
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication (sys.argv)
+    app = TaurusApplication(sys.argv)
 
     #form = Qt.QDialog()
     # ly=Qt.QVBoxLayout(form)

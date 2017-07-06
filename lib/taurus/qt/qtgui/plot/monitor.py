@@ -86,7 +86,7 @@ if __name__ == "__main__":
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication (sys.argv)
+    app = TaurusApplication(sys.argv)
 
     args = sys.argv[1:]
 

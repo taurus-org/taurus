@@ -236,7 +236,7 @@ def testWidget():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication (sys.argv)
+    app = TaurusApplication(sys.argv)
     w = GraphicalChoiceWidget(None, True)
     w.show()
     sys.exit(app.exec_())
@@ -247,7 +247,7 @@ def main():
     from taurus.qt.qtgui.icon import getCachedPixmap
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication (sys.argv)
+    app = TaurusApplication(sys.argv)
 
     pixmaps = {}
     choices = [['TaurusForm', 'TaurusTrend'], ['TaurusPlot', 'Qub']]
