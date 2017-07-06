@@ -72,7 +72,7 @@ extras_require = {
                      ],
     'taurus-epics': ['pyepics >=3.2.4',
                      ],
-    'taurus-h5file': ['taurus_h5file',
+    'taurus-h5file': ['h5file',
                       ],
 }
 
