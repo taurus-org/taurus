@@ -115,7 +115,10 @@ if __name__ == "__main__":
     def on_cancel():
         print('Cancel!')
 
-    app = Qt.QApplication(sys.argv)
+
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
     bb = QButtonBox()
     bb.okClicked.connect(on_ok)
     bb.cancelClicked.connect(on_cancel)

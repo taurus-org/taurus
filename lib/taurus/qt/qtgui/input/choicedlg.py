@@ -234,7 +234,9 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
 
 def testWidget():
     import sys
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
     w = GraphicalChoiceWidget(None, True)
     w.show()
     sys.exit(app.exec_())
@@ -243,7 +245,9 @@ def testWidget():
 def main():
     import sys
     from taurus.qt.qtgui.icon import getCachedPixmap
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
 
     pixmaps = {}
     choices = [['TaurusForm', 'TaurusTrend'], ['TaurusPlot', 'Qub']]

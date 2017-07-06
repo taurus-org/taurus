@@ -80,7 +80,9 @@ class QLogo(Qt.QLabel):
 
 def main():
     import sys
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
     w = QLogo()
     w.show()
     sys.exit(app.exec_())

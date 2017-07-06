@@ -3,14 +3,14 @@
 import sys
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.plot import TaurusPlot, CurveAppearanceProperties
-
-app = Qt.QApplication(sys.argv)
+from taurus.qt.qtgui.application import TaurusApplication
+app = TaurusApplication(sys.argv)
 ##########################
 # BEGIN EXAMPLE CODE
 ##########################
 
 import numpy
-from taurus.qt import Qwt5
+from taurus.external.qt import Qwt5
 
 panel = TaurusPlot()
 

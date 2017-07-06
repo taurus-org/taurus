@@ -465,7 +465,9 @@ def jdraw_view_main():
     import time
     import taurus.qt.qtgui.graphic
     taurus.setLogLevel(taurus.Info)
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
 
     #form = Qt.QDialog()
     # ly=Qt.QVBoxLayout(form)
