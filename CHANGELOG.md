@@ -27,7 +27,7 @@ develop branch)  won't be reflected in this file.
 - taurus.qt.qtgui.console
 
 ### Removed
-- `taurus.external.orderdict` (#223)
+- `taurus.external.ordereddict` (#223)
 - `taurus.qt.qtgui.Q*` modules (Qt, QtCore, QtGui, Qwt5,...)
 - `taurus.qt.qtgui.util.taurusropepatch` module
 - `taurusqt.qtgui.util.genwidget`
