@@ -317,8 +317,8 @@ class TangoDatabaseCache(object):
 
     def refresh(self):
         db = self.db
-
-        if hasattr(Device(db.dev_name()), 'DbMySqlSelect'):
+        db_dev_name = '/'.join((db.getFullName(), db.dev_name()))
+        if hasattr(Device(db_dev_name), 'DbMySqlSelect'):
             # optimization in case the db exposes a MySQL select API
             query = ("SELECT name, alias, exported, host, server, class " +
                      "FROM device")
