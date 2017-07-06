@@ -273,9 +273,7 @@ class AutoScrollTool(ToggleTool, BaseConfigurableClass):
 
 
 class _BaseAutoScaleTool(ToggleTool, BaseConfigurableClass):
-    """A tool that allows the plot in "AutoScroll" mode.
-    This makes sense in trend plots where we want to keep the last value
-    always visible"""
+    """Base class for the AutoScale tools"""
 
     def __init__(self, manager, axis, toolbar_id=None):
         ToggleTool.__init__(
@@ -324,18 +322,21 @@ class _BaseAutoScaleTool(ToggleTool, BaseConfigurableClass):
 
 
 class AutoScaleXTool(_BaseAutoScaleTool):
+    """ToggleTool that, when checked, autoscales the X scale on data changed"""
     def __init__(self, manager, toolbar_id=None):
         _BaseAutoScaleTool.__init__(self, manager, axis='bottom',
                                     toolbar_id=toolbar_id)
 
 
 class AutoScaleYTool(_BaseAutoScaleTool):
+    """ToggleTool that, when checked, autoscales the Y scale on data changed"""
     def __init__(self, manager, toolbar_id=None):
         _BaseAutoScaleTool.__init__(self, manager, axis='left',
                                     toolbar_id=toolbar_id)
 
 
 class AutoScaleZTool(_BaseAutoScaleTool):
+    """ToggleTool that, when checked, autoscales the Z scale on data changed"""
     def __init__(self, manager, toolbar_id=None):
         _BaseAutoScaleTool.__init__ (self, manager, axis='Z',
                                      toolbar_id=toolbar_id)
