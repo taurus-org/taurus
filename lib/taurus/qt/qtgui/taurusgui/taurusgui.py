@@ -1596,7 +1596,7 @@ class TaurusGui(TaurusMainWindow):
 
 
 #------------------------------------------------------------------------------
-def main():
+def main(confname=None):
     import sys
     import taurus
     from taurus.core.util import argparse
@@ -1625,7 +1625,9 @@ def main():
         wizard.show()
         sys.exit(app.exec_())
 
-    confname = options.config_dir
+    if confname is None:
+        confname = options.config_dir
+
     if confname is None:
         if len(args) == 1:  # for backwards compat, we allow to specify the confname without the "--config-dir" parameter
             confname = args[0]
