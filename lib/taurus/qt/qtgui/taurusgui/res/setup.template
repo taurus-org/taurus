@@ -32,6 +32,6 @@ setup(
     keywords='APP',
     description='{name} Taurus GUI',
     requires=['setuptools (>=1.1)'],
-    install_requires=['taurus'],
+    install_requires=['taurus[taurus-qt]'],
     classifiers=classifiers
 )
