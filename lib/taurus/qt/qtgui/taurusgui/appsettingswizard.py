@@ -1379,7 +1379,8 @@ class OutroPage(BasePage):
         # if all went ok...
         msg = 'Application project was successfully created.' +\
               'You can find the files in: "%s"' % pdir
-        msg += '\nTip: You can install it with `python setup install` command.'
+        msg += '\nTip: You can install it with:\n\tpip install %s' % pdir
+        msg += '\nTip: And then run the application with:\n\t %s' % gui_name
         details = ''
         warnings = self.wizard().getProjectWarnings()
         if warnings:
@@ -1392,6 +1393,9 @@ class OutroPage(BasePage):
                              'Application project created', msg, Qt.QMessageBox.Ok, self)
         dlg.setDetailedText(details)
         dlg.exec_()
+        print 
+        print msg + details
+        print
 
 
 class AppSettingsWizard(Qt.QWizard):
