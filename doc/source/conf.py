@@ -40,6 +40,12 @@ _mock_path = os.path.join(_doc_dir, 'mock.zip')
 # append mock dir to the sys path (mocks will be used if needed)
 sys.path.append(_mock_path)
 
+# insert mock for qtpy (only when building docs in RTD)
+# see https://github.com/taurus-org/taurus/issues/490
+if os.environ.get('READTHEDOCS') == 'True':
+    import types
+    sys.modules['qtpy'] = types.ModuleType('qtpy', 'Mock of qtpy for RTD')
+
 # Import code from src distribution
 sys.path.insert(0, os.path.abspath(_lib_dir))
 
