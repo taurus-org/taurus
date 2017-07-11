@@ -106,11 +106,11 @@ class DefaultLabelWidget(TaurusLabel):
             TaurusLabel.setModel(self, None)
             self.setText(devName)
 
-    _BCK_COMPAT_TAGS = {'<attr_name>': '{attr.name}',
-                        '<attr_fullname>': '{attr.fullname}',
-                        '<dev_alias>': '{dev.name}',
-                        '<dev_name>': '{dev_name}',
-                        '<dev_fullname>': '{dev.fullname}',
+    _BCK_COMPAT_TAGS = {'<attr_name>': 'name',
+                        '<attr_fullname>': 'fullname',
+                        '<dev_alias>': 'parentObj.name',
+                        '<dev_name>': 'parentObj.name',
+                        '<dev_fullname>': 'parentObj.fullname',
                         }
 
     def getDisplayValue(self, cache=True, fragmentName=None):
@@ -121,9 +121,7 @@ class DefaultLabelWidget(TaurusLabel):
             new = self._BCK_COMPAT_TAGS.get(old, '{attr.%s}' % old)
             self.deprecated(dep=old, alt=new)
             fragmentName = fragmentName.replace(old, new)
-        attr = self.getModelObj()
-        dev = attr.getParent()
-        return fragmentName.format(dev=dev, attr=attr)
+        return TaurusLabel.getDisplayValue(self, cache, fragmentName)
 
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
@@ -346,7 +344,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         self._allowWrite = True
         self._minimumHeight = None
-        self._labelConfig = '{attr.label}'
+        self._labelConfig = 'label'
         self.setModifiableByUser(False)
 
         if parent is not None:
