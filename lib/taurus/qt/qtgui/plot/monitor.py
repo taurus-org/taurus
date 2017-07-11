@@ -84,7 +84,9 @@ class TaurusMonitorTiny(TaurusTrend):
 
 if __name__ == "__main__":
     import sys
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
 
     args = sys.argv[1:]
 

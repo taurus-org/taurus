@@ -382,7 +382,8 @@ def main():
     owns_app = app is None
 
     if owns_app:
-        app = Qt.QApplication(sys.argv)
+        from taurus.qt.qtgui.application import TaurusApplication
+        app = TaurusApplication(sys.argv)
 
     w = Qt.QWidget()
     layout = Qt.QGridLayout()
