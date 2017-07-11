@@ -40,6 +40,30 @@ _mock_path = os.path.join(_doc_dir, 'mock.zip')
 # append mock dir to the sys path (mocks will be used if needed)
 sys.path.append(_mock_path)
 
+# insert mock for qtpy (only when building docs in RTD)
+# see https://github.com/taurus-org/taurus/issues/490
+# ... and since we are at it, add also a few other modules to workaround
+# more RTD failures to build API
+# (recipe inspired in https://stackoverflow.com/a/35229746 )
+if os.environ.get('READTHEDOCS') == 'True':
+    from mock import MagicMock
+    MOCK_MODULES = ['qtpy',
+                    'qtpy.QtWidgets',
+                    'epics',
+                    'epics.ca',
+                    'spyder',
+                    'spyder.utils',
+                    'spyder.utils.qthelpers',
+                    'spyder.utils.introspection',
+                    'spyder.utils.introspection.manager',
+                    'spyder.widgets',
+                    'spyder.widgets.findreplace',
+                    'spyder.widgets.editortools',
+                    'spyder.widgets.editor',
+                    'spyder.py3compat',
+                    ]
+    sys.modules.update((mod_name, MagicMock()) for mod_name in MOCK_MODULES)
+
 # Import code from src distribution
 sys.path.insert(0, os.path.abspath(_lib_dir))
 
