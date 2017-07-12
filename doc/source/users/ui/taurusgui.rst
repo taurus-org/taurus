@@ -151,7 +151,7 @@ want to extend the application by adding custom panels to provide more features
 (e.g., to add an extra plot panel, or a new form).
 
 You can add a new panel by clicking in the "New Panel" button of the main tool
-bar (or selecting `View->Panel->New Panel...`). This will open a dialog offering
+bar (or selecting `Panels->New Panel...`). This will open a dialog offering
 a catalog of different panel types and options for your new panel. Once
 accepted, the new panel will appear floating, ready to be docked to the main window.
 

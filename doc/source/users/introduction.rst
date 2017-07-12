@@ -13,7 +13,7 @@ systems (such as EPICS_) and data sources.
           Tango-related examples. We intend to gradually introduce more 
           non-Tango examples
 
-Taurus was developed within the Sardana_ project, but since it has being found 
+Taurus was developed within the Sardana_ project, but since it has been found 
 useful for other projects not related to Sardana, it has been 
 moved to a separate project (although both projects are kept in sync and share 
 most of their developers).

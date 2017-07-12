@@ -157,7 +157,7 @@ Storing and recovering current configuration
 
 Once you have customized the way the plot looks (see the
 `Plot Configuration dialog`_ section), you may want to save the settings for
-later use. This can be done using the `Store current settings` option from the
+later use. This can be done using the `Save current settings` option from the
 `TaurusPlot context menu`_.
 
 This will save which curves should be plotted and how they should look.
