@@ -263,6 +263,9 @@ class TangoAttribute(TaurusAttribute):
         # the parent's HW object (the PyTango Device obj)
         self.__dev_hw_obj = None
 
+        # unit for which a decode warning has already been issued
+        self.__already_warned_unit = None
+
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
 
         attr_info = None
@@ -954,10 +957,15 @@ class TangoAttribute(TaurusAttribute):
             unit = None
         try:
             return UR.parse_units(unit)
-        except (UndefinedUnitError, UnicodeDecodeError):
+        except Exception as e:
             # TODO: Maybe we could dynamically register the unit in the UR
-            self.warning('Unknown unit "%s (will be treated as unitless)"',
-                         unit)
+            msg = 'Unknown unit "%s (will be treated as unitless)"'
+            if self.__already_warned_unit == unit:
+                self.debug(msg, unit)
+            else:
+                self.warning(msg, unit)
+                self.debug('%r', e)
+                self.__already_warned_unit = unit
             return UR.parse_units(None)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
