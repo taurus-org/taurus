@@ -34,22 +34,22 @@ from collections import OrderedDict
 class TaurusModelChooserTool(QtGui.QAction):
 
     def __init__(self, parent=None, itemClass=None):
-        QtGui.QAction.__init__(self, parent)
+        QtGui.QAction.__init__(self, 'Model chooser', parent)
+        self.triggered.connect(self.onTriggered)
         self.plot_item = None
         self.legend = None
         if itemClass is None:
             itemClass = TaurusPlotDataItem
         self.itemClass = itemClass
 
-    def attachToPlotItem(self, plot_item, text='Model chooser'):
+    def attachToPlotItem(self, plot_item, parentWidget=None):
         self.plot_item = plot_item
         if self.plot_item.legend is not None:
             self.legend = self.plot_item.legend
 
         menu = self.plot_item.getViewBox().menu
-        model_chooser = QtGui.QAction(text, menu)
-        model_chooser.triggered.connect(self.onTriggered)
-        menu.addAction(model_chooser)
+        menu.addAction(self)
+        self.setParent(parentWidget or menu)
 
     def onTriggered(self):
         currentModelItems = dict()
