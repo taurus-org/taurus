@@ -54,9 +54,7 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
 
         self.registerConfigProperty(self.getOpts, self.setOpts, 'opts')
         self.setModelInConfig(True)
-        if self._modelInConfig:
-            self.registerConfigProperty(self.getXmodel, self.setXmodel,
-                                        'XModel')
+        self.registerConfigProperty(self.getXmodel, self.setXmodel, 'XModel')
 
     def setXmodel(self, xModel):
         if xModel is None:
@@ -85,41 +83,16 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
         self.setData(x=self._x, y=self._y)
 
     def getOpts(self):
-        return self.serialize(self.opts)
+        return serializeOpts(self.opts)
 
     def setOpts(self, opts):
-        # creates QObjects from a pickle loaded file
+        # creates QPainters (QPen or QBrush) from a pickle loaded file
         # for adapt the serialized objects into PlotDataItem properties
 
-        # pen property
-        if opts['pen'] is not None:
-            opts['pen'] = self.unmarshallingQPainter(opts, 'pen', 'pen')
+        self.opts = deserializeOpts(opts)
 
-        # shadowPen property
-        if opts['shadowPen'] is not None:
-            opts['shadowPen'] = self.unmarshallingQPainter(
-                opts, 'shadowPen', 'pen')
-
-        # symbolPen property
-        if opts['symbolPen'] is not None:
-            opts['symbolPen'] = self.unmarshallingQPainter(
-                opts, 'symbolPen', 'pen')
-
-        # fillBrush property
-        if opts['fillBrush'] is not None:
-            opts['fillBrush'] = self.unmarshallingQPainter(
-                opts, 'fillBrush', 'brush')
-
-        # symbolBrush property
-        if opts['symbolBrush'] is not None:
-            opts['symbolBrush'] = self.unmarshallingQPainter(
-                opts, 'symbolBrush', 'brush')
-
-        self.opts = opts
-        print self.opts
-
-        # we have to set connect property (maybe pyqtgraph bug?)
-        # in that case, we have to check all values: all, pairs, finite
+        # This is a workaround for the following pyqtgraph's bug:
+        # BUG!
         if opts['connect'] == 'all':
             self.opts['connect'] = 'all'
         elif opts['connect'] == 'pairs':
@@ -127,66 +100,102 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
         elif opts['connect'] == 'finite':
             self.opts['connect'] = 'finite'
 
-    def unmarshallingQPainter(self, opts, prop_name, qPainter):
 
-        color = opts[prop_name]
-        style = opts[prop_name + '_style']
-        del opts[prop_name + '_style']
+def deserializeOpts(opts):
+    # pen property
+    if opts['pen'] is not None:
+        opts['pen'] = unmarshallingQPainter(
+            opts, 'pen', 'pen')
 
-        if qPainter == 'pen':
-            width = opts[prop_name + '_width']
-            del opts[prop_name + '_width']
-            painter = pg.mkPen(color=color, style=style, width=width)
-        elif qPainter == 'brush':
-            painter = pg.mkBrush(color=color)
-            painter.setStyle(style)
-        else:
-            return
+    # shadowPen property
+    if opts['shadowPen'] is not None:
+        opts['shadowPen'] = unmarshallingQPainter(
+            opts, 'shadowPen', 'pen')
 
-        return painter
+    # symbolPen property
+    if opts['symbolPen'] is not None:
+        opts['symbolPen'] = unmarshallingQPainter(
+            opts, 'symbolPen', 'pen')
 
-    def serialize(self, opts):
-        """
-        This method serialize all properties from PlotDataItem
-        :return: dict of serialized properties
-        """
+    # fillBrush property
+    if opts['fillBrush'] is not None:
+        opts['fillBrush'] = unmarshallingQPainter(
+            opts, 'fillBrush', 'brush')
 
-        # pen property (QPen object)
-        if opts['pen'] is not None:
-            self.marshallingQPainter(opts, 'pen', 'pen')
+    # symbolBrush property
+    if opts['symbolBrush'] is not None:
+        opts['symbolBrush'] = unmarshallingQPainter(
+            opts, 'symbolBrush', 'brush')
 
-        # shadowPen property (QPen object)
-        if opts['shadowPen'] is not None:
-            self.marshallingQPainter(opts, 'shadowPen', 'pen')
-
-        # symbolPen property (QPen object)
-        if opts['symbolPen'] is not None:
-            self.marshallingQPainter(opts, 'symbolPen', 'pen')
-
-        # fillBrush property (QBrush object)
-        if opts['fillBrush'] is not None:
-            self.marshallingQPainter(opts, 'fillBrush', 'brush')
-
-        # symbolBrush property (QBrush object)
-        if opts['symbolBrush'] is not None:
-            self.marshallingQPainter(opts, 'symbolBrush', 'brush')
-
-        return opts
-
-    def marshallingQPainter(self, opts, prop_name, qPainter):
-        if qPainter == 'pen':
-            painter = pg.mkPen(opts[prop_name])
-            opts[prop_name + '_width'] = painter.width()
-        elif qPainter == 'brush':
-            painter = pg.mkBrush(opts[prop_name])
-        else:
-            return
-
-        color = pg.colorStr(painter.color())
-        opts[prop_name] = color
-        opts[prop_name + '_style'] = painter.style()
+    return opts
 
 
+def serializeOpts(opts):
+    """
+    This method serialize all properties from PlotDataItem
+    :return: dict of serialized properties
+    """
+    # pen property (QPen object)
+    if opts['pen'] is not None:
+        marshallingQPainter(opts, 'pen', 'pen')
+
+    # shadowPen property (QPen object)
+    if opts['shadowPen'] is not None:
+        marshallingQPainter(opts, 'shadowPen', 'pen')
+
+    # symbolPen property (QPen object)
+    if opts['symbolPen'] is not None:
+        marshallingQPainter(opts, 'symbolPen', 'pen')
+
+    # fillBrush property (QBrush object)
+    if opts['fillBrush'] is not None:
+        marshallingQPainter(opts, 'fillBrush', 'brush')
+
+    # symbolBrush property (QBrush object)
+    if opts['symbolBrush'] is not None:
+        marshallingQPainter(
+            opts, 'symbolBrush', 'brush')
+
+    return opts
+
+
+def marshallingQPainter(opts, prop_name, qPainter):
+    if qPainter == 'pen':
+        painter = pg.mkPen(opts[prop_name])
+        opts[prop_name + '_width'] = painter.width()
+        opts[prop_name + '_dash'] = painter.dashPattern()
+        opts[prop_name + '_cosmetic'] = painter.isCosmetic()
+    elif qPainter == 'brush':
+        painter = pg.mkBrush(opts[prop_name])
+    else:
+        return
+
+    color = pg.colorStr(painter.color())
+    opts[prop_name] = color
+    opts[prop_name + '_style'] = painter.style()
+
+
+def unmarshallingQPainter(opts, prop_name, qPainter):
+    color = opts[prop_name]
+    style = opts[prop_name + '_style']
+    del opts[prop_name + '_style']
+
+    if qPainter == 'pen':
+        width = opts[prop_name + '_width']
+        dash = opts[prop_name + '_dash']
+        cosmetic = opts[prop_name + '_cosmetic']
+        del opts[prop_name + '_width']
+        del opts[prop_name + '_dash']
+        del opts[prop_name + '_cosmetic']
+        painter = pg.mkPen(color=color, style=style,
+                           width=width, dash=dash, cosmetic=cosmetic)
+    elif qPainter == 'brush':
+        painter = pg.mkBrush(color=color)
+        painter.setStyle(style)
+    else:
+        return
+
+    return painter
 
 if __name__ == '__main__':
     import sys
@@ -236,7 +245,8 @@ if __name__ == '__main__':
     res = app.exec_()
 
     config = c2.createConfig()
-    # c2.saveConfigFile('tmp/conf.cfg')
     print config
+
+    # c2.saveConfigFile('tmp/conf.cfg')
 
     sys.exit(res)
