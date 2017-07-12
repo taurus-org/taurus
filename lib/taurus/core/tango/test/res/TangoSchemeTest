@@ -142,6 +142,7 @@ class TangoSchemeTest(Device):
              'uchar_image': dict(unit=default_unit["int"],
                                  dtype=[(numpy.uint8,)],
                                  max_dim_x=MAXDIMX, max_dim_y=MAXDIMY),
+             'MIXEDcase': dict(dtype=str)
              }
 
     extra_cfg = {'short_scalar': dict(min_value=default_ranges['int'][0],
@@ -201,6 +202,8 @@ class TangoSchemeTest(Device):
                                **attrs['float_image'])
     string_image_ro = attribute(access=AttrWriteType.READ,
                                 **attrs['string_image'])
+    MIXEDcase = attribute(access=AttrWriteType.READ,
+                              **attrs['MIXEDcase'])
 
     # READ/WRITE ATTRIBUTES
     # SCALARS
@@ -308,6 +311,9 @@ class TangoSchemeTest(Device):
 
     def read_uchar_image_ro(self):
         return [[self.default_rvalue['uchar']] * self.DIMX] * self.DIMY
+
+    def read_MIXEDcase(self):
+        return "MIXEDcase"
 
     # READ/WRITE METHODS
     # SCALARS
