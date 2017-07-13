@@ -248,18 +248,27 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         self.__timeOffset = None
 
         # Config properties
-        self.registerConfigProperty (self.get_lut_range,
-                                     self.set_lut_range,
-                                     'lut_range'
-                                     )
-        self.registerConfigProperty (self.get_interpolation,
-                                     self.set_interpolation,
-                                     'interpolation'
-                                     )
-        self.registerConfigProperty (self.get_color_map_name,
-                                     self.set_color_map,
-                                     'color_map'
-                                     )
+        self.registerConfigProperty(self.get_lut_range,
+                                    self.set_lut_range,
+                                    'lut_range'
+                                    )
+        self.registerConfigProperty(self._get_interpolation_cfg,
+                                    self._set_interpolation_cfg,
+                                    'interpolation'
+                                    )
+        self.registerConfigProperty(self.get_color_map_name,
+                                    self.set_color_map,
+                                    'color_map'
+                                    )
+
+    def _get_interpolation_cfg(self):
+        ret = self.get_interpolation()
+        if len(ret) == 2:
+            ret = (ret[0], len(ret[1]))
+        return ret
+
+    def _set_interpolation_cfg(self, interpolate_cfg):
+        self.set_interpolation(*interpolate_cfg)
 
     def setBufferSize(self, buffersize):
         '''sets the size of the stack
