@@ -58,7 +58,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
 
         :param param: param to be passed to XYImageItem constructor
         :param buffersize: (int) size of the stack
-        :param stackMode: (str) can be 'datetime', 'timedelta' or 
+        :param stackMode: (str) can be 'datetime', 'timedelta' or 'event'
         :param autoscale: (str) if autscale string contains 'x', the x axis 
                           will be autoscaled. Same with 'y' and 'z'.
                           Defaults to 'xyz'
