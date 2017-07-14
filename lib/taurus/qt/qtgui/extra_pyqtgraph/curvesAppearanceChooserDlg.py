@@ -592,8 +592,8 @@ class CurvePropAdapter(object):
 
                     # for avoid bug with auto resize of views, if its necessary
                     # remove the curve from the plot item before add it to right
-                    # axis
-                    self.plotItem.removeItem(dataItem)
+                    # axis ??
+                    # self.plotItem.removeItem(dataItem)
 
                     mainView.removeItem(dataItem)
 
@@ -735,7 +735,7 @@ class CurveAppearanceProperties(object):
             p.__setattr__(a, alist[0])
             for ai in alist[1:]:
                 if alist[0] != ai:
-                    print "MERGING:",a,alist[0],ai,conflict(alist[0],ai)
+                    # print "MERGING:",a,alist[0],ai,conflict(alist[0],ai)
                     p.__setattr__(a, conflict(alist[0], ai))
                     break
         return p
