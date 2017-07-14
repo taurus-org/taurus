@@ -2975,6 +2975,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                             pickedCurveName = name
                             pickedIndex = i
                             pickedAxes = curve.xAxis(), curve.yAxis()
+                            _displayValue = getattr(curve, 'owner', curve
+                                                    ).displayValue
         finally:
             self.curves_lock.release()
 
@@ -2988,12 +2990,14 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             pickedCurveTitle = self.getCurveTitle(pickedCurveName)
             self.replot()
             label = self._pickedMarker.label()
+            display_y = _displayValue(picked.y())
             if self.getXIsTime():
-                infotxt = "'%s'[%i]:\n\t (t=%s, y=%.5g)" % (
-                    pickedCurveTitle, pickedIndex, datetime.fromtimestamp(picked.x()).ctime(), picked.y())
+                infotxt = "'%s'[%i]:\n\t (t=%s, y=%s)" % (
+                    pickedCurveTitle, pickedIndex,
+                    datetime.fromtimestamp(picked.x()).ctime(), display_y )
             else:
-                infotxt = "'%s'[%i]:\n\t (x=%.5g, y=%.5g)" % (
-                    pickedCurveTitle, pickedIndex, picked.x(), picked.y())
+                infotxt = "'%s'[%i]:\n\t (x=%.5g, y=%s)" % (
+                    pickedCurveTitle, pickedIndex, picked.x(), display_y )
             label.setText(infotxt)
             fits = label.textSize().width() < self.size().width()
             if fits:

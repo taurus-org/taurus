@@ -33,6 +33,7 @@ import time
 import numpy
 import re
 import gc
+import weakref
 from taurus.external.qt import Qt, Qwt5
 
 import taurus.core
@@ -247,6 +248,8 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         :param name: (str) the name of the curve
         :param curve: (TaurusCurve) the curve object to be added
         '''
+        # provide the curve with a weakref to the trendset (the owner)
+        curve.owner = weakref.proxy(self)
         self._curves[name] = curve
         self._orderedCurveNames.append(name)
 
