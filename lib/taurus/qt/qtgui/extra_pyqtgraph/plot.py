@@ -23,33 +23,59 @@
 ##
 #############################################################################
 
-from taurus.qt.qtcore.configuration import BaseConfigurableClass
+from taurus import Attribute
+from taurus.qt.qtgui.base.taurusbase import TaurusBaseComponent
 from taurus.qt.qtgui.extra_pyqtgraph.curvesPropertiesTool import CurvesPropertiesTool
 from taurus.qt.qtgui.extra_pyqtgraph.taurusmodelchoosertool import TaurusModelChooserTool
 from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
+from taurus.external.qt import QtGui
 from pyqtgraph import PlotWidget
 
-class TaurusPlot(PlotWidget, BaseConfigurableClass):
 
-    def __init__(self, parent=None, background='default', **kwargs):
-        PlotWidget.__init__(self, parent=parent, background=background, **kwargs)
-        BaseConfigurableClass.__init__(self)
+class TaurusPlot(PlotWidget, TaurusBaseComponent):
+
+    def __init__(self, parent=None, background='default',
+                 legend=True, **kwargs):
+        TaurusBaseComponent.__init__(self, 'TaurusPlot')
+
+        PlotWidget.__init__(self, parent=parent,
+                            background=background, **kwargs)
+
+        if legend:
+            self.addLegend()
+
+        self._initActions(self.getPlotItem().getViewBox().menu)
 
         curve_prop_tool = CurvesPropertiesTool()
         curve_prop_tool.attachToPlotItem(self.getPlotItem(), self)
         taurus_model_chooser_tool = TaurusModelChooserTool()
         taurus_model_chooser_tool.attachToPlotItem(self.getPlotItem(), self)
 
-
     def setModel(self, models):
-        print 'ddd'
         for model in models:
-            curve = TaurusPlotDataItem(name = model)
+            # model = Attribute(model)
+            curve = TaurusPlotDataItem(name=model)
             curve.setModel(model)
             self.addItem(curve)
 
+            self.registerConfigDelegate(curve, model)
 
 
+            # Here we have dependences from Qwt module
+            # from taurus.qt.qtgui.extra_guiqwt.curvesmodel import CurveItemConfDlg
+            # tauruscurves = self.getPlotItem().items
+            # confs, ok = CurveItemConfDlg.showDlg(parent=self,
+            #                                      curves=tauruscurves)
+
+    def _initActions(self, menu):
+
+        saveConfigAction = QtGui.QAction('Save configuration', menu)
+        saveConfigAction.triggered[()].connect(self.saveConfigFile)
+        menu.addAction(saveConfigAction)
+
+        loadConfigAction = QtGui.QAction('Retrieve saved configuration', menu)
+        loadConfigAction.triggered[()].connect(self.loadConfigFile)
+        menu.addAction(loadConfigAction)
 
 
 if __name__ == '__main__':
