@@ -29,6 +29,7 @@ from taurus.qt.qtgui.panel.taurusmodelchooser import TaurusModelChooser
 from taurusplotdataitem import TaurusPlotDataItem
 import taurus
 from collections import OrderedDict
+from pyqtgraph import ViewBox
 
 
 class TaurusModelChooserTool(QtGui.QAction):
@@ -54,6 +55,8 @@ class TaurusModelChooserTool(QtGui.QAction):
     def onTriggered(self):
         currentModelItems = dict()
         currentModelNames = []
+
+
         for item in self.plot_item.items:
             if isinstance(item, self.itemClass):
                 currentModelNames.append(item.getFullModelName())
@@ -71,6 +74,7 @@ class TaurusModelChooserTool(QtGui.QAction):
             # remove existing curves from plot (but not discarding the object)
             # so that they can be re-added later in the correct z-order
             for k, v in currentModelItems.items():
+                v.getViewBox().removeItem(v)
                 self.plot_item.removeItem(v)
                 if self.legend is not None:
                     self.legend.removeItem(v.name())
@@ -79,7 +83,10 @@ class TaurusModelChooserTool(QtGui.QAction):
             # respecting the z-order
             for modelName, model in models.items():
                 if modelName in currentModelNames:
-                    self.plot_item.addItem(currentModelItems[modelName])
+                    item = currentModelItems[modelName]
+                    self.plot_item.addItem(item)
+                    item.getViewBox().addItem(item)
+
                 elif modelName not in currentModelNames:
                     # TODO use simplename for the legend label
                     # TODO support labels
