@@ -25,6 +25,7 @@
 
 from pyqtgraph import ViewBox
 
+
 class Y2ViewBox(ViewBox):
 
     def __init__(self, *args, **kwargs):
@@ -60,7 +61,6 @@ class Y2ViewBox(ViewBox):
 
         self.plotItem = plot_item
 
-
     def updateViews(self, viewBox):
         self.setGeometry(viewBox.sceneBoundingRect())
         self.linkedViewChanged(viewBox, self.XAxis)
@@ -68,14 +68,12 @@ class Y2ViewBox(ViewBox):
     def removeItem(self, item):
         ViewBox.removeItem(self, item)
 
+        # if this axis dont have any curve associated, we may remove the
+        # axis (Y2) from scene
         if len(self.addedItems) < 1:
             self.plotItem.scene().removeItem(self)
             self.plotItem.hideAxis('right')
 
-
-    # def autoRange(self, *args, **kwargs):
-    #     print('2')
-    #     ViewBox.autoRange(self, *args, **kwargs)
 
 
 
