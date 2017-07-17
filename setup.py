@@ -60,7 +60,7 @@ install_requires = [
 ]
 
 extras_require = {
-    'taurus-qt': ['qtpy',
+    'taurus-qt': ['qtpy >=1.2.1',
                   # 'PyQt4 >=4.8',
                   # 'PyQt4.Qwt5 >=5.2.0',  # [Taurus-Qt-Plot]
                   'ply >=2.3',  # [Taurus-Qt-Synoptic]
