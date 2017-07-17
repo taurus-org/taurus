@@ -71,51 +71,23 @@ class TaurusLCDController(TaurusBaseController):
         return self.widget()
 
     def _updateForeground(self, lcd):
-        self._updateLength(lcd)
-        self._updateValue(lcd)
+        value = None
+        if lcd.fgRole == 'value':
+            value = self.getDisplayValue()
+        elif lcd.fgRole == 'w_value':
+            value = self.getDisplayValue(True)
+        elif lcd.fgRole in ('', 'none'):
+            value = ""
+
+        if value is None:
+            value = "udef"
+
+        lcd.setNumDigits(len(value))
+        lcd.display(value)
 
     def _needsStateConnection(self):
         lcd = self.lcd()
         return 'state' in (lcd.fgRole, lcd.bgRole)
-
-    def _getCharsToDisplayFromFormat(self, fmt):
-        n = ''
-        for c in fmt:
-            if c == '.':
-                break
-            if c.isdigit():
-                n += c
-        return int(n)
-
-    def _updateLength(self, lcd):
-        model = self.modelObj()
-        n = 6
-        try:
-            fmt = model.getFormat()
-            if fmt:
-                n = self._getCharsToDisplayFromFormat(fmt)
-        except:
-            pass
-        lcd.setNumDigits(n)
-
-    def _updateValue(self, lcd):
-        fgRole, value = lcd.fgRole, ""
-        if fgRole == 'value':
-            w = self.getDisplayValue()
-            # @todo: sometimes getDisplayValue called but self.widget() is None.
-            # For the moment it is just protected by substituting the following
-            # line by the ones after it.
-            # value += self.getDisplayValue()
-            if w is not None:
-                value += self.getDisplayValue()
-        elif fgRole == 'w_value':
-            value += self.getDisplayValue(True)
-        elif fgRole in ('', 'none'):
-            pass
-        else:
-            lcd.display("udef")
-            return
-        lcd.display(value)
 
     _updateBackground = updateLabelBackground
 
@@ -135,8 +107,7 @@ class TaurusLCDControllerAttribute(TaurusScalarAttributeControllerHelper, Taurus
             if idx is not None and len(idx):
                 for i in idx:
                     value = value[i]
-            if self._last_config_value is None or value is None:
-                return widget.displayValue(value)
+            return widget.displayValue(value)
         except Exception, e:
             return widget.getNoneValue()
 

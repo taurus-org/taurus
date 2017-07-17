@@ -25,9 +25,9 @@
 
 """This module exposes QtCore module"""
 
-from taurus.external.qt import getQtName
+from taurus.external.qt import API_NAME
 
-__backend = getQtName()
+__backend = API_NAME
 
 
 def __to_qvariant_1(pyobj=None):
@@ -196,4 +196,4 @@ elif __backend == 'PySide':
     if hasattr(__QtCore, "Property"):
         pyqtProperty = Property
 
-del getQtName
+del API_NAME

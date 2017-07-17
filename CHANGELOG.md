@@ -26,6 +26,12 @@ develop branch)  won't be reflected in this file.
 - TangoAttribute.format
 - taurus.qt.qtgui.console
 
+### Removed
+- `taurus.external.ordereddict` (#223)
+- `taurus.qt.qtgui.Q*` modules (Qt, QtCore, QtGui, Qwt5,...)
+- `taurus.qt.qtgui.util.taurusropepatch` module
+- `taurusqt.qtgui.util.genwidget`
+
 ### Fixed
 - Taurus4 does not follow Tango format (#392)
 - Bug in handling of nanoseconds by TaurusTimeVal (#453)

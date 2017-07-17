@@ -655,7 +655,9 @@ class CurvePropertiesView(Qt.QAbstractItemView):
 
 
 def main():
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
 
     curves = [CurveConf(xsrc='', ysrc='tango://host:1000/a/b/c/d', properties=None, title="tangocurve", vis=Qwt5.QwtPlot.yLeft),
               CurveConf(xsrc='=[1,2,3]', ysrc='=#2.x**2',
