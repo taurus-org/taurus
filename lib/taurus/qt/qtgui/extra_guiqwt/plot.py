@@ -57,8 +57,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
         CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
         TaurusBaseWidget.__init__(self, 'TaurusCurveDialog')
-        self.info("\n\nDEPRECATION WARNING: This widget is deprecated. "
-            "Use taurustrend instead\n\n")
+        self.deprecated(rel='4.1', dep='tauruscurve', alt='taurustrend')
         self.setWindowFlags(Qt.Qt.Widget)
         self._designMode = designMode
         self._modelNames = CaselessList()
@@ -205,8 +204,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
         CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
         TaurusBaseWidget.__init__(self, 'TaurusTrendDialog')
-        self.info("\n\nDEPRECATION WARNING: This widget is deprecated. "
-            "Use taurustrend instead\n\n")
+        self.deprecated(rel='4.1', dep='taurustrend1d', alt='taurustrend')
         self.setWindowFlags(Qt.Qt.Widget)
         self._designMode = designMode
         self._modelNames = CaselessList()
