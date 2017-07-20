@@ -34,6 +34,8 @@ develop branch) won't be reflected in this file.
 ### Deprecated
 - TangoAttribute.format
 - taurus.qt.qtgui.console (#385)
+- taurustrend1d (#514)
+- tauruscurve (#514)
 
 ### Removed
 - `taurus.external.ordereddict` (#223)
