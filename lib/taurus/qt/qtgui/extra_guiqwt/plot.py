@@ -57,7 +57,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
         CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
         TaurusBaseWidget.__init__(self, 'TaurusCurveDialog')
-        self.deprecated(rel='4.1', dep='tauruscurve', alt='taurustrend')
+        self.deprecated(rel='4.1', dep='tauruscurve', alt='taurusplot')
         self.setWindowFlags(Qt.Qt.Widget)
         self._designMode = designMode
         self._modelNames = CaselessList()
