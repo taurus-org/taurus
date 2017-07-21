@@ -54,7 +54,7 @@ class FixedRangeScale(QtGui.QAction):
             if m.title() == 'X Axis':
                 x_menu = m
                 self._XactionMenu = x_menu.actions()[0]
-                x_menu.insertAction(self._XactionMenu,self)
+                x_menu.insertAction(self._XactionMenu, self)
 
     def onToggled(self, checked):
         if checked:

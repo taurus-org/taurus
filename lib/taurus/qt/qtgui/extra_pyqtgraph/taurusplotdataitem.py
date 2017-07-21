@@ -48,16 +48,16 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
         self._y = None
         self.xModel = None
         if xModel is not None:
-            self.setXmodel(xModel)
+            self.setXModel(xModel)
         if yModel is not None:
             self.setModel(yModel)
 
         self.registerConfigProperty(self.getOpts, self.setOpts, 'opts')
         self.setModelInConfig(True)
-        self.registerConfigProperty(self.getXmodel, self.setXmodel, 'XModel')
+        self.registerConfigProperty(self.getXModelName, self.setXModel, 'XModel')
 
-    def setXmodel(self, xModel):
-        if xModel is None:
+    def setXModel(self, xModel):
+        if not xModel:
             if self.xModel is not None:
                 self.xModel.removeListener(self)
             self.xModel = None
@@ -66,7 +66,7 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
         self._x = self.xModel.read().rvalue
         self.xModel.addListener(self)
 
-    def getXmodel(self):
+    def getXModelName(self):
         if self.xModel is None:
             return None
         else:
@@ -235,9 +235,9 @@ if __name__ == '__main__':
     # c2.setModel('eval:Quantity(rand(256),"m")')
     # c2.setModel('sys/tg_test/1/wave')
     # c2.setModel(None)
-    # c2.setXmodel(None)
+    # c2.setXModel(None)
 
-    # c2.setXmodel('eval:Quantity(rand(256),"m")')
+    # c2.setXModel('eval:Quantity(rand(256),"m")')
 
     w.addItem(c2)
     w.show()
