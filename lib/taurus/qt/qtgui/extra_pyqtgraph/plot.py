@@ -24,12 +24,23 @@
 #############################################################################
 
 from taurus import Attribute
+from taurus.core.util.containers import LoopList
 from taurus.qt.qtgui.base.taurusbase import TaurusBaseComponent
 from taurus.qt.qtgui.extra_pyqtgraph.curvesPropertiesTool import CurvesPropertiesTool
 from taurus.qt.qtgui.extra_pyqtgraph.taurusmodelchoosertool import TaurusModelChooserTool
+from taurus.qt.qtgui.extra_pyqtgraph.taurusXYmodelChooser import TaurusXYModelChooserTool
 from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
-from taurus.external.qt import QtGui
+from taurus.external.qt import QtGui, Qt
 from pyqtgraph import PlotWidget
+
+
+CURVE_COLORS = [Qt.QPen(Qt.Qt.red),
+                Qt.QPen(Qt.Qt.blue),
+                Qt.QPen(Qt.Qt.green),
+                Qt.QPen(Qt.Qt.magenta),
+                Qt.QPen(Qt.Qt.cyan),
+                Qt.QPen(Qt.Qt.yellow),
+                Qt.QPen(Qt.Qt.white)]
 
 
 class TaurusPlot(PlotWidget, TaurusBaseComponent):
@@ -41,31 +52,35 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         PlotWidget.__init__(self, parent=parent,
                             background=background, **kwargs)
 
-        if legend:
-            self.addLegend()
+        self._curveColors = LoopList(CURVE_COLORS)
+        self._curveColors.setCurrentIndex(-1)
+
+        self.showLegend = legend
+        if self.showLegend:
+            self.legend = self.addLegend()
 
         self._initActions(self.getPlotItem().getViewBox().menu)
 
         curve_prop_tool = CurvesPropertiesTool()
         curve_prop_tool.attachToPlotItem(self.getPlotItem(), self)
-        taurus_model_chooser_tool = TaurusModelChooserTool()
-        taurus_model_chooser_tool.attachToPlotItem(self.getPlotItem(), self)
+
+        # taurus_model_chooser_tool = TaurusModelChooserTool()
+        # taurus_model_chooser_tool.attachToPlotItem(self.getPlotItem(), self)
+
+        taurus_XYmodel_chooser_tool = TaurusXYModelChooserTool()
+        taurus_XYmodel_chooser_tool.attachToPlotItem(self.getPlotItem(), self, self._curveColors)
 
     def setModel(self, models):
         for model in models:
             # model = Attribute(model)
             curve = TaurusPlotDataItem(name=model)
             curve.setModel(model)
+            curve.setPen(self._curveColors.next().color())
             self.addItem(curve)
 
-            self.registerConfigDelegate(curve, model)
+            self.registerConfigDelegate(curve, model)  # TODO: think about dont use model name e.g. use "__Curve__<model>"
 
 
-            # Here we have dependences from Qwt module
-            # from taurus.qt.qtgui.extra_guiqwt.curvesmodel import CurveItemConfDlg
-            # tauruscurves = self.getPlotItem().items
-            # confs, ok = CurveItemConfDlg.showDlg(parent=self,
-            #                                      curves=tauruscurves)
 
     def _initActions(self, menu):
 
@@ -77,10 +92,29 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         loadConfigAction.triggered[()].connect(self.loadConfigFile)
         menu.addAction(loadConfigAction)
 
+        legendAction = QtGui.QAction('Show/hide legend', menu)
+        legendAction.triggered.connect(self.enableLegend)
+        menu.addAction(legendAction)
+
+
+    def enableLegend(self):
+        if self.showLegend:
+            self.legend.hide()
+            self.showLegend = False
+        else:
+            self.legend.show()
+            self.showLegend = True
+
+
+
+
+
 
 if __name__ == '__main__':
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
+    import pyqtgraph as pg
+    import numpy
 
     app = TaurusApplication()
     w = TaurusPlot()
@@ -88,5 +122,12 @@ if __name__ == '__main__':
     w.setModel(['eval:rand(256)', 'sys/tg_test/1/wave'])
 
     w.show()
-    sys.exit(app.exec_())
+    ret = app.exec_()
+
+    # import pprint
+    # pprint.pprint(w.createConfig())
+
+
+
+    sys.exit(ret)
 
