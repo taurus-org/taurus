@@ -34,20 +34,19 @@ Hint: this list can be used as a template to be copy-pasted on a release PR
 
 ### Installation
 - [ ] Install Taurus from the tar.gz : `pip install <tarball_artifact_URL>`
-tar -zxvf taurus-3.7.4.tar.gz
 
 ### Taurusdemo
 
 - [ ] Test all of the buttons of the taurusdemo. All demos should launch correctly and without raising exceptions
 - [ ] For TaurusLabel, check foreground role, the background role, the prefix, the suffix, etc.
-- [ ] For TaurusLabel, use a model with fragment (e.g., `sys/tg_test/1/ampli#magnitude`, `eval:Q("1 mm")#unit"`)
+- [ ] For TaurusLabel, use a model with fragment (e.g., `sys/tg_test/1/ampli#magnitude`, `eval:Q('1mm')#unit"`)
 - [ ] For LCD: Test the foreground roles and the background role
 - [ ] For Led: Test the colors, ON color, Off color.
 
 ### taurusplot
 (basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
-- [ ] Execute: `taurusplot 'eval:Q(rand(333), "mm")' sys/tg_test/1/wave`
+- [ ] Execute: `taurusplot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`
 - [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with
 - [ ] Check mouse wheel Zoom
 - [ ] Test panning (dragging with CTRL pressed)
@@ -62,8 +61,8 @@ tar -zxvf taurus-3.7.4.tar.gz
 ### taurustrend
 (basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
-- [ ] Execute: `taurustrend 'eval:Q(rand(), "mm")' sys/tg_test/1/ampli`
-- [ ] Execute: `taurustrend -xe 'eval:Q(rand(), "mm")' sys/tg_test/1/ampli`
+- [ ] Execute: `taurustrend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Execute: `taurustrend -xe "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
 - [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with
 - [ ] Check mouse wheel Zoom
 - [ ] Test panning (dragging with CTRL pressed)
@@ -91,7 +90,7 @@ tar -zxvf taurus-3.7.4.tar.gz
 ### Tauruscurve & taurustrend1d
 (unused and to be deprecated, you may test but **do not worry too much if they fail**)
 
-- [ ] Execute: `tauruscurve --demo` and `taurustrend1d eval:Q(rand(), "mm")`
+- [ ] Execute: `tauruscurve --demo` and `taurustrend1d "eval:Q(rand(),'mm')"`
 - [ ] Change size
 - [ ] Move curve with mouse
 - [ ] Resize curve with mouse
