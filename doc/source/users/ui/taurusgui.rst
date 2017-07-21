@@ -236,6 +236,8 @@ element in the synoptic will be highlighted). This is very useful because
 synoptic panels can be used as a sort of quick index or browser to navigate in
 panel-crowded applications.
 
+To add a Synoptic panel to a taurusgui after the creation of the taurusgui, use the "Add Panel" button (or menu), select the "TaurusJDrawSynopticsView", enter "Advanced settings..." to enter the full path of the JDraw application into the "Model" field.
+
 Also note that you can find a button in the application toolbar for
 showing/hiding each synoptic panel.
 
