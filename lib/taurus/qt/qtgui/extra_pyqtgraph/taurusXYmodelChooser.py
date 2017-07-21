@@ -72,12 +72,14 @@ class TaurusXYModelChooserTool(QtGui.QAction):
             xModels = OrderedDict()
             curve_name = OrderedDict()
             for c in conf:
-                m = taurus.Attribute(c.yModel)
-                n = c.xModel
-                name = c.curveLabel
-                yModels[n, m.getFullName()] = m
-                xModels[n, m.getFullName()] = n
-                curve_name[n, m.getFullName()] = name
+                print c.yModel, type(c.yModel)
+                if c.yModel is not None:
+                    m = taurus.Attribute(c.yModel)
+                    n = c.xModel
+                    name = c.curveLabel
+                    yModels[n, m.getFullName()] = m
+                    xModels[n, m.getFullName()] = n
+                    curve_name[n, m.getFullName()] = name
 
             for k, v in currentModelItems.items():
                 v.getViewBox().removeItem(v)
@@ -89,7 +91,6 @@ class TaurusXYModelChooserTool(QtGui.QAction):
 
             for modelName, model in yModels.items():
                 if modelName in currentModelNames:
-                    print 'it is'
                     item = currentModelItems[modelName]
                     X = xModels[modelName]
                     c_name = curve_name[modelName]
@@ -105,7 +106,6 @@ class TaurusXYModelChooserTool(QtGui.QAction):
                         item.getViewBox().addItem(item)
 
                 elif modelName not in currentModelNames:
-                    print 'no it is'
                     x_model = xModels[modelName]
                     y_model = yModels[modelName]
                     c_name = curve_name[modelName]
