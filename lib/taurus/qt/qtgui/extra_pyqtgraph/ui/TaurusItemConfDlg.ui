@@ -1,6 +1,6 @@
 <ui version="4.0" >
- <class>CurveItemConfDlg</class>
- <widget class="QWidget" name="CurveItemConfDlg" >
+ <class>TaurusItemConfDlg</class>
+ <widget class="QWidget" name="TaurusItemConfDlg" >
   <property name="geometry" >
    <rect>
     <x>0</x>

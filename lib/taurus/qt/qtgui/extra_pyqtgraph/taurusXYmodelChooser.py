@@ -24,7 +24,8 @@
 #############################################################################
 
 import taurus
-from taurus.qt.qtgui.extra_pyqtgraph.curvesmodel import CurveItemConfDlg
+from taurus.qt.qtgui.extra_pyqtgraph.curvesmodel import (
+    TaurusItemConfDlg, TaurusItemConf)
 from taurus.external.qt import QtGui
 from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
 from collections import OrderedDict
@@ -53,6 +54,7 @@ class TaurusXYModelChooserTool(QtGui.QAction):
 
         currentModelItems = dict()
         currentModelNames = []
+        taurusItems = []
 
         curve_items = self.plot_item.items
         for curve in curve_items:
@@ -61,10 +63,13 @@ class TaurusXYModelChooserTool(QtGui.QAction):
                     (curve.getXModelName(), curve.getFullModelName()))
                 currentModelItems[
                     curve.getXModelName(), curve.getFullModelName()] = curve
+                item = TaurusItemConf(YModel=curve.getFullModelName(),
+                    XModel=curve.getXModelName(), name=curve.name())
+                taurusItems.append(item)
 
         # TODO:
-        conf, ok = CurveItemConfDlg.showDlg(
-            parent=self.parent(), curves=curve_items)
+        conf, ok = TaurusItemConfDlg.showDlg(
+            parent=self.parent(), taurusItemConf=taurusItems)
 
         print conf, ok
 

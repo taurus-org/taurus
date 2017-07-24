@@ -26,7 +26,7 @@
 """
 curvesmodel Model and view for new CurveItem configuration
 """
-__all__ = ['TaurusCurveItemTableModel', 'CurveItemConf', 'CurveItemConfDlg']
+__all__ = ['TaurusCurveItemTableModel', 'TaurusItemConf', 'TaurusItemConfDlg']
 
 import copy
 
@@ -84,42 +84,40 @@ class Component(object):
 
 
 from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
-class CurveItemConf(object):
+class TaurusItemConf(object):
 
-    def __init__(self, curve=None):
-        if curve is None:
-            curve = TaurusPlotDataItem()
+    def __init__(self, YModel=None, XModel=None, name=None):
+        self.x = Component(XModel)
+        self.y = Component(YModel)
+        self.xModel = XModel
+        self.yModel = YModel
+        self.curveLabel = name
 
-        self.x = Component(curve.getXModelName())
-        self.y = Component(curve.getFullModelName())
-        self.xModel = curve.getXModelName()
-        self.yModel = curve.getFullModelName()
-        self.curveLabel = (curve.name() or None)
 
     def __repr__(self):
-        ret = "CurveItemConf(xModel='%s', yModel='%s')" % (
+        ret = "TaurusItemConf(xModel='%s', yModel='%s')" % (
             self.xModel, self.yModel)
         return ret
 
-    @staticmethod
-    def fromTaurusCurveItem(item):
-        return CurveItemConf(curve=item)
-
-    @staticmethod
-    def fromAny(obj):
-        '''return a CurveItemConf from whatever given in input (if possible).
-        Raises ValueError if not possible'''
-        if isinstance(obj, CurveItemConf):
-            return copy.deepcopy(obj)
-        try:
-            return CurveItemConf.fromTaurusCurveItem(obj)
-        except:
-            raise
-        try:
-            return CurveItemConf(*obj)
-        except:
-            pass
-        raise ValueError('Cannot convert %s into a CurveItemConf' % repr(obj))
+    # @staticmethod
+    # def fromTaurusCurveItem(item):
+    #     return TaurusItemConf(t=item)
+    #
+    # @staticmethod
+    # def fromAny(obj):
+    #     '''return a TaurusItemConf from whatever given in input (if possible).
+    #     Raises ValueError if not possible'''
+    #     if isinstance(obj, TaurusItemConf):
+    #         return copy.deepcopy(obj)
+    #     try:
+    #         return TaurusItemConf.fromTaurusCurveItem(obj)
+    #     except:
+    #         raise
+    #     try:
+    #         return TaurusItemConf(*obj)
+    #     except:
+    #         pass
+    #     raise ValueError('Cannot convert %s into a TaurusItemConf' % repr(obj))
 
 
 class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
@@ -128,19 +126,19 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
 
     dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')
 
-    def __init__(self, curves=None):
-        if curves is None:
-            curves = []
-        curves = [CurveItemConf.fromAny(c) for c in curves]  # convert curves
+    def __init__(self, taurusItems=None):
+        # if curves is None:
+        #     curves = []
+        # taurusItems = [TaurusItemConf.fromAny(item) for item in taurusItems]  # convert curves
         super(TaurusCurveItemTableModel, self).__init__()
         self.ncolumns = NUMCOLS
-        self.curves = curves
+        self.taurusItems = taurusItems
 
     def dumpData(self):
-        return copy.copy(self.curves)
+        return copy.copy(self.taurusItems)
 
     def rowCount(self, index=Qt.QModelIndex()):
-        return len(self.curves)
+        return len(self.taurusItems)
 
     def columnCount(self, index=Qt.QModelIndex()):
         return self.ncolumns
@@ -153,48 +151,48 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
         # Display Role
         if role == Qt.Qt.DisplayRole:
             if column == X:
-                return str(self.curves[row].x.display)
+                return str(self.taurusItems[row].x.display)
             elif column == Y:
-                return str(self.curves[row].y.display)
+                return str(self.taurusItems[row].y.display)
             elif column == TITLE:
-                return str(self.curves[row].curveLabel)
+                return str(self.taurusItems[row].curveLabel)
             else:
                 return None
         elif role == Qt.Qt.DecorationRole:
             if column == X:
-                return self.curves[row].x.icon
+                return self.taurusItems[row].x.icon
             elif column == Y:
-                return self.curves[row].y.icon
+                return self.taurusItems[row].y.icon
             else:
                 return None
         elif role == Qt.Qt.TextColorRole:
             if column == X:
-                    Qt.QColor(self.curves[row].x.ok and 'green' or 'red')
+                    Qt.QColor(self.taurusItems[row].x.ok and 'green' or 'red')
             elif column == Y:
-                    Qt.QColor(self.curves[row].y.ok and 'green' or 'red')
+                    Qt.QColor(self.taurusItems[row].y.ok and 'green' or 'red')
             else:
                 return None
         elif role == SRC_ROLE:
             if column == X:
-                return str(self.curves[row].xModel)
+                return str(self.taurusItems[row].xModel)
             elif column == Y:
-                return str(self.curves[row].yModel)
+                return str(self.taurusItems[row].yModel)
             else:
                 return None
         elif role == Qt.Qt.ToolTipRole:
             if column == X:
-                return str(self.curves[row].xModel)
+                return str(self.taurusItems[row].xModel)
             elif column == Y:
-                return str(self.curves[row].yModel)
+                return str(self.taurusItems[row].yModel)
             else:
                 return None
         if role == Qt.Qt.EditRole:
             if column == X:
-                return str(self.curves[row].xModel)
+                return str(self.taurusItems[row].xModel)
             elif column == Y:
-                return str(self.curves[row].yModel)
+                return str(self.taurusItems[row].yModel)
             elif column == TITLE:
-                return str(self.curves[row].curveLabel)
+                return str(self.taurusItems[row].curveLabel)
             else:
                 return None
         return None
@@ -231,7 +229,7 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
     def setData(self, index, value=None, role=Qt.Qt.EditRole):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
             row = index.row()
-            curve = self.curves[row]
+            curve = self.taurusItems[row]
             column = index.column()
             # value = Qt.from_qvariant(value, str)
             if column == X:
@@ -252,8 +250,8 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
         if parentindex is None:
             parentindex = Qt.QModelIndex()
         self.beginInsertRows(parentindex, position, position + rows - 1)
-        slice = [CurveItemConf() for i in range(rows)]
-        self.curves = self.curves[:position] + slice + self.curves[position:]
+        slice = [TaurusItemConf() for i in range(rows)]
+        self.taurusItems = self.taurusItems[:position] + slice + self.taurusItems[position:]
         self.endInsertRows()
         return True
 
@@ -261,7 +259,7 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
         if parentindex is None:
             parentindex = Qt.QModelIndex()
         self.beginRemoveRows(parentindex, position, position + rows - 1)
-        self.curves = self.curves[:position] + self.curves[position + rows:]
+        self.taurusItems = self.taurusItems[:position] + self.taurusItems[position + rows:]
         self.endRemoveRows()
         self.reset()
         return True
@@ -318,7 +316,7 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
 
 
 @UILoadable(with_ui='ui')
-class CurveItemConfDlg(Qt.QWidget):
+class TaurusItemConfDlg(Qt.QWidget):
     ''' A configuration dialog for creating new CurveItems.
 
     Provides a browser for Taurus models and an editable table for the sources
@@ -328,20 +326,21 @@ class CurveItemConfDlg(Qt.QWidget):
     dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')
     applied = Qt.pyqtSignal()
 
-    def __init__(self, parent=None, curves=None, showXcol=True):
-        super(CurveItemConfDlg, self).__init__(parent)
+    def __init__(self, parent=None, taurusItemsConf=None, showXcol=True):
+        super(TaurusItemConfDlg, self).__init__(parent)
         self.loadUi()
         self._showXcol = showXcol
 
-        if curves is None:
-            curves = [CurveItemConf()]
+        if taurusItemsConf is None:
+            taurusItemsConf = [TaurusItemConf(
+                YModel=None, XModel=None, name=None)]
 
         self.ui.tangoTree.setButtonsPos(Qt.Qt.RightToolBarArea)
 
         # @todo: The action for this button is not yet implemented
         self.ui.reloadBT.setEnabled(False)
 
-        self.model = TaurusCurveItemTableModel(curves)
+        self.model = TaurusCurveItemTableModel(taurusItemsConf)
 
         table = self.ui.curvesTable
         table.setModel(self.model)
@@ -381,33 +380,12 @@ class CurveItemConfDlg(Qt.QWidget):
             'edit-clear'), 'Clear all', self.model.clearAll)
         addRowAction = menu.addAction(Qt.QIcon.fromTheme(
             'list-add'), 'Add new row', self.model.insertRows)
-        if row >= 0:
-            editParsAction = menu.addAction(Qt.QIcon.fromTheme(
-                'preferences-system'), 'Edit parameters of this curve...', self._onEditParsAction)
 
         menu.exec_(Qt.QCursor.pos())
 
     def _onRemoveThisAction(self):
         row = self.ui.curvesTable.currentIndex().row()
         self.model.removeRows(row)
-
-    def _onEditParsAction(self):
-        row = self.ui.curvesTable.currentIndex().row()
-        if row >= 0:
-            c = self.model.curves[row]
-            params = [p for p in (c.curveparam, c.axesparam,
-                                  c.taurusparam) if p is not None]
-            if params:
-                from guidata.dataset.datatypes import DataSetGroup
-                group = DataSetGroup(
-                    params, "Parameters for curve %s" % c.curveparam.label)
-                group.edit()
-                c.x.processSrc(c.taurusparam.xModel)
-                c.y.processSrc(c.taurusparam.yModel)
-                self.dataChanged.emit(
-                        self.model.index(row, 0),
-                        self.model.index(row, self.model.rowCount() - 1)
-                )
 
     def onModelsAdded(self, models):
         nmodels = len(models)
@@ -423,12 +401,12 @@ class CurveItemConfDlg(Qt.QWidget):
             self.model.setData(self.model.index(
                 rowcount + i, TITLE), value=title)
 
-    def getCurveItemConfs(self):
+    def getItemConfs(self):
         return self.model.dumpData()
 
     @staticmethod
-    def showDlg(parent=None, curves=None):
-        '''Static method that launches a modal dialog containing a CurveItemConfDlg
+    def showDlg(parent=None, taurusItemConf=None, showXCol=True):
+        '''Static method that launches a modal dialog containing a TaurusItemConfDlg
 
         :param parent: (QObject) parent for the dialog
 
@@ -440,13 +418,14 @@ class CurveItemConfDlg(Qt.QWidget):
         dlg = Qt.QDialog(parent)
         dlg.setWindowTitle('Curves Selection')
         layout = Qt.QVBoxLayout()
-        w = CurveItemConfDlg(parent=parent, curves=curves)
+        w = TaurusItemConfDlg(parent=parent, taurusItemsConf=taurusItemConf,
+                              showXcol=showXCol)
         layout.addWidget(w)
         dlg.setLayout(layout)
         w.applied.connect(dlg.accept)
         w.ui.cancelBT.clicked.connect(dlg.close)
         dlg.exec_()
-        return w.getCurveItemConfs(), (dlg.result() == dlg.Accepted)
+        return w.getItemConfs(), (dlg.result() == dlg.Accepted)
 
     def onApply(self):
         self.applied.emit()
