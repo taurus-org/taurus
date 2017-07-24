@@ -148,6 +148,8 @@ where you can add data sets to the plot from the following sources:
   You can use `x` as a dependent variable, which you can set as regular steps or
   using an arbitrary expression.
 
+Note that there is actually no way to remove RawData curve from the GUI.
+
 .. figure:: /_static/taurusplot-inputdata02.png 
    :align: center
 
