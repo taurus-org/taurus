@@ -62,6 +62,7 @@ class TaurusXYModelChooserTool(QtGui.QAction):
                 currentModelItems[
                     curve.getXModelName(), curve.getFullModelName()] = curve
 
+        # TODO:
         conf, ok = CurveItemConfDlg.showDlg(
             parent=self.parent(), curves=curve_items)
 
@@ -72,14 +73,18 @@ class TaurusXYModelChooserTool(QtGui.QAction):
             xModels = OrderedDict()
             curve_name = OrderedDict()
             for c in conf:
-                print c.yModel, type(c.yModel)
-                if c.yModel is not None:
+                try:
+                    print c.yModel, type(c.yModel)
                     m = taurus.Attribute(c.yModel)
                     n = c.xModel
                     name = c.curveLabel
                     yModels[n, m.getFullName()] = m
                     xModels[n, m.getFullName()] = n
                     curve_name[n, m.getFullName()] = name
+                except Exception as e:
+                    from taurus import warning
+                    warning(e)
+
 
             for k, v in currentModelItems.items():
                 v.getViewBox().removeItem(v)
@@ -98,7 +103,7 @@ class TaurusXYModelChooserTool(QtGui.QAction):
                     item.setXModel(X)
                     self.plot_item.addItem(item)
 
-                    # that checks if the viewBox associated to
+                    # checks if the viewBox associated to
                     # TaurusPlotDataItem(curve), it is the main view or not.
                     # This is necessary due to possibility that a curve can
                     # be in others viewBox (axis Y2 for example)

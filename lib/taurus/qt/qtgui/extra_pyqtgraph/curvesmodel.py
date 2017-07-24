@@ -75,6 +75,11 @@ class Component(object):
         if taurus.isValidName(src, etypes=[TaurusElementType.Attribute]):
             self.display, self.icon, self.ok = (
                 src, Qt.QIcon('logos:taurus.png'), True)
+            return
+
+        # if not caught before, it is unsupported
+        self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
+            'dialog-warning'), False
 
 
 
@@ -233,11 +238,6 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
                 curve.xModel = value
                 curve.x.processSrc(value)
             elif column == Y:
-                # when is None in table, is None <unicode>
-                # we need a None <NoneType> !!
-                if value == 'None':
-                    value = None
-
                 curve.yModel = value
                 curve.y.processSrc(value)
             elif column == TITLE:
