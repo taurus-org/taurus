@@ -29,6 +29,7 @@ from taurus.qt.qtgui.base.taurusbase import TaurusBaseComponent
 from taurus.qt.qtgui.extra_pyqtgraph.curvesPropertiesTool import CurvesPropertiesTool
 from taurus.qt.qtgui.extra_pyqtgraph.taurusmodelchoosertool import TaurusModelChooserTool
 from taurus.qt.qtgui.extra_pyqtgraph.taurusXYmodelChooser import TaurusXYModelChooserTool
+from taurus.qt.qtgui.extra_pyqtgraph.plotLegendTool import PlotLegendTool
 from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
 from taurus.external.qt import QtGui, Qt
 from pyqtgraph import PlotWidget
@@ -45,21 +46,18 @@ CURVE_COLORS = [Qt.QPen(Qt.Qt.red),
 
 class TaurusPlot(PlotWidget, TaurusBaseComponent):
 
-    def __init__(self, parent=None, background='default',
-                 legend=True, **kwargs):
+    def __init__(self, parent=None,  **kwargs):
         TaurusBaseComponent.__init__(self, 'TaurusPlot')
 
-        PlotWidget.__init__(self, parent=parent,
-                            background=background, **kwargs)
+        PlotWidget.__init__(self, parent=parent, **kwargs)
 
         self._curveColors = LoopList(CURVE_COLORS)
         self._curveColors.setCurrentIndex(-1)
 
-        self.showLegend = legend
-        if self.showLegend:
-            self.legend = self.addLegend()
-
         self._initActions(self.getPlotItem().getViewBox().menu)
+
+        plot_legend_tool = PlotLegendTool()
+        plot_legend_tool.attachToPlotItem(self.getPlotItem(), self)
 
         curve_prop_tool = CurvesPropertiesTool()
         curve_prop_tool.attachToPlotItem(self.getPlotItem(), self)
@@ -68,7 +66,8 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         # taurus_model_chooser_tool.attachToPlotItem(self.getPlotItem(), self)
 
         taurus_XYmodel_chooser_tool = TaurusXYModelChooserTool()
-        taurus_XYmodel_chooser_tool.attachToPlotItem(self.getPlotItem(), self, self._curveColors)
+        taurus_XYmodel_chooser_tool.attachToPlotItem(
+            self.getPlotItem(), self, self._curveColors)
 
     def setModel(self, models):
         for model in models:
@@ -92,18 +91,7 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         loadConfigAction.triggered[()].connect(self.loadConfigFile)
         menu.addAction(loadConfigAction)
 
-        legendAction = QtGui.QAction('Show/hide legend', menu)
-        legendAction.triggered.connect(self.enableLegend)
-        menu.addAction(legendAction)
 
-
-    def enableLegend(self):
-        if self.showLegend:
-            self.legend.hide()
-            self.showLegend = False
-        else:
-            self.legend.show()
-            self.showLegend = True
 
 
 
