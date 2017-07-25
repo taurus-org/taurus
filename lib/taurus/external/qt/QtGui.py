@@ -25,13 +25,17 @@
 
 """This module exposes QtGui module"""
 
-from taurus.external.qt import getQtName, _updateQtSubModule
+from taurus.external.qt import API_NAME, _updateQtSubModule
 
-__backend = getQtName()
+__backend = API_NAME
 
 _updateQtSubModule(globals(), "QtGui")
 
 if __backend == 'PyQt5':
     _updateQtSubModule(globals(), "QtWidgets")
+else:
+    # early import of qtpy.QtWidgets as a workaround for
+    # https://github.com/taurus-org/taurus/issues/401
+    import qtpy.QtWidgets as __qtpy_QtWidgets
 
-del _updateQtSubModule, getQtName
+del _updateQtSubModule, API_NAME

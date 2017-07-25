@@ -95,7 +95,7 @@ testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
 
 
 @testOldFgroles(fgRole='value', expected='1.23 mm')
-@testOldFgroles(fgRole='w_value', expected='0.0 mm')
+@testOldFgroles(fgRole='w_value', expected='0.00 mm')
 @testOldFgroles(fgRole='state', expected='Ready')
 @testOldFgroles(fgRole='quality', expected='ATTR_VALID')
 @testOldFgroles(fgRole='none', expected='')
@@ -160,7 +160,7 @@ class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
     def bgRole(self, model=None, expected=None, bgRole=None, maxdepr=0):
         '''Check that the label text'''
         self._widget.setModel(model)
-        self.processEvents(repetitions=10, sleep=.1)
+        self.processEvents(repetitions=50, sleep=.1)
         if bgRole is not None:
             self._widget.setBgRole(bgRole)
         p = self._widget.palette()
@@ -169,6 +169,93 @@ class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
                (model, expected, got))
         self.assertEqual(got, expected, msg)
         self.assertMaxDeprecations(maxdepr)
+
+
+def baseFormatter1(dtype, **kwargs):
+    return "{:~.1f}"
+
+
+def baseFormatter2(dtype, **kwargs):
+    return dtype.__name__
+
+
+@insertTest(helper_name='checkFormat',
+            model='eval:Q(5)#rvalue.magnitude',
+            formatter=baseFormatter2,
+            expected="int")
+@insertTest(helper_name='checkFormat',
+            model='eval:Q("5m")#rvalue.units',
+            formatter=baseFormatter2,
+            expected="Unit")
+@insertTest(helper_name='checkFormat',
+            model='eval:1.2345',
+            formatter=baseFormatter1,
+            expected="1.2")
+@insertTest(helper_name='checkFormat',
+            model='eval:"hello"',
+            formatter=baseFormatter1,
+            expected="hello")
+@insertTest(helper_name='checkFormat',
+            model='eval:"hello"',
+            formatter=baseFormatter2,
+            expected="str")
+@insertTest(helper_name='checkFormat',
+            model='eval:"hello"',
+            formatter=None,
+            expected="hello")
+@insertTest(helper_name='checkFormat',
+            model='eval:1.2345',
+            formatter='{:~.3f}',
+            expected="1.234")
+@insertTest(helper_name='checkFormat',
+            model='eval:1.2345',
+            formatter='{:.3f}',
+            expected="1.234 dimensionless")
+class TaurusLabelFormatTest(BaseWidgetTestCase, unittest.TestCase):
+    """
+    Specific tests for testing the Formatting API with TaurusLabel
+    instances
+    """
+
+    _klass = TaurusLabel
+
+    def checkFormat(self, model, formatter, expected):
+        if formatter is not None:
+            self._widget.setFormat(formatter)
+            # self._widget.FORMAT = formatter
+            # self._widget.updateFormat()
+        self._widget.setModel(model)
+        self.processEvents(repetitions=50, sleep=.1)
+
+        got = self._widget.text()
+        msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
+               (model, expected, got))
+        self.assertEqual(got, expected, msg)
+
+
+
+@insertTest(helper_name='checkFormat',
+            model='eval:1.2345',
+            formatter='{:.3f}',
+            expected="1.234 dimensionless")
+@insertTest(helper_name='checkFormat',
+            model='eval:1.2345',
+            formatter=None,
+            expected="1.2")
+class TaurusLabelFormatClassTest(TaurusLabelFormatTest):
+    """
+    Specific tests for testing the Formatting API with TaurusLabel
+    """
+
+    _klass = TaurusLabel
+
+    def setUp(self):
+        TaurusLabelFormatTest.setUp(self)
+        self._defaultFormatter = TaurusLabel.FORMAT
+        TaurusLabel.FORMAT = baseFormatter1
+
+    def tearDown(self):
+        TaurusLabel.FORMAT = self._defaultFormatter
 
 
 #

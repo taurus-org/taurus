@@ -186,11 +186,14 @@ class TaurusNeXusBrowser(TaurusWidget):
 
 if __name__ == "__main__":
     import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+
     if len(sys.argv) > 1:
         fname = sys.argv[1]
     else:
         fname = None
-    app = Qt.QApplication(sys.argv)
+
+    app = TaurusApplication(sys.argv)
     w = TaurusNeXusBrowser()
     w.openFile(fname)
     w.show()

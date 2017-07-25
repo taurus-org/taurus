@@ -22,37 +22,3 @@
 # along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
-
-""" A minimal application using the Qt console-style IPython frontend.
-
-This is not a complete console app, as subprocess will not be able to receive
-input, there is no real readline support, among other limitations.
-"""
-
-__all__ = ["TaurusConsoleApplication"]
-
-__docformat__ = 'restructuredtext'
-
-
-from taurus.external.qt import Qt
-
-try:
-    from IPython.qt.console.qtconsoleapp import IPythonQtConsoleApp
-except ImportError:  # for IPython v<1.x
-    from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
-
-
-class TaurusConsoleApplication(IPythonQtConsoleApp):
-
-    name = 'taurusconsole'
-
-    def init_qt_elements(self):
-        self.app = Qt.QApplication.instance()
-        self.app.icon = Qt.QIcon()
-
-    def init_signal(self):
-        pass
-
-    def init_kernel_manager(self):
-        # avoid starting a default kernel
-        self.kernel_manager = None

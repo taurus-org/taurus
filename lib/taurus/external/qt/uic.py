@@ -26,9 +26,9 @@
 """This module exposes PyQt4/PSide uic module"""
 
 from taurus.core.util import log
-from taurus.external.qt import getQt
+from taurus.external.qt import API_NAME
 
-__backend = getQt().__name__
+__backend = API_NAME
 
 if __backend == 'PyQt4':
     from PyQt4.uic import *
@@ -133,4 +133,4 @@ elif __backend == 'PySide':
 
         return None
 
-del getQt
+del API_NAME

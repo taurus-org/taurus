@@ -300,3 +300,5 @@ class TaurusModel(Logger):
     @property
     def fullname(self):
         return self._full_name
+
+    parentObj = property(fget=getParentObj)

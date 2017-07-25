@@ -317,8 +317,8 @@ class TangoDatabaseCache(object):
 
     def refresh(self):
         db = self.db
-
-        if hasattr(Device(db.dev_name()), 'DbMySqlSelect'):
+        db_dev_name = '/'.join((db.getFullName(), db.dev_name()))
+        if hasattr(Device(db_dev_name), 'DbMySqlSelect'):
             # optimization in case the db exposes a MySQL select API
             query = ("SELECT name, alias, exported, host, server, class " +
                      "FROM device")
@@ -337,7 +337,7 @@ class TangoDatabaseCache(object):
                 all_alias[db.get_device_alias(k)] = k
             for d in all_devs:  # Very time intensive!!
                 _info = db.command_inout("DbGetDeviceInfo", d)[1]
-                name, ior, level, server, host, started, stopped = _info
+                name, ior, level, server, host, started, stopped = _info[:7]
                 klass = db.get_class_for_device(d)
                 alias = all_alias.get(d, '')
                 exported = str(int(d in all_exported))
@@ -667,7 +667,8 @@ class TangoAuthority(TaurusAuthority):
                 host, port = TangoAuthority.get_default_tango_host().rsplit(':', 1)
                 pars = host, port
             except Exception, e:
-                self.warning("Error getting default Tango host:", str(e))
+                from taurus import warning
+                warning("Error getting default Tango host")
         else:
             pars = host, port
         self.dbObj = Database(*pars)

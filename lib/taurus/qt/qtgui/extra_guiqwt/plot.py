@@ -57,6 +57,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
         CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
         TaurusBaseWidget.__init__(self, 'TaurusCurveDialog')
+        self.deprecated(rel='4.1', dep='TaurusCurveDialog', alt='TaurusPlot / taurusplot launcher')
         self.setWindowFlags(Qt.Qt.Widget)
         self._designMode = designMode
         self._modelNames = CaselessList()
@@ -203,6 +204,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
         CurveDialog.__init__(self, parent=parent, toolbar=toolbar, **kwargs)
         TaurusBaseWidget.__init__(self, 'TaurusTrendDialog')
+        self.deprecated(rel='4.1', dep='TaurusTrendDialog', alt='TaurusTrend / taurustrend launcher')
         self.setWindowFlags(Qt.Qt.Widget)
         self._designMode = designMode
         self._modelNames = CaselessList()
@@ -367,7 +369,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
                 timetool = self.get_tool(TimeAxisTool)
             timetool.set_scale_y_t(True)
         elif mode == 'deltatime':
-            from taurus.qt.qtgui.plot import DeltaTimeScaleEngine
+            from taurus.qt.qtgui.extra_guiqwt.scales import DeltaTimeScaleEngine
             plot = self.get_plot()
             DeltaTimeScaleEngine.enableInAxis(plot, plot.xBottom, rotation=-45)
         elif mode == 'event':

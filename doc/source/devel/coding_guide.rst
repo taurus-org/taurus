@@ -19,9 +19,10 @@ Taurus is Free Software developed in open way. Contributions to code,
 documentation, etc. are always welcome.
 
 The "official" Taurus source code is hosted in a `git repository
-<http://sf.net/p/tauruslib/taurus.git>`_.
+<https://github.com/taurus-org/taurus>`_.
 
-The details in how to contribute are described in the TEP7_ document.
+The details in how to contribute are described in the `CONTRIBUTING.md` file
+at the root of the git repository.
 
 
 Documentation
@@ -203,7 +204,6 @@ PyQt4, PyQt5 and PySide versions.
 
 .. _reStructuredText:  http://docutils.sourceforge.net/rst.html
 .. _Sphinx: http://www.sphinx-doc.org
-.. _TEP7: http://sf.net/p/tauruslib/wiki/TEP7/
 .. _PEP8: http://www.python.org/peps/pep-0008.html
 .. _LGPL: http://www.gnu.org/licenses/lgpl.html
 .. _`PyQt API v2`: http://pyqt.sourceforge.net/Docs/PyQt4/incompatible_apis.html

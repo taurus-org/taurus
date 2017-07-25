@@ -136,9 +136,9 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
     groups (scheme, authority, path, query and fragment), the following named
     groups are created:
 
-     - devname: device name (either _evalname or _evalclass)
+     - devname: device name (either _evalname or _evaldotname)
      - [_evalname]: evaluation instance name (aka non-dotted dev name)
-     - [_evalclass]: evaluator class name (if dotted name given)
+     - [_evaldotname]: evaluation instance dotted name (if dotted name given)
      - [_old_devname]: devname without "@". Only in non-strict mode
      - [_dbname] and [_subst]: unused. Only if non-strict mode
 
@@ -148,7 +148,15 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
 
     scheme = 'eval'
     authority = EvaluationAuthorityNameValidator.authority
-    _evaluatorname = r'((?P<_evalname>[^/?#:\.=]+)|(?P<_evalclass>(\w+\.)+\w+))'
+    _evaldotname = (
+        r'((?P<_evalinstname>\w+)=)?' +
+        r'(?P<_evalmodname>(\w+\.)*\w+)\.' +
+        r'(?P<_evalclassname>(\w+|\*))' +
+        r'(?P<_evalclassparenths>\(("[^"]*"|\'[^\']*\'|[^\'"/])*?\))?'
+        )
+     # _evaldotname = r'(?P<_evaldotname>(\w+=)?(\w+\.)+(\w+(\(\))?|\*)))'
+    _evaluatorname = (r'((?P<_evalname>[^/?#:\.=]+)|(?P<_evaldotname>%s))' %
+                      _evaldotname)
     devname = r'(?P<devname>@%s)' % _evaluatorname
     path = r'(?!//)/?%s' % devname
     query = '(?!)'
@@ -164,10 +172,10 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
             groups['devname'] = '@%s' % _old_devname
             if '.' in _old_devname:
                 groups['_evalname'] = None
-                groups['_evalclass'] = _old_devname
+                groups['_evaldotname'] = _old_devname
             else:
                 groups['_evalname'] = _old_devname
-                groups['_evalclass'] = None
+                groups['_evaldotname'] = None
         return groups
 
     def getNames(self, fullname, factory=None):
@@ -211,7 +219,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
        them in _expr)
      - [devname]: as in :class:`EvaluationDeviceNameValidator`
      - [_evalname]: evaluation instance name (aka non-dotted dev name)
-     - [_evalclass]: evaluator class name (if dotted name given)
+     - [_evaldotname]: evaluator instance dotted name (if dotted name given)
      - [_old_devname]: devname without "@". Only in non-strict mode
      - [_dbname] and [_subst]: unused. Only if non-strict mode
      - [cfgkey] same as fragment (for bck-compat use only)

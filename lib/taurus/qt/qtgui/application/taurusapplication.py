@@ -196,6 +196,20 @@ class TaurusApplication(Qt.QApplication, Logger):
         if 'cmd_line_parser' in kwargs:
             parser = kwargs.pop('cmd_line_parser')
 
+        #######################################################################
+        # Workaround for XInitThreads-related crash.
+        # Sometimes (e.g. running `taurusgui example01`) one gets the following:
+        # [xcb] Unknown request in queue while dequeuing
+        # [xcb] Most likely this is a multi-threaded client and XInitThreads has not been called
+        # [xcb] Aborting, sorry about that.
+        #
+        # According to http://stackoverflow.com/a/31967769 , it is fixed by:
+        try:
+            Qt.QCoreApplication.setAttribute(Qt.Qt.AA_X11InitThreads)
+        except AttributeError:
+            pass  # Qt < 4.8 does not define AA_X11InitThreads
+        ######################################################################
+
         try:
             Qt.QApplication.__init__(self, *args, **kwargs)
         except TypeError:

@@ -114,14 +114,17 @@ def quantity_from_tango_str(value_str, dtype=None, units=None, fmt=None,
 
 
 def unit_from_tango(unit):
+    from taurus import deprecated
+    deprecated(dep='unit_from_tango', rel='4.0.4', alt="pint's parse_units")
+
     if unit == PyTango.constants.UnitNotSpec:
         unit = None
     try:
         return UR.parse_units(unit)
-    except UndefinedUnitError:
+    except (UndefinedUnitError, UnicodeDecodeError):
         # TODO: Maybe we could dynamically register the unit in the UR
         from taurus import warning
-        warning('Unknown unit "%s (will be treated as dimensionless)"', unit)
+        warning('Unknown unit "%s (will be treated as unitless)"', unit)
         return UR.parse_units(None)
 
 
@@ -178,3 +181,5 @@ def standard_display_format_from_tango(dtype, fmt):
 def display_format_from_tango(dtype, fmt):
     fmt = standard_display_format_from_tango(dtype, fmt)
     return fmt.replace('%s', '!s').replace('%r', '!r').replace('%', '')
+
+

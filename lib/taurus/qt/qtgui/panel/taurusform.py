@@ -882,7 +882,9 @@ def test1():
         models = sys.argv[1:]
     else:
         models = None
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
     if models is None:
         models = ['sys/tg_test/1/state',
                   'sys/tg_test/1/float_scalar',
@@ -912,7 +914,9 @@ def test2():
 
     if model is None:
         model = 'bl97/pc/dummy-01'
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
     dialog = TaurusAttrForm()
     dialog.setModel(model)
     dialog.show()
@@ -929,7 +933,9 @@ def test3():
 
     if model is None:
         model = 'bl97/pc/dummy-01'
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
     dialog = TaurusCommandsForm()
     dialog.setModel(model)
     dialog.show()
@@ -942,7 +948,9 @@ def test4():
     '''tests customwidgetma in taurusforms'''
     import sys
     from taurus.qt.qtgui.display import TaurusLabel
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
 
     from taurus.qt.qtgui.panel import TaurusValue
 

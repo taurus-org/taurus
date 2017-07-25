@@ -246,7 +246,7 @@ class TaurusTimeVal(object):
         return self.totime()
 
     def totime(self):
-        return self.tv_usec * 1e-9 + self.tv_usec * 1e-6 + self.tv_sec
+        return self.tv_nsec * 1e-9 + self.tv_usec * 1e-6 + self.tv_sec
 
     def todatetime(self):
         return datetime.datetime.fromtimestamp(self.totime())

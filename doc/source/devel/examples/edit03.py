@@ -3,8 +3,9 @@ from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.input import TaurusWheelEdit
+from taurus.qt.qtgui.application import TaurusApplication
 
-app = Qt.QApplication(sys.argv)
+app = TaurusApplication(sys.argv)
 
 panel = TaurusWidget()
 layout = Qt.QHBoxLayout()

@@ -86,48 +86,23 @@ NAMESPACE = 'taurus'
 # Qt configuration
 # ----------------------------------------------------------------------------
 
-#: Auto initialize Qt
-DEFAULT_QT_AUTO_INIT = True
-
 #: Set preffered API if not is already loaded
-DEFAULT_QT_AUTO_API = 'PyQt4'
-
-#: Whether or not should be strict in choosing Qt API
-DEFAULT_QT_AUTO_STRICT = False
+DEFAULT_QT_API = 'pyqt'
 
 #: Auto initialize Qt logging to python logging
-DEFAULT_QT_AUTO_INIT_LOG = True
-
-#: Auto initialize taurus resources (icons)
-DEFAULT_QT_AUTO_INIT_RES = True
+QT_AUTO_INIT_LOG = True
 
 #: Remove input hook (only valid for PyQt4)
-DEFAULT_QT_AUTO_REMOVE_INPUTHOOK = True
-
-#: Auto initialize Qt
-QT_AUTO_INIT = DEFAULT_QT_AUTO_INIT
-
-#: Set preffered API if not is already loaded
-QT_AUTO_API = DEFAULT_QT_AUTO_API
-
-#: Whether or not should be strict in choosing Qt API
-QT_AUTO_STRICT = DEFAULT_QT_AUTO_STRICT
-
-#: Auto initialize Qt logging to python logging
-QT_AUTO_INIT_LOG = DEFAULT_QT_AUTO_INIT_LOG
-
-#: Auto initialize taurus resources (icons)
-QT_AUTO_INIT_RES = DEFAULT_QT_AUTO_INIT_RES
-
-#: Remove input hook (only valid for PyQt4)
-QT_AUTO_REMOVE_INPUTHOOK = DEFAULT_QT_AUTO_REMOVE_INPUTHOOK
+QT_AUTO_REMOVE_INPUTHOOK = True
 
 #: Select the theme to be used: set the theme dir  and the theme name.
 #: The path can be absolute or relative to the dir of taurus.qt.qtgui.icon
 #: If not set, the dir of taurus.qt.qtgui.icon will be used
 QT_THEME_DIR = ''
+
 #: The name of the icon theme (e.g. 'Tango', 'Oxygen', etc). Default='Tango'
 QT_THEME_NAME = 'Tango'
+
 #: In Linux the QT_THEME_NAME is not applied (to respect the system theme)
 #: setting QT_THEME_FORCE_ON_LINUX=True overrides this.
 QT_THEME_FORCE_ON_LINUX = True

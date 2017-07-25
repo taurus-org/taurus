@@ -103,7 +103,7 @@ def get_taurus_parser(parser=None):
 
         help_tauruslog = "taurus log level. Allowed values are (case insensitive): critical, "\
                          "error, warning/warn, info, debug, trace"
-        help_tangohost = "Tango host name"
+        help_tangohost = "Tango host name (either HOST:PORT or a Taurus URI, e.g. tango://foo:1234)"
         help_tauruspolling = "taurus global polling period in milliseconds"
         help_taurusserial = "taurus serialization mode. Allowed values are (case insensitive): "\
             "serial, concurrent (default)"
@@ -171,7 +171,8 @@ def init_taurus_args(parser=None, args=None, values=None):
     # initialize tango host
     if options.tango_host is not None:
         tango_factory = taurus.Factory("tango")
-        tango_factory.set_default_tango_host(options.tango_host)
+        tango_host = options.tango_host
+        tango_factory.set_default_tango_host(tango_host)
 
     # initialize taurus polling period
     if options.taurus_polling_period is not None:

@@ -28,12 +28,13 @@
 should inherit to be considered valid taurus widgets."""
 
 __all__ = ["TaurusBaseComponent", "TaurusBaseWidget",
-           "TaurusBaseWritableWidget"]
+           "TaurusBaseWritableWidget", "defaultFormatter"]
 
 __docformat__ = 'restructuredtext'
 
 import sys
 import threading
+from types import MethodType
 
 from taurus.external.qt import Qt
 from taurus.external.enum import Enum
@@ -55,7 +56,26 @@ from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.util import ActionFactory
 
+from taurus.external.pint import Quantity
+
 DefaultNoneValue = "-----"
+
+
+def defaultFormatter(dtype=None, basecomponent=None, **kwargs):
+    """
+    Default formatter callable. Returns a format string based on dtype
+    and the mapping provided by 
+    :attribute:`TaurusBaseComponent.defaultFormatDict`
+
+    :param dtype: (object) data type
+    :param basecomponent: widget whose display is to be formatted
+    :param kwargs: other keyworld arguments
+
+    :return: (str) The format string corresponding to the given dtype.
+    """
+    if issubclass(dtype, Enum):
+        dtype = Enum
+    return basecomponent.defaultFormatDict.get(dtype, "{0}")
 
 
 class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
@@ -74,6 +94,15 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     _showQuality = True
     _eventBufferPeriod = 0
 
+    # Python format string or Formatter callable
+    FORMAT = defaultFormatter
+
+    # Dictionary mapping dtypes to format strings
+    defaultFormatDict = {float: "{:.{bc.modelObj.precision}f}",
+                         Enum: "{0.name}",
+                         Quantity: "{:~.{bc.modelObj.precision}f}"
+                         }
+
     taurusEvent = baseSignal('taurusEvent', object, object, object)
 
     def __init__(self, name, parent=None, designMode=False):
@@ -91,6 +120,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         self.taurusMenuData = ''
 
         # attributes storing property values
+        self._format = None
         self._localModelName = ''
         self._useParentModel = False
         self._showText = True
@@ -633,13 +663,99 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     def displayValue(self, v):
         """Returns a string representation of the given value
 
+        This method will use a format string which is determined 
+        dynamically from :attribute:`FORMAT`.
+
+        By default `TaurusBaseComponent.FORMAT` is set to 
+        :function:`defaultFormatter`, which makes use of 
+        :attribute:`defaultFormatDict`. 
+ 
+        In order to customize the formatting behaviour, one can change
+        :attribute:`defaultFormatDict` or :attribute:`FORMAT` directly
+        at class level, or use :method:`setFormat` to alter the 
+        format string of an specific instance
+        
+        `FORMAT` can be set to a python format string [1] or a callable 
+        that returns a python format string.
+        If a callable is used, it will be called with the following 
+        keyword arguments:
+        - dtype: the data type of the value to be formatted
+        - basecomponent: the affected widget    
+  
+        The following are some examples for customizing the formatting:
+
+        - Change FORMAT for all widgets (using a string):
+
+            TaurusBaseComponent.FORMAT = "{:.2e}"
+            
+        - Change FORMAT for all TaurusLabels (using a callable):
+        
+            def baseFormatter(dtype=None, basecomponent=None, **kwargs):
+                return "{:.1f}"
+
+            TaurusLabel.FORMAT = baseFormatter
+
+        - Use the defaultFormatter but modify the format string for dtype=str:
+
+            TaurusBaseComponent.defaultFormatDict.update({"str": "{!r}"})
+
+        [1] https://docs.python.org/2/library/string.html
+
         :param v: (object) the value to be translated to string
 
         :return: (str) a string representing the given value
         """
-        if isinstance(v, Enum):
-            return v.name
-        return str(v)
+        if self._format is None:
+            try:
+                self._updateFormat(type(v))
+            except Exception, e:
+                self.warning(('Cannot update format. Reverting to default.' +
+                              ' Reason: %r'), e)
+                self.setFormat(defaultFormatter)
+        try:
+            fmt_v = self._format.format(v, bc=self)
+        except Exception:
+            self.debug("Invalid format %r for %r. Using '{0}'", self._format, v)
+            fmt_v = "{0}".format(v)
+
+        return fmt_v
+
+    def _updateFormat(self, dtype, **kwargs):
+        """ Method to update the internal format string used by 
+        :meth:`displayValue`
+        The internal format string is calculated using :attribute:`FORMAT`,
+        which can be a string or a callable that returns a string
+        (see :meth:`displayValue`).
+
+        :param dtype: (object) data type
+        :param kwargs: keyword arguments that will be passed to
+                       :attribute:`FORMAT` if it is a callable
+        """
+        if not isinstance(self.FORMAT, basestring):
+            # unbound method to callable
+            if isinstance(self.FORMAT, MethodType):
+                self.FORMAT = self.FORMAT.__func__
+            self._format = self.FORMAT(dtype=dtype, basecomponent=self,  
+                                       **kwargs)
+        else:
+            self._format = self.FORMAT
+
+    def setFormat(self, format):
+        """ Method to set the `FORMAT` attribute for this instance.
+        It also resets the internal format string, which will be recalculated
+        in the next call to :method"`displayValue`
+
+        :param format: (str or callable) A format string or a callable 
+                       that returns it 
+        """
+        self.FORMAT = format
+        self.resetFormat()
+
+    def resetFormat(self):
+        """Reset the internal format string. It forces a recalculation
+        in the next call to :method:`displayValue`.
+        """
+        self._format = None
 
     def getDisplayValue(self, cache=True, fragmentName=None):
         """Returns a string representation of the model value associated with
@@ -660,6 +776,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             v = self.getModelFragmentObj(fragmentName=fragmentName)
         except:
             return self.getNoneValue()
+
         return self.displayValue(v)
 
     def setNoneValue(self, v):
@@ -942,6 +1059,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
         :param model: (str) the new model name"""
         self.setModelCheck(model)
+        self.resetFormat()
         self.updateStyle()
 
     def setModelCheck(self, model, check=True):
@@ -1528,9 +1646,9 @@ class TaurusBaseWidget(TaurusBaseComponent):
             modelclass = self.getModelClass()
         except:
             modelclass = None
-        if issubclass(modelclass, TaurusDevice):
+        if modelclass and issubclass(modelclass, TaurusDevice):
             mimeData.setData(TAURUS_DEV_MIME_TYPE, modelname)
-        elif issubclass(modelclass, TaurusAttribute):
+        elif modelclass and issubclass(modelclass, TaurusAttribute):
             mimeData.setData(TAURUS_ATTR_MIME_TYPE, modelname)
         return mimeData
 
@@ -1942,3 +2060,4 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
         ret['group'] = 'Taurus Input'
         return ret
+

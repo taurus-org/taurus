@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import sys
-from taurus.external.qt import Qt
 from taurus.qt.qtgui.plot import TaurusTrend
+from taurus.qt.qtgui.application import TaurusApplication
 
-app = Qt.QApplication(sys.argv)
+app = TaurusApplication(sys.argv)
 ##########################
 # BEGIN EXAMPLE CODE
 ##########################

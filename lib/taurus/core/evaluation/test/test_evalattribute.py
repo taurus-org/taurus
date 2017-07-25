@@ -32,7 +32,7 @@ from taurus.external import unittest
 from taurus.external.pint import Quantity
 import taurus
 from taurus.test import insertTest
-from taurus.core.taurusbasetypes import DataType
+from taurus.core.taurusbasetypes import DataType, DataFormat, AttrQuality
 from taurus.core.evaluation.evalattribute import EvaluationAttrValue
 
 
@@ -233,6 +233,36 @@ from taurus.core.evaluation.evalattribute import EvaluationAttrValue
                                 ),
             expectedshape=(3, 3)
             )
+@insertTest(helper_name='read_attr',
+            attr_fullname='eval:@os.*/path.exists("%s")' % __file__,
+            expected=dict(rvalue=True,
+                          type=DataType.Boolean,
+                          label='path.exists("%s")' % __file__,
+                          writable=False,
+                          ),
+            expected_attrv=dict(rvalue=True,
+                                wvalue=None
+                                ),
+            expectedshape=None
+            )
+@insertTest(helper_name='write_read_attr',
+            attr_fullname='eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.foo',
+            setvalue=Quantity(1, 'm'),
+            expected=dict(rvalue=Quantity(1, 'm'),
+                          wvalue=Quantity(1, 'm'),
+                          type=DataType.Integer,
+                          label='self.foo',
+                          data_format=DataFormat._0D,
+                          writable=True,
+                          range=[None, None],
+                          alarms=[None, None],
+                          warnings=[None, None]
+                          ),
+            expected_attrv=dict(rvalue=Quantity(1, 'm'),
+                                wvalue=Quantity(1, 'm'),
+                                quality=AttrQuality.ATTR_VALID
+                                )
+            )
 class EvalAttributeTestCase(unittest.TestCase):
 
     def read_attr(self, attr_fullname, expected={}, expected_attrv={},
@@ -276,6 +306,58 @@ class EvalAttributeTestCase(unittest.TestCase):
             msg = ('rvalue.shape for %s should be %r (got %r)' %
                    (attr_fullname, expectedshape, shape))
             self.assertEqual(shape, expectedshape, msg)
+
+    def write_read_attr(self, attr_fullname=None, setvalue=None, expected=None,
+                        expected_attrv=None, expectedshape=None):
+        """check creation and correct write-and-read of an attribute"""
+
+        if expected is None:
+            expected = {}
+        if expected_attrv is None:
+            expected_attrv = {}
+
+        name = attr_fullname
+        a = taurus.Attribute(attr_fullname)
+
+        if setvalue is None:
+            read_value = a.read()
+        else:
+            a.write(setvalue)
+            read_value = a.read(cache=False)
+
+        msg = ('read() for "%s" does not return an EvaluationAttrValue' +
+               '(got a %s)') % (attr_fullname, read_value.__class__.__name__)
+        self.assertTrue(isinstance(read_value, EvaluationAttrValue), msg)
+
+        # Test attribute
+        for k, exp in expected.iteritems():
+            try:
+                got = getattr(a, k)
+            except AttributeError:
+                msg = ('The attribute, "%s" does not provide info on %s' %
+                       (attr_fullname, k))
+                self.fail(msg)
+            msg = ('%s for "%s" should be %r (got %r)' %
+                   (k, attr_fullname, exp, got))
+            self.__assertValidValue(exp, got, msg)
+
+        # Test attribute value
+        for k, exp in expected_attrv.iteritems():
+            try:
+                got = getattr(read_value, k)
+            except AttributeError:
+                msg = ('The read value for "%s" does not provide info on %s' %
+                       (attr_fullname, k))
+                self.fail(msg)
+            msg = ('%s for the value of %s should be %r (got %r)' %
+                   (k, attr_fullname, exp, got))
+            self.__assertValidValue(exp, got, msg)
+
+        if expectedshape is not None:
+            msg = ('rvalue.shape for %s should be %r (got %r)' %
+                   (attr_fullname, expectedshape, read_value.rvalue.shape))
+            self.assertEqual(read_value.rvalue.shape, expectedshape, msg)
+
 
     def __assertValidValue(self, exp, got, msg):
         # if we are dealing with quantities, use the magnitude for comparing

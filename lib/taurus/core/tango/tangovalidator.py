@@ -90,8 +90,15 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
         if groups is None:
             return None
 
-        import PyTango
-        default_authority = '//' + PyTango.ApiUtil.get_env_var('TANGO_HOST')
+        default_authority = None
+        if factory is None:
+            from taurus import Factory
+            factory = Factory(scheme=self.scheme)
+        default_authority = factory.get_default_tango_host()
+
+        if default_authority is None:
+            import PyTango
+            default_authority = "//" + PyTango.ApiUtil.get_env_var('TANGO_HOST')
 
         authority = groups.get('authority')
         if authority is None:
@@ -99,10 +106,6 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
 
         db = None
         if queryAuth:
-            # attempt to get an Authority object
-            if factory is None:
-                from taurus import Factory
-                factory = Factory(scheme=self.scheme)
             try:
                 db = factory.getAuthority('tango:%s' % authority)
             except:
@@ -185,7 +188,7 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
         complete, normal, short = None, None, groups.get('_shortattrname')
 
         # reuse the getNames from the Device validator...
-        devname = fullname.rsplit('/', 1)[0]
+        devname = fullname.rsplit('#', 1)[0].rsplit('/', 1)[0]
         v = TangoDeviceNameValidator()
         devcomplete, devnormal, _ = v.getNames(devname, factory=factory,
                                                queryAuth=queryAuth)

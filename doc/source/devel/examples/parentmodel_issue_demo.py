@@ -13,8 +13,9 @@ from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.display import TaurusLabel
 import sys
+from taurus.qt.qtgui.application import TaurusApplication
 
-app = Qt.QApplication(sys.argv)
+app = TaurusApplication(sys.argv)
 
 # The problem arises in some situations when the Taurus parenting is not the same
 # as the Qt parenting. For demonstration we use 3 widgets:

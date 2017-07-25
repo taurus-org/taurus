@@ -34,7 +34,7 @@ __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'resetLogLevel', 'resetLogFormat',
            'enableLogOutput', 'disableLogOutput',
            'log', 'trace', 'debug', 'info', 'warning', 'error', 'fatal',
-           'critical', 'changeDefaultPollingPeriod']
+           'critical', 'deprecated', 'changeDefaultPollingPeriod']
 
 __docformat__ = "restructuredtext"
 
@@ -47,313 +47,68 @@ from .util.log import taurus4_deprecation
 # regexp for finding the scheme
 __SCHEME_RE = re.compile(r'([^:/?#]+):.*')
 
-
-def __translate_version_str2int(version_str):
-    """Translates a version string in format x[.y[.z[...]]] into a 000000 number"""
-    import math
-    parts = version_str.split('.')
-    i, v, l = 0, 0, len(parts)
-    if not l:
-        return v
-    while i < 3:
-        try:
-            v += int(parts[i]) * int(math.pow(10, (2 - i) * 2))
-            l -= 1
-            i += 1
-        except ValueError, ve:
-            return v
-        if not l:
-            return v
-    return v
-
-    try:
-        v += 10000 * int(parts[0])
-        l -= 1
-    except ValueError, ve:
-        return v
-    if not l:
-        return v
-
-    try:
-        v += 100 * int(parts[1])
-        l -= 1
-    except ValueError, ve:
-        return v
-    if not l:
-        return v
-
-    try:
-        v += int(parts[0])
-        l -= 1
-    except ValueError:
-        return v
-    if not l:
-        return v
+def __check_pyqt(req='4.8'):
+    import PyQt4.Qt
+    from pkg_resources import parse_version
+    assert(parse_version(PyQt4.Qt.PYQT_VERSION_STR) >= parse_version(req))
 
 
-def __get_python_version():
-    return '.'.join(map(str, sys.version_info[:3]))
-
-
-def __get_python_version_number():
-    pyver_str = __get_python_version()
-    if pyver_str is None:
-        return None
-    return __translate_version_str2int(pyver_str)
-
-
-def __get_pytango_version():
-    try:
-        import PyTango
-    except:
-        return None
-    try:
-        return PyTango.Release.version
-    except:
-        return '0.0.0'
-
-
-def __get_pytango_version_number():
-    tgver_str = __get_pytango_version()
-    if tgver_str is None:
-        return None
-    return __translate_version_str2int(tgver_str)
-
-
-def __get_pyqt_version():
-    try:
-        import PyQt4.Qt
-        return PyQt4.Qt.PYQT_VERSION_STR
-    except:
-        return None
-
-
-def __get_pyqt_version_number():
-    pyqtver_str = __get_pyqt_version()
-    if pyqtver_str is None:
-        return None
-    return __translate_version_str2int(pyqtver_str)
-
-
-def __get_pyqwt_version():
-    try:
-        import PyQt4.Qwt5
-        return PyQt4.Qwt5.QWT_VERSION_STR
-    except:
-        pass
-
-
-def __get_pyqwt_version_number():
-    pyqwtver_str = __get_pyqwt_version()
-    if pyqwtver_str is None:
-        return None
-    return __translate_version_str2int(pyqwtver_str)
-
-
-def __get_qub_version():
-    try:
-        import Qub4
-        return "1.0.0"
-    except:
-        try:
-            import Qub
-            return "1.0.0"
-        except:
-            pass
-
-
-def __get_qub_version_number():
-    qubver_str = __get_qub_version()
-    if qubver_str is None:
-        return None
-    return __translate_version_str2int(qubver_str)
-
-
-def __get_qtcontrols_version():
-    try:
-        import qtcontrols
-        return "1.0.0"
-    except:
-        pass
-
-
-def __get_qtcontrols_version_number():
-    qtcontrols_str = __get_qtcontrols_version()
-    if qtcontrols_str is None:
-        return None
-    return __translate_version_str2int(qtcontrols_str)
-
-
-def __get_spyder_version():
-    try:
-        import spyder
-        return spyder.__version__
-    except:
-            pass
-
-
-def __get_spyder_version_number():
-    spyderver_str = __get_spyder_version()
-    if spyderver_str is None:
-        return None
-    return __translate_version_str2int(spyderver_str)
-
-
-def __w(msg):
-    sys.stdout.write(msg)
-    sys.stdout.flush()
-
-
-def __wn(msg):
-    __w(msg + '\n')
+def __check_pyqwt5(req='5.2'):
+    import PyQt4.Qwt5
+    from pkg_resources import parse_version
+    assert(parse_version(PyQt4.Qwt5.QWT_VERSION_STR) >= parse_version(req))
 
 
 def check_dependencies():
-    for msg in _check_dependencies(forlog=False):
-        m = msg[1]
-        if msg[0] != -1:
-            m = '\t%s' % m
-        print m
+    """ 
+    Prints a check-list of requirements and marks those that are fulfilled
+    """
+
+    # non_pypi is a dictionary with extra:req_list and req_list is a list of
+    # (reqname, check) tuples where reqname is the name of a requirement and
+    # check is a function that raises an exception if the requirement is not
+    # fulfilled
+    non_pypi = {'taurus-qt': [('PyQt4>=4.8', __check_pyqt),
+                              ('PyQt4.Qwt5>=5.2', __check_pyqwt5),
+                              ]
+                }
+    import pkg_resources
+    d = pkg_resources.get_distribution('taurus')
+    print "Dependencies for %s:" % d
+    # minimum requirements (without extras)
+    for r in d.requires():
+        try:
+            pkg_resources.require(str(r))
+            print '\t[*]',
+        except Exception:
+            print '\t[ ]',
+        print '%s' % r
+    # requirements for the extras
+    print '\nExtras:'
+    for extra in sorted(d.extras):
+        print "Dependencies for taurus[%s]:" % extra
+        # requirements from PyPI
+        for r in d.requires(extras=[extra]):
+            try:
+                pkg_resources.require(str(r))
+                print '\t[*]',
+            except Exception:
+                print '\t[ ]',
+            print '%s' % r
+        # requirements outside PyPI
+        for r, check in non_pypi.get(extra, ()):
+            try:
+                check()
+                print '\t[*]',
+            except Exception:
+                print '\t[ ]',
+            print '%s (not in PyPI)' % r
 
 
 def log_dependencies():
-    from taurus.core.util.log import Logger
-    l = Logger("taurus")
-    for msg in _check_dependencies(forlog=True):
-        if msg[0] != -1:
-            l.info(msg[1])
-
-
-def _check_dependencies(forlog=False):
-    """Checks for the required and optional packages of taurus"""
-
-    # TODO: Checking dependencies should be taken care by setuptools. Remove
-
-    if forlog:
-        MSG = {'OK': '[OK]', 'ERR': '[ERROR]', 'WARN': '[WARNING]'}
-    else:
-        MSG = {
-            'OK': "[\033[0;32mOK\033[0m]",
-            'ERR': "[\033[0;31mERROR\033[0m]",
-            'WARN': "[\033[0;33mWARNING\033[0m]"}
-
-    core_requirements = {
-        #    module       minimum  recommended
-        "Python": ("2.6.0", "2.6.0"),
-    }
-
-    core_optional_requirements = {
-        #    module       minimum  recommended
-        "PyTango": ("7.1.0", "7.1.0"),
-    }
-
-    widget_requirements = {
-        #    module       minimum  recommended
-        "PyTango": ("7.1.0", "7.1.0"),
-        "PyQt": ("4.4.0", "4.4.0"),
-        "PyQwt": ("5.2.0", "5.2.0"),
-    }
-
-    widget_optional_requirements = {
-        #    module       minimum  recommended
-        "Qub": ("1.0.0", "1.0.0"),
-        "qtcontrols": ("1.0.0", "1.0.0"),
-        "spyder": ("3.0.0", "3.0.0"),
-    }
-
-    yield -1, "Checking required dependencies of taurus.core..."
-    r = core_requirements
-
-    m = "Checking for Python >=%s..." % r["Python"][0]
-    minPython, recPython = map(__translate_version_str2int, r["Python"])
-    currPython, currPythonStr = __get_python_version_number(), __get_python_version()
-    if currPython is None:
-        yield 2, "{msg} {ERR} (Not found])".format(msg=m, **MSG)
-    elif currPython < minPython:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPythonStr, rec=r['Python'][1], **MSG)
-    else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPythonStr, **MSG)
-
-    yield -1, "Checking OPTIONAL dependencies of taurus.core..."
-    r = core_optional_requirements
-
-    m = "Checking for PyTango >=%s..." % r["PyTango"][0]
-    minPyTango, recPyTango = map(__translate_version_str2int, r["PyTango"])
-    currPyTango, currPyTangoStr = __get_pytango_version_number(), __get_pytango_version()
-    if currPyTango is None:
-        yield 2, "{msg} {ERR} (Not found])".format(msg=m, **MSG)
-    elif currPyTango < minPyTango:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyTangoStr, rec=r['PyTango'][1], **MSG)
-    else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyTangoStr, **MSG)
-
-    yield -1, "Checking required dependencies of taurus.qt..."
-    r = widget_requirements
-
-    m = "Checking for PyTango >=%s..." % r["PyTango"][0]
-    if currPyTango is None:
-        yield 2, "{msg} {ERR} (Not found])".format(msg=m, **MSG)
-    elif currPyTango < minPyTango:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyTangoStr, rec=r['PyTango'][1], **MSG)
-    else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyTangoStr, **MSG)
-
-    m = "Checking for PyQt >=%s..." % r["PyQt"][0]
-    minPyQt, recPyQt = map(__translate_version_str2int, r["PyQt"])
-    currPyQt, currPyQtStr = __get_pyqt_version_number(), __get_pyqt_version()
-    if currPyQt is None:
-        yield 2, "{msg} {ERR} (Not found])".format(msg=m, **MSG)
-    elif currPyQt < minPyQt:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyQtStr, rec=r['PyQt'][1], **MSG)
-    else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyQtStr, **MSG)
-
-    m = "Checking for PyQwt >=%s..." % r["PyQwt"][0]
-    minPyQwt, recPyQwt = map(__translate_version_str2int, r["PyQwt"])
-    currPyQwt, currPyQwtStr = __get_pyqwt_version_number(), __get_pyqwt_version()
-    if currPyQwt is None:
-        yield 1, "{msg} {ERR} (Not found])".format(msg=m, **MSG)
-    elif currPyQwt < minPyQwt:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currPyQwtStr, rec=r['PyQwt'][1], **MSG)
-    else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currPyQwtStr, **MSG)
-
-    yield -1, "Checking OPTIONAL dependencies of taurus.qt..."
-    r = widget_optional_requirements
-
-    m = "Checking for Qub >=%s..." % r["Qub"][0]
-    minQub, recQub = map(__translate_version_str2int, r["Qub"])
-    currQub, currQubStr = __get_qub_version_number(), __get_qub_version()
-    if currQub is None:
-        yield 1, "{msg} {WARN} (Not found])".format(msg=m, **MSG)
-    elif currQub < minQub:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currQubStr, rec=r['Qub'][1], **MSG)
-    else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currQubStr, **MSG)
-
-    m = "Checking for spyder >=%s..." % r["spyder"][0]
-    minspyder, recspyder = map(
-        __translate_version_str2int, r["spyder"])
-    currspyder, currspyderStr = __get_spyder_version_number(
-    ), __get_spyder_version()
-    if currspyder is None:
-        yield 1, "{msg} {WARN} (Not found])".format(msg=m, **MSG)
-    elif currspyder < minspyder:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currspyderStr, rec=r['spyder'][1], **MSG)
-    else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currspyderStr, **MSG)
-
-    m = "Checking for qtcontrols >=%s..." % r["qtcontrols"][0]
-    minqtcontrols, recqtcontrols = map(
-        __translate_version_str2int, r["qtcontrols"])
-    currqtcontrols, currqtcontrolsStr = __get_qtcontrols_version_number(
-    ), __get_qtcontrols_version()
-    if currqtcontrols is None:
-        yield 1, "{msg} {WARN} (Not found])".format(msg=m, **MSG)
-    elif currqtcontrols < minqtcontrols:
-        yield 1, "{msg} {WARN} (Found {fnd}. Recommended >={rec})".format(msg=m, fnd=currqtcontrolsStr, rec=r['qtcontrols'][1], **MSG)
-    else:
-        yield 0, "{msg} {OK} (Found {fnd})".format(msg=m, fnd=currqtcontrolsStr, **MSG)
+    """deprecated since '4.0.4'"""
+    from taurus import deprecated
+    deprecated(dep='taurus.log_dependencies', rel='4.0.4')
 
 
 def getSchemeFromName(name, implicit=True):

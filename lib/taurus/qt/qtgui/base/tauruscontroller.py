@@ -197,8 +197,7 @@ class TaurusScalarAttributeControllerHelper(TaurusAttributeControllerHelper):
             if idx is not None and len(idx):
                 for i in idx:
                     value = value[i]
-            if self._last_config_value is None or value is None:
-                return widget.displayValue(value)
+            return widget.displayValue(value)
         except Exception, e:
             return widget.getNoneValue()
 

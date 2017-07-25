@@ -28,7 +28,7 @@
 
 __docformat__ = 'restructuredtext'
 
-
+import weakref
 from taurus.external.qt import Qt
 from guiqwt.tools import (CommandTool, ToggleTool, DefaultToolbarID,
                           QActionGroup, add_actions)
@@ -39,7 +39,7 @@ from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendItem
 from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DItem
 from taurus.qt.qtgui.extra_guiqwt.curvesmodel import CurveItemConfDlg
 from taurus.qt.qtgui.panel import TaurusModelChooser
-from taurus.qt.qtgui.plot import DateTimeScaleEngine
+from taurus.qt.qtgui.extra_guiqwt.scales import DateTimeScaleEngine
 
 
 class TaurusCurveChooserTool(CommandTool):
@@ -223,8 +223,12 @@ class AutoScrollTool(ToggleTool, BaseConfigurableClass):
         BaseConfigurableClass.__init__(self)
         self.scrollFactor = scrollFactor
         self.registerConfigProperty(self.action.isChecked,
-                                    self.action.setChecked,
+                                    self.setChecked,
                                     'actionChecked')
+
+    def setChecked(self, checked):
+        self.action.setChecked(checked)
+        self.activate_command(self.__plot(), checked)
 
     def register_plot(self, baseplot):
         ToggleTool.register_plot(self, baseplot)
@@ -237,14 +241,18 @@ class AutoScrollTool(ToggleTool, BaseConfigurableClass):
         else:
             baseplot.SIG_ITEMS_CHANGED.connect(self.items_changed)
 
+        self.__plot = weakref.ref(baseplot)
+
     def activate_command(self, plot, checked):
         """Activate tool"""
         # retrieve current Taurus curves
         for item in self.getScrollItems(plot):
+            try:
+                item.scrollRequested.disconnect(self.onScrollRequested)
+            except:
+                pass
             if checked:
                 item.scrollRequested.connect(self.onScrollRequested)
-            else:
-                item.scrollRequested.disconnect(self.onScrollRequested)
 
     def getScrollItems(self, plot):
         return [item for item in plot.get_items()
@@ -262,6 +270,85 @@ class AutoScrollTool(ToggleTool, BaseConfigurableClass):
 
     def items_changed(self, plot):
         self.activate_command(plot, self.action.isChecked())
+
+
+class _BaseAutoScaleTool(ToggleTool, BaseConfigurableClass):
+    """Base class for the AutoScale tools"""
+
+    def __init__(self, manager, axis, toolbar_id=None):
+        ToggleTool.__init__(
+            self,
+            manager,
+            title='Auto-scale %s axis' % axis,
+            icon=None,
+            tip='Auto-scale %s axis when data changes',
+            toolbar_id=toolbar_id)
+        BaseConfigurableClass.__init__(self)
+        self.axis = axis
+        self.registerConfigProperty(self.action.isChecked,
+                                    self.setChecked,
+                                    'actionChecked')
+
+    def setChecked(self, checked):
+        self.action.setChecked(checked)
+        self.activate_command(self.__plot(), checked)
+
+    def register_plot(self, baseplot):
+        ToggleTool.register_plot(self, baseplot)
+        baseplot.SIG_ITEMS_CHANGED.connect(self.items_changed)
+        self.__plot = weakref.ref(baseplot)
+
+    def activate_command(self, plot, checked):
+        """Activate tool"""
+        for item in self.getWatchableItems(plot):
+            try:
+                item.dataChanged.disconnect(self.onDataChanged)
+            except:
+                pass
+            if checked:
+                item.dataChanged.connect(self.onDataChanged)
+
+    def getWatchableItems(self, plot):
+        return [item for item in plot.get_items()
+                if hasattr(item, 'dataChanged')]
+
+    def onDataChanged(self):
+        plot = self.__plot()
+        axis_id = plot.AXIS_NAMES[self.axis]
+        plot.do_autoscale(replot=False, axis_id=axis_id)
+
+    def items_changed(self, plot):
+        self.activate_command(plot, self.action.isChecked())
+
+
+class AutoScaleXTool(_BaseAutoScaleTool):
+    """ToggleTool that, when checked, autoscales the X scale on data changed"""
+    def __init__(self, manager, toolbar_id=None):
+        _BaseAutoScaleTool.__init__(self, manager, axis='bottom',
+                                    toolbar_id=toolbar_id)
+
+
+class AutoScaleYTool(_BaseAutoScaleTool):
+    """ToggleTool that, when checked, autoscales the Y scale on data changed"""
+    def __init__(self, manager, toolbar_id=None):
+        _BaseAutoScaleTool.__init__(self, manager, axis='left',
+                                    toolbar_id=toolbar_id)
+
+
+class AutoScaleZTool(_BaseAutoScaleTool):
+    """ToggleTool that, when checked, autoscales the Z scale on data changed"""
+    def __init__(self, manager, toolbar_id=None):
+        _BaseAutoScaleTool.__init__ (self, manager, axis='Z',
+                                     toolbar_id=toolbar_id)
+
+    def onDataChanged(self):
+        item = self.__items[0]
+        item.set_lut_range(item.get_lut_range_full())
+
+    def activate_command(self, plot, checked):
+        _BaseAutoScaleTool.activate_command(self, plot, checked)
+        self.__items = self.getWatchableItems(plot)
+
 
 
 def testTool(tool):

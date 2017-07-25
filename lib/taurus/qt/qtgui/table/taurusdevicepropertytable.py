@@ -125,7 +125,11 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         elif self.db is None:
             self.warning('Model must be set before calling setTable')
             return
-        self.cellChanged.disconnect(self.valueChanged)
+        try: 
+            self.cellChanged.disconnect(self.valueChanged)
+        except: 
+            pass
+
         dev_name = str(dev_name)
         self.list_prop = list(self.db.get_device_property_list(dev_name, '*'))
         self.setRowCount(len(self.list_prop))
@@ -177,12 +181,12 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         headerItem1.setText(QtGui.QApplication.translate(
             "PLCTabWidget", "Value", None, QtGui.QApplication.UnicodeUTF8))
         self.setHorizontalHeaderItem(1, headerItem1)
-        self.horizontalHeader().setResizeMode(
+        self.horizontalHeader().setSectionResizeMode(
             QtGui.QHeaderView.ResizeToContents)  # .Stretch)
 
     def updateStyle(self):
         self.resizeRowsToContents()
-        self.horizontalHeader().setResizeMode(
+        self.horizontalHeader().setSectionResizeMode(
             QtGui.QHeaderView.ResizeToContents)  # .Stretch)
         # self.resizeColumnsToContents()
         pass

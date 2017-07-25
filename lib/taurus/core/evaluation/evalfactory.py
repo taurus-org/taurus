@@ -34,7 +34,7 @@ from taurus.core.taurusbasetypes import TaurusElementType
 from evalattribute import EvaluationAttribute
 from evalauthority import EvaluationAuthority
 from evaldevice import EvaluationDevice
-from taurus.core.taurusexception import TaurusException
+from taurus.core.taurusexception import TaurusException, DoubleRegistration
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 from taurus.core.taurusfactory import TaurusFactory
@@ -123,24 +123,46 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
             d = self.eval_devs.get(fullname, None)
             # if we do not know it, create the dev and store it in cache
             if d is None:
+
                 groups = validator.getUriGroups(dev_name)
-                if groups['_evalclass'] is not None:
-                    modulename, classname = groups['_evalclass'].rsplit('.', 1)
+                DevClass = EvaluationDevice
+                _safedict = {}
+
+                if groups['_evaldotname'] is not None:
+                    modulename = groups.get('_evalmodname')
+                    classname = groups.get('_evalclassname')
+                    classargs = groups.get('_evalclassparenths')
                     try:
-                        m = __import__(modulename, globals(), locals(),
-                                       [classname], -1)
-                        DevClass = getattr(m, classname)
+                        import importlib
+                        m = importlib.import_module(modulename)
                     except:
-                        self.warning('Problem importing "%s"' % devname)
+                        self.warning('Problem importing "%s"' % modulename)
                         raise
-                else:
-                    DevClass = EvaluationDevice
+                    if classname == '*':
+                        # Add symbols from the module
+                        for key in dir(m):
+                            _safedict[key] = getattr(m, key)
+                    else:
+                        klass = getattr(m, classname)
+                        if classargs:
+                            # Instantiate and add the instance to the safe dict
+                            from taurus.core.util.parse_args import parse_args
+                            a, kw = parse_args(classargs, strip_pars=True)
+                            instancename = groups.get('_evalinstname') or "self"
+                            instance = klass(*a, **kw)
+                            _safedict[instancename] = instance
+                        else:
+                            # Use given class instead of EvaluationDevice
+                            DevClass = klass
+
                 # Get authority (creating if necessary)
                 auth_name = groups.get('authority') or self.DEFAULT_AUTHORITY
                 authority = self.getAuthority(auth_name)
                 # Create Device (and store it in cache via self._storeDev)
                 d = DevClass(fullname, parent=authority,
                              storeCallback=self._storeDev)
+
+                d.addSafe(_safedict, permanent=True)
         return d
 
     def getAttribute(self, attr_name, **kwargs):

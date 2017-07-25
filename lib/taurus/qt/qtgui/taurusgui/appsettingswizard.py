@@ -41,6 +41,7 @@ import sys
 import shutil
 import copy
 import datetime
+import glob
 from lxml import etree
 
 from taurus import tauruscustomsettings
@@ -246,8 +247,12 @@ class ProjectPage(BasePage):
                                            e),
                                        Qt.QMessageBox.Cancel)
                 return False
-        fname = os.path.join(dirname, self.wizard().getXmlConfigFileName())
-        if os.path.exists(fname):
+
+        configs_found = glob.glob(os.path.join(dirname, "tgconf_*",
+                                  self.wizard().getXmlConfigFileName()))
+        # fname = os.path.join(dirname, self.wizard().getXmlConfigFileName())
+        if len(configs_found) == 1:
+            fname = configs_found[0]
             option = Qt.QMessageBox.question(self, 'Overwrite project?',
                                              'The "%s" file already exists in the project directory.\n Do you want to edit the existing project?' % (
                                                  os.path.basename(fname)),
@@ -1312,6 +1317,10 @@ class OutroPage(BasePage):
     def createProject(self):
         # prepare a log file
         pdir = self.wizard().__getitem__('projectDir')
+        gui_name = self.wizard().__getitem__("guiName")
+        install_dir = os.path.join(pdir, "tgconf_{0}".format(gui_name))
+        if not os.path.exists(install_dir):
+            os.makedirs(install_dir)
         logfilename = os.path.join(pdir, 'wizard.log')
         logfile = open(logfilename, 'w')
         logfile.write('Project created by AppSettingsWizard on %s\n' %
@@ -1319,48 +1328,64 @@ class OutroPage(BasePage):
         # copy files
         for i in range(self._substTable.rowCount()):
             src = unicode(self._substTable.item(i, 0).text())
-            dst = os.path.join(pdir, unicode(
+            dst = os.path.join(install_dir, unicode(
                 self._substTable.item(i, 1).text()))
             if os.path.normpath(src) != os.path.normpath(dst):
                 shutil.copy(src, dst)
                 logfile.write('File copied: %s --> %s\n' % (src, dst))
         # write xml config file
-        xmlcfgfilename = os.path.join(
-            pdir, self.wizard().getXmlConfigFileName())
+        xmlcfgfilename = os.path.join(install_dir,
+                                      self.wizard().getXmlConfigFileName())
         f = open(xmlcfgfilename, 'w')
         f.write(unicode(self._xml.toPlainText()))
         f.close()
         logfile.write('XML Config file created: "%s"\n' % xmlcfgfilename)
         # write python config file
-        pycfgfilename = os.path.join(
-            pdir, '%s.py' % self.wizard().getConfigFilePrefix())
+        pycfgfilename = os.path.join(install_dir,
+                                '%s.py' % self.wizard().getConfigFilePrefix())
         f = open(pycfgfilename, 'w')
         f.write("XML_CONFIG = '%s'" % self.wizard().getXmlConfigFileName())
         f.close()
         logfile.write('Python config file created: "%s"\n' % pycfgfilename)
         # write __init__.py config file
-        initfilename = os.path.join(pdir, '__init__.py')
+        init_template = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), 'res', 'init.template')
+        f = open(init_template, 'r')
+        template = f.read()
+        f.close()
+        initfilename = os.path.join(install_dir, '__init__.py')
         f = open(initfilename, 'w')
-        f.write('from config import *')
+        template = template.format(name=gui_name)
+        f.write(template)
         f.close()
         logfile.write('python init file created: "%s"\n' % initfilename)
-        # write launcher script
-        try:
-            launcherfilename = os.path.join(
-                pdir, self.wizard().__getitem__("guiName"))
-            f = open(launcherfilename, 'w')
-            f.write(('#!/bin/sh\n'
-                     '#Make sure to give this file execution permisions\n'
-                     'taurusgui %s $*') % os.path.basename(pdir.rstrip('/')))
-            f.close()
-            os.chmod(launcherfilename, 0755)
-            logfile.write('Unix launcher created: "%s"\n' % launcherfilename)
-        except:
-            logfile.write('Error creating Unix launcher: "%s"\n' %
-                          launcherfilename)
+        # write setup file
+        setup_template = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), 'res', 'setup.template')
+        f = open(setup_template, 'r')
+        template = f.read()
+        f.close()
+        setup = os.path.join(pdir, "setup.py")
+        f = open(setup, 'w')
+        template = template.format(name=gui_name)
+        f.write(template)
+        f.close()
+        # write MANIFEST.in file
+        manifest_template = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), 'res', 'manifest.template')
+        f = open(manifest_template, 'r')
+        template = f.read()
+        f.close()
+        manifestfile = os.path.join(pdir, "MANIFEST.in")
+        f = open(manifestfile, 'w')
+        template = template.format(name=gui_name)
+        f.write(template)
+        f.close()
         # if all went ok...
-        msg = 'Application project was successfully created. You can find the files in: "%s"' % pdir
-        msg += '\nTip: copy this directory into a directory that is in your Python path.'
+        msg = 'Application project was successfully created.' +\
+              'You can find the files in: "%s"' % pdir
+        msg += '\nTip: You can install it with:\n\tpip install %s' % pdir
+        msg += '\nTip: And then run the application with:\n\t %s' % gui_name
         details = ''
         warnings = self.wizard().getProjectWarnings()
         if warnings:
@@ -1373,6 +1398,9 @@ class OutroPage(BasePage):
                              'Application project created', msg, Qt.QMessageBox.Ok, self)
         dlg.setDetailedText(details)
         dlg.exec_()
+        print 
+        print msg + details
+        print
 
 
 class AppSettingsWizard(Qt.QWizard):
@@ -1552,7 +1580,6 @@ class AppSettingsWizard(Qt.QWizard):
                  is the xml code and the second element is a dict where the keys are the
                  destination files and the values are the original paths.
         '''
-        pdir = self.__getitem__('projectDir')
         root = etree.Element("taurusgui_config")
         # general settings page
         guiName = etree.SubElement(root, "GUI_NAME")
@@ -1562,23 +1589,28 @@ class AppSettingsWizard(Qt.QWizard):
         # custom logo page
         customLogo = etree.SubElement(root, "CUSTOM_LOGO")
         src = self.__getitem__("customLogo")
-        if src is None or src.startswith(":"):
+        mod_dir = os.path.join(self.__getitem__('projectDir'),
+                            'tgconf_' + guiName.text)
+        mod_dir = os.path.abspath(mod_dir)  # make sure mod_dir is absolute
+        if src is None or ":" in src:
+            # using registered paths
+            # TODO: what if they use windows paths such as "C:\foo" ?
             dst = src
         else:
             # if src is absolute, it stays so, and if it is relative, we assume
-            # pdir as the root dir
-            src = os.path.join(pdir, src)
-            dst = self.substitutionName(src)
+            # mod_dir as the root dir
+            src = os.path.join(mod_dir, src)
+            dst = os.path.basename(self.substitutionName(src, mod_dir))
         customLogo.text = dst
         # synoptic page
         synopticList = self.__getitem__("synoptics")
         if synopticList:
             synoptics = etree.SubElement(root, "SYNOPTIC")
             for src in synopticList:
-                src = os.path.join(pdir, src)
-                # substitute the jdw files
-                dst = self.substitutionName(src)
-                child = etree.SubElement(synoptics, "synoptic", str=dst)
+                src = os.path.join(mod_dir, src)
+                dst = self.substitutionName(src, mod_dir)
+                child = etree.SubElement(synoptics, "synoptic",
+                                         str=os.path.basename(dst))
                 # substitute any referenced files within the jdrawfiles
                 f = open(src, 'r')
                 contents = f.read()
@@ -1586,7 +1618,7 @@ class AppSettingsWizard(Qt.QWizard):
                 for ref in re.findall(r'file_name:\"(.+?)\"', contents):
                     # this is ok for both relative and absolute references
                     refsrc = os.path.join(os.path.dirname(src), ref)
-                    refdst = self.substitutionName(refsrc)
+                    refdst = self.substitutionName(refsrc, mod_dir)
                     if ref != refdst:
                         short = 'Manual editing needed in "%s"' % dst
                         long = ('The synoptic file "%s" references a file that '
@@ -1624,13 +1656,15 @@ class AppSettingsWizard(Qt.QWizard):
 
         return etree.tostring(root, pretty_print=True), copy.copy(self._substitutions)
 
-    def substitutionName(self, src):
+    def substitutionName(self, src, mod_dir):
         name = os.path.basename(src)
         i = 2
-        while name in self._substitutions:
-            root, ext = os.path.splitext(name)
-            name = "%s_%i%s" % (root, i, ext)
-            i += 1
+        if os.path.dirname(os.path.abspath(src)) != os.path.abspath(mod_dir):
+            # do not change the name if it is the same dir!
+            while name in self._substitutions:
+                root, ext = os.path.splitext(name)
+                name = "%s_%i%s" % (root, i, ext)
+                i += 1
         self._substitutions[name] = src
         return name
 

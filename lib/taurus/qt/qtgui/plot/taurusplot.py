@@ -650,7 +650,10 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         if attr.data_format == DataFormat._1D:
             # TODO: Adapt all values to be plotted to the same Unit
             if value:
-                self._yValues = numpy.array(value.rvalue.magnitude)
+                if attr.isNumeric():
+                    self._yValues = numpy.array(value.rvalue.magnitude)
+                else:
+                    self._yValues = numpy.array(value.rvalue)
             else:
                 self._yValues = numpy.zeros(0)
             self._xValues = self.getXValues()
@@ -2299,6 +2302,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                     'canvasBackground': self.canvasBackground(),
                     'orderedCurveNames': self.getCurveNamesSorted(),
                     'plotTitle': unicode(self.title().text())}
+        if self.isWindow():
+            miscdict["Geometry"] = self.saveGeometry()
         return miscdict
 
     def checkConfigVersion(self, configdict, showDialog=False, supportedVersions=None):
@@ -2422,6 +2427,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.sortCurves(ordered=miscdict.get("orderedCurveNames", None))
         if "plotTitle" in miscdict:
             self.setTitle(miscdict['plotTitle'])
+        # set geometry (if this is a top level window)
+        if self.isWindow() and 'Geometry' in miscdict:
+            self.restoreGeometry(miscdict['Geometry'])
 
     def applyAxesConfig(self, axes):
         '''sets the axes according to settings stored in the axes dict,
@@ -2967,6 +2975,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                             pickedCurveName = name
                             pickedIndex = i
                             pickedAxes = curve.xAxis(), curve.yAxis()
+                            _displayValue = getattr(curve, 'owner', curve
+                                                    ).displayValue
         finally:
             self.curves_lock.release()
 
@@ -2980,12 +2990,14 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             pickedCurveTitle = self.getCurveTitle(pickedCurveName)
             self.replot()
             label = self._pickedMarker.label()
+            display_y = _displayValue(picked.y())
             if self.getXIsTime():
-                infotxt = "'%s'[%i]:\n\t (t=%s, y=%.5g)" % (
-                    pickedCurveTitle, pickedIndex, datetime.fromtimestamp(picked.x()).ctime(), picked.y())
+                infotxt = "'%s'[%i]:\n\t (t=%s, y=%s)" % (
+                    pickedCurveTitle, pickedIndex,
+                    datetime.fromtimestamp(picked.x()).ctime(), display_y )
             else:
-                infotxt = "'%s'[%i]:\n\t (x=%.5g, y=%.5g)" % (
-                    pickedCurveTitle, pickedIndex, picked.x(), picked.y())
+                infotxt = "'%s'[%i]:\n\t (x=%.5g, y=%s)" % (
+                    pickedCurveTitle, pickedIndex, picked.x(), display_y )
             label.setText(infotxt)
             fits = label.textSize().width() < self.size().width()
             if fits:

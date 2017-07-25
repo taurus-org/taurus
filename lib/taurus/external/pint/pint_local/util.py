@@ -5,12 +5,15 @@
 
     Miscellaneous functions for pint.
 
-    :copyright: 2013 by Pint Authors, see AUTHORS for more details.
+    :copyright: 2016 by Pint Authors, see AUTHORS for more details.
     :license: BSD, see LICENSE for more details.
 """
 
 from __future__ import division, unicode_literals, print_function, absolute_import
 
+from decimal import Decimal
+import locale
+import sys
 import re
 import operator
 from numbers import Number
@@ -22,8 +25,9 @@ from token import STRING, NAME, OP, NUMBER
 from tokenize import untokenize
 
 from .compat import string_types, tokenizer, lru_cache, NullHandler, maketrans, NUMERIC_TYPES
-from .formatting import format_unit
+from .formatting import format_unit,siunitx_format_unit
 from .pint_eval import build_eval_tree
+from .errors import DefinitionSyntaxError
 
 logger = logging.getLogger(__name__)
 logger.addHandler(NullHandler())
@@ -188,6 +192,8 @@ def solve_dependencies(dependencies):
         # and keys without value (items without dep)
         t.update(k for k, v in d.items() if not v)
         # can be done right away
+        if not t:
+            raise ValueError('Cyclic dependencies exist among these items: {}'.format(', '.join(repr(x) for x in d.items())))
         r.append(t)
         # and cleaned up
         d = dict(((k, v - t) for k, v in d.items() if v))
@@ -321,6 +327,9 @@ class UnitsContainer(Mapping):
     def __format__(self, spec):
         return format_unit(self, spec)
 
+    def format_babel(self, spec, **kwspec):
+        return format_unit(self, spec, **kwspec)
+
     def __copy__(self):
         return UnitsContainer(self._d)
 
@@ -406,14 +415,15 @@ class ParserHelper(UnitsContainer):
     
     @classmethod
     def eval_token(cls, token, use_decimal=False):
-        token_type = token[0]
-        token_text = token[1]
+        token_type = token.type
+        token_text = token.string
         if token_type == NUMBER:
-            if '.' in token_text or 'e' in token_text:
+            try:
+                return int(token_text)
+            except ValueError:
                 if use_decimal:
                     return Decimal(token_text)
                 return float(token_text)
-            return int(token_text)
         elif token_type == NAME:
             return ParserHelper.from_word(token_text)
         else:
@@ -449,10 +459,7 @@ class ParserHelper(UnitsContainer):
                                  for key, value in ret.items()))
 
     def __copy__(self):
-        # workaround for python2.6 compatibility (cast kwarg keys to str)
-        # see http://bugs.python.org/issue2646
-        kwargs = dict([(str(k),v) for k,v in self.items()])
-        return ParserHelper(scale=self.scale, **kwargs)
+        return ParserHelper(scale=self.scale, **self)
 
     def copy(self):
         return self.__copy__()
@@ -547,7 +554,8 @@ class ParserHelper(UnitsContainer):
 
 
 #: List of regex substitution pairs.
-_subs_re = [(r"([\w\.\-\+\*\\\^])\s+", r"\1 "), # merge multiple spaces
+_subs_re = [('\N{DEGREE SIGN}', " degree"),
+            (r"([\w\.\-\+\*\\\^])\s+", r"\1 "), # merge multiple spaces
             (r"({0}) squared", r"\1**2"),  # Handle square and cube
             (r"({0}) cubed", r"\1**3"),
             (r"cubic ({0})", r"\1**3"),
@@ -633,11 +641,97 @@ def to_units_container(unit_like, registry=None):
 
 def infer_base_unit(q):
     """Return UnitsContainer of q with all prefixes stripped."""
-    d = {}
+    d = udict()
     parse = q._REGISTRY.parse_unit_name
     for unit_name, power in q._units.items():
         completely_parsed_unit = list(parse(unit_name))[-1]
 
         _, base_unit, __ = completely_parsed_unit
-        d[base_unit] = power
-    return UnitsContainer(d)
+        d[base_unit] += power
+    return UnitsContainer(dict((k, v) for k, v in d.items() if v != 0))  # remove values that resulted in a power of 0
+
+
+def fix_str_conversions(cls):
+    """Enable python2/3 compatible behaviour for __str__."""
+    def __bytes__(self):
+        return self.__unicode__().encode(locale.getpreferredencoding())
+    cls.__unicode__ = __unicode__ = cls.__str__
+    cls.__bytes__ = __bytes__
+    if sys.version_info[0] == 2:
+        cls.__str__ = __bytes__
+    else:
+        cls.__str__ = __unicode__
+    return cls
+
+
+class SourceIterator(object):
+    """Iterator to facilitate reading the definition files.
+
+    Accepts any sequence (like a list of lines, a file or another SourceIterator)
+
+    The iterator yields the line number and line (skipping comments and empty lines)
+    and stripping white spaces.
+
+    for lineno, line in SourceIterator(sequence):
+        # do something here
+
+    """
+
+    def __new__(cls, sequence):
+        if isinstance(sequence, SourceIterator):
+            return sequence
+
+        obj = object.__new__(cls)
+
+        if sequence is not None:
+            obj.internal = enumerate(sequence, 1)
+            obj.last = (None, None)
+
+        return obj
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        line = ''
+        while not line or line.startswith('#'):
+            lineno, line = next(self.internal)
+            line = line.split('#', 1)[0].strip()
+
+        self.last = lineno, line
+        return lineno, line
+
+    next = __next__
+
+    def block_iter(self):
+        """Iterate block including header.
+        """
+        return BlockIterator(self)
+
+
+class BlockIterator(SourceIterator):
+    """Like SourceIterator but stops when it finds '@end'
+    It also raises an error if another '@' directive is found inside.
+    """
+
+    def __new__(cls, line_iterator):
+        obj = SourceIterator.__new__(cls, None)
+        obj.internal = line_iterator.internal
+        obj.last = line_iterator.last
+        obj.done_last = False
+        return obj
+
+    def __next__(self):
+        if not self.done_last:
+            self.done_last = True
+            return self.last
+
+        lineno, line = SourceIterator.__next__(self)
+        if line.startswith('@end'):
+            raise StopIteration
+        elif line.startswith('@'):
+            raise DefinitionSyntaxError('cannot nest @ directives', lineno=lineno)
+
+        return lineno, line
+
+    next = __next__

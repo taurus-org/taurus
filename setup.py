@@ -50,31 +50,30 @@ provides = [
     # 'Taurus-Qt',  # [Taurus-Qt]
     # 'Taurus-Qt-PyQwt',  # [Taurus-Qt-Plot]
     # 'Taurus-Qt-Synoptic',  # [Taurus-Qt-Synoptic]
-    # 'Taurus-TaurusGUI',  # [Taurus-TaurusGUI]
-    # 'Taurus-Editor',  # [Taurus-Editor] --> or maybe move it to sardana
-    # 'Taurus-Qt-Guiqwt',
+    # 'Taurus-Qt-TaurusGUI',  # [Taurus-Qt-TaurusGUI]
+    # 'Taurus-Qt-Editor',  # [Taurus-Qt-Editor] --> or maybe move it to sardana
+    # 'Taurus-Qt-Guiqwt',  # [Taurus-Qt-Guiqwt]
 ]
 
-requires = [
-    'numpy (>=1.1)',
-    'PyTango (>=7.1)',  # [Taurus-Tango]
-    'PyQt4 (>=4.8)',  # [Taurus-Qt]
-    'PyQt4.Qwt5 (>=5.2.0)',  # [Taurus-Qt-Plot]
-    'ply (>=2.3)',  # [Taurus-Qt-Synoptic]
-    'lxml (>=2.1)',  # [Taurus-TaurusGUI]
-    'spyder (>=2.2)',  # [Taurus-Editor] --> or maybe move it to sardana
-    'guiqwt (==2.3.1)',
+install_requires = [
+    'numpy>=1.1',
 ]
 
 extras_require = {
-    # 'Taurus-Tango': ['PyTango>=7.1'],  # [Taurus-Tango]
-    # 'Taurus-Qt': ['PyQt4>=4.8'],  # [Taurus-Qt]
-    # 'Taurus-Qt-PyQwt': ['PyQt4.Qwt5>=5.2.0'],  # [Taurus-Qt-Plot]
-    # 'Taurus-Qt-Synoptic': ['ply>=2.3'],  # [Taurus-Qt-Synoptic]
-    # 'Taurus-TaurusGUI': ['lxml>=2.1'],  # [Taurus-TaurusGUI]
-    # 'Taurus-Editor': ['spyder>=2.2'],  # [Taurus-Editor] --> or maybe move it to sardana
-    # 'Taurus-Qt-Guiqwt': ['guiqwt==2.3.1','guidata==1.6.1'],
-    # 'Taurus-Nexus': ['PyMca<5'],
+    'taurus-qt': ['qtpy >=1.2.1',
+                  # 'PyQt4 >=4.8',
+                  # 'PyQt4.Qwt5 >=5.2.0',  # [Taurus-Qt-Plot]
+                  'ply >=2.3',  # [Taurus-Qt-Synoptic]
+                  'lxml >=2.1',  # [Taurus-Qt-TaurusGUI]
+                  'spyder >=3.0',  # [Taurus-Qt-Editor]
+                  'guiqwt >=3',  # [Taurus-Qt-Guiqwt]
+                  ],
+    'taurus-tango': ['PyTango >=7.1',
+                     ],
+    'taurus-epics': ['pyepics >=3.2.4',
+                     ],
+    'taurus-h5file': ['h5file',
+                      ],
 }
 
 console_scripts = [
@@ -96,25 +95,12 @@ gui_scripts = [
     'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain',
     'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
     'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main',
-    # 'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main [Taurus-Qt]',
-    # 'taurusplot = taurus.qt.qtgui.plot.taurusplot:main [Taurus-Qt-Plot]',
-    # 'taurustrend = taurus.qt.qtgui.plot.taurustrend:main [Taurus-Qt-Plot]',
-    # 'taurusform = taurus.qt.qtgui.panel.taurusform:taurusFormMain [Taurus-Qt]',
-    # 'tauruspanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusPanelMain [Taurus-Qt]',
-    # 'taurusdevicepanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusDevicePanelMain [Taurus-Qt-Plot]',
-    # 'taurusgui = taurus.qt.qtgui.taurusgui.taurusgui:main [Taurus-Qt-Plot,Taurus-Qt-Synoptic]',
-    # 'taurusdesigner = taurus.qt.qtdesigner.taurusdesigner:main [Taurus-Qt]',
-    # 'tauruscurve = taurus.qt.qtgui.extra_guiqwt.plot:taurusCurveDlgMain [Taurus-Qt-Guiqwt]',
-    # 'taurustrend1d = taurus.qt.qtgui.extra_guiqwt.plot:taurusTrendDlgMain [Taurus-Qt-Guiqwt]',
-    # 'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain [Taurus-Qt-Guiqwt]',
-    # 'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain [Taurus-Qt-Guiqwt]',
-    # TODO: taurusremotelogmonitor
-    # TODO: taurusdemo
+    'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main',
 ]
 
-entry_points={'console_scripts': console_scripts,
-              'gui_scripts': gui_scripts,
-              }
+entry_points = {'console_scripts': console_scripts,
+                'gui_scripts': gui_scripts,
+                }
 
 classifiers = [
     'Development Status :: 3 - Alpha',
@@ -156,7 +142,7 @@ setup(name='taurus',
       include_package_data=True,
       entry_points=entry_points,
       provides=provides,
-      requires=requires,
+      install_requires=install_requires,
       extras_require=extras_require,
       test_suite='taurus.test.testsuite.get_taurus_suite',
       )

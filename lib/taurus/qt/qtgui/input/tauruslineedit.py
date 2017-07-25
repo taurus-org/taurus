@@ -136,7 +136,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             modelObj = self.getModelObj()
             if modelObj and modelObj.type in [DataType.Integer, DataType.Float]:
                 min_, max_ = modelObj.alarms
-                if value < min_ or value > max_:
+                if ((min_ is not None and value < min_) or
+                        (max_ is not None and value > max_)):
                     color = 'orange'
         # apply style
         style = 'TaurusValueLineEdit {color: %s; font-weight: %s}' %\
@@ -212,7 +213,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 try:
                     q = Quantity(text)
                     # allow implicit units (assume wvalue.units implicitly)
-                    if q.dimensionless:
+                    if q.unitless:
                         q = Quantity(q.magnitude, val.units)
                     return q
                 except:
