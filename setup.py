@@ -44,8 +44,8 @@ packages = find_packages(where='lib')
 
 provides = [
     'taurus',
-    'taurus.core',
-    'taurus.qt',
+    # 'taurus.core',
+    # 'taurus.qt',
     # 'Taurus-Tango',  # [Taurus-Tango]
     # 'Taurus-Qt',  # [Taurus-Qt]
     # 'Taurus-Qt-PyQwt',  # [Taurus-Qt-Plot]
