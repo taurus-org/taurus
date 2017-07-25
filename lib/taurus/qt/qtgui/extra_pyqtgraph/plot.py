@@ -23,7 +23,7 @@
 ##
 #############################################################################
 
-from taurus import Attribute
+import copy
 from taurus.core.util.containers import LoopList
 from taurus.qt.qtgui.base.taurusbase import TaurusBaseComponent
 from taurus.qt.qtgui.extra_pyqtgraph.curvesPropertiesTool import CurvesPropertiesTool
@@ -71,15 +71,10 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
 
     def setModel(self, models):
         for model in models:
-            # model = Attribute(model)
             curve = TaurusPlotDataItem(name=model)
             curve.setModel(model)
             curve.setPen(self._curveColors.next().color())
             self.addItem(curve)
-
-            self.registerConfigDelegate(curve, model)  # TODO: think about dont use model name e.g. use "__Curve__<model>"
-
-
 
     def _initActions(self, menu):
 
@@ -90,6 +85,53 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         loadConfigAction = QtGui.QAction('Retrieve saved configuration', menu)
         loadConfigAction.triggered[()].connect(self.loadConfigFile)
         menu.addAction(loadConfigAction)
+
+    def createConfig(self, allowUnpickable=False):
+
+        try:
+            # Temporarily register curves as delegates
+            tmpreg = []
+            curve_list = self.getPlotItem().listDataItems()
+            for idx, curve in enumerate(curve_list):
+                if isinstance(curve, TaurusPlotDataItem):
+                    name = '__TaurusPlotDataItem_%d__' % idx
+                    tmpreg.append(name)
+                    self.registerConfigDelegate(curve, name)
+
+            configdict = copy.deepcopy(TaurusBaseComponent.createConfig(
+                self, allowUnpickable=allowUnpickable))
+
+        finally:
+            # Ensure that temporary delegates are unregistered
+            for n in tmpreg:
+                self.unregisterConfigurableItem(n, raiseOnError=False)
+
+        return configdict
+
+    def applyConfig(self, configdict, depth=None):
+        try:
+            # Temporarily register curves as delegates
+            tmpreg = []
+            curves = []
+            for name in configdict['__orderedConfigNames__']:
+                if name.startswith('__TaurusPlotDataItem_'):
+                    # Instantiate empty TaurusPlotDataItem
+                    curve = TaurusPlotDataItem()
+                    curves.append(curve)
+                    self.registerConfigDelegate(curve, name)
+                    tmpreg.append(name)
+
+            TaurusBaseComponent.applyConfig(
+                self, configdict=configdict, depth=depth)
+
+            # Add to plot **after** their configuration has been applied
+            for curve in curves:
+                self.addItem(curve)
+
+        finally:
+            # Ensure that temporary delegates are unregistered
+            for n in tmpreg:
+                self.unregisterConfigurableItem(n, raiseOnError=False)
 
 
 
