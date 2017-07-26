@@ -126,9 +126,21 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
             TaurusBaseComponent.applyConfig(
                 self, configdict=configdict, depth=depth)
 
+            # keep a dict of existing curves (to use it for avoiding dups)
+            currentCurves = dict()
+            for curve in self.getPlotItem().listDataItems():
+                if isinstance(curve, TaurusPlotDataItem):
+                    currentCurves[curve.getFullModelNames()] = curve
+
             # Add to plot **after** their configuration has been applied
             for curve in curves:
-                # TODO: check if the curve already exists in the plot widget
+                c = currentCurves.get(curve.getFullModelNames(), None)
+                if c is not None:
+                    self.getPlotItem().legend.removeItem(c.name())
+                    c.getViewBox().removeItem(c)
+
+                    # self.removeItem(c)
+
                 self.addItem(curve)
 
         finally:

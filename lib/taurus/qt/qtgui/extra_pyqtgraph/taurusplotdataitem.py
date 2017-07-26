@@ -100,6 +100,9 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
         elif opts['connect'] == 'finite':
             self.opts['connect'] = 'finite'
 
+    def getFullModelNames(self):
+        return (self.getXModelName(), self.getFullModelName())
+
 
 def deserializeOpts(opts):
     # pen property
