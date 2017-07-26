@@ -56,6 +56,9 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
 
         self._initActions(self.getPlotItem().getViewBox().menu)
 
+        self.registerConfigProperty(self._getState,
+                                    self.restoreState, 'state')
+
         plot_legend_tool = PlotLegendTool()
         plot_legend_tool.attachToPlotItem(self.getPlotItem(), self)
 
@@ -105,7 +108,6 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
             # Ensure that temporary delegates are unregistered
             for n in tmpreg:
                 self.unregisterConfigurableItem(n, raiseOnError=False)
-
         return configdict
 
     def applyConfig(self, configdict, depth=None):
@@ -126,6 +128,7 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
 
             # Add to plot **after** their configuration has been applied
             for curve in curves:
+                # TODO: check if the curve already exists in the plot widget
                 self.addItem(curve)
 
         finally:
@@ -133,11 +136,14 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
             for n in tmpreg:
                 self.unregisterConfigurableItem(n, raiseOnError=False)
 
-
-
-
-
-
+    def _getState(self):
+        """Same as PlotWidget.saveState but removing viewRange conf to force
+        a refresh with targetRange when loading
+        """
+        state = copy.deepcopy(self.saveState())
+        # remove viewRange conf
+        del state['view']['viewRange']
+        return state
 
 
 if __name__ == '__main__':
@@ -152,11 +158,11 @@ if __name__ == '__main__':
     w.setModel(['eval:rand(256)', 'sys/tg_test/1/wave'])
 
     w.show()
+
     ret = app.exec_()
 
     # import pprint
     # pprint.pprint(w.createConfig())
-
 
 
     sys.exit(ret)
