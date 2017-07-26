@@ -38,7 +38,7 @@ class CurvesPropertiesTool(QtGui.QAction):
         self.triggered.connect(self.onTriggered)
         self.plot_item = None
 
-    def attachToPlotItem(self,plot_item, parentWidget=None):
+    def attachToPlotItem(self, plot_item, parentWidget=None):
         self.plot_item = plot_item
         menu = plot_item.getViewBox().menu
         menu.addAction(self)
