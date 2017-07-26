@@ -31,7 +31,7 @@ __all__ = ['TaurusCurveItemTableModel', 'CurveItemConf', 'CurveItemConfDlg']
 
 import copy
 
-from taurus.external.qt import Qt, Qwt5
+from taurus.external.qt import Qt
 from guiqwt.styles import CurveParam, AxesParam, update_style_attr
 from guiqwt.builder import make
 
@@ -41,8 +41,15 @@ from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam
 
-AXIS_ID2NAME = {Qwt5.QwtPlot.yLeft: 'left', Qwt5.QwtPlot.yRight: 'right',
-                Qwt5.QwtPlot.xBottom: 'bottom', Qwt5.QwtPlot.xTop: 'top'}
+import guiqwt
+__guiqwt_version = map(int, guiqwt.__version__.split('.')[:3])
+if __guiqwt_version <= [2, 3, 1]:
+    import taurus.external.qt.Qwt5 as qwt
+else:
+    import qwt
+
+AXIS_ID2NAME = {qwt.QwtPlot.yLeft: 'left', qwt.QwtPlot.yRight: 'right',
+                qwt.QwtPlot.xBottom: 'bottom', qwt.QwtPlot.xTop: 'top'}
 
 # set some named constants
 # columns:

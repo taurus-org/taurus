@@ -222,12 +222,20 @@ class TaurusEncodedRGBImageItem(RGBImageItem, TaurusEncodedBaseImageItem):
 
 
 class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
-    '''A XYImageItem that is constructed by stacking 1D arrays from events from a Taurus 1D attribute'''
+    """
+    A XYImageItem that is constructed by stacking 1D arrays from events from 
+    a Taurus 1D attribute
+    """
 
     scrollRequested = baseSignal('scrollRequested', object, object, object)
     dataChanged = baseSignal('dataChanged')
 
     def __init__(self, param=None, buffersize=512, stackMode='datetime'):
+        """
+        :param param: param to be passed to XYImageItem constructor
+        :param buffersize: (int) size of the stack
+        :param stackMode: (str) can be 'datetime', 'timedelta' or 'event'
+        """
         XYImageItem.__init__(self, numpy.arange(2), numpy.arange(
             2), numpy.zeros((2, 2)), param=param)
         TaurusBaseComponent.__init__(self, self.__class__.__name__)
@@ -238,6 +246,29 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         self.stackMode = stackMode
         self.set_interpolation(INTERP_NEAREST)
         self.__timeOffset = None
+
+        # Config properties
+        self.registerConfigProperty(self.get_lut_range,
+                                    self.set_lut_range,
+                                    'lut_range'
+                                    )
+        self.registerConfigProperty(self._get_interpolation_cfg,
+                                    self._set_interpolation_cfg,
+                                    'interpolation'
+                                    )
+        self.registerConfigProperty(self.get_color_map_name,
+                                    self.set_color_map,
+                                    'color_map'
+                                    )
+
+    def _get_interpolation_cfg(self):
+        ret = self.get_interpolation()
+        if len(ret) == 2:
+            ret = (ret[0], len(ret[1]))
+        return ret
+
+    def _set_interpolation_cfg(self, interpolate_cfg):
+        self.set_interpolation(*interpolate_cfg)
 
     def setBufferSize(self, buffersize):
         '''sets the size of the stack
@@ -310,7 +341,7 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
                 plot.set_axis_title('bottom', 'Time since %s' %
                                     evt_value.time.isoformat())
                 plot.set_axis_unit('bottom', '')
-        else:
+        elif self.stackMode == 'event':
             try:
                 # +numpy.random.randint(0,4) #for debugging we can put a variable step
                 step = 1
@@ -319,6 +350,8 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
                 x = 0
                 plot.set_axis_title('bottom', 'Event #')
                 plot.set_axis_unit('bottom', '')
+        else:
+            raise ValueError('Unsupported stack mode %s' % self.stackMode)
 
         if len(self._xBuffer) and x <= self._xBuffer[-1]:
             self.info('Ignoring event (non-increasing x value)')
@@ -341,17 +374,13 @@ class TaurusTrend2DItem(XYImageItem, TaurusBaseComponent):
         y = self._yValues
         z = self._zBuffer.contents().transpose()
 
-        if x.size == 2:
-            plot.set_axis_limits('left', y.min(), y.max())
-            # guess the max of the scale allowed by the buffer
-            xmax = x[0] + (x[1] - x[0]) * self.maxBufferSize
-            plot.set_axis_limits('bottom', x.min(), xmax)
+        # Use previous LUT range (z axis range), or set to None (autoscale)
+        # if it is uninitialized
+        lut_range = self.get_lut_range()
+        if lut_range[0] == lut_range[1]:
+            lut_range = None
 
         # update the plot data
-        lut_range = self.get_lut_range()  # this is the range of the z axis (color scale)
-        if lut_range[0] == lut_range[1]:
-            # if the range was not set, make it None (autoscale z axis)
-            lut_range = None
         self.set_data(z, lut_range=lut_range)
         self.set_xy(x, y)
 

@@ -160,7 +160,7 @@ class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
     def bgRole(self, model=None, expected=None, bgRole=None, maxdepr=0):
         '''Check that the label text'''
         self._widget.setModel(model)
-        self.processEvents(repetitions=30, sleep=.1)
+        self.processEvents(repetitions=50, sleep=.1)
         if bgRole is not None:
             self._widget.setBgRole(bgRole)
         p = self._widget.palette()

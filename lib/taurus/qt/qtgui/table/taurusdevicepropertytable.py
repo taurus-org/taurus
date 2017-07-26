@@ -181,12 +181,12 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         headerItem1.setText(QtGui.QApplication.translate(
             "PLCTabWidget", "Value", None, QtGui.QApplication.UnicodeUTF8))
         self.setHorizontalHeaderItem(1, headerItem1)
-        self.horizontalHeader().setResizeMode(
+        self.horizontalHeader().setSectionResizeMode(
             QtGui.QHeaderView.ResizeToContents)  # .Stretch)
 
     def updateStyle(self):
         self.resizeRowsToContents()
-        self.horizontalHeader().setResizeMode(
+        self.horizontalHeader().setSectionResizeMode(
             QtGui.QHeaderView.ResizeToContents)  # .Stretch)
         # self.resizeColumnsToContents()
         pass

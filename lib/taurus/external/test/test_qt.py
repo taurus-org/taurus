@@ -57,11 +57,6 @@ class QtTestCase(unittest.TestCase):
         # store a "snapshot" of the currently loaded modules
         self._orig_mods = set(sys.modules.keys())
 
-        # auto initialize Qt by taurus using forcibly the self.QtAPI
-        tauruscustomsettings.QT_AUTO_INIT = True
-        tauruscustomsettings.QT_AUTO_API = self.QtAPI
-        tauruscustomsettings.QT_AUTO_STRICT = True
-
         # this import initializes Qt in case it is not loaded
         from taurus.external.qt import Qt
         self.__qt = Qt
@@ -72,9 +67,9 @@ class QtTestCase(unittest.TestCase):
         other_apis = set(_QtAPIs)
         other_apis.remove(self.QtAPI)
 
-        from taurus.external.qt import getQtName
+        from taurus.external.qt import API_NAME
 
-        self.assertEquals(getQtName(), self.QtAPI)
+        self.assertEquals(API_NAME, self.QtAPI)
 
         for other_api in other_apis:
             self.assertFalse(other_api in mods, other_api + " loaded in " + self.QtAPI + " test")

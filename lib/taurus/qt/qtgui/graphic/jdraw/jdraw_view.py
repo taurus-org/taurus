@@ -214,10 +214,17 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.debug('\toffset = %s,%s ; size = %s,%s' % (x0, y0, w, h))
         self.fitInView(x0, y0, w, h, Qt.Qt.KeepAspectRatio)
 
+        # -------------------------------------------------------------------
+        # This block seems to be a poorly executed workaround to some
+        # issue, but it is itself causing bugs (see
+        # https://github.com/taurus-org/taurus/issues/484 ).
+        # We are not removing it yet to preserve bck-compat
+        # TODO: Deprecate the ADJUST_FRAME kwarg?
         if ADJUST_FRAME:  # This additional resizing adjust the "white" frame around the synoptic
             self.debug(
                 '\tResizing: size(%s,%s),hint(%s,%s),srect(%s,%s),parent(%s,%s)' % self.get_sizes())
             self.resize(self.sizeHint() + Qt.QSize(5, 5))
+        # -------------------------------------------------------------------
 
         # THIS LINE MUST BE ALWAYS EXECUTED, It prevents the UP/DOWN resize BUG!!!
         # apparently Qt needs this 2 fitInView calls to be aware of it, maybe
@@ -400,7 +407,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 # The emitted signal contains the filename and a dictionary
                 # with the name of items and its color
                 self.emitColors()  # get_item_colors(emit=True)
-                self.fitting(True)
+                self.fitting()
             else:
                 self.setScene(None)
         #self.debug('out of setModel()')
@@ -465,7 +472,9 @@ def jdraw_view_main():
     import time
     import taurus.qt.qtgui.graphic
     taurus.setLogLevel(taurus.Info)
-    app = Qt.QApplication(sys.argv)
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(sys.argv)
 
     #form = Qt.QDialog()
     # ly=Qt.QVBoxLayout(form)
@@ -481,7 +490,7 @@ def jdraw_view_main():
     form.setWindowTitle(sys.argv[1].rsplit('.', 1)[0])
     #def kk(*args):print("\tgraphicItemSelected(%s)"%str(args))
     #form.connect(form,Qt.SIGNAL("graphicItemSelected(QString)"), kk)
-    form.fitting()
+    # form.fitting()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

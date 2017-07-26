@@ -31,10 +31,13 @@ __all__ = ["TaurusTrend2DDialog"]
 from guiqwt.plot import ImageDialog
 from taurus.external.qt import Qt
 import taurus.core
+from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.extra_guiqwt.image import TaurusTrend2DItem
 from taurus.qt.qtgui.extra_guiqwt.tools import (TaurusModelChooserTool,
-                                                TimeAxisTool, AutoScrollTool)
+                                                TimeAxisTool, AutoScrollTool,
+                                                AutoScaleXTool, AutoScaleYTool,
+                                                AutoScaleZTool)
 
 
 class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
@@ -49,7 +52,17 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
     _modifiableByUser = True
 
     def __init__(self, parent=None, designMode=False, toolbar=True,
-                 stackMode='deltatime', buffersize=512, options=None, **kwargs):
+                 stackMode='deltatime', buffersize=512, options=None,
+                 autoscale='xyz', **kwargs):
+        """
+
+        :param param: param to be passed to XYImageItem constructor
+        :param buffersize: (int) size of the stack
+        :param stackMode: (str) can be 'datetime', 'timedelta' or 'event'
+        :param autoscale: (str) if autscale string contains 'x', the x axis 
+                          will be autoscaled. Same with 'y' and 'z'.
+                          Defaults to 'xyz'
+        """
         """see :class:`guiqwt.plot.ImageDialog` for other valid initialization
         parameters"""
         defaultOptions = dict(lock_aspect_ratio=False)
@@ -65,12 +78,69 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         self.setStackMode(stackMode)
         self.setWindowFlags(Qt.Qt.Widget)
         # add some tools
-        for toolklass in (TaurusModelChooserTool, AutoScrollTool):
+        for toolklass in (TaurusModelChooserTool, AutoScrollTool,
+                          AutoScaleXTool, AutoScaleYTool, AutoScaleZTool
+                          ):
             self.add_tool(toolklass)
         self.get_tool(TaurusModelChooserTool).singleModel = True
+
+        if 'x' in autoscale.lower():
+            self.get_tool(AutoScaleXTool).setChecked(True)
+        if 'y' in autoscale.lower():
+            self.get_tool(AutoScaleYTool).setChecked(True)
+        if 'z' in autoscale.lower():
+            self.get_tool(AutoScaleZTool).setChecked(True)
+
         self.setModifiableByUser(self._modifiableByUser)
         self.setContextMenuPolicy(Qt.Qt.CustomContextMenu)
-        self.registerConfigDelegate(self.get_tool(AutoScrollTool))
+
+        # Config properties
+        self.setModelInConfig(True)
+        self.registerConfigDelegate(self.trendItem or BaseConfigurableClass(),
+                                    name='trendItem')
+        self.registerConfigDelegate(self.get_tool(AutoScrollTool),
+                                    name='AutoScrollTool')
+        self.registerConfigDelegate(self.get_tool(AutoScaleXTool),
+                                    name='AutoScaleXTool')
+        self.registerConfigDelegate(self.get_tool(AutoScaleYTool),
+                                    name='AutoScaleYTool')
+        self.registerConfigDelegate(self.get_tool(AutoScaleZTool),
+                                    name='AutoScaleZTool')
+        self.registerConfigProperty(self.getStackMode,
+                                    self.setStackMode,
+                                    'stackMode'
+                                    )
+        self.registerConfigProperty(self._get_axes_conf,
+                                    self._set_axes_conf,
+                                    'axes_confs'
+                                    )
+        
+    def _get_axes_conf(self):
+        p = self.get_plot()
+        conf = {}
+        for a in p.AXIS_IDS:
+            c = conf[a] = {}
+            c['limits'] = p.get_axis_limits(a)
+            c['title'] = p.get_axis_title(a)
+            c['color'] = p.get_axis_color(a)
+            c['scale'] = p.get_axis_scale(a)
+            c['unit'] = p.get_axis_unit(a)
+        return conf
+
+    def _set_axes_conf(self, axes_conf):
+        p = self.get_plot()
+        for a in p.AXIS_IDS:
+            c = axes_conf[a]
+            if 'limits' in c:
+                p.set_axis_limits(a, *c['limits'])
+            if 'title' in c:
+                p.set_axis_title(a, c['title'])
+            if 'color' in c:
+                p.set_axis_color(a, c['color'])
+            if 'scale' in c:
+                p.set_axis_scale(a, c['scale'], autoscale=False)
+            if 'unit' in c:
+                p.set_axis_unit(a, c['unit'])
 
     def keyPressEvent(self, event):
         if(event.key() == Qt.Qt.Key_Escape):
@@ -94,7 +164,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
             timetool = self.get_tool(TimeAxisTool)
             timetool.set_scale_y_t(True)
         elif mode == 'deltatime':
-            from taurus.qt.qtgui.plot import DeltaTimeScaleEngine
+            from taurus.qt.qtgui.extra_guiqwt.scales import DeltaTimeScaleEngine
             plot = self.get_plot()
             DeltaTimeScaleEngine.enableInAxis(plot, plot.xBottom, rotation=-45)
         elif mode == 'event':
@@ -127,7 +197,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         self.trendItem = TaurusTrend2DItem(
             stackMode=self.getStackMode(), buffersize=self.buffersize)
         self.trendItem.setModel(model)
-        plot.add_item(self.trendItem)
+        plot.add_item(self.trendItem, autoscale=False)
         self.trendItem.set_readonly(not self.isModifiableByUser())
         plot.set_axis_title(plot.colormap_axis, 'value')
         plot.set_axis_unit('left', 'index')
@@ -145,6 +215,11 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
             self.traceback()
 
         self.trendItem.dataChanged.connect(self.update_cross_sections)
+
+        # unregister old trendItem and register the new one as config delegate
+        self.unregisterConfigurableItem ("trendItem", raiseOnError=False)
+        if self.getModelInConfig():
+            self.registerConfigDelegate(self.trendItem, name='trendItem')
 
     def getModel(self):
         """reimplemented from :class:`TaurusBaseWidget`"""

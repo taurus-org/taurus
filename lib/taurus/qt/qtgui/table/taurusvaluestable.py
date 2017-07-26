@@ -517,9 +517,9 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         if(text != self._initialText) & (text != ""):
             model.addValue(index, Qt.QVariant(text))
             hh = self.parent().horizontalHeader()
-            hh.setResizeMode(Qt.QHeaderView.Fixed)
+            hh.setSectionResizeMode(Qt.QHeaderView.Fixed)
             vh = self.parent().verticalHeader()
-            vh.setResizeMode(Qt.QHeaderView.Fixed)
+            vh.setSectionResizeMode(Qt.QHeaderView.Fixed)
 
         index.model().editedIndex = None
 
@@ -723,9 +723,9 @@ class TaurusValuesTable(TaurusWidget):
             model.setWriteMode(self._writeMode)
 
             hh = self._tableView.horizontalHeader()
-            hh.setResizeMode(Qt.QHeaderView.Fixed)
+            hh.setSectionResizeMode(Qt.QHeaderView.Fixed)
             vh = self._tableView.verticalHeader()
-            vh.setResizeMode(Qt.QHeaderView.Fixed)
+            vh.setSectionResizeMode(Qt.QHeaderView.Fixed)
             if self.defaultWriteMode == "r":
                 isWritable = False
             else:

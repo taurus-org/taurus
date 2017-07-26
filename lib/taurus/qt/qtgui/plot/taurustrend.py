@@ -33,9 +33,11 @@ import time
 import numpy
 import re
 import gc
+import weakref
 from taurus.external.qt import Qt, Qwt5
 
 import taurus.core
+from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.util.containers import CaselessDict, CaselessList, ArrayBuffer
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.plot import TaurusPlot
@@ -246,6 +248,8 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         :param name: (str) the name of the curve
         :param curve: (TaurusCurve) the curve object to be added
         '''
+        # provide the curve with a weakref to the trendset (the owner)
+        curve.owner = weakref.proxy(self)
         self._curves[name] = curve
         self._orderedCurveNames.append(name)
 
@@ -269,7 +273,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
 
     def getModelClass(self):
         '''see :meth:`TaurusBaseComponent.getModelClass`'''
-        return taurus.core.taurusattribute.TaurusAttribute
+        return TaurusAttribute
 
     def registerDataChanged(self, listener, meth):
         '''see :meth:`TaurusBaseComponent.registerDataChanged`'''
@@ -398,7 +402,10 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             # (it overwrites custom titles!)
             return
         else:
-            model = evt_src if evt_src is not None else self.getModelObj()
+            if isinstance(evt_src, TaurusAttribute):
+                model = evt_src
+            else:
+                model = self.getModelObj()
             if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Error:
                 self._onDroppedEvent(reason='Error event')
                 if not self.parent().getUseArchiving():

@@ -718,8 +718,8 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
 #        table.setAutoScroll(True)
 #        resize_mode = QtGui.QHeaderView.Stretch
-#        table.horizontalHeader().setResizeMode(resize_mode)
-        # table.verticalHeader().setResizeMode(resize_mode)
+#        table.horizontalHeader().setSectionResizeMode(resize_mode)
+        # table.verticalHeader().setSectionResizeMode(resize_mode)
 
 #        for row in range(len(self.rows)):
 #            table.setRowHeight(row,5+25*sum(len(dct[self.rows[row]][col]) for col in self.columns))
@@ -862,10 +862,10 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
         # table.resizeColumnsToContents()
         # table.resizeRowsToContents()
-        table.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        # table.verticalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
-        # table.horizontalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        table.verticalHeader().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(QtGui.QHeaderView.Stretch)
+        # table.verticalHeader().setSectionResizeMode(QtGui.QHeaderView.Stretch)
+        # table.horizontalHeader().setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
+        table.verticalHeader().setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
 
         return table
 
