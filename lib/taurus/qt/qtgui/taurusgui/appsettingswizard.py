@@ -41,6 +41,7 @@ import sys
 import shutil
 import copy
 import datetime
+import glob
 from lxml import etree
 
 from taurus import tauruscustomsettings
@@ -246,8 +247,12 @@ class ProjectPage(BasePage):
                                            e),
                                        Qt.QMessageBox.Cancel)
                 return False
-        fname = os.path.join(dirname, self.wizard().getXmlConfigFileName())
-        if os.path.exists(fname):
+
+        configs_found = glob.glob(os.path.join(dirname, "tgconf_*",
+                                  self.wizard().getXmlConfigFileName()))
+        # fname = os.path.join(dirname, self.wizard().getXmlConfigFileName())
+        if len(configs_found) == 1:
+            fname = configs_found[0]
             option = Qt.QMessageBox.question(self, 'Overwrite project?',
                                              'The "%s" file already exists in the project directory.\n Do you want to edit the existing project?' % (
                                                  os.path.basename(fname)),
@@ -1575,7 +1580,6 @@ class AppSettingsWizard(Qt.QWizard):
                  is the xml code and the second element is a dict where the keys are the
                  destination files and the values are the original paths.
         '''
-        pdir = self.__getitem__('projectDir')
         root = etree.Element("taurusgui_config")
         # general settings page
         guiName = etree.SubElement(root, "GUI_NAME")
@@ -1585,23 +1589,28 @@ class AppSettingsWizard(Qt.QWizard):
         # custom logo page
         customLogo = etree.SubElement(root, "CUSTOM_LOGO")
         src = self.__getitem__("customLogo")
-        if src is None or src.startswith(":"):
+        mod_dir = os.path.join(self.__getitem__('projectDir'),
+                            'tgconf_' + guiName.text)
+        mod_dir = os.path.abspath(mod_dir)  # make sure mod_dir is absolute
+        if src is None or ":" in src:
+            # using registered paths
+            # TODO: what if they use windows paths such as "C:\foo" ?
             dst = src
         else:
             # if src is absolute, it stays so, and if it is relative, we assume
-            # pdir as the root dir
-            src = os.path.join(pdir, src)
-            dst = self.substitutionName(src)
+            # mod_dir as the root dir
+            src = os.path.join(mod_dir, src)
+            dst = os.path.basename(self.substitutionName(src, mod_dir))
         customLogo.text = dst
         # synoptic page
         synopticList = self.__getitem__("synoptics")
         if synopticList:
             synoptics = etree.SubElement(root, "SYNOPTIC")
             for src in synopticList:
-                src = os.path.join(pdir, src)
-                # substitute the jdw files
-                dst = self.substitutionName(src)
-                child = etree.SubElement(synoptics, "synoptic", str=dst)
+                src = os.path.join(mod_dir, src)
+                dst = self.substitutionName(src, mod_dir)
+                child = etree.SubElement(synoptics, "synoptic",
+                                         str=os.path.basename(dst))
                 # substitute any referenced files within the jdrawfiles
                 f = open(src, 'r')
                 contents = f.read()
@@ -1609,7 +1618,7 @@ class AppSettingsWizard(Qt.QWizard):
                 for ref in re.findall(r'file_name:\"(.+?)\"', contents):
                     # this is ok for both relative and absolute references
                     refsrc = os.path.join(os.path.dirname(src), ref)
-                    refdst = self.substitutionName(refsrc)
+                    refdst = self.substitutionName(refsrc, mod_dir)
                     if ref != refdst:
                         short = 'Manual editing needed in "%s"' % dst
                         long = ('The synoptic file "%s" references a file that '
@@ -1647,13 +1656,15 @@ class AppSettingsWizard(Qt.QWizard):
 
         return etree.tostring(root, pretty_print=True), copy.copy(self._substitutions)
 
-    def substitutionName(self, src):
+    def substitutionName(self, src, mod_dir):
         name = os.path.basename(src)
         i = 2
-        while name in self._substitutions:
-            root, ext = os.path.splitext(name)
-            name = "%s_%i%s" % (root, i, ext)
-            i += 1
+        if os.path.dirname(os.path.abspath(src)) != os.path.abspath(mod_dir):
+            # do not change the name if it is the same dir!
+            while name in self._substitutions:
+                root, ext = os.path.splitext(name)
+                name = "%s_%i%s" % (root, i, ext)
+                i += 1
         self._substitutions[name] = src
         return name
 

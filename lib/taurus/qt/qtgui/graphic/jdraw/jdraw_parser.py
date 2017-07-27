@@ -315,17 +315,8 @@ def new_parser(optimize=None, debug=0, outputdir=None):
         common_kwargs.pop('debuglog')
         common_kwargs.pop('errorlog')
 
-    try:
-        _path = os.path.join(outputdir, 'jdraw_lextab.py')
-        jdraw_lextab = imp.load_source('jdraw_lextab', _path)
-    except:
-        jdraw_lextab = 'jdraw_lextab'
-
-    try:
-        _path = os.path.join(outputdir, 'jdraw_yacctab.py')
-        jdraw_yacctab = imp.load_source('jdraw_lextab', _path)
-    except:
-        jdraw_yacctab = 'jdraw_yacctab'
+    jdraw_lextab = 'jdraw_lextab'
+    jdraw_yacctab = 'jdraw_yacctab'
 
     # Lexer
     l = lex.lex(lextab=jdraw_lextab, **common_kwargs)
