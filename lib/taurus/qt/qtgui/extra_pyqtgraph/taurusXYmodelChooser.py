@@ -62,16 +62,17 @@ class TaurusXYModelChooserTool(QtGui.QAction):
                 currentModelNames.append(
                     (curve.getXModelName(), curve.getFullModelName()))
                 currentModelItems[
-                    curve.getXModelName(), curve.getFullModelName()] = (curve, curve.getViewBox())
+                    curve.getXModelName(),
+                    curve.getFullModelName()] = (curve, curve.getViewBox())
                 item = TaurusItemConf(YModel=curve.getFullModelName(),
-                    XModel=curve.getXModelName(), name=curve.name())
+                                      XModel=curve.getXModelName(),
+                                      name=curve.name())
                 taurusItems.append(item)
 
-        # TODO:
         conf, ok = TaurusItemConfDlg.showDlg(
             parent=self.parent(), taurusItemConf=taurusItems)
 
-        print conf, ok
+        # print conf, ok
 
         if ok:
             yModels = OrderedDict()
@@ -106,8 +107,6 @@ class TaurusXYModelChooserTool(QtGui.QAction):
                     item.opts['name'] = c_name
                     item.setXModel(X)
                     self.plot_item.addItem(item)
-
-                    print item, parent
 
                     # checks if the viewBox associated to
                     # TaurusPlotDataItem(curve), it is the main view or not.
