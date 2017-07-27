@@ -14,7 +14,7 @@ The :class:`ArrayEditor` is a widget for graphically editing a spectrum.
 It consists of two :ref:`plots <taurusplot_ui>` and a *control point area*. The plot
 on top shows the current and modified spectrum. The other plot shows
 the difference between the current and the modified spectrum. The Control point
-area shows details on the conrol points that have been defined.
+area shows details on the control points that have been defined.
 
 The spectrum can be modified by adding control points and moving them 
 along the vertical axis, either by setting the value in the controls area or by
