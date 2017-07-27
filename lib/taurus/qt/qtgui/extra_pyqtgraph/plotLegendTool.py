@@ -28,25 +28,23 @@ from taurus.external.qt import QtGui
 class PlotLegendTool(QtGui.QAction):
 
     def __init__(self, parent=None):
-        QtGui.QAction.__init__(self, 'Show/hide legend', parent)
-        self.triggered.connect(self.onTriggered)
+        QtGui.QAction.__init__(self, 'Show legend', parent)
+        self.setCheckable(True)
+        self.toggled.connect(self.onToggled)
         self._legend = None
-        self._legendIsEnable = None
 
     def attachToPlotItem(self, plotItem, parentWidget=None):
 
         self._legend = plotItem.addLegend()
-        self._legendIsEnable = True
+        self.setChecked(True)
 
         menu = plotItem.getViewBox().menu
         menu.addAction(self)
         self.setParent(parentWidget or menu)
 
 
-    def onTriggered(self):
-        if self._legendIsEnable:
-            self._legend.hide()
-            self._legendIsEnable = False
-        else:
+    def onToggled(self, checked):
+        if checked:
             self._legend.show()
-            self._legendIsEnable = True
+        else:
+            self._legend.hide()
