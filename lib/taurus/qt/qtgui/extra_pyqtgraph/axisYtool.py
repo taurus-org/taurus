@@ -53,9 +53,9 @@ class Y2ViewBox(ViewBox):
         mainViewBox.sigResized.connect(self.updateViews)
 
         # make sure Y2 is shown
-        plot_item.showAxis('right')
+        # plot_item.showAxis('right')
         # add self to plotItem scene and link right and bottom axis to self
-        plot_item.scene().addItem(self)
+        # plot_item.scene().addItem(self)
         plot_item.getAxis('right').linkToView(self)
         self.setXLink(plot_item)
 
@@ -74,6 +74,12 @@ class Y2ViewBox(ViewBox):
             self.plotItem.scene().removeItem(self)
             self.plotItem.hideAxis('right')
 
+    def addItem(self, item, ignoreBounds=False):
+        ViewBox.addItem(self, item, ignoreBounds=ignoreBounds)
+
+        if len(self.addedItems) == 1:
+            self.plotItem.showAxis('right')
+            self.plotItem.scene().addItem(self)
 
 
 

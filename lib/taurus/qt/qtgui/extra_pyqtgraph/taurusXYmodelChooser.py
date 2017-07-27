@@ -62,7 +62,7 @@ class TaurusXYModelChooserTool(QtGui.QAction):
                 currentModelNames.append(
                     (curve.getXModelName(), curve.getFullModelName()))
                 currentModelItems[
-                    curve.getXModelName(), curve.getFullModelName()] = curve
+                    curve.getXModelName(), curve.getFullModelName()] = (curve, curve.getViewBox())
                 item = TaurusItemConf(YModel=curve.getFullModelName(),
                     XModel=curve.getXModelName(), name=curve.name())
                 taurusItems.append(item)
@@ -92,28 +92,30 @@ class TaurusXYModelChooserTool(QtGui.QAction):
 
 
             for k, v in currentModelItems.items():
-                v.getViewBox().removeItem(v)
-                self.plot_item.removeItem(v)
-
-
+                curve, parent = v
+                self.plot_item.removeItem(curve)
+                parent.removeItem(curve)
                 if self.legend is not None:
-                    self.legend.removeItem(v.name())
+                    self.legend.removeItem(curve.name())
 
             for modelName, model in yModels.items():
                 if modelName in currentModelNames:
-                    item = currentModelItems[modelName]
+                    item, parent = currentModelItems[modelName]
                     X = xModels[modelName]
                     c_name = curve_name[modelName]
                     item.opts['name'] = c_name
                     item.setXModel(X)
                     self.plot_item.addItem(item)
 
+                    print item, parent
+
                     # checks if the viewBox associated to
                     # TaurusPlotDataItem(curve), it is the main view or not.
-                    # This is necessary due to possibility that a curve can
-                    # be in others viewBox (axis Y2 for example)
-                    if item.getViewBox() is not self.plot_item.getViewBox():
-                        item.getViewBox().addItem(item)
+                    # If is the same, we dont have to addItem again in the
+                    # parent (viewBox). This avoid duplicate objects in the
+                    # ViewBox.scene() contained in PlotItem.
+                    if parent is not self.plot_item.getViewBox():
+                        parent.addItem(item)
 
                 elif modelName not in currentModelNames:
                     x_model = xModels[modelName]
