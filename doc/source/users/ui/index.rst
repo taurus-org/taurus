@@ -4,6 +4,11 @@
 User's Interface
 ================
 
+This section explains some features that are common to most applications built
+with taurus. This is done from the GUI user point of view (not for developers).
+
+For a detailed list of features of each widget, please refer to the
+:ref:`developers-guide-index`
 
 .. toctree::
     :maxdepth: 2
@@ -21,12 +26,4 @@ User's Interface
     TaurusDemo <taurusdemo>
     Logs <logs>
     Configurations <configurations>
-    
-    
-
-This section explains some features that are common to most applications built
-with taurus. This is done from the GUI user point of view (not for developers).
-
-For a detailed list of features of each widget, please refer to the
-:ref:`developers-guide-index`
 
