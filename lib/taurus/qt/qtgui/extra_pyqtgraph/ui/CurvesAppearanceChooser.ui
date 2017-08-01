@@ -40,7 +40,7 @@
         <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
        <property name="sortingEnabled">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -70,13 +70,26 @@
       <string>Line</string>
      </property>
      <layout class="QGridLayout">
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_6">
+      <item row="4" column="0">
+       <widget class="QCheckBox" name="cFillCB">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="text">
-         <string>C&amp;olor</string>
+         <string>&amp;Area Fill</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>S&amp;tyle</string>
         </property>
         <property name="buddy">
-         <cstring>lColorCB</cstring>
+         <cstring>lStyleCB</cstring>
         </property>
        </widget>
       </item>
@@ -102,56 +115,6 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QComboBox" name="lColorCB"/>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="labelCurveStyle">
-        <property name="text">
-         <string>Mode</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>S&amp;tyle</string>
-        </property>
-        <property name="buddy">
-         <cstring>lStyleCB</cstring>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="lStyleCB">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Style of the pen used to connect the points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QComboBox" name="cStyleCB">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Connector mode: how the data points are connected (steps, straight lines,...)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>&amp;Width</string>
-        </property>
-        <property name="buddy">
-         <cstring>lWidthSB</cstring>
-        </property>
-       </widget>
-      </item>
       <item row="4" column="1">
        <widget class="QDoubleSpinBox" name="cAreaDSB">
         <property name="sizePolicy">
@@ -165,18 +128,55 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
-       <widget class="QCheckBox" name="cFillCB">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>&amp;Area Fill</string>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="lStyleCB">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Style of the pen used to connect the points.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="labelCurveStyle">
+        <property name="text">
+         <string>Mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>C&amp;olor</string>
+        </property>
+        <property name="buddy">
+         <cstring>lColorCB</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>&amp;Width</string>
+        </property>
+        <property name="buddy">
+         <cstring>lWidthSB</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="cStyleCB">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Connector mode: how the data points are connected (steps, straight lines,...)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="lColorCB"/>
       </item>
      </layout>
     </widget>
@@ -197,9 +197,6 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="sStyleCB"/>
-      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
@@ -209,6 +206,9 @@ p, li { white-space: pre-wrap; }
          <cstring>sSizeSB</cstring>
         </property>
        </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="sStyleCB"/>
       </item>
       <item row="1" column="1">
        <widget class="QSpinBox" name="sSizeSB">
@@ -239,19 +239,6 @@ p, li { white-space: pre-wrap; }
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QComboBox" name="sColorCB"/>
-      </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QCheckBox" name="sFillCB">
-        <property name="text">
-         <string>&amp;Fill</string>
-        </property>
-        <property name="tristate">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
       <item row="4" column="0" colspan="2">
        <spacer>
         <property name="orientation">
@@ -265,6 +252,19 @@ p, li { white-space: pre-wrap; }
         </property>
        </spacer>
       </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QCheckBox" name="sFillCB">
+        <property name="text">
+         <string>&amp;Fill</string>
+        </property>
+        <property name="tristate">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="sColorCB"/>
+      </item>
      </layout>
     </widget>
    </item>
@@ -274,6 +274,13 @@ p, li { white-space: pre-wrap; }
       <string>Other</string>
      </property>
      <layout class="QGridLayout">
+      <item row="1" column="0">
+       <widget class="QPushButton" name="changeTitlesBT">
+        <property name="text">
+         <string>Curve Title(s)...</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QGroupBox" name="groupBox">
         <property name="title">
@@ -281,7 +288,7 @@ p, li { white-space: pre-wrap; }
         </property>
         <layout class="QHBoxLayout">
          <item>
-          <widget class="QToolButton" name="assignToY1BT">
+          <widget class="QRadioButton" name="assignToY1BT">
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -291,10 +298,13 @@ p, li { white-space: pre-wrap; }
            <property name="text">
             <string>Y1</string>
            </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="assignToY2BT">
+          <widget class="QRadioButton" name="assignToY2BT">
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -304,16 +314,12 @@ p, li { white-space: pre-wrap; }
            <property name="text">
             <string>Y2</string>
            </property>
+           <property name="autoExclusive">
+            <bool>true</bool>
+           </property>
           </widget>
          </item>
         </layout>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QPushButton" name="changeTitlesBT">
-        <property name="text">
-         <string>Curve Title(s)...</string>
-        </property>
        </widget>
       </item>
       <item row="2" column="0">

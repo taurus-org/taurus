@@ -26,7 +26,8 @@
 """
 curvesAppearanceChooserDlg.py:
     A Qt dialog for choosing plot appearance (symbols and lines)
-    for a QwtPlot-derived plot_item (like Taurusplot)
+    for a Pyqtgraph.PlotDataItem or taurus-derived class
+    like TaurusPlotDataItem
 """
 
 import copy
@@ -52,7 +53,8 @@ ReverseNamedLineStyles = {}
 for k, v in NamedLineStyles.iteritems():
     ReverseNamedLineStyles[v] = k
 
-#TODO:allows to dialog use this curve styles
+
+# TODO:allows to dialog use this curve styles
 NamedCurveStyles = {CONFLICT: "",
                     None: "",
                     "No curve": "No curve",
@@ -134,10 +136,6 @@ class CurvesAppearanceChooser(Qt.QWidget):
         self.bckgndBT.setIcon(Qt.QIcon(":color-fill.svg"))
 
         # connections.
-        # Note: The assignToY1BT and assignToY2BT buttons are not connected to
-        # anything
-        # Their signals are handled by the Config dialog because we haven't got
-        # access to the curve objects here
         self.curvesLW.itemSelectionChanged.connect(self.onSelectedCurveChanged)
         self.curvesLW.itemChanged.connect(self.onItemChanged)
         self.applyBT.clicked.connect(self.onApply)
@@ -158,17 +156,17 @@ class CurvesAppearanceChooser(Qt.QWidget):
         self.assignToY1BT.clicked.connect(self.onCurveChangeY1Axis)
         self.assignToY2BT.clicked.connect(self.onCurveChangeY2Axis)
 
-        # change background color
         # self.bckgndBT.clicked.connect(self.changeBackgroundColor)
 
+        # Disabled buttons until future implementations
+        # (set background color and set curve labels)
+        self.changeTitlesBT.setEnabled(False)
+        self.bckgndBT.setEnabled(False)
 
-        # except Exception, e:
-        # print "CURVE APPEARANCE EXCEPTION:",str(e)
-
-
-        # set properties from curves for the first launch of config dialog
+        # set properties from curves for first launch of config dialog
         self.onSelectedCurveChanged()
         self.curvePropAdapter = curvePropAdapter
+        self.axis = None
 
 
     def changeBackgroundColor(self):
@@ -180,14 +178,10 @@ class CurvesAppearanceChooser(Qt.QWidget):
             self.curvePropAdapter.setBackgroundColor(color)
 
     def onCurveChangeY1Axis(self):
-        names = self.getSelectedCurveNames()
-        self.curvePropAdapter.setCurveYAxis(self.curvePropDict, names,
-                                            axis='left')
+        self.axis = 'left'
 
     def onCurveChangeY2Axis(self):
-        names = self.getSelectedCurveNames()
-        self.curvePropAdapter.setCurveYAxis(self.curvePropDict, names,
-                                            axis='right')
+        self.axis = 'right'
 
     def setCurves(self, curvePropDict):
         """Populates the list of curves from the properties dictionary. It uses
@@ -214,7 +208,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
     def onItemChanged(self, item):
         """slot used when an item data has changed"""
-        name = Qt.from_qvariant(item.data(self.NAME_ROLE), str)
+        name =item.data(self.NAME_ROLE)
         previousTitle = self.curvePropDict[name].title
         currentTitle = item.text()
         if previousTitle != currentTitle:
@@ -243,7 +237,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
         :return: (string_list) the names of the selected curves
         """
-        return [Qt.from_qvariant(item.data(self.NAME_ROLE), str)
+        return [item.data(self.NAME_ROLE)
                 for item in self.curvesLW.selectedItems()]
 
     def showProperties(self, prop=None):
@@ -254,6 +248,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
                      to None, the corresponding plot_item will show a "neutral"
                      display
         """
+
         if prop is None:
             prop = self._shownProp
         # set the Style comboboxes
@@ -265,14 +260,12 @@ class CurvesAppearanceChooser(Qt.QWidget):
             self.cStyleCB.findText(NamedCurveStyles[prop.cStyle]))
 
         if prop.yAxis is CONFLICT:
-            self.assignToY1BT.setDown(False)
-            self.assignToY2BT.setDown(False)
+            self.assignToY1BT.setChecked(False)
+            self.assignToY2BT.setChecked(False)
         elif prop.yAxis:
-            self.assignToY1BT.setDown(False)
-            self.assignToY2BT.setDown(True)
+            self.assignToY2BT.setChecked(True)
         else:
-            self.assignToY1BT.setDown(True)
-            self.assignToY2BT.setDown(False)
+            self.assignToY1BT.setChecked(True)
 
 
         # set sSize and lWidth spinboxes. if prop.sSize is None, it puts -1
@@ -390,12 +383,6 @@ class CurvesAppearanceChooser(Qt.QWidget):
         prop.sSize = self.sSizeSB.value()
         prop.lWidth = self.lWidthSB.value()
 
-        # This is not necessary!!
-        # if prop.sSize < 0 or prop.sStyle is None:
-        #     prop.sSize = CONFLICT
-        # if prop.lWidth < 0:
-        #     prop.lWidth = -1
-
         # Get the Color combo boxes. The item at index 0 is the empty one in
         # the comboboxes
         index = self.sColorCB.currentIndex()
@@ -422,6 +409,8 @@ class CurvesAppearanceChooser(Qt.QWidget):
             prop.cFill = self.cAreaDSB.value()
         else:
             prop.cFill = None
+
+        # prop.yAxis = CONFLICT
             
         # store the props
         self._shownProp = copy.deepcopy(prop)
@@ -451,7 +440,8 @@ class CurvesAppearanceChooser(Qt.QWidget):
         # be applied to which curves (second argument)
         # self.curveAppearanceChanged.emit(prop, names)
         # return both values
-        self.curvePropAdapter.setCurveProperties(self.curvePropDict, names)
+        self.curvePropAdapter.setCurveProperties(self.curvePropDict,
+                                                 names , self.axis)
         return prop, names
 
     def onReset(self):
@@ -468,17 +458,24 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
 
 class CurvePropAdapter(object):
-    # TODO: document this class and its methods
-
+    """
+    This class provides a wrapper for pyqtgraph.PlotDataItem class.
+    """
     def __init__(self, dataItems=None, plotItem = None):
         self.dataItems = dataItems
         self.plotItem = plotItem
         self._curve_items = dict()
 
     def getCurveProperties(self):
+        """
+        Extract all properties from a PlotDataItem and generates the
+        CurveAppearanceProperties object.
 
+        :return: A dictionary(key, value), where:
+                key: name curve
+                value: CurveApearanceProperties object
+        """
         curves_prop = dict()
-
         for item in self.dataItems:
             if isinstance(item.getViewBox(), Y2ViewBox):
                 yAxis = True
@@ -486,7 +483,6 @@ class CurvePropAdapter(object):
                 yAxis = False
 
             opts = item.opts
-
             pen = pyqtgraph.mkPen(opts['pen'])
             symbol_pen = pyqtgraph.mkPen(opts['symbolPen'])
             symbol_brush = pyqtgraph.mkBrush(opts['symbolBrush'])
@@ -494,17 +490,17 @@ class CurvePropAdapter(object):
             sStyle = opts['symbol']
             sSize = opts['symbolSize']
 
-            if sStyle == None:
+            if sStyle is None:
                 sColor = None
                 sSize = -1
             else:
                 sColor = symbol_pen.color()
 
             sFill = symbol_brush.color()
-            if sFill == None or sStyle == None:
+            if sFill is None or sStyle is None:
                 sFill = False
             else:
-                sFill == True
+                sFill = True
 
             lStyle = pen.style()
             lWidth = pen.width()
@@ -521,10 +517,15 @@ class CurvePropAdapter(object):
             self._curve_items[title] = item
         return curves_prop
 
-    def setCurveProperties(self, prop, names):
+    def setCurveProperties(self, prop, names, axis):
+        """Assign the properties from a CurveApareanceProperties object to
+        a PlotDataItem
 
+        :param prop: dict of CurveApareanceProperties
+        :param names: names of curves contained in prop dict
+        :param axis: String (right or left)
+        """
         for name in names:
-            # print(prop[name]._print())
             curve = prop[name]
             sStyle = curve.sStyle
             sSize = curve.sSize
@@ -537,9 +538,6 @@ class CurvePropAdapter(object):
             # title = prop.title
 
             dataItem = self._curve_items[name]
-            # if name != title:
-            #     dataItem.opts.set('name', title)
-
 
             dataItem.setPen(dict(style=lStyle, width=lWidth, color=lColor))
             if cFill is not None:
@@ -561,6 +559,8 @@ class CurvePropAdapter(object):
             else:
                 dataItem.setSymbolBrush(None)
 
+            self.setCurveYAxis(prop, names , axis=axis)
+
     # change background color of the whole window, not just the plot area
     # def setBackgroundColor(self, color):
     #     self.plot_item.setBackground(color)
@@ -575,13 +575,19 @@ class CurvePropAdapter(object):
     def getBackgroundColor(self):
         backgroundColor = self.plotItem.getViewBox().state['background']
         if backgroundColor is None:
-            color = Qt.QColor('black')
-            backgroundColor = color
+            return Qt.QColor('black')
         return backgroundColor
 
     def setCurveYAxis(self, properties, curve_names, axis=None):
-        mainView = self.plotItem.getViewBox()
+        """
+        This method manage the assignment of Y axis where the
+        curve will be plotted
 
+        :param properties: dict of CurveApareanceProperties
+        :param curve_names: name of curves contained in properties dict
+        :param axis: Y destination axis, String (right, left) or None
+        """
+        mainView = self.plotItem.getViewBox()
         for name in curve_names:
             yAxis = properties[name].yAxis
             dataItem = self._curve_items[name]
@@ -589,14 +595,7 @@ class CurvePropAdapter(object):
             if axis == 'right':
                 if yAxis is False:
                     view = Y2ViewBox.getY2ViewBox(self.plotItem)
-
-                    # for avoid bug with auto resize of views, if its necessary
-                    # remove the curve from the plot item before add it to right
-                    # axis ??
-                    # self.plotItem.removeItem(dataItem)
-
                     mainView.removeItem(dataItem)
-
                     view.addItem(dataItem)
                     mainView.autoRange()
                     view.autoRange()
@@ -616,7 +615,7 @@ class CurveAppearanceProperties(object):
     """An object describing the appearance of a TaurusCurve"""
 
     #if we dont choose a curve, dialog need to be in conflict, for that we
-    # need define default values to CONFLICT instead of None!!
+    # need define some default values to CONFLICT instead of None.
     def __init__(self, sStyle=CONFLICT, sSize=None, sColor=None, sFill=None,
                  lStyle=CONFLICT, lWidth=None, lColor=None, cStyle=None,
                  yAxis=CONFLICT, cFill=CONFLICT, title=None, visible=None):
@@ -631,8 +630,8 @@ class CurveAppearanceProperties(object):
             - lWidth= int
             - lColor= color
             - cStyle= curvestyle
-            - cFill= bool
-            - yAxis= axis
+            - cFill= float or None
+            - yAxis= bool
             - visible = bool
             - title= title
 
@@ -642,7 +641,8 @@ class CurveAppearanceProperties(object):
             - symbolstyle is one of NamedSymbolStyles
             - linestyle is one of Qt.Qt.PenStyle
             - curvestyle is one of NamedCurveStyles
-            - axis is one of ("left" , "right". "top", "bottom")
+            - cFill can be a float that indicates the curve area that has to be
+            filling or can be None
             - title is a string
         """
         self.sStyle = sStyle
@@ -735,7 +735,7 @@ class CurveAppearanceProperties(object):
             p.__setattr__(a, alist[0])
             for ai in alist[1:]:
                 if alist[0] != ai:
-                    # print "MERGING:",a,alist[0],ai,conflict(alist[0],ai)
+                    print "MERGING:",a,alist[0],ai,conflict(alist[0],ai)
                     p.__setattr__(a, conflict(alist[0], ai))
                     break
         return p
@@ -748,27 +748,3 @@ class CurveAppearanceProperties(object):
             "Use TaurusCurve.setAppearanceProperties() instead")
         curve.setAppearanceProperties(self)
 
-#        s=curve.symbol()
-#        if self.sStyle is not None: s.setStyle(symbol[self.sStyle])
-#        if self.sSize is not None: s.setSize(self.sSize)
-#        if self.sColor is not None: s.brush().setColor(Qt.QColor(self.sColor))
-#        if self.sFill is not None:
-#            if self.sFill: s.brush().setStyle(Qt.Qt.SolidPattern)
-#            else: s.brush().setStyle(Qt.Qt.NoBrush)
-#        p=curve.pen()
-#        if self.lStyle is not None: p.setStyle(lineStyles[self.lStyle])
-#        if self.lWidth is not None: p.setWidth(self.lWidth)
-#        if self.lColor is not None: p.setColor(Qt.QColor(self.lColor))
-#        curveStyle=curve.style()
-#        if self.cStyle is not None: curveStyle.setStyle(self.cStyle)
-#        if self.cFill is not None:
-#            if self.cFill:
-#                color = p.color()
-#                color.setAlphaF(0.5)
-#                b = self.brush()
-#                b.setColor(color)
-#                b.setStyle(Qt.Qt.SolidPattern)
-#            else:
-#                c.brush().setStyle(Qt.Qt.NoBrush)
-#        if self.yAxis is not None: curve.setCurveYAxis(self.yAxis)
-#        if self.title is not None: curve.setTitle(Qwt5.QwtText(self.title))
