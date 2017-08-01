@@ -56,8 +56,7 @@ class TaurusXYModelChooserTool(QtGui.QAction):
         currentModelNames = []
         taurusItems = []
 
-        curve_items = self.plot_item.items
-        for curve in curve_items:
+        for curve in self.plot_item.listDataItems():
             if isinstance(curve, TaurusPlotDataItem):
                 currentModelNames.append(
                     (curve.getXModelName(), curve.getFullModelName()))
