@@ -37,12 +37,14 @@ class CurvesPropertiesTool(QtGui.QAction):
         QtGui.QAction.__init__(self, 'Plot configuration', parent)
         self.triggered.connect(self.onTriggered)
         self.plot_item = None
+        self.Y2Axis = None
 
-    def attachToPlotItem(self, plot_item, parentWidget=None):
+    def attachToPlotItem(self, plot_item, parentWidget=None, Y2Axis=None):
         self.plot_item = plot_item
         menu = plot_item.getViewBox().menu
         menu.addAction(self)
         self.setParent(parentWidget or menu)  # Should be to a plot_item!!!
+        self.Y2Axis = Y2Axis
 
     def onTriggered(self):
         data_items = self.plot_item.listDataItems()
@@ -66,7 +68,10 @@ class CurvesPropertiesTool(QtGui.QAction):
 
         dlg = Qt.QDialog(parent=self.parent())
         layout = Qt.QVBoxLayout()
-        w = CurvesAppearanceChooser(parent=dlg, curvePropDict=curves, showButtons=True, curvePropAdapter=curvePropAdapter)
+
+        w = CurvesAppearanceChooser(parent=dlg, curvePropDict=curves,
+                                    showButtons=True, Y2Axis=self.Y2Axis,
+                                    curvePropAdapter=curvePropAdapter)
         layout.addWidget(w)
         dlg.setLayout(layout)
         dlg.exec_()

@@ -31,6 +31,8 @@ from taurus.qt.qtgui.extra_pyqtgraph.taurusmodelchoosertool import TaurusModelCh
 from taurus.qt.qtgui.extra_pyqtgraph.taurusXYmodelChooser import TaurusXYModelChooserTool
 from taurus.qt.qtgui.extra_pyqtgraph.plotLegendTool import PlotLegendTool
 from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
+from taurus.qt.qtgui.extra_pyqtgraph.axisYtool import Y2ViewBox
+
 from taurus.external.qt import QtGui, Qt
 from pyqtgraph import PlotWidget
 
@@ -62,15 +64,17 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         plot_legend_tool = PlotLegendTool()
         plot_legend_tool.attachToPlotItem(self.getPlotItem(), self)
 
-        curve_prop_tool = CurvesPropertiesTool()
-        curve_prop_tool.attachToPlotItem(self.getPlotItem(), self)
-
-        # taurus_model_chooser_tool = TaurusModelChooserTool()
-        # taurus_model_chooser_tool.attachToPlotItem(self.getPlotItem(), self)
-
         taurus_XYmodel_chooser_tool = TaurusXYModelChooserTool()
         taurus_XYmodel_chooser_tool.attachToPlotItem(
             self.getPlotItem(), self, self._curveColors)
+
+        # if we want the option to change curves between Y axes inside
+        # the curve properties configuration dialog, we must instantiate
+        # a Y2ViewBox object and through for parameters to CurvePropertiesTool
+        self.y2view = Y2ViewBox.getY2ViewBox(self.plotItem)
+        curve_prop_tool = CurvesPropertiesTool()
+        curve_prop_tool.attachToPlotItem(self.getPlotItem(), self,
+                                         Y2Axis=self.y2view)
 
     def setModel(self, models):
         for model in models:
@@ -166,6 +170,7 @@ if __name__ == '__main__':
 
     app = TaurusApplication()
     w = TaurusPlot()
+
 
     w.setModel(['eval:rand(256)', 'sys/tg_test/1/wave'])
 

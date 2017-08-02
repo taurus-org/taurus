@@ -112,7 +112,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
     CurveTitleEdited = Qt.pyqtSignal('QString', 'QString')
 
     def __init__(self, parent=None, curvePropDict={}, showButtons=False,
-                 autoApply=False, designMode=False, curvePropAdapter = None):
+                 autoApply=False, Y2Axis=None, curvePropAdapter = None):
         # try:
         super(CurvesAppearanceChooser, self).__init__(parent)
         self.loadUi()
@@ -162,6 +162,10 @@ class CurvesAppearanceChooser(Qt.QWidget):
         # (set background color and set curve labels)
         self.changeTitlesBT.setEnabled(False)
         self.bckgndBT.setEnabled(False)
+
+        # disable the group box with the options for swap curves between Y axes
+        if Y2Axis is None:
+            self.groupBox.setEnabled(False)
 
         # set properties from curves for first launch of config dialog
         self.onSelectedCurveChanged()
