@@ -52,13 +52,8 @@ class Y2ViewBox(ViewBox):
         mainViewBox = plot_item.getViewBox()
         mainViewBox.sigResized.connect(self.updateViews)
 
-        # make sure Y2 is shown
-        # plot_item.showAxis('right')
-        # add self to plotItem scene and link right and bottom axis to self
-        # plot_item.scene().addItem(self)
         plot_item.getAxis('right').linkToView(self)
         self.setXLink(plot_item)
-
         self.plotItem = plot_item
 
     def updateViews(self, viewBox):
@@ -68,8 +63,8 @@ class Y2ViewBox(ViewBox):
     def removeItem(self, item):
         ViewBox.removeItem(self, item)
 
-        # if this axis dont have any curve associated, we may remove the
-        # axis (Y2) from scene
+        # when last curve is removed from self (axis Y2), we must remove the
+        # axis from scene and hide the axis.
         if len(self.addedItems) < 1:
             self.plotItem.scene().removeItem(self)
             self.plotItem.hideAxis('right')
@@ -78,8 +73,11 @@ class Y2ViewBox(ViewBox):
         ViewBox.addItem(self, item, ignoreBounds=ignoreBounds)
 
         if len(self.addedItems) == 1:
+            # when the first curve is added to self (axis Y2), we must
+            # add Y2 to main scene() and show the axis.
             self.plotItem.showAxis('right')
             self.plotItem.scene().addItem(self)
+
 
 
 
