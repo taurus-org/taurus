@@ -153,9 +153,6 @@ class CurvesAppearanceChooser(Qt.QWidget):
         self.sFillCB.stateChanged.connect(self.onControlChanged)
         self.cFillCB.stateChanged.connect(self.onControlChanged)
 
-        self.assignToY1BT.clicked.connect(self.onCurveChangeY1Axis)
-        self.assignToY2BT.clicked.connect(self.onCurveChangeY2Axis)
-
         # self.bckgndBT.clicked.connect(self.changeBackgroundColor)
 
         # Disabled buttons until future implementations
@@ -180,12 +177,6 @@ class CurvesAppearanceChooser(Qt.QWidget):
             self.curvePropAdapter.getBackgroundColor(), self)
         if Qt.QColor.isValid(color):
             self.curvePropAdapter.setBackgroundColor(color)
-
-    def onCurveChangeY1Axis(self):
-        self.axis = 'left'
-
-    def onCurveChangeY2Axis(self):
-        self.axis = 'right'
 
     def setCurves(self, curvePropDict):
         """Populates the list of curves from the properties dictionary. It uses
@@ -444,8 +435,14 @@ class CurvesAppearanceChooser(Qt.QWidget):
         # be applied to which curves (second argument)
         # self.curveAppearanceChanged.emit(prop, names)
         # return both values
+
+        if self.assignToY2BT.isChecked():
+            axis = 'right'
+        else:
+            axis = 'left'
+
         self.curvePropAdapter.setCurveProperties(self.curvePropDict,
-                                                 names , self.axis)
+                                                 names, axis)
         return prop, names
 
     def onReset(self):
@@ -465,10 +462,11 @@ class CurvePropAdapter(object):
     """
     This class provides a wrapper for pyqtgraph.PlotDataItem class.
     """
-    def __init__(self, dataItems=None, plotItem = None):
+    def __init__(self, dataItems=None, plotItem = None, y2axis = None):
         self.dataItems = dataItems
         self.plotItem = plotItem
         self._curve_items = dict()
+        self.y2axis = y2axis
 
     def getCurveProperties(self):
         """
@@ -598,16 +596,14 @@ class CurvePropAdapter(object):
 
             if axis == 'right':
                 if yAxis is False:
-                    view = Y2ViewBox.getY2ViewBox(self.plotItem)
                     mainView.removeItem(dataItem)
-                    view.addItem(dataItem)
+                    self.y2axis.addItem(dataItem)
                     mainView.autoRange()
-                    view.autoRange()
+                    self.y2axis.autoRange()
                     properties[name].yAxis = True
             elif axis == 'left':
                 if yAxis is True:
-                    view = Y2ViewBox.getY2ViewBox(self.plotItem)
-                    view.removeItem(dataItem)
+                    self.y2axis.removeItem(dataItem)
                     mainView.addItem(dataItem)
 
                     mainView.autoRange()

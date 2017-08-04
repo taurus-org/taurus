@@ -71,10 +71,13 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         # if we want the option to change curves between Y axes inside
         # the curve properties configuration dialog, we must instantiate
         # a Y2ViewBox object and through for parameters to CurvePropertiesTool
-        self.y2view = Y2ViewBox.getY2ViewBox(self.plotItem)
+        self._y2ViewBox = Y2ViewBox()
+        self._y2ViewBox.attachToPlotItem(self.getPlotItem())
+        self.registerConfigDelegate(self._y2ViewBox, 'Y2Axis')
+
         curve_prop_tool = CurvesPropertiesTool()
         curve_prop_tool.attachToPlotItem(self.getPlotItem(), self,
-                                         Y2Axis=self.y2view)
+                                         Y2Axis=self._y2ViewBox)
 
     def setModel(self, models):
         for model in models:
@@ -105,8 +108,11 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                     tmpreg.append(name)
                     self.registerConfigDelegate(curve, name)
 
+
             configdict = copy.deepcopy(TaurusBaseComponent.createConfig(
                 self, allowUnpickable=allowUnpickable))
+
+
 
         finally:
             # Ensure that temporary delegates are unregistered
@@ -130,6 +136,8 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
             TaurusBaseComponent.applyConfig(
                 self, configdict=configdict, depth=depth)
 
+            print self._y2ViewBox.getCurves()
+
             # keep a dict of existing curves (to use it for avoiding dups)
             currentCurves = dict()
             for curve in self.getPlotItem().listDataItems():
@@ -141,11 +149,12 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                 c = currentCurves.get(curve.getFullModelNames(), None)
                 if c is not None:
                     self.getPlotItem().legend.removeItem(c.name())
-                    c.getViewBox().removeItem(c)
-
-                    # self.removeItem(c)
+                    self.getPlotItem().removeItem(c)
 
                 self.addItem(curve)
+                if curve.getFullModelNames() in self._y2ViewBox.getCurves():
+                    self.getPlotItem().getViewBox().removeItem(curve)
+                    self._y2ViewBox.addItem(curve)
 
         finally:
             # Ensure that temporary delegates are unregistered
@@ -178,7 +187,7 @@ if __name__ == '__main__':
 
     ret = app.exec_()
 
-    # import pprint
+    import pprint
     # pprint.pprint(w.createConfig())
 
 

@@ -63,7 +63,7 @@ class CurvesPropertiesTool(QtGui.QAction):
             if getattr(data,"_UImodifiable", True) is False:
                 data_items.remove(data)
 
-        curvePropAdapter = CurvePropAdapter(data_items, self.plot_item)
+        curvePropAdapter = CurvePropAdapter(data_items, self.plot_item, self.Y2Axis)
         curves = curvePropAdapter.getCurveProperties()
 
         dlg = Qt.QDialog(parent=self.parent())

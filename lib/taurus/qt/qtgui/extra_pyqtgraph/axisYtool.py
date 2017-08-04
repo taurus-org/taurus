@@ -24,25 +24,20 @@
 #############################################################################
 
 from pyqtgraph import ViewBox
+from taurus.qt.qtgui.base.taurusbase import TaurusBaseComponent
 
-
-class Y2ViewBox(ViewBox):
+class Y2ViewBox(ViewBox, TaurusBaseComponent):
 
     def __init__(self, *args, **kwargs):
+        TaurusBaseComponent.__init__(self, 'Y2ViewBox')
         ViewBox.__init__(self, *args, **kwargs)
+        self.registerConfigProperty(self.getCurves, self.setCurves, 'Y2Curves')
+
+        # TODO: Add config property for save the state of this view (Bounds) as in TaurusPlot (widget)
+
         self._isAttached = False
         self.plotItem = None
-
-    @staticmethod
-    def getY2ViewBox(plot_item):
-        scene_items = plot_item.scene().items()
-
-        for item in scene_items:
-            if isinstance(item, Y2ViewBox):
-                return item
-        ret = Y2ViewBox()
-        ret.attachToPlotItem(plot_item)
-        return ret
+        self._curvesModelNames = []
 
     def attachToPlotItem(self, plot_item):
         if self._isAttached:
@@ -69,6 +64,9 @@ class Y2ViewBox(ViewBox):
             self.plotItem.scene().removeItem(self)
             self.plotItem.hideAxis('right')
 
+        self._curvesModelNames.remove(item.getFullModelNames())
+
+
     def addItem(self, item, ignoreBounds=False):
         ViewBox.addItem(self, item, ignoreBounds=ignoreBounds)
 
@@ -77,6 +75,16 @@ class Y2ViewBox(ViewBox):
             # add Y2 to main scene() and show the axis.
             self.plotItem.showAxis('right')
             self.plotItem.scene().addItem(self)
+
+        if len(self.addedItems) > 0 and item.getFullModelNames() not in self._curvesModelNames:
+            self._curvesModelNames.append(item.getFullModelNames())
+
+
+    def getCurves(self):
+        return self._curvesModelNames
+
+    def setCurves(self, curves):
+        self._curvesModelNames = curves
 
 
 
