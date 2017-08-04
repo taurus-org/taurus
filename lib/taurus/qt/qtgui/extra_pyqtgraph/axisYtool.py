@@ -32,6 +32,7 @@ class Y2ViewBox(ViewBox, TaurusBaseComponent):
         TaurusBaseComponent.__init__(self, 'Y2ViewBox')
         ViewBox.__init__(self, *args, **kwargs)
         self.registerConfigProperty(self.getCurves, self.setCurves, 'Y2Curves')
+        self.registerConfigProperty(self._getState, self.setState, 'viewState')
 
         # TODO: Add config property for save the state of this view (Bounds) as in TaurusPlot (widget)
 
@@ -86,6 +87,7 @@ class Y2ViewBox(ViewBox, TaurusBaseComponent):
     def setCurves(self, curves):
         self._curvesModelNames = curves
 
-
-
-
+    def _getState(self):
+        state = self.getState(copy=True)
+        del state['viewRange']
+        return state
