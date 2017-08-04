@@ -25,6 +25,7 @@
 
 from taurus.external.qt import QtGui
 
+
 class PlotLegendTool(QtGui.QAction):
 
     def __init__(self, parent=None):
