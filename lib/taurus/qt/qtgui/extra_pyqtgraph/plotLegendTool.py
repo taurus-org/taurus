@@ -30,7 +30,8 @@ from taurus.qt.qtcore.configuration.configuration import BaseConfigurableClass
 class PlotLegendTool(QtGui.QAction, BaseConfigurableClass):
     """
     This tool adds an action to a menu for show/hide the legend
-    within the parent item (widget, view, plotItem)
+    within the parent item (widget, view, plotItem). Also provides a config
+    property (active or not) legend.
     """
     def __init__(self, parent=None):
         BaseConfigurableClass.__init__(self)
@@ -46,7 +47,6 @@ class PlotLegendTool(QtGui.QAction, BaseConfigurableClass):
         menu = plotItem.getViewBox().menu
         menu.addAction(self)
         self.setParent(parentWidget or menu)
-
 
     def onToggled(self, checked):
         if checked:

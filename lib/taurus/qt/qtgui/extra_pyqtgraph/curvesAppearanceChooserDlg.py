@@ -164,7 +164,8 @@ class CurvesAppearanceChooser(Qt.QWidget):
         if Y2Axis is None:
             self.groupBox.setEnabled(False)
 
-        # set properties from curves for first launch of config dialog
+        # set properties from curves for first launch of config dialog and
+        # keeps a curvePropAdapter object
         self.onSelectedCurveChanged()
         self.curvePropAdapter = curvePropAdapter
         self.axis = None
@@ -184,7 +185,8 @@ class CurvesAppearanceChooser(Qt.QWidget):
         (with role=CurvesAppearanceChooser.NAME_ROLE)
 
         :param curvePropDict:  (dict) a dictionary whith keys=curvenames and
-                               values= :class:`CurveAppearanceProperties` object
+                               values= :class:`CurveAppearanceProperties`
+                               object
         """
         self.curvePropDict = curvePropDict
         self._curvePropDictOrig = copy.deepcopy(curvePropDict)
@@ -214,8 +216,8 @@ class CurvesAppearanceChooser(Qt.QWidget):
         """
         Updates the titles of the curves that are displayed in the curves list.
 
-        :param newTitlesDict: (dict<str,str>) dictionary with key=curve_name and
-                              value=title
+        :param newTitlesDict: (dict<str,str>) dictionary with key=curve_name
+                                and value=title
         """
         if newTitlesDict is None:
             return
@@ -239,9 +241,9 @@ class CurvesAppearanceChooser(Qt.QWidget):
         """Updates the dialog to show the given properties.
 
         :param prop: (CurveAppearanceProperties) the properties object
-                     containing what should be shown. If a given property is set
-                     to None, the corresponding plot_item will show a "neutral"
-                     display
+                     containing what should be shown. If a given property is
+                     set to None, the corresponding plot_item will show a
+                     "neutral" display
         """
 
         if prop is None:
@@ -280,7 +282,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
             index = 0
         else:
             index = self.sColorCB.findData(Qt.QColor(prop.sColor))
-        if index == -1:  # if the color is not supported, add it to the combobox
+        if index == -1:  # if the color is not supported, add it to combobox
             index = self.sColorCB.count()
             self.sColorCB.addItem(self._colorIcon(
                 Qt.QColor(prop.sColor)), "", Qt.QColor(prop.sColor))
@@ -289,7 +291,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
             index = 0
         else:
             index = self.lColorCB.findData(Qt.QColor(prop.lColor))
-        if index == -1:  # if the color is not supported, add it to the combobox
+        if index == -1:  # if the color is not supported, add it to combobox
             index = self.lColorCB.count()
             self.lColorCB.addItem(self._colorIcon(
                 Qt.QColor(prop.lColor)), "", Qt.QColor(prop.lColor))
@@ -690,7 +692,8 @@ class CurveAppearanceProperties(object):
         for aname in self.propertyList:
             vself = getattr(self, aname)
             vother = getattr(other, aname)
-            if vself != vother and (strict or not(CONFLICT in (vself, vother))):
+            if vself != vother and (
+                        strict or not(CONFLICT in (vself, vother))):
                 result.append(aname)
         return result
 
@@ -699,17 +702,18 @@ class CurveAppearanceProperties(object):
         """returns a CurveAppearanceProperties object formed by merging a list
         of other CurveAppearanceProperties objects
 
-        **Note:** This is a class method, so it can be called without previously
-        instantiating an object
+        **Note:** This is a class method, so it can be called without
+        previously instantiating an object
 
-        :param plist: (sequence<CurveAppearanceProperties>) objects to be merged
+        :param plist: (sequence<CurveAppearanceProperties>) objects to be
+        merged
         :param attributes: (sequence<str>) the name of the attributes to
                            consider for the merge. If None, all the attributes
                            will be merged
         :param conflict: (callable) a function that takes 2 objects (having a
-                         different attribute)and returns a value that solves the
-                         conflict. If None is given, any conflicting attribute
-                         will be set to CONFLICT.
+                         different attribute)and returns a value that solves
+                         the conflict. If None is given, any conflicting
+                         attribute will be set to CONFLICT.
 
         :return: (CurveAppearanceProperties) merged properties
         """
@@ -735,7 +739,7 @@ class CurveAppearanceProperties(object):
             p.__setattr__(a, alist[0])
             for ai in alist[1:]:
                 if alist[0] != ai:
-                    print "MERGING:",a,alist[0],ai,conflict(alist[0],ai)
+                    # print "MERGING:",a,alist[0],ai,conflict(alist[0],ai)
                     p.__setattr__(a, conflict(alist[0], ai))
                     break
         return p

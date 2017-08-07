@@ -63,7 +63,10 @@ class CurvesPropertiesTool(QtGui.QAction):
             if getattr(data,"_UImodifiable", True) is False:
                 data_items.remove(data)
 
-        curvePropAdapter = CurvePropAdapter(data_items, self.plot_item, self.Y2Axis)
+        # It is necessary a CurvePropAdapter object for 'translate'
+        # the PlotDataItem properties into generic form given for the dialog
+        curvePropAdapter = CurvePropAdapter(data_items,
+                                            self.plot_item, self.Y2Axis)
         curves = curvePropAdapter.getCurveProperties()
 
         dlg = Qt.QDialog(parent=self.parent())
@@ -83,7 +86,6 @@ if __name__ == '__main__':
     import sys
     import numpy
     import pyqtgraph as pg
-    from taurus.qt.qtgui.extra_pyqtgraph.taurusmodelchoosertool import TaurusModelChooserTool
     from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.extra_pyqtgraph.curvesPropertiesTool import CurvesPropertiesTool
