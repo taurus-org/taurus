@@ -24,21 +24,25 @@
 #############################################################################
 
 from taurus.external.qt import QtGui
+from taurus.qt.qtcore.configuration.configuration import BaseConfigurableClass
 
 
-class PlotLegendTool(QtGui.QAction):
-
+class PlotLegendTool(QtGui.QAction, BaseConfigurableClass):
+    """
+    This tool adds an action to a menu for show/hide the legend
+    within the parent item (widget, view, plotItem)
+    """
     def __init__(self, parent=None):
+        BaseConfigurableClass.__init__(self)
         QtGui.QAction.__init__(self, 'Show legend', parent)
+        self.registerConfigProperty(self.isChecked, self.setChecked, 'checked')
         self.setCheckable(True)
         self.toggled.connect(self.onToggled)
         self._legend = None
 
     def attachToPlotItem(self, plotItem, parentWidget=None):
-
         self._legend = plotItem.addLegend()
         self.setChecked(True)
-
         menu = plotItem.getViewBox().menu
         menu.addAction(self)
         self.setParent(parentWidget or menu)

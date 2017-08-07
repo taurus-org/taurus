@@ -73,11 +73,13 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         # a Y2ViewBox object and through for parameters to CurvePropertiesTool
         self._y2ViewBox = Y2ViewBox()
         self._y2ViewBox.attachToPlotItem(self.getPlotItem())
-        self.registerConfigDelegate(self._y2ViewBox, 'Y2Axis')
 
         curve_prop_tool = CurvesPropertiesTool()
         curve_prop_tool.attachToPlotItem(self.getPlotItem(), self,
                                          Y2Axis=self._y2ViewBox)
+
+        self.registerConfigDelegate(self._y2ViewBox, 'Y2Axis')
+        self.registerConfigDelegate(plot_legend_tool, 'legend')
 
     def setModel(self, models):
         for model in models:
@@ -142,14 +144,18 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                 if isinstance(curve, TaurusPlotDataItem):
                     currentCurves[curve.getFullModelNames()] = curve
 
-
-            # Add to plot **after** their configuration has been applied
+            # remove curves that exists in currentCurves, also remove from
+            # the legend (avoid duplicates)
             for curve in curves:
                 c = currentCurves.get(curve.getFullModelNames(), None)
                 if c is not None:
                     self.getPlotItem().legend.removeItem(c.name())
                     self.getPlotItem().removeItem(c)
 
+            # Add to plot **after** their configuration has been applied
+            for curve in curves:
+                # First we add all the curves in self. This way the plotItem
+                # can keeps a list of dataItems (plotItem.listDataItems())
                 self.addItem(curve)
 
                 # Add curves to Y2 axis, when the curve configurations
@@ -160,6 +166,7 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                 if curve.getFullModelNames() in self._y2ViewBox.getCurves():
                     self.getPlotItem().getViewBox().removeItem(curve)
                     self._y2ViewBox.addItem(curve)
+
 
 
         finally:
