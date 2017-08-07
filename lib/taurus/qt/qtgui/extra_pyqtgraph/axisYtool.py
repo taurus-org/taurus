@@ -27,7 +27,11 @@ from pyqtgraph import ViewBox
 from taurus.qt.qtcore.configuration.configuration import BaseConfigurableClass
 
 class Y2ViewBox(ViewBox, BaseConfigurableClass):
-
+    """
+    This tool inserts a secondary axis in a Pyqtgraph.PlotItem object.
+    This axis inherits from a Pyqtgraph.ViewBox and allows to add and remove
+    any object inherited from pyqtgraph.PlotDataItem.
+    """
     def __init__(self, *args, **kwargs):
         BaseConfigurableClass.__init__(self)
         ViewBox.__init__(self, *args, **kwargs)
