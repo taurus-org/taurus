@@ -24,14 +24,21 @@
 #############################################################################
 
 from pyqtgraph import ViewBox
-from taurus.qt.qtgui.base.taurusbase import TaurusBaseComponent
+from taurus.qt.qtcore.configuration.configuration import BaseConfigurableClass
 
-class Y2ViewBox(ViewBox, TaurusBaseComponent):
+class Y2ViewBox(ViewBox, BaseConfigurableClass):
 
     def __init__(self, *args, **kwargs):
-        TaurusBaseComponent.__init__(self, 'Y2ViewBox')
+        BaseConfigurableClass.__init__(self)
         ViewBox.__init__(self, *args, **kwargs)
+
+        # this property handle the curves added in self. Returns a list with
+        # models names (xModelName, yModelName) from each curve in this view.
+        # This class doesn't add the curves when we restore the configuration,
+        # just retrieve a list of modelNames and we have to create the curves
+        # and add to self from outside the class.
         self.registerConfigProperty(self.getCurves, self.setCurves, 'Y2Curves')
+
         self.registerConfigProperty(self._getState, self.setState, 'viewState')
         self._isAttached = False
         self.plotItem = None
@@ -45,8 +52,6 @@ class Y2ViewBox(ViewBox, TaurusBaseComponent):
         mainViewBox = plot_item.getViewBox()
         mainViewBox.sigResized.connect(self.updateViews)
 
-        plot_item.getAxis('right').linkToView(self)
-        self.setXLink(plot_item)
         self.plotItem = plot_item
 
     def updateViews(self, viewBox):
@@ -70,13 +75,14 @@ class Y2ViewBox(ViewBox, TaurusBaseComponent):
 
         if len(self.addedItems) == 1:
             # when the first curve is added to self (axis Y2), we must
-            # add Y2 to main scene() and show the axis.
+            # add Y2 to main scene(), show the axis and link X axis to self.
             self.plotItem.showAxis('right')
             self.plotItem.scene().addItem(self)
+            self.plotItem.getAxis('right').linkToView(self)
+            self.setXLink(self.plotItem)
 
         if len(self.addedItems) > 0 and item.getFullModelNames() not in self._curvesModelNames:
             self._curvesModelNames.append(item.getFullModelNames())
-
 
     def getCurves(self):
         return self._curvesModelNames
@@ -85,6 +91,13 @@ class Y2ViewBox(ViewBox, TaurusBaseComponent):
         self._curvesModelNames = curves
 
     def _getState(self):
+        """Same as ViewBox.getState but removing viewRange conf to force
+        a refresh with targetRange when loading
+        """
         state = self.getState(copy=True)
         del state['viewRange']
         return state
+
+    def clearCurves(self):
+        for c in self.addedItems:
+            self.removeItem(c)

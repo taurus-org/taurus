@@ -108,11 +108,8 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                     tmpreg.append(name)
                     self.registerConfigDelegate(curve, name)
 
-
             configdict = copy.deepcopy(TaurusBaseComponent.createConfig(
                 self, allowUnpickable=allowUnpickable))
-
-
 
         finally:
             # Ensure that temporary delegates are unregistered
@@ -133,16 +130,18 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                     self.registerConfigDelegate(curve, name)
                     tmpreg.append(name)
 
+            # remove the curves from the second axis (Y2) for avoid dups
+            self._y2ViewBox.clearCurves()
+
             TaurusBaseComponent.applyConfig(
                 self, configdict=configdict, depth=depth)
-
-            print self._y2ViewBox.getCurves()
 
             # keep a dict of existing curves (to use it for avoiding dups)
             currentCurves = dict()
             for curve in self.getPlotItem().listDataItems():
                 if isinstance(curve, TaurusPlotDataItem):
                     currentCurves[curve.getFullModelNames()] = curve
+
 
             # Add to plot **after** their configuration has been applied
             for curve in curves:
@@ -152,9 +151,16 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                     self.getPlotItem().removeItem(c)
 
                 self.addItem(curve)
+
+                # Add curves to Y2 axis, when the curve configurations
+                # have been applied.
+                # Ideally, the Y2ViewBox class must handle the action of adding
+                # curves to itself, but we want add the curves when they are
+                # restored with all their properties.
                 if curve.getFullModelNames() in self._y2ViewBox.getCurves():
                     self.getPlotItem().getViewBox().removeItem(curve)
                     self._y2ViewBox.addItem(curve)
+
 
         finally:
             # Ensure that temporary delegates are unregistered
