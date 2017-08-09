@@ -56,7 +56,14 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         self._curveColors = LoopList(CURVE_COLORS)
         self._curveColors.setCurrentIndex(-1)
 
-        self._initActions(self.getPlotItem().getViewBox().menu)
+        menu = self.getPlotItem().getViewBox().menu
+        saveConfigAction = QtGui.QAction('Save configuration', menu)
+        saveConfigAction.triggered[()].connect(self.saveConfigFile)
+        menu.addAction(saveConfigAction)
+
+        loadConfigAction = QtGui.QAction('Retrieve saved configuration', menu)
+        loadConfigAction.triggered[()].connect(self.loadConfigFile)
+        menu.addAction(loadConfigAction)
 
         self.registerConfigProperty(self._getState,
                                     self.restoreState, 'state')
@@ -87,16 +94,6 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
             curve.setModel(model)
             curve.setPen(self._curveColors.next().color())
             self.addItem(curve)
-
-    def _initActions(self, menu):
-
-        saveConfigAction = QtGui.QAction('Save configuration', menu)
-        saveConfigAction.triggered[()].connect(self.saveConfigFile)
-        menu.addAction(saveConfigAction)
-
-        loadConfigAction = QtGui.QAction('Retrieve saved configuration', menu)
-        loadConfigAction.triggered[()].connect(self.loadConfigFile)
-        menu.addAction(loadConfigAction)
 
     def createConfig(self, allowUnpickable=False):
 
