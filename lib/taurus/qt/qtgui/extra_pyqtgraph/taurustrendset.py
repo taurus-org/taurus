@@ -196,7 +196,7 @@ if __name__ == '__main__':
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.extra_pyqtgraph.taurustrendset import TaurusTrendSet
     from taurus.qt.qtgui.extra_pyqtgraph.dateaxisitem import DateAxisItem
-    from taurus.qt.qtgui.extra_pyqtgraph.oscmodetool import FixedRangeScale
+    from taurus.qt.qtgui.extra_pyqtgraph.oscmodetool import XAutoPanAction
 
     from taurus.qt.qtgui.extra_pyqtgraph.taurusmodelchoosertool import(
         TaurusModelChooserTool)
@@ -221,9 +221,7 @@ if __name__ == '__main__':
     cp = CurvesPropertiesTool()
     cp.attachToPlotItem(w.getPlotItem())
 
-
-
-    oscMode = FixedRangeScale()
+    oscMode = XAutoPanAction()
     oscMode.attachToPlotItem(w.getPlotItem())
 
     # add legend to the plot, for that we have to give a name to plot items

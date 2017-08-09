@@ -26,7 +26,7 @@ from taurus.external.qt import QtGui, QtCore
 import pyqtgraph as pg
 
 
-class FixedRangeScale(QtGui.QAction):
+class XAutoPanAction(QtGui.QAction):
 
     def __init__(self, parent=None):
         QtGui.QAction.__init__(self, 'Fixed range scale', parent)
