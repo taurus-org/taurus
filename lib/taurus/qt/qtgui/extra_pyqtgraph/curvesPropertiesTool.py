@@ -60,7 +60,7 @@ class CurvesPropertiesTool(QtGui.QAction):
         # The dialog allows display and/or change the properties of any curve
         # that doesn't contain the attribute "_UImodifiable"
         for data in data_items:
-            if getattr(data,"_UImodifiable", True) is False:
+            if getattr(data, "_UImodifiable", True) is False:
                 data_items.remove(data)
 
         # It is necessary a CurvePropAdapter object for 'translate'
@@ -70,6 +70,7 @@ class CurvesPropertiesTool(QtGui.QAction):
         curves = curvePropAdapter.getCurveProperties()
 
         dlg = Qt.QDialog(parent=self.parent())
+        dlg.setWindowTitle('Plot Configuration')
         layout = Qt.QVBoxLayout()
 
         w = CurvesAppearanceChooser(parent=dlg, curvePropDict=curves,
