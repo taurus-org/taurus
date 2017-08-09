@@ -540,7 +540,7 @@ class AttributeEventWait(object):
         elif t == taurus.core.taurusbasetypes.TaurusEventType.Error:
             self.fireEvent(None)
         else:
-            self.fireEvent(v.value)
+            self.fireEvent(v.rvalue)
 
     def fireEvent(self, v):
         """Notifies that a given event has arrived
@@ -683,7 +683,7 @@ class AttributeEventIterator(object):
     def eventReceived(self, s, t, v):
         if t not in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic):
             return
-        self.fireEvent(s, v.value)
+        self.fireEvent(s, v.rvalue)
 
     def fireEvent(self, s, v):
         t = time.time()
