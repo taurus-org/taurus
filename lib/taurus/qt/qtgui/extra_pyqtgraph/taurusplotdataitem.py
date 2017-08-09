@@ -22,6 +22,7 @@
 # along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
+import copy
 from taurus import Attribute
 from taurus.core import TaurusEventType
 from taurus.qt.qtgui.base import TaurusBaseComponent
@@ -54,7 +55,8 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
 
         self.registerConfigProperty(self.getOpts, self.setOpts, 'opts')
         self.setModelInConfig(True)
-        self.registerConfigProperty(self.getXModelName, self.setXModel, 'XModel')
+        self.registerConfigProperty(self.getXModelName,
+                                    self.setXModel, 'XModel')
 
     def setXModel(self, xModel):
         if not xModel:
@@ -83,7 +85,7 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
         self.setData(x=self._x, y=self._y)
 
     def getOpts(self):
-        return serializeOpts(self.opts)
+        return serializeOpts(copy.copy(self.opts))
 
     def setOpts(self, opts):
         # creates QPainters (QPen or QBrush) from a pickle loaded file
@@ -92,7 +94,6 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
         self.opts = deserializeOpts(opts)
 
         # This is a workaround for the following pyqtgraph's bug:
-        # BUG!
         if opts['connect'] == 'all':
             self.opts['connect'] = 'all'
         elif opts['connect'] == 'pairs':
@@ -205,7 +206,8 @@ if __name__ == '__main__':
     import numpy
     import pyqtgraph as pg
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
+    from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import (
+        TaurusPlotDataItem)
 
     app = TaurusApplication()
 
@@ -221,21 +223,21 @@ if __name__ == '__main__':
     w.addItem(c1)
 
 
-    pen = pg.mkPen(color='r', style=2)
+    pen = pg.mkPen(color='r', style=4)
     brush = pg.mkBrush(color='b')
     brush.setStyle(3)
 
     # adding a taurus data item
     # c2 = TaurusPlotDataItem(name='st2 plot', pen='r', symbol='o')
-    # c2 = TaurusPlotDataItem(pen='y',symbolPen=pen, symbol='o', symbolBrush=brush)
-    c2 = TaurusPlotDataItem()
+    c2 = TaurusPlotDataItem(pen=pen)
+    # c2 = TaurusPlotDataItem()
 
 
 
-    c2.loadConfigFile('tmp/conf.cfg')
+    # c2.loadConfigFile('tmp/conf.cfg')
 
 
-    # c2.setModel('eval:Quantity(rand(256),"m")')
+    c2.setModel('eval:Quantity(rand(256),"m")')
     # c2.setModel('sys/tg_test/1/wave')
     # c2.setModel(None)
     # c2.setXModel(None)

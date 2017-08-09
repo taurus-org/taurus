@@ -27,7 +27,8 @@ import taurus
 from taurus.qt.qtgui.extra_pyqtgraph.curvesmodel import (
     TaurusItemConfDlg, TaurusItemConf)
 from taurus.external.qt import QtGui
-from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
+from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import (
+    TaurusPlotDataItem)
 from collections import OrderedDict
 
 
@@ -40,7 +41,8 @@ class TaurusXYModelChooserTool(QtGui.QAction):
         self.legend = None
         self._curveColors = None
 
-    def attachToPlotItem(self, plot_item, parentWidget=None, curve_colors=None):
+    def attachToPlotItem(self, plot_item,
+                         parentWidget=None, curve_colors=None):
         self.plot_item = plot_item
         self._curveColors = curve_colors
         if self.plot_item.legend is not None:
@@ -58,11 +60,9 @@ class TaurusXYModelChooserTool(QtGui.QAction):
 
         for curve in self.plot_item.listDataItems():
             if isinstance(curve, TaurusPlotDataItem):
-                currentModelNames.append(
-                    (curve.getXModelName(), curve.getFullModelName()))
+                currentModelNames.append(curve.getFullModelNames())
                 currentModelItems[
-                    curve.getXModelName(),
-                    curve.getFullModelName()] = (curve, curve.getViewBox())
+                    curve.getFullModelNames()] = (curve, curve.getViewBox())
                 item = TaurusItemConf(YModel=curve.getFullModelName(),
                                       XModel=curve.getXModelName(),
                                       name=curve.name())
@@ -79,7 +79,7 @@ class TaurusXYModelChooserTool(QtGui.QAction):
             curve_name = OrderedDict()
             for c in conf:
                 try:
-                    print c.yModel, type(c.yModel)
+                    # print c.yModel, type(c.yModel)
                     m = taurus.Attribute(c.yModel)
                     n = c.xModel
                     name = c.curveLabel
@@ -90,7 +90,6 @@ class TaurusXYModelChooserTool(QtGui.QAction):
                     from taurus import warning
                     warning(e)
 
-
             for k, v in currentModelItems.items():
                 curve, parent = v
                 self.plot_item.removeItem(curve)
@@ -99,6 +98,7 @@ class TaurusXYModelChooserTool(QtGui.QAction):
                     self.legend.removeItem(curve.name())
 
             for modelName, model in yModels.items():
+                # print modelName, model
                 if modelName in currentModelNames:
                     item, parent = currentModelItems[modelName]
                     X = xModels[modelName]

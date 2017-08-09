@@ -192,6 +192,7 @@ if __name__ == '__main__':
 
     app = TaurusApplication()
     w = TaurusPlot()
+    # w.loadConfigFile('tmp/TaurusPlot.pck')
 
 
     w.setModel(['eval:rand(256)', 'sys/tg_test/1/wave'])
@@ -200,7 +201,7 @@ if __name__ == '__main__':
 
     ret = app.exec_()
 
-    import pprint
+    # import pprint
     # pprint.pprint(w.createConfig())
 
 
