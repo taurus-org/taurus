@@ -35,6 +35,7 @@ There is a conflict problem with PyQt versions. Pyqtgraph imports his own
 library of PyQt, and Taurus too. So we have to import Qt from own version
 first as a workaround for non-conflict.
 """
+# import workaround:
 from taurus.external.qt import Qt
 
 from pyqtgraph import AxisItem
