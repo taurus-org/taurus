@@ -31,7 +31,7 @@ if __name__ == '__main__':
                   fillBrush=(255, 255, 255, 30), name='green plot')
     c3 = plt.plot(range(7), pen='c', fillLevel=0)
 
-    for dataitem in plt.getPlotItem().items:
+    for dataitem in plt.getPlotItem().listDataItems():
         if dataitem.name():
             l.addItem(dataitem, dataitem.name())
 

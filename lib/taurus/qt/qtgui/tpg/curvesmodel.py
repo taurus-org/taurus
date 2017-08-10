@@ -83,7 +83,7 @@ class Component(object):
 
 
 
-from taurus.qt.qtgui.extra_pyqtgraph.taurusplotdataitem import TaurusPlotDataItem
+from taurus.qt.qtgui.tpg.taurusplotdataitem import TaurusPlotDataItem
 class TaurusItemConf(object):
 
     def __init__(self, YModel=None, XModel=None, name=None):
