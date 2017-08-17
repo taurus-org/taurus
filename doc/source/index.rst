@@ -35,7 +35,7 @@ Projects related to Taurus
     :height: 180
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 4
 
     Home Page <http://www.taurus-scada.org>
     Project Page <https://github.com/taurus-org/taurus>
