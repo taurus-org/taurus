@@ -9,8 +9,14 @@ develop branch) won't be reflected in this file.
 
 ## Unreleased
 
+### Changed
+- Tango model name validators now always return FQDN instead of PQDN
+  for the tango host (#488)
+- Improved generated PDF doc (#525, #546, #548) (thanks @PhilLAL !)
+
 ### Fixed
-- Doc issues (#525, #546) (thanks @PhilLAL !)
+- Doc issues
+- Deprecation warnings in taurus.core.util.event (#550)
 
 
 ## [4.1.1] - 2017-07-21
