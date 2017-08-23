@@ -1,32 +1,21 @@
 language: python
 
+python:
+  - "2.7"
+
 sudo: required
 
+services:
+  - docker
+
+env:
+  - DOCKER_IMG=cpascual/taurus-test:debian-jessie
+  - DOCKER_IMG=cpascual/taurus-test:debian-stretch
+  - DOCKER_IMG=cpascual/taurus-test:debian-buster
+
 matrix:
-    include:
-        - python: 2.7
-          os: linux
-          sudo: required
-          services:
-              - docker
-          env:
-              - DOCKER_IMG=cpascual/taurus-test:debian-jessie
-
-        - python: 2.7
-          os: linux
-          sudo: required
-          services:
-              - docker
-          env:
-              - DOCKER_IMG=cpascual/taurus-test:debian-stretch
-
-        - python: 2.7
-          os: linux
-          sudo: required
-          services:
-              - docker
-          env:
-              - DOCKER_IMG=cpascual/taurus-test:debian-buster
+    allow_failures:
+        - env: DOCKER_IMG=cpascual/taurus-test:debian-buster
 
 before_install:
   - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus $DOCKER_IMG
