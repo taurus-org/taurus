@@ -10,7 +10,7 @@ matrix:
           services:
               - docker
           env:
-              - DOCKER_IMG=cpascual/taurus-test:latest
+              - DOCKER_IMG=cpascual/taurus-test:debian-jessie
 
         - python: 2.7
           os: linux
@@ -18,10 +18,17 @@ matrix:
           services:
               - docker
           env:
-              - DOCKER_IMG=cpascual/taurus-test:debian9
+              - DOCKER_IMG=cpascual/taurus-test:debian-stretch
+
+        - python: 2.7
+          os: linux
+          sudo: required
+          services:
+              - docker
+          env:
+              - DOCKER_IMG=cpascual/taurus-test:debian-buster
 
 before_install:
-  # run cpascual/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
   - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus $DOCKER_IMG
   - sleep 10
   
