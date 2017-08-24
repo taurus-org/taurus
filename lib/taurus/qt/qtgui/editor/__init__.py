@@ -27,10 +27,14 @@
 
 __docformat__ = 'restructuredtext'
 
-from .tauruseditor import *
+try:
+   from .tauruseditor import *
+except Exception as e:
+   from taurus.qt.qtgui.display import create_fallback as __create
+   TaurusBaseEditor = __create("TaurusBaseEditor")
+   from taurus import warning, debug
+   warning('Problem with taurus.qt.editor.\n'
+           ' A dummy TaurusBaseEditor will be used\n' +
+           ' (maybe you do not have spyder >=3 ?). ')
+   debug('%r', e)
 
-# try:
-#    from .tauruseditor import *
-# except:
-#    from taurus.qt.qtgui.display import create_fallback as __create
-#    TaurusBaseEditor = __create("TaurusBaseEditor")
