@@ -41,6 +41,7 @@ from functools import partial
 from taurus import Manager
 from taurus.external.pint import Quantity, UR, UndefinedUnitError
 
+from taurus import tauruscustomsettings
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import (TaurusEventType,
                                          TaurusSerializationMode,
@@ -448,8 +449,17 @@ class TangoAttribute(TaurusAttribute):
             if single:
                 self.read(cache=False)
             else:
-                self.__attr_value = self.decode(kwargs.get('value'))
+                value = self.decode(kwargs.get('value'))
                 self.__attr_err = kwargs.get('error')
+                filter_old_event = getattr(tauruscustomsettings,
+                                           'FILTER_OLD_TANGO_EVENTS', False)
+                if self.__attr_value is not None and \
+                        self.__attr_err is None and \
+                        filter_old_event and \
+                        kwargs.get('time') < self.__attr_value.time.totime():
+                    return
+
+                self.__attr_value = value
                 if self.__attr_err:
                     raise self.__attr_err
         except PyTango.DevFailed, df:
@@ -727,8 +737,17 @@ class TangoAttribute(TaurusAttribute):
                  evt_value is a TaurusValue, an Exception, or None.
         """
         if not event.err:
-            self.__attr_value, self.__attr_err = self.decode(
-                event.attr_value), None
+            attr_value = self.decode(event.attr_value)
+            filter_old_event = getattr(tauruscustomsettings,
+                                       'FILTER_OLD_TANGO_EVENTS', False)
+            if self.__attr_value is not None and \
+                filter_old_event and \
+                event.attr_value.time.totime() < \
+                            self.__attr_value.time.totime():
+                return None, None
+
+            self.__attr_value = attr_value
+            self.__attr_err = None
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
             if not self.isPollingForced():
