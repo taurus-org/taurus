@@ -1243,6 +1243,48 @@ class TaurusBaseWidget(TaurusBaseComponent):
         self.call__init__(TaurusBaseComponent, name,
                           parent=parent, designMode=designMode)
         self._setText = self._findSetTextMethod()
+        formatter = getattr(taurus.tauruscustomsettings,
+                            'DEFAULT_FORMATTER', None)
+        if formatter is not None:
+            self._setFormatter(formatter)
+
+    def _getFormatter(self, formatter):
+        '''' Method to get custom formatter
+        :return: formatter: python fromat string or formatter callable
+        (in string version)
+        '''
+        try:
+            moduleName, formatterName = formatter.rsplit('.', 1)
+            __import__(moduleName)
+            module = sys.modules[moduleName]
+            formatter = getattr(module, formatterName)
+        except:
+            pass
+        finally:
+            return formatter
+
+    def showFormatterDlg(self):
+        '''
+        showFormatterDlg show a dialog to get the formatter from the user.
+        :return: formatter: python fromat string or formatter callable
+        (in string version) or None
+        '''
+        formatter, ok = Qt.QInputDialog.getText(self, "Set formatter",
+                                                "Enter a formatter:",
+                                                Qt.QLineEdit.Normal, "")
+        if ok and formatter:
+            return self._getFormatter(formatter)
+
+        return None
+
+    def onSetFormatter(self):
+        ''' Method to be triggered on setFormatter action
+        '''
+        format = self.showFormatterDlg()
+        if format is not None:
+            self.debug(
+                'Default format has been changed to: {0}'.format(format))
+            self.setFormat(format)
 
     # It makes the GUI to hang... If this needs implementing, we should
     # reimplement it using the Qt parent class, not QWidget...
