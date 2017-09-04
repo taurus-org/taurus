@@ -68,6 +68,14 @@ DEFAULT_SCHEME = "tango"
 # providing support to new schemes
 # EXTRA_SCHEME_MODULES = ['myownschememodule']
 
+# Set a custom formatter. Taurus widgets use a default formatter based on the
+# attribute type, but sometimes a custom formatter is needed.
+# The formatter can be a python format string or formatter callable
+# (in string version)
+#e.g.
+# DEFAULT_FORMATTER = '{0}'
+# DEFAULT_FORMATTER = 'taurus.core.tango.util.formatter.tangoFormatter'
+
 # ----------------------------------------------------------------------------
 # PLY (lex/yacc) optimization: 1=Active (default) , 0=disabled.
 # Set PLY_OPTIMIZE = 0 if you are getting yacc exceptions while loading
