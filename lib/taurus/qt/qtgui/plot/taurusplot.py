@@ -1177,6 +1177,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._dataInspectorAction.setChecked(self._pointPicker.isEnabled())
         self._dataInspectorAction.toggled[bool].connect(self.toggleDataInspectorMode)
 
+        self._setFormatterAction = Qt.QAction(
+            "Set Formatter...", None)
+        self._setFormatterAction.triggered[()].connect(self.onSetFormatter)
+
         self._curveStatsAction = Qt.QAction("Calculate statistics", None)
         self._curveStatsAction.setShortcut(Qt.Qt.Key_S)
         self._curveStatsAction.triggered[()].connect(self.onCurveStatsAction)
@@ -1248,17 +1252,35 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         # add all actions and limit the scope of the key shortcuts to the
         # widget (default is Window)
-        for action in (self._dataInspectorAction, self._pauseAction, self._autoscaleAllAxisAction,
-                       self._toggleZoomAxisAction, self._configDialogAction, self._inputDataAction,
-                       self._saveConfigAction, self._loadConfigAction, self._showLegendAction,
-                       self._showMaxAction, self._showMinAction, self._printAction, self._exportPdfAction,
-                       self._exportAsciiAction, self._setCurvesTitleAction, self._curveStatsAction):
+        for action in (self._dataInspectorAction, self._pauseAction,
+                       self._autoscaleAllAxisAction,
+                       self._toggleZoomAxisAction, self._configDialogAction,
+                       self._inputDataAction, self._saveConfigAction,
+                       self._loadConfigAction, self._showLegendAction,
+                       self._showMaxAction, self._showMinAction,
+                       self._printAction, self._exportPdfAction,
+                       self._exportAsciiAction, self._setCurvesTitleAction,
+                       self._curveStatsAction, self._setFormatterAction):
             # this is needed to avoid ambiguity when more than one TaurusPlot
             # is used in the same window
             action.setShortcutContext(Qt.Qt.WidgetShortcut)
             # because of the line above, we must add the actions to the widget
             # that gets the focus (the canvas instead of self)
             self.canvas().addAction(action)
+
+    def onSetFormatter(self):
+        ''' Method to be triggered on setFormatter action
+        '''
+        format = self.showFormatterDlg()
+        if format is not None:
+            self.debug(
+                'Default format has been changed to: {0}'.format(format))
+
+            targetCurveNames = self.curves.iterkeys()
+            for name in targetCurveNames:
+                curve = self.curves.get(name, None)
+                w = getattr(curve, 'owner', curve)
+                w.setFormat(format)
 
     def dropEvent(self, event):
         '''reimplemented to support dropping of modelnames in taurusplots'''
@@ -2159,6 +2181,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         menu.addAction(self._showLegendAction)
         menu.addAction(self._dataInspectorAction)
+        menu.addAction(self._setFormatterAction)
 
         menu.addSeparator()
         exportSubMenu = menu.addMenu("&Export && Print")
