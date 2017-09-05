@@ -137,12 +137,15 @@ class TaurusForm(TaurusWidget):
         self.addAction(self.compactModeAction)
         self.compactModeAction.triggered[bool].connect(self.setCompact)
 
+        self.setFormatterAction = Qt.QAction('Set formatter (all items)', self)
+        self.addAction(self.setFormatterAction)
+        self.setFormatterAction.triggered[()].connect(self.onSetFormatter)
+
         self.resetModifiableByUser()
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE,
                                     TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE, 'text/plain'])
 
         self.resetCompact()
-
         # properties
         self.registerConfigProperty(
             self.isWithButtons, self.setWithButtons, 'withButtons')
@@ -361,6 +364,12 @@ class TaurusForm(TaurusWidget):
 
     def resetWithButtons(self):
         self.setWithButtons(True)
+
+    def onSetFormatter(self):
+        format = self.showFormatterDlg()
+        if format:
+            for item in self.getItems():
+                item._readWidget.setFormat(format)
 
     def setCompact(self, compact):
         self._compact = compact
