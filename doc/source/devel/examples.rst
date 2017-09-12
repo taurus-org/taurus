@@ -10,7 +10,7 @@
 Examples
 ========
 
-Here you will find a host of example figures with the code that generated them.
+Here you will find a set of example figures with the code that generated them.
 
 In order for the examples to work on your computer, you need to have a 
 Tango device server running. The following section explains how to do this.
