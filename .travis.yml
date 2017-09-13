@@ -36,8 +36,15 @@ script:
       pip install doctr ;
       docker exec taurus-test /bin/bash -c "touch /taurus/build/sphinx/html/.nojekyll" ;
       if [[ "${TRAVIS_BRANCH}" == "develop" ]]; then
-        doctr deploy docs --key-path "ci/github_deploy_key.enc" --deploy-repo "taurus-org/taurus-doc;
+        echo "deploying to docs"
+        doctr deploy docs ;
       else
-        doctr deploy "docs-$TRAVIS_BRANCH" --no-require-master --key-path "ci/github_deploy_key.enc" --deploy-repo "taurus-org/taurus-doc;
+        echo "deploying to docs-$TRAVIS_BRANCH"
+        doctr deploy "docs-$TRAVIS_BRANCH" --no-require-master ;
       fi;
     fi
+
+doctr:
+  key-path : ci/github_deploy_key.enc
+  deploy-repo : taurus-org/taurus-doc
+  require-master: false
