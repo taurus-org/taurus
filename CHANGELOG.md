@@ -7,6 +7,23 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
+## Unreleased
+
+### Changed
+- Tango model name validators now always return FQDN instead of PQDN
+  for the tango host (#488)
+- Improved generated PDF doc (#525, #546, #548) (thanks @PhilLAL !)
+
+### Fixed
+- Doc issues
+- Deprecation warnings in taurus.core.util.event (#550)
+
+
+## [4.1.1] - 2017-07-21
+
+### Fixed
+- Issue with PyPI metadata (hotfix 4.1.1)
+
 
 ## [4.1.0] - 2017-07-21
 
