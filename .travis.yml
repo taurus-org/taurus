@@ -40,7 +40,7 @@ script:
         doctr deploy docs ;
       else
         echo "deploying to docs-$TRAVIS_BRANCH" ;
-        doctr deploy "docs-$TRAVIS_BRANCH" --no-require-master ;
+        doctr deploy "docs-$TRAVIS_BRANCH"  ;
       fi;
     fi
 
@@ -48,3 +48,5 @@ doctr:
   key-path : ci/github_deploy_key.enc
   deploy-repo : taurus-org/taurus-doc
   require-master: false
+  sync: true
+  built-docs: build/sphinx/html/
