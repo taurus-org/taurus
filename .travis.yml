@@ -36,10 +36,10 @@ script:
       pip install doctr ;
       docker exec taurus-test /bin/bash -c "touch /taurus/build/sphinx/html/.nojekyll" ;
       if [[ "${TRAVIS_BRANCH}" == "develop" ]]; then
-        echo "deploying to docs"
+        echo "deploying to docs" ;
         doctr deploy docs ;
       else
-        echo "deploying to docs-$TRAVIS_BRANCH"
+        echo "deploying to docs-$TRAVIS_BRANCH" ;
         doctr deploy "docs-$TRAVIS_BRANCH" --no-require-master ;
       fi;
     fi
