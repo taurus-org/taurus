@@ -1,27 +1,23 @@
 language: python
 
+python:
+  - "2.7"
+
 sudo: required
 
-matrix:
-    include:
-        - python: 2.7
-          os: linux
-          sudo: required
-          services:
-              - docker
-          env:
-              - DOCKER_IMG=cpascual/taurus-test:latest
+services:
+  - docker
 
-        - python: 2.7
-          os: linux
-          sudo: required
-          services:
-              - docker
-          env:
-              - DOCKER_IMG=cpascual/taurus-test:debian9
+env:
+  - DOCKER_IMG=cpascual/taurus-test:debian-jessie
+  - DOCKER_IMG=cpascual/taurus-test:debian-stretch
+  - DOCKER_IMG=cpascual/taurus-test:debian-buster
+
+matrix:
+    allow_failures:
+        - env: DOCKER_IMG=cpascual/taurus-test:debian-buster
 
 before_install:
-  # run cpascual/taurus-test docker container (Debian8 with taurus-deps and xvfb installed)
   - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus $DOCKER_IMG
   - sleep 10
   

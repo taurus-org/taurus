@@ -1,12 +1,22 @@
+.. toctree::
+    :hidden:
+    :titlesonly:
+    :maxdepth: 4
 
-Welcome to Taurus's Home Page!
+    Home Page <http://www.taurus-scada.org>
+    Project Page <https://github.com/taurus-org/taurus>
+    Download from PyPI <http://pypi.python.org/pypi/taurus>
+    docs
+
+
+Welcome to Taurus Home Page!
 =============================================
 
     |image1| 
 
 Taurus is a python framework for control and data acquisition CLIs and GUIs
 in scientific/industrial environments.
-It supports multiple control systems or data sources: Tango_, EPICS_, spec... 
+It supports multiple control systems or data sources: Tango_, EPICS_, ...
 New control system libraries can be integrated through plugins.
 
 For non-programmers: Taurus allows the creation of fully-featured GUI (with 
@@ -22,25 +32,13 @@ Of course, Taurus is Free Software (under LGPL). You can download it from PyPi_,
 access its Documentation_ or get support from its community and the latest code
 from the `project page <https://github.com/taurus-org/taurus>`_.
 
-Projects related to Taurus
----------------------------
-
-- Taurus uses PyQt_ for the GUIs 
-- Tango_ is supported vis PyTango_ 
-- Taurus is part of the Sardana_ suite
+See also the related Sardana_ project, which uses Taurus to build its user
+interfaces.
 
 
 .. |image1| image::  _static/taurus_showcase01.png
     :align: middle
     :height: 180
-
-.. toctree::
-    :hidden:
-
-    Home Page <http://www.taurus-scada.org>
-    Project Page <https://github.com/taurus-org/taurus>
-    Download from PyPI <http://pypi.python.org/pypi/taurus>
-    docs
 
 :Last Update: |today|
 :Release: |release|
@@ -76,7 +74,6 @@ Projects related to Taurus
 
 
 .. _Tango: http://www.tango-controls.org/
-.. _PyTango: http://packages.python.org/PyTango/
 .. _EPICS: http://www.aps.anl.gov/epics/
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
 .. _Sardana: http://sardana-controls.org

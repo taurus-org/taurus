@@ -65,7 +65,6 @@ extras_require = {
                   # 'PyQt4.Qwt5 >=5.2.0',  # [Taurus-Qt-Plot]
                   'ply >=2.3',  # [Taurus-Qt-Synoptic]
                   'lxml >=2.1',  # [Taurus-Qt-TaurusGUI]
-                  'spyder >=3.0',  # [Taurus-Qt-Editor]
                   'guiqwt >=3',  # [Taurus-Qt-Guiqwt]
                   ],
     'taurus-tango': ['PyTango >=7.1',
@@ -74,6 +73,10 @@ extras_require = {
                      ],
     'taurus-h5file': ['h5file',
                       ],
+    # separate the editor from 'taurus-qt' to avoid forcing spyder>3
+    # which implies many more dependencies that may be hard on older system
+    'taurus-qt-editor': ['spyder >=3',
+                         ],
 }
 
 console_scripts = [
