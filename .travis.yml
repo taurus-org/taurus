@@ -33,7 +33,7 @@ script:
   # deploy sphinx-built docs to taurus-doc repo
   - if [[ "$DOCKER_IMG" == "cpascual/taurus-test:debian-stretch" ]]; then
       pip install doctr ;
-      touch build/sphinx/html/.nojekyll ;
+      docker exec taurus-test /bin/bash -c "touch /taurus/build/sphinx/html/.nojekyll" ;
       if [[ "${TRAVIS_BRANCH}" == "develop" ]]; then
         doctr deploy docs --key-path "ci/github_deploy_key.enc" --deploy-repo "taurus-org/taurus-doc;
       else
