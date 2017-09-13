@@ -32,11 +32,14 @@ script:
   - docker exec taurus-test /bin/bash -c "cd /taurus ; python setup.py build_sphinx"
   # deploy sphinx-built docs to taurus-doc repo
   - if [[ "$DOCKER_IMG" == "cpascual/taurus-test:debian-stretch" ]]; then
+      echo "Installing doctr";
       pip install doctr ;
+      echo "Creating .nojekyll";
       docker exec taurus-test /bin/bash -c "touch /taurus/build/sphinx/html/.nojekyll" ;
+      echo "Deploying docs";
       if [[ "${TRAVIS_BRANCH}" == "develop" ]]; then
         doctr deploy docs --key-path "ci/github_deploy_key.enc" --deploy-repo "taurus-org/taurus-doc;
       else
         doctr deploy "docs-$TRAVIS_BRANCH" --no-require-master --key-path "ci/github_deploy_key.enc" --deploy-repo "taurus-org/taurus-doc;
-      fi
+      fi;
     fi
