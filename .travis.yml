@@ -36,9 +36,9 @@ script:
       pip install doctr ;
       docker exec taurus-test /bin/bash -c "touch /taurus/build/sphinx/html/.nojekyll" ;
       if [[ "${TRAVIS_BRANCH}" == "develop" ]]; then
-        doctr deploy docs ;
+        doctr deploy . ;
       else
-        doctr deploy "docs/v-$TRAVIS_BRANCH"  ;
+        doctr deploy "v-$TRAVIS_BRANCH"  ;
       fi;
     fi
 
