@@ -905,7 +905,11 @@ class TangoAttribute(TaurusAttribute):
             ###############################################################
             # changed in taurus4: range, alarm and warning now return
             # quantities if appropriate
-            units = self._unit_from_tango(i.unit)
+            if self.isNumeric(True):
+                units = self._unit_from_tango(i.unit)
+            else:
+                units = UR.parse_units(None)
+
             if PyTango.is_numerical_type(i.data_type, inc_array=True):
                 Q_ = partial(quantity_from_tango_str, units=units,
                              dtype=i.data_type)
