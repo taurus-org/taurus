@@ -255,7 +255,7 @@ class TaurusArrayEditorButton(_AbstractTaurusValueButton):
 
 
 class TaurusImageButton(_AbstractTaurusValueButton):
-    '''A button that launches a TaurusPlot'''
+    '''A button that launches an ImageDialog'''
     _widgetClassName = 'TaurusImageDialog'
     _icon = 'mimetypes:image-x-generic.svg'
 
