@@ -125,6 +125,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
             if any(args):
                 #Qt.QMessageBox.warning(self.parentWidget(),'Warning','In ExternalAppAction(%s)'%args)
                 self._process.append(subprocess.Popen(args))
+                self._process = [p for p in self._process if p.poll() is None]
                 return True
             else:
                 return False
