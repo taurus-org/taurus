@@ -78,6 +78,12 @@ class TangoAuthValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='tango:a/b/ c', groups={'devname': 'a/b/ c'})
 @invalid(name='tango:/a/b/c?')
 @valid(name='tango://a/b/c', strict=False)
+@valid(name='tango:alias', strict=False)
+@valid(name='tango://a/b/c', strict=False)
+@invalid(name='tango:foo:1234/alias', strict=False)
+@invalid(name='tango:foo:1234/a/b/c', strict=False)
+@invalid(name='foo:1234/alias', strict=False)
+@valid(name='foo:1234/a/b/c', strict=False)
 @invalid(name='tango://a/b/c', strict=True)
 @invalid(name='tango://devalias')
 @names(name='tango://foo:123/a/b/c',
@@ -97,6 +103,8 @@ class TangoDevValidatorTestCase(AbstractNameValidatorTestCase,
 #=========================================================================
 # Tests for Tango Attribute name validation (without fragment)
 #=========================================================================
+@valid(name='foo:10000/a/b/c/d', strict=False)
+@valid(name='mot/position', strict=False)
 @valid(name='tango:a/b/c/d', groups={'devname': 'a/b/c',
                                      'attrname': 'a/b/c/d',
                                      '_shortattrname': 'd'})
