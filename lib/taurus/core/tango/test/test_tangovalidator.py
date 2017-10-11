@@ -38,8 +38,11 @@ from taurus.core.tango.tangovalidator import (TangoAuthorityNameValidator,
                                               TangoAttributeNameValidator)
 
 import PyTango
-__GETENV = PyTango.ApiUtil.get_env_var
+import socket
 
+__PY_TANGO_HOST = PyTango.ApiUtil.get_env_var("TANGO_HOST")
+host, port = __PY_TANGO_HOST.split(':')
+__TANGO_HOST = "{0}:{1}".format(socket.getfqdn(host), port)
 
 #=========================================================================
 # Tests for Tango Authority  name validation
@@ -80,11 +83,11 @@ class TangoAuthValidatorTestCase(AbstractNameValidatorTestCase,
 @names(name='tango://foo:123/a/b/c',
        out=('tango://foo:123/a/b/c', '//foo:123/a/b/c', 'a/b/c'))
 @names(name='tango:sys/tg_test/1',
-       out=('tango://%s/sys/tg_test/1' % __GETENV("TANGO_HOST"),
+       out=('tango://%s/sys/tg_test/1' % __TANGO_HOST,
             'sys/tg_test/1', 'sys/tg_test/1'))
 @names(name='tango:alias', out=(None, None, 'alias'))
 # @names(name = 'tango:mot49', # commented out because it assumes mot49 exists
-#        out=('tango://%s/motor/motctrl13/1'% __GETENV("TANGO_HOST"),
+#        out=('tango://%s/motor/motctrl13/1'% __TANGO_HOST,
 #             'motor/motctrl13/1', 'mot49'))
 class TangoDevValidatorTestCase(AbstractNameValidatorTestCase,
                                 unittest.TestCase):
@@ -112,10 +115,10 @@ class TangoDevValidatorTestCase(AbstractNameValidatorTestCase,
 @names(name='tango://foo:123/a/b/c/d',
        out=('tango://foo:123/a/b/c/d', '//foo:123/a/b/c/d', 'd'))
 @names(name='tango:sys/tg_test/1/float_scalar',
-       out=('tango://%s/sys/tg_test/1/float_scalar' % __GETENV("TANGO_HOST"),
+       out=('tango://%s/sys/tg_test/1/float_scalar' % __TANGO_HOST,
             'sys/tg_test/1/float_scalar', 'float_scalar'))
 # @names(name = 'tango:mot49/position', # commented out because it assumes mot49
-#        out=('tango://%s/motor/motctrl13/1/position'% __GETENV("TANGO_HOST"),
+#        out=('tango://%s/motor/motctrl13/1/position'% __TANGO_HOST,
 #             'motor/motctrl13/1/position', 'position'))
 #=========================================================================
 # Tests for validation of Attribute name with fragment
@@ -147,8 +150,7 @@ class TangoDevValidatorTestCase(AbstractNameValidatorTestCase,
        out=('tango://foo:123/a/b/c/d',
             '//foo:123/a/b/c/d', 'd', 'label'))
 @names(name='tango:sys/tg_test/1/float_scalar#',
-       out=('tango://%s/sys/tg_test/1/float_scalar' %
-            __GETENV("TANGO_HOST"),
+       out=('tango://%s/sys/tg_test/1/float_scalar' % __TANGO_HOST,
             'sys/tg_test/1/float_scalar', 'float_scalar', ''))
 @names(name='tango://foo:123/a/b/c/d?configuration=label',
        out=('tango://foo:123/a/b/c/d',
