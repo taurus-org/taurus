@@ -176,7 +176,19 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
         '''In non-strict mode, allow double-slash even if there is no Authority.
         (e.g., "tango://a/b/c" passes this non-strict form)
         '''
-        return self.namePattern.replace('tango):(', 'tango)://(')
+        pattern = r'^((?P<scheme>%(scheme)s)://)?' + \
+                  r'((?P<authority>%(authority)s)(?=/))?' + \
+                  r'(?P<path>%(path)s)' + \
+                  r'(\?(?P<query>%(query)s))?' + \
+                  r'(#%(fragment)s)?$'
+        authority = '(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
+        path = '/?(?P<devname>((?P<_devslashname>[^/?#:]+/[^/?#:]+/[^/?#:]+)))'
+
+        return pattern % dict(scheme=self.scheme,
+                              authority=authority,
+                              path=path,
+                              query='(?!)',
+                              fragment='(?!)')
 
 
 class TangoAttributeNameValidator(TaurusAttributeNameValidator):
@@ -250,14 +262,16 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
         """
 
         # allow for *optional* double-slashes and *optional* ?configuration...
-        pattern = r'^(?P<scheme>%(scheme)s):(//)?' + \
+        pattern = r'^((?P<scheme>%(scheme)s)://)?' + \
                   r'((?P<authority>%(authority)s)(?=/))?' + \
                   r'(?P<path>%(path)s)' + \
                   r'(\?(?P<query>%(query)s))?' + \
                   r'(#%(fragment)s)?$'
+        authority = '(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
+        query = 'configuration(=(?P<fragment>(?P<cfgkey>[^# ]+)))?'
 
         return pattern % dict(scheme=self.scheme,
-                              authority='(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})',
+                              authority=authority,
                               path=self.path,
-                              query='configuration(=(?P<fragment>(?P<cfgkey>[^# ]+)))?',
+                              query=query,
                               fragment='(?!)')
