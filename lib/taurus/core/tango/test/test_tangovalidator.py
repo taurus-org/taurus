@@ -78,7 +78,9 @@ class TangoAuthValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='tango:a/b/ c', groups={'devname': 'a/b/ c'})
 @invalid(name='tango:/a/b/c?')
 @valid(name='tango://a/b/c', strict=False)
-@valid(name='tango:alias', strict=False)
+@valid(name='tango:alias')
+# @invalid(name='tango:alias', strict=False) # It matches with strict=True
+@valid(name='tango://alias', strict=False)
 @valid(name='tango://a/b/c', strict=False)
 @invalid(name='tango:foo:1234/alias', strict=False)
 @invalid(name='tango:foo:1234/a/b/c', strict=False)
