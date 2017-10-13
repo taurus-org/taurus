@@ -26,6 +26,8 @@
 taurusgraphic.py:
 """
 
+# TODO: Tango-centric
+
 __all__ = ['SynopticSelectionStyle',
            'parseTangoUri',
            'QEmitter',  # TODO: QEmitter should probably be removed (kept priv)
@@ -69,10 +71,6 @@ from taurus.core.util.log import Logger, deprecation_decorator
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.util.enumeration import Enumeration
-# TODO: tango-centric!
-from taurus.core.tango import DevState
-from taurus.core.tango.tangovalidator import (TangoDeviceNameValidator,
-                                              TangoAttributeNameValidator)
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
@@ -88,7 +86,11 @@ SynopticSelectionStyle = Enumeration("SynopticSelectionStyle", [
 
 
 def parseTangoUri(name):
+    # TODO: Tango-centric
     from taurus.core import tango
+    from taurus.core.tango.tangovalidator import (TangoDeviceNameValidator,
+                                                  TangoAttributeNameValidator)
+
     validator = {tango.TangoDevice: TangoDeviceNameValidator,
                  tango.TangoAttribute: TangoAttributeNameValidator}
     try:
@@ -348,6 +350,11 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
 
         :return: (list) items
         """
+
+        # TODO: Tango-centric
+        from taurus.core.tango.tangovalidator import (
+            TangoDeviceNameValidator, TangoAttributeNameValidator)
+
         strict = (
             not self.ANY_ATTRIBUTE_SELECTS_DEVICE) if strict is None else strict
         alnum = '(?:[a-zA-Z0-9-_\*]|(?:\.\*))(?:[a-zA-Z0-9-_\*]|(?:\.\*))*'
@@ -1171,6 +1178,9 @@ class TaurusGraphicsStateItem(TaurusGraphicsItem):
         self.call__init__(TaurusGraphicsItem, name, parent)
 
     def updateStyle(self):
+
+        from taurus.core.tango import DevState  # Tango-centric
+
         v = self.getModelValueObj()
 
         self._currBrush = Qt.QBrush(Qt.Qt.NoBrush)

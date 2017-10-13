@@ -485,7 +485,11 @@ class TaurusMessagePanel(Qt.QWidget):
         :rtype: tuple<type, value, traceback>"""
         return self._exc_info
 
-    ErrorHandlers = {PyTango.DevFailed: TangoMessageErrorHandler}
+    try:
+        import Pyango
+        ErrorHandlers = {PyTango.DevFailed: TangoMessageErrorHandler}
+    except:
+        ErrorHandlers = {}
 
     @classmethod
     def registerErrorHandler(klass, err_type, err_handler):

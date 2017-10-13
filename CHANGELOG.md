@@ -21,6 +21,8 @@ develop branch) won't be reflected in this file.
 - Doc issues
 - Deprecation warnings in taurus.core.util.event (#550)
 
+### Removed
+- taurus.qt.qtgui.panel.taurusfilterpanel
 
 ## [4.1.1] - 2017-07-21
 

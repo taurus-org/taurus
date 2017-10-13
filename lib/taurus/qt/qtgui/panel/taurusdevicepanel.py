@@ -49,8 +49,6 @@ from taurus.qt.qtgui.panel.taurusform import TaurusCommandsForm
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.icon import getCachedPixmap
 
-from taurus.core.tango.tangodatabase import TangoDevInfo  # @todo: Tango-centric!
-
 ###############################################################################
 # TaurusDevicePanel (from Vacca)
 
@@ -490,6 +488,9 @@ class TaurusDevicePanel(TaurusWidget):
 
 
 def filterNonExported(obj):
+    # TODO: Tango-centric
+    from taurus.core.tango.tangodatabase import TangoDevInfo
+
     if not isinstance(obj, TangoDevInfo) or obj.exported():
         return obj
     return None
@@ -566,6 +567,8 @@ class TaurusDevPanel(TaurusMainWindow):
 
     def onItemSelectionChanged(self, current, previous):
         itemData = current.itemData()
+
+        from taurus.core.tango.tangodatabase import TangoDevInfo
         if isinstance(itemData, TangoDevInfo):  # TODO: Tango-centric
             self.onDeviceSelected(itemData)
 
