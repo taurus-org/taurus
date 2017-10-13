@@ -39,7 +39,6 @@ import time
 import os
 import traceback
 from functools import partial
-import PyTango  # to change!!
 
 # @todo: icons_dev_tree is not an included or standard module.
 #        Is anybody using it? If not, the following lines should be removed and
@@ -310,6 +309,8 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     addModels merges the tree with new models
     setFilters clears previous models and adds new one
     '''
+
+    # TODO: tango-centric
     __properties__ = (
         'ModelInConfig',
         'modifiableByUser',
@@ -730,6 +731,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         @argin expert If False only PyTango.DispLevel.OPERATOR attributes are displayed
         @argin allow_types Only those types included in the list will be displayed (e.g. may be restricted to numeric types only)
         """
+        import PyTango  # TODO: tango-centric
         numeric_types = [PyTango.DevDouble, PyTango.DevFloat, PyTango.DevLong, PyTango.DevLong64,
                          PyTango.DevULong, PyTango.DevShort, PyTango.DevUShort, PyTango.DevBoolean, PyTango.DevState]
         allow_types = allow_types or [PyTango.DevString] + numeric_types

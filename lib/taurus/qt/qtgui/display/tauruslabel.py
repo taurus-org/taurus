@@ -32,10 +32,8 @@ __docformat__ = 'restructuredtext'
 import operator
 import re
 
-# shame of me for importing PyTango!
-import PyTango
-
-from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
+from taurus.core.taurusbasetypes import (TaurusElementType, TaurusEventType,
+                                         AttrQuality, TaurusDevState)
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.base import TaurusBaseController
@@ -170,10 +168,10 @@ class TaurusLabelControllerDesignMode(object):
         return 0.0
 
     def quality(self):
-        return PyTango.AttrQuality.ATTR_VALID
+        return AttrQuality.ATTR_VALID
 
     def state(self):
-        return PyTango.DevState.ON
+        return TaurusDevState.Ready
 
     def _updateToolTip(self, lcd):
         lcd.setToolTip("Some random value for design purposes only")
