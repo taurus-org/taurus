@@ -182,7 +182,8 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
                   r'(\?(?P<query>%(query)s))?' + \
                   r'(#%(fragment)s)?$'
         authority = '(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
-        path = '/?(?P<devname>((?P<_devslashname>[^/?#:]+/[^/?#:]+/[^/?#:]+)))'
+        path = '/?(?P<devname>((?P<_devalias>(?<=//)([^/?#:]+))|' + \
+               '(?P<_devslashname>[^/?#:]+/[^/?#:]+/[^/?#:]+)))'
 
         return pattern % dict(scheme=self.scheme,
                               authority=authority,
