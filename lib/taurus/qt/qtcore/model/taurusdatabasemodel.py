@@ -543,8 +543,11 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
-
-        from taurus.core.tango.tangodatabase import TangoDatabase
+        try:
+            # TODO: Tango-centric
+            from taurus.core.tango.tangodatabase import TangoDatabase
+        except ImportError:
+            return
         if isinstance(data, TangoDatabase):
             data = data.deviceTree()
 
