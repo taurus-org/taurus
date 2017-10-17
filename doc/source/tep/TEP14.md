@@ -70,12 +70,12 @@ DataType           | _0D         | _1D                   | _2D
 ------------------- | ------------ | ------------------- | ---------------------- 
 Boolean            | bool         | `ndarray<bool>` | `ndarray<bool>` 
 Integer, Float    | Quantity  | Quantity            | Quantity
-String                | str           | seq<str>          | `seq<seq<str>>`
+String                | str           | `seq<str>`          | `seq<seq<str>>`
 Bytes                 | bytes      |                          |
 
 Some important remarks:
 
-- units is no longer a common member of the TaurusAttribute. Each each physical value, being represented as a Quantity object, has its own units (e.g. the rvalue, wvalue or the range values units are not necessarily identical, although they should be compatible among them)
+- units is no longer a common member of the TaurusAttribute. Each physical value, being represented as a Quantity object, has its own units (e.g. the rvalue, wvalue or the range values units are not necessarily identical, although they should be compatible among them)
 - The use of Quantity objects blurs the difference between integer and float numbers because unit transformations may transform a quantity whose magnitude initially was an integer into a "float"-based quantity. But this is not essentially different from the implicit type conversion between int and float objects.
 - while numpy arrays are the only allowed types for representing non-scalar booleans (and the same for integers and float within Quantities), we do **not** require numpy arrays for arrays of strings because `numpy.ndarray` imposes fixed lengths of its items. Instead, for strings we recomend using (nested) lists of `str`.
 
