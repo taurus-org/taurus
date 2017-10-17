@@ -90,10 +90,8 @@ class TangoAttrValue(TaurusAttrValue):
         if self._attrRef is None:
             return
 
-        numerical = (PyTango.is_numerical_type(self._attrRef._tango_data_type,
-                                              inc_array=True) or
-                     p.type == PyTango.CmdArgType.DevUChar
-                     )
+        numerical = PyTango.is_numerical_type(self._attrRef._tango_data_type,
+                                              inc_array=True)
 
         if p.has_failed:
             self.error = PyTango.DevFailed(*p.get_err_stack())
@@ -315,10 +313,6 @@ class TangoAttribute(TaurusAttribute):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # PyTango connection
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
-    def isNumeric(self, inc_array=False):
-        tgtype = self._tango_data_type
-        return PyTango.is_numerical_type(tgtype, inc_array=inc_array)
 
     def isInteger(self, inc_array=False):
         tgtype = self._tango_data_type
@@ -905,7 +899,7 @@ class TangoAttribute(TaurusAttribute):
             ###############################################################
             # changed in taurus4: range, alarm and warning now return
             # quantities if appropriate
-            if self.isNumeric(True):
+            if self.isNumeric():
                 units = self._unit_from_tango(i.unit)
             else:
                 units = UR.parse_units(None)
