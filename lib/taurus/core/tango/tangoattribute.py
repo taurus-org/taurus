@@ -444,23 +444,20 @@ class TangoAttribute(TaurusAttribute):
             else:
                 value = self.decode(value)
                 self.__attr_err = error
+                if self.__attr_err:
+                    raise self.__attr_err
+                # Avoid "valid-but-outdated" notifications 
+                # if FILTER_OLD_TANGO_EVENTS is enabled
+                # and the given timestamp is older than the timestamp
+                # of the cached value
                 filter_old_event = getattr(tauruscustomsettings,
                                            'FILTER_OLD_TANGO_EVENTS', False)
-
-                # Discard "valid" notifications (value is not None and error
-                # is None) if FILTER_OLD_TANGO_EVENTS is enabled
-                # and the given timestamp is older than the timestamp
-                # of the cache value
                 if (self.__attr_value is not None
-                    and self.__attr_err is None
                     and filter_old_event
                     and time is not None
                     and time < self.__attr_value.time.totime()):
                     return
-
                 self.__attr_value = value
-                if self.__attr_err:
-                    raise self.__attr_err
         except PyTango.DevFailed, df:
             self.__subscription_event.set()
             self.debug("Error polling: %s" % df[0].desc)
