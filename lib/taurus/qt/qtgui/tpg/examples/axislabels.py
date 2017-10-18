@@ -23,28 +23,31 @@
 ##
 #############################################################################
 
+
+"""
+This is an example of how to assign specific labels to arbitrary positions
+of a given axis using AxisItem.setTicks().
+
+(Pure Qt)
+"""
+
 import sys
-from taurus.qt.qtgui.application import TaurusApplication
+from pyqtgraph.Qt import QtGui
 import pyqtgraph as pg
 import numpy as np
 
 
 if __name__ == '__main__':
 
-    """
-    This is an example of how to assign specific labels to a given axis.
-    First we have to define this labels names, and extract the axis from
-    plotItem or Widget and call the method AxisItem.setTicks().
-    """
-
-    app = TaurusApplication()
+    app = QtGui.QApplication([])
 
     w = pg.PlotWidget()
 
-    ticks = [list(zip(range(5), ('a', 'b', 'c', 'd', 'e')))]
+    # define a list of position,label tuples
+    ticks = [list(zip((1, 2, 3, 7, 8), ('a', 'b', 'c', 'd', 'e')))]
     xax = w.getAxis('bottom')
     xax.setTicks(ticks)
-    w.plot(np.arange(5))
+    w.plot(np.arange(9))
 
 
     w.show()
