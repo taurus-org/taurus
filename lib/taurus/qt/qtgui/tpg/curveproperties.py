@@ -24,7 +24,7 @@
 #############################################################################
 
 """
-curvesAppearanceChooserDlg.py:
+curveproperties.py:
     A Qt dialog for choosing plot appearance (symbols and lines)
     for a Pyqtgraph.PlotDataItem or taurus-derived class
     like TaurusPlotDataItem
@@ -38,7 +38,7 @@ import pyqtgraph
 from taurus.external.qt import Qt
 from taurus.core.util.containers import CaselessDict
 from taurus.qt.qtgui.util.ui import UILoadable
-from taurus.qt.qtgui.tpg.axisYtool import Y2ViewBox
+from taurus.qt.qtgui.tpg.y2axis import Y2ViewBox
 
 class CONFLICT(object):
     pass

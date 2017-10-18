@@ -23,12 +23,12 @@
 ##
 #############################################################################
 
-from .axisYtool import Y2ViewBox
-from .curvesPropertiesTool import CurvesPropertiesTool
+from .y2axis import Y2ViewBox
+from .curvespropertiestool import CurvesPropertiesTool
 from .dateaxisitem import DateAxisItem
-from .oscmodetool import XAutoPanAction
+from .autopantool import XAutoPanAction
 from .plot import TaurusPlot
-from .plotLegendTool import PlotLegendTool
+from .legendtool import PlotLegendTool
 from .taurusimageitem import TaurusImageItem
 from .taurusplotdataitem import TaurusPlotDataItem
 from .taurustrendset import TaurusTrendSet

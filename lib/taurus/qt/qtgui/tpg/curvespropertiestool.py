@@ -26,11 +26,9 @@ __all__ = ["CurvesPropertiesTool"]
 
 from taurus.external.qt import QtGui, Qt
 from taurus.external.qt import QtCore
-from curvesAppearanceChooserDlg import (
+from curveproperties import (
     CurvePropAdapter, CurvesAppearanceChooser)
 import pyqtgraph
-
-from taurus.qt.qtgui.tpg.taurusplotdataitem import TaurusPlotDataItem
 
 
 class CurvesPropertiesTool(QtGui.QAction):
@@ -91,7 +89,7 @@ if __name__ == '__main__':
     import pyqtgraph as pg
     from taurus.qt.qtgui.tpg.taurusplotdataitem import TaurusPlotDataItem
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.tpg.curvesPropertiesTool import CurvesPropertiesTool
+    from taurus.qt.qtgui.tpg.curvespropertiestool import CurvesPropertiesTool
 
 
     app = TaurusApplication()
