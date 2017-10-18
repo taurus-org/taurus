@@ -442,21 +442,26 @@ class TangoAttribute(TaurusAttribute):
             self.error("[Tango] write failed: %s" % str(e))
             raise e
 
-    def poll(self, **kwargs):
+    def poll(self,  single=True, value=None, time=None, error=None):
         """ Notify listeners when the attribute has been polled"""
-        single = kwargs.get('single', True)
         try:
             if single:
                 self.read(cache=False)
             else:
-                value = self.decode(kwargs.get('value'))
-                self.__attr_err = kwargs.get('error')
+                value = self.decode(value)
+                self.__attr_err = error
                 filter_old_event = getattr(tauruscustomsettings,
                                            'FILTER_OLD_TANGO_EVENTS', False)
-                if self.__attr_value is not None and \
-                        self.__attr_err is None and \
-                        filter_old_event and \
-                        kwargs.get('time') < self.__attr_value.time.totime():
+
+                # Discard "valid" notifications (value is not None and error
+                # is None) if FILTER_OLD_TANGO_EVENTS is enabled
+                # and the given timestamp is older than the timestamp
+                # of the cache value
+                if (self.__attr_value is not None
+                    and self.__attr_err is None
+                    and filter_old_event
+                    and time is not None
+                    and time < self.__attr_value.time.totime()):
                     return
 
                 self.__attr_value = value
@@ -518,12 +523,12 @@ class TangoAttribute(TaurusAttribute):
         if self.__attr_err is not None:
             raise self.__attr_err
         return self.__attr_value
-    
+
     def getAttributeProxy(self):
         """Convenience method that creates and returns a PyTango.AttributeProxy
         object"""
         return PyTango.AttributeProxy(self.getFullName())
-    
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -740,11 +745,16 @@ class TangoAttribute(TaurusAttribute):
             attr_value = self.decode(event.attr_value)
             filter_old_event = getattr(tauruscustomsettings,
                                        'FILTER_OLD_TANGO_EVENTS', False)
-            if self.__attr_value is not None and \
-                filter_old_event and \
-                event.attr_value.time.totime() < \
-                            self.__attr_value.time.totime():
-                return None, None
+            time = event.attr_value.time.totime()
+
+            # Discard "valid" events if the attribute value is not None
+            # and FILTER_OLD_TANGO_EVENTS is enabled
+            # and the given timestamp is older than the timestamp
+            # of the cache value
+            if (self.__attr_value is not None
+                and filter_old_event
+                and time < self.__attr_value.time.totime()):
+                return [None, None]
 
             self.__attr_value = attr_value
             self.__attr_err = None
@@ -760,7 +770,7 @@ class TangoAttribute(TaurusAttribute):
                           event.errors[0].reason)
                 self.__subscription_state = SubscriptionState.PendingSubscribe
                 self._activatePolling()
-            return None, None
+            return [None, None]
 
         else:
             self.__attr_value, self.__attr_err = None, PyTango.DevFailed(
