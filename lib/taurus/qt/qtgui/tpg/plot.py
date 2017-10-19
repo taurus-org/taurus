@@ -28,7 +28,7 @@ import copy
 from taurus.core.util.containers import LoopList
 from taurus.qt.qtgui.base.taurusbase import TaurusBaseComponent
 from taurus.qt.qtgui.tpg.curvespropertiestool import CurvesPropertiesTool
-from taurus.qt.qtgui.tpg.taurusmodelchoosertool import TaurusModelChooserTool
+# from taurus.qt.qtgui.tpg.taurusmodelchoosertool import TaurusModelChooserTool
 from taurus.qt.qtgui.tpg.taurusXYmodelChooser import TaurusXYModelChooserTool
 from taurus.qt.qtgui.tpg.legendtool import PlotLegendTool
 from taurus.qt.qtgui.tpg.taurusplotdataitem import TaurusPlotDataItem
@@ -48,15 +48,31 @@ CURVE_COLORS = [Qt.QPen(Qt.Qt.red),
 
 
 class TaurusPlot(PlotWidget, TaurusBaseComponent):
+    """
+    TaurusPlot is a general widget for plotting 1D data sets. It is an extended
+    taurus-aware version of :class:`pyqtgraph.PlotWidget`.
+
+    Apart from all the features already available in a regulat PlotWidget,
+    TaurusPGPlot incorporates the following tools/features:
+
+        - Secondary Y axis (right axis)
+        - A plot configuration dialog, and save/restore configuration facilities
+        - A menu option for adding/removing models
+        - A menu option for showing/hiding the legend
+        - Automatic color change of curves for newly added models
+
+    """
 
     def __init__(self, parent=None,  **kwargs):
-        TaurusBaseComponent.__init__(self, 'TaurusPlot')
 
+        TaurusBaseComponent.__init__(self, 'TaurusPlot')
         PlotWidget.__init__(self, parent=parent, **kwargs)
 
+        # set up cyclic color generator
         self._curveColors = LoopList(CURVE_COLORS)
         self._curveColors.setCurrentIndex(-1)
 
+        # add save & retrieve configuration actions
         menu = self.getPlotItem().getViewBox().menu
         saveConfigAction = QtGui.QAction('Save configuration', menu)
         saveConfigAction.triggered[()].connect(self.saveConfigFile)
@@ -69,27 +85,33 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         self.registerConfigProperty(self._getState,
                                     self.restoreState, 'state')
 
+        # add legend tool
         plot_legend_tool = PlotLegendTool()
         plot_legend_tool.attachToPlotItem(self.getPlotItem(), self)
 
+        # add model chooser
         taurus_XYmodel_chooser_tool = TaurusXYModelChooserTool()
         taurus_XYmodel_chooser_tool.attachToPlotItem(
             self.getPlotItem(), self, self._curveColors)
 
-        # if we want the option to change curves between Y axes inside
-        # the curve properties configuration dialog, we must instantiate
-        # a Y2ViewBox object and through for parameters to CurvePropertiesTool
+        # add Y2 axis
         self._y2ViewBox = Y2ViewBox()
         self._y2ViewBox.attachToPlotItem(self.getPlotItem())
 
+        # add plot configuration dialog
         curve_prop_tool = CurvesPropertiesTool()
         curve_prop_tool.attachToPlotItem(self.getPlotItem(), self,
                                          Y2Axis=self._y2ViewBox)
 
+        # Register config properties
         self.registerConfigDelegate(self._y2ViewBox, 'Y2Axis')
         self.registerConfigDelegate(plot_legend_tool, 'legend')
 
     def setModel(self, models):
+        """Set a list of models"""
+        # TODO: remove previous models!
+        # TODO: support setting xmodels as well
+        # TODO: Consider supporting a space-separated string as a model
         for model in models:
             curve = TaurusPlotDataItem(name=model)
             curve.setModel(model)
@@ -97,6 +119,10 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
             self.addItem(curve)
 
     def createConfig(self, allowUnpickable=False):
+        """
+        Reimplemented from BaseConfigurableClass to manage the config
+        properties of the curves attached to this plot
+        """
 
         try:
             # Temporarily register curves as delegates
@@ -118,6 +144,10 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         return configdict
 
     def applyConfig(self, configdict, depth=None):
+        """
+        Reimplemented from BaseConfigurableClass to manage the config
+        properties of the curves attached to this plot
+        """
         try:
             # Temporarily register curves as delegates
             tmpreg = []
@@ -182,26 +212,69 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         return state
 
 
-if __name__ == '__main__':
+def TaurusPlotMain():
     import sys
-    from taurus.qt.qtgui.application import TaurusApplication
-    import pyqtgraph as pg
-    import numpy
+    import taurus.qt.qtgui.application
+    import taurus.core.util.argparse
 
-    app = TaurusApplication()
+    parser = taurus.core.util.argparse.get_taurus_parser()
+    parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
+    parser.set_description("a taurus application for plotting 1D data sets")
+    parser.add_option("--config", "--config-file", dest="config_file",
+                      default=None,
+                      help="use the given config file for initialization"
+                      )
+    parser.add_option ("-x", "--x-axis-mode", dest="x_axis_mode", default='n',
+                       metavar="t|n",
+                       help=('X axis mode. "t" implies using a Date axis' +
+                             '"n" uses the regular axis'
+                             )
+                       )
+    parser.add_option ("--demo", action="store_true", dest="demo",
+                       default=False, help="show a demo of the widget")
+    parser.add_option("--window-name", dest="window_name",
+                      default="TaurusPlot (pg)", help="Name of the window")
+
+    app = taurus.qt.qtgui.application.TaurusApplication(
+        cmd_line_parser=parser,
+        app_name="taurusplot(pg)",
+        app_version=taurus.Release.version
+    )
+
+    args = app.get_command_line_args()
+    options = app.get_command_line_options()
+
+    models = args
     w = TaurusPlot()
+
     # w.loadConfigFile('tmp/TaurusPlot.pck')
 
+    w.setWindowTitle(options.window_name)
 
-    w.setModel(['eval:rand(256)', 'sys/tg_test/1/wave'])
+    if options.demo:
+        args.extend(['eval:rand(100)', 'eval:0.5*sqrt(arange(100))'])
+
+    if options.x_axis_mode.lower() == 't':
+        from taurus.qt.qtgui.tpg.dateaxisitem import DateAxisItem
+        axis = DateAxisItem(orientation='bottom')
+        axis.attachToPlotItem(w.getPlotItem())
+
+    if options.config_file is not None:
+        w.loadConfigFile(options.config_file)
+
+    if models:
+        w.setModel(models)
 
     w.show()
-
     ret = app.exec_()
 
     # import pprint
     # pprint.pprint(w.createConfig())
 
-
     sys.exit(ret)
+
+
+if __name__ == '__main__':
+    TaurusPlotMain()
+
 
