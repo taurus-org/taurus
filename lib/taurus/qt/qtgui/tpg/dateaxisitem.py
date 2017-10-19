@@ -26,24 +26,36 @@
 """
 This module provides date-time aware axis
 """
+
 __all__ = ["DateAxisItem"]
 
-import numpy
-
-"""
-There is a conflict problem with PyQt versions. Pyqtgraph imports his own
-library of PyQt, and Taurus too. So we have to import Qt from own version
-first as a workaround for non-conflict.
-"""
-# import for workaround:
+# -------------------------------------------------------------------------
+# There is a conflict problem with PyQt versions. Pyqtgraph imports his own
+# library of PyQt, and Taurus too. So we have to import Qt from own version
+# first as a workaround for forcing our own (as a workaround)
 from taurus.external.qt import Qt
+# -------------------------------------------------------------------------
 
+import numpy
 from pyqtgraph import AxisItem
 from datetime import datetime, timedelta
 from time import mktime
 
 
 class DateAxisItem(AxisItem):
+    """
+    A tool that provides a date-time aware axis. It is implemented as an
+    AxisItem that interpretes positions as unix timestamps (i.e. seconds
+    since 1970).
+
+    The labels and the tick positions are dynamically adjusted depending
+    on the range.
+
+    It provides a  :meth:`attachToPlotItem` method to add it to a given
+    PlotItem
+    """
+
+
     # TODO: Document this class and methods
     # Max width in pixels reserved for each label in axis
     _pxLabelWidth = 80
@@ -53,6 +65,11 @@ class DateAxisItem(AxisItem):
         self._oldAxis = None
 
     def tickValues(self, minVal, maxVal, size):
+        """
+        Reimplemented from PlotItem to adjust to the range and to force
+        the ticks at "round" positions in the context of time units instead of
+        rounding in a decimal base
+        """
 
         maxMajSteps = int(size/self._pxLabelWidth)
 
@@ -133,6 +150,7 @@ class DateAxisItem(AxisItem):
         return [(d.total_seconds(), majticks)]
 
     def tickStrings(self, values, scale, spacing):
+        """Reimplemented from PlotItem to adjust to the range"""
         ret = []
         if not values:
             return []
@@ -180,6 +198,10 @@ class DateAxisItem(AxisItem):
         return ret
 
     def attachToPlotItem(self, plotItem):
+        """Add this axis to the given PlotItem
+
+        :param plotItem: (PlotItem)
+        """
         self.setParentItem(plotItem)
         viewBox = plotItem.getViewBox()
         self.linkToView(viewBox)
@@ -191,6 +213,9 @@ class DateAxisItem(AxisItem):
         self.setZValue(-1000)
 
     def detachFromPlotItem(self):
+        """Remove this axis from its attached PlotItem
+        (not yet implemented)
+        """
         pass  # TODO
 
 
