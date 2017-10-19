@@ -27,9 +27,10 @@
 taurusvalue.py:
 """
 
-__all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox", "DefaultLabelWidget",
+__all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox",
            "DefaultUnitsWidget", "TaurusPlotButton", "TaurusArrayEditorButton",
-           "TaurusValuesTableButton", "TaurusValuesTableButton_W", "TaurusDevButton"]
+           "TaurusValuesTableButton", "TaurusValuesTableButton_W",
+           "DefaultLabelWidget", "TaurusDevButton", "TaurusImageButton"]
 
 __docformat__ = 'restructuredtext'
 
@@ -254,9 +255,9 @@ class TaurusArrayEditorButton(_AbstractTaurusValueButton):
 
 
 class TaurusImageButton(_AbstractTaurusValueButton):
-    '''A button that launches a TaurusPlot'''
+    '''A button that launches an ImageDialog'''
     _widgetClassName = 'TaurusImageDialog'
-    _icon = ':/mimetypes/image-x-generic.svg'
+    _icon = 'mimetypes:image-x-generic.svg'
 
 
 class TaurusValuesTableButton(_AbstractTaurusValueButton):
@@ -275,7 +276,7 @@ class TaurusValuesTableButton_W(TaurusValuesTableButton):
 class TaurusDevButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusAttrForm'''
     _widgetClassName = 'TaurusDevicePanel'
-    _icon = ':/places/folder-remote.svg'
+    _icon = 'places:folder-remote.svg'
     _text = 'Show Device'
 
 

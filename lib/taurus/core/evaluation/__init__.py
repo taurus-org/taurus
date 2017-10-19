@@ -53,7 +53,7 @@ or the following for referring to an evaluation authority
 where:
 
     - The `<authority>` segment is optional (except when referring to an
-      EvaluationDatabase). At this point, only `//localhost` is supported.
+      EvaluationAuthority). At this point, only `//localhost` is supported.
 
     - The `@<evaluator>` is optional (except when referring to an
       EvaluationDevice). If not given, it defaults to `DefaultEvaluator`. See
@@ -172,7 +172,7 @@ Some examples of valid evaluation models are:
 
 .. note:: Previous to SEP3, a RFC3986 non-compliant syntax was used for the
           evaluation scheme (e.g., allowing names such as
-          ``tango://db=foo;dev=bar;a*b?k=2;a={tango:a/b/c/d}``).
+          ``eval://db=foo;dev=bar;a*b?k=2;a={tango:a/b/c/d}``).
           This syntax is now deprecated and should not be used. Taurus will
           issue warnings if detected.
 """

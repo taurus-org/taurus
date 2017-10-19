@@ -147,7 +147,7 @@ class TaurusFactory(object):
             raise TaurusException(msg)
 
         fullname, _, _ = v.getNames(name)
-        auth = self._devs.get(fullname)
+        auth = self._auths.get(fullname)
         if auth is not None:
             return auth
 
@@ -271,7 +271,7 @@ class TaurusFactory(object):
 
         :return: (bool) True if the scheme is supported (False otherwise)
         """
-        return scheme in self.shemes
+        return scheme in self.schemes
 
     def findObject(self, absolute_name):
         """ Must give an absolute name"""

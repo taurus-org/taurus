@@ -44,8 +44,8 @@ packages = find_packages(where='lib')
 
 provides = [
     'taurus',
-    'taurus.core',
-    'taurus.qt',
+    # 'taurus.core',
+    # 'taurus.qt',
     # 'Taurus-Tango',  # [Taurus-Tango]
     # 'Taurus-Qt',  # [Taurus-Qt]
     # 'Taurus-Qt-PyQwt',  # [Taurus-Qt-Plot]
@@ -60,12 +60,11 @@ install_requires = [
 ]
 
 extras_require = {
-    'taurus-qt': ['qtpy',
+    'taurus-qt': ['qtpy >=1.2.1',
                   # 'PyQt4 >=4.8',
                   # 'PyQt4.Qwt5 >=5.2.0',  # [Taurus-Qt-Plot]
                   'ply >=2.3',  # [Taurus-Qt-Synoptic]
                   'lxml >=2.1',  # [Taurus-Qt-TaurusGUI]
-                  'spyder >=3.0',  # [Taurus-Qt-Editor]
                   'guiqwt >=3',  # [Taurus-Qt-Guiqwt]
                   'pyqtgraph',  # [Taurus-Qt-PyQtGraph]
                   ],
@@ -75,6 +74,10 @@ extras_require = {
                      ],
     'taurus-h5file': ['h5file',
                       ],
+    # separate the editor from 'taurus-qt' to avoid forcing spyder>3
+    # which implies many more dependencies that may be hard on older system
+    'taurus-qt-editor': ['spyder >=3',
+                         ],
 }
 
 console_scripts = [
@@ -83,20 +86,20 @@ console_scripts = [
 ]
 
 gui_scripts = [
-    'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main [Taurus-Qt]',
-    'taurusplot = taurus.qt.qtgui.plot.taurusplot:main [Taurus-Qt]',
-    'taurustrend = taurus.qt.qtgui.plot.taurustrend:main [Taurus-Qt]',
-    'taurusform = taurus.qt.qtgui.panel.taurusform:taurusFormMain [Taurus-Qt]',
-    'tauruspanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusPanelMain [Taurus-Qt]',
-    'taurusdevicepanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusDevicePanelMain [Taurus-Qt]',
-    'taurusgui = taurus.qt.qtgui.taurusgui.taurusgui:main [Taurus-Qt]',
-    'taurusdesigner = taurus.qt.qtdesigner.taurusdesigner:main [Taurus-Qt]',
-    'tauruscurve = taurus.qt.qtgui.extra_guiqwt.plot:taurusCurveDlgMain [Taurus-Qt]',
-    'taurustrend1d = taurus.qt.qtgui.extra_guiqwt.plot:taurusTrendDlgMain [Taurus-Qt]',
-    'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain [Taurus-Qt]',
-    'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain [Taurus-Qt]',
-    'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main [Taurus-Qt]',
-    'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main [Taurus-Qt]',
+    'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main',
+    'taurusplot = taurus.qt.qtgui.plot.taurusplot:main',
+    'taurustrend = taurus.qt.qtgui.plot.taurustrend:main',
+    'taurusform = taurus.qt.qtgui.panel.taurusform:taurusFormMain',
+    'tauruspanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusPanelMain',
+    'taurusdevicepanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusDevicePanelMain',
+    'taurusgui = taurus.qt.qtgui.taurusgui.taurusgui:main',
+    'taurusdesigner = taurus.qt.qtdesigner.taurusdesigner:main',
+    'tauruscurve = taurus.qt.qtgui.extra_guiqwt.plot:taurusCurveDlgMain',
+    'taurustrend1d = taurus.qt.qtgui.extra_guiqwt.plot:taurusTrendDlgMain',
+    'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain',
+    'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
+    'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main',
+    'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main',
 ]
 
 entry_points = {'console_scripts': console_scripts,

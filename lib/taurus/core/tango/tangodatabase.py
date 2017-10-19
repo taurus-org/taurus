@@ -667,7 +667,8 @@ class TangoAuthority(TaurusAuthority):
                 host, port = TangoAuthority.get_default_tango_host().rsplit(':', 1)
                 pars = host, port
             except Exception, e:
-                self.warning("Error getting default Tango host:", str(e))
+                from taurus import warning
+                warning("Error getting default Tango host")
         else:
             pars = host, port
         self.dbObj = Database(*pars)
