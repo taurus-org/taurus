@@ -22,18 +22,23 @@
 # along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
-__all__ = ["XAutoPanAction"]
+
+__all__ = ["XAutoPanTool"]
 
 from taurus.external.qt import QtGui, QtCore
-import pyqtgraph as pg
 
 
-class XAutoPanAction(QtGui.QAction):
+class XAutoPanTool(QtGui.QAction):
+    """
+    A tool that provides the "AutoPan" for the X axis of a plot
+    (aka "oscilloscope mode"). It is implemented as an Action, and provides a
+    method to attach it to a :class:`pyqtgraph.PlotItem`
+    """
 
     def __init__(self, parent=None):
         QtGui.QAction.__init__(self, 'Fixed range scale', parent)
         self.setCheckable(True)
-        self.toggled.connect(self.onToggled)
+        self.toggled.connect(self._onToggled)
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self.updateRange)
         self._originalXAutoRange = None
@@ -41,24 +46,25 @@ class XAutoPanAction(QtGui.QAction):
         self._XactionMenu = None
         self._scrollStep = 0.2
 
-
     def attachToPlotItem(self, plot_item):
+        """Use this method to add this tool to a plot
+
+        :param plot_item: (PlotItem)
+        """
         self._viewBox = plot_item.getViewBox()
-        menu = self._viewBox.menu
-        # menu.addAction(self)
-        self.addToMenu(menu)
-        self.setParent(menu)
+        self._addToMenu(self._viewBox.menu)
         self._originalXAutoRange = self._viewBox.autoRangeEnabled()[0]
         self._viewBox.sigXRangeChanged.connect(self._onXRangeChanged)
 
-    def addToMenu(self, menu):
+    def _addToMenu(self, menu):
         for m in menu.axes:
             if m.title() == 'X Axis':
                 x_menu = m
                 self._XactionMenu = x_menu.actions()[0]
                 x_menu.insertAction(self._XactionMenu, self)
+                self.setParent(menu)
 
-    def onToggled(self, checked):
+    def _onToggled(self, checked):
         if checked:
             self._originalXAutoRange = self._viewBox.autoRangeEnabled()[0]
             self._viewBox.enableAutoRange(x=False)
@@ -79,8 +85,10 @@ class XAutoPanAction(QtGui.QAction):
     def _onXRangeChanged(self):
         self.setChecked(False)
 
-
     def updateRange(self):
+        """Pans the x axis (change the viewbox range maintaining width but
+        ensuring that the right-most point is shown
+        """
         if len(self._viewBox.addedItems) < 1:
             self._timer.stop()
 
@@ -89,9 +97,7 @@ class XAutoPanAction(QtGui.QAction):
 
         axis_X_range, _ = self._viewBox.state['viewRange']
 
-
         x_range = axis_X_range[1] - axis_X_range[0]
-
 
         if boundMax > axis_X_range[1] or boundMax < axis_X_range[0]:
             x_min = boundMax - axis_X_range[1]
@@ -99,7 +105,8 @@ class XAutoPanAction(QtGui.QAction):
             step = min(max(x_range * self._scrollStep, x_min), x_max)
 
             self._viewBox.sigXRangeChanged.disconnect(self._onXRangeChanged)
-            self._viewBox.setXRange(axis_X_range[0]+step, axis_X_range[1]+step, padding=0.0, update=False)
+            self._viewBox.setXRange(axis_X_range[0]+step, axis_X_range[1]+step,
+                                    padding=0.0, update=False)
             self._viewBox.sigXRangeChanged.connect(self._onXRangeChanged)
 
 
