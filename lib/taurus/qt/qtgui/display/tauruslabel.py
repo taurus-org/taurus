@@ -231,6 +231,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     def __init__(self, parent=None, designMode=False):
         self._prefix = self.DefaultPrefix
         self._suffix = self.DefaultSuffix
+        self._permanentText = None
         self._bgRole = self.DefaultBgRole
         self._fgRole = self.DefaultFgRole
         self._modelIndex = self.DefaultModelIndex
@@ -398,6 +399,10 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     def resetSuffixText(self):
         self.setSuffixText(self.DefaultSuffix)
 
+    def setPermanentText(self, text):
+        self.setText(text)
+        self._permanentText = text
+
     def setAutoTrim(self, trim):
         self._autoTrim = trim
         self.controllerUpdate()
@@ -422,6 +427,11 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
     def resetAutoTrim(self):
         self.setAutoTrim(self.DefaultAutoTrim)
+
+    def displayValue(self, v):
+        if self._permanentText is not None:
+            return self._permanentText
+        return TaurusBaseWidget.displayValue(self, v)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
