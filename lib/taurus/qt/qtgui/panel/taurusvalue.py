@@ -1216,7 +1216,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.updateLabelWidget()
 
     def resetLabelConfig(self):
-        self._labelConfig = '{attr.label}'
+        self._labelConfig = 'label'
         self.updateLabelWidget()
 
     def getSwitcherClass(self):
