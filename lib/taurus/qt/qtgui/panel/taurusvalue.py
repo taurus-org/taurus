@@ -353,6 +353,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         self.registerConfigProperty(
             self.getLabelConfig, self.setLabelConfig, 'labelConfig')
+        self.registerConfigProperty(
+            self.getLabelText, self.setLabelText, 'labelText')
         self.registerConfigProperty(self.isCompact, self.setCompact, 'compact')
 
     def setVisible(self, visible):
@@ -1236,6 +1238,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetLabelConfig(self):
         self._labelConfig = 'label'
         self.updateLabelWidget()
+
+    def getLabelText(self):
+        return self._labelText
 
     def setLabelText(self, text):
         self._labelText = text
