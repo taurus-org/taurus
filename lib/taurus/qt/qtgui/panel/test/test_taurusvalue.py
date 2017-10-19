@@ -51,14 +51,15 @@ class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
         '''Verify that case is not lost when customizing a label (bug#126)'''
         w = self._widget
         # self._widget.setModel('eval:1')
-        self._widget.setModel('tango:' + DEV_NAME + '/MIXEDcase')
+        self._widget.setModel('tango:' + DEV_NAME + '/double_scalar')
         label = 'MIXEDcase'
+        w.setLabelConfig(label)
         self.processEvents(repetitions=10, sleep=.1)
         shownLabel = str(w.labelWidget().text())
         msg = 'Shown label ("%s") differs from set label ("%s")' % (shownLabel,
                                                                     label)
         self.assertEqual(label, shownLabel, msg)
-        self.assertMaxDeprecations(0)
+        self.assertMaxDeprecations(1)
 
     def texts(self, model=None, expected=None, fgRole=None, maxdepr=0):
         '''Checks the texts for scalar attributes'''
