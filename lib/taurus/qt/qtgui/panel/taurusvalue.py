@@ -345,6 +345,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self._allowWrite = True
         self._minimumHeight = None
         self._labelConfig = 'label'
+        self._labelText = None
         self.setModifiableByUser(False)
 
         if parent is not None:
@@ -797,6 +798,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             if hasattr(self._labelWidget, 'setModel'):
                 self._labelWidget.setModel(self.getFullModelName())
 
+            if self._labelText is not None:
+                self._labelWidget.setPermanentText(self._labelText)
+
     def updateReadWidget(self):
         # get the class for the widget and replace it if necessary
         try:
@@ -1218,6 +1222,10 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetLabelConfig(self):
         self._labelConfig = 'label'
         self.updateLabelWidget()
+
+    def setLabelText(self, text):
+        self._labelText = text
+        self._labelWidget.setPermanentText(text)
 
     def getSwitcherClass(self):
         '''Returns the TaurusValue switcher class (used in compact mode).
