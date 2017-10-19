@@ -77,6 +77,20 @@ class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
         self.assertEqual(got, expected, msg)
         self.assertMaxDeprecations(maxdepr)
 
+    def test_labelCaseSensitivity(self):
+        '''Verify that case is respected of in the label widget'''
+        '''Verify that case is not lost when customizing a label (bug#126)'''
+        w = self._widget
+        # self._widget.setModel('eval:1')
+        self._widget.setModel('tango:' + DEV_NAME + '/MIXEDcase')
+        label = 'MIXEDcase'
+        self.processEvents(repetitions=10, sleep=.1)
+        shownLabel = str(w.labelWidget().text())
+        msg = 'Shown label ("%s") differs from set label ("%s")' % (shownLabel,
+                                                                    label)
+        self.assertEqual(label, shownLabel, msg)
+        self.assertMaxDeprecations(0)
+
     def tearDown(self):
         '''Set Model to None'''
         self._widget.setModel(None)
