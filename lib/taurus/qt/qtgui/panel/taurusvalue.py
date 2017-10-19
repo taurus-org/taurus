@@ -1216,6 +1216,20 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
     @Qt.pyqtSlot('QString')
     def setLabelConfig(self, config):
+        """Sets fragment configuration to the label widget.
+
+        :param config: fragment
+        :type config: str
+        """
+        # backwards compatibility: this method used to work for setting
+        # an arbitrary text to the label widget
+        try:
+            self.getModelFragmentObj(config)
+        except Exception:
+            msg = "Use setLabelText for setting an arbitrary label text"
+            self.deprecated(msg)
+            self.setLabelText(config)
+            return
         self._labelConfig = config
         self.updateLabelWidget()
 
