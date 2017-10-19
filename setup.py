@@ -67,6 +67,7 @@ extras_require = {
                   'lxml >=2.1',  # [Taurus-Qt-TaurusGUI]
                   'spyder >=3.0',  # [Taurus-Qt-Editor]
                   'guiqwt >=3',  # [Taurus-Qt-Guiqwt]
+                  'pyqtgraph',  # [Taurus-Qt-PyQtGraph]
                   ],
     'taurus-tango': ['PyTango >=7.1',
                      ],
