@@ -26,12 +26,12 @@ __all__ = ["TaurusTrendSet"]
 
 # TODO: Document
 
+import numpy
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.core.util.containers import ArrayBuffer, LoopList
 from taurus.external.qt import Qt
-from taurus.external.pint import Q_
 from pyqtgraph import PlotDataItem
-import numpy
+
 
 import taurus
 
@@ -46,13 +46,39 @@ CURVE_COLORS = [Qt.QPen(Qt.Qt.red),
 
 
 class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
+    """
+    A PlotDataItem for displaying trend curve(s) associated to a
+    TaurusAttribute. The TaurusTrendSet itself does not contain any data,
+    but acts as a manager that dynamically adds/removes curve(s) (other
+    PlotDataItems) to its associated plot.
+
+    If the attribute is a scalar, The Trend Set generates only one curve
+    representing the evolution of the value of the attribute. If the attribute
+    is an array, as many curves as the attribute size are created,
+    each representing the evolution of the value of a component of the array.
+
+    When an event is received, all curves belonging to a TaurusTrendSet
+    are updated.
+
+    TaurusTrendSet can be considered used as a container of (sorted) curves.
+    As such, the curves contained by it can be accessed by index::
+
+        ts = TaurusTrendSet('eval:rand(3)')
+        # (...) wait for a Taurus Event arriving so that the curves are created
+        ncurves = len(ts)  # ncurves will be 3 (assuming the event arrived)
+        curve0 = ts[0]     # you can access the curve by index
+
+
+    Note that internally each curve is a :class:`pyqtgraph.PlotDataItem` (i.e.,
+    it is not aware of events by itself, but it relies on the TaurusTrendSet
+    object to update its values)
+
+     """
 
     def __init__(self, *args, **kwargs):
         PlotDataItem.__init__(self, *args, **kwargs)
         TaurusBaseComponent.__init__(self, 'TaurusBaseComponent')
-
         self._UImodifiable = False
-
         self._maxBufferSize = 65536  # (=2**16, i.e., 64K events))
         self._xBuffer = None
         self._yBuffer = None
@@ -61,8 +87,17 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         self._kwargs = kwargs
         self._curves = None
 
+    def __getitem__(self, k):
+        return self._curves.__getitem__(k)
+
+    def __len__(self):
+        return self._curves.__len__(k)
+
+    def __contains__(self, k):
+        return self._curves.__contains__(k)
 
     def _initBuffers(self, ntrends):
+        """initializes new x and y buffers"""
 
         self._yBuffer = ArrayBuffer(numpy.zeros(
             (min(128, self._maxBufferSize), ntrends), dtype='d'),
@@ -73,20 +108,17 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
             maxSize=self._maxBufferSize)
 
     def _initCurves(self, ntrends):
+        """ Initializes new curves """
 
         self._curves = []
         self._curveColors.setCurrentIndex(-1)
 
-        # create as many curves as the dim_x of the given model and add
-        # them to the TrendSet
         a = self._args
         kw = self._kwargs.copy()
 
         name = taurus.Attribute(self.getModel()).getSimpleName()
-        print name
 
-
-        for i in xrange(0, ntrends):
+        for i in xrange(ntrends):
             subname = "%s[%i]" % (name, i)
             kw['name'] = subname
             curve = PlotDataItem(*a, **kw)
@@ -112,9 +144,12 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
                     viewBox.addItem(curve)
 
     def _updateBuffers(self, evt_value):
+        """Update the x and y buffers with the new data. If the new data is
+        not compatible with the existing buffers, the buffers are reset"""
 
         # TODO: we use .magnitude below to avoid issue #509 in pint
         # https://github.com/hgrecco/pint/issues/509
+
         ntrends = numpy.size(evt_value.rvalue.magnitude)
 
         if not self._isDataCompatible(evt_value, ntrends):
@@ -124,14 +159,14 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
 
         try:
             self._yBuffer.append(evt_value.rvalue.to(self._yUnits).magnitude)
-        except Exception, e:
+        except Exception as e:
             self.warning('Problem updating buffer Y (%s):%s',
                          evt_value.rvalue, e)
             evt_value = None
 
         try:
             self._xBuffer.append(evt_value.time.totime())
-        except Exception, e:
+        except Exception as e:
             self.warning('Problem updating buffer X (%s):%s',
                          evt_value, e)
 
@@ -156,11 +191,13 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
 
         return True
 
-    def addData(self, x, y):
+    def _addData(self, x, y):
         for i, curve in enumerate(self._curves):
             curve.setData(x=x, y=y[:, i])
 
     def handleEvent(self, evt_src, evt_type, evt_value):
+        """Reimplementation of :meth:`TaurusBaseComponent.handleEvent`"""
+
         # model = evt_src if evt_src is not None else self.getModelObj()
 
         # TODO: support booleans values from evt_value.rvalue
@@ -174,16 +211,17 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
                 # TODO: handle dropped events see: TaurusTrend._onDroppedEvent
                 raise
 
-        self.addData(xValues, yValues)
+        self._addData(xValues, yValues)
 
     def parentChanged(self):
+        """Reimplementation of :meth:`PlotDataItem.parentChanged` to handle
+        the change of the containing viewbox"""
         self._updateViewBox()
         PlotDataItem.parentChanged(self)
 
 
 if __name__ == '__main__':
     import sys
-    import numpy
     import pyqtgraph as pg
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.tpg.taurustrendset import TaurusTrendSet
@@ -195,15 +233,11 @@ if __name__ == '__main__':
     from taurus.qt.qtgui.tpg.curvespropertiestool import (
         CurvesPropertiesTool)
 
-
     from taurus.core.taurusmanager import TaurusManager
     taurusM = TaurusManager()
     taurusM.changeDefaultPollingPeriod(1000)  # ms
 
-
     app = TaurusApplication()
-
-
 
     # a standard pyqtgraph plot_item
     axis = DateAxisItem(orientation='bottom')
@@ -227,9 +261,6 @@ if __name__ == '__main__':
     c2.setModel('eval:rand(5)')
 
     # c2.setModel('sys/tg_test/1/wave')
-
-
-
 
     tmct = TaurusModelChooserTool(itemClass=TaurusTrendSet)
     tmct.attachToPlotItem(w.getPlotItem())
