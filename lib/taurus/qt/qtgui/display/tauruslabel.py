@@ -252,6 +252,11 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         if self._designMode:
             self.controllerUpdate()
 
+        # register configurable properties
+        self.registerConfigProperty(
+            self.getPermanentText, self.setPermanentText, "permanentText"
+            )
+
     def _calculate_controller_class(self):
         ctrl_map = _CONTROLLER_MAP
         if self._designMode:
@@ -398,6 +403,9 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
     def resetSuffixText(self):
         self.setSuffixText(self.DefaultSuffix)
+
+    def getPermanentText(self):
+        return self._permanentText
 
     def setPermanentText(self, text):
         self.setText(text)
