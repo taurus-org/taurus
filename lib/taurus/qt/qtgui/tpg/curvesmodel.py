@@ -33,9 +33,9 @@ import copy
 from taurus.external.qt import Qt
 
 import taurus
-from taurus.core.taurusexception import TaurusException
 from taurus.core import TaurusElementType
-from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import (TAURUS_MODEL_LIST_MIME_TYPE,
+                                        TAURUS_ATTR_MIME_TYPE)
 from taurus.qt.qtgui.util.ui import UILoadable
 
 
@@ -54,7 +54,10 @@ class Component(object):
         self.processSrc(src)
 
     def processSrc(self, src):
-        '''processes the src and sets the values of display, icon and ok attributes'''
+        """
+        processes the src and sets the values of display, icon and ok
+        attributes
+        """
         if src is None:
             self.display, self.icon, self.ok = '(Use indices)', Qt.QIcon(
             ), True
@@ -82,8 +85,6 @@ class Component(object):
             'dialog-warning'), False
 
 
-
-from taurus.qt.qtgui.tpg.taurusplotdataitem import TaurusPlotDataItem
 class TaurusItemConf(object):
 
     def __init__(self, YModel=None, XModel=None, name=None):
@@ -99,37 +100,14 @@ class TaurusItemConf(object):
             self.xModel, self.yModel)
         return ret
 
-    # @staticmethod
-    # def fromTaurusCurveItem(item):
-    #     return TaurusItemConf(t=item)
-    #
-    # @staticmethod
-    # def fromAny(obj):
-    #     '''return a TaurusItemConf from whatever given in input (if possible).
-    #     Raises ValueError if not possible'''
-    #     if isinstance(obj, TaurusItemConf):
-    #         return copy.deepcopy(obj)
-    #     try:
-    #         return TaurusItemConf.fromTaurusCurveItem(obj)
-    #     except:
-    #         raise
-    #     try:
-    #         return TaurusItemConf(*obj)
-    #     except:
-    #         pass
-    #     raise ValueError('Cannot convert %s into a TaurusItemConf' % repr(obj))
-
 
 class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
-    ''' A Qt data model for describing curves
-    '''
+    """ A Qt data model for describing curves
+    """
 
     dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')
 
     def __init__(self, taurusItems=None):
-        # if curves is None:
-        #     curves = []
-        # taurusItems = [TaurusItemConf.fromAny(item) for item in taurusItems]  # convert curves
         super(TaurusCurveItemTableModel, self).__init__()
         self.ncolumns = NUMCOLS
         self.taurusItems = taurusItems
@@ -216,15 +194,27 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
         else:
             return str(section + 1)
 
-    def flags(self, index):  # use this to set the editable flag when fix is selected
+    def flags(self, index):
+        # use this to set the editable flag when fix is selected
         if not index.isValid():
             return Qt.Qt.ItemIsEnabled
         column = index.column()
         if column in (X, Y):
-            return Qt.Qt.ItemFlags(Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsEditable | Qt.Qt.ItemIsDragEnabled | Qt.Qt.ItemIsDropEnabled | Qt.Qt.ItemIsSelectable)
+            return Qt.Qt.ItemFlags(Qt.Qt.ItemIsEnabled |
+                                   Qt.Qt.ItemIsEditable |
+                                   Qt.Qt.ItemIsDragEnabled |
+                                   Qt.Qt.ItemIsDropEnabled |
+                                   Qt.Qt.ItemIsSelectable
+                                   )
         elif column == TITLE:
-            return Qt.Qt.ItemFlags(Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsEditable | Qt.Qt.ItemIsDragEnabled)
-        return Qt.Qt.ItemFlags(Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsEditable | Qt.Qt.ItemIsDragEnabled)
+            return Qt.Qt.ItemFlags(Qt.Qt.ItemIsEnabled |
+                                   Qt.Qt.ItemIsEditable |
+                                   Qt.Qt.ItemIsDragEnabled
+                                   )
+        return Qt.Qt.ItemFlags(Qt.Qt.ItemIsEnabled |
+                               Qt.Qt.ItemIsEditable |
+                               Qt.Qt.ItemIsDragEnabled
+                               )
 
     def setData(self, index, value=None, role=Qt.Qt.EditRole):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
@@ -251,7 +241,9 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
             parentindex = Qt.QModelIndex()
         self.beginInsertRows(parentindex, position, position + rows - 1)
         slice = [TaurusItemConf() for i in range(rows)]
-        self.taurusItems = self.taurusItems[:position] + slice + self.taurusItems[position:]
+        self.taurusItems = (self.taurusItems[:position] + slice +
+                            self.taurusItems[position:]
+                            )
         self.endInsertRows()
         return True
 
@@ -259,7 +251,9 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
         if parentindex is None:
             parentindex = Qt.QModelIndex()
         self.beginRemoveRows(parentindex, position, position + rows - 1)
-        self.taurusItems = self.taurusItems[:position] + self.taurusItems[position + rows:]
+        self.taurusItems = (self.taurusItems[:position] +
+                            self.taurusItems[position + rows:]
+                            )
         self.endRemoveRows()
         self.reset()
         return True
@@ -317,11 +311,11 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
 
 @UILoadable(with_ui='ui')
 class TaurusItemConfDlg(Qt.QWidget):
-    ''' A configuration dialog for creating new CurveItems.
+    """ A configuration dialog for creating new CurveItems.
 
-    Provides a browser for Taurus models and an editable table for the sources
+    Provides a TaurusModelBrowserbrowser for Taurus models and an editable table for the sources
     and title of data
-    '''
+    """
 
     dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')
     applied = Qt.pyqtSignal()
@@ -332,8 +326,9 @@ class TaurusItemConfDlg(Qt.QWidget):
         self._showXcol = showXcol
 
         if taurusItemsConf is None:
-            taurusItemsConf = [TaurusItemConf(
-                YModel=None, XModel=None, name=None)]
+            taurusItemsConf = [
+                TaurusItemConf(YModel=None, XModel=None, name=None)
+            ]
 
         self.ui.tangoTree.setButtonsPos(Qt.Qt.RightToolBarArea)
 
@@ -346,19 +341,13 @@ class TaurusItemConfDlg(Qt.QWidget):
         table.setModel(self.model)
         table.setColumnHidden(X, not self._showXcol)
 
-#        #adjust the column widths
-#        table.resizeColumnsToContents()
-#        availableSpace = table.viewport().width()
-#        for col in xrange(self.model.columnCount()):
-#            availableSpace -= table.columnWidth(col)
-#        if availableSpace > 0:
-#            extraSpace = availableSpace / self.model.columnCount()
-#            for col in xrange(self.model.columnCount()):
-#                table.setColumnWidth(col, table.columnWidth(col)+extraSpace)
+        # -------------------------------------------------------------------
+        # I get "UnboundLocalError: local variable 'taurus' referenced before
+        # assignment" if I don't import taurus again here
+        # TODO: check if this workaround is really needed
+        import taurus
+        # -------------------------------------------------------------------
 
-        # host
-
-        import taurus  # @todo: I get "UnboundLocalError: local variable 'taurus' referenced before assignment" if I don't import taurus again here ????
         host = taurus.Authority().getNormalName()
         self.ui.tangoTree.setModel(host)
 
@@ -367,7 +356,8 @@ class TaurusItemConfDlg(Qt.QWidget):
         self.ui.reloadBT.clicked.connect(self.onReload)
         self.ui.cancelBT.clicked.connect(self.close)
         self.ui.tangoTree.addModels.connect(self.onModelsAdded)
-        self.ui.curvesTable.customContextMenuRequested.connect(self.onTableContextMenu)
+        self.ui.curvesTable.customContextMenuRequested.connect(
+            self.onTableContextMenu)
 
     def onTableContextMenu(self, pos):
         index = self.ui.curvesTable.indexAt(pos)
@@ -406,15 +396,17 @@ class TaurusItemConfDlg(Qt.QWidget):
 
     @staticmethod
     def showDlg(parent=None, taurusItemConf=None, showXCol=True):
-        '''Static method that launches a modal dialog containing a TaurusItemConfDlg
+        """
+        Static method that launches a modal dialog containing a
+        TaurusItemConfDlg.
 
-        :param parent: (QObject) parent for the dialog
+        For the parameters, see :class:`TaurusItemConfDlg`
 
-        :return: (list,bool or QMimeData,bool) Returns a models,ok tuple. models can be
-                 either a list of models or a QMimeData object, depending on
-                 `asMimeData`. ok is True if the dialog was accepted (by
-                 clicking on the "update" button) and False otherwise
-        '''
+        :return: (list,bool) Returns a models,ok tuple
+                 models is a list of models.
+                 ok is True if the dialog was accepted (by clicking on the
+                 "update" button) and False otherwise
+        """
         dlg = Qt.QDialog(parent)
         dlg.setWindowTitle('Curves Selection')
         layout = Qt.QVBoxLayout()
@@ -431,5 +423,6 @@ class TaurusItemConfDlg(Qt.QWidget):
         self.applied.emit()
 
     def onReload(self):
+        # TODO
         print "RELOAD!!! (todo)"
 
