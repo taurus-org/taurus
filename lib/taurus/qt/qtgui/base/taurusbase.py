@@ -1246,7 +1246,8 @@ class TaurusBaseWidget(TaurusBaseComponent):
         formatter = getattr(taurus.tauruscustomsettings,
                             'DEFAULT_FORMATTER', None)
         if formatter is not None:
-            self._setFormatter(formatter)
+            format = self._getFormatter(formatter)
+            self.setFormat(format)
 
     def _getFormatter(self, formatter):
         '''' Method to get custom formatter
