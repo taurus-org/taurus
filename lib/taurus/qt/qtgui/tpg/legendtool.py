@@ -28,28 +28,38 @@ from taurus.external.qt import QtGui
 from taurus.qt.qtcore.configuration.configuration import BaseConfigurableClass
 
 
-class PlotLegendTool(QtGui.QAction, BaseConfigurableClass):
+class PlotLegendTool(QtGui.QWidgetAction, BaseConfigurableClass):
     """
-    This tool adds an action to a menu for show/hide the legend
-    within the parent item (widget, view, plotItem). Also provides a config
-    property (active or not) legend.
+    This tool adds a legend to the PlotItem to which it is attached, and it
+    inserts a checkable menu action for showing/hiding the legend.
+
+    Implementation note: this is implemented as a QWidgetAction+QCheckBox
+    instead of a checkable QAction to avoid closing the menu when toggling it
     """
     def __init__(self, parent=None):
         BaseConfigurableClass.__init__(self)
-        QtGui.QAction.__init__(self, 'Show legend', parent)
-        self.registerConfigProperty(self.isChecked, self.setChecked, 'checked')
-        self.setCheckable(True)
-        self.toggled.connect(self.onToggled)
+        QtGui.QWidgetAction.__init__(self, parent)
+        self._cb = QtGui.QCheckBox()
+        self._cb.setText('Show legend')
+        self.setDefaultWidget(self._cb)
+        self.registerConfigProperty(self._cb.isChecked, self._cb.setChecked,
+                                    'checked')
+        self._cb.toggled.connect(self._onToggled)
         self._legend = None
 
     def attachToPlotItem(self, plotItem, parentWidget=None):
+        """
+        Use this method to add this tool to a plot
+
+        :param plot_item: (PlotItem)
+        """
         self._legend = plotItem.addLegend()
-        self.setChecked(True)
+        self._cb.setChecked(True)
         menu = plotItem.getViewBox().menu
         menu.addAction(self)
         self.setParent(parentWidget or menu)
 
-    def onToggled(self, checked):
+    def _onToggled(self, checked):
         if checked:
             self._legend.show()
         else:
