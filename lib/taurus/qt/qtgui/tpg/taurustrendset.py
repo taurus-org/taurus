@@ -245,7 +245,7 @@ if __name__ == '__main__':
     axis.attachToPlotItem(w.getPlotItem())
 
     cp = CurvesPropertiesTool()
-    cp.attachToPlotItem(w.getPlotItem())
+    cp.attachToPlotItem (w.getPlotItem ())
 
     oscMode = XAutoPanTool()
     oscMode.attachToPlotItem(w.getPlotItem())
@@ -263,7 +263,7 @@ if __name__ == '__main__':
     # c2.setModel('sys/tg_test/1/wave')
 
     tmct = TaurusModelChooserTool(itemClass=TaurusTrendSet)
-    tmct.attachToPlotItem(w.getPlotItem())
+    tmct.attachToPlotItem (w.getPlotItem ())
 
 
     w.show()
