@@ -1269,9 +1269,16 @@ class TaurusBaseWidget(TaurusBaseComponent):
         :return: formatter: python fromat string or formatter callable
         (in string version) or None
         '''
+        if isinstance(self.FORMAT, str):
+            current_format = self.FORMAT
+        else:
+            current_format = '{0}.{1}'.format(self.FORMAT.__module__,
+                                              self.FORMAT.__name__)
+
         formatter, ok = Qt.QInputDialog.getText(self, "Set formatter",
                                                 "Enter a formatter:",
-                                                Qt.QLineEdit.Normal, "")
+                                                Qt.QLineEdit.Normal,
+                                                current_format)
         if ok and formatter:
             return self._getFormatter(formatter)
 
