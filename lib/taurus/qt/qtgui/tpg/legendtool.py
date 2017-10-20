@@ -47,7 +47,7 @@ class PlotLegendTool(QtGui.QWidgetAction, BaseConfigurableClass):
         self._cb.toggled.connect(self._onToggled)
         self._legend = None
 
-    def attachToPlotItem(self, plotItem, parentWidget=None):
+    def attachToPlotItem(self, plotItem):
         """
         Use this method to add this tool to a plot
 
@@ -57,7 +57,6 @@ class PlotLegendTool(QtGui.QWidgetAction, BaseConfigurableClass):
         self._cb.setChecked(True)
         menu = plotItem.getViewBox().menu
         menu.addAction(self)
-        self.setParent(parentWidget or menu)
 
     def _onToggled(self, checked):
         if checked:

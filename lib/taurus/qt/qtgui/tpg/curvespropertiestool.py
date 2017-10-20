@@ -26,27 +26,38 @@ __all__ = ["CurvesPropertiesTool"]
 
 from taurus.external.qt import QtGui, Qt
 from taurus.external.qt import QtCore
-from curveproperties import (
-    CurvePropAdapter, CurvesAppearanceChooser)
+from curveproperties import CurvePropAdapter, CurvesAppearanceChooser
 import pyqtgraph
 
 
 class CurvesPropertiesTool(QtGui.QAction):
+    """
+    This tool inserts an action in the menu of the :class:`pyqtgraph.PlotItem`
+    to which it is attached to show a dialog for editing curve properties.
+    It is implemented as an Action, and provides a method to attach it to a
+    PlotItem.
+    """
 
     def __init__(self, parent=None):
         QtGui.QAction.__init__(self, 'Plot configuration', parent)
-        self.triggered.connect(self.onTriggered)
+        self.triggered.connect(self._onTriggered)
         self.plot_item = None
         self.Y2Axis = None
 
-    def attachToPlotItem(self, plot_item, parentWidget=None, Y2Axis=None):
+    def attachToPlotItem(self, plot_item, y2=None):
+        """
+        Use this method to add this tool to a plot
+
+        :param plot_item: (PlotItem)
+        :param y2: (Y2ViewBox) instance of the Y2Viewbox attached to plot_item
+                   if the axis change controls are to be used
+        """
         self.plot_item = plot_item
         menu = plot_item.getViewBox().menu
         menu.addAction(self)
-        self.setParent(parentWidget or menu)  # Should be to a plot_item!!!
-        self.Y2Axis = Y2Axis
+        self.Y2Axis = y2
 
-    def onTriggered(self):
+    def _onTriggered(self):
         data_items = self.plot_item.listDataItems()
         # checks in all ViewBoxes from plot_item,
         # looking for a data_items (Curves).
@@ -81,16 +92,13 @@ class CurvesPropertiesTool(QtGui.QAction):
         dlg.exec_()
 
 
-
-
 if __name__ == '__main__':
     import sys
     import numpy
     import pyqtgraph as pg
-    from taurus.qt.qtgui.tpg.taurusplotdataitem import TaurusPlotDataItem
+    from taurus.qt.qtgui.tpg import TaurusPlotDataItem
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.tpg.curvespropertiestool import CurvesPropertiesTool
-
+    from taurus.qt.qtgui.tpg import CurvesPropertiesTool
 
     app = TaurusApplication()
 
@@ -100,26 +108,36 @@ if __name__ == '__main__':
     #add legend to the plot, for that we have to give a name to plot items
     w.addLegend()
 
-    # adding a regular data item (non-taurus)
+    # add a Y2 axis
+    from taurus.qt.qtgui.tpg import Y2ViewBox
+    y2ViewBox = Y2ViewBox()
+    y2ViewBox.attachToPlotItem(w.getPlotItem())
 
-    c1 = pg.PlotDataItem(name='st plot',pen=dict(color='y', width=3, style=QtCore.Qt.DashLine), fillLevel=0.3, fillBrush='c')
+    # adding a regular data item (non-taurus)
+    c1 = pg.PlotDataItem(
+        name='st plot',
+        pen=dict(color='y', width=3, style=QtCore.Qt.DashLine),
+        fillLevel=0.3,
+        fillBrush='g'
+        )
 
     c1.setData(numpy.arange(300) / 300.)
     w.addItem(c1)
 
     # adding a taurus data item
-    c2 = TaurusPlotDataItem(name='st2 plot',  pen='r', symbol='o',symbolSize=10)
+    c2 = TaurusPlotDataItem(name='st2 plot',  pen='r', symbol='o',
+                            symbolSize=10)
     c2.setModel('sys/tg_test/1/wave')
 
     w.addItem(c2)
 
-    # w.addItem(pg.PlotDataItem([10, 20, 40, 80, 40, 20], pen='b', name='st'))
-    # w.addItem(pg.PlotDataItem([3200, 1600, 800, 400, 200, 100], pen='r', name='st2'))
-
-    #attach plot item contained in the PlotWidget to a new TaurusModelChooserTool
-    curve_dialog = CurvesPropertiesTool()
-    curve_dialog.attachToPlotItem(w.getPlotItem(), parentWidget=w);
+    # attach tool to plot item of the PlotWidget
+    tool = CurvesPropertiesTool()
+    tool.attachToPlotItem(w.getPlotItem(), y2=y2ViewBox)
 
     w.show()
+
+    # directly trigger the tool
+    tool.trigger ()
 
     sys.exit(app.exec_())

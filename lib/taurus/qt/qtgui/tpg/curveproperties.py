@@ -24,10 +24,9 @@
 #############################################################################
 
 """
-curveproperties.py:
-    A Qt dialog for choosing plot appearance (symbols and lines)
-    for a Pyqtgraph.PlotDataItem or taurus-derived class
-    like TaurusPlotDataItem
+A Qt dialog for choosing plot appearance (symbols and lines)
+for a Pyqtgraph.PlotDataItem or taurus-derived class
+like TaurusPlotDataItem
 """
 __all__ = ["CurveAppearanceProperties", "CurvePropAdapter",
            "CurvesAppearanceChooser"]
@@ -38,10 +37,16 @@ import pyqtgraph
 from taurus.external.qt import Qt
 from taurus.core.util.containers import CaselessDict
 from taurus.qt.qtgui.util.ui import UILoadable
-from taurus.qt.qtgui.tpg.y2axis import Y2ViewBox
+from taurus.qt.qtgui.tpg import Y2ViewBox
+
 
 class CONFLICT(object):
+    """
+    This is just a do-nothing class to be used to indicate that there are
+    conflicting values when merging properties from different curves
+    """
     pass
+
 
 NamedLineStyles = {CONFLICT: "",
                    Qt.Qt.NoPen: "No line",
@@ -51,12 +56,14 @@ NamedLineStyles = {CONFLICT: "",
                    Qt.Qt.DashDotLine: "_._._",
                    Qt.Qt.DashDotDotLine: ".._..",
                    }
+
+
 ReverseNamedLineStyles = {}
 for k, v in NamedLineStyles.iteritems():
     ReverseNamedLineStyles[v] = k
 
 
-# TODO:allows to dialog use this curve styles
+# TODO:allow the dialog to use this curve styles
 NamedCurveStyles = {CONFLICT: "",
                     None: "",
                     "No curve": "No curve",
@@ -65,6 +72,7 @@ NamedCurveStyles = {CONFLICT: "",
                     "Steps": "Steps",
                     "Dots": "Dots"
                     }
+
 
 ReverseNamedCurveStyles = {}
 for k, v in NamedCurveStyles.iteritems():
@@ -86,9 +94,11 @@ NamedSymbolStyles = {
     'h': "Hexagon"
 }
 
+
 ReverseNamedSymbolStyles = {}
 for k, v in NamedSymbolStyles.iteritems():
     ReverseNamedSymbolStyles[v] = k
+
 
 NamedColors = ["Black", "Red", "Blue", "Magenta",
                "Green", "Cyan", "Yellow", "Gray", "White"]
@@ -138,22 +148,22 @@ class CurvesAppearanceChooser(Qt.QWidget):
         self.bckgndBT.setIcon(Qt.QIcon(":color-fill.svg"))
 
         # connections.
-        self.curvesLW.itemSelectionChanged.connect(self.onSelectedCurveChanged)
-        self.curvesLW.itemChanged.connect(self.onItemChanged)
+        self.curvesLW.itemSelectionChanged.connect(self._onSelectedCurveChanged)
+        self.curvesLW.itemChanged.connect(self._onItemChanged)
         self.applyBT.clicked.connect(self.onApply)
         self.resetBT.clicked.connect(self.onReset)
         self.sStyleCB.currentIndexChanged.connect(self._onSymbolStyleChanged)
 
-        self.sStyleCB.currentIndexChanged.connect(self.onControlChanged)
-        self.lStyleCB.currentIndexChanged.connect(self.onControlChanged)
-        self.sColorCB.currentIndexChanged.connect(self.onControlChanged)
-        self.lColorCB.currentIndexChanged.connect(self.onControlChanged)
-        self.cStyleCB.currentIndexChanged.connect(self.onControlChanged)
-        self.sSizeSB.valueChanged.connect(self.onControlChanged)
-        self.lWidthSB.valueChanged.connect(self.onControlChanged)
-        self.cAreaDSB.valueChanged.connect(self.onControlChanged)
-        self.sFillCB.stateChanged.connect(self.onControlChanged)
-        self.cFillCB.stateChanged.connect(self.onControlChanged)
+        self.sStyleCB.currentIndexChanged.connect(self._onControlChanged)
+        self.lStyleCB.currentIndexChanged.connect(self._onControlChanged)
+        self.sColorCB.currentIndexChanged.connect(self._onControlChanged)
+        self.lColorCB.currentIndexChanged.connect(self._onControlChanged)
+        self.cStyleCB.currentIndexChanged.connect(self._onControlChanged)
+        self.sSizeSB.valueChanged.connect(self._onControlChanged)
+        self.lWidthSB.valueChanged.connect(self._onControlChanged)
+        self.cAreaDSB.valueChanged.connect(self._onControlChanged)
+        self.sFillCB.stateChanged.connect(self._onControlChanged)
+        self.cFillCB.stateChanged.connect(self._onControlChanged)
 
         # self.bckgndBT.clicked.connect(self.changeBackgroundColor)
 
@@ -168,10 +178,9 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
         # set properties from curves for first launch of config dialog and
         # keeps a curvePropAdapter object
-        self.onSelectedCurveChanged()
+        self._onSelectedCurveChanged()
         self.curvePropAdapter = curvePropAdapter
         self.axis = None
-
 
     def changeBackgroundColor(self):
         """Launches a dialog for choosing the parent's canvas background color
@@ -205,7 +214,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
                           Qt.Qt.ItemIsEditable)
         self.curvesLW.setCurrentRow(0)
 
-    def onItemChanged(self, item):
+    def _onItemChanged(self, item):
         """slot used when an item data has changed"""
         name =item.data(self.NAME_ROLE)
         previousTitle = self.curvePropDict[name].title
@@ -320,8 +329,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
             self.cAreaDSB.setValue(prop.cFill)
         self.cFillCB.setCheckState(checkState)
 
-
-    def onControlChanged(self, *args):
+    def _onControlChanged(self, *args):
         """
         Slot to be called whenever a control plot_item is changed. It emits a
         `controlChanged` signal and applies the change if in autoapply mode.
@@ -332,7 +340,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
         if self.autoApply:
             self.onApply()
 
-    def onSelectedCurveChanged(self):
+    def _onSelectedCurveChanged(self):
         """Updates the shown properties when the curve selection changes"""
         plist = [self.curvePropDict[name]
                  for name in self.getSelectedCurveNames()]
@@ -419,10 +427,9 @@ class CurvesAppearanceChooser(Qt.QWidget):
         """Apply does 2 things:
 
             - It updates `self.curvePropDict` using the current values
-              choosen in the dialog
+              chosen in the dialog
             - It emits a curveAppearanceChanged signal that indicates the names
-              of the curves that changed and the new properties. (The names and
-              the properties are returned by the function as well)
+              of the curves that changed and the new properties.  (TODO)
 
         :return: (tuple<CurveAppearanceProperties,list>) a tuple containing the
                  curve properties and a list of the selected curve names (as a
@@ -445,8 +452,8 @@ class CurvesAppearanceChooser(Qt.QWidget):
         else:
             axis = 'left'
 
-        self.curvePropAdapter.setCurveProperties(self.curvePropDict,
-                                                 names, axis)
+        self.curvePropAdapter.setCurveProperties(self.curvePropDict, names,
+                                                 axis)
         return prop, names
 
     def onReset(self):
@@ -464,7 +471,10 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
 class CurvePropAdapter(object):
     """
-    This class provides a wrapper for pyqtgraph.PlotDataItem class.
+    This class allows to extract the curve properties
+    (:class:`CurveAppearanceProperties`)  from curves
+    (:class:`pyqtgraph.PlotDataItem`) in a given plot
+    (:class:`pyqtgraph.PlotItem`).
     """
     def __init__(self, dataItems=None, plotItem = None, y2axis = None):
         self.dataItems = dataItems
@@ -474,14 +484,13 @@ class CurvePropAdapter(object):
 
     def getCurveProperties(self):
         """
-        Extract all properties from a PlotDataItem and generates the
-        CurveAppearanceProperties object.
+        Returns CurveAppearanceProperties objects for all curves in the
+        associated PlotItem
 
-        :return: A dictionary(key, value), where:
-                key: name curve
-                value: CurveApearanceProperties object
+        :return: A dictionary(key, value), whose keys are curve names and
+        values are the corresponding CurveApearanceProperties object
         """
-        curves_prop = dict()
+        curves_prop = {}
         for item in self.dataItems:
             if isinstance(item.getViewBox(), Y2ViewBox):
                 yAxis = True
@@ -524,7 +533,8 @@ class CurvePropAdapter(object):
         return curves_prop
 
     def setCurveProperties(self, prop, names, axis):
-        """Assign the properties from a CurveApareanceProperties object to
+        """
+        Assign Assign the properties from a CurveApareanceProperties object to
         a PlotDataItem
 
         :param prop: dict of CurveApareanceProperties
@@ -548,8 +558,12 @@ class CurvePropAdapter(object):
             dataItem.setPen(dict(style=lStyle, width=lWidth, color=lColor))
             if cFill is not None:
                 dataItem.setFillLevel(cFill)
-                # deafult color for filling curve area (cian)
-                dataItem.setFillBrush('c')
+                try:
+                    cFillColor = Qt.QColor(lColor)
+                    cFillColor.setAlphaF(0.5)  # set to semitransparent
+                except:
+                    cFillColor = lColor
+                dataItem.setFillBrush(cFillColor)
             else:
                 dataItem.setFillLevel(None)
 
@@ -614,17 +628,15 @@ class CurvePropAdapter(object):
                     properties[name].yAxis = False
 
 
-
 class CurveAppearanceProperties(object):
     """An object describing the appearance of a TaurusCurve"""
 
-    #if we dont choose a curve, dialog need to be in conflict, for that we
+    #if we don't choose a curve, dialog need to be in conflict, for that we
     # need define some default values to CONFLICT instead of None.
     def __init__(self, sStyle=CONFLICT, sSize=None, sColor=None, sFill=None,
                  lStyle=CONFLICT, lWidth=None, lColor=None, cStyle=None,
                  yAxis=CONFLICT, cFill=CONFLICT, title=None, visible=None):
         """
-        Creator of :class:`CurveAppearanceProperties`
         Possible keyword arguments are:
             - sStyle= symbolstyle
             - sSize= int
@@ -637,17 +649,16 @@ class CurveAppearanceProperties(object):
             - cFill= float or None
             - yAxis= bool
             - visible = bool
-            - title= title
+            - title= str
 
         Where:
             - color is a color that QColor() understands (i.e. a
               Qt.Qt.GlobalColor, a color name, or a Qt.Qcolor)
-            - symbolstyle is one of NamedSymbolStyles
-            - linestyle is one of Qt.Qt.PenStyle
-            - curvestyle is one of NamedCurveStyles
-            - cFill can be a float that indicates the curve area that has to be
-            filling or can be None
-            - title is a string
+            - symbolstyle is a key of NamedSymbolStyles
+            - linestyle is a key of Qt.Qt.PenStyle
+            - curvestyle is a key of NamedCurveStyles
+            - cFill can either be None (meaning not to fill) or a float that
+              indicates the baseline from which to fill
         """
         self.sStyle = sStyle
         self.sSize = sSize
@@ -665,18 +676,13 @@ class CurveAppearanceProperties(object):
                              "lWidth", "lColor", "cStyle", "cFill", "yAxis",
                              "title", "visible"]
 
-    def _print(self):
-        """Just for debug"""
-        print "-" * 77
-        for k in self.propertyList:
-            print k + "= ", self.__getattribute__(k)
-        print "-" * 77
-
     @staticmethod
     def inConflict_update_a(a, b):
-        """This  function can be passed to CurvesAppearance.merge()
+        """
+        This  function can be passed to CurvesAppearance.merge()
         if one wants to update prop1 with prop2 except for those
-        attributes of prop2 that are set to CONFLICT"""
+        attributes of prop2 that are set to CONFLICT
+        """
         if b is CONFLICT:
             return a
         else:
@@ -701,7 +707,8 @@ class CurveAppearanceProperties(object):
 
     @classmethod
     def merge(self, plist, attributes=None, conflict=None):
-        """returns a CurveAppearanceProperties object formed by merging a list
+        """
+        returns a CurveAppearanceProperties object formed by merging a list
         of other CurveAppearanceProperties objects
 
         **Note:** This is a class method, so it can be called without
@@ -719,9 +726,6 @@ class CurveAppearanceProperties(object):
 
         :return: (CurveAppearanceProperties) merged properties
         """
-
-
-
         n = len(plist)
         if n < 1:
             raise ValueError("plist must contain at least 1 member")
@@ -746,11 +750,4 @@ class CurveAppearanceProperties(object):
                     break
         return p
 
-    def applyToCurve(self, curve):
-        """applies the current properties to a given curve
-        If a property is set to None, it is not applied to the curve"""
-        raise DeprecationWarning(
-            "CurveAppearanceProperties.applyToCurve() is deprecated. " +
-            "Use TaurusCurve.setAppearanceProperties() instead")
-        curve.setAppearanceProperties(self)
 

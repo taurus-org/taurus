@@ -25,36 +25,43 @@
 __all__ = ["TaurusModelChooserTool"]
 
 from taurus.external.qt import QtGui
-from taurus.external.qt import QtCore
 from taurus.core import TaurusElementType
 from taurus.qt.qtgui.panel.taurusmodelchooser import TaurusModelChooser
-from taurusplotdataitem import TaurusPlotDataItem
+from taurus.qt.qtgui.tpg import TaurusPlotDataItem
 import taurus
 from collections import OrderedDict
-from pyqtgraph import ViewBox
 
 
 class TaurusModelChooserTool(QtGui.QAction):
-
+    """
+    This tool inserts an action in the menu of the :class:`pyqtgraph.PlotItem`
+    to which it is attached to show choosing taurus models to be shown.
+    It is implemented as an Action, and provides a method to attach it to a
+    PlotItem.
+    """
     def __init__(self, parent=None, itemClass=None):
         QtGui.QAction.__init__(self, 'Model chooser', parent)
-        self.triggered.connect(self.onTriggered)
+        self.triggered.connect(self._onTriggered)
         self.plot_item = None
         self.legend = None
         if itemClass is None:
             itemClass = TaurusPlotDataItem
         self.itemClass = itemClass
 
-    def attachToPlotItem(self, plot_item, parentWidget=None):
+    def attachToPlotItem(self, plot_item):
+        """
+        Use this method to add this tool to a plot
+
+        :param plot_item: (PlotItem)
+        """
         self.plot_item = plot_item
         if self.plot_item.legend is not None:
             self.legend = self.plot_item.legend
 
         menu = self.plot_item.getViewBox().menu
         menu.addAction(self)
-        self.setParent(parentWidget or menu)
 
-    def onTriggered(self):
+    def _onTriggered(self):
         currentModelItems = dict()
         currentModelNames = []
 
@@ -104,9 +111,9 @@ if __name__ == '__main__':
     import sys
     import numpy
     import pyqtgraph as pg
-    from taurus.qt.qtgui.tpg.taurusmodelchoosertool import TaurusModelChooserTool
+    from taurus.qt.qtgui.tpg import TaurusModelChooserTool
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.tpg.taurusplotdataitem import TaurusPlotDataItem
+    from taurus.qt.qtgui.tpg import TaurusPlotDataItem
 
     app = TaurusApplication()
 
@@ -127,10 +134,12 @@ if __name__ == '__main__':
 
     w.addItem(c2)
 
-    #attach plot item contained in the PlotWidget to a new TaurusModelChooserTool
-    tmCt = TaurusModelChooserTool()
-    tmCt.attachToPlotItem(w.getPlotItem())
+    # attach to plot item
+    tool = TaurusModelChooserTool()
+    tool.attachToPlotItem(w.getPlotItem())
 
     w.show()
+
+    tool.trigger()
 
     sys.exit(app.exec_())

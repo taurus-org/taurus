@@ -44,6 +44,7 @@ class TaurusXYModelChooserTool(QtGui.QAction):
 
     def attachToPlotItem(self, plot_item,
                          parentWidget=None, curve_colors=None):
+        # TODO: Check if we can simplify the signature (remove keyword args)
         self.plot_item = plot_item
         self._curveColors = curve_colors
         if self.plot_item.legend is not None:

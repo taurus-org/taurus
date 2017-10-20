@@ -86,26 +86,25 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                                     self.restoreState, 'state')
 
         # add legend tool
-        plot_legend_tool = PlotLegendTool()
-        plot_legend_tool.attachToPlotItem(self.getPlotItem(), self)
+        legend_tool = PlotLegendTool(self)
+        legend_tool.attachToPlotItem(self.getPlotItem())
 
         # add model chooser
-        taurus_XYmodel_chooser_tool = TaurusXYModelChooserTool()
-        taurus_XYmodel_chooser_tool.attachToPlotItem(
-            self.getPlotItem(), self, self._curveColors)
+        model_chooser_tool = TaurusXYModelChooserTool()
+        model_chooser_tool.attachToPlotItem(self.getPlotItem(), self,
+                                            self._curveColors)
 
         # add Y2 axis
-        self._y2ViewBox = Y2ViewBox()
-        self._y2ViewBox.attachToPlotItem(self.getPlotItem())
+        self._y2 = Y2ViewBox()
+        self._y2.attachToPlotItem(self.getPlotItem())
 
         # add plot configuration dialog
-        curve_prop_tool = CurvesPropertiesTool()
-        curve_prop_tool.attachToPlotItem(self.getPlotItem(), self,
-                                         Y2Axis=self._y2ViewBox)
+        cprop_tool = CurvesPropertiesTool()
+        cprop_tool.attachToPlotItem(self.getPlotItem(), y2=self._y2)
 
         # Register config properties
-        self.registerConfigDelegate(self._y2ViewBox, 'Y2Axis')
-        self.registerConfigDelegate(plot_legend_tool, 'legend')
+        self.registerConfigDelegate(self._y2, 'Y2Axis')
+        self.registerConfigDelegate(legend_tool, 'legend')
 
     def setModel(self, models):
         """Set a list of models"""
@@ -161,7 +160,7 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                     tmpreg.append(name)
 
             # remove the curves from the second axis (Y2) for avoid dups
-            self._y2ViewBox.clearCurves()
+            self._y2.clearCurves()
 
             TaurusBaseComponent.applyConfig(
                 self, configdict=configdict, depth=depth)
@@ -191,9 +190,9 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                 # Ideally, the Y2ViewBox class must handle the action of adding
                 # curves to itself, but we want add the curves when they are
                 # restored with all their properties.
-                if curve.getFullModelNames() in self._y2ViewBox.getCurves():
+                if curve.getFullModelNames() in self._y2.getCurves():
                     self.getPlotItem().getViewBox().removeItem(curve)
-                    self._y2ViewBox.addItem(curve)
+                    self._y2.addItem(curve)
 
 
 
