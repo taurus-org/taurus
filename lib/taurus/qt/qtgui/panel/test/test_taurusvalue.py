@@ -34,35 +34,35 @@ from taurus.core.tango.test import TangoSchemeTestLauncher
 DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
 
 
-@insertTest(helper_name='texts',
-            model='tango:' + DEV_NAME + '/double_scalar',
-            expected=('double_scalar', '1.23', '0.00 mm', 'mm'),
-            # expected=('double_scalar', '1.23', '0.0', 'mm'),
+@insertTest(helper_name="texts",
+            model="tango:" + DEV_NAME + "/double_scalar",
+            expected=("double_scalar", "1.23", "0.00 mm", "mm"),
+            # expected=("double_scalar", "1.23", "0.0", "mm"),
             # TODO: change taurusvalue's line edit to hide units
             )
 class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
                       unittest.TestCase):
-    '''
+    """
     Specific tests for TaurusValue
-    '''
+    """
     _klass = TaurusValue
 
     def test_bug126(self):
-        '''Verify that case is not lost when customizing a label (bug#126)'''
+        """Verify that case is not lost when customizing a label (bug#126)"""
         w = self._widget
-        # self._widget.setModel('eval:1')
-        self._widget.setModel('tango:' + DEV_NAME + '/double_scalar')
-        label = 'MIXEDcase'
+        # self._widget.setModel("eval:1")
+        self._widget.setModel("tango:" + DEV_NAME + "/double_scalar")
+        label = "MIXEDcase"
         w.setLabelConfig(label)
         self.processEvents(repetitions=10, sleep=.1)
         shownLabel = str(w.labelWidget().text())
         msg = 'Shown label ("%s") differs from set label ("%s")' % (shownLabel,
                                                                     label)
         self.assertEqual(label, shownLabel, msg)
-        self.assertMaxDeprecations(0)
+        self.assertMaxDeprecations(1)
 
     def texts(self, model=None, expected=None, fgRole=None, maxdepr=0):
-        '''Checks the texts for scalar attributes'''
+        """Checks the texts for scalar attributes"""
         self._widget.setModel(model)
         if fgRole is not None:
             self._widget.setFgRole(fgRole)
@@ -77,11 +77,23 @@ class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
         self.assertEqual(got, expected, msg)
         self.assertMaxDeprecations(maxdepr)
 
+    def test_labelCaseSensitivity(self):
+        """Verify that case is respected of in the label widget"""
+        w = self._widget
+        self._widget.setModel("tango:" + DEV_NAME + "/MIXEDcase")
+        label = "MIXEDcase"
+        self.processEvents(repetitions=10, sleep=.1)
+        shownLabel = str(w.labelWidget().text())
+        msg = 'Shown label ("%s") differs from set label ("%s")' % (shownLabel,
+                                                                    label)
+        self.assertEqual(label, shownLabel, msg)
+        self.assertMaxDeprecations(0)
+
     def tearDown(self):
-        '''Set Model to None'''
+        """Set Model to None"""
         self._widget.setModel(None)
         TangoSchemeTestLauncher.tearDown(self)
         unittest.TestCase.tearDown(self)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

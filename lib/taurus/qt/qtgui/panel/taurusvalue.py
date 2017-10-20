@@ -107,11 +107,11 @@ class DefaultLabelWidget(TaurusLabel):
             TaurusLabel.setModel(self, None)
             self.setText(devName)
 
-    _BCK_COMPAT_TAGS = {'<attr_name>': '{attr.name}',
-                        '<attr_fullname>': '{attr.fullname}',
-                        '<dev_alias>': '{dev.name}',
-                        '<dev_name>': '{dev_name}',
-                        '<dev_fullname>': '{dev.fullname}',
+    _BCK_COMPAT_TAGS = {'<attr_name>': 'name',
+                        '<attr_fullname>': 'fullname',
+                        '<dev_alias>': 'parentObj.name',
+                        '<dev_name>': 'parentObj.name',
+                        '<dev_fullname>': 'parentObj.fullname',
                         }
 
     def getDisplayValue(self, cache=True, fragmentName=None):
@@ -122,9 +122,7 @@ class DefaultLabelWidget(TaurusLabel):
             new = self._BCK_COMPAT_TAGS.get(old, '{attr.%s}' % old)
             self.deprecated(dep=old, alt=new)
             fragmentName = fragmentName.replace(old, new)
-        attr = self.getModelObj()
-        dev = attr.getParent()
-        return fragmentName.format(dev=dev, attr=attr)
+        return TaurusLabel.getDisplayValue(self, cache, fragmentName)
 
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
@@ -347,7 +345,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         self._allowWrite = True
         self._minimumHeight = None
-        self._labelConfig = '{attr.label}'
+        self._labelConfig = 'label'
+        self._labelText = None
         self.setModifiableByUser(False)
 
         if parent is not None:
@@ -355,6 +354,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         self.registerConfigProperty(
             self.getLabelConfig, self.setLabelConfig, 'labelConfig')
+        self.registerConfigProperty(
+            self.getLabelText, self.setLabelText, 'labelText')
         self.registerConfigProperty(self.isCompact, self.setCompact, 'compact')
 
     def setVisible(self, visible):
@@ -800,6 +801,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             if hasattr(self._labelWidget, 'setModel'):
                 self._labelWidget.setModel(self.getFullModelName())
 
+            if self._labelText is not None:
+                self._labelWidget.setPermanentText(self._labelText)
+
     def updateReadWidget(self):
         # get the class for the widget and replace it if necessary
         try:
@@ -1215,12 +1219,33 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
     @Qt.pyqtSlot('QString')
     def setLabelConfig(self, config):
+        """Sets fragment configuration to the label widget.
+
+        :param config: fragment
+        :type config: str
+        """
+        # backwards compatibility: this method used to work for setting
+        # an arbitrary text to the label widget
+        try:
+            self.getModelFragmentObj(config)
+        except Exception:
+            msg = "Use setLabelText for setting an arbitrary label text"
+            self.deprecated(msg)
+            self.setLabelText(config)
+            return
         self._labelConfig = config
         self.updateLabelWidget()
 
     def resetLabelConfig(self):
-        self._labelConfig = '{attr.label}'
+        self._labelConfig = 'label'
         self.updateLabelWidget()
+
+    def getLabelText(self):
+        return self._labelText
+
+    def setLabelText(self, text):
+        self._labelText = text
+        self._labelWidget.setPermanentText(text)
 
     def getSwitcherClass(self):
         '''Returns the TaurusValue switcher class (used in compact mode).
