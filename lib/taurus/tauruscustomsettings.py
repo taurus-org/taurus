@@ -72,9 +72,15 @@ DEFAULT_SCHEME = "tango"
 # attribute type, but sometimes a custom formatter is needed.
 # The formatter can be a python format string or formatter callable
 # (in string version)
-#e.g.
+# e.g.
 # DEFAULT_FORMATTER = '{0}'
 # DEFAULT_FORMATTER = 'taurus.core.tango.util.formatter.tangoFormatter'
+
+# WARNING!
+# This option will affect to ALL widgets and is not recommended to use.
+# If you are interested to modify it for a specific widget use the
+# runtime option instead.
+# e.g. taurusform MODEL --default-formatter='{:2.3f}'
 
 # ----------------------------------------------------------------------------
 # PLY (lex/yacc) optimization: 1=Active (default) , 0=disabled.
