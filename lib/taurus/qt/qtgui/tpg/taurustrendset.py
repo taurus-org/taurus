@@ -224,14 +224,9 @@ if __name__ == '__main__':
     import sys
     import pyqtgraph as pg
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.tpg.taurustrendset import TaurusTrendSet
-    from taurus.qt.qtgui.tpg.dateaxisitem import DateAxisItem
-    from taurus.qt.qtgui.tpg.autopantool import XAutoPanTool
-
-    from taurus.qt.qtgui.tpg.taurusmodelchoosertool import(
-        TaurusModelChooserTool)
-    from taurus.qt.qtgui.tpg.curvespropertiestool import (
-        CurvesPropertiesTool)
+    from taurus.qt.qtgui.tpg import (TaurusTrendSet, DateAxisItem,
+                                     XAutoPanTool, TaurusModelChooserTool,
+                                     CurvesPropertiesTool)
 
     from taurus.core.taurusmanager import TaurusManager
     taurusM = TaurusManager()

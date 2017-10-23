@@ -37,7 +37,7 @@ import pyqtgraph
 from taurus.external.qt import Qt
 from taurus.core.util.containers import CaselessDict
 from taurus.qt.qtgui.util.ui import UILoadable
-from taurus.qt.qtgui.tpg import Y2ViewBox
+from y2axis import Y2ViewBox
 
 
 class CONFLICT(object):
