@@ -22,12 +22,15 @@
 # along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
-__all__ = ["TaurusModelChooserTool"]
+
+__all__ = ["TaurusModelChooserTool", "TaurusImgModelChooserTool"]
 
 from taurus.external.qt import QtGui
 from taurus.core import TaurusElementType
-from taurus.qt.qtgui.panel.taurusmodelchooser import TaurusModelChooser
-from taurus.qt.qtgui.tpg import TaurusPlotDataItem
+from taurus.qt.qtgui.panel import TaurusModelChooser
+from taurusimageitem import TaurusImageItem
+from taurusplotdataitem import TaurusPlotDataItem
+from curvesmodel import TaurusItemConf, TaurusItemConfDlg
 import taurus
 from collections import OrderedDict
 
@@ -106,8 +109,175 @@ class TaurusModelChooserTool(QtGui.QAction):
                     self.plot_item.enableAutoRange()
 
 
+class TaurusImgModelChooserTool(QtGui.QAction):
+    """
+    This tool inserts an action in the menu of the :class:`pyqtgraph.PlotItem`
+    to which it is attached for choosing a 2D taurus model to be shown.
+    It is implemented as an Action, and provides a method to attach it to a
+    PlotItem.
+    """
 
-if __name__ == '__main__':
+    # TODO: merge this with TaurusModelChooserTool (or use a common base)
+
+    def __init__(self, parent=None):
+        QtGui.QAction.__init__(self, parent)
+        self._plot_item = None
+
+    def attachToPlotItem(self, plot_item):
+        """
+        Use this method to add this tool to a plot
+
+        :param plot_item: (PlotItem)
+        """
+        self._plot_item = plot_item
+        view = plot_item.getViewBox()
+        menu = view.menu
+        model_chooser = QtGui.QAction('Model chooser', menu)
+        model_chooser.triggered.connect(self._onTriggered)
+        menu.addAction(model_chooser)
+
+    def _onTriggered(self):
+
+        imageItem = None
+
+        for item in self._plot_item.items:
+            if isinstance(item, TaurusImageItem):
+                imageItem = item
+                break
+
+        if imageItem is None:
+            imageItem = TaurusImageItem()
+        modelName = imageItem.getFullModelName()
+        if modelName is None:
+            listedModels = []
+        else:
+            listedModels = [modelName]
+
+        res, ok = TaurusModelChooser.modelChooserDlg(
+                    selectables=[TaurusElementType.Attribute],
+                    singleModel=True, listedModels=listedModels)
+        print(ok)
+        if ok:
+            if res:
+                model = res[0]
+            else:
+                model = None
+            imageItem.setModel(model)
+
+
+class TaurusXYModelChooserTool(QtGui.QAction):
+    """
+    (Work-in-Progress)
+    This tool inserts an action in the menu of the :class:`pyqtgraph.PlotItem`
+    to which it is attached for choosing X and Y 1D taurus models of the curves
+    to be shown.
+    It is implemented as an Action, and provides a method to attach it to a
+    PlotItem.
+    """
+
+    # TODO: This class is WIP.
+    def __init__(self, parent=None):
+        QtGui.QAction.__init__(self, 'Model XY chooser', parent)
+        self.triggered.connect(self._onTriggered)
+        self.plot_item = None
+        self.legend = None
+        self._curveColors = None
+
+    def attachToPlotItem(self, plot_item,
+                         parentWidget=None, curve_colors=None):
+        """
+        Use this method to add this tool to a plot
+
+        :param plot_item: (PlotItem)
+
+        .. warning:: this is Work-in-progress. The API may change.
+             Do not rely on current signature of this method
+        """
+        # TODO: Check if we can simplify the signature (remove keyword args)
+        self.plot_item = plot_item
+        self._curveColors = curve_colors
+        if self.plot_item.legend is not None:
+            self.legend = self.plot_item.legend
+
+        menu = self.plot_item.getViewBox().menu
+        menu.addAction(self)
+        self.setParent(parentWidget or menu)
+
+    def _onTriggered(self):
+        currentModelItems = dict()
+        currentModelNames = []
+        taurusItems = []
+
+        for curve in self.plot_item.listDataItems():
+            if isinstance(curve, TaurusPlotDataItem):
+                currentModelNames.append(curve.getFullModelNames())
+                currentModelItems[
+                    curve.getFullModelNames()] = (curve, curve.getViewBox())
+                item = TaurusItemConf(YModel=curve.getFullModelName(),
+                                      XModel=curve.getXModelName(),
+                                      name=curve.name())
+                taurusItems.append(item)
+
+        conf, ok = TaurusItemConfDlg.showDlg(
+            parent=self.parent(), taurusItemConf=taurusItems)
+
+        # print conf, ok
+
+        if ok:
+            yModels = OrderedDict()
+            xModels = OrderedDict()
+            curve_name = OrderedDict()
+            for c in conf:
+                try:
+                    # print c.yModel, type(c.yModel)
+                    m = taurus.Attribute(c.yModel)
+                    n = c.xModel
+                    name = c.curveLabel
+                    yModels[n, m.getFullName()] = m
+                    xModels[n, m.getFullName()] = n
+                    curve_name[n, m.getFullName()] = name
+                except Exception as e:
+                    from taurus import warning
+                    warning(e)
+
+            for k, v in currentModelItems.items():
+                curve, parent = v
+                self.plot_item.removeItem(curve)
+                parent.removeItem(curve)
+                if self.legend is not None:
+                    self.legend.removeItem(curve.name())
+
+            for modelName, model in yModels.items():
+                # print modelName, model
+                if modelName in currentModelNames:
+                    item, parent = currentModelItems[modelName]
+                    X = xModels[modelName]
+                    c_name = curve_name[modelName]
+                    item.opts['name'] = c_name
+                    item.setXModel(X)
+                    self.plot_item.addItem(item)
+
+                    # checks if the viewBox associated to
+                    # TaurusPlotDataItem(curve), it is the main view or not.
+                    # If is the same, we dont have to addItem again in the
+                    # parent (viewBox). This avoid duplicate objects in the
+                    # ViewBox.scene() contained in PlotItem.
+                    if parent is not self.plot_item.getViewBox():
+                        parent.addItem(item)
+
+                elif modelName not in currentModelNames:
+                    x_model = xModels[modelName]
+                    y_model = yModels[modelName]
+                    c_name = curve_name[modelName]
+                    item = TaurusPlotDataItem(
+                        xModel=x_model, yModel=y_model, name=c_name)
+
+                    if self._curveColors is not None:
+                        item.setPen(self._curveColors.next().color())
+                    self.plot_item.addItem(item)
+
+
+def _demo_ModelChooser():
     import sys
     import numpy
     import pyqtgraph as pg
@@ -143,3 +313,37 @@ if __name__ == '__main__':
     tool.trigger()
 
     sys.exit(app.exec_())
+
+
+def _demo_ModelChooserImage():
+    import sys
+    from taurus.qt.qtgui.tpg import TaurusImgModelChooserTool, TaurusImageItem
+    from taurus.qt.qtgui.application import TaurusApplication
+    import pyqtgraph as pg
+
+    app = TaurusApplication()
+
+    plot_widget = pg.PlotWidget()
+    plot_item = plot_widget.getPlotItem()
+
+    image_item = TaurusImageItem()
+
+    # Add taurus 2D image data
+    image_item.setModel('eval:rand(256,256)')
+
+    plot_item.addItem(image_item)
+
+    plot_item.showAxis('left', show=False)
+    plot_item.showAxis('bottom', show=False)
+
+    tmCt = TaurusImgModelChooserTool()
+    tmCt.attachToPlotItem(plot_item)
+
+    plot_widget.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    _demo_ModelChooser()
+    _demo_ModelChooserImage()
+

@@ -32,6 +32,8 @@ from .legendtool import PlotLegendTool
 from .taurusimageitem import TaurusImageItem
 from .taurusplotdataitem import TaurusPlotDataItem
 from .taurustrendset import TaurusTrendSet
-from .taurusmodelchoosertool import TaurusModelChooserTool
-from .taurusmodelchooserToolImage import TaurusModelChooserToolImage
-from .taurusXYmodelChooser import TaurusXYModelChooserTool
+from .curvesmodel import TaurusItemConf, TaurusItemConfDlg
+from .taurusmodelchoosertool import (TaurusModelChooserTool,
+                                     TaurusImgModelChooserTool,
+                                     TaurusXYModelChooserTool)
+

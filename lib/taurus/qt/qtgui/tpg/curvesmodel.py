@@ -25,6 +25,9 @@
 
 """
 curvesmodel Model and view for new CurveItem configuration
+
+.. warning:: this is Work-in-progress. The API may change.
+             Do not rely on current API of this module
 """
 __all__ = ['TaurusCurveItemTableModel', 'TaurusItemConf', 'TaurusItemConfDlg']
 
@@ -102,8 +105,7 @@ class TaurusItemConf(object):
 
 
 class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
-    """ A Qt data model for describing curves
-    """
+    """ A Qt data model for describing curves"""
 
     dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')
 
@@ -313,8 +315,8 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
 class TaurusItemConfDlg(Qt.QWidget):
     """ A configuration dialog for creating new CurveItems.
 
-    Provides a TaurusModelBrowserbrowser for Taurus models and an editable table for the sources
-    and title of data
+    Provides a TaurusModelBrowser for Taurus models and an editable
+    table for the sources and title of data
     """
 
     dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')

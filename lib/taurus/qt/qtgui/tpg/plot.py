@@ -26,13 +26,12 @@ __all__ = ["TaurusPlot"]
 
 import copy
 from taurus.core.util.containers import LoopList
-from taurus.qt.qtgui.base.taurusbase import TaurusBaseComponent
-from taurus.qt.qtgui.tpg.curvespropertiestool import CurvesPropertiesTool
-# from taurus.qt.qtgui.tpg.taurusmodelchoosertool import TaurusModelChooserTool
-from taurus.qt.qtgui.tpg.taurusXYmodelChooser import TaurusXYModelChooserTool
-from taurus.qt.qtgui.tpg.legendtool import PlotLegendTool
-from taurus.qt.qtgui.tpg.taurusplotdataitem import TaurusPlotDataItem
-from taurus.qt.qtgui.tpg.y2axis import Y2ViewBox
+from taurus.qt.qtgui.base import TaurusBaseComponent
+from curvespropertiestool import CurvesPropertiesTool
+from taurusmodelchoosertool import TaurusXYModelChooserTool
+from legendtool import PlotLegendTool
+from taurusplotdataitem import TaurusPlotDataItem
+from y2axis import Y2ViewBox
 
 from taurus.external.qt import QtGui, Qt
 from pyqtgraph import PlotWidget
@@ -254,7 +253,7 @@ def TaurusPlotMain():
         args.extend(['eval:rand(100)', 'eval:0.5*sqrt(arange(100))'])
 
     if options.x_axis_mode.lower() == 't':
-        from taurus.qt.qtgui.tpg.dateaxisitem import DateAxisItem
+        from taurus.qt.qtgui.tpg import DateAxisItem
         axis = DateAxisItem(orientation='bottom')
         axis.attachToPlotItem(w.getPlotItem())
 
