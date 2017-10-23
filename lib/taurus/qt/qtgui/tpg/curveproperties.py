@@ -27,7 +27,13 @@
 A Qt dialog for choosing plot appearance (symbols and lines)
 for a Pyqtgraph.PlotDataItem or taurus-derived class
 like TaurusPlotDataItem
+
+.. warning:: this is Work-in-progress. The API from this module may still
+             change. Please
 """
+
+# TODO: WIP
+
 __all__ = ["CurveAppearanceProperties", "CurvePropAdapter",
            "CurvesAppearanceChooser"]
 
@@ -253,7 +259,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
         :param prop: (CurveAppearanceProperties) the properties object
                      containing what should be shown. If a given property is
-                     set to None, the corresponding plot_item will show a
+                     set to CONFLICT, the corresponding plot_item will show a
                      "neutral" display
         """
 
@@ -381,15 +387,22 @@ class CurvesAppearanceChooser(Qt.QWidget):
             prop.title = self.curvePropDict[name].title
 
         # get the values from the Style comboboxes. Note that the empty string
-        # ("") translates into None
+        # ("") translates into CONFLICT
         prop.sStyle = ReverseNamedSymbolStyles[
             str(self.sStyleCB.currentText())]
         prop.lStyle = ReverseNamedLineStyles[str(self.lStyleCB.currentText())]
         prop.cStyle = ReverseNamedCurveStyles[str(self.cStyleCB.currentText())]
-        # get sSize and lWidth from the spinboxes
-        prop.sSize = self.sSizeSB.value()
-        prop.lWidth = self.lWidthSB.value()
-
+        # get sSize and lWidth from the spinboxes (-1 means conflict)
+        v = self.sSizeSB.value()
+        if v == -1:
+            prop.sSize = CONFLICT
+        else:
+            prop.sSize = v
+        v = self.lWidthSB.value()
+        if v == -1:
+            prop.lWidth = CONFLICT
+        else:
+            prop.lWidth = v
         # Get the Color combo boxes. The item at index 0 is the empty one in
         # the comboboxes
         index = self.sColorCB.currentIndex()
@@ -591,7 +604,6 @@ class CurvePropAdapter(object):
             color = None
         self.plotItem.getViewBox().setBackgroundColor(color)
 
-
     def getBackgroundColor(self):
         backgroundColor = self.plotItem.getViewBox().state['background']
         if backgroundColor is None:
@@ -631,11 +643,10 @@ class CurvePropAdapter(object):
 class CurveAppearanceProperties(object):
     """An object describing the appearance of a TaurusCurve"""
 
-    #if we don't choose a curve, dialog need to be in conflict, for that we
-    # need define some default values to CONFLICT instead of None.
-    def __init__(self, sStyle=CONFLICT, sSize=None, sColor=None, sFill=None,
-                 lStyle=CONFLICT, lWidth=None, lColor=None, cStyle=None,
-                 yAxis=CONFLICT, cFill=CONFLICT, title=None, visible=None):
+    def __init__(self, sStyle=CONFLICT, sSize=CONFLICT, sColor=CONFLICT,
+                 sFill=CONFLICT, lStyle=CONFLICT, lWidth=CONFLICT,
+                 lColor=CONFLICT, cStyle=CONFLICT, yAxis=CONFLICT,
+                 cFill=CONFLICT, title=CONFLICT, visible=CONFLICT):
         """
         Possible keyword arguments are:
             - sStyle= symbolstyle
@@ -694,8 +705,11 @@ class CurveAppearanceProperties(object):
         return CONFLICT
 
     def conflictsWith(self, other, strict=True):
-        """returns a list of attribute names that are in conflict between this
-        self and other"""
+        """
+        Compares itself with another CurveAppearanceProperties object
+        and returns (a list of then names of) the attributes that are in
+        conflict between the two
+        """
         result = []
         for aname in self.propertyList:
             vself = getattr(self, aname)
@@ -705,14 +719,11 @@ class CurveAppearanceProperties(object):
                 result.append(aname)
         return result
 
-    @classmethod
-    def merge(self, plist, attributes=None, conflict=None):
+    @staticmethod
+    def merge(plist, attributes=None, conflict=None):
         """
         returns a CurveAppearanceProperties object formed by merging a list
         of other CurveAppearanceProperties objects
-
-        **Note:** This is a class method, so it can be called without
-        previously instantiating an object
 
         :param plist: (sequence<CurveAppearanceProperties>) objects to be
         merged
@@ -720,7 +731,7 @@ class CurveAppearanceProperties(object):
                            consider for the merge. If None, all the attributes
                            will be merged
         :param conflict: (callable) a function that takes 2 objects (having a
-                         different attribute)and returns a value that solves
+                         different attribute) and returns a value that solves
                          the conflict. If None is given, any conflicting
                          attribute will be set to CONFLICT.
 
@@ -739,7 +750,6 @@ class CurveAppearanceProperties(object):
         if conflict is None:
             conflict = CurveAppearanceProperties.inConflict_CONFLICT
         p = CurveAppearanceProperties()
-
         for a in attributes:
             alist = [p.__getattribute__(a) for p in plist]
             p.__setattr__(a, alist[0])
@@ -749,5 +759,3 @@ class CurveAppearanceProperties(object):
                     p.__setattr__(a, conflict(alist[0], ai))
                     break
         return p
-
-
