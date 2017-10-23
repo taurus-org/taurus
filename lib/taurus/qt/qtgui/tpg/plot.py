@@ -89,7 +89,7 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         legend_tool.attachToPlotItem(self.getPlotItem())
 
         # add model chooser
-        model_chooser_tool = TaurusXYModelChooserTool()
+        model_chooser_tool = TaurusXYModelChooserTool(self)
         model_chooser_tool.attachToPlotItem(self.getPlotItem(), self,
                                             self._curveColors)
 
@@ -98,7 +98,7 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
         self._y2.attachToPlotItem(self.getPlotItem())
 
         # add plot configuration dialog
-        cprop_tool = CurvesPropertiesTool()
+        cprop_tool = CurvesPropertiesTool(self)
         cprop_tool.attachToPlotItem(self.getPlotItem(), y2=self._y2)
 
         # Register config properties
