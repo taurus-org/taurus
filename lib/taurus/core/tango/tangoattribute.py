@@ -634,7 +634,7 @@ class TangoAttribute(TaurusAttribute):
         # so we should not access external objects from the factory, like the
         # parent object
         
-        if self.__dev_hw_obj is not None and self.__chg_evt_id not in (None,-1):
+        if self.__dev_hw_obj is not None and self.__chg_evt_id not in (None, -1):
             self.trace("Unsubscribing to change events (ID=%d)",
                        self.__chg_evt_id)
             try:
