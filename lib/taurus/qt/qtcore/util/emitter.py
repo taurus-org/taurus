@@ -142,7 +142,8 @@ class TaurusEmitterThread(Qt.QThread):
             def __init__(self, parent = None, designMode = False):
                 ...
                 self.modelsQueue = Queue.Queue()
-                self.modelsThread = TaurusEmitterThread(parent=self,queue=self.modelsQueue,method=modelSetter )
+                self.modelsThread = TaurusEmitterThread(parent=self,
+                        queue=self.modelsQueue,method=modelSetter )
                 ...
             def build_widgets(...):
                 ...
@@ -160,9 +161,10 @@ class TaurusEmitterThread(Qt.QThread):
 
     """
 
-    def __init__(self, parent=None, name='', queue=None, method=None, cursor=None, sleep=5000):
+    def __init__(self, parent=None, name='', queue=None, method=None,
+                 cursor=None, sleep=5000, period_ms=0):
         """
-        Parent most not be None and must be a TaurusGraphicsScene!
+        Parent must be not None and must be a TaurusGraphicsScene!
         """
         Qt.QThread.__init__(self, parent)
         self.name = name
@@ -185,6 +187,12 @@ class TaurusEmitterThread(Qt.QThread):
         # Moved to the end to prevent segfaults ...
         self.emitter.doSomething.connect(self._doSomething)
         self.emitter.somethingDone.connect(self.next)
+        
+        self.period = period_ms
+        
+    def onRefresh(self):
+        self.refreshTimer.setInterval(self.period)
+        self.next()
 
     def getQueue(self):
         if self.queue:
@@ -260,11 +268,18 @@ class TaurusEmitterThread(Qt.QThread):
         return
 
     def run(self):
-        Qt.QApplication.instance().thread().sleep(int(self.timewait / 1000)
-                                                  if self.timewait > 10 else int(self.timewait))  # wait(self.sleep)
+        Qt.QApplication.instance().thread().sleep(
+            int(self.timewait / 1000) if self.timewait > 10 else int(self.timewait))  # wait(self.sleep)
         self.log.info('#' * 80)
         self.log.info('At TaurusEmitterThread.run()')
         self.next()
+        
+        if self.period:
+            self.refreshTimer = Qt.QTimer()
+            Qt.QObject.connect(self.refreshTimer, 
+                            Qt.SIGNAL("timeout()"), self.onRefresh)
+            self.refreshTimer.start(self.period)        
+        
         while True:
             self.log.debug('At TaurusEmitterThread.run() loop.')
             item = self.todo.get(True)
