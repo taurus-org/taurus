@@ -62,20 +62,12 @@ class Component(object):
         attributes
         """
         if src is None:
-            self.display, self.icon, self.ok = '(Use indices)', Qt.QIcon(
-            ), True
+            self.display, self.icon, self.ok = '', Qt.QIcon(), True
             return
         src = str(src).strip()
         # empty
         if src == '':
-            self.display, self.icon, self.ok = '(Use indices)', Qt.QIcon(
-            ), True
-            return
-        # for formulas
-        if src.startswith('='):
-            #@todo: evaluate/validate the expression
-            self.display, self.icon, self.ok = src[
-                1:].strip(), Qt.QIcon.fromTheme('accessories-calculator'), True
+            self.display, self.icon, self.ok = '', Qt.QIcon(), True
             return
         # for taurus attributes
         if taurus.isValidName(src, etypes=[TaurusElementType.Attribute]):
@@ -84,8 +76,8 @@ class Component(object):
             return
 
         # if not caught before, it is unsupported
-        self.display, self.icon, self.ok = src, Qt.QIcon.fromTheme(
-            'dialog-warning'), False
+        self.display, self.icon, self.ok = (
+            src, Qt.QIcon.fromTheme('dialog-warning'), False)
 
 
 class TaurusItemConf(object):
@@ -96,7 +88,6 @@ class TaurusItemConf(object):
         self.xModel = XModel
         self.yModel = YModel
         self.curveLabel = name
-
 
     def __repr__(self):
         ret = "TaurusItemConf(xModel='%s', yModel='%s')" % (
@@ -223,7 +214,6 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
             row = index.row()
             curve = self.taurusItems[row]
             column = index.column()
-            # value = Qt.from_qvariant(value, str)
             if column == X:
                 curve.xModel = value
                 curve.x.processSrc(value)
@@ -303,7 +293,6 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
     def mimeData(self, indexes):
         mimedata = Qt.QAbstractTableModel.mimeData(self, indexes)
         if len(indexes) == 1:
-            #            data = Qt.from_qvariant(self.data(indexes[0], str)
             #            mimedata.setData(TAURUS_ATTR_MIME_TYPE, data)
             data = self.data(indexes[0], role=SRC_ROLE)
             mimedata.setText(data)
