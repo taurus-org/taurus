@@ -593,6 +593,7 @@ class TangoAttribute(TaurusAttribute):
     def _subscribeEvents(self):
         """ Enable subscription to the attribute events. If change events are
             not supported polling is activated """
+            
         if self.__chg_evt_id is not None:
             self.warning("chg events already subscribed (id=%s)"
                        %self.__chg_evt_id)
@@ -655,6 +656,12 @@ class TangoAttribute(TaurusAttribute):
     def _subscribeConfEvents(self):
         """ Enable subscription to the attribute configuration events."""
         self.trace("Subscribing to configuration events...")
+
+        if self.__cfg_evt_id is not None:
+            self.warning("cfg events already subscribed (id=%s)"
+                       %self.__cfg_evt_id)
+            return
+        
         if self.__dev_hw_obj is None:
             dev = self.getParentObj()
             if dev is None:
