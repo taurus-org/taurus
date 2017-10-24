@@ -618,7 +618,7 @@ class TangoAttribute(TaurusAttribute):
             self._activatePolling()
             self._call_dev_hw_subscribe_event(True)
                 
-    def _call_dev_hw_subscribe_event(self,stateless=True):      
+    def _call_dev_hw_subscribe_event(self, stateless=True):      
         try:
             attr_name = self.getSimpleName()
             cid = self.__dev_hw_obj.subscribe_event(
