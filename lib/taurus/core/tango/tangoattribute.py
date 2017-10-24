@@ -601,7 +601,7 @@ class TangoAttribute(TaurusAttribute):
                 self.debug("failed to subscribe to chg events: HW is None")
                 return
 
-        if self.factory().is_tango_subscribe_enabled():
+        if not self.factory().is_tango_subscribe_enabled():
             self._activatePolling()
             return
 
