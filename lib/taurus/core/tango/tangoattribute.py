@@ -613,13 +613,15 @@ class TangoAttribute(TaurusAttribute):
             self._activatePolling()
             self._call_dev_hw_subscribe_event(True)
                 
-    def _call_dev_hw_subscribe_event(self, stateless=True):      
+    def _call_dev_hw_subscribe_event(self, stateless=True):
+        """ Executes event subscription on parent TangoDevice objectName
+        """
         attr_name = self.getSimpleName()
-        cid = self.__dev_hw_obj.subscribe_event(
+        self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name, PyTango.EventType.CHANGE_EVENT,
                 self, [], stateless) # connects to self.push_event callback
-        self.__chg_evt_id = cid
-        return cid
+        
+        return self.__chg_evt_id
                 
     def _unsubscribeEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp

@@ -185,7 +185,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         return self._default_tango_host
     
     def set_tango_subscribe_enabled(self,value):
-        """ If True, disable event subscribing on TangoAttribute objects 
+        """ If True, enables event subscribing on TangoAttribute objects 
         """
         self._tango_subscribe_enabled = value
     
