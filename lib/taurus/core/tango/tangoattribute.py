@@ -583,6 +583,9 @@ class TangoAttribute(TaurusAttribute):
 
     def isUsingEvents(self):
         return self.__subscription_state == SubscriptionState.Subscribed
+    
+    def getSubscriptionState(self):
+        return self.__subscription_state    
 
     def _process_event_exception(self, ex):
         pass
@@ -590,6 +593,10 @@ class TangoAttribute(TaurusAttribute):
     def _subscribeEvents(self):
         """ Enable subscription to the attribute events. If change events are
             not supported polling is activated """
+        if self.__chg_evt_id is not None:
+            self.warning("chg events already subscribed (id=%s)"
+                       %self.__chg_evt_id)
+            return
 
         if self.__dev_hw_obj is None:
             dev = self.getParentObj()
