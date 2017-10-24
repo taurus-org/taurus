@@ -109,6 +109,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def reInit(self):
         """Reinitialize the singleton"""
         self._default_tango_host = None
+        self._tango_events_disabled = False
         self.dft_db = None
         self.tango_db = CaselessWeakValueDict()
         self.tango_db_queries = CaselessWeakValueDict()
@@ -182,6 +183,16 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         """Retruns the current default tango host
         """
         return self._default_tango_host
+    
+    def set_tango_events_disabled(self,value):
+        """ If True, disable event subscribing on TangoAttribute objects 
+        """
+        self._tango_events_disabled = value
+    
+    def get_tango_events_disabled(self):
+        """ Returns the current tango_events_disabled status
+        """
+        return self._tango_events_disabled
 
     def registerAttributeClass(self, attr_name, attr_klass):
         """Registers a new attribute class for the attribute name.
