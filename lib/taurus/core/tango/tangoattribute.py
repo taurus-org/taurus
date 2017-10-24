@@ -284,7 +284,9 @@ class TangoAttribute(TaurusAttribute):
 
         # subscribe to configuration events (unsubscription done at cleanup)
         self.__cfg_evt_id = None
-        self._subscribeConfEvents()
+        self._ignore_events = self.factory().get_tango_events_disabled()
+        if not self._ignore_events:
+            self._subscribeConfEvents()
 
     def cleanUp(self):
         self.trace("[TangoAttribute] cleanUp")
@@ -597,24 +599,36 @@ class TangoAttribute(TaurusAttribute):
         self.__subscription_event = threading.Event()
         attr_name = self.getSimpleName()
 
+        if self._ignore_events:
+            self.__chg_evt_id = -1
+            self._activatePolling()
+            return
+
         try:
             self.__subscription_state = SubscriptionState.Subscribing
-            self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
-                attr_name, PyTango.EventType.CHANGE_EVENT,
-                self, [])  # connects to self.push_event callback
-
+            self._call_dev_hw_subscribe_event(False)
         except:
             self.__subscription_state = SubscriptionState.PendingSubscribe
             self._activatePolling()
-            self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
-                attr_name, PyTango.EventType.CHANGE_EVENT,
-                self, [], True)  # connects to self.push_event callback
-
+            self._call_dev_hw_subscribe_event(True)
+                
+    def _call_dev_hw_subscribe_event(self,stateless=True):      
+        try:
+            attr_name = self.getSimpleName()
+            cid = self.__dev_hw_obj.subscribe_event(
+                    attr_name, PyTango.EventType.CHANGE_EVENT,
+                    self, [], stateless) # connects to self.push_event callback
+            self.__chg_evt_id = cid
+            return cid
+        except:
+            self.error(traceback.format_exc())
+                
     def _unsubscribeEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object
-        if self.__dev_hw_obj is not None and self.__chg_evt_id is not None:
+        
+        if self.__dev_hw_obj is not None and self.__chg_evt_id not in (None,-1):
             self.trace("Unsubscribing to change events (ID=%d)",
                        self.__chg_evt_id)
             try:
@@ -669,7 +683,7 @@ class TangoAttribute(TaurusAttribute):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object
-        if self.__cfg_evt_id and not self.__dev_hw_obj is None:
+        if self.__cfg_evt_id is not None and not self.__dev_hw_obj is None:
             self.trace("Unsubscribing to configuration events (ID=%s)",
                        str(self.__cfg_evt_id))
             try:
