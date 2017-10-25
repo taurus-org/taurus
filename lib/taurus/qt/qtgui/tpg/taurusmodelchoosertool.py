@@ -321,27 +321,28 @@ def _demo_ModelChooserImage():
 
     app = TaurusApplication()
 
-    plot_widget = pg.PlotWidget()
-    plot_item = plot_widget.getPlotItem()
+    w = pg.PlotWidget()
 
-    image_item = TaurusImageItem()
+    img = TaurusImageItem()
 
     # Add taurus 2D image data
-    image_item.setModel('eval:rand(256,256)')
+    img.setModel('eval:rand(256,256)')
 
-    plot_item.addItem(image_item)
+    w.addItem(img)
 
-    plot_item.showAxis('left', show=False)
-    plot_item.showAxis('bottom', show=False)
+    w.showAxis('left', show=False)
+    w.showAxis('bottom', show=False)
 
-    tmCt = TaurusImgModelChooserTool()
-    tmCt.attachToPlotItem(plot_item)
+    tool = TaurusImgModelChooserTool()
+    tool.attachToPlotItem(w.getPlotItem())
 
-    plot_widget.show()
+    w.show()
+
+    tool.trigger()
     sys.exit(app.exec_())
 
 
 if __name__ == '__main__':
-    _demo_ModelChooser()
+    # _demo_ModelChooser()
     _demo_ModelChooserImage()
 

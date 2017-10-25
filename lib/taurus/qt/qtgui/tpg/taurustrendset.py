@@ -24,7 +24,7 @@
 #############################################################################
 __all__ = ["TaurusTrendSet"]
 
-# TODO: Document
+"""This provides the pyqtgraph implementation of :class:`TaurusTrendSet`"""
 
 import numpy
 from taurus.qt.qtgui.base import TaurusBaseComponent
@@ -242,14 +242,14 @@ if __name__ == '__main__':
     cp = CurvesPropertiesTool()
     cp.attachToPlotItem (w.getPlotItem ())
 
-    oscMode = XAutoPanTool()
-    oscMode.attachToPlotItem(w.getPlotItem())
+    autopan = XAutoPanTool()
+    autopan.attachToPlotItem(w.getPlotItem())
 
     # add legend to the plot, for that we have to give a name to plot items
     # w.addLegend()
 
     # adding a taurus data item
-    c2 = TaurusTrendSet(name='ffff')
+    c2 = TaurusTrendSet(name='foo')
 
     w.addItem(c2)
 
@@ -257,11 +257,9 @@ if __name__ == '__main__':
 
     # c2.setModel('sys/tg_test/1/wave')
 
-    tmct = TaurusModelChooserTool(itemClass=TaurusTrendSet)
-    tmct.attachToPlotItem (w.getPlotItem ())
-
+    modelchooser = TaurusModelChooserTool(itemClass=TaurusTrendSet)
+    modelchooser.attachToPlotItem (w.getPlotItem ())
 
     w.show()
-
 
     sys.exit(app.exec_())
