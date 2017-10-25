@@ -189,7 +189,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     # Allows the user to change/create/delete perspectives
     _supportUserPerspectives = True
     _showLogger = True
-    _splashLogo = ":/TaurusSplash.png"  # set to None for disabling splash screen
+    #
+    # set to None for disabling splash screen
+    _splashLogo = "large:TaurusSplash.png"
     _splashMessage = "Initializing Main window..."
 
     def __init__(self, parent=None, designMode=False, splash=None):
@@ -1080,7 +1082,8 @@ if __name__ == "__main__":
         # Allows the user to change/create/delete perspectives
         _supportUserPerspectives = True
         _showLogger = True
-        _splashLogo = ":/TaurusSplash.png"  # set to None for disabling splash screen
+        # set to None for disabling splash screen
+        _splashLogo = "large:TaurusSplash.png"
         _splashMessage = "Initializing Main window..."
 
         def __init__(self):
