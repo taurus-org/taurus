@@ -81,6 +81,7 @@ class Component(object):
 
 
 class TaurusItemConf(object):
+    """An object to hold an item of the TaurusCurveItemTableModel"""
 
     def __init__(self, YModel=None, XModel=None, name=None):
         self.x = Component(XModel)

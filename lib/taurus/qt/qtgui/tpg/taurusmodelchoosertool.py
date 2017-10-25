@@ -204,19 +204,17 @@ class TaurusXYModelChooserTool(QtGui.QAction):
         self.setParent(parentWidget or menu)
 
     def _onTriggered(self):
-        currentModelItems = dict()
+        currentModelItems = {}
         currentModelNames = []
         taurusItems = []
 
         for curve in self.plot_item.listDataItems():
             if isinstance(curve, TaurusPlotDataItem):
-                currentModelNames.append(curve.getFullModelNames())
-                currentModelItems[
-                    curve.getFullModelNames()] = (curve, curve.getViewBox())
-                item = TaurusItemConf(YModel=curve.getFullModelName(),
-                                      XModel=curve.getXModelName(),
-                                      name=curve.name())
-                taurusItems.append(item)
+                xmodel, ymodel = curve.getFullModelNames()
+                currentModelNames.append((xmodel, ymodel))
+                currentModelItems[(xmodel, ymodel)] = curve, curve.getViewBox()
+                taurusItems.append(TaurusItemConf(YModel=ymodel, XModel=xmodel,
+                                                  name=curve.name()))
 
         conf, ok = TaurusItemConfDlg.showDlg(
             parent=self.parent(), taurusItemConf=taurusItems)
