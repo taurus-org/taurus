@@ -745,11 +745,34 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         It also resets the internal format string, which will be recalculated
         in the next call to :method"`displayValue`
 
-        :param format: (str or callable) A format string or a callable 
-                       that returns it 
+        :param format: (str or callable) A format string,
+                       or a callable string representation,
+                       or a calable that returns it
         """
+        # Check if the format is a callable string representation
+        if isinstance(format, basestring):
+            try:
+                moduleName, formatterName = format.rsplit('.', 1)
+                __import__(moduleName)
+                module = sys.modules[moduleName]
+                format = getattr(module, formatterName)
+            except:
+                format = str(format)
         self.FORMAT = format
         self.resetFormat()
+
+    def getFormat(self):
+        """ Method to get the `FORMAT` attribute for this instance.
+
+        :return: (str) a string of the current format.
+        It could be a python format string or a callable string representation.
+        """
+        if isinstance(self.FORMAT, basestring):
+            formatter = self.FORMAT
+        else:
+            formatter = '{0}.{1}'.format(self.FORMAT.__module__,
+                                         self.FORMAT.__name__)
+        return formatter
 
     def resetFormat(self):
         """Reset the internal format string. It forces a recalculation
@@ -1246,23 +1269,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         formatter = getattr(taurus.tauruscustomsettings,
                             'DEFAULT_FORMATTER', None)
         if formatter is not None:
-            format = self._getFormatter(formatter)
-            self.setFormat(format)
-
-    def _getFormatter(self, formatter):
-        '''' Method to get custom formatter
-        :return: formatter: python fromat string or formatter callable
-        (in string version)
-        '''
-        try:
-            moduleName, formatterName = formatter.rsplit('.', 1)
-            __import__(moduleName)
-            module = sys.modules[moduleName]
-            formatter = getattr(module, formatterName)
-        except:
-            pass
-        finally:
-            return formatter
+            sefl.setFormat(formatter)
 
     def showFormatterDlg(self):
         '''
@@ -1270,18 +1277,14 @@ class TaurusBaseWidget(TaurusBaseComponent):
         :return: formatter: python fromat string or formatter callable
         (in string version) or None
         '''
-        if isinstance(self.FORMAT, str):
-            current_format = self.FORMAT
-        else:
-            current_format = '{0}.{1}'.format(self.FORMAT.__module__,
-                                              self.FORMAT.__name__)
+        current_format = self.getFormat()
 
         formatter, ok = Qt.QInputDialog.getText(self, "Set formatter",
                                                 "Enter a formatter:",
                                                 Qt.QLineEdit.Normal,
                                                 current_format)
         if ok and formatter:
-            return self._getFormatter(formatter)
+            return formatter
 
         return None
 

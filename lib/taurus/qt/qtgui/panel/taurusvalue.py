@@ -433,10 +433,13 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         # do the base class stuff too
         Qt.QWidget.setParent(self, parent)
 
-    def onSetFormatter(self):
-        format = self.showFormatterDlg()
-        if format is not None:
-            self._readWidget.setFormat(format)
+    def getFormat(self):
+        """"Reimplemented to delegate to readWidget"""
+        return self._readWidget.getFormat()
+
+    def setFormat(self, format):
+        """"Reimplemented to delegate to readWidget"""
+        self._readWidget.setFormat(format)
 
     def getAllowWrite(self):
         return self._allowWrite

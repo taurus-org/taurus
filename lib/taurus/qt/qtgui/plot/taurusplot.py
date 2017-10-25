@@ -1268,19 +1268,14 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             # that gets the focus (the canvas instead of self)
             self.canvas().addAction(action)
 
-    def onSetFormatter(self):
-        ''' Method to be triggered on setFormatter action
-        '''
-        format = self.showFormatterDlg()
-        if format is not None:
-            self.debug(
-                'Default format has been changed to: {0}'.format(format))
-
-            targetCurveNames = self.curves.iterkeys()
-            for name in targetCurveNames:
-                curve = self.curves.get(name, None)
-                w = getattr(curve, 'owner', curve)
-                w.setFormat(format)
+    def setFormat(self, format):
+        """Reimplemented from TaurusBaseComponent"""
+        targetCurveNames = self.curves.iterkeys()
+        for name in targetCurveNames:
+            curve = self.curves.get(name, None)
+            w = getattr(curve, 'owner', curve)
+            w.setFormat(format)
+        TaurusBaseComponent.setFormat(self, format)
 
     def dropEvent(self, event):
         '''reimplemented to support dropping of modelnames in taurusplots'''
