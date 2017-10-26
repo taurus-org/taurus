@@ -748,9 +748,9 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         It also resets the internal format string, which will be recalculated
         in the next call to :method"`displayValue`
 
-        :param format: (str or callable) A format string,
-                       or a callable string representation,
-                       or a calable that returns it
+        :param format: (str or callable) A format string
+                       or a formatter callable (or the callable name in
+                       "full.module.callable" format)
         """
         # Check if the format is a callable string representation
         if isinstance(format, basestring):
