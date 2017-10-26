@@ -879,7 +879,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
                                         raiseOnError=False)
 
     @deprecation_decorator(dbg_msg="Change Tango Host action is TangoCentric",
-                           rel="4.1.1")
+                           rel="4.1.2")
     def _onChangeTangoHostAction(self):
         '''
         slot called when the Change Tango Host is triggered. It prompts for a
