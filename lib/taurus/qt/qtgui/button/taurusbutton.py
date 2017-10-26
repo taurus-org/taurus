@@ -30,8 +30,6 @@ __all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
 
 __docformat__ = 'restructuredtext'
 
-import PyTango
-
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
 from taurus.core.taurusdevice import TaurusDevice
@@ -265,7 +263,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
 
     .. seealso:: :class:`TaurusCommandsForm` provides a good example of use of
                  TaurusCommandButton (including managing the return value) '''
-
+    # TODO: tango-centric
     commandExecuted = Qt.pyqtSignal(object)
 
     def __init__(self, parent=None, designMode=False, command=None,
@@ -372,6 +370,8 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
 
         :return: (sequence or scalar) a sequence of parameters (or a scalar if only one parameter)
         '''
+        import PyTango
+
         if parameters is None:
             parameters = self._parameters
         if command is None:

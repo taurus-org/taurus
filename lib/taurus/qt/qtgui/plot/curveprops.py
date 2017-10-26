@@ -36,6 +36,7 @@ import re
 from taurus.external.qt import Qt, Qwt5
 import taurus
 import taurus.core
+from taurus.core import TaurusElementType
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.util.ui import UILoadable
 
@@ -45,26 +46,6 @@ from curvesAppearanceChooserDlg import NamedLineStyles, ReverseNamedLineStyles, 
     NamedColors, CurveAppearanceProperties
 
 
-# URI regexp including slices in fragment (adapted from http://www.ietf.org/rfc/rfc2396.txt (appendix B))
-#   '^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*)(\[[0-9,:]*?\]))?'
-#     12            3  4          5       6  7        8 9   A
-#
-# we base the nexus and ascii file regexps on this one, keeping the group numbers
-# The different components of an URI can be obtained from this regexp using match.group(n1,n2,...), where:
-# COMPONENT    GROUP_number
-# scheme       2
-# authority    4
-# path         5
-# query        7
-# fragment     9
-# slice        10 (0xA)
-
-NEXUS_SRC = re.compile(
-    r'^((nxfile|nxdata):)(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*)(\[[0-9,: ]*?\]))?')
-ASCII_SRC = re.compile(
-    r'^((file):)(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*)(\[[0-9,: ]*?\]))?')
-
-
 # set some named constants
 # columns:
 NUMCOLS = 4
@@ -72,10 +53,7 @@ X, Y, TITLE, VIS = range(NUMCOLS)
 SRC_ROLE = Qt.Qt.UserRole + 1
 PROPS_ROLE = Qt.Qt.UserRole + 2
 
-# TODO: Tango-centric (use agnostic validation)
-from taurus.core.tango.tangovalidator import TangoAttributeNameValidator
-ATTRNAMEVALIDATOR = TangoAttributeNameValidator()
-
+from taurus import isValidName
 
 class Component(object):
 
@@ -84,7 +62,6 @@ class Component(object):
         self.display = ''
         self.icon = Qt.QIcon()
         self.ok = True
-        self._attrnamevalidator = ATTRNAMEVALIDATOR
         self._dbCache = taurus.Authority()
         self.setSrc(src)
 
@@ -104,27 +81,9 @@ class Component(object):
         if src.startswith('='):
             #@todo: evaluate/validate the expression
             return src, src[1:].strip(), Qt.QIcon.fromTheme('accessories-calculator'), True
-        # for tango attributes
-        if self._attrnamevalidator.isValid(src):
-            pars = self._attrnamevalidator.getUriGroups(src)
-            dev = self._dbCache.getDevice(pars['devname'])
-            if dev is None:
-                return src, src, Qt.QIcon.fromTheme('network-error'), False
-            attr = dev.getAttribute(pars['_shortattrname'])
-            if attr is None:
-                return src, pars['_shortattrname'], Qt.QIcon.fromTheme('network-error'), False
-            return src, attr.name(), Qt.QIcon.fromTheme('network-server'), True
-        # for nexus files
-        m = re.match(NEXUS_SRC, src)
-        if m is not None:
-            host, path, nxpath, slice = m.group(4, 5, 9, 10)
-            #@todo:open file and check the data is accessible
-            return src, nxpath, Qt.QIcon.fromTheme('x-office-spreadsheet'), True
-        # for ascii files
-        m = re.match(ASCII_SRC, src)
-        if m is not None:
-            host, path, = m.group(4, 5)
-        #@todo: open and check the file
+        # for attributes
+        if isValidName(src, etypes=[TaurusElementType.Attribute]):
+            return src, src, Qt.QIcon.fromTheme('network-server'), True
         # If nothing matches...
         return src, src, Qt.QIcon.fromTheme('dialog-warning'), False
 

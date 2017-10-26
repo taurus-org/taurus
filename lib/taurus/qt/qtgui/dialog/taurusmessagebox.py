@@ -306,7 +306,7 @@ def py_exc():
 
 
 def tg_exc():
-    import PyTango
+    import PyTango  # TODO: tango-centric
     try:
         PyTango.Except.throw_exception('TangoException',
                                        'A simple tango exception', 'right here')
@@ -316,7 +316,7 @@ def tg_exc():
 
 
 def tg_serv_exc():
-    import PyTango
+    import PyTango  # TODO: tango-centric
     import taurus
     dev = taurus.Device("sys/tg_test/1")
     try:
@@ -330,7 +330,7 @@ def tg_serv_exc():
 
 
 def py_tg_serv_exc():
-    import PyTango
+    import PyTango  # TODO: tango-centric
     try:
         PyTango.Except.throw_exception('TangoException',
                                        'A simple tango exception', 'right here')

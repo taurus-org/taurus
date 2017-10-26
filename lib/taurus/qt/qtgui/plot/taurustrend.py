@@ -45,7 +45,7 @@ from taurus.qt.qtgui.plot import TaurusPlot
 
 def getArchivedTrendValues(*args, **kwargs):
     try:
-        import PyTangoArchiving
+        import PyTangoArchiving  # TODO: tango-centric
         return PyTangoArchiving.getArchivedTrendValues(*args, **kwargs)
     except:
         return []

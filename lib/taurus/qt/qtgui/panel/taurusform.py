@@ -32,10 +32,9 @@ __docformat__ = 'restructuredtext'
 from datetime import datetime
 
 from taurus.external.qt import Qt
-import PyTango
 
 import taurus.core
-from taurus.core import TaurusDevState
+from taurus.core import TaurusDevState, DisplayLevel
 
 from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE,
                                         TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_MODEL_MIME_TYPE)
@@ -170,6 +169,7 @@ class TaurusForm(TaurusWidget):
                       type strings (i.e. see :class:`PyTango.DeviceInfo`) and
                       whose values are tuples of classname,args,kwargs
         '''
+        # TODO: tango-centric
         self._customWidgetMap = cwmap
 
     def getCustomWidgetMap(self):
@@ -179,6 +179,7 @@ class TaurusForm(TaurusWidget):
                  type strings (i.e. see :class:`PyTango.DeviceInfo`) and whose
                  values are tuples of classname,args,kwargs
         '''
+        # TODO: tango-centric
         return self._customWidgetMap
 
     @Qt.pyqtSlot('QString', name='modelChanged')
@@ -546,6 +547,7 @@ class TaurusForm(TaurusWidget):
 class TaurusCommandsForm(TaurusWidget):
     '''A form that shows commands available for a Device Server'''
 
+    # TODO: tango-centric
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
 
@@ -574,7 +576,7 @@ class TaurusCommandsForm(TaurusWidget):
         self._defaultParameters = []
         self._sortKey = lambda x: x.cmd_name
 
-        self._operatorViewFilter = lambda x: x.disp_level == PyTango.DispLevel.OPERATOR
+        self._operatorViewFilter = lambda x: x.disp_level == DisplayLevel.OPERATOR
 
         # self.setLayout(Qt.QGridLayout())
         self.modelChanged.connect(self._updateCommandWidgets)
@@ -771,7 +773,7 @@ class TaurusAttrForm(TaurusWidget):
         TaurusWidget.__init__(self, parent, designMode)
 
         self._viewFilters = []
-        self._operatorViewFilter = lambda x: x.disp_level == PyTango.DispLevel.OPERATOR
+        self._operatorViewFilter = lambda x: x.disp_level == DisplayLevel.OPERATOR
 
         self.setLayout(Qt.QVBoxLayout())
 

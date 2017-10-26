@@ -42,10 +42,6 @@ try:
 except:
     pygments = None
 
-# shame on me for importing PyTango! well not so much since this is designed to
-# show PyTango exceptions
-import PyTango
-
 from taurus.core.util.report import TaurusMessageReportHandler
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
@@ -94,6 +90,7 @@ class TaurusMessageErrorHandler(object):
 class TangoMessageErrorHandler(TaurusMessageErrorHandler):
     """This class is designed to handle :class:`PyTango.DevFailed` error into
     a :class:`TaurusMessagePanel`"""
+    # TODO: tango-centric
 
     def setError(self, err_type=None, err_value=None, err_traceback=None):
         """Translates the given error object into an HTML string and places it
@@ -488,7 +485,11 @@ class TaurusMessagePanel(Qt.QWidget):
         :rtype: tuple<type, value, traceback>"""
         return self._exc_info
 
-    ErrorHandlers = {PyTango.DevFailed: TangoMessageErrorHandler}
+    try:
+        import Pyango
+        ErrorHandlers = {PyTango.DevFailed: TangoMessageErrorHandler}
+    except:
+        ErrorHandlers = {}
 
     @classmethod
     def registerErrorHandler(klass, err_type, err_handler):

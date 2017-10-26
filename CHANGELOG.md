@@ -8,11 +8,14 @@ the master branch after [3.7.1] and maintained in parallel to the
 develop branch) won't be reflected in this file.
 
 ## Unreleased
+### Deprecated
+- taurus.core.tango.search
 
 ### Added
 - Re-added `taurus.external.ordereddict` (#599)
 
 ### Changed
+- taurus.qt widgets can now be used without installing PyTango (#590)
 - Tango model name validators now always return FQDN instead of PQDN
   for the tango host (#488)
 - Improved generated PDF doc (#525, #546, #548) (thanks @PhilLAL !)
@@ -21,6 +24,8 @@ develop branch) won't be reflected in this file.
 - Doc issues
 - Deprecation warnings in taurus.core.util.event (#550)
 
+### Removed
+- taurus.qt.qtgui.panel.taurusfilterpanel
 
 ## [4.1.1] - 2017-07-21
 
