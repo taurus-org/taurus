@@ -531,7 +531,7 @@ class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
 
 
 class TaurusDbDeviceModel(TaurusDbBaseModel):
-    """A Qt model that structures device elements is a 3 level tree organized
+    """A Qt model that structures device elements in a 3 level tree organized
        as:
 
            - <domain>
@@ -545,6 +545,7 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
             return
         try:
             # TODO: Tango-centric
+            # TODO: is this try needed? (not done in, e.g. TaurusDbPlainDeviceModel)
             from taurus.core.tango.tangodatabase import TangoDatabase
         except ImportError:
             return
