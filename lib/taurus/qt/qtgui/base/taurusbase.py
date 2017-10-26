@@ -145,10 +145,13 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             self._exception_listener = set([TaurusExceptionListener()])
 
         # register configurable properties
-        self.registerConfigProperty(
-            self.isModifiableByUser, self.setModifiableByUser, "modifiableByUser")
+        self.registerConfigProperty(self.isModifiableByUser,
+                                    self.setModifiableByUser,
+                                    "modifiableByUser")
         self.registerConfigProperty(
             self.getModelInConfig, self.setModelInConfig, "ModelInConfig")
+        self.registerConfigProperty(self.getFormat, self.setFormat,
+                                    'formatter')
         self.resetModelInConfig()
 
     @deprecation_decorator(rel='4.0')

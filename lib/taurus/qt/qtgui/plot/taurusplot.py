@@ -2319,7 +2319,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         miscdict = {'defaultCurvesTitle': self.getDefaultCurvesTitle(),
                     'canvasBackground': self.canvasBackground(),
                     'orderedCurveNames': self.getCurveNamesSorted(),
-                    'plotTitle': unicode(self.title().text())}
+                    'plotTitle': unicode(self.title().text()),
+                    'formatter': self.getFormat()}
         if self.isWindow():
             miscdict["Geometry"] = self.saveGeometry()
         return miscdict
@@ -2448,6 +2449,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         # set geometry (if this is a top level window)
         if self.isWindow() and 'Geometry' in miscdict:
             self.restoreGeometry(miscdict['Geometry'])
+        if "formatter" in miscdict:
+            self.setFormat(miscdict['formatter'])
 
     def applyAxesConfig(self, axes):
         '''sets the axes according to settings stored in the axes dict,
