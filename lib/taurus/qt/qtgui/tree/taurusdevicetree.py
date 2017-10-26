@@ -51,7 +51,6 @@ except:
 
 from taurus.external.qt import Qt
 
-import taurus
 import taurus.core
 from taurus.core.util.colors import DEVICE_STATE_PALETTE, ATTRIBUTE_QUALITY_PALETTE
 from taurus.core.util.containers import CaselessDict
