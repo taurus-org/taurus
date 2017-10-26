@@ -1298,6 +1298,13 @@ class TaurusBaseWidget(TaurusBaseComponent):
         if format is not None:
             self.debug(
                 'Default format has been changed to: {0}'.format(format))
+            # -----------------------------------------------------------------
+            # TODO: Tango-centric (replace by agnostic entry point solution)
+            # shortcut to setup the tango formatter
+            if format == "tangoFormatter":
+                from taurus.core.tango.util.formatter import tangoFormatter
+                format = tangoFormatter
+            # -----------------------------------------------------------------
             self.setFormat(format)
 
     # It makes the GUI to hang... If this needs implementing, we should
