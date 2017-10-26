@@ -9,6 +9,9 @@ develop branch) won't be reflected in this file.
 
 ## Unreleased
 
+### Added
+- Re-added `taurus.external.ordereddict` (#599)
+
 ### Changed
 - Tango model name validators now always return FQDN instead of PQDN
   for the tango host (#488)
