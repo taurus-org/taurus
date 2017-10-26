@@ -22,14 +22,14 @@ matrix:
         - env: DOCKER_IMG=cpascual/taurus-test:debian-buster
 
 before_install:
-  - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus $DOCKER_IMG
+  - travis_wait docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus $DOCKER_IMG
   - sleep 10
   
 script:
   - set -e
-  - docker exec taurus-test /bin/bash -c "cd /taurus ; python setup.py install"
-  - docker exec -t taurus-test /bin/bash -c "TAURUS_STARTER_WAIT=5 taurustestsuite -e 'taurus\.core\.util\.test\.test_timer'"
-  - docker exec taurus-test /bin/bash -c "cd /taurus ; python setup.py build_sphinx"
+  - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py install"
+  - travis_wait docker exec -t taurus-test /bin/bash -c "TAURUS_STARTER_WAIT=5 taurustestsuite -e 'taurus\.core\.util\.test\.test_timer'"
+  - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py build_sphinx"
   # deploy sphinx-built docs to taurus-doc repo
   - if [[ "$DOCKER_IMG" == "cpascual/taurus-test:debian-stretch" ]]; then
       pip install doctr ;
