@@ -145,6 +145,7 @@ class TaurusForm(TaurusWidget):
                                     TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE, 'text/plain'])
 
         self.resetCompact()
+
         # properties
         self.registerConfigProperty(
             self.isWithButtons, self.setWithButtons, 'withButtons')
@@ -368,7 +369,7 @@ class TaurusForm(TaurusWidget):
 
     def getFormat(self):
         """Reimplemented from TaurusBaseComponent"""
-        # Form delegates format to the taurusvalues
+        # Always return None (format delegated to the taurusvalues)
         return None
 
     def setFormat(self, format):

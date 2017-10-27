@@ -1177,8 +1177,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._dataInspectorAction.setChecked(self._pointPicker.isEnabled())
         self._dataInspectorAction.toggled[bool].connect(self.toggleDataInspectorMode)
 
-        self._setFormatterAction = Qt.QAction(
-            "Set Formatter...", None)
+        self._setFormatterAction = Qt.QAction("Set Formatter...", None)
         self._setFormatterAction.triggered[()].connect(self.onSetFormatter)
 
         self._curveStatsAction = Qt.QAction("Calculate statistics", None)

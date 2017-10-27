@@ -108,7 +108,7 @@ def get_taurus_parser(parser=None):
         help_taurusserial = "taurus serialization mode. Allowed values are (case insensitive): "\
             "serial, concurrent (default)"
         help_rcport = "enables remote debugging using the given port"
-        help_formatter = "Override the default formatter in runtime"
+        help_formatter = "Override the default formatter"
         group.add_option("--taurus-log-level", dest="taurus_log_level", metavar="LEVEL",
                          help=help_tauruslog, type="str", default="info")
         group.add_option("--taurus-polling-period", dest="taurus_polling_period", metavar="MILLISEC",
