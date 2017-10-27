@@ -95,7 +95,8 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     _eventBufferPeriod = 0
 
     # Python format string or Formatter callable
-    FORMAT = defaultFormatter
+    FORMAT = getattr(taurus.tauruscustomsettings, 'DEFAULT_FORMATTER',
+                     defaultFormatter)
 
     # Dictionary mapping dtypes to format strings
     defaultFormatDict = {float: "{:.{bc.modelObj.precision}f}",
@@ -746,7 +747,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     def setFormat(self, format):
         """ Method to set the `FORMAT` attribute for this instance.
         It also resets the internal format string, which will be recalculated
-        in the next call to :method"`displayValue`
+        in the next call to :method:`displayValue`
 
         :param format: (str or callable) A format string
                        or a formatter callable (or the callable name in
@@ -1269,17 +1270,13 @@ class TaurusBaseWidget(TaurusBaseComponent):
         self.call__init__(TaurusBaseComponent, name,
                           parent=parent, designMode=designMode)
         self._setText = self._findSetTextMethod()
-        formatter = getattr(taurus.tauruscustomsettings,
-                            'DEFAULT_FORMATTER', None)
-        if formatter is not None:
-            sefl.setFormat(formatter)
 
     def showFormatterDlg(self):
-        '''
+        """
         showFormatterDlg show a dialog to get the formatter from the user.
         :return: formatter: python fromat string or formatter callable
         (in string version) or None
-        '''
+        """
         current_format = self.getFormat()
 
         formatter, ok = Qt.QInputDialog.getText(self, "Set formatter",
@@ -1292,8 +1289,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         return None
 
     def onSetFormatter(self):
-        ''' Method to be triggered on setFormatter action
-        '''
+        """ Slot to be called by setFormatter action"""
         format = self.showFormatterDlg()
         if format is not None:
             self.debug(
@@ -1301,7 +1297,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
             # -----------------------------------------------------------------
             # TODO: Tango-centric (replace by agnostic entry point solution)
             # shortcut to setup the tango formatter
-            if format == "tangoFormatter":
+            if format.strip() == "tangoFormatter":
                 from taurus.core.tango.util.formatter import tangoFormatter
                 format = tangoFormatter
             # -----------------------------------------------------------------
