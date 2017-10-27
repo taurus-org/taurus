@@ -23,10 +23,20 @@
 ###########################################################################
 
 """
-emitter.py: This module provides a task scheduler used by TaurusGrid and TaurusDevTree widgets
+emitter.py: This module provides a task scheduler used by TaurusGrid and 
+    TaurusDevTree widgets
 """
 
-import Queue
+try:
+    import queue
+    import queue as Queue    
+except:
+    #Python 2.6 backwards compatibility
+    import Queue
+    import Queue as queue
+
+
+    
 import traceback
 from functools import partial
 from collections import Iterable
@@ -36,7 +46,7 @@ from taurus.external.qt import Qt
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 
-
+from taurus.core.taurusbasetypes import SubscriptionState
 
 ###############################################################################
 # Helping methods
@@ -90,33 +100,44 @@ class TaurusEmitterThread(Qt.QThread):
     The TaurusEmitterThread Class
     ==========================
 
-    This object get items from a python Queue and performs a thread safe operation on them.
+    This object get items from a python Queue and performs a thread safe 
+    operation on them.
     It is useful to serialize Qt tasks in a background thread.
 
     :param parent: a Qt/Taurus object
     :param name: identifies object logs
-    :param queue: if None parent.getQueue() is used, if not then the queue passed as argument is used
+    :param queue: if None parent.getQueue() is used, if not then the queue 
+        passed as argument is used
     :param method: the method to be executed using each queue item as argument
-    :param cursor: if True or QCursor a custom cursor is set while the Queue is not empty
+    :param cursor: if True or QCursor a custom cursor is set while 
+        the Queue is not empty
 
     How TaurusEmitterThread works
     --------------------------
 
-    TaurusEmitterThread is a worker thread that processes a queue of iterables passed as arguments to the specified method every time that  ``doSomething()`` is called:
+    TaurusEmitterThread is a worker thread that processes a queue of iterables 
+    passed as arguments to the specified method every time that  
+    ``doSomething()`` is called:
 
-     * ``self.method(*item)`` will be called if TaurusEmitterThread.method has been initialized.
-     * ``item[0](item[1:])`` will be called if ``method`` is not initialized and the first element of the queued iterable is *callable*.
+     * ``self.method(*item)`` will be called if TaurusEmitterThread.method 
+        has been initialized.
+     * ``item[0](item[1:])`` will be called if ``method`` is not initialized 
+        and the first element of the queued iterable is *callable*.
 
     TaurusEmitterThread uses two queues:
 
      * ``self.queue`` manages the objects added externally:
 
-      + the ``next()`` method passes objects from ``self.queue`` to ``self.todo queue``
+      + the ``next()`` method passes objects from ``self.queue`` 
+        to ``self.todo queue``
       + every time that a *somethingDone* signal arrives ``next()`` is called.
-      + ``next()`` can be called also externally to ensure that the main queue is being processed.
+      + ``next()`` can be called also externally to ensure that the main queue 
+      is being processed.
       + the queue can be accessed externally using ``getQueue()``
       + ``getQueue().qsize()`` returns the number of remaining objects in queue.
-      + while there are objects in queue the ``.next()`` method will override applications cursor. a call to ``next()`` with an empty queue will restore the original cursor.
+      + while there are objects in queue the ``.next()`` method will 
+        override applications cursor. a call to ``next()`` with an empty queue 
+        will restore the original cursor.
 
      * ``self.todo`` is managed by the ``run()/start()`` method:
 
@@ -147,13 +168,15 @@ class TaurusEmitterThread(Qt.QThread):
                 ...
             def build_widgets(...):
                 ...
-                            previous,synoptic_value = synoptic_value,TaurusValue(cell_frame)
+                            previous,synoptic_value = \
+                                synoptic_value,TaurusValue(cell_frame)
                             #synoptic_value.setModel(model)
                             self.modelsQueue.put((synoptic_value,model))
                 ...
             def setModel(self,model):
                 ...
-                if hasattr(self,'modelsThread') and not self.modelsThread.isRunning():
+                if hasattr(self,'modelsThread') and \
+                        not self.modelsThread.isRunning():
                     self.modelsThread.start()
                 elif self.modelsQueue.qsize():
                     self.modelsThread.next()
@@ -162,7 +185,7 @@ class TaurusEmitterThread(Qt.QThread):
     """
 
     def __init__(self, parent=None, name='', queue=None, method=None,
-                 cursor=None, sleep=5000, period_ms=0):
+                 cursor=None, sleep=5000, polling=0, loopwait=5):
         """
         Parent must be not None and must be a TaurusGraphicsScene!
         """
@@ -177,6 +200,13 @@ class TaurusEmitterThread(Qt.QThread):
             Qt.Qt.WaitCursor) if cursor is True else cursor
         self._cursor = False
         self.timewait = sleep
+        self.polling = polling
+        self.loopwait = int(loopwait*1e-3)
+        if self.polling:
+            self.refreshTimer = Qt.QTimer()
+            self.refreshTimer.timeout.connect(self.onRefresh)
+        else:
+            self.refreshTimer = None
 
         self.emitter = QEmitter()
         self.emitter.moveToThread(Qt.QApplication.instance().thread())
@@ -186,13 +216,22 @@ class TaurusEmitterThread(Qt.QThread):
         self._done = 0
         # Moved to the end to prevent segfaults ...
         self.emitter.doSomething.connect(self._doSomething)
-        self.emitter.somethingDone.connect(self.next)
         
-        self.period = period_ms
+        if not self.refreshTimer:
+            self.emitter.somethingDone.connect(self.next)
+        
         
     def onRefresh(self):
-        self.refreshTimer.setInterval(self.period)
-        self.next()
+        try:
+            self.refreshTimer.setInterval(self.polling)
+            size = self.getQueue().qsize()
+            if size:
+                self.log.info('onRefresh(%s)'%size)
+                self.next()
+            else:
+                self.log.debug('onRefresh()')
+        except:
+            self.log.warning(traceback.format_exc())
 
     def getQueue(self):
         if self.queue:
@@ -204,7 +243,8 @@ class TaurusEmitterThread(Qt.QThread):
 
     def getDone(self):
         """ Returns % of done tasks in 0-1 range """
-        return self._done / (self._done + self.getQueue().qsize()) if self._done else 0.
+        return self._done / (self._done + self.getQueue().qsize()) \
+                    if self._done else 0.
 
     def clear(self):
         while not self.todo.empty():
@@ -237,20 +277,23 @@ class TaurusEmitterThread(Qt.QThread):
             try:
                 method(*args)
             except:
-                self.log.error('At TaurusEmitterThread._doSomething(%s): \n%s' % (
-                    map(str, args), traceback.format_exc()))
+                self.log.error('At TaurusEmitterThread._doSomething(%s): \n%s' 
+                    % (map(str, args), traceback.format_exc()))
         self.emitter.somethingDone.emit()
         self._done += 1
         return
 
     def next(self):
         queue = self.getQueue()
-        msg = 'At TaurusEmitterThread.next(), %d items remaining.' % queue.qsize()
-        (queue.empty() and self.log.info or self.log.debug)(msg)
+        msg = 'At TaurusEmitterThread.next(), %d items remaining.' \
+                % queue.qsize()
+        (queue.empty() and not self.polling and self.log.info 
+            or self.log.debug)(msg)
         try:
             if not queue.empty():
                 if not self._cursor and self.cursor is not None:
-                    Qt.QApplication.instance().setOverrideCursor(Qt.QCursor(self.cursor))
+                    Qt.QApplication.instance().setOverrideCursor(
+                        Qt.QCursor(self.cursor))
                     self._cursor = True
                 # A blocking get here would hang the GUIs!!!
                 item = queue.get(False)
@@ -269,16 +312,14 @@ class TaurusEmitterThread(Qt.QThread):
 
     def run(self):
         Qt.QApplication.instance().thread().sleep(
-            int(self.timewait / 1000) if self.timewait > 10 else int(self.timewait))  # wait(self.sleep)
+            int(self.timewait / 1000) if self.timewait > 10 
+                                else int(self.timewait))
         self.log.info('#' * 80)
         self.log.info('At TaurusEmitterThread.run()')
         self.next()
         
-        if self.period:
-            self.refreshTimer = Qt.QTimer()
-            Qt.QObject.connect(self.refreshTimer, 
-                            Qt.SIGNAL("timeout()"), self.onRefresh)
-            self.refreshTimer.start(self.period)        
+        if self.refreshTimer:
+            self.refreshTimer.start(self.polling)
         
         while True:
             self.log.debug('At TaurusEmitterThread.run() loop.')
@@ -290,33 +331,108 @@ class TaurusEmitterThread(Qt.QThread):
                     continue
             self.log.debug('Emitting doSomething signal ...')
             self.emitter.doSomething.emit(item)
+            if self.loopwait: 
+                self.sleep(self.loopwait)
             # End of while
         self.log.info(
             '#' * 80 + '\nOut of TaurusEmitterThread.run()' + '\n' + '#' * 80)
         # End of Thread
-
-
-class SingletonWorker():  # Qt.QObject):
+        
+        
+class DelayedSubscriber(Logger):
     """
-    The SingletonWorker works
-    =========================
+    DelayedSubscriber(schema) will use a TaurusEmitterThread to perform
+    a thread safe delayed subscribing on all Attributes of a given 
+    Taurus Schema that has not been previously subscribed.
+    """
+    
+    def __init__(self,schema,parent=None,sleep=10000,pause=5):
+        
+        self._schema = schema
+        self.call__init__(Logger, 'DelayedSubscriber(%s)'%self._schema, None)
+        self._factory = taurus.Factory(schema)
 
-    The SingletonWorker class is constructed using the same arguments than the TaurusTreadEmitter class ; but instead of creating a QThread for each instance of the class it creates a single QThread for all instances.
+        self._modelsQueue = queue.Queue()
+        self._modelsThread = TaurusEmitterThread(parent=parent,
+            queue=self._modelsQueue, 
+            method=self.modelSubscriber,
+            sleep=sleep,loopwait=pause)
 
-    The Queue is still different for each of the instances; it is connected to the TaurusEmitterThread signals (*next()* and *somethingDone()*) and each Worker queue is used as a feed for the shared QThread.
+        self._modelsQueue.put((self.addUnsubscribedAttributes,))
+        self._modelsThread.start()
+        
+    def modelSubscriber(self,method,args=[]):
+        self.debug('modelSubscriber(%s,%s)'%(method,args))
+        return method(*args)
+    
+    def getUnsubscribedAttributes(self):
+        attrs = []
+        items = self._factory.getExistingAttributes().items()
+        for name,attr in items:
+            if attr is None: 
+                continue
+            elif attr.hasListeners() and not attr.isUsingEvents():
+                    attrs.append(attr)
+
+        return attrs
+            
+    def addUnsubscribedAttributes(self):
+        try:
+            items = self.getUnsubscribedAttributes()         
+            if len(items):
+                self.info('addUnsubscribedAttributes([%d])'%len(items))
+                for attr in items:
+                    self.addModelObj(attr)
+                self._modelsThread.next()
+                self.info('Thread queue: [%d]'%(self._modelsQueue.qsize()))                
+        except:
+            self.warning(traceback.format_exc())
+    
+    def addModelObj(self,modelObj):
+        parent = modelObj.getParentObj()
+        if parent:
+            proxy = parent.getDeviceProxy()
+            if not proxy:
+                #self.debug('addModelObj(%s), proxy not available'%modelObj)
+                return
+        self._modelsQueue.put((modelObj._subscribeConfEvents,))
+        modelObj.__subscription_state = SubscriptionState.PendingSubscribe
+        #modelObj._activatePolling()
+        self.debug('addModelObj(%s)'%str(modelObj))
+        self._modelsQueue.put((modelObj._call_dev_hw_subscribe_event,(True,)))
+
+    def cleanUp(self):
+        self.trace("[DelayedSubscriber] cleanUp")
+        self._modelsThread.stop()
+        Logger.cleanUp(self)
+        
+class SingletonWorker():
+    """
+    SingletonWorker is used to manage TaurusEmitterThread as Singleton objects
+
+    SingletonWorker is constructed using the same arguments 
+    than TaurusTreadEmitter ; but instead of creating a QThread for each 
+    instance it creates a single QThread for all instances.
+
+    The Queue is still different for each of the instances; it is connected 
+    to the TaurusEmitterThread signals (*next()* and *somethingDone()*) 
+    and each Worker queue is used as a feed for the shared QThread.
 
     This implementation reduced the cpu of vacca application in a 50% factor.
 
     :param parent: a Qt/Taurus object
     :param name: identifies object logs
-    :param queue: if None parent.getQueue() is used, if not then the queue passed as argument is used
+    :param queue: if None parent.getQueue() is used, if not then the queue 
+        passed as argument is used
     :param method: the method to be executed using each queue item as argument
-    :param cursor: if True or QCursor a custom cursor is set while the Queue is not empty
-    This class is used to manage TaurusEmitterThread as Singleton objects:
+    :param cursor: if True or QCursor a custom cursor is set while 
+        the Queue is not empty
+    
     """
     _thread = None
 
-    def __init__(self, parent=None, name='', queue=None, method=None, cursor=None, sleep=5000, log=Logger.Warning, start=True):
+    def __init__(self, parent=None, name='', queue=None, method=None, 
+                 cursor=None, sleep=5000, log=Logger.Warning, start=True):
         self.name = name
         self.log = Logger('SingletonWorker(%s)' % self.name)
         self.log.setLogLevel(log)
@@ -343,7 +459,9 @@ class SingletonWorker():  # Qt.QObject):
             self.put(item)
         elif self.queue.empty():
             return
-        msg = 'At SingletonWorker.next(), %d items not passed yet to Emitter.' % self.queue.qsize()
+        msg = 'At SingletonWorker.next(), '\
+            '%d items not passed yet to Emitter.' \
+                % self.queue.qsize()
         self.log.info(msg)
         #(queue.empty() and self.log.info or self.log.debug)(msg)
         try:
@@ -390,7 +508,8 @@ class SingletonWorker():  # Qt.QObject):
     def clear(self):
         """
         This method will clear queue only if next() has not been called.
-        If you call self.thread.clear() it will clear objects for all workers!, be careful
+        If you call self.thread.clear() it will clear objects for all workers!,
+        be careful
         """
         while not self.queue.empty():
             self.queue.get()
