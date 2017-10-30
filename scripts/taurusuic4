@@ -29,7 +29,7 @@ import atexit
 import optparse
 import os.path
 import lxml.etree
-import PyQt4.Qt as Qt
+from taurus.external.qt import Qt
 
 import taurus.core.util
 import taurus.qt.qtgui.util
