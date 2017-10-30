@@ -27,7 +27,7 @@ emitter.py: This module provides a task scheduler used by TaurusGrid and
     TaurusDevTree widgets
 """
 
-import Queue
+import queue
 import traceback
 from functools import partial
 from collections import Iterable
@@ -142,7 +142,7 @@ class TaurusEmitterThread(Qt.QThread):
     .. code-block:: python
 
         #Applying TaurusEmitterThread to an existing class:
-        import Queue
+        import queue
         from functools import partial
 
         def modelSetter(args):
@@ -153,7 +153,7 @@ class TaurusEmitterThread(Qt.QThread):
             ...
             def __init__(self, parent = None, designMode = False):
                 ...
-                self.modelsQueue = Queue.Queue()
+                self.modelsQueue = queue.Queue()
                 self.modelsThread = TaurusEmitterThread(parent=self,
                         queue=self.modelsQueue,method=modelSetter )
                 ...
@@ -184,8 +184,8 @@ class TaurusEmitterThread(Qt.QThread):
         self.name = name
         self.log = Logger('TaurusEmitterThread(%s)' % self.name)
         self.log.setLogLevel(self.log.Info)
-        self.queue = queue or Queue.Queue()
-        self.todo = Queue.Queue()
+        self.queue = queue or queue.Queue()
+        self.todo = queue.Queue()
         self.method = method
         self.cursor = Qt.QCursor(
             Qt.Qt.WaitCursor) if cursor is True else cursor
@@ -229,7 +229,7 @@ class TaurusEmitterThread(Qt.QThread):
             self._done += 1
 
     def purge(obj):
-        nqueue = Queue.Queue()
+        nqueue = queue.Queue()
         while not self.todo.empty():
             i = self.todo.get()
             if obj not in i:
@@ -280,7 +280,7 @@ class TaurusEmitterThread(Qt.QThread):
                 Qt.QApplication.instance().restoreOverrideCursor()
                 self._cursor = False
 
-        except Queue.Empty:
+        except queue.Empty:
             self.log.warning(traceback.format_exc())
             pass
         except:
@@ -355,7 +355,7 @@ class SingletonWorker():
             SingletonWorker._thread = TaurusEmitterThread(
                 parent, name='SingletonWorker', cursor=cursor, sleep=sleep)
         self.thread = SingletonWorker._thread
-        self.queue = queue or Queue.Queue()
+        self.queue = queue or queue.Queue()
         if start:
             self.start()
 
@@ -387,7 +387,7 @@ class SingletonWorker():
                 i += 1
             self.log.info('%d Items added to emitter queue' % i)
             self.thread.emitter.newQueue.emit()
-        except Queue.Empty:
+        except queue.Empty:
             self.log.warning(traceback.format_exc())
         except:
             self.log.warning(traceback.format_exc())
@@ -427,7 +427,7 @@ class SingletonWorker():
         # self.thread.clear()
 
     def purge(obj):
-        nqueue = Queue.Queue()
+        nqueue = queue.Queue()
         while not self.queue.empty():
             i = self.queue.get()
             if obj not in i:
