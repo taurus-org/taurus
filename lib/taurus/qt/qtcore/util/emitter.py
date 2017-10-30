@@ -176,9 +176,17 @@ class TaurusEmitterThread(Qt.QThread):
     """
 
     def __init__(self, parent=None, name='', queue=None, method=None,
-                 cursor=None, sleep=5000, period_ms=0):
+                 cursor=None, sleep=5000, polling=0, loopwait=5000):
         """
         Parent must be not None and must be a TaurusGraphicsScene!
+
+        :param queue: pass an external action queue (optional)
+        :param method: action processor (e.g. modelSetter)
+        :param cursor: QCursor during process (optional)
+        :param delay: delay in ms before thread start
+        :param polling: process actions at fix period (milliseconds)
+        :param loopwait: wait N milliseconds between actions
+        
         """
         Qt.QThread.__init__(self, parent)
         self.name = name
@@ -191,6 +199,13 @@ class TaurusEmitterThread(Qt.QThread):
             Qt.Qt.WaitCursor) if cursor is True else cursor
         self._cursor = False
         self.timewait = sleep
+        self.polling = polling
+        self.loopwait = int(loopwait*1e-3)
+        if self.polling:
+            self.refreshTimer = Qt.QTimer()
+            self.refreshTimer.timeout.connect(self.onRefresh)
+        else:
+            self.refreshTimer = None
 
         self.emitter = QEmitter()
         self.emitter.moveToThread(Qt.QApplication.instance().thread())
@@ -200,13 +215,21 @@ class TaurusEmitterThread(Qt.QThread):
         self._done = 0
         # Moved to the end to prevent segfaults ...
         self.emitter.doSomething.connect(self._doSomething)
-        self.emitter.somethingDone.connect(self.next)
         
-        self.period = period_ms
+        if not self.refreshTimer:
+            self.emitter.somethingDone.connect(self.next)
+        
         
     def onRefresh(self):
-        self.refreshTimer.setInterval(self.period)
-        self.next()
+        try:
+            size = self.getQueue().qsize()
+            if size:
+                self.log.info('onRefresh(%s)'%size)
+                self.next()
+            else:
+                self.log.debug('onRefresh()')
+        except:
+            self.log.warning(traceback.format_exc())
 
     def getQueue(self):
         if self.queue:
@@ -262,7 +285,7 @@ class TaurusEmitterThread(Qt.QThread):
         queue = self.getQueue()
         msg = ('At TaurusEmitterThread.next(), %d items remaining.'
                 % queue.qsize())
-        if (queue.empty() and not self.period):
+        if (queue.empty() and not self.polling):
             self.log.info(msg)
         else:
             self.log.debug(msg)
@@ -295,11 +318,8 @@ class TaurusEmitterThread(Qt.QThread):
         self.log.info('At TaurusEmitterThread.run()')
         self.next()
         
-        if self.period:
-            self.refreshTimer = Qt.QTimer()
-            Qt.QObject.connect(self.refreshTimer, 
-                            Qt.SIGNAL("timeout()"), self.onRefresh)
-            self.refreshTimer.start(self.period)        
+        if self.refreshTimer:
+            self.refreshTimer.start(self.polling)
         
         while True:
             self.log.debug('At TaurusEmitterThread.run() loop.')
@@ -311,6 +331,8 @@ class TaurusEmitterThread(Qt.QThread):
                     continue
             self.log.debug('Emitting doSomething signal ...')
             self.emitter.doSomething.emit(item)
+            if self.loopwait: 
+                self.sleep(self.loopwait)
             # End of while
         self.log.info(
             '#' * 80 + '\nOut of TaurusEmitterThread.run()' + '\n' + '#' * 80)
