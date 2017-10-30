@@ -37,7 +37,7 @@ from taurus.external.qt import Qt
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 
-
+from taurus.core.taurusbasetypes import SubscriptionState
 
 ###############################################################################
 # Helping methods
