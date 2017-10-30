@@ -337,8 +337,75 @@ class TaurusEmitterThread(Qt.QThread):
         self.log.info(
             '#' * 80 + '\nOut of TaurusEmitterThread.run()' + '\n' + '#' * 80)
         # End of Thread
+        
+        
+class DelayedSubscriber(Logger):
+    """
+    DelayedSubscriber(schema) will use a TaurusEmitterThread to perform
+    a thread safe delayed subscribing on all Attributes of a given 
+    Taurus Schema that has not been previously subscribed.
+    """
+    
+    def __init__(self,schema,parent=None,sleep=10000,pause=5):
+        
+        self._schema = schema
+        self.call__init__(Logger, 'DelayedSubscriber(%s)'%self._schema, None)
+        self._factory = taurus.Factory(schema)
 
+        self._modelsQueue = queue.Queue()
+        self._modelsThread = TaurusEmitterThread(parent=parent,
+            queue=self._modelsQueue, 
+            method=self.modelSubscriber,
+            sleep=sleep,loopwait=pause)
 
+        self._modelsQueue.put((self.addUnsubscribedAttributes,))
+        self._modelsThread.start()
+        
+    def modelSubscriber(self,method,args=[]):
+        self.debug('modelSubscriber(%s,%s)'%(method,args))
+        return method(*args)
+    
+    def getUnsubscribedAttributes(self):
+        attrs = []
+        items = self._factory.getExistingAttributes().items()
+        for name,attr in items:
+            if attr is None: 
+                continue
+            elif attr.hasListeners() and not attr.isUsingEvents():
+                    attrs.append(attr)
+
+        return attrs
+            
+    def addUnsubscribedAttributes(self):
+        try:
+            items = self.getUnsubscribedAttributes()         
+            if len(items):
+                self.info('addUnsubscribedAttributes([%d])'%len(items))
+                for attr in items:
+                    self.addModelObj(attr)
+                self._modelsThread.next()
+                self.info('Thread queue: [%d]'%(self._modelsQueue.qsize()))                
+        except:
+            self.warning(traceback.format_exc())
+    
+    def addModelObj(self,modelObj):
+        parent = modelObj.getParentObj()
+        if parent:
+            proxy = parent.getDeviceProxy()
+            if not proxy:
+                #self.debug('addModelObj(%s), proxy not available'%modelObj)
+                return
+        self._modelsQueue.put((modelObj._subscribeConfEvents,))
+        modelObj.__subscription_state = SubscriptionState.PendingSubscribe
+        #modelObj._activatePolling()
+        self.debug('addModelObj(%s)'%str(modelObj))
+        self._modelsQueue.put((modelObj._call_dev_hw_subscribe_event,(True,)))
+
+    def cleanUp(self):
+        self.trace("[DelayedSubscriber] cleanUp")
+        self._modelsThread.stop()
+        Logger.cleanUp(self)
+        
 class SingletonWorker():
     """
     SingletonWorker is used to manage TaurusEmitterThread as Singleton objects
