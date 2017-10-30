@@ -176,7 +176,7 @@ class TaurusEmitterThread(Qt.QThread):
     """
 
     def __init__(self, parent=None, name='', queue=None, method=None,
-                 cursor=None, sleep=5000, polling=0, loopwait=5000):
+                 cursor=None, sleep=5000, polling=0, loopwait=5):
         """
         Parent must be not None and must be a TaurusGraphicsScene!
 
@@ -200,7 +200,7 @@ class TaurusEmitterThread(Qt.QThread):
         self._cursor = False
         self.timewait = sleep
         self.polling = polling
-        self.loopwait = int(loopwait*1e-3)
+        self.loopwait = int(loopwait)
         if self.polling:
             self.refreshTimer = Qt.QTimer()
             self.refreshTimer.timeout.connect(self.onRefresh)
@@ -331,8 +331,8 @@ class TaurusEmitterThread(Qt.QThread):
                     continue
             self.log.debug('Emitting doSomething signal ...')
             self.emitter.doSomething.emit(item)
-            if self.loopwait: 
-                self.sleep(self.loopwait)
+            if self.loopwait:
+                self.msleep(self.loopwait)
             # End of while
         self.log.info(
             '#' * 80 + '\nOut of TaurusEmitterThread.run()' + '\n' + '#' * 80)
