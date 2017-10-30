@@ -23,7 +23,8 @@
 ###########################################################################
 
 """
-emitter.py: This module provides a task scheduler used by TaurusGrid and TaurusDevTree widgets
+emitter.py: This module provides a task scheduler used by TaurusGrid and 
+    TaurusDevTree widgets
 """
 
 import Queue
@@ -90,33 +91,44 @@ class TaurusEmitterThread(Qt.QThread):
     The TaurusEmitterThread Class
     ==========================
 
-    This object get items from a python Queue and performs a thread safe operation on them.
+    This object get items from a python Queue and performs a thread safe 
+    operation on them.
     It is useful to serialize Qt tasks in a background thread.
 
     :param parent: a Qt/Taurus object
     :param name: identifies object logs
-    :param queue: if None parent.getQueue() is used, if not then the queue passed as argument is used
+    :param queue: if None parent.getQueue() is used, if not then the queue 
+        passed as argument is used
     :param method: the method to be executed using each queue item as argument
-    :param cursor: if True or QCursor a custom cursor is set while the Queue is not empty
+    :param cursor: if True or QCursor a custom cursor is set while 
+        the Queue is not empty
 
     How TaurusEmitterThread works
     --------------------------
 
-    TaurusEmitterThread is a worker thread that processes a queue of iterables passed as arguments to the specified method every time that  ``doSomething()`` is called:
+    TaurusEmitterThread is a worker thread that processes a queue of iterables 
+    passed as arguments to the specified method every time that  
+    ``doSomething()`` is called:
 
-     * ``self.method(*item)`` will be called if TaurusEmitterThread.method has been initialized.
-     * ``item[0](item[1:])`` will be called if ``method`` is not initialized and the first element of the queued iterable is *callable*.
+     * ``self.method(*item)`` will be called if TaurusEmitterThread.method 
+        has been initialized.
+     * ``item[0](item[1:])`` will be called if ``method`` is not initialized 
+        and the first element of the queued iterable is *callable*.
 
     TaurusEmitterThread uses two queues:
 
      * ``self.queue`` manages the objects added externally:
 
-      + the ``next()`` method passes objects from ``self.queue`` to ``self.todo queue``
+      + the ``next()`` method passes objects from ``self.queue`` 
+        to ``self.todo queue``
       + every time that a *somethingDone* signal arrives ``next()`` is called.
-      + ``next()`` can be called also externally to ensure that the main queue is being processed.
+      + ``next()`` can be called also externally to ensure that the main queue 
+      is being processed.
       + the queue can be accessed externally using ``getQueue()``
       + ``getQueue().qsize()`` returns the number of remaining objects in queue.
-      + while there are objects in queue the ``.next()`` method will override applications cursor. a call to ``next()`` with an empty queue will restore the original cursor.
+      + while there are objects in queue the ``.next()`` method will 
+        override applications cursor. a call to ``next()`` with an empty queue 
+        will restore the original cursor.
 
      * ``self.todo`` is managed by the ``run()/start()`` method:
 
@@ -147,13 +159,15 @@ class TaurusEmitterThread(Qt.QThread):
                 ...
             def build_widgets(...):
                 ...
-                            previous,synoptic_value = synoptic_value,TaurusValue(cell_frame)
+                            previous,synoptic_value = \
+                                synoptic_value,TaurusValue(cell_frame)
                             #synoptic_value.setModel(model)
                             self.modelsQueue.put((synoptic_value,model))
                 ...
             def setModel(self,model):
                 ...
-                if hasattr(self,'modelsThread') and not self.modelsThread.isRunning():
+                if hasattr(self,'modelsThread') and \
+                        not self.modelsThread.isRunning():
                     self.modelsThread.start()
                 elif self.modelsQueue.qsize():
                     self.modelsThread.next()
@@ -204,7 +218,8 @@ class TaurusEmitterThread(Qt.QThread):
 
     def getDone(self):
         """ Returns % of done tasks in 0-1 range """
-        return self._done / (self._done + self.getQueue().qsize()) if self._done else 0.
+        pending = self.getQueue().qsize()
+        return float(self._done) / (self._done + pending)
 
     def clear(self):
         while not self.todo.empty():
@@ -237,20 +252,25 @@ class TaurusEmitterThread(Qt.QThread):
             try:
                 method(*args)
             except:
-                self.log.error('At TaurusEmitterThread._doSomething(%s): \n%s' % (
-                    map(str, args), traceback.format_exc()))
+                self.log.error('At TaurusEmitterThread._doSomething(%s): \n%s' 
+                    % (map(str, args), traceback.format_exc()))
         self.emitter.somethingDone.emit()
         self._done += 1
         return
 
     def next(self):
         queue = self.getQueue()
-        msg = 'At TaurusEmitterThread.next(), %d items remaining.' % queue.qsize()
-        (queue.empty() and self.log.info or self.log.debug)(msg)
+        msg = ('At TaurusEmitterThread.next(), %d items remaining.'
+                % queue.qsize())
+        if (queue.empty() and not self.period):
+            self.log.info(msg)
+        else:
+            self.log.debug(msg)
         try:
             if not queue.empty():
                 if not self._cursor and self.cursor is not None:
-                    Qt.QApplication.instance().setOverrideCursor(Qt.QCursor(self.cursor))
+                    Qt.QApplication.instance().setOverrideCursor(
+                        Qt.QCursor(self.cursor))
                     self._cursor = True
                 # A blocking get here would hang the GUIs!!!
                 item = queue.get(False)
@@ -269,7 +289,8 @@ class TaurusEmitterThread(Qt.QThread):
 
     def run(self):
         Qt.QApplication.instance().thread().sleep(
-            int(self.timewait / 1000) if self.timewait > 10 else int(self.timewait))  # wait(self.sleep)
+            int(self.timewait / 1000) if self.timewait > 10 
+                                else int(self.timewait))
         self.log.info('#' * 80)
         self.log.info('At TaurusEmitterThread.run()')
         self.next()
@@ -296,27 +317,33 @@ class TaurusEmitterThread(Qt.QThread):
         # End of Thread
 
 
-class SingletonWorker():  # Qt.QObject):
+class SingletonWorker():
     """
-    The SingletonWorker works
-    =========================
+    SingletonWorker is used to manage TaurusEmitterThread as Singleton objects
 
-    The SingletonWorker class is constructed using the same arguments than the TaurusTreadEmitter class ; but instead of creating a QThread for each instance of the class it creates a single QThread for all instances.
+    SingletonWorker is constructed using the same arguments 
+    than TaurusTreadEmitter ; but instead of creating a QThread for each 
+    instance it creates a single QThread for all instances.
 
-    The Queue is still different for each of the instances; it is connected to the TaurusEmitterThread signals (*next()* and *somethingDone()*) and each Worker queue is used as a feed for the shared QThread.
+    The Queue is still different for each of the instances; it is connected 
+    to the TaurusEmitterThread signals (*next()* and *somethingDone()*) 
+    and each Worker queue is used as a feed for the shared QThread.
 
     This implementation reduced the cpu of vacca application in a 50% factor.
 
     :param parent: a Qt/Taurus object
     :param name: identifies object logs
-    :param queue: if None parent.getQueue() is used, if not then the queue passed as argument is used
+    :param queue: if None parent.getQueue() is used, if not then the queue 
+        passed as argument is used
     :param method: the method to be executed using each queue item as argument
-    :param cursor: if True or QCursor a custom cursor is set while the Queue is not empty
-    This class is used to manage TaurusEmitterThread as Singleton objects:
+    :param cursor: if True or QCursor a custom cursor is set while 
+        the Queue is not empty
+    
     """
     _thread = None
 
-    def __init__(self, parent=None, name='', queue=None, method=None, cursor=None, sleep=5000, log=Logger.Warning, start=True):
+    def __init__(self, parent=None, name='', queue=None, method=None, 
+                 cursor=None, sleep=5000, log=Logger.Warning, start=True):
         self.name = name
         self.log = Logger('SingletonWorker(%s)' % self.name)
         self.log.setLogLevel(log)
@@ -343,7 +370,9 @@ class SingletonWorker():  # Qt.QObject):
             self.put(item)
         elif self.queue.empty():
             return
-        msg = 'At SingletonWorker.next(), %d items not passed yet to Emitter.' % self.queue.qsize()
+        msg = ('At SingletonWorker.next(), '
+            '%d items not passed yet to Emitter.'
+                % self.queue.qsize())
         self.log.info(msg)
         #(queue.empty() and self.log.info or self.log.debug)(msg)
         try:
@@ -390,7 +419,8 @@ class SingletonWorker():  # Qt.QObject):
     def clear(self):
         """
         This method will clear queue only if next() has not been called.
-        If you call self.thread.clear() it will clear objects for all workers!, be careful
+        If you call self.thread.clear() it will clear objects for all workers!,
+        be careful
         """
         while not self.queue.empty():
             self.queue.get()
