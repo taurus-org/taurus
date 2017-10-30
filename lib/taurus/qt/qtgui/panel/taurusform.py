@@ -369,18 +369,16 @@ class TaurusForm(TaurusWidget):
     def resetWithButtons(self):
         self.setWithButtons(True)
 
-    def getFormat(self):
-        """Reimplemented from TaurusBaseComponent"""
-        # Always return None (format delegated to the taurusvalues)
-        return None
-
-    def setFormat(self, format):
-        """Reimplemented from TaurusBaseComponent"""
-        # Form delegates format to the taurusvalues
-        if format is None:
-            return
-        for item in self.getItems():
-            item._readWidget.setFormat(format)
+    def onSetFormatter(self):
+        """Reimplemented from TaurusBaseWidget"""
+        # Form delegates se to the taurusvalues
+        format = TaurusWidget.onSetFormatter(self)
+        if format is not None:
+            for item in self.getItems():
+                rw = item.readWidget()
+                if hasattr(rw, 'setFormat'):
+                    rw.setFormat(format)
+        return format
 
     def setCompact(self, compact):
         self._compact = compact
