@@ -88,6 +88,8 @@ class TaurusForm(TaurusWidget):
                  buttons=None,
                  withButtons=True,
                  designMode=False):
+
+        self._children = []
         TaurusWidget.__init__(self, parent, designMode)
 
         if buttons is None:
@@ -95,7 +97,7 @@ class TaurusForm(TaurusWidget):
                 Qt.QDialogButtonBox.Reset
         self._customWidgetMap = {}
         self._model = []
-        self._children = []
+        # self._children = []
         self.setFormWidget(formWidget)
 
         self.setLayout(Qt.QVBoxLayout())

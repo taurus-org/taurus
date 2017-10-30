@@ -1031,8 +1031,12 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def __init__(self, parent=None, designMode=False):
         name = "TaurusPlot"
+        # book-keeping of attached tauruscurves
+        self.curves = CaselessDict()  # TODO: Tango-centric
+
         Qwt5.QwtPlot.__init__(self, parent)
         TaurusBaseWidget.__init__(self, name)
+
         self._designMode = designMode
         self._modelNames = []
         self._useParentModel = False
@@ -1066,8 +1070,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         # enable dropping (see also dragEnterEvent and dropEvent methods)
         self.setAcceptDrops(True)
 
-        # book-keeping of attached tauruscurves
-        self.curves = CaselessDict()  # TODO: Tango-centric
         #self.curves_lock = threading.RLock()
         self.curves_lock = DummyLock()
 

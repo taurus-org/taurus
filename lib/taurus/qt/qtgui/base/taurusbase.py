@@ -95,8 +95,8 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     _eventBufferPeriod = 0
 
     # Python format string or Formatter callable
-    FORMAT = getattr(taurus.tauruscustomsettings, 'DEFAULT_FORMATTER',
-                     defaultFormatter)
+    # (None means that the default formatter will be used)
+    FORMAT = None
 
     # Dictionary mapping dtypes to format strings
     defaultFormatDict = {float: "{:.{bc.modelObj.precision}f}",
@@ -144,6 +144,12 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             self._exception_listener = parent._exception_listener
         else:
             self._exception_listener = set([TaurusExceptionListener()])
+
+        # Use default formatter if none has been set by the class
+        if self.FORMAT is None:
+            self.setFormat(getattr(taurus.tauruscustomsettings,
+                                   'DEFAULT_FORMATTER',
+                                   defaultFormatter))
 
         # register configurable properties
         self.registerConfigProperty(self.isModifiableByUser,
@@ -1302,6 +1308,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
                 format = tangoFormatter
             # -----------------------------------------------------------------
             self.setFormat(format)
+        return format
 
     # It makes the GUI to hang... If this needs implementing, we should
     # reimplement it using the Qt parent class, not QWidget...
