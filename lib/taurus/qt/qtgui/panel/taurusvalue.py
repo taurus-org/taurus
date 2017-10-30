@@ -143,6 +143,8 @@ class DefaultLabelWidget(TaurusLabel):
                            self.taurusValueBuddy().onChangeLabelConfig)
             menu.addAction("Change Read Widget",
                            self.taurusValueBuddy().onChangeReadWidget)
+            menu.addAction("Set Formatter",
+                           self.taurusValueBuddy().onSetFormatter)
             cw_action = menu.addAction(
                 "Change Write Widget", self.taurusValueBuddy().onChangeWriteWidget)
             # disable the action if the taurusValue is readonly
@@ -432,6 +434,13 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         # do the base class stuff too
         Qt.QWidget.setParent(self, parent)
+
+    def onSetFormatter(self):
+        """
+        Reimplemented to call onSetFormatter of the read widget (if provided)
+        """
+        if hasattr(self._readWidget, 'onSetFormatter'):
+            return self._readWidget.onSetFormatter()
 
     def getAllowWrite(self):
         return self._allowWrite
