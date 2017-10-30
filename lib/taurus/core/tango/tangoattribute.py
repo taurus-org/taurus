@@ -610,8 +610,8 @@ class TangoAttribute(TaurusAttribute):
                 return
 
         if not self.factory().is_tango_subscribe_enabled():
-            self._activatePolling()
-            return
+            self.enablePolling(True)
+            return       
 
         try:
             self.__subscription_state = SubscriptionState.Subscribing
