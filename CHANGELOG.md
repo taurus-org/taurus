@@ -10,7 +10,7 @@ develop branch) won't be reflected in this file.
 ## Unreleased
 ### Deprecated
 - taurus.core.tango.search
-- taurus.qt.qtgui.container.taurusmainwindow._onChangeTangoHostAction (#379)
+- TaurusMainWindow's "Change Tango Host" action (#379)
 
 ### Added
 - Re-added `taurus.external.ordereddict` (#599)
