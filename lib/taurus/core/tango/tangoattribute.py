@@ -222,7 +222,7 @@ class TangoAttrValue(TaurusAttrValue):
 
 
 class TangoAttribute(TaurusAttribute):
-    
+
     no_cfg_value = '-----'
     no_unit = 'No unit'
     no_standard_unit = 'No standard unit'
@@ -610,8 +610,8 @@ class TangoAttribute(TaurusAttribute):
                 return
 
         if not self.factory().is_tango_subscribe_enabled():
-            self.enablePolling(True)
-            return       
+            self._activatePolling()
+            return
 
         try:
             self.__subscription_state = SubscriptionState.Subscribing
