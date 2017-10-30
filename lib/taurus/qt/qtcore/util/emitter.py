@@ -346,7 +346,7 @@ class DelayedSubscriber(Logger):
     Taurus Schema that has not been previously subscribed.
     """
     
-    def __init__(self,schema,parent=None,sleep=10000,pause=5):
+    def __init__(self,schema,parent=None,sleep=10000,pause=5,period=0):
         
         self._schema = schema
         self.call__init__(Logger, 'DelayedSubscriber(%s)'%self._schema, None)
@@ -356,7 +356,7 @@ class DelayedSubscriber(Logger):
         self._modelsThread = TaurusEmitterThread(parent=parent,
             queue=self._modelsQueue, 
             method=self.modelSubscriber,
-            sleep=sleep,loopwait=pause)
+            sleep=sleep,loopwait=pause,polling=period)
 
         self._modelsQueue.put((self.addUnsubscribedAttributes,))
         self._modelsThread.start()
