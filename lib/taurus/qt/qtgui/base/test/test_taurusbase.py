@@ -29,7 +29,7 @@
 from taurus.external import unittest
 from taurus.test import insertTest
 from taurus.qt.qtgui.test import BaseWidgetTestCase
-from taurus.core.tango.test import TangoSchemeTestLauncher
+from taurus.core.tango.test import TangoSchemeTestLauncher  # tango-centric
 from taurus.qt.qtgui.container import TaurusWidget
 
 DEV_NAME = TangoSchemeTestLauncher.DEV_NAME

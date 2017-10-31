@@ -37,9 +37,9 @@ __all__ = ["TaurusDevTree", "TaurusSearchTree", "TaurusDevTreeOptions"]
 
 import time
 import os
+import re
 import traceback
 from functools import partial
-import PyTango  # to change!!
 
 # @todo: icons_dev_tree is not an included or standard module.
 #        Is anybody using it? If not, the following lines should be removed and
@@ -54,9 +54,15 @@ from taurus.external.qt import Qt
 import taurus.core
 from taurus.core.util.colors import DEVICE_STATE_PALETTE, ATTRIBUTE_QUALITY_PALETTE
 from taurus.core.util.containers import CaselessDict
-from taurus.core.tango.search import *  # @TODO: Avoid implicit imports
+from taurus.core.util.fandango_search import (
+    isCallable, isString, split_model_list, isSequence, isMap,
+    get_matching_devices, matchCl, get_alias_for_device, extend_regexp)
 from taurus.qt.qtcore.util.emitter import SingletonWorker
-from taurus.qt.qtcore.mimetypes import *  # @TODO: Avoid implicit imports
+from taurus.qt.qtcore.mimetypes import (TAURUS_MODEL_LIST_MIME_TYPE,
+                                        TAURUS_DEV_MIME_TYPE,
+                                        TAURUS_ATTR_MIME_TYPE,
+                                        TAURUS_MODEL_MIME_TYPE
+                                        )
 from taurus.qt.qtcore.util import properties
 from taurus.qt.qtcore.util.properties import djoin
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
@@ -212,6 +218,7 @@ class TaurusTreeNodeContainer(object):
 
     def getNodeDraggable(self, node=None):
         """ This method will return True only if the selected node belongs to a numeric Tango attribute """
+        import PyTango  # TODO: tango-centric
         numtypes = [PyTango.DevDouble, PyTango.DevFloat, PyTango.DevLong, PyTango.DevLong64,
                     PyTango.DevULong, PyTango.DevShort, PyTango.DevUShort, PyTango.DevBoolean]
         if node is None:
@@ -310,6 +317,8 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     addModels merges the tree with new models
     setFilters clears previous models and adds new one
     '''
+
+    # TODO: tango-centric
     __properties__ = (
         'ModelInConfig',
         'modifiableByUser',
@@ -730,6 +739,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         @argin expert If False only PyTango.DispLevel.OPERATOR attributes are displayed
         @argin allow_types Only those types included in the list will be displayed (e.g. may be restricted to numeric types only)
         """
+        import PyTango  # TODO: tango-centric
         numeric_types = [PyTango.DevDouble, PyTango.DevFloat, PyTango.DevLong, PyTango.DevLong64,
                          PyTango.DevULong, PyTango.DevShort, PyTango.DevUShort, PyTango.DevBoolean, PyTango.DevState]
         allow_types = allow_types or [PyTango.DevString] + numeric_types

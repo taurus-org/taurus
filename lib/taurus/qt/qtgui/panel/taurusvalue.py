@@ -143,6 +143,8 @@ class DefaultLabelWidget(TaurusLabel):
                            self.taurusValueBuddy().onChangeLabelConfig)
             menu.addAction("Change Read Widget",
                            self.taurusValueBuddy().onChangeReadWidget)
+            menu.addAction("Set Formatter",
+                           self.taurusValueBuddy().onSetFormatter)
             cw_action = menu.addAction(
                 "Change Write Widget", self.taurusValueBuddy().onChangeWriteWidget)
             # disable the action if the taurusValue is readonly
@@ -354,8 +356,6 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         self.registerConfigProperty(
             self.getLabelConfig, self.setLabelConfig, 'labelConfig')
-        self.registerConfigProperty(
-            self.getLabelText, self.setLabelText, 'labelText')
         self.registerConfigProperty(self.isCompact, self.setCompact, 'compact')
 
     def setVisible(self, visible):
@@ -432,6 +432,13 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         # do the base class stuff too
         Qt.QWidget.setParent(self, parent)
+
+    def onSetFormatter(self):
+        """
+        Reimplemented to call onSetFormatter of the read widget (if provided)
+        """
+        if hasattr(self._readWidget, 'onSetFormatter'):
+            return self._readWidget.onSetFormatter()
 
     def getAllowWrite(self):
         return self._allowWrite
@@ -1229,9 +1236,10 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         try:
             self.getModelFragmentObj(config)
         except Exception:
-            msg = "Use setLabelText for setting an arbitrary label text"
-            self.deprecated(msg)
-            self.setLabelText(config)
+            try:
+                self._labelWidget.setText(config)
+            except:
+                self.debug("Setting permanent text to the label widget failed")
             return
         self._labelConfig = config
         self.updateLabelWidget()
@@ -1239,13 +1247,6 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetLabelConfig(self):
         self._labelConfig = 'label'
         self.updateLabelWidget()
-
-    def getLabelText(self):
-        return self._labelText
-
-    def setLabelText(self, text):
-        self._labelText = text
-        self._labelWidget.setPermanentText(text)
 
     def getSwitcherClass(self):
         '''Returns the TaurusValue switcher class (used in compact mode).
