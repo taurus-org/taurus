@@ -183,7 +183,7 @@ class TaurusEmitterThread(Qt.QThread):
         :param queue: pass an external action queue (optional)
         :param method: action processor (e.g. modelSetter)
         :param cursor: QCursor during process (optional)
-        :param delay: delay in ms before thread start
+        :param sleep: delay in ms before thread start
         :param polling: process actions at fix period (milliseconds)
         :param loopwait: wait N milliseconds between actions
         
@@ -198,8 +198,8 @@ class TaurusEmitterThread(Qt.QThread):
         self.cursor = Qt.QCursor(
             Qt.Qt.WaitCursor) if cursor is True else cursor
         self._cursor = False
-        self.timewait = sleep
-        self.polling = polling
+        self.timewait = int(sleep)
+        self.polling = int(polling)
         self.loopwait = int(loopwait)
         if self.polling:
             self.refreshTimer = Qt.QTimer()
@@ -311,9 +311,7 @@ class TaurusEmitterThread(Qt.QThread):
         return
 
     def run(self):
-        Qt.QApplication.instance().thread().sleep(
-            int(self.timewait / 1000) if self.timewait > 10 
-                                else int(self.timewait))
+        Qt.QApplication.instance().thread().msleep(self.timewait)
         self.log.info('#' * 80)
         self.log.info('At TaurusEmitterThread.run()')
         self.next()
