@@ -659,7 +659,7 @@ class TaurusCommandsForm(TaurusWidget):
             self._cmdWidgets.append(button)
             button.commandExecuted.connect(self._onCommandExecuted)
 
-            if c.in_type != PyTango.CmdArgType.DevVoid:
+            if c.in_type:
                 self.debug('Adding arguments for command %s' % c.cmd_name)
                 pwidget = ParameterCB()
                 if c.cmd_name.lower() in self._defaultParameters:
