@@ -251,8 +251,9 @@ class TangoAttribute(TaurusAttribute):
         # the last attribute error
         self.__attr_err = None
 
-        # Lock for protect the critical region (__attr_value and __attr_err)
-        self.__lock = threading.RLock()
+        # Lock for protecting the critical read region 
+        # where __attr_value and __attr_err are updated
+        self.__read_lock = threading.RLock()
 
         # the change event identifier
         self.__chg_evt_id = None
@@ -441,7 +442,7 @@ class TangoAttribute(TaurusAttribute):
 
     def poll(self,  single=True, value=None, time=None, error=None):
         """ Notify listeners when the attribute has been polled"""
-        with self.__lock:
+        with self.__read_lock:
             try:
                 if single:
                     self.read(cache=False)
@@ -500,7 +501,7 @@ class TangoAttribute(TaurusAttribute):
                 SubscriptionState.PendingSubscribe,
                 SubscriptionState.Unsubscribed)
                          and not self.isPollingActive()):
-            with self.__lock:
+            with self.__read_lock:
                 try:
                     dev = self.getParentObj()
                     v = dev.read_attribute(self.getSimpleName())
@@ -715,7 +716,7 @@ class TangoAttribute(TaurusAttribute):
         It propagates the event to listeners and delegates other tasks to
         specific handlers for different event types.
         """
-        with self.__lock:
+        with self.__read_lock:
             # if it is a configuration event
             if isinstance(event, PyTango.AttrConfEventData):
                 etype, evalue = self._pushConfEvent(event)
