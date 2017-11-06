@@ -887,7 +887,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             widgets_row = []
             for cell in row:
                 cell_frame = self.create_frame_with_gridlayout()
-                cell_frame.itemClicked.connect(self.itemClickedHook)
+                cell_frame.itemClicked.connect(self.onItemClicked)
                 count = 0
                 for synoptic in sorted(cell):
                     self.debug("processing synoptic %s" % synoptic)
@@ -910,7 +910,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             widgets_matrix.append(widgets_row)
         return widgets_matrix
 
-    def itemClickedHook(self, item_name):
+    def onItemClicked(self, item_name):
         self.trace('In TaurusGrid.itemClicked(%s)' % item_name)
         self.setItemSelected(item_name)
         self.itemClicked.emit(str(item_name))
