@@ -658,8 +658,11 @@ class TaurusCommandsForm(TaurusWidget):
             button.setUseParentModel(True)
             self._cmdWidgets.append(button)
             button.commandExecuted.connect(self._onCommandExecuted)
+            
+            import taurus.core.tango.util.tango_taurus as tango_taurus
+            in_type = tango_taurus.FROM_TANGO_TO_TAURUS_TYPE[c.in_type]
 
-            if c.in_type != PyTango.CmdArgType.DevVoid:
+            if in_type is not None:
                 self.debug('Adding arguments for command %s' % c.cmd_name)
                 pwidget = ParameterCB()
                 if c.cmd_name.lower() in self._defaultParameters:
