@@ -194,19 +194,6 @@ def get_readwrite_models(expressions, limit=1000):
     models = models[:limit]
     return models
 
-class TaurusGridCell(Qt.QFrame):
-
-    itemClicked = Qt.pyqtSignal('QString')
-    
-    # Done in this way as TaurusValue.mousePressEvent is never called
-    def mousePressEvent(self, event):
-        # print 'In cell clicked'
-        targets = set(str(child.getModelName()) for child in self.children()
-                        if hasattr(child, 'underMouse') and child.underMouse() 
-                        and hasattr(child, 'getModelName'))
-        for t in targets:
-            self.itemClicked.emit(t)
-
 class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
     """ TaurusGrid is a Taurus widget designed to represent a set of attributes distributed in columns and rows.
     The Model will be a list with attributes or device names (for devices the State attribute will be shown).
@@ -230,6 +217,19 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
     _TAGS = ['DOMAIN', 'FAMILY', 'HOST',
              'LEVEL', 'CLASS', 'ATTRIBUTE', 'DEVICE']
+    
+    class _TaurusGridCell(Qt.QFrame):
+
+        itemClicked = Qt.pyqtSignal('QString')
+        
+        # Done in this way as TaurusValue.mousePressEvent is never called
+        def mousePressEvent(self, event):
+            # print 'In cell clicked'
+            targets = set(str(child.getModelName()) for child in self.children()
+                            if hasattr(child, 'underMouse') and child.underMouse() 
+                            and hasattr(child, 'getModelName'))
+            for t in targets:
+                self.itemClicked.emit(t)    
 
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
@@ -680,7 +680,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
     def create_frame_with_gridlayout(self):
         """ Just a 'macro' to create the layouts that seem to fit better. """
-        frame = TaurusGridCell()
+        frame = TaurusGrid._TaurusGridCell()
         frame.setLayout(QtGui.QGridLayout())
         frame.layout().setContentsMargins(2, 2, 2, 2)
         frame.layout().setSpacing(0)
