@@ -459,9 +459,10 @@ class TangoAttribute(TaurusAttribute):
                                                    'FILTER_OLD_TANGO_EVENTS',
                                                    False)
                         if (self.__attr_value is not None
-                            and filter_old_event
-                            and time is not None
-                            and time < self.__attr_value.time.totime()):
+                                and filter_old_event
+                                and time is not None
+                                and time < self.__attr_value.time.totime()
+                           ):
                             return
                         self.__attr_value = value
             except PyTango.DevFailed, df:
