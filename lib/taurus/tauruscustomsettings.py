@@ -64,6 +64,13 @@ LIGHTWEIGHT_IMPORTS = False
 # Set your default scheme (if not defined, "tango" is assumed)
 DEFAULT_SCHEME = "tango"
 
+# Filter old tango events:
+# Sometimes TangoAttribute can receive an event with an older timestamp
+# than its current one. See https://github.com/taurus-org/taurus/issues/216
+# True discards (Tango) events whose timestamp is older than the cached one.
+# False (or commented out) for backwards (pre 4.1) compatibility
+FILTER_OLD_TANGO_EVENTS = True
+
 # Extra Taurus schemes. You can add a list of modules to be loaded for
 # providing support to new schemes
 # EXTRA_SCHEME_MODULES = ['myownschememodule']

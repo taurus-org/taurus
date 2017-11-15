@@ -41,6 +41,7 @@ from functools import partial
 from taurus import Manager
 from taurus.external.pint import Quantity, UR, UndefinedUnitError
 
+from taurus import tauruscustomsettings
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import (TaurusEventType,
                                          TaurusSerializationMode,
@@ -244,12 +245,15 @@ class TangoAttribute(TaurusAttribute):
     _description = 'A Tango Attribute'
 
     def __init__(self, name, parent, **kwargs):
-
         # the last attribute value
         self.__attr_value = None
 
         # the last attribute error
         self.__attr_err = None
+
+        # Lock for protecting the critical read region 
+        # where __attr_value and __attr_err are updated
+        self.__read_lock = threading.RLock()
 
         # the change event identifier
         self.__chg_evt_id = None
@@ -289,6 +293,7 @@ class TangoAttribute(TaurusAttribute):
         self.__cfg_evt_id = None
         if self.factory().is_tango_subscribe_enabled():
             self._subscribeConfEvents()
+
 
     def cleanUp(self):
         self.trace("[TangoAttribute] cleanUp")
@@ -436,29 +441,43 @@ class TangoAttribute(TaurusAttribute):
             self.error("[Tango] write failed: %s" % str(e))
             raise e
 
-    def poll(self, **kwargs):
+    def poll(self,  single=True, value=None, time=None, error=None):
         """ Notify listeners when the attribute has been polled"""
-        single = kwargs.get('single', True)
-        try:
-            if single:
-                self.read(cache=False)
+        with self.__read_lock:
+            try:
+                if single:
+                    self.read(cache=False)
+                else:
+                        value = self.decode(value)
+                        self.__attr_err = error
+                        if self.__attr_err:
+                            raise self.__attr_err
+                        # Avoid "valid-but-outdated" notifications
+                        # if FILTER_OLD_TANGO_EVENTS is enabled
+                        # and the given timestamp is older than the timestamp
+                        # of the cached value
+                        filter_old_event = getattr(tauruscustomsettings,
+                                                   'FILTER_OLD_TANGO_EVENTS',
+                                                   False)
+                        if (self.__attr_value is not None
+                                and filter_old_event
+                                and time is not None
+                                and time < self.__attr_value.time.totime()
+                           ):
+                            return
+                        self.__attr_value = value
+            except PyTango.DevFailed, df:
+                self.__subscription_event.set()
+                self.debug("Error polling: %s" % df[0].desc)
+                self.traceback()
+                self.fireEvent(TaurusEventType.Error, self.__attr_err)
+            except Exception, e:
+                self.__subscription_event.set()
+                self.debug("Error polling: %s" % str(e))
+                self.fireEvent(TaurusEventType.Error, self.__attr_err)
             else:
-                self.__attr_value = self.decode(kwargs.get('value'))
-                self.__attr_err = kwargs.get('error')
-                if self.__attr_err:
-                    raise self.__attr_err
-        except PyTango.DevFailed, df:
-            self.__subscription_event.set()
-            self.debug("Error polling: %s" % df[0].desc)
-            self.traceback()
-            self.fireEvent(TaurusEventType.Error, self.__attr_err)
-        except Exception, e:
-            self.__subscription_event.set()
-            self.debug("Error polling: %s" % str(e))
-            self.fireEvent(TaurusEventType.Error, self.__attr_err)
-        else:
-            self.__subscription_event.set()
-            self.fireEvent(TaurusEventType.Periodic, self.__attr_value)
+                self.__subscription_event.set()
+                self.fireEvent(TaurusEventType.Periodic, self.__attr_value)
 
     def read(self, cache=True):
         """ Returns the current value of the attribute.
@@ -466,7 +485,6 @@ class TangoAttribute(TaurusAttribute):
             active then it will return the local cached value. Otherwise it will
             read the attribute value from the tango device."""
         curr_time = time.time()
-
         if cache:
             try:
                 attr_timestamp = self.__attr_value.time.totime()
@@ -481,34 +499,43 @@ class TangoAttribute(TaurusAttribute):
                                self.fullname, self.__attr_err)
                     raise self.__attr_err
 
-        if not cache or (self.__subscription_state in (SubscriptionState.PendingSubscribe, SubscriptionState.Unsubscribed) and not self.isPollingActive()):
-            try:
-                dev = self.getParentObj()
-                v = dev.read_attribute(self.getSimpleName())
-                self.__attr_value, self.__attr_err = self.decode(v), None
-                return self.__attr_value
-            except PyTango.DevFailed, df:
-                self.__attr_value, self.__attr_err = None, df
-                err = df[0]
-                self.debug("[Tango] read failed (%s): %s",
-                           err.reason, err.desc)
-                raise df
-            except Exception, e:
-                self.__attr_value, self.__attr_err = None, e
-                self.debug("[Tango] read failed: %s", e)
-                raise e
-        elif self.__subscription_state in (SubscriptionState.Subscribing, SubscriptionState.PendingSubscribe):
+        if not cache or (self.__subscription_state in (
+                SubscriptionState.PendingSubscribe,
+                SubscriptionState.Unsubscribed)
+                         and not self.isPollingActive()):
+            with self.__read_lock:
+                try:
+                    dev = self.getParentObj()
+                    v = dev.read_attribute(self.getSimpleName())
+                    self.__attr_value = self.decode(v)
+                    self.__attr_err = None
+                    return self.__attr_value
+                except PyTango.DevFailed, df:
+                    self.__attr_value = None
+                    self.__attr_err = df
+                    err = df[0]
+                    self.debug("[Tango] read failed (%s): %s",
+                               err.reason, err.desc)
+                    raise df
+                except Exception, e:
+                    self.__attr_value = None
+                    self.__attr_err = e
+                    self.debug("[Tango] read failed: %s", e)
+                    raise e
+        elif self.__subscription_state in (SubscriptionState.Subscribing,
+                                           SubscriptionState.PendingSubscribe):
             self.__subscription_event.wait()
 
         if self.__attr_err is not None:
             raise self.__attr_err
         return self.__attr_value
-    
+
+
     def getAttributeProxy(self):
         """Convenience method that creates and returns a PyTango.AttributeProxy
         object"""
         return PyTango.AttributeProxy(self.getFullName())
-    
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -713,24 +740,25 @@ class TangoAttribute(TaurusAttribute):
         It propagates the event to listeners and delegates other tasks to
         specific handlers for different event types.
         """
-        # if it is a configuration event
-        if isinstance(event, PyTango.AttrConfEventData):
-            etype, evalue = self._pushConfEvent(event)
-        # if it is an attribute event
-        else:
-            etype, evalue = self._pushAttrEvent(event)
+        with self.__read_lock:
+            # if it is a configuration event
+            if isinstance(event, PyTango.AttrConfEventData):
+                etype, evalue = self._pushConfEvent(event)
+            # if it is an attribute event
+            else:
+                etype, evalue = self._pushAttrEvent(event)
 
-        # notify the listeners if required (i.e, if etype is not None)
-        if etype is None:
-            return
-        manager = Manager()
-        sm = self.getSerializationMode()
-        listeners = tuple(self._listeners)
-        if sm == TaurusSerializationMode.Concurrent:
-            manager.addJob(self.fireEvent, None, etype, evalue,
-                           listeners=listeners)
-        else:
-            self.fireEvent(etype, evalue, listeners=listeners)
+            # notify the listeners if required (i.e, if etype is not None)
+            if etype is None:
+                return
+            manager = Manager()
+            sm = self.getSerializationMode()
+            listeners = tuple(self._listeners)
+            if sm == TaurusSerializationMode.Concurrent:
+                manager.addJob(self.fireEvent, None, etype, evalue,
+                               listeners=listeners)
+            else:
+                self.fireEvent(etype, evalue, listeners=listeners)
 
     def _pushAttrEvent(self, event):
         """Handler of (non-configuration) events from the PyTango layer.
@@ -744,8 +772,22 @@ class TangoAttribute(TaurusAttribute):
                  evt_value is a TaurusValue, an Exception, or None.
         """
         if not event.err:
-            self.__attr_value, self.__attr_err = self.decode(
-                event.attr_value), None
+            attr_value = self.decode(event.attr_value)
+            filter_old_event = getattr(tauruscustomsettings,
+                                       'FILTER_OLD_TANGO_EVENTS', False)
+            time = event.attr_value.time.totime()
+
+            # Discard "valid" events if the attribute value is not None
+            # and FILTER_OLD_TANGO_EVENTS is enabled
+            # and the given timestamp is older than the timestamp
+            # of the cache value
+            if (self.__attr_value is not None
+                and filter_old_event
+                and time < self.__attr_value.time.totime()):
+                return [None, None]
+
+            self.__attr_value = attr_value
+            self.__attr_err = None
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
             if not self.isPollingForced():
@@ -758,7 +800,7 @@ class TangoAttribute(TaurusAttribute):
                           event.errors[0].reason)
                 self.__subscription_state = SubscriptionState.PendingSubscribe
                 self._activatePolling()
-            return None, None
+            return [None, None]
 
         else:
             self.__attr_value, self.__attr_err = None, PyTango.DevFailed(
