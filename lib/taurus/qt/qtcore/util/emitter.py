@@ -252,6 +252,10 @@ class TaurusEmitterThread(Qt.QThread):
             self._done += 1
 
     def purge(obj):
+        # TODO: remove this method?
+        # This method seems buggy (it uses unreferenced `self`)
+        # AFAIK it is not called from anywere in Taurus and it is not part of
+        # a Qt API
         nqueue = Queue()
         while not self.todo.empty():
             i = self.todo.get()
@@ -516,6 +520,10 @@ class SingletonWorker():
             # self.thread.clear()
 
     def purge(obj):
+        # TODO: remove this method?
+        # This method seems buggy (it uses unreferenced `self`)
+        # AFAIK it is not called from anywere in Taurus and it is not part of
+        # a Qt API
         nqueue = Queue()
         while not self.queue.empty():
             i = self.queue.get()
