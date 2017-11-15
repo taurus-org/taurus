@@ -46,7 +46,8 @@ from functools import partial
 from taurus.external.qt import Qt, QtGui, QtCore
 
 import taurus
-from taurus.qt.qtcore.util.emitter import modelSetter, TaurusEmitterThread, SingletonWorker, MethodModel
+from taurus.qt.qtcore.util.emitter import (modelSetter, TaurusEmitterThread,
+                                           SingletonWorker, MethodModel)
 from taurus.core.taurusmanager import TaurusManager
 from taurus.core.util.log import Logger
 from taurus.qt.qtgui.base import TaurusBaseWidget
@@ -71,31 +72,32 @@ def get_all_models(expressions, limit=1000):
     It practically equals to fandango.get_matching_attributes; check which is better!
     Move this method to taurus.core.tango.search
     '''
-    #print( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
+    # print( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
     if isinstance(expressions, str):
         # if any(re.match(s,expressions) for s in ('\{.*\}','\(.*\)','\[.*\]')):
-            ##self.debug( 'evaluating expressions ....')
-            #expressions = list(eval(expressions))
+        ##self.debug( 'evaluating expressions ....')
+        # expressions = list(eval(expressions))
         # else:
-            ##self.debug( 'expressions as string separated by commas ...')
+        ##self.debug( 'expressions as string separated by commas ...')
         expressions = expressions.split(',')
 
-    elif any(isinstance(expressions, klass) for klass in (QtCore.QStringList, list, tuple, dict)):
-        #self.debug( 'expressions converted from list ...')
+    elif any(isinstance(expressions, klass) for klass in
+             (QtCore.QStringList, list, tuple, dict)):
+        # self.debug( 'expressions converted from list ...')
         expressions = list(str(e) for e in expressions)
 
-    #self.debug( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
+    # self.debug( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
     taurus_db = taurus.Authority()
-    #taurus_db = taurus.Authority(os.environ['TANGO_HOST'])
+    # taurus_db = taurus.Authority(os.environ['TANGO_HOST'])
     # WHAAAAAAT????? Someone should get beaten for this line
     if 'SimulationAuthority' in str(type(taurus_db)):
-        #self.trace( 'Using a simulated database ...')
+        # self.trace( 'Using a simulated database ...')
         models = expressions
     else:
         all_devs = taurus_db.get_device_exported('*')
         models = []
         for exp in expressions:
-            #self.trace( 'evaluating exp = "%s"' % exp)
+            # self.trace( 'evaluating exp = "%s"' % exp)
             exp = str(exp)
             devs = []
             targets = []
@@ -111,21 +113,23 @@ def get_all_models(expressions, limit=1000):
             else:
                 devs = [device]
 
-            #self.trace( 'TaurusGrid.get_all_models(): devices matched by %s / %s are %d:' % (device,attribute,len(devs)))
-            #self.debug( '%s' % (devs))
+            # self.trace( 'TaurusGrid.get_all_models(): devices matched by %s / %s are %d:' % (device,attribute,len(devs)))
+            # self.debug( '%s' % (devs))
             for dev in devs:
                 if any(c in attribute for c in '.*[]()+?'):
                     if '*' in attribute and '.*' not in attribute:
                         attribute = attribute.replace('*', '.*')
                     try:
-                        #taurus_dp = taurus.core.taurusdevice.TaurusDevice(dev)
-                        taurus_dp = taurus.core.taurusmanager.TaurusManager().getFactory()().getDevice(dev)
-                        #self.debug( "taurus_dp = %s"%taurus_dp.getFullName())
-                        attrs = [att.name for att in taurus_dp.attribute_list_query(
-                        ) if re_match_low(attribute, att.name)]
+                        # taurus_dp = taurus.core.taurusdevice.TaurusDevice(dev)
+                        taurus_dp = taurus.core.taurusmanager.TaurusManager().getFactory()().getDevice(
+                            dev)
+                        # self.debug( "taurus_dp = %s"%taurus_dp.getFullName())
+                        attrs = [att.name for att in
+                                 taurus_dp.attribute_list_query(
+                                 ) if re_match_low(attribute, att.name)]
                         targets.extend(dev + '/' + att for att in attrs)
                     except Exception, e:
-                        #self.warning( 'ERROR! TaurusGrid.get_all_models(): Unable to get attributes for device %s: %s' % (dev,str(e)))
+                        # self.warning( 'ERROR! TaurusGrid.get_all_models(): Unable to get attributes for device %s: %s' % (dev,str(e)))
                         pass
                 else:
                     targets.append(dev + '/' + attribute)
@@ -133,7 +137,7 @@ def get_all_models(expressions, limit=1000):
             # % (exp,targets)
             models.extend(targets)
     models = models[:limit]
-    #print( 'Out of TaurusGrid.get_all_models(...)')
+    # print( 'Out of TaurusGrid.get_all_models(...)')
     return models
 
 
@@ -142,16 +146,18 @@ def get_readwrite_models(expressions, limit=1000):
     All devices matching expressions must be obtained.
     For each device only the good attributes are read.
     '''
-    #self.debug( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
+    # self.debug( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
     if isinstance(expressions, str):
-        if any(re.match(s, expressions) for s in ('\{.*\}', '\(.*\)', '\[.*\]')):
-            #self.trace( 'evaluating expressions ....')
+        if any(re.match(s, expressions) for s in
+               ('\{.*\}', '\(.*\)', '\[.*\]')):
+            # self.trace( 'evaluating expressions ....')
             expressions = list(eval(expressions))
         else:
-            #self.trace( 'expressions as string separated by commas ...')
+            # self.trace( 'expressions as string separated by commas ...')
             expressions = expressions.split(',')
 
-    elif any(isinstance(expressions, klass) for klass in (QtCore.QStringList, list, tuple, dict)):
+    elif any(isinstance(expressions, klass) for klass in
+             (QtCore.QStringList, list, tuple, dict)):
         expressions = list(str(e) for e in expressions)
 
     taurus_db = taurus.Authority()
@@ -182,9 +188,12 @@ def get_readwrite_models(expressions, limit=1000):
                     if '*' in attribute and '.*' not in attribute:
                         attribute = attribute.replace('*', '.*')
                     try:
-                        taurus_dp = taurus.core.taurusmanager.TaurusManager().getFactory()().getDevice(dev)
-                        attrs = [att.name for att in taurus_dp.attribute_list_query(
-                        ) if re_match_low(attribute, att.name) and att.isReadOnly()]
+                        taurus_dp = taurus.core.taurusmanager.TaurusManager().getFactory()().getDevice(
+                            dev)
+                        attrs = [att.name for att in
+                                 taurus_dp.attribute_list_query(
+                                 ) if re_match_low(attribute,
+                                                   att.name) and att.isReadOnly()]
                         targets.extend(dev + '/' + att for att in attrs)
                     except Exception, e:
                         pass
@@ -209,21 +218,38 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
     @todo _TAGS property should allow to change row/columns meaning and also add new Custom tags based on regexp
     """
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Write your own code here to define the signals generated by this widget
     #
 
     itemSelected = Qt.pyqtSignal('QString')
-    itemClicked = Qt.pyqtSignal()
+    itemClicked = Qt.pyqtSignal('QString')
 
     _TAGS = ['DOMAIN', 'FAMILY', 'HOST',
              'LEVEL', 'CLASS', 'ATTRIBUTE', 'DEVICE']
+
+    class _TaurusGridCell(Qt.QFrame):
+
+        itemClicked = Qt.pyqtSignal('QString')
+
+        # Done in this way as TaurusValue.mousePressEvent is never called
+        def mousePressEvent(self, event):
+            # print 'In cell clicked'
+            targets = set(str(child.getModelName())
+                          for child in self.children()
+                          if hasattr(child, 'underMouse')
+                          and child.underMouse()
+                          and hasattr(child, 'getModelName')
+                          )
+            for t in targets:
+                self.itemClicked.emit(t)
 
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
 
         self.call__init__wo_kw(QtGui.QFrame, parent)
-        #self.call__init__(TaurusBaseWidget, name, parent, designMode=designMode)
+        # self.call__init__(TaurusBaseWidget, name, parent,
+        #                   designMode=designMode)
         # It was needed to avoid exceptions in TaurusDesigner!
         if isinstance(parent, TaurusBaseWidget):
             self.call__init__(TaurusBaseWidget, name,
@@ -268,7 +294,8 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         d = {
             'model': self.filter,
             'row_labels': self.row_labels, 'column_labels': self.column_labels,
-            'frames': self._show_row_frame or self._show_column_frame, 'labels': self._show_attr_labels,
+            'frames': self._show_row_frame or self._show_column_frame,
+            'labels': self._show_attr_labels,
             'units': self._show_attr_units, 'others': self._show_others
         }
         f = open(filename, 'w')
@@ -299,7 +326,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
     def defineStyle(self):
         """ Defines the initial style for the widget """
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Write your own code here to set the initial style of your widget
         #
         self.setLayout(QtGui.QGridLayout())
@@ -312,12 +339,12 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
     def minimumSizeHint(self):
         return QtGui.QFrame.minimumSizeHint(self)
 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget over writing
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def getModelClass(self):
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # [MANDATORY]
         # Replace your own code here
         # ex.: return taurus.core.taurusattribute.Attribute
@@ -330,7 +357,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         if self.isAttached():
             return True
 
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Write your own code here before attaching widget to attribute connect
         # the proper signal so that the first event is correctly received by the
         # widget
@@ -350,7 +377,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
         TaurusBaseWidget.detach(self)
 
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Write your own code here after detaching the widget from the model
         #
         # Typical code is:
@@ -362,7 +389,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         # by default disable widget when dettached
         self.setEnabled(False)
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # [MANDATORY]
     # Uncomment the following method if your superclass does not provide with a
     # isReadOnly() method or if you need to change its behavior
@@ -371,7 +398,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
     #    return True
 
     def updateStyle(self):
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Write your own code here to update your widget style
         self.trace('@' * 80)
         self.trace(
@@ -379,7 +406,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self.trace('@' * 80)
 
         # It was showing an annoying "True" in the widget
-        #value = self.getShowText() or ''
+        # value = self.getShowText() or ''
         # if self._setText: self._setText(value) ##It must be included
 
         # update tooltip
@@ -394,10 +421,11 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
         self.update()
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Write your own code here for your own widget properties
 
-    def setModel(self, model, devsInRows=False, delayed=False, append=False, load=True):
+    def setModel(self, model, devsInRows=False, delayed=False, append=False,
+                 load=True):
         '''The model can be initialized as a list of devices or hosts or dictionary or ...'''
         # self.setModelCheck(model) ##It must be included
         # differenciate if the model is a RegExp
@@ -431,22 +459,28 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                         (self._modelNames))[:100] + '...')
 
             if load:
-                self.trace('In TaurusGrid.setModel(%s,load=True): modelNames are %d' % (
-                    str(model)[:100] + '...', len(self._modelNames)))  # ,self._modelNames))
+                self.trace(
+                    'In TaurusGrid.setModel(%s,load=True): modelNames are %d' % (
+                        str(model)[:100] + '...',
+                        len(self._modelNames)))  # ,self._modelNames))
                 if devsInRows:
                     self.setRowLabels(
-                        ','.join(set(d.rsplit('/', 1)[0] for d in self._modelNames)))
+                        ','.join(
+                            set(d.rsplit('/', 1)[0] for d in self._modelNames)))
                 self.create_widgets_table(self._modelNames)
                 self.modelsQueue.put(
                     (MethodModel(self.showRowFrame), self._show_row_frame))
                 self.modelsQueue.put(
-                    (MethodModel(self.showColumnFrame), self._show_column_frame))
+                    (
+                    MethodModel(self.showColumnFrame), self._show_column_frame))
                 self.modelsQueue.put(
                     (MethodModel(self.showOthers), self._show_others))
                 self.modelsQueue.put(
-                    (MethodModel(self.showAttributeLabels), self._show_attr_labels))
+                    (MethodModel(self.showAttributeLabels),
+                     self._show_attr_labels))
                 self.modelsQueue.put(
-                    (MethodModel(self.showAttributeUnits), self._show_attr_units))
+                    (MethodModel(self.showAttributeUnits),
+                     self._show_attr_units))
                 self.updateStyle()
 
                 if not self.delayed:
@@ -487,7 +521,8 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                 self.title_widget.hide()
 
     def parse_labels(self, text):
-        if any(text.startswith(c[0]) and text.endswith(c[1]) for c in [('{', '}'), ('(', ')'), ('[', ']')]):
+        if any(text.startswith(c[0]) and text.endswith(c[1]) for c in
+               [('{', '}'), ('(', ')'), ('[', ']')]):
             try:
                 labels = eval(text)
                 return labels
@@ -513,7 +548,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     i, QtGui.QTableWidgetItem(section))
         except Exception, e:
             self.debug("setRowLabels(): Exception! %s" % e)
-        # self.create_widgets_table(self._columnsNames)
+            # self.create_widgets_table(self._columnsNames)
 
     def getRowLabels(self):
         return ','.join(':'.join(c) for c in self.row_labels)
@@ -534,7 +569,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     i, QtGui.QTableWidgetItem(equipment))
         except Exception, e:
             self.debug("setColumnLabels(): Exception! %s" % e)
-        # self.create_widgets_table(self._columnsNames)
+            # self.create_widgets_table(self._columnsNames)
 
     def getColumnLabels(self):
         return ','.join(':'.join(c) for c in self.column_labels)
@@ -589,9 +624,9 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                 pass
         return self._show_attr_units
 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # -~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     model = QtCore.pyqtProperty("QStringList", getModel,
                                 setModel,
@@ -610,30 +645,32 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                                          TaurusBaseWidget.setUseParentModel,
                                          TaurusBaseWidget.resetUseParentModel)
 
-    #-------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Write your own code here for your own widget properties
 
     def create_widgets_dict(self, models):
         from collections import defaultdict
         # recursive dictionary with 2 levels
         values = defaultdict(lambda: defaultdict(list))
-        #domains = list(set(m.split('/')[0].upper()))
-        #families = list(set(m.split('/')[1].upper()))
+        # domains = list(set(m.split('/')[0].upper()))
+        # families = list(set(m.split('/')[1].upper()))
 
         if not self.row_labels:  # Domains used by default
             self.row_labels = sorted(
-                list(set(m.split('/')[0].upper() for m in models if m.count('/') >= 2)))
+                list(set(m.split('/')[0].upper() for m in models if
+                         m.count('/') >= 2)))
             self.row_labels = zip(self.row_labels, self.row_labels)
         if not self.column_labels:  # Families used by default
             self.column_labels = sorted(
-                list(set(m.split('/')[1].upper() for m in models if m.count('/') >= 2)))
+                list(set(m.split('/')[1].upper() for m in models if
+                         m.count('/') >= 2)))
             self.column_labels = zip(self.column_labels, self.column_labels)
 
-        # for m in models:
+            # for m in models:
             # if m.count('/')<2:
-            #self.warning('Wrong model cannot be added: %s'%m)
+            # self.warning('Wrong model cannot be added: %s'%m)
             # else:
-            #domain,family = m.upper().split('/')[:2]
+            # domain,family = m.upper().split('/')[:2]
             # values[domain][family].append(m)
 
         row_not_found, col_not_found = False, False
@@ -668,7 +705,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
     def create_frame_with_gridlayout(self):
         """ Just a 'macro' to create the layouts that seem to fit better. """
-        frame = QtGui.QFrame()
+        frame = TaurusGrid._TaurusGridCell()
         frame.setLayout(QtGui.QGridLayout())
         frame.layout().setContentsMargins(2, 2, 2, 2)
         frame.layout().setSpacing(0)
@@ -693,7 +730,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         for row in self.rows:
             line = []
             for col in self.columns:
-                #line.append(dct[row][col] if col in dct[row] else [])
+                # line.append(dct[row][col] if col in dct[row] else [])
                 if col in dct[row]:
                     line.append(dct[row][col])
                 else:
@@ -716,13 +753,13 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             self.table.setVerticalHeaderItem(
                 i, QtGui.QTableWidgetItem(section))
 
-#        table.setAutoScroll(True)
-#        resize_mode = QtGui.QHeaderView.Stretch
-#        table.horizontalHeader().setSectionResizeMode(resize_mode)
+        #        table.setAutoScroll(True)
+        #        resize_mode = QtGui.QHeaderView.Stretch
+        #        table.horizontalHeader().setSectionResizeMode(resize_mode)
         # table.verticalHeader().setSectionResizeMode(resize_mode)
 
-#        for row in range(len(self.rows)):
-#            table.setRowHeight(row,5+25*sum(len(dct[self.rows[row]][col]) for col in self.columns))
+        #        for row in range(len(self.rows)):
+        #            table.setRowHeight(row,5+25*sum(len(dct[self.rows[row]][col]) for col in self.columns))
         # for col in range(len(self.columns)):
         #    table.setColumnWidth(col,300)
 
@@ -734,7 +771,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         else:
             self.layout().addWidget(self.table, 1, 0)
 
-        #----------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # SECTION CHECKBOXES
         self.checkboxes_frame = self.create_frame_with_gridlayout()
 
@@ -784,7 +821,8 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     checkbox.hide()
             else:
                 checkbox.setChecked(True)
-            self.columns_frame.layout().addWidget(checkbox, layout_row, layout_col)
+            self.columns_frame.layout().addWidget(checkbox, layout_row,
+                                                  layout_col)
             layout_col += 1
             if layout_col == 3:
                 layout_col = 0
@@ -823,14 +861,16 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self._show_others = boolean
         if hasattr(self, 'rows_frame'):
             for checkbox in self.rows_frame.children():
-                if isinstance(checkbox, QtGui.QCheckBox) and checkbox.text() == 'Others':
+                if isinstance(checkbox,
+                              QtGui.QCheckBox) and checkbox.text() == 'Others':
                     if self._show_others:
                         checkbox.show()
                     else:
                         checkbox.hide()
         if hasattr(self, 'columns_frame'):
             for checkbox in self.columns_frame.children():
-                if isinstance(checkbox, QtGui.QCheckBox) and checkbox.text() == 'Others':
+                if isinstance(checkbox,
+                              QtGui.QCheckBox) and checkbox.text() == 'Others':
                     if self._show_others:
                         checkbox.show()
                     else:
@@ -865,16 +905,19 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         table.horizontalHeader().setSectionResizeMode(QtGui.QHeaderView.Stretch)
         # table.verticalHeader().setSectionResizeMode(QtGui.QHeaderView.Stretch)
         # table.horizontalHeader().setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
-        table.verticalHeader().setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
+        table.verticalHeader().setSectionResizeMode(
+            QtGui.QHeaderView.ResizeToContents)
 
         return table
 
-    def build_widgets(self, values, show_labels=False, width=240, height=20, value_width=120):
+    def build_widgets(self, values, show_labels=False, width=240, height=20,
+                      value_width=120):
         widgets_matrix = []
         for row in values:
             widgets_row = []
             for cell in row:
                 cell_frame = self.create_frame_with_gridlayout()
+                cell_frame.itemClicked.connect(self.onItemClicked)
                 count = 0
                 for synoptic in sorted(cell):
                     self.debug("processing synoptic %s" % synoptic)
@@ -883,7 +926,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     self.debug('Creating TaurusValue with model =  %s' % model)
                     synoptic_value = TaurusValue(cell_frame)
                     self.modelsQueue.put((synoptic_value, model))
-                    synoptic_value.itemClicked.connect(self.itemClicked)
 
                     if self.hideLabels:
                         synoptic_value.setLabelWidgetClass(None)
@@ -894,23 +936,11 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     self._widgets_list.append(synoptic_value)
                     count += 1
 
-                # Done in this way as TauValue.mousePressEvent are never called
-                def mousePressEvent(event, obj):
-                    # print 'In cell clicked'
-                    targets = set(str(child.getModelName()) for child in obj.children()
-                                  if hasattr(child, 'underMouse') and child.underMouse() and hasattr(child, 'getModelName'))
-                    [obj.itemClicked.emit(t)
-                     for t in targets]
-
-                cell_frame.mousePressEvent = partial(
-                    mousePressEvent, obj=cell_frame)
-                cell_frame.itemClicked.connect(self.itemClicked)
-
                 widgets_row.append(cell_frame)
             widgets_matrix.append(widgets_row)
         return widgets_matrix
 
-    def itemClicked(self, item_name):
+    def onItemClicked(self, item_name):
         self.trace('In TaurusGrid.itemClicked(%s)' % item_name)
         self.setItemSelected(item_name)
         self.itemClicked.emit(str(item_name))
@@ -962,7 +992,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
 
 class Delegate(QtGui.QItemDelegate):
-
     def __init__(self, parent=None):
         QtGui.QItemDelegate.__init__(self, parent)
 
@@ -990,13 +1019,15 @@ def sysargs_to_dict(defaults=[]):
 
 if __name__ == '__main__':
     import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+
     if len(sys.argv) < 2:
         print "The format of the call is something like:"
         print '\t/usr/bin/python taurusgrid.py grid.pickle.file'
         print '\t/usr/bin/python taurusgrid.py "model=lt.*/VC.*/.*/((C*)|(P*)|(I*))" cols=IP,CCG,PNV rows=LT01,LT02 others=False rowframe=True colframe=False'
         exit()
 
-    app = QtGui.QApplication(sys.argv[0:1])
+    app = TaurusApplication(sys.argv[0:1])
     gui = TaurusGrid()
 
     try:  # first try if argument is a file to be opened
