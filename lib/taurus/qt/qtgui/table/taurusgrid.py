@@ -1019,6 +1019,7 @@ def sysargs_to_dict(defaults=[]):
 
 if __name__ == '__main__':
     import sys
+    from taurus.qt.qtgui.application import TaurusApplication
 
     if len(sys.argv) < 2:
         print "The format of the call is something like:"
@@ -1026,7 +1027,7 @@ if __name__ == '__main__':
         print '\t/usr/bin/python taurusgrid.py "model=lt.*/VC.*/.*/((C*)|(P*)|(I*))" cols=IP,CCG,PNV rows=LT01,LT02 others=False rowframe=True colframe=False'
         exit()
 
-    app = QtGui.QApplication(sys.argv[0:1])
+    app = TaurusApplication(sys.argv[0:1])
     gui = TaurusGrid()
 
     try:  # first try if argument is a file to be opened
