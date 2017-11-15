@@ -194,7 +194,6 @@ def get_readwrite_models(expressions, limit=1000):
     models = models[:limit]
     return models
 
-
 class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
     """ TaurusGrid is a Taurus widget designed to represent a set of attributes distributed in columns and rows.
     The Model will be a list with attributes or device names (for devices the State attribute will be shown).
@@ -214,10 +213,23 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
     #
 
     itemSelected = Qt.pyqtSignal('QString')
-    itemClicked = Qt.pyqtSignal()
+    itemClicked = Qt.pyqtSignal('QString')
 
     _TAGS = ['DOMAIN', 'FAMILY', 'HOST',
              'LEVEL', 'CLASS', 'ATTRIBUTE', 'DEVICE']
+    
+    class _TaurusGridCell(Qt.QFrame):
+
+        itemClicked = Qt.pyqtSignal('QString')
+        
+        # Done in this way as TaurusValue.mousePressEvent is never called
+        def mousePressEvent(self, event):
+            # print 'In cell clicked'
+            targets = set(str(child.getModelName()) for child in self.children()
+                            if hasattr(child, 'underMouse') and child.underMouse() 
+                            and hasattr(child, 'getModelName'))
+            for t in targets:
+                self.itemClicked.emit(t)    
 
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__
@@ -668,7 +680,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
     def create_frame_with_gridlayout(self):
         """ Just a 'macro' to create the layouts that seem to fit better. """
-        frame = QtGui.QFrame()
+        frame = TaurusGrid._TaurusGridCell()
         frame.setLayout(QtGui.QGridLayout())
         frame.layout().setContentsMargins(2, 2, 2, 2)
         frame.layout().setSpacing(0)
@@ -875,6 +887,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             widgets_row = []
             for cell in row:
                 cell_frame = self.create_frame_with_gridlayout()
+                cell_frame.itemClicked.connect(self.onItemClicked)
                 count = 0
                 for synoptic in sorted(cell):
                     self.debug("processing synoptic %s" % synoptic)
@@ -883,7 +896,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     self.debug('Creating TaurusValue with model =  %s' % model)
                     synoptic_value = TaurusValue(cell_frame)
                     self.modelsQueue.put((synoptic_value, model))
-                    synoptic_value.itemClicked.connect(self.itemClicked)
 
                     if self.hideLabels:
                         synoptic_value.setLabelWidgetClass(None)
@@ -894,23 +906,11 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     self._widgets_list.append(synoptic_value)
                     count += 1
 
-                # Done in this way as TauValue.mousePressEvent are never called
-                def mousePressEvent(event, obj):
-                    # print 'In cell clicked'
-                    targets = set(str(child.getModelName()) for child in obj.children()
-                                  if hasattr(child, 'underMouse') and child.underMouse() and hasattr(child, 'getModelName'))
-                    [obj.itemClicked.emit(t)
-                     for t in targets]
-
-                cell_frame.mousePressEvent = partial(
-                    mousePressEvent, obj=cell_frame)
-                cell_frame.itemClicked.connect(self.itemClicked)
-
                 widgets_row.append(cell_frame)
             widgets_matrix.append(widgets_row)
         return widgets_matrix
 
-    def itemClicked(self, item_name):
+    def onItemClicked(self, item_name):
         self.trace('In TaurusGrid.itemClicked(%s)' % item_name)
         self.setItemSelected(item_name)
         self.itemClicked.emit(str(item_name))
