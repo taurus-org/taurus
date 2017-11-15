@@ -39,6 +39,7 @@ from taurus.core.util.singleton import Singleton
 
 from taurus.core.taurusbasetypes import SubscriptionState
 
+
 ###############################################################################
 # Helping methods
 
@@ -215,16 +216,15 @@ class TaurusEmitterThread(Qt.QThread):
         self._done = 0
         # Moved to the end to prevent segfaults ...
         self.emitter.doSomething.connect(self._doSomething)
-        
+
         if not self.refreshTimer:
             self.emitter.somethingDone.connect(self.next)
-        
-        
+
     def onRefresh(self):
         try:
             size = self.getQueue().qsize()
             if size:
-                self.log.info('onRefresh(%s)'%size)
+                self.log.info('onRefresh(%s)' % size)
                 self.next()
             else:
                 self.log.debug('onRefresh()')
@@ -275,8 +275,8 @@ class TaurusEmitterThread(Qt.QThread):
             try:
                 method(*args)
             except:
-                self.log.error('At TaurusEmitterThread._doSomething(%s): \n%s' 
-                    % (map(str, args), traceback.format_exc()))
+                self.log.error('At TaurusEmitterThread._doSomething(%s): \n%s'
+                               % (map(str, args), traceback.format_exc()))
         self.emitter.somethingDone.emit()
         self._done += 1
         return
@@ -284,7 +284,7 @@ class TaurusEmitterThread(Qt.QThread):
     def next(self):
         queue = self.getQueue()
         msg = ('At TaurusEmitterThread.next(), %d items remaining.'
-                % queue.qsize())
+               % queue.qsize())
         if (queue.empty() and not self.polling):
             self.log.info(msg)
         else:
@@ -315,10 +315,10 @@ class TaurusEmitterThread(Qt.QThread):
         self.log.info('#' * 80)
         self.log.info('At TaurusEmitterThread.run()')
         self.next()
-        
+
         if self.refreshTimer:
             self.refreshTimer.start(self.polling)
-        
+
         while True:
             self.log.debug('At TaurusEmitterThread.run() loop.')
             item = self.todo.get(True)
@@ -331,79 +331,81 @@ class TaurusEmitterThread(Qt.QThread):
             self.emitter.doSomething.emit(item)
             if self.loopwait:
                 self.msleep(self.loopwait)
-            # End of while
+                # End of while
         self.log.info(
             '#' * 80 + '\nOut of TaurusEmitterThread.run()' + '\n' + '#' * 80)
         # End of Thread
-        
-        
+
+
 class DelayedSubscriber(Logger):
     """
     DelayedSubscriber(schema) will use a TaurusEmitterThread to perform
     a thread safe delayed subscribing on all Attributes of a given 
     Taurus Schema that has not been previously subscribed.
     """
-    
-    def __init__(self,schema,parent=None,sleep=10000,pause=5,period=0):
-        
+
+    def __init__(self, schema, parent=None, sleep=10000, pause=5, period=0):
+
         self._schema = schema
-        self.call__init__(Logger, 'DelayedSubscriber(%s)'%self._schema, None)
+        self.call__init__(Logger, 'DelayedSubscriber(%s)' % self._schema, None)
         self._factory = taurus.Factory(schema)
 
         self._modelsQueue = Queue()
         self._modelsThread = TaurusEmitterThread(parent=parent,
-            queue=self._modelsQueue, 
-            method=self.modelSubscriber,
-            sleep=sleep,loopwait=pause,polling=period)
+                                                 queue=self._modelsQueue,
+                                                 method=self.modelSubscriber,
+                                                 sleep=sleep, loopwait=pause,
+                                                 polling=period)
 
         self._modelsQueue.put((self.addUnsubscribedAttributes,))
         self._modelsThread.start()
-        
-    def modelSubscriber(self,method,args=[]):
-        self.debug('modelSubscriber(%s,%s)'%(method,args))
+
+    def modelSubscriber(self, method, args=[]):
+        self.debug('modelSubscriber(%s,%s)' % (method, args))
         return method(*args)
-    
+
     def getUnsubscribedAttributes(self):
         attrs = []
         items = self._factory.getExistingAttributes().items()
-        for name,attr in items:
-            if attr is None: 
+        for name, attr in items:
+            if attr is None:
                 continue
             elif attr.hasListeners() and not attr.isUsingEvents():
-                    attrs.append(attr)
+                attrs.append(attr)
 
         return attrs
-            
+
     def addUnsubscribedAttributes(self):
         try:
-            items = self.getUnsubscribedAttributes()         
+            items = self.getUnsubscribedAttributes()
             if len(items):
-                self.info('addUnsubscribedAttributes([%d])'%len(items))
+                self.info('addUnsubscribedAttributes([%d])' % len(items))
                 for attr in items:
                     self.addModelObj(attr)
                 self._modelsThread.next()
-                self.info('Thread queue: [%d]'%(self._modelsQueue.qsize()))                
+                self.info('Thread queue: [%d]' % (self._modelsQueue.qsize()))
         except:
             self.warning(traceback.format_exc())
-    
-    def addModelObj(self,modelObj):
+
+    def addModelObj(self, modelObj):
         parent = modelObj.getParentObj()
         if parent:
             proxy = parent.getDeviceProxy()
             if not proxy:
-                #self.debug('addModelObj(%s), proxy not available'%modelObj)
+                # self.debug('addModelObj(%s), proxy not available'%modelObj)
                 return
         self._modelsQueue.put((modelObj._subscribeConfEvents,))
         modelObj.__subscription_state = SubscriptionState.PendingSubscribe
-        #modelObj._activatePolling()
-        self.debug('addModelObj(%s)'%str(modelObj))
-        self._modelsQueue.put((modelObj._call_dev_hw_subscribe_event,(True,)))
+        # modelObj._activatePolling()
+        self.debug('addModelObj(%s)' % str(modelObj))
+        self._modelsQueue.put((modelObj._call_dev_hw_subscribe_event, (True,)))
 
     def cleanUp(self):
         self.trace("[DelayedSubscriber] cleanUp")
         self._modelsThread.stop()
         Logger.cleanUp(self)
-        
+
+
 class SingletonWorker():
     """
     SingletonWorker is used to manage TaurusEmitterThread as Singleton objects
@@ -429,7 +431,7 @@ class SingletonWorker():
     """
     _thread = None
 
-    def __init__(self, parent=None, name='', queue=None, method=None, 
+    def __init__(self, parent=None, name='', queue=None, method=None,
                  cursor=None, sleep=5000, log=Logger.Warning, start=True):
         self.name = name
         self.log = Logger('SingletonWorker(%s)' % self.name)
@@ -458,10 +460,10 @@ class SingletonWorker():
         elif self.queue.empty():
             return
         msg = ('At SingletonWorker.next(), '
-            '%d items not passed yet to Emitter.'
-                % self.queue.qsize())
+               '%d items not passed yet to Emitter.'
+               % self.queue.qsize())
         self.log.info(msg)
-        #(queue.empty() and self.log.info or self.log.debug)(msg)
+        # (queue.empty() and self.log.info or self.log.debug)(msg)
         try:
             i = 0
             while not self.queue.empty():
@@ -511,7 +513,7 @@ class SingletonWorker():
         """
         while not self.queue.empty():
             self.queue.get()
-        # self.thread.clear()
+            # self.thread.clear()
 
     def purge(obj):
         nqueue = Queue()
