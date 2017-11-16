@@ -126,7 +126,7 @@ class TaurusEmitterThread(Qt.QThread):
       + ``next()`` can be called also externally to ensure that the main queue 
       is being processed.
       + the queue can be accessed externally using ``getQueue()``
-      + ``getQueue().qsize()`` returns the number of remaining objects in queue.
+      + ``getQueue().qsize()`` returns number of remaining objects in queue.
       + while there are objects in queue the ``.next()`` method will 
         override applications cursor. a call to ``next()`` with an empty queue 
         will restore the original cursor.
@@ -187,7 +187,6 @@ class TaurusEmitterThread(Qt.QThread):
         :param sleep: delay in ms before thread start
         :param polling: process actions at fix period (milliseconds)
         :param loopwait: wait N milliseconds between actions
-        
         """
         Qt.QThread.__init__(self, parent)
         self.name = name
@@ -251,7 +250,7 @@ class TaurusEmitterThread(Qt.QThread):
             self.getQueue().get()
             self._done += 1
 
-    def purge(self,obj):
+    def purge(self, obj):
         """
         Remove a given object from all queues
         """
@@ -395,7 +394,7 @@ class DelayedSubscriber(Logger):
         if parent:
             proxy = parent.getDeviceProxy()
             if not proxy:
-                self.debug('addModelObj(%s), proxy not available'%modelObj)
+                self.debug('addModelObj(%s), proxy not available' % modelObj)
                 return
 
         self._modelsQueue.put((modelObj._subscribeConfEvents,))
@@ -429,7 +428,6 @@ class SingletonWorker():
     :param method: the method to be executed using each queue item as argument
     :param cursor: if True or QCursor a custom cursor is set while 
         the Queue is not empty
-    
     """
     _thread = None
 
@@ -517,7 +515,7 @@ class SingletonWorker():
             self.queue.get()
             # self.thread.clear()
 
-    def purge(self,obj):
+    def purge(self, obj):
         """
         Remove a given object from all queues
         """
