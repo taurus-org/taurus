@@ -10,19 +10,31 @@ develop branch) won't be reflected in this file.
 ## Unreleased
 ### Deprecated
 - taurus.core.tango.search
+- TaurusMainWindow's "Change Tango Host" action (#379)
 
 ### Added
+- User Interface to set custom formatters (#564)
 - Re-added `taurus.external.ordereddict` (#599)
+- Option to ignore outdated Tango events (#559)
+- Travis-built docs (not yet replacing the RTD ones) (#572)
 
 ### Changed
 - taurus.qt widgets can now be used without installing PyTango (#590)
 - Tango model name validators now always return FQDN instead of PQDN
   for the tango host (#488)
-- Improved generated PDF doc (#525, #546, #548) (thanks @PhilLAL !)
+- Improved docs (#525, #540, #546, #548) (thanks @PhilLAL !)
+- Make spyder dependency optional (#556)
 
 ### Fixed
-- Doc issues
-- Deprecation warnings in taurus.core.util.event (#550)
+- Wrong "missing units" warnings for non-numerical attributes (#580)
+- Taurus3 backwards compatibility issues (#496, #550)
+- False positives in taurus.check_dependencies (#612)
+- Main Window Splash screen not showing (#595)
+- TaurusTrend2DDialog not usable from designer (#597)
+- TaurusLockButton icons (#598)
+- Exception in TaurusCommandForm (#608)
+- Exception in TaurusGrid (#609)
+- [Many other issues](https://github.com/taurus-org/taurus/issues?utf8=%E2%9C%93&q=milestone%3AJan18%20label%3Abug%20)
 
 ### Removed
 - taurus.qt.qtgui.panel.taurusfilterpanel

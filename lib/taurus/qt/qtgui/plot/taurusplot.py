@@ -1031,8 +1031,12 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def __init__(self, parent=None, designMode=False):
         name = "TaurusPlot"
+        # book-keeping of attached tauruscurves
+        self.curves = CaselessDict()  # TODO: Tango-centric
+
         Qwt5.QwtPlot.__init__(self, parent)
         TaurusBaseWidget.__init__(self, name)
+
         self._designMode = designMode
         self._modelNames = []
         self._useParentModel = False
@@ -1066,8 +1070,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         # enable dropping (see also dragEnterEvent and dropEvent methods)
         self.setAcceptDrops(True)
 
-        # book-keeping of attached tauruscurves
-        self.curves = CaselessDict()  # TODO: Tango-centric
         #self.curves_lock = threading.RLock()
         self.curves_lock = DummyLock()
 
@@ -1177,6 +1179,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._dataInspectorAction.setChecked(self._pointPicker.isEnabled())
         self._dataInspectorAction.toggled[bool].connect(self.toggleDataInspectorMode)
 
+        self._setFormatterAction = Qt.QAction("Set Formatter...", None)
+        self._setFormatterAction.triggered[()].connect(self.onSetFormatter)
+
         self._curveStatsAction = Qt.QAction("Calculate statistics", None)
         self._curveStatsAction.setShortcut(Qt.Qt.Key_S)
         self._curveStatsAction.triggered[()].connect(self.onCurveStatsAction)
@@ -1248,17 +1253,30 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         # add all actions and limit the scope of the key shortcuts to the
         # widget (default is Window)
-        for action in (self._dataInspectorAction, self._pauseAction, self._autoscaleAllAxisAction,
-                       self._toggleZoomAxisAction, self._configDialogAction, self._inputDataAction,
-                       self._saveConfigAction, self._loadConfigAction, self._showLegendAction,
-                       self._showMaxAction, self._showMinAction, self._printAction, self._exportPdfAction,
-                       self._exportAsciiAction, self._setCurvesTitleAction, self._curveStatsAction):
+        for action in (self._dataInspectorAction, self._pauseAction,
+                       self._autoscaleAllAxisAction,
+                       self._toggleZoomAxisAction, self._configDialogAction,
+                       self._inputDataAction, self._saveConfigAction,
+                       self._loadConfigAction, self._showLegendAction,
+                       self._showMaxAction, self._showMinAction,
+                       self._printAction, self._exportPdfAction,
+                       self._exportAsciiAction, self._setCurvesTitleAction,
+                       self._curveStatsAction, self._setFormatterAction):
             # this is needed to avoid ambiguity when more than one TaurusPlot
             # is used in the same window
             action.setShortcutContext(Qt.Qt.WidgetShortcut)
             # because of the line above, we must add the actions to the widget
             # that gets the focus (the canvas instead of self)
             self.canvas().addAction(action)
+
+    def setFormat(self, format):
+        """Reimplemented from TaurusBaseComponent"""
+        targetCurveNames = self.curves.iterkeys()
+        for name in targetCurveNames:
+            curve = self.curves.get(name, None)
+            w = getattr(curve, 'owner', curve)
+            w.setFormat(format)
+        TaurusBaseComponent.setFormat(self, format)
 
     def dropEvent(self, event):
         '''reimplemented to support dropping of modelnames in taurusplots'''
@@ -2159,6 +2177,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         menu.addAction(self._showLegendAction)
         menu.addAction(self._dataInspectorAction)
+        menu.addAction(self._setFormatterAction)
 
         menu.addSeparator()
         exportSubMenu = menu.addMenu("&Export && Print")
@@ -2301,7 +2320,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         miscdict = {'defaultCurvesTitle': self.getDefaultCurvesTitle(),
                     'canvasBackground': self.canvasBackground(),
                     'orderedCurveNames': self.getCurveNamesSorted(),
-                    'plotTitle': unicode(self.title().text())}
+                    'plotTitle': unicode(self.title().text()),
+                    'formatter': self.getFormat()}
         if self.isWindow():
             miscdict["Geometry"] = self.saveGeometry()
         return miscdict
@@ -2430,6 +2450,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         # set geometry (if this is a top level window)
         if self.isWindow() and 'Geometry' in miscdict:
             self.restoreGeometry(miscdict['Geometry'])
+        if "formatter" in miscdict:
+            self.setFormat(miscdict['formatter'])
 
     def applyAxesConfig(self, axes):
         '''sets the axes according to settings stored in the axes dict,

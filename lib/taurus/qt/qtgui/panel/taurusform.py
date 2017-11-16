@@ -88,6 +88,8 @@ class TaurusForm(TaurusWidget):
                  buttons=None,
                  withButtons=True,
                  designMode=False):
+
+        self._children = []
         TaurusWidget.__init__(self, parent, designMode)
 
         if buttons is None:
@@ -95,7 +97,7 @@ class TaurusForm(TaurusWidget):
                 Qt.QDialogButtonBox.Reset
         self._customWidgetMap = {}
         self._model = []
-        self._children = []
+        # self._children = []
         self.setFormWidget(formWidget)
 
         self.setLayout(Qt.QVBoxLayout())
@@ -135,6 +137,10 @@ class TaurusForm(TaurusWidget):
         self.compactModeAction.setCheckable(True)
         self.addAction(self.compactModeAction)
         self.compactModeAction.triggered[bool].connect(self.setCompact)
+
+        self.setFormatterAction = Qt.QAction('Set formatter (all items)', self)
+        self.addAction(self.setFormatterAction)
+        self.setFormatterAction.triggered[()].connect(self.onSetFormatter)
 
         self.resetModifiableByUser()
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE,
@@ -362,6 +368,17 @@ class TaurusForm(TaurusWidget):
 
     def resetWithButtons(self):
         self.setWithButtons(True)
+
+    def onSetFormatter(self):
+        """Reimplemented from TaurusBaseWidget"""
+        # Form delegates se to the taurusvalues
+        format = TaurusWidget.onSetFormatter(self)
+        if format is not None:
+            for item in self.getItems():
+                rw = item.readWidget()
+                if hasattr(rw, 'setFormat'):
+                    rw.setFormat(format)
+        return format
 
     def setCompact(self, compact):
         self._compact = compact
@@ -641,8 +658,11 @@ class TaurusCommandsForm(TaurusWidget):
             button.setUseParentModel(True)
             self._cmdWidgets.append(button)
             button.commandExecuted.connect(self._onCommandExecuted)
+            
+            import taurus.core.tango.util.tango_taurus as tango_taurus
+            in_type = tango_taurus.FROM_TANGO_TO_TAURUS_TYPE[c.in_type]
 
-            if c.in_type != PyTango.CmdArgType.DevVoid:
+            if in_type is not None:
                 self.debug('Adding arguments for command %s' % c.cmd_name)
                 pwidget = ParameterCB()
                 if c.cmd_name.lower() in self._defaultParameters:

@@ -178,36 +178,79 @@ def baseFormatter1(dtype, **kwargs):
 def baseFormatter2(dtype, **kwargs):
     return dtype.__name__
 
-
-@insertTest(helper_name='checkFormat',
+# -------------------------------------------------------------------------
+# Class formatter tests
+@insertTest(helper_name='checkClassFormat',
+            model='eval:1.2345',
+            formatter='>>{}<<',
+            expected=">>1.2345<<")
+@insertTest(helper_name='checkClassFormat',
             model='eval:Q(5)#rvalue.magnitude',
             formatter=baseFormatter2,
             expected="int")
-@insertTest(helper_name='checkFormat',
+@insertTest(helper_name='checkClassFormat',
             model='eval:Q("5m")#rvalue.units',
             formatter=baseFormatter2,
             expected="Unit")
-@insertTest(helper_name='checkFormat',
+@insertTest(helper_name='checkClassFormat',
             model='eval:1.2345',
             formatter=baseFormatter1,
             expected="1.2")
-@insertTest(helper_name='checkFormat',
+@insertTest(helper_name='checkClassFormat',
             model='eval:"hello"',
             formatter=baseFormatter1,
             expected="hello")
-@insertTest(helper_name='checkFormat',
+@insertTest(helper_name='checkClassFormat',
             model='eval:"hello"',
             formatter=baseFormatter2,
             expected="str")
-@insertTest(helper_name='checkFormat',
+@insertTest(helper_name='checkClassFormat',
             model='eval:"hello"',
             formatter=None,
             expected="hello")
-@insertTest(helper_name='checkFormat',
+@insertTest(helper_name='checkClassFormat',
             model='eval:1.2345',
             formatter='{:~.3f}',
             expected="1.234")
-@insertTest(helper_name='checkFormat',
+@insertTest(helper_name='checkClassFormat',
+            model='eval:1.2345',
+            formatter='{:.3f}',
+            expected="1.234 dimensionless")
+# -------------------------------------------------------------------------
+# Instance formatter tests
+@insertTest(helper_name='checkInstanceFormat',
+            model='eval:1.2345',
+            formatter='>>{}<<',
+            expected=">>1.2345<<")
+@insertTest(helper_name='checkInstanceFormat',
+            model='eval:Q(5)#rvalue.magnitude',
+            formatter=baseFormatter2,
+            expected="int")
+@insertTest(helper_name='checkInstanceFormat',
+            model='eval:Q("5m")#rvalue.units',
+            formatter=baseFormatter2,
+            expected="Unit")
+@insertTest(helper_name='checkInstanceFormat',
+            model='eval:1.2345',
+            formatter=baseFormatter1,
+            expected="1.2")
+@insertTest(helper_name='checkInstanceFormat',
+            model='eval:"hello"',
+            formatter=baseFormatter1,
+            expected="hello")
+@insertTest(helper_name='checkInstanceFormat',
+            model='eval:"hello"',
+            formatter=baseFormatter2,
+            expected="str")
+@insertTest(helper_name='checkInstanceFormat',
+            model='eval:"hello"',
+            formatter=None,
+            expected="hello")
+@insertTest(helper_name='checkInstanceFormat',
+            model='eval:1.2345',
+            formatter='{:~.3f}',
+            expected="1.234")
+@insertTest(helper_name='checkInstanceFormat',
             model='eval:1.2345',
             formatter='{:.3f}',
             expected="1.234 dimensionless")
@@ -219,11 +262,18 @@ class TaurusLabelFormatTest(BaseWidgetTestCase, unittest.TestCase):
 
     _klass = TaurusLabel
 
-    def checkFormat(self, model, formatter, expected):
+    def setUp(self):
+        BaseWidgetTestCase.setUp(self)
+        # store original class format
+        self._origFormatter = self._klass.FORMAT
+
+    def tearDown(self):
+        # restore original class format
+        self._klass.FORMAT = self._origFormatter
+
+    def checkInstanceFormat(self, model, formatter, expected):
         if formatter is not None:
             self._widget.setFormat(formatter)
-            # self._widget.FORMAT = formatter
-            # self._widget.updateFormat()
         self._widget.setModel(model)
         self.processEvents(repetitions=50, sleep=.1)
 
@@ -232,30 +282,18 @@ class TaurusLabelFormatTest(BaseWidgetTestCase, unittest.TestCase):
                (model, expected, got))
         self.assertEqual(got, expected, msg)
 
+    def checkClassFormat(self, model, formatter, expected):
+        self._klass.FORMAT = formatter
+        # self._widget was already created by BaseWidgetTestCase.setUp(self)
+        # but we need to re-create it to use the class formatter
+        self._widget = self._klass(*self.initargs, **self.initkwargs)
+        self._widget.setModel(model)
+        self.processEvents(repetitions=50, sleep=.1)
 
-
-@insertTest(helper_name='checkFormat',
-            model='eval:1.2345',
-            formatter='{:.3f}',
-            expected="1.234 dimensionless")
-@insertTest(helper_name='checkFormat',
-            model='eval:1.2345',
-            formatter=None,
-            expected="1.2")
-class TaurusLabelFormatClassTest(TaurusLabelFormatTest):
-    """
-    Specific tests for testing the Formatting API with TaurusLabel
-    """
-
-    _klass = TaurusLabel
-
-    def setUp(self):
-        TaurusLabelFormatTest.setUp(self)
-        self._defaultFormatter = TaurusLabel.FORMAT
-        TaurusLabel.FORMAT = baseFormatter1
-
-    def tearDown(self):
-        TaurusLabel.FORMAT = self._defaultFormatter
+        got = self._widget.text()
+        msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
+               (model, expected, got))
+        self.assertEqual(got, expected, msg)
 
 
 #
