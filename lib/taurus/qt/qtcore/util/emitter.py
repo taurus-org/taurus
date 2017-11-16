@@ -395,11 +395,10 @@ class DelayedSubscriber(Logger):
         if parent:
             proxy = parent.getDeviceProxy()
             if not proxy:
-                # self.debug('addModelObj(%s), proxy not available'%modelObj)
+                self.debug('addModelObj(%s), proxy not available'%modelObj)
                 return
+
         self._modelsQueue.put((modelObj._subscribeConfEvents,))
-        modelObj.__subscription_state = SubscriptionState.PendingSubscribe
-        # modelObj._activatePolling()
         self.debug('addModelObj(%s)' % str(modelObj))
         self._modelsQueue.put((modelObj._call_dev_hw_subscribe_event, (True,)))
 

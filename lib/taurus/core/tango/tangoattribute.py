@@ -481,7 +481,11 @@ class TangoAttribute(TaurusAttribute):
                                self.fullname, self.__attr_err)
                     raise self.__attr_err
 
-        if not cache or (self.__subscription_state in (SubscriptionState.PendingSubscribe, SubscriptionState.Unsubscribed) and not self.isPollingActive()):
+        if not cache or (
+            self.__subscription_state in 
+                (SubscriptionState.PendingSubscribe, 
+                 SubscriptionState.Unsubscribed) 
+                and not self.isPollingActive()):
             try:
                 dev = self.getParentObj()
                 v = dev.read_attribute(self.getSimpleName())
@@ -625,6 +629,11 @@ class TangoAttribute(TaurusAttribute):
         """ Executes event subscription on parent TangoDevice objectName
         """
         attr_name = self.getSimpleName()
+        if stateless and (self.__subscription_state == 
+                          SubscriptionState.Unsubscribed 
+                          or self.isPollingActive()):
+            self.__subscription_state = SubscriptionState.PendingSubscribe
+            
         self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name, PyTango.EventType.CHANGE_EVENT,
                 self, [], stateless) # connects to self.push_event callback
