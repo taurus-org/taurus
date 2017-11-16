@@ -498,9 +498,9 @@ class TangoAttribute(TaurusAttribute):
                                self.fullname, self.__attr_err)
                     raise self.__attr_err
 
-        if not cache or (self.__subscription_state in (
-                SubscriptionState.PendingSubscribe,
-                SubscriptionState.Unsubscribed)
+        if not cache or (self.__subscription_state in 
+                         (SubscriptionState.PendingSubscribe,
+                          SubscriptionState.Unsubscribed)
                          and not self.isPollingActive()):
             with self.__read_lock:
                 try:
