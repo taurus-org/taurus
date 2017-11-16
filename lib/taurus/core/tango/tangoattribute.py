@@ -149,7 +149,6 @@ class TangoAttrValue(TaurusAttrValue):
     @taurus4_deprecation(alt='.rvalue')
     def _get_value(self):
         """for backwards compat with taurus < 4"""
-        debug(repr(self))
         try:
             return self.__fix_int(self.rvalue.magnitude)
         except AttributeError:
