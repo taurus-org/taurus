@@ -651,11 +651,7 @@ class TangoAttribute(TaurusAttribute):
         """ Executes event subscription on parent TangoDevice objectName
         """
         attr_name = self.getSimpleName()
-        if stateless and (self.__subscription_state == 
-                          SubscriptionState.Unsubscribed 
-                          or self.isPollingActive()):
-            self.__subscription_state = SubscriptionState.PendingSubscribe
-            
+
         self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name, PyTango.EventType.CHANGE_EVENT,
                 self, [], stateless) # connects to self.push_event callback
@@ -723,7 +719,7 @@ class TangoAttribute(TaurusAttribute):
             except:
                 self.debug("Error getting attribute configuration")
                 self.traceback()
-
+                
     def _unsubscribeConfEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
@@ -738,6 +734,15 @@ class TangoAttribute(TaurusAttribute):
             except PyTango.DevFailed, e:
                 self.debug("Error trying to unsubscribe configuration events")
                 self.trace(str(e))
+                
+    def subscribePendingEvents(self):
+        """ Execute delayed event subscription
+        """                
+        if (self.__subscription_state == SubscriptionState.Unsubscribed 
+                          or self.isPollingActive()):
+            self.__subscription_state = SubscriptionState.PendingSubscribe
+        self._subscribeConfEvents()
+        self._call_dev_hw_subscribe_event(True)
 
     def push_event(self, event):
         """Method invoked by the PyTango layer when an event occurs.

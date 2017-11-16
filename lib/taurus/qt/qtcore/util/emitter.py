@@ -355,18 +355,20 @@ class DelayedSubscriber(Logger):
         self._modelsQueue = Queue()
         self._modelsThread = TaurusEmitterThread(parent=parent,
                                                  queue=self._modelsQueue,
-                                                 method=self.modelSubscriber,
+                                                 method=self._modelSubscriber,
                                                  sleep=sleep, loopwait=pause,
                                                  polling=period)
 
         self._modelsQueue.put((self.addUnsubscribedAttributes,))
         self._modelsThread.start()
 
-    def modelSubscriber(self, method, args=[]):
+    def _modelSubscriber(self, method, args=[]):
         self.debug('modelSubscriber(%s,%s)' % (method, args))
         return method(*args)
 
     def getUnsubscribedAttributes(self):
+        """Check all pending subscriptions in the current factory
+        """
         attrs = []
         items = self._factory.getExistingAttributes().items()
         for name, attr in items:
@@ -378,18 +380,20 @@ class DelayedSubscriber(Logger):
         return attrs
 
     def addUnsubscribedAttributes(self):
+        """Schedule subscription for all pending attributes
+        """
         try:
             items = self.getUnsubscribedAttributes()
             if len(items):
                 self.info('addUnsubscribedAttributes([%d])' % len(items))
                 for attr in items:
-                    self.addModelObj(attr)
+                    self._addModelObj(attr)
                 self._modelsThread.next()
                 self.info('Thread queue: [%d]' % (self._modelsQueue.qsize()))
         except:
             self.warning(traceback.format_exc())
 
-    def addModelObj(self, modelObj):
+    def _addModelObj(self, modelObj):
         parent = modelObj.getParentObj()
         if parent:
             proxy = parent.getDeviceProxy()
@@ -397,9 +401,8 @@ class DelayedSubscriber(Logger):
                 self.debug('addModelObj(%s), proxy not available' % modelObj)
                 return
 
-        self._modelsQueue.put((modelObj._subscribeConfEvents,))
+        self._modelsQueue.put((modelObj.subscribePendingEvents,))
         self.debug('addModelObj(%s)' % str(modelObj))
-        self._modelsQueue.put((modelObj._call_dev_hw_subscribe_event, (True,)))
 
     def cleanUp(self):
         self.trace("[DelayedSubscriber] cleanUp")
