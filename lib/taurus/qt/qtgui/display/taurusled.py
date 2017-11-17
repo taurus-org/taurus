@@ -76,9 +76,9 @@ class _TaurusLedController(object):
         fgRole = widget.fgRole
         value = None
         if fgRole == 'rvalue':
-            value = obj.rvalue
+            value = bool(obj.rvalue)
         elif fgRole == 'wvalue':
-            value = obj.wvalue
+            value = bool(obj.wvalue)
         elif fgRole == 'quality':
             return obj.quality
 
