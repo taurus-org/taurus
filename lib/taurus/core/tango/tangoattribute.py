@@ -498,9 +498,9 @@ class TangoAttribute(TaurusAttribute):
                                self.fullname, self.__attr_err)
                     raise self.__attr_err
 
-        if not cache or (self.__subscription_state in (
-                SubscriptionState.PendingSubscribe,
-                SubscriptionState.Unsubscribed)
+        if not cache or (self.__subscription_state in 
+                         (SubscriptionState.PendingSubscribe,
+                          SubscriptionState.Unsubscribed)
                          and not self.isPollingActive()):
             with self.__read_lock:
                 try:
@@ -636,8 +636,8 @@ class TangoAttribute(TaurusAttribute):
                 return
 
         if not self.factory().is_tango_subscribe_enabled():
-            self._activatePolling()
-            return
+            self.enablePolling(True)
+            return       
 
         try:
             self.__subscription_state = SubscriptionState.Subscribing
@@ -651,6 +651,7 @@ class TangoAttribute(TaurusAttribute):
         """ Executes event subscription on parent TangoDevice objectName
         """
         attr_name = self.getSimpleName()
+
         self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name, PyTango.EventType.CHANGE_EVENT,
                 self, [], stateless) # connects to self.push_event callback
@@ -718,7 +719,7 @@ class TangoAttribute(TaurusAttribute):
             except:
                 self.debug("Error getting attribute configuration")
                 self.traceback()
-
+                
     def _unsubscribeConfEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
@@ -733,6 +734,15 @@ class TangoAttribute(TaurusAttribute):
             except PyTango.DevFailed, e:
                 self.debug("Error trying to unsubscribe configuration events")
                 self.trace(str(e))
+                
+    def subscribePendingEvents(self):
+        """ Execute delayed event subscription
+        """                
+        if (self.__subscription_state == SubscriptionState.Unsubscribed 
+                          or self.isPollingActive()):
+            self.__subscription_state = SubscriptionState.PendingSubscribe
+        self._subscribeConfEvents()
+        self._call_dev_hw_subscribe_event(True)
 
     def push_event(self, event):
         """Method invoked by the PyTango layer when an event occurs.
