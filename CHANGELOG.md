@@ -17,6 +17,7 @@ develop branch) won't be reflected in this file.
 - Re-added `taurus.external.ordereddict` (#599)
 - Option to ignore outdated Tango events (#559)
 - Travis-built docs (not yet replacing the RTD ones) (#572)
+- TaurusLed now supports non-boolean attributes (#617)
 
 ### Changed
 - taurus.qt widgets can now be used without installing PyTango (#590)
