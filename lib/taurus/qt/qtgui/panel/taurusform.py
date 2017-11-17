@@ -676,7 +676,7 @@ class TaurusCommandsForm(TaurusWidget):
                         button.setParameters(self._defaultParameters[
                                              c.cmd_name.lower()][0])
                 pwidget.editTextChanged.connect(button.setParameters)
-                pwidget.currentIndexChanged.connect(button.setParameters)
+                pwidget.currentIndexChanged['QString'].connect(button.setParameters)
                 pwidget.activated.connect(button.setFocus)
                 button.commandExecuted.connect(pwidget.rememberCurrentText)
                 layout.addWidget(pwidget, row, 1)
