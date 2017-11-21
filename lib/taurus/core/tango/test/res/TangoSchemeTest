@@ -453,6 +453,26 @@ class TangoSchemeTest(Device):
         self.set_state(DevState.ON)
         self._quality = AttrQuality.ATTR_VALID
 
+
+    @command(dtype_in=str)
+    def ChangeState(self, state):
+        tango_state = {"alarm": DevState.ALARM,
+                       "fault": DevState.FAULT,
+                       "off": DevState.OFF,
+                       "standby": DevState.STANDBY,
+                       "close": DevState.CLOSE,
+                       "init": DevState.INIT,
+                       "on": DevState.ON,
+                       "unknown": DevState.UNKNOWN,
+                       "disable": DevState.DISABLE,
+                       "insert": DevState.INSERT,
+                       "open": DevState.OPEN,
+                       "extract": DevState.EXTRACT,
+                       "moving": DevState.MOVING,
+                       "running": DevState.RUNNING
+                       }
+        self.set_state(tango_state.get(state.lower(), DevState.UNKNOWN))
+
     @command(dtype_in=str)
     def ChangeShortScalarROQuality(self, quality):
         quality_states = {"valid": AttrQuality.ATTR_VALID,
