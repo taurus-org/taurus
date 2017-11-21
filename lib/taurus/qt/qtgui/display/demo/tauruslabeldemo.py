@@ -104,6 +104,7 @@ def demo():
             fg_widget.setCurrentIndex(0)
             fg_widget.setEditable(True)
             bg_widget.setCurrentIndex(0)
+            bg_widget.setEditable(True)
 
             self.w_label = w
             self.w_model = model_widget

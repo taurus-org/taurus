@@ -320,6 +320,12 @@ def updateLabelBackground(ctrl, widget):
                 bgItem = ctrl.state()
             elif bgRole == 'value':
                 bgItem = ctrl.value()
+            else:
+                modelObj = widget.getModelObj()
+                try:
+                    bgItem = modelObj.getFragmentObj(bgRole)
+                except:
+                    widget.warning('Invalid bgRole "%s"', bgRole)
             bgBrush, fgBrush = palette.qbrush(bgItem)
         _updatePaletteColors(widget, bgBrush, fgBrush, frameBrush)
     else:
@@ -334,6 +340,12 @@ def updateLabelBackground(ctrl, widget):
                 bgItem = ctrl.state()
             elif bgRole == 'value':
                 bgItem = ctrl.value()
+            else:
+                modelObj = widget.getModelObj()
+                try:
+                    bgItem = modelObj.getFragmentObj(bgRole)
+                except:
+                    widget.warning('Invalid bgRole "%s"', bgRole)
             color_ss = palette.qtStyleSheet(bgItem)
             ss = StyleSheetTemplate.format("rgba(255,255,255,128)",  color_ss)
         widget.setStyleSheet(ss)
