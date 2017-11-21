@@ -1626,7 +1626,12 @@ class TaurusTrend(TaurusPlot):
         # stop the scale change notification temporally (to avoid duplicate
         # warnings)
         self.setUseArchiving(False)
-        self.axisWidget(self.xBottom).scaleDivChanged.disconnect(self._scaleChangeWarning)
+        try:
+            self.axisWidget(self.xBottom).scaleDivChanged.disconnect(
+                self._scaleChangeWarning)
+        except:
+            self.warning('Failed to disconnect ScaleChangeWarning dialog')        
+
         # show a dialog
         dlg = Qt.QDialog(self)
         dlg.setModal(True)
