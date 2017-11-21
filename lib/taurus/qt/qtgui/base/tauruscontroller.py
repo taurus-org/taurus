@@ -306,7 +306,7 @@ def updateLabelBackground(ctrl, widget):
 
     if ctrl.usePalette():
         widget.setAutoFillBackground(True)
-        if bgRole in ('', 'none'):
+        if bgRole in ('', 'none', 'None'):
             transparentBrush = Qt.QBrush(Qt.Qt.transparent)
             frameBrush = transparentBrush
             bgBrush, fgBrush = transparentBrush, Qt.QBrush(Qt.Qt.black)
@@ -329,7 +329,7 @@ def updateLabelBackground(ctrl, widget):
             bgBrush, fgBrush = palette.qbrush(bgItem)
         _updatePaletteColors(widget, bgBrush, fgBrush, frameBrush)
     else:
-        if bgRole in ('', 'none'):
+        if bgRole in ('', 'none', 'None'):
             ss = StyleSheetTemplate.format("rgba(0,0,0,0)", "")
         else:
             bgItem, palette = None, QT_DEVICE_STATE_PALETTE
