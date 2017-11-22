@@ -321,6 +321,8 @@ def updateLabelBackground(ctrl, widget):
             elif bgRole == 'value':
                 bgItem = ctrl.value()
             else:
+                # TODO: this is an *experimental* extension of the bgRole API
+                # added in v 4.1.2-alpha. It may change in future versions
                 modelObj = widget.getModelObj()
                 try:
                     bgItem = modelObj.getFragmentObj(bgRole)
@@ -341,6 +343,8 @@ def updateLabelBackground(ctrl, widget):
             elif bgRole == 'value':
                 bgItem = ctrl.value()
             else:
+                # TODO: this is an *experimental* extension of the bgRole API
+                # added in v 4.1.2-alpha. It may change in future versions
                 modelObj = widget.getModelObj()
                 try:
                     bgItem = modelObj.getFragmentObj(bgRole)
