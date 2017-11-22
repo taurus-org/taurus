@@ -91,7 +91,7 @@ def demo():
             fg_widget.addItems(["", "rvalue", "rvalue.magnitude",
                                 "rvalue.units", "wvalue", "wvalue.magnitude",
                                 "wvalue.units", "state", "quality", "none"])
-            bg_widget.addItems(["quality", "state", "none"])
+            bg_widget.addItems(["quality", "state", "value", "none"])
 
             model_widget.textChanged.connect(w.setModel)
             fg_widget.currentIndexChanged[str].connect(w.setFgRole)
