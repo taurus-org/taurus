@@ -217,7 +217,7 @@ class TaurusDevicePanel(TaurusWidget):
         self._stateframe.layout().addWidget(Qt.QLabel('State'), 0, 0, Qt.Qt.AlignCenter)
         self._statelabel = TaurusLabel(self._stateframe)
         self._statelabel.setMinimumWidth(100)
-        self._statelabel.setBgRole('rvalue')
+        self._statelabel.setBgRole('value')
         self._stateframe.layout().addWidget(self._statelabel, 0, 1, Qt.Qt.AlignCenter)
 
         self._statusframe = Qt.QScrollArea(self)
