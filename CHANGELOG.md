@@ -19,6 +19,7 @@ develop branch) won't be reflected in this file.
 - Travis-built docs (not yet replacing the RTD ones) (#572)
 - TaurusLed now supports non-boolean attributes (#617)
 - Support for arbitrary bgRole in labels (#629)
+- `--import-ascii` option in `taurusplot` launcher (#632)
 - `ChangeState` command in TangoSchemeTest DS (#628)
 
 ### Changed
