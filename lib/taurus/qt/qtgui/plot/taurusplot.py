@@ -3690,6 +3690,8 @@ def main():
                       help="interprete X values as either timestamps (t) or numbers (n). Accepted values: t|n (e is also accepted as a synonim of n)")
     parser.add_option("--config", "--config-file", dest="config_file", default=None,
                       help="use the given config file for initialization")
+    parser.add_option("--import-ascii", dest="import_ascii", default=None,
+                      help="import the given ascii file into the plot")
     parser.add_option("--export", "--export-file", dest="export_file", default=None,
                       help="use the given file to as output instead of showing the plot")
     parser.add_option("--window-name", dest="window_name",
@@ -3712,8 +3714,12 @@ def main():
     if options.config_file is not None:
         w.loadConfig(options.config_file)
 
+    if options.import_ascii is not None:
+        w.importAscii([options.import_ascii], xcol=0)
+
     if models:
         w.setModel(models)
+        
     if options.export_file is not None:
         curves = dict.fromkeys(w.trendSets.keys(), 0)
 
@@ -3737,7 +3743,10 @@ def main():
     # show the widget
     w.show()
     # if no models are passed, show the data import dialog
-    if len(models) == 0 and options.config_file is None:
+    if (len(models) == 0
+            and options.config_file is None
+            and options.import_ascii is None
+        ):
         w.showDataImportDlg()
 
     sys.exit(app.exec_())
