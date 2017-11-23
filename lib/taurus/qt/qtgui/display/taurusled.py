@@ -168,6 +168,18 @@ try:
                   DevState.UNKNOWN: (False,    "black",    False),
                   None: (False,    "black",     True)}
 
+        def value(self):
+            widget, obj = self.widget(), self.modelObj()
+            fgRole = widget.fgRole
+            value = None
+            if fgRole == 'rvalue':
+                value = obj.rvalue
+            elif fgRole == 'wvalue':
+                value = obj.wvalue
+            elif fgRole == 'quality':
+                value = obj.quality
+            return value
+
         def usePreferedColor(self, widget):
             # never use prefered widget color. Use always the map
             return False

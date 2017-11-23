@@ -361,7 +361,20 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         return self._bgRole
 
     def setBgRole(self, bgRole):
-        self._bgRole = str(bgRole).lower()
+        """
+        Set the background role. The label background will be set according
+        to the current palette and the role. Valid roles are:
+        - 'none' : no background
+        - 'state' a color depending on the device state
+        - 'quality' a color depending on the attribute quality
+        - 'value' a color depending on the rvalue of the attribute
+        - <arbitrary member name> a color based on the value of an arbitrary
+          member of the model object (warning: experimental feature!)
+
+        .. warning:: the <arbitrary member name> support is still experimental
+                     and its API may change in future versions
+        """
+        self._bgRole = str(bgRole)
         self.controllerUpdate()
 
     def resetBgRole(self):

@@ -217,11 +217,8 @@ class TaurusDevicePanel(TaurusWidget):
         self._stateframe.layout().addWidget(Qt.QLabel('State'), 0, 0, Qt.Qt.AlignCenter)
         self._statelabel = TaurusLabel(self._stateframe)
         self._statelabel.setMinimumWidth(100)
-        self._statelabel.setBgRole('state')
+        self._statelabel.setBgRole('value')
         self._stateframe.layout().addWidget(self._statelabel, 0, 1, Qt.Qt.AlignCenter)
-        self._state = TaurusLed(self._stateframe)
-        self._state.setShowQuality(False)
-        self._stateframe.layout().addWidget(self._state, 0, 2, Qt.Qt.AlignCenter)
 
         self._statusframe = Qt.QScrollArea(self)
         self._status = TaurusLabel(self._statusframe)
@@ -342,7 +339,6 @@ class TaurusDevicePanel(TaurusWidget):
                 qpixmap = getCachedPixmap(logo)
 
             self._image.setPixmap(qpixmap)
-            self._state.setModel(model + '/state')  # TODO: Tango-centric
             if hasattr(self, '_statelabel'):
                 self._statelabel.setModel(
                     model + '/state')  # TODO: Tango-centric
@@ -411,7 +407,6 @@ class TaurusDevicePanel(TaurusWidget):
         detach_recursive(self)
         try:
             self._label.setText('')
-            self._state.setModel('')
             if hasattr(self, '_statelabel'):
                 self._statelabel.setModel('')
             self._status.setModel('')

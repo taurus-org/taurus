@@ -306,7 +306,7 @@ def updateLabelBackground(ctrl, widget):
 
     if ctrl.usePalette():
         widget.setAutoFillBackground(True)
-        if bgRole in ('', 'none'):
+        if bgRole in ('', 'none', 'None'):
             transparentBrush = Qt.QBrush(Qt.Qt.transparent)
             frameBrush = transparentBrush
             bgBrush, fgBrush = transparentBrush, Qt.QBrush(Qt.Qt.black)
@@ -320,10 +320,18 @@ def updateLabelBackground(ctrl, widget):
                 bgItem = ctrl.state()
             elif bgRole == 'value':
                 bgItem = ctrl.value()
+            else:
+                # TODO: this is an *experimental* extension of the bgRole API
+                # added in v 4.1.2-alpha. It may change in future versions
+                modelObj = widget.getModelObj()
+                try:
+                    bgItem = modelObj.getFragmentObj(bgRole)
+                except:
+                    widget.warning('Invalid bgRole "%s"', bgRole)
             bgBrush, fgBrush = palette.qbrush(bgItem)
         _updatePaletteColors(widget, bgBrush, fgBrush, frameBrush)
     else:
-        if bgRole in ('', 'none'):
+        if bgRole in ('', 'none', 'None'):
             ss = StyleSheetTemplate.format("rgba(0,0,0,0)", "")
         else:
             bgItem, palette = None, QT_DEVICE_STATE_PALETTE
@@ -334,6 +342,14 @@ def updateLabelBackground(ctrl, widget):
                 bgItem = ctrl.state()
             elif bgRole == 'value':
                 bgItem = ctrl.value()
+            else:
+                # TODO: this is an *experimental* extension of the bgRole API
+                # added in v 4.1.2-alpha. It may change in future versions
+                modelObj = widget.getModelObj()
+                try:
+                    bgItem = modelObj.getFragmentObj(bgRole)
+                except:
+                    widget.warning('Invalid bgRole "%s"', bgRole)
             color_ss = palette.qtStyleSheet(bgItem)
             ss = StyleSheetTemplate.format("rgba(255,255,255,128)",  color_ss)
         widget.setStyleSheet(ss)

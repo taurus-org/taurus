@@ -18,6 +18,7 @@ develop branch) won't be reflected in this file.
 - Option to ignore outdated Tango events (#559)
 - Travis-built docs (not yet replacing the RTD ones) (#572)
 - TaurusLed now supports non-boolean attributes (#617)
+- Support for arbitrary bgRole in labels (#629)
 - `ChangeState` command in TangoSchemeTest DS (#628)
 
 ### Changed
