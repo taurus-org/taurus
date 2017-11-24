@@ -32,9 +32,7 @@ from taurus.core.util.containers import ArrayBuffer, LoopList
 from taurus.external.qt import Qt
 from pyqtgraph import PlotDataItem
 
-
 import taurus
-
 
 CURVE_COLORS = [Qt.QPen(Qt.Qt.red),
                 Qt.QPen(Qt.Qt.blue),
@@ -229,6 +227,7 @@ if __name__ == '__main__':
                                      CurvesPropertiesTool)
 
     from taurus.core.taurusmanager import TaurusManager
+
     taurusM = TaurusManager()
     taurusM.changeDefaultPollingPeriod(1000)  # ms
 
@@ -240,7 +239,7 @@ if __name__ == '__main__':
     axis.attachToPlotItem(w.getPlotItem())
 
     cp = CurvesPropertiesTool()
-    cp.attachToPlotItem (w.getPlotItem ())
+    cp.attachToPlotItem(w.getPlotItem())
 
     autopan = XAutoPanTool()
     autopan.attachToPlotItem(w.getPlotItem())
@@ -258,7 +257,7 @@ if __name__ == '__main__':
     # c2.setModel('sys/tg_test/1/wave')
 
     modelchooser = TaurusModelChooserTool(itemClass=TaurusTrendSet)
-    modelchooser.attachToPlotItem (w.getPlotItem ())
+    modelchooser.attachToPlotItem(w.getPlotItem())
 
     w.show()
 
