@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module provides widgets that display the database in a tree format"""
+# TODO: tango-centric
 
 __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
            "TaurusTreeDeviceFamilyItem", "TaurusTreeDeviceMemberItem", "TaurusTreeSimpleDeviceItem",
@@ -41,8 +42,6 @@ __docformat__ = 'restructuredtext'
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusDevState
 import taurus.qt.qtcore.mimetypes
-
-from taurus.core.tango.tangodatabase import TangoInfo, TangoDatabase
 
 from .taurusmodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 
@@ -80,8 +79,12 @@ def getDevStateToolTip(*args, **kwargs):
 
 
 class TaurusTreeDbBaseItem(TaurusBaseTreeItem):
-    DisplayFunc = TangoInfo.name
-
+    try:
+        # TODO: tango-centric
+        from taurus.core.tango.tangodatabase import TangoInfo
+        DisplayFunc = TangoInfo.name
+    except:
+        pass
 
 class TaurusTreeDevicePartItem(TaurusTreeDbBaseItem):
     """A node designed to represent a 'part' (or totality) of a device name"""
@@ -458,6 +461,8 @@ class TaurusDbBaseModel(TaurusBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
+
+        from taurus.core.tango.tangodatabase import TangoDatabase
         if isinstance(data, TangoDatabase):
             data = data.cache()
         devices = data.devices()
@@ -487,6 +492,8 @@ class TaurusDbSimpleDeviceAliasModel(TaurusDbBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
+
+        from taurus.core.tango.tangodatabase import TangoDatabase
         if isinstance(data, TangoDatabase):
             data = data.cache()
         devices = data.devices()
@@ -510,6 +517,8 @@ class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
     def setupModelData(self, data):
         if data is None:
             return
+
+        from taurus.core.tango.tangodatabase import TangoDatabase
         if isinstance(data, TangoDatabase):
             data = data.cache()
         devices = data.devices()
@@ -522,7 +531,7 @@ class TaurusDbPlainDeviceModel(TaurusDbBaseModel):
 
 
 class TaurusDbDeviceModel(TaurusDbBaseModel):
-    """A Qt model that structures device elements is a 3 level tree organized
+    """A Qt model that structures device elements in a 3 level tree organized
        as:
 
            - <domain>
@@ -533,6 +542,12 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
 
     def setupModelData(self, data):
         if data is None:
+            return
+        try:
+            # TODO: Tango-centric
+            # TODO: is this try needed? (not done in, e.g. TaurusDbPlainDeviceModel)
+            from taurus.core.tango.tangodatabase import TangoDatabase
+        except ImportError:
             return
         if isinstance(data, TangoDatabase):
             data = data.deviceTree()
@@ -564,6 +579,7 @@ class TaurusDbPlainServerModel(TaurusDbBaseModel):
         if data is None:
             return
 
+        from taurus.core.tango.tangodatabase import TangoDatabase
         if isinstance(data, TangoDatabase):
             data = data.cache()
 
@@ -594,6 +610,7 @@ class TaurusDbServerModel(TaurusDbBaseModel):
         if data is None:
             return
 
+        from taurus.core.tango.tangodatabase import TangoDatabase
         if isinstance(data, TangoDatabase):
             data = data.cache()
 
@@ -645,6 +662,7 @@ class TaurusDbDeviceClassModel(TaurusDbBaseModel):
         if data is None:
             return
 
+        from taurus.core.tango.tangodatabase import TangoDatabase
         if isinstance(data, TangoDatabase):
             data = data.cache()
 

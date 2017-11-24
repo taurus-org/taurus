@@ -279,7 +279,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
     def getQtDesignerPluginInfo(cls):
         """reimplemented from :class:`TaurusBaseWidget`"""
         ret = TaurusBaseWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.plot'
+        ret['module'] = 'taurus.qt.qtgui.extra_guiqwt'
         ret['group'] = 'Taurus Display'
         ret['icon'] = 'designer:qwtplot.png'
         return ret

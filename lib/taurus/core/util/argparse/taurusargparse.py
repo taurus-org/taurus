@@ -108,6 +108,7 @@ def get_taurus_parser(parser=None):
         help_taurusserial = "taurus serialization mode. Allowed values are (case insensitive): "\
             "serial, concurrent (default)"
         help_rcport = "enables remote debugging using the given port"
+        help_formatter = "Override the default formatter"
         group.add_option("--taurus-log-level", dest="taurus_log_level", metavar="LEVEL",
                          help=help_tauruslog, type="str", default="info")
         group.add_option("--taurus-polling-period", dest="taurus_polling_period", metavar="MILLISEC",
@@ -118,6 +119,9 @@ def get_taurus_parser(parser=None):
                          help=help_tangohost, type="str", default=None)
         group.add_option("--remote-console-port", dest="remote_console_port", metavar="PORT",
                          help=help_rcport, type="int", default=None)
+        group.add_option("--default-formatter", dest="default_formatter",
+                         metavar="FORMATTER", help=help_formatter, type="str",
+                         default=None)
         parser.add_option_group(group)
     return parser
 
@@ -196,6 +200,12 @@ def init_taurus_args(parser=None, args=None, values=None):
                         options.remote_console_port)
         except Exception, e:
             taurus.warning("Cannot spawn debugger. Reason: %s", str(e))
+
+    # initialize default formatter
+    if options.default_formatter is not None:
+        from taurus import tauruscustomsettings
+        setattr(tauruscustomsettings, 'DEFAULT_FORMATTER',
+                options.default_formatter)
 
     return parser, options, args
 

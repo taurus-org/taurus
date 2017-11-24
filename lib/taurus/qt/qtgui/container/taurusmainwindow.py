@@ -35,6 +35,7 @@ import os
 import sys
 
 from taurus import tauruscustomsettings
+from taurus.core.util import deprecation_decorator
 from taurus.external.qt import Qt
 from taurusbasecontainer import TaurusBaseContainer
 
@@ -189,7 +190,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     # Allows the user to change/create/delete perspectives
     _supportUserPerspectives = True
     _showLogger = True
-    _splashLogo = ":/TaurusSplash.png"  # set to None for disabling splash screen
+    #
+    # set to None for disabling splash screen
+    _splashLogo = "large:TaurusSplash.png"
     _splashMessage = "Initializing Main window..."
 
     def __init__(self, parent=None, designMode=False, splash=None):
@@ -875,6 +878,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.unregisterConfigurableItem("_extApp[%s]" % str(action.text()),
                                         raiseOnError=False)
 
+    @deprecation_decorator(dbg_msg="Change Tango Host action is TangoCentric",
+                           rel="4.1.2")
     def _onChangeTangoHostAction(self):
         '''
         slot called when the Change Tango Host is triggered. It prompts for a
@@ -1080,7 +1085,8 @@ if __name__ == "__main__":
         # Allows the user to change/create/delete perspectives
         _supportUserPerspectives = True
         _showLogger = True
-        _splashLogo = ":/TaurusSplash.png"  # set to None for disabling splash screen
+        # set to None for disabling splash screen
+        _splashLogo = "large:TaurusSplash.png"
         _splashMessage = "Initializing Main window..."
 
         def __init__(self):

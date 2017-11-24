@@ -37,9 +37,6 @@ from taurus.qt.qtgui.tree import TaurusDbTreeWidget
 from taurus.core.util.containers import CaselessList
 from taurusmodellist import TaurusModelList
 
-#@todo: tango-centric!!
-from taurus.core.tango.tangodatabase import TangoDevInfo, TangoAttrInfo
-
 
 class TaurusModelSelectorTree(TaurusWidget):
 
@@ -107,8 +104,13 @@ class TaurusModelSelectorTree(TaurusWidget):
             raise ValueError("Invalid buttons position")
 
     def getSelectedModels(self):
-        # todo: this method is tango-centric, but it could be fixed...
         selected = []
+        try:
+            from taurus.core.tango.tangodatabase import (TangoDevInfo,
+                                                         TangoAttrInfo)
+        except:
+            return selected
+        # TODO: Tango-centric
         for item in self._deviceTree.selectedItems():
             nfo = item.itemData()
             if isinstance(nfo, TangoDevInfo):

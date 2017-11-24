@@ -45,7 +45,7 @@ from taurus.qt.qtgui.plot import TaurusPlot
 
 def getArchivedTrendValues(*args, **kwargs):
     try:
-        import PyTangoArchiving
+        import PyTangoArchiving  # TODO: tango-centric
         return PyTangoArchiving.getArchivedTrendValues(*args, **kwargs)
     except:
         return []
@@ -491,14 +491,14 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         mustwarn = False
         if self.droppedEventsCount == self.droppedEventsWarning:
             mustwarn = True
-            msg = ('At least %i events from model "%s" have being dropped. This attribute may have problems\n' +
+            msg = ('At least %i events from model "%s" have been dropped. This attribute may have problems\n' +
                    'Future occurrences will be silently ignored') % (self.droppedEventsWarning, self.modelName)
             # disable the consecutive Dropped events warning (we do not want it
             # if we got this one)
             self.consecutiveDroppedEventsWarning = -1
         if self.consecutiveDroppedEventsCount == self.consecutiveDroppedEventsWarning:
             mustwarn = True
-            msg = ('At least %i consecutive events from model "%s" have being dropped. This attribute may have problems\n' +
+            msg = ('At least %i consecutive events from model "%s" have been dropped. This attribute may have problems\n' +
                    'Future occurrences will be silently ignored') % (self.consecutiveDroppedEventsWarning, self.modelName)
             # disable the consecutive Dropped events warning
             self.consecutiveDroppedEventsWarning = -1
@@ -1626,7 +1626,12 @@ class TaurusTrend(TaurusPlot):
         # stop the scale change notification temporally (to avoid duplicate
         # warnings)
         self.setUseArchiving(False)
-        self.axisWidget(self.xBottom).scaleDivChanged.disconnect(self._scaleChangeWarning)
+        try:
+            self.axisWidget(self.xBottom).scaleDivChanged.disconnect(
+                self._scaleChangeWarning)
+        except:
+            self.warning('Failed to disconnect ScaleChangeWarning dialog')        
+
         # show a dialog
         dlg = Qt.QDialog(self)
         dlg.setModal(True)

@@ -95,7 +95,8 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     _eventBufferPeriod = 0
 
     # Python format string or Formatter callable
-    FORMAT = defaultFormatter
+    # (None means that the default formatter will be used)
+    FORMAT = None
 
     # Dictionary mapping dtypes to format strings
     defaultFormatDict = {float: "{:.{bc.modelObj.precision}f}",
@@ -144,11 +145,20 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         else:
             self._exception_listener = set([TaurusExceptionListener()])
 
+        # Use default formatter if none has been set by the class
+        if self.FORMAT is None:
+            self.setFormat(getattr(taurus.tauruscustomsettings,
+                                   'DEFAULT_FORMATTER',
+                                   defaultFormatter))
+
         # register configurable properties
-        self.registerConfigProperty(
-            self.isModifiableByUser, self.setModifiableByUser, "modifiableByUser")
+        self.registerConfigProperty(self.isModifiableByUser,
+                                    self.setModifiableByUser,
+                                    "modifiableByUser")
         self.registerConfigProperty(
             self.getModelInConfig, self.setModelInConfig, "ModelInConfig")
+        self.registerConfigProperty(self.getFormat, self.setFormat,
+                                    'formatter')
         self.resetModelInConfig()
 
     @deprecation_decorator(rel='4.0')
@@ -743,13 +753,36 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     def setFormat(self, format):
         """ Method to set the `FORMAT` attribute for this instance.
         It also resets the internal format string, which will be recalculated
-        in the next call to :method"`displayValue`
+        in the next call to :method:`displayValue`
 
-        :param format: (str or callable) A format string or a callable 
-                       that returns it 
+        :param format: (str or callable) A format string
+                       or a formatter callable (or the callable name in
+                       "full.module.callable" format)
         """
+        # Check if the format is a callable string representation
+        if isinstance(format, basestring):
+            try:
+                moduleName, formatterName = format.rsplit('.', 1)
+                __import__(moduleName)
+                module = sys.modules[moduleName]
+                format = getattr(module, formatterName)
+            except:
+                format = str(format)
         self.FORMAT = format
         self.resetFormat()
+
+    def getFormat(self):
+        """ Method to get the `FORMAT` attribute for this instance.
+
+        :return: (str) a string of the current format.
+        It could be a python format string or a callable string representation.
+        """
+        if isinstance(self.FORMAT, basestring):
+            formatter = self.FORMAT
+        else:
+            formatter = '{0}.{1}'.format(self.FORMAT.__module__,
+                                         self.FORMAT.__name__)
+        return formatter
 
     def resetFormat(self):
         """Reset the internal format string. It forces a recalculation
@@ -1243,6 +1276,39 @@ class TaurusBaseWidget(TaurusBaseComponent):
         self.call__init__(TaurusBaseComponent, name,
                           parent=parent, designMode=designMode)
         self._setText = self._findSetTextMethod()
+
+    def showFormatterDlg(self):
+        """
+        showFormatterDlg show a dialog to get the formatter from the user.
+        :return: formatter: python fromat string or formatter callable
+        (in string version) or None
+        """
+        current_format = self.getFormat()
+
+        formatter, ok = Qt.QInputDialog.getText(self, "Set formatter",
+                                                "Enter a formatter:",
+                                                Qt.QLineEdit.Normal,
+                                                current_format)
+        if ok and formatter:
+            return formatter
+
+        return None
+
+    def onSetFormatter(self):
+        """ Slot to be called by setFormatter action"""
+        format = self.showFormatterDlg()
+        if format is not None:
+            self.debug(
+                'Default format has been changed to: {0}'.format(format))
+            # -----------------------------------------------------------------
+            # TODO: Tango-centric (replace by agnostic entry point solution)
+            # shortcut to setup the tango formatter
+            if format.strip() == "tangoFormatter":
+                from taurus.core.tango.util.formatter import tangoFormatter
+                format = tangoFormatter
+            # -----------------------------------------------------------------
+            self.setFormat(format)
+        return format
 
     # It makes the GUI to hang... If this needs implementing, we should
     # reimplement it using the Qt parent class, not QWidget...

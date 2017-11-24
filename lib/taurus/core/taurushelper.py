@@ -90,7 +90,8 @@ def check_dependencies():
         # requirements from PyPI
         for r in d.requires(extras=[extra]):
             try:
-                pkg_resources.require(str(r))
+                r = str(r).split(';')[0]  # remove marker if present (see #612)
+                pkg_resources.require(r)
                 print '\t[*]',
             except Exception:
                 print '\t[ ]',
