@@ -49,7 +49,7 @@ class ForcedReadTool(QtGui.QWidgetAction, BaseConfigurableClass):
     """
     timeout = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None, period=0):
+    def __init__(self, parent=None, period=0, text='Forced read'):
         BaseConfigurableClass.__init__(self)
         QtGui.QWidgetAction.__init__(self, parent)
 
@@ -60,7 +60,7 @@ class ForcedReadTool(QtGui.QWidgetAction, BaseConfigurableClass):
         self._w.setLayout(QtGui.QHBoxLayout())
         tt = 'Period between forced readings.\nSet to 0 to disable'
         self._w.setToolTip(tt)
-        self._label = QtGui.QLabel('Forced read')
+        self._label = QtGui.QLabel(text)
         self._w.layout().addWidget(self._label)
         self._sb = QtGui.QSpinBox()
         self._w.layout().addWidget(self._sb)
@@ -72,11 +72,19 @@ class ForcedReadTool(QtGui.QWidgetAction, BaseConfigurableClass):
 
         self.setDefaultWidget(self._w)
 
-        # TODO: register period as a configproperty
+        self.registerConfigProperty(self,period, self.setPeriod, 'period')
 
         # self._sb.valueChanged[int].connect(self._onValueChanged)
         self._sb.editingFinished.connect(self._onValueChanged)
         self._timer.timeout.connect(self.timeout)
+
+    @property
+    def period(self):
+        return self._sb.value()
+
+    @period.setter
+    def setPeriod(self, value):
+        self._sb.setValue(value)
 
     def attachToPlotItem(self, plot_item):
         """Use this method to add this tool to a plot
