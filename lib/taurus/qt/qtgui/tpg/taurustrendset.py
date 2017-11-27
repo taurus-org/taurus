@@ -198,7 +198,7 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
 
         # model = evt_src if evt_src is not None else self.getModelObj()
 
-        # TODO: support booleans values from evt_value.rvalue
+        # TODO: support boolean values from evt_value.rvalue
         if evt_value is None or evt_value.rvalue is None:
             self.info("Invalid value. Ignoring.")
             return
@@ -216,6 +216,8 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         the change of the containing viewbox"""
         self._updateViewBox()
         PlotDataItem.parentChanged(self)
+
+        # TODO: Deal with subscribing to ForceReadingTool if available
 
 
 if __name__ == '__main__':

@@ -72,7 +72,7 @@ class ForcedReadTool(QtGui.QWidgetAction, BaseConfigurableClass):
 
         self.setDefaultWidget(self._w)
 
-        self.registerConfigProperty(self,period, self.setPeriod, 'period')
+        self.registerConfigProperty(self.period, self.setPeriod, 'period')
 
         # self._sb.valueChanged[int].connect(self._onValueChanged)
         self._sb.editingFinished.connect(self._onValueChanged)
