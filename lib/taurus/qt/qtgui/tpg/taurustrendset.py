@@ -86,13 +86,13 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         self._curves = None
 
     def __getitem__(self, k):
-        return self._curves.__getitem__(k)
+        return self._curves[k]
 
     def __len__(self):
-        return self._curves.__len__(k)
+        return len(self._curves)
 
     def __contains__(self, k):
-        return self._curves.__contains__(k)
+        return k in self._curves
 
     def _initBuffers(self, ntrends):
         """initializes new x and y buffers"""
