@@ -26,11 +26,14 @@ __all__ = ["TaurusTrendSet"]
 
 """This provides the pyqtgraph implementation of :class:`TaurusTrendSet`"""
 
+import copy
 import numpy
+from taurus.core import TaurusEventType, TaurusTimeVal
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.core.util.containers import ArrayBuffer, LoopList
 from taurus.external.qt import Qt
 from pyqtgraph import PlotDataItem
+from taurus.qt.qtgui.tpg import ForcedReadTool
 
 import taurus
 
@@ -70,8 +73,7 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
     Note that internally each curve is a :class:`pyqtgraph.PlotDataItem` (i.e.,
     it is not aware of events by itself, but it relies on the TaurusTrendSet
     object to update its values)
-
-     """
+    """
 
     def __init__(self, *args, **kwargs):
         PlotDataItem.__init__(self, *args, **kwargs)
@@ -84,6 +86,8 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         self._args = args
         self._kwargs = kwargs
         self._curves = None
+        self._timer = Qt.QTimer()
+        self._timer.timeout.connect(self._forceRead)
 
     def __getitem__(self, k):
         return self._curves[k]
@@ -143,7 +147,8 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
 
     def _updateBuffers(self, evt_value):
         """Update the x and y buffers with the new data. If the new data is
-        not compatible with the existing buffers, the buffers are reset"""
+        not compatible with the existing buffers, the buffers are reset
+        """
 
         # TODO: we use .magnitude below to avoid issue #509 in pint
         # https://github.com/hgrecco/pint/issues/509
@@ -213,11 +218,72 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
 
     def parentChanged(self):
         """Reimplementation of :meth:`PlotDataItem.parentChanged` to handle
-        the change of the containing viewbox"""
+        the change of the containing viewbox
+        """
         self._updateViewBox()
         PlotDataItem.parentChanged(self)
 
-        # TODO: Deal with subscribing to ForceReadingTool if available
+        # Set period from ForcedReadTool (if found)
+        try:
+            for a in self.getViewBox().menu.actions():
+                if isinstance(a, ForcedReadTool) and a.autoconnect():
+                    self.setForcedReadPeriod(a.period())
+                    break
+        except Exception as e:
+            self.debug('cannot set period from ForcedReadTool: %r', e)
+
+    @property
+    def forcedReadPeriod(self):
+        """Returns the forced reading period (in ms). A value <= 0 indicates
+        that the forced reading is disabled
+        """
+        return self._timer.interval()
+
+    def setForcedReadPeriod(self, period):
+        """
+        Forces periodic reading of the subscribed attribute in order to show
+        new points even if no events are received.
+        It will create fake events as needed with the read value.
+        It will also block the plotting of regular events when period > 0.
+
+        :param period: (int) period in milliseconds. Use period<=0 to stop the
+                       forced periodic reading
+        """
+
+        # stop the timer and remove the __ONLY_OWN_EVENTS filter
+        self._timer.stop()
+        filters = self.getEventFilters()
+        if self.__ONLY_OWN_EVENTS in filters:
+            filters.remove(self.__ONLY_OWN_EVENTS)
+            self.setEventFilters(filters)
+
+        # if period is positive, set the filter and start
+        if period > 0:
+            self.insertEventFilter(self.__ONLY_OWN_EVENTS)
+            self._timer.start(period)
+
+    def _forceRead(self, cache=True):
+        """Forces a read of the associated attribute.
+
+        :param cache: (bool) If True, the reading will be done with cache=True
+                      but the timestamp of the resulting event will be replaced
+                      by the current time. If False, no cache will be used at
+                      all.
+        """
+        value = self.getModelValueObj(cache=cache)
+        if cache:
+            value = copy.copy(value)
+            value.time = TaurusTimeVal.now()
+        self.fireEvent(self, TaurusEventType.Periodic, value)
+
+    def __ONLY_OWN_EVENTS(self, s, t, v):
+        """An event filter that rejects all events except those that originate
+        from this object
+        """
+        if s is self:
+            return s, t, v
+        else:
+            return None
 
 
 if __name__ == '__main__':

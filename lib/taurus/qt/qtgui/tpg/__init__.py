@@ -29,6 +29,7 @@ from .dateaxisitem import DateAxisItem
 from .autopantool import XAutoPanTool
 from .plot import TaurusPlot
 from .legendtool import PlotLegendTool
+from .forcedreadtool import ForcedReadTool
 from .taurusimageitem import TaurusImageItem
 from .taurusplotdataitem import TaurusPlotDataItem
 from .taurustrendset import TaurusTrendSet
