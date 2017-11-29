@@ -23,10 +23,12 @@
 ##
 #############################################################################
 
-__all__= ["Y2ViewBox"]
+__all__ = ["Y2ViewBox"]
 
 from pyqtgraph import ViewBox
+
 from taurus.qt.qtcore.configuration.configuration import BaseConfigurableClass
+
 
 class Y2ViewBox(ViewBox, BaseConfigurableClass):
     """
@@ -34,6 +36,7 @@ class Y2ViewBox(ViewBox, BaseConfigurableClass):
     This axis inherits from a Pyqtgraph.ViewBox and allows to add and remove
     any object inherited from pyqtgraph.PlotDataItem.
     """
+
     def __init__(self, *args, **kwargs):
         BaseConfigurableClass.__init__(self)
         ViewBox.__init__(self, *args, **kwargs)
@@ -75,7 +78,6 @@ class Y2ViewBox(ViewBox, BaseConfigurableClass):
 
         self._curvesModelNames.remove(item.getFullModelNames())
 
-
     def addItem(self, item, ignoreBounds=False):
         ViewBox.addItem(self, item, ignoreBounds=ignoreBounds)
 
@@ -87,7 +89,8 @@ class Y2ViewBox(ViewBox, BaseConfigurableClass):
             self.plotItem.getAxis('right').linkToView(self)
             self.setXLink(self.plotItem)
 
-        if len(self.addedItems) > 0 and item.getFullModelNames() not in self._curvesModelNames:
+        if (len(self.addedItems) > 0
+                and item.getFullModelNames() not in self._curvesModelNames):
             self._curvesModelNames.append(item.getFullModelNames())
 
     def getCurves(self):
