@@ -31,7 +31,7 @@ script:
   - travis_wait docker exec -t taurus-test /bin/bash -c "TAURUS_STARTER_WAIT=5 taurustestsuite -e 'taurus\.core\.util\.test\.test_timer'"
   - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py build_sphinx"
   # deploy sphinx-built docs to taurus-doc repo
-  - if [[ "$DOCKER_IMG" == "cpascual/taurus-test:debian-stretch" ]]; then
+  - if [[ "$DOCKER_IMG" == "cpascual/taurus-test:debian-stretch" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus"]]; then
       pip install doctr ;
       docker exec taurus-test /bin/bash -c "touch /taurus/build/sphinx/html/.nojekyll" ;
       if [[ "${TRAVIS_BRANCH}" == "develop" ]]; then
