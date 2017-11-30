@@ -90,6 +90,12 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         self._timer = Qt.QTimer()
         self._timer.timeout.connect(self._forceRead)
 
+        # register config properties
+        self.registerConfigProperty(self._getCurvesOpts, self._setCurvesOpts,
+                                    'opts')
+        # TODO: store forceReadPeriod config
+        # TODO: store _maxBufferSize config
+
     def __getitem__(self, k):
         return self._curves[k]
 
@@ -286,6 +292,36 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         else:
             return None
 
+    def _getCurvesOpts(self):
+        """returns a list of serialized opts (one for each curve)"""
+        from taurus.qt.qtgui.tpg import serialize_opts
+        return [serialize_opts(copy.copy(c.opts)) for c in self._curves]
+
+    def _setCurvesOpts(self, all_opts):
+        """restore options to curves"""
+        # If no curves are yet created, force a read to create them
+        if not self._curves:
+            self._forceRead(cache=True)
+        # Check consistency in the number of curves
+        if len(self._curves) != len(all_opts):
+            self.warning(
+                'Cannot apply curve options (mismatch in curves number)')
+            return
+        from taurus.qt.qtgui.tpg import deserialize_opts
+        for c, opts in zip(self._curves, all_opts):
+            c.opts = deserialize_opts(opts)
+
+            # This is a workaround for the following pyqtgraph's bug:
+            # https://github.com/pyqtgraph/pyqtgraph/issues/531
+            if opts['connect'] == 'all':
+                c.opts['connect'] = 'all'
+            elif opts['connect'] == 'pairs':
+                c.opts['connect'] = 'pairs'
+            elif opts['connect'] == 'finite':
+                c.opts['connect'] = 'finite'
+
+
+
 
 if __name__ == '__main__':
     import sys
@@ -330,4 +366,9 @@ if __name__ == '__main__':
 
     w.show()
 
-    sys.exit(app.exec_())
+    ret = app.exec_()
+
+    import pprint
+    pprint.pprint(c2.createConfig())
+
+    sys.exit(ret)
