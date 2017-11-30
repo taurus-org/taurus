@@ -107,6 +107,7 @@ class Y2ViewBox(ViewBox, BaseConfigurableClass):
         del state['viewRange']
         return state
 
-    def clearCurves(self):
+    def clearItems(self):
+        """Remove the added items"""
         for c in self.addedItems:
             self.removeItem(c)

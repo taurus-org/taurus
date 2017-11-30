@@ -159,7 +159,7 @@ class TaurusPlot(PlotWidget, TaurusBaseComponent):
                     tmpreg.append(name)
 
             # remove the curves from the second axis (Y2) for avoid dups
-            self._y2.clearCurves()
+            self._y2.clearItems()
 
             TaurusBaseComponent.applyConfig(
                 self, configdict=configdict, depth=depth)
