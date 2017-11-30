@@ -44,6 +44,7 @@ class PlotLegendTool(QtGui.QWidgetAction, BaseConfigurableClass):
         self.setDefaultWidget(self._cb)
         self.registerConfigProperty(self._cb.isChecked, self._cb.setChecked,
                                     'checked')
+        # TODO: register config prop for legend position
         self._cb.toggled.connect(self._onToggled)
         self._legend = None
 
