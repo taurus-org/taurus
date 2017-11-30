@@ -33,7 +33,8 @@ from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.core.util.containers import ArrayBuffer, LoopList
 from taurus.external.qt import Qt
 from pyqtgraph import PlotDataItem
-from taurus.qt.qtgui.tpg import ForcedReadTool
+
+from forcedreadtool import ForcedReadTool
 
 import taurus
 
@@ -53,7 +54,7 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
     but acts as a manager that dynamically adds/removes curve(s) (other
     PlotDataItems) to its associated plot.
 
-    If the attribute is a scalar, The Trend Set generates only one curve
+    If the attribute is a scalar, the Trend Set generates only one curve
     representing the evolution of the value of the attribute. If the attribute
     is an array, as many curves as the attribute size are created,
     each representing the evolution of the value of a component of the array.
