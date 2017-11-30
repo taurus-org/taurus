@@ -340,8 +340,11 @@ class TaurusItemConfDlg(Qt.QWidget):
         import taurus
         # -------------------------------------------------------------------
 
-        host = taurus.Authority().getNormalName()
-        self.ui.tangoTree.setModel(host)
+        try:  # TODO: Tango-centric!
+            host = taurus.Factory('tango').getAuthority().getFullName()
+            self.ui.tangoTree.setModel(host)
+        except Exception as e:
+            taurus.info('Cannot populate Tango Tree: %r', e)
 
         # Connections
         self.ui.applyBT.clicked.connect(self.onApply)
