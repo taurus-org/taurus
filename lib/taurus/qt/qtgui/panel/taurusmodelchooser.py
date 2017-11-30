@@ -165,8 +165,12 @@ class TaurusModelChooser(TaurusWidget):
                             model. Otherwise (default) a list of models can be selected
         '''
         TaurusWidget.__init__(self, parent)
+
         if host is None:
-            host = taurus.Authority().getNormalName()
+            try:  # TODO: Tango-centric!
+                host = taurus.Factory('tango').getAuthority().getFullName()
+            except Exception as e:
+                taurus.info('Cannot populate Tango Tree: %r', e)
 
         self._allowDuplicates = False
 
