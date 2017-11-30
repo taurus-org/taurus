@@ -35,7 +35,7 @@ like TaurusPlotDataItem
 # TODO: WIP
 
 __all__ = ["CurveAppearanceProperties", "CurvePropAdapter",
-           "CurvesAppearanceChooser"]
+           "CurvesAppearanceChooser", "serialize_opts", "deserialize_opts"]
 
 import copy
 
@@ -759,3 +759,112 @@ class CurveAppearanceProperties(object):
                     p.__setattr__(a, conflict(alist[0], ai))
                     break
         return p
+
+
+def deserialize_opts(opts):
+    """
+    Deserialize opts dict to pass it to a PlotDataItem
+
+    :param opts: (dict) serialized properties (as the output of
+                 :meth:`deserialize_opts`)
+
+    :return: (dict) deserialized properties (acceptable by PlotDataItem)
+    """
+    # pen property
+    if opts['pen'] is not None:
+        opts['pen'] = _unmarshallingQPainter(
+            opts, 'pen', 'pen')
+
+    # shadowPen property
+    if opts['shadowPen'] is not None:
+        opts['shadowPen'] = _unmarshallingQPainter(
+            opts, 'shadowPen', 'pen')
+
+    # symbolPen property
+    if opts['symbolPen'] is not None:
+        opts['symbolPen'] = _unmarshallingQPainter(
+            opts, 'symbolPen', 'pen')
+
+    # fillBrush property
+    if opts['fillBrush'] is not None:
+        opts['fillBrush'] = _unmarshallingQPainter(
+            opts, 'fillBrush', 'brush')
+
+    # symbolBrush property
+    if opts['symbolBrush'] is not None:
+        opts['symbolBrush'] = _unmarshallingQPainter(
+            opts, 'symbolBrush', 'brush')
+
+    return opts
+
+
+def serialize_opts(opts):
+    """
+    Serialize all properties from PlotDataItem.
+
+    :param opts: (dict) PlotDataItem opts (may include non-serializable
+                 objects)
+
+    :return: (dict) serialized properties (can be pickled)
+    """
+    # pen property (QPen object)
+    if opts['pen'] is not None:
+        _marshallingQPainter(opts, 'pen', 'pen')
+
+    # shadowPen property (QPen object)
+    if opts['shadowPen'] is not None:
+        _marshallingQPainter(opts, 'shadowPen', 'pen')
+
+    # symbolPen property (QPen object)
+    if opts['symbolPen'] is not None:
+        _marshallingQPainter(opts, 'symbolPen', 'pen')
+
+    # fillBrush property (QBrush object)
+    if opts['fillBrush'] is not None:
+        _marshallingQPainter(opts, 'fillBrush', 'brush')
+
+    # symbolBrush property (QBrush object)
+    if opts['symbolBrush'] is not None:
+        _marshallingQPainter(
+            opts, 'symbolBrush', 'brush')
+
+    return opts
+
+
+def _marshallingQPainter(opts, prop_name, qPainter):
+    if qPainter == 'pen':
+        painter = pyqtgraph.mkPen(opts[prop_name])
+        opts[prop_name + '_width'] = painter.width()
+        opts[prop_name + '_dash'] = painter.dashPattern()
+        opts[prop_name + '_cosmetic'] = painter.isCosmetic()
+    elif qPainter == 'brush':
+        painter = pyqtgraph.mkBrush(opts[prop_name])
+    else:
+        return
+
+    color = pyqtgraph.colorStr(painter.color())
+    opts[prop_name] = color
+    opts[prop_name + '_style'] = painter.style()
+
+
+def _unmarshallingQPainter(opts, prop_name, qPainter):
+    color = opts[prop_name]
+    style = opts[prop_name + '_style']
+    del opts[prop_name + '_style']
+
+    if qPainter == 'pen':
+        width = opts[prop_name + '_width']
+        dash = opts[prop_name + '_dash']
+        cosmetic = opts[prop_name + '_cosmetic']
+        del opts[prop_name + '_width']
+        del opts[prop_name + '_dash']
+        del opts[prop_name + '_cosmetic']
+        painter = pyqtgraph.mkPen(color=color, style=style,
+                           width=width, dash=dash, cosmetic=cosmetic)
+    elif qPainter == 'brush':
+        painter = pyqtgraph.mkBrush(color=color)
+        painter.setStyle(style)
+    else:
+        return
+
+    return painter

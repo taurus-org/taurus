@@ -37,4 +37,9 @@ from .curvesmodel import TaurusItemConf, TaurusItemConfDlg
 from .taurusmodelchoosertool import (TaurusModelChooserTool,
                                      TaurusImgModelChooserTool,
                                      TaurusXYModelChooserTool)
+from curveproperties import (CurveAppearanceProperties,
+                             CurvePropAdapter,
+                             CurvesAppearanceChooser,
+                             serialize_opts,
+                             deserialize_opts)
 

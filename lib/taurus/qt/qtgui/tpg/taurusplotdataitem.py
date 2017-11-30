@@ -29,7 +29,6 @@ from taurus import Attribute
 from taurus.core import TaurusEventType
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from pyqtgraph import PlotDataItem
-import pyqtgraph as pg
 
 
 class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
@@ -87,13 +86,15 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
         self.setData(x=self._x, y=self._y)
 
     def getOpts(self):
-        return _serializeOpts(copy.copy(self.opts))
+        from taurus.qt.qtgui.tpg import serialize_opts
+        return serialize_opts(copy.copy(self.opts))
 
     def setOpts(self, opts):
         # creates QPainters (QPen or QBrush) from a pickle loaded file
         # for adapt the serialized objects into PlotDataItem properties
 
-        self.opts = _deserializeOpts(opts)
+        from taurus.qt.qtgui.tpg import deserialize_opts
+        self.opts = deserialize_opts(opts)
 
         # This is a workaround for the following pyqtgraph's bug:
         # https://github.com/pyqtgraph/pyqtgraph/issues/531
@@ -107,102 +108,6 @@ class TaurusPlotDataItem(PlotDataItem, TaurusBaseComponent):
     def getFullModelNames(self):
         return (self.getXModelName(), self.getFullModelName())
 
-
-def _deserializeOpts(opts):
-    # pen property
-    if opts['pen'] is not None:
-        opts['pen'] = _unmarshallingQPainter(
-            opts, 'pen', 'pen')
-
-    # shadowPen property
-    if opts['shadowPen'] is not None:
-        opts['shadowPen'] = _unmarshallingQPainter(
-            opts, 'shadowPen', 'pen')
-
-    # symbolPen property
-    if opts['symbolPen'] is not None:
-        opts['symbolPen'] = _unmarshallingQPainter(
-            opts, 'symbolPen', 'pen')
-
-    # fillBrush property
-    if opts['fillBrush'] is not None:
-        opts['fillBrush'] = _unmarshallingQPainter(
-            opts, 'fillBrush', 'brush')
-
-    # symbolBrush property
-    if opts['symbolBrush'] is not None:
-        opts['symbolBrush'] = _unmarshallingQPainter(
-            opts, 'symbolBrush', 'brush')
-
-    return opts
-
-
-def _serializeOpts(opts):
-    """
-    This method serialize all properties from PlotDataItem
-    :return: dict of serialized properties
-    """
-    # pen property (QPen object)
-    if opts['pen'] is not None:
-        _marshallingQPainter(opts, 'pen', 'pen')
-
-    # shadowPen property (QPen object)
-    if opts['shadowPen'] is not None:
-        _marshallingQPainter(opts, 'shadowPen', 'pen')
-
-    # symbolPen property (QPen object)
-    if opts['symbolPen'] is not None:
-        _marshallingQPainter(opts, 'symbolPen', 'pen')
-
-    # fillBrush property (QBrush object)
-    if opts['fillBrush'] is not None:
-        _marshallingQPainter(opts, 'fillBrush', 'brush')
-
-    # symbolBrush property (QBrush object)
-    if opts['symbolBrush'] is not None:
-        _marshallingQPainter(
-            opts, 'symbolBrush', 'brush')
-
-    return opts
-
-
-def _marshallingQPainter(opts, prop_name, qPainter):
-    if qPainter == 'pen':
-        painter = pg.mkPen(opts[prop_name])
-        opts[prop_name + '_width'] = painter.width()
-        opts[prop_name + '_dash'] = painter.dashPattern()
-        opts[prop_name + '_cosmetic'] = painter.isCosmetic()
-    elif qPainter == 'brush':
-        painter = pg.mkBrush(opts[prop_name])
-    else:
-        return
-
-    color = pg.colorStr(painter.color())
-    opts[prop_name] = color
-    opts[prop_name + '_style'] = painter.style()
-
-
-def _unmarshallingQPainter(opts, prop_name, qPainter):
-    color = opts[prop_name]
-    style = opts[prop_name + '_style']
-    del opts[prop_name + '_style']
-
-    if qPainter == 'pen':
-        width = opts[prop_name + '_width']
-        dash = opts[prop_name + '_dash']
-        cosmetic = opts[prop_name + '_cosmetic']
-        del opts[prop_name + '_width']
-        del opts[prop_name + '_dash']
-        del opts[prop_name + '_cosmetic']
-        painter = pg.mkPen(color=color, style=style,
-                           width=width, dash=dash, cosmetic=cosmetic)
-    elif qPainter == 'brush':
-        painter = pg.mkBrush(color=color)
-        painter.setStyle(style)
-    else:
-        return
-
-    return painter
 
 if __name__ == '__main__':
     import sys
