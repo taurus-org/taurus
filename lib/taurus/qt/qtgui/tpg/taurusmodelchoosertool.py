@@ -65,48 +65,56 @@ class TaurusModelChooserTool(QtGui.QAction):
         menu.addAction(self)
 
     def _onTriggered(self):
-        currentModelItems = dict()
         currentModelNames = []
-
-
         for item in self.plot_item.items:
             if isinstance(item, self.itemClass):
                 currentModelNames.append(item.getFullModelName())
-                currentModelItems[item.getFullModelName()] = item
-
-        res, ok = TaurusModelChooser.modelChooserDlg(
+        names, ok = TaurusModelChooser.modelChooserDlg(
                     selectables=[TaurusElementType.Attribute],
                     listedModels=currentModelNames)
         if ok:
-            models = OrderedDict()
-            for r in res:
-                m = taurus.Attribute(r)
-                models[m.getFullName()] = m
+            self.updateModels(names)
 
-            # remove existing curves from plot (but not discarding the object)
-            # so that they can be re-added later in the correct z-order
-            for k, v in currentModelItems.items():
-                v.getViewBox().removeItem(v)
-                self.plot_item.removeItem(v)
-                if self.legend is not None:
-                    self.legend.removeItem(v.name())
+    def updateModels(self, names):
 
-            # Add all curves (creating those that did not exist previously)
-            # respecting the z-order
-            for modelName, model in models.items():
-                if modelName in currentModelNames:
-                    item = currentModelItems[modelName]
-                    self.plot_item.addItem(item)
-                    item.getViewBox().addItem(item)
+        # from names, construct an ordered dict with k=fullname, v=modelObj
+        models = OrderedDict()
+        for n in names:
+            m = taurus.Attribute(n)
+            models[m.getFullName()] = m
 
-                elif modelName not in currentModelNames:
-                    # TODO use simplename for the legend label
-                    # TODO support labels
-                    item = self.itemClass(name=model.getSimpleName())
-                    item.setModel(modelName)
-                    self.plot_item.addItem(item)
+        # construct a dict and a list for current models and names
+        currentModelItems = dict()
+        currentModelNames = []
+        for item in self.plot_item.items:
+            if isinstance(item, self.itemClass):
+                fullname = item.getFullModelName()
+                currentModelNames.append(fullname)
+                currentModelItems[fullname] = item
 
-                    self.plot_item.enableAutoRange()
+        # remove existing curves from plot (but not discarding the object)
+        # so that they can be re-added later in the correct z-order
+        for k, v in currentModelItems.items():
+            v.getViewBox().removeItem(v)
+            self.plot_item.removeItem(v)
+            if self.legend is not None:
+                self.legend.removeItem(v.name())
+
+        # Add all curves (creating those that did not exist previously)
+        # respecting the z-order
+        for modelName, model in models.items():
+            if modelName in currentModelNames:
+                item = currentModelItems[modelName]
+                self.plot_item.addItem(item)
+                item.getViewBox().addItem(item)
+
+            else:
+                # TODO support labels
+                item = self.itemClass(name=model.getSimpleName())
+                item.setModel(modelName)
+                self.plot_item.addItem(item)
+
+                self.plot_item.enableAutoRange()  # TODO: remove?
 
 
 class TaurusImgModelChooserTool(QtGui.QAction):
@@ -292,18 +300,18 @@ def _demo_ModelChooser():
     w.addLegend()
 
     # adding a regular data item (non-taurus)
-    c1 = pg.PlotDataItem(name='st plot',pen='b', fillLevel=0, brush='c')
+    c1 = pg.PlotDataItem(name='st plot', pen='b', fillLevel=0, brush='c')
     c1.setData(numpy.arange(300) / 300.)
     w.addItem(c1)
 
     # adding a taurus data item
-    c2 = TaurusPlotDataItem(name='st2 plot',pen='r', symbol='o')
-    c2.setModel('sys/tg_test/1/wave')
+    c2 = TaurusPlotDataItem(name='st2 plot', pen='r', symbol='o')
+    c2.setModel('eval:rand(222)')
 
     w.addItem(c2)
 
     # attach to plot item
-    tool = TaurusModelChooserTool()
+    tool = TaurusModelChooserTool(itemClass=TaurusPlotDataItem)
     tool.attachToPlotItem(w.getPlotItem())
 
     w.show()
@@ -343,6 +351,6 @@ def _demo_ModelChooserImage():
 
 
 if __name__ == '__main__':
-    # _demo_ModelChooser()
-    _demo_ModelChooserImage()
+    _demo_ModelChooser()
+    # _demo_ModelChooserImage()
 
