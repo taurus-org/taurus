@@ -91,6 +91,7 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         self._timer.timeout.connect(self._forceRead)
 
         # register config properties
+        self.setModelInConfig(True)
         self.registerConfigProperty(self._getCurvesOpts, self._setCurvesOpts,
                                     'opts')
         # TODO: store forceReadPeriod config
