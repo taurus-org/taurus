@@ -115,6 +115,8 @@ if __name__ == '__main__':
     import pyqtgraph as pg
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.tpg import TaurusPlotDataItem
+    from taurus.external.qt import Qt
+    from taurus.qt.qtgui.tpg import TaurusModelChooserTool
 
     app = TaurusApplication()
 
@@ -135,7 +137,7 @@ if __name__ == '__main__':
 
     # adding a taurus data item
     # c2 = TaurusPlotDataItem(name='st2 plot', pen='r', symbol='o')
-    c2 = TaurusPlotDataItem(pen=pen)
+    c2 = TaurusPlotDataItem(pen=pen, name='foo')
     # c2 = TaurusPlotDataItem()
 
     # c2.loadConfigFile('tmp/conf.cfg')
@@ -148,11 +150,22 @@ if __name__ == '__main__':
     # c2.setXModel('eval:Quantity(rand(256),"m")')
 
     w.addItem(c2)
+
+
+    # ...and remove it after a while
+    def rem():
+        w.removeItem(c2)
+    Qt.QTimer.singleShot(2000, rem)
+
+    modelchooser = TaurusModelChooserTool(itemClass=TaurusPlotDataItem)
+    modelchooser.attachToPlotItem(w.getPlotItem())
+
     w.show()
 
     res = app.exec_()
 
-    config = c2.createConfig()
+
+    # config = c2.createConfig()
     # print config
 
     # c2.saveConfigFile('tmp/conf.cfg')
