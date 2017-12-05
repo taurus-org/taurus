@@ -63,11 +63,9 @@ NamedLineStyles = {CONFLICT: "",
                    Qt.Qt.DashDotDotLine: ".._..",
                    }
 
-
 ReverseNamedLineStyles = {}
 for k, v in NamedLineStyles.iteritems():
     ReverseNamedLineStyles[v] = k
-
 
 # TODO:allow the dialog to use this curve styles
 NamedCurveStyles = {CONFLICT: "",
@@ -78,7 +76,6 @@ NamedCurveStyles = {CONFLICT: "",
                     "Steps": "Steps",
                     "Dots": "Dots"
                     }
-
 
 ReverseNamedCurveStyles = {}
 for k, v in NamedCurveStyles.iteritems():
@@ -100,11 +97,9 @@ NamedSymbolStyles = {
     'h': "Hexagon"
 }
 
-
 ReverseNamedSymbolStyles = {}
 for k, v in NamedSymbolStyles.iteritems():
     ReverseNamedSymbolStyles[v] = k
-
 
 NamedColors = ["Black", "Red", "Blue", "Magenta",
                "Green", "Cyan", "Yellow", "Gray", "White"]
@@ -130,7 +125,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
     CurveTitleEdited = Qt.pyqtSignal('QString', 'QString')
 
     def __init__(self, parent=None, curvePropDict={}, showButtons=False,
-                 autoApply=False, Y2Axis=None, curvePropAdapter = None):
+                 autoApply=False, Y2Axis=None, curvePropAdapter=None):
         # try:
         super(CurvesAppearanceChooser, self).__init__(parent)
         self.loadUi()
@@ -222,7 +217,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
     def _onItemChanged(self, item):
         """slot used when an item data has changed"""
-        name =item.data(self.NAME_ROLE)
+        name = item.data(self.NAME_ROLE)
         previousTitle = self.curvePropDict[name].title
         currentTitle = item.text()
         if previousTitle != currentTitle:
@@ -281,17 +276,16 @@ class CurvesAppearanceChooser(Qt.QWidget):
         else:
             self.assignToY1BT.setChecked(True)
 
-
         # set sSize and lWidth spinboxes. if prop.sSize is None, it puts -1
         # (which is the special value for these switchhboxes)
         if prop.sSize is CONFLICT or prop.sStyle is None:
             self.sSizeSB.setValue(-1)
         else:
-            self.sSizeSB.setValue(max(prop.sSize,-1))
+            self.sSizeSB.setValue(max(prop.sSize, -1))
         if prop.lWidth is CONFLICT:
             self.lWidthSB.setValue(-1)
         else:
-            self.lWidthSB.setValue(max(prop.lWidth,-1))
+            self.lWidthSB.setValue(max(prop.lWidth, -1))
 
         # Set the Color combo boxes. The item at index 0 is the empty one in
         # the comboboxes Manage unknown colors by including them
@@ -431,7 +425,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
             prop.cFill = None
 
         # prop.yAxis = CONFLICT
-            
+
         # store the props
         self._shownProp = copy.deepcopy(prop)
         return copy.deepcopy(prop)
@@ -489,7 +483,8 @@ class CurvePropAdapter(object):
     (:class:`pyqtgraph.PlotDataItem`) in a given plot
     (:class:`pyqtgraph.PlotItem`).
     """
-    def __init__(self, dataItems=None, plotItem = None, y2axis = None):
+
+    def __init__(self, dataItems=None, plotItem=None, y2axis=None):
         self.dataItems = dataItems
         self.plotItem = plotItem
         self._curve_items = dict()
@@ -538,7 +533,7 @@ class CurvePropAdapter(object):
             cFill = opts['fillLevel']
 
             curve_appearance_properties = CurveAppearanceProperties(
-                sStyle=sStyle, sSize=sSize, sColor=sColor,sFill=sFill,
+                sStyle=sStyle, sSize=sSize, sColor=sColor, sFill=sFill,
                 lStyle=lStyle, lWidth=lWidth, lColor=lColor, cStyle=cStyle,
                 cFill=cFill, yAxis=yAxis, title=title)
             curves_prop[title] = curve_appearance_properties
@@ -592,7 +587,7 @@ class CurvePropAdapter(object):
             else:
                 dataItem.setSymbolBrush(None)
 
-            self.setCurveYAxis(prop, names , axis=axis)
+            self.setCurveYAxis(prop, names, axis=axis)
 
     # change background color of the whole window, not just the plot area
     # def setBackgroundColor(self, color):
@@ -715,7 +710,7 @@ class CurveAppearanceProperties(object):
             vself = getattr(self, aname)
             vother = getattr(other, aname)
             if vself != vother and (
-                        strict or not(CONFLICT in (vself, vother))):
+                        strict or not (CONFLICT in (vself, vother))):
                 result.append(aname)
         return result
 
@@ -860,7 +855,7 @@ def _unmarshallingQPainter(opts, prop_name, qPainter):
         del opts[prop_name + '_dash']
         del opts[prop_name + '_cosmetic']
         painter = pyqtgraph.mkPen(color=color, style=style,
-                           width=width, dash=dash, cosmetic=cosmetic)
+                                  width=width, dash=dash, cosmetic=cosmetic)
     elif qPainter == 'brush':
         painter = pyqtgraph.mkBrush(color=color)
         painter.setStyle(style)
