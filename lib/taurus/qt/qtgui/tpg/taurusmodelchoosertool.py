@@ -76,7 +76,11 @@ class TaurusModelChooserTool(QtGui.QAction):
             self.updateModels(names)
 
     def updateModels(self, names):
-
+        """Accepts a list of model names and updates the data items of class
+        `itemClass` (provided in the constructor) attached to the plot.
+        It creates and removes items if needed, and enforces the z-order
+        according to that given in the `models` list
+        """
         # from names, construct an ordered dict with k=fullname, v=modelObj
         models = OrderedDict()
         for n in names:
@@ -95,10 +99,15 @@ class TaurusModelChooserTool(QtGui.QAction):
         # remove existing curves from plot (but not discarding the object)
         # so that they can be re-added later in the correct z-order
         for k, v in currentModelItems.items():
-            v.getViewBox().removeItem(v)
+            # v.getViewBox().removeItem(v)  # TODO : maybe this is needed forY2
             self.plot_item.removeItem(v)
+            # -------------------------------------------------
+            # Workaround for bug in pyqtgraph 0.10.0
+            # (which is fixed in pyqtgraph's commit ee0ea5669)
+            # TODO: remove this lines when pyqtgraph > 0.10.0 is released
             if self.legend is not None:
                 self.legend.removeItem(v.name())
+            # -------------------------------------------------
 
         # Add all curves (creating those that did not exist previously)
         # respecting the z-order
@@ -106,15 +115,14 @@ class TaurusModelChooserTool(QtGui.QAction):
             if modelName in currentModelNames:
                 item = currentModelItems[modelName]
                 self.plot_item.addItem(item)
-                item.getViewBox().addItem(item)
-
+                # item.getViewBox().addItem(item)  # TODO : maybe this is needed forY2
             else:
                 # TODO support labels
                 item = self.itemClass(name=model.getSimpleName())
                 item.setModel(modelName)
                 self.plot_item.addItem(item)
 
-                self.plot_item.enableAutoRange()  # TODO: remove?
+        # self.plot_item.enableAutoRange()  # TODO: Why? remove?
 
 
 class TaurusImgModelChooserTool(QtGui.QAction):
