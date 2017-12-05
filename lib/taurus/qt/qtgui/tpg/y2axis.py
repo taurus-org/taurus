@@ -32,42 +32,42 @@ from taurus.qt.qtcore.configuration.configuration import BaseConfigurableClass
 
 class Y2ViewBox(ViewBox, BaseConfigurableClass):
     """
-    This tool inserts a secondary axis in a Pyqtgraph.PlotItem object.
-    This axis inherits from a Pyqtgraph.ViewBox and allows to add and remove
-    any object inherited from pyqtgraph.PlotDataItem.
+    A tool that inserts a secondary Y axis to a plot item (see
+    :meth:`attachToPlotItem`).
+    It is implemented as a :class:`pyqtgraph.ViewBox` and provides methods to
+    add and remove :class:`pyqtgraph.PlotDataItem` objects to it.
     """
 
     def __init__(self, *args, **kwargs):
         BaseConfigurableClass.__init__(self)
         ViewBox.__init__(self, *args, **kwargs)
 
-        # this property handle the curves added in self. Returns a list with
-        # models names (xModelName, yModelName) from each curve in this view.
-        # This class doesn't add the curves when we restore the configuration,
-        # just retrieve a list of modelNames and we have to create the curves
-        # and add to self from outside the class.
         self.registerConfigProperty(self.getCurves, self.setCurves, 'Y2Curves')
-
         self.registerConfigProperty(self._getState, self.setState, 'viewState')
         self._isAttached = False
         self.plotItem = None
         self._curvesModelNames = []
 
     def attachToPlotItem(self, plot_item):
+        """Use this method to add this axis to a plot
+
+        :param plot_item: (PlotItem)
+        """
         if self._isAttached:
             return  # TODO: log a message it's already attached
         self._isAttached = True
 
         mainViewBox = plot_item.getViewBox()
-        mainViewBox.sigResized.connect(self.updateViews)
+        mainViewBox.sigResized.connect(self._updateViews)
 
         self.plotItem = plot_item
 
-    def updateViews(self, viewBox):
+    def _updateViews(self, viewBox):
         self.setGeometry(viewBox.sceneBoundingRect())
         self.linkedViewChanged(viewBox, self.XAxis)
 
     def removeItem(self, item):
+        """Reimplemented from :class:`pyqtgraph.ViewBox`"""
         ViewBox.removeItem(self, item)
 
         # when last curve is removed from self (axis Y2), we must remove the
@@ -79,6 +79,7 @@ class Y2ViewBox(ViewBox, BaseConfigurableClass):
         self._curvesModelNames.remove(item.getFullModelNames())
 
     def addItem(self, item, ignoreBounds=False):
+        """Reimplemented from :class:`pyqtgraph.ViewBox`"""
         ViewBox.addItem(self, item, ignoreBounds=ignoreBounds)
 
         if len(self.addedItems) == 1:
@@ -94,9 +95,17 @@ class Y2ViewBox(ViewBox, BaseConfigurableClass):
             self._curvesModelNames.append(item.getFullModelNames())
 
     def getCurves(self):
+        """Returns the curve model names of curves associated to the Y2 axis.
+
+        :return: (list) List of tuples of model names (xModelName, yModelName)
+                 from each curve in this view
+        """
         return self._curvesModelNames
 
     def setCurves(self, curves):
+        """Sets the curve names associated to the Y2 axis (but does not
+        create/remove any curve.
+        """
         self._curvesModelNames = curves
 
     def _getState(self):
