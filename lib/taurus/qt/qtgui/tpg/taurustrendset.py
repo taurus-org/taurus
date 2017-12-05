@@ -86,9 +86,10 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         self._curveColors = LoopList(CURVE_COLORS)
         self._args = args
         self._kwargs = kwargs
-        self._curves = None
+        self._curves = []
         self._timer = Qt.QTimer()
         self._timer.timeout.connect(self._forceRead)
+        self._legend = None
 
         # register config properties
         self.setModelInConfig(True)
@@ -96,6 +97,22 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
                                     'opts')
         # TODO: store forceReadPeriod config
         # TODO: store _maxBufferSize config
+
+    def name(self):
+        """Reimplemented from PlotDataItem to avoid having the ts itself added
+        to legends.
+
+        .. seealso:: :meth:`basename`
+        """
+        return None
+
+    def base_name(self):
+        """Returns the name of the trendset, which is used as a prefix for
+        constructing the associated curves names
+
+        .. seealso:: :meth:`name`
+        """
+        return PlotDataItem.name(self)
 
     def __getitem__(self, k):
         return self._curves[k]
@@ -105,6 +122,12 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
 
     def __contains__(self, k):
         return k in self._curves
+
+    def setModel(self, name):
+        """Reimplemented from :meth:`TaurusBaseComponent.setModel`"""
+        TaurusBaseComponent.setModel(self, name)
+        # force a read to ensure that the curves are created
+        self._forceRead()
 
     def _initBuffers(self, ntrends):
         """initializes new x and y buffers"""
@@ -120,16 +143,18 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
     def _initCurves(self, ntrends):
         """ Initializes new curves """
 
+        # self._removeFromLegend(self._legend)
         self._curves = []
         self._curveColors.setCurrentIndex(-1)
 
         a = self._args
         kw = self._kwargs.copy()
 
-        name = taurus.Attribute(self.getModel()).getSimpleName()
+        base_name = (self.base_name()
+                or taurus.Attribute(self.getModel()).getSimpleName())
 
         for i in xrange(ntrends):
-            subname = "%s[%i]" % (name, i)
+            subname = "%s[%i]" % (base_name, i)
             kw['name'] = subname
             curve = PlotDataItem(*a, **kw)
             if 'pen' not in kw:
@@ -137,21 +162,40 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
             self._curves.append(curve)
         self._updateViewBox()
 
+    def _addToLegend(self, legend):
+        # ------------------------------------------------------------------
+        # In theory, TaurusTrendSet only uses viewBox.addItem to add its
+        # sub-curves to the plot. In theory this should not add the curves
+        # to the legend, and therefore we should do it here.
+        # But somewhere the curves are already being added to the legend, and
+        # if we re-add them here we get duplicated legend entries
+        # TODO: Find where are the curves being added to the legend
+        pass
+        #if legend is None:
+        #    return
+        #for c in self._curves:
+        #    legend.addItem(c, c.name())
+        # -------------------------------------------------------------------
+
+    def _removeFromLegend(self, legend):
+        if legend is None:
+            return
+        for c in self._curves:
+            legend.removeItem(c.name())
+
     def _updateViewBox(self):
         """Add/remove the "extra" curves from the viewbox if needed"""
-        if self._curves is not None:
-            curves = self._curves
+        if self._curves:
             viewBox = self.getViewBox()
-
             self.forgetViewBox()
-            for curve in curves:
-                curve.forgetViewBox()
-                curve_viewBox = curve.getViewBox()
+        for curve in self._curves:
+            curve.forgetViewBox()
+            curve_viewBox = curve.getViewBox()
 
-                if curve_viewBox is not None and viewBox is None:
-                    curve_viewBox.removeItem(curve)
-                if viewBox is not None:
-                    viewBox.addItem(curve)
+            if curve_viewBox is not None:
+                curve_viewBox.removeItem(curve)
+            if viewBox is not None:
+                viewBox.addItem(curve)
 
     def _updateBuffers(self, evt_value):
         """Update the x and y buffers with the new data. If the new data is
@@ -228,8 +272,19 @@ class TaurusTrendSet(PlotDataItem, TaurusBaseComponent):
         """Reimplementation of :meth:`PlotDataItem.parentChanged` to handle
         the change of the containing viewbox
         """
-        self._updateViewBox()
         PlotDataItem.parentChanged(self)
+
+        self._updateViewBox()
+
+        # update legend if needed
+        try:
+            legend =  self.getViewWidget().getPlotItem().legend
+        except Exception:
+            legend = None
+        if legend is not self._legend:
+            self._removeFromLegend(self._legend)
+            self._addToLegend(legend)
+            self._legend = legend
 
         # Set period from ForcedReadTool (if found)
         try:
@@ -351,25 +406,29 @@ if __name__ == '__main__':
     autopan.attachToPlotItem(w.getPlotItem())
 
     # add legend to the plot, for that we have to give a name to plot items
-    # w.addLegend()
+    w.addLegend()
 
-    # adding a taurus data item
+    # adding a taurus data item...
     c2 = TaurusTrendSet(name='foo')
+    c2.setModel('eval:rand(2)')
+    # c2.setForcedReadPeriod(500)
 
     w.addItem(c2)
 
-    c2.setModel('eval:rand(5)')
+    # ...and remove it after a while
+    def rem():
+        w.removeItem(c2)
+    Qt.QTimer.singleShot(2000, rem)
 
-    # c2.setModel('sys/tg_test/1/wave')
 
-    modelchooser = TaurusModelChooserTool(itemClass=TaurusTrendSet)
-    modelchooser.attachToPlotItem(w.getPlotItem())
+    # modelchooser = TaurusModelChooserTool(itemClass=TaurusTrendSet)
+    # modelchooser.attachToPlotItem(w.getPlotItem())
 
     w.show()
 
     ret = app.exec_()
 
     import pprint
-    pprint.pprint(c2.createConfig())
+    # pprint.pprint(c2.createConfig())
 
     sys.exit(ret)

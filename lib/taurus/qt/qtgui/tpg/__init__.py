@@ -28,6 +28,7 @@ from .curvespropertiestool import CurvesPropertiesTool
 from .dateaxisitem import DateAxisItem
 from .autopantool import XAutoPanTool
 from .plot import TaurusPlot
+from .trend import TaurusTrend
 from .legendtool import PlotLegendTool
 from .forcedreadtool import ForcedReadTool
 from .taurusimageitem import TaurusImageItem
