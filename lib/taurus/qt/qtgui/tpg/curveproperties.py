@@ -540,17 +540,22 @@ class CurvePropAdapter(object):
             self._curve_items[title] = item
         return curves_prop
 
-    def setCurveProperties(self, prop, names, axis):
+    def setCurveProperties(self, properties, names, axis):
         """
-        Assign Assign the properties from a CurveApareanceProperties object to
+        Assign the properties from a CurveAppearanceProperties object to
         a PlotDataItem
 
-        :param prop: dict of CurveApareanceProperties
-        :param names: names of curves contained in prop dict
-        :param axis: String (right or left)
+        :param properties: (dict) dictionary containing
+                           :class:`CurveAppearanceProperties`
+                           (keys are curve names)
+        :param names: (seq) names of the curves for which to set the
+                            curve properties (they must be present in
+                            the `properties` dict)
+        :param axis: (str or None) destination Y axis ("right" or "left").
+                     If None, it will not be set.
         """
         for name in names:
-            curve = prop[name]
+            curve = properties[name]
             sStyle = curve.sStyle
             sSize = curve.sSize
             sColor = curve.sColor
@@ -559,7 +564,7 @@ class CurvePropAdapter(object):
             lWidth = curve.lWidth
             lColor = curve.lColor
             cFill = curve.cFill
-            # title = prop.title
+            # title = properties.title
 
             dataItem = self._curve_items[name]
 
@@ -587,7 +592,7 @@ class CurvePropAdapter(object):
             else:
                 dataItem.setSymbolBrush(None)
 
-            self.setCurveYAxis(prop, names, axis=axis)
+            self.setCurveYAxis(properties, names, axis=axis)
 
     # change background color of the whole window, not just the plot area
     # def setBackgroundColor(self, color):
@@ -610,10 +615,17 @@ class CurvePropAdapter(object):
         This method manage the assignment of Y axis where the
         curve will be plotted
 
-        :param properties: dict of CurveApareanceProperties
-        :param curve_names: name of curves contained in properties dict
-        :param axis: Y destination axis, String (right, left) or None
+        :param properties: (dict) dictionary containing
+                           :class:`CurveAppearanceProperties`
+                           (keys are curve names)
+        :param curve_names: (seq) names of the curves for which to set the
+                            Y axis (they must be present in the `properties`
+                            dict)
+        :param axis: (str or None) destination Y axis ("right" or "left").
+                     If None, it will not be set.
         """
+        if axis is None:
+            return
         mainView = self.plotItem.getViewBox()
         for name in curve_names:
             yAxis = properties[name].yAxis
@@ -630,7 +642,6 @@ class CurvePropAdapter(object):
                 if yAxis is True:
                     self.y2axis.removeItem(dataItem)
                     mainView.addItem(dataItem)
-
                     mainView.autoRange()
                     properties[name].yAxis = False
 
