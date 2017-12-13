@@ -98,7 +98,7 @@ class TaurusLabelController(TaurusBaseController):
         self._trimmedText = self._shouldTrim(label, text)
         if self._trimmedText:
             text = "<a href='...'>...</a>"
-        label.setText(text)
+        label.setText_(text)
 
     def _shouldTrim(self, label, text):
         if not label.autoTrim:
@@ -419,8 +419,16 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         return self._permanentText
 
     def setPermanentText(self, text):
-        self.setText(text)
+        self.setText_(text)
         self._permanentText = text
+
+    def setText_(self, text):
+        """Method to expose QLabel.setText"""
+        Qt.QLabel.setText(self, text)
+
+    def setText(self, text):
+        """Reimplementation of setText to set permanentText"""
+        self.setPermanentText(text)
 
     def setAutoTrim(self, trim):
         self._autoTrim = trim
@@ -448,9 +456,15 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self.setAutoTrim(self.DefaultAutoTrim)
 
     def displayValue(self, v):
+        """Reimplementation of displayValue for TaurusLabel"""
         if self._permanentText is not None:
-            return self._permanentText
-        return TaurusBaseWidget.displayValue(self, v)
+            value = self._permanentText
+        else:
+            value = TaurusBaseWidget.displayValue(self, v)
+
+        attr = self.getModelObj()
+        dev = attr.getParent()
+        return value.format(dev=dev, attr=attr)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

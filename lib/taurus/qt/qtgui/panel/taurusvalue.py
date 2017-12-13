@@ -91,7 +91,7 @@ class DefaultLabelWidget(TaurusLabel):
         try:
             config = self.taurusValueBuddy().getLabelConfig()
         except Exception:
-            config = 'label'
+            config = '{attr.label}'
         elementtype = self.taurusValueBuddy().getModelType()
         fullname = self.taurusValueBuddy().getModelObj().getFullName()
         if elementtype == TaurusElementType.Attribute:
@@ -107,14 +107,15 @@ class DefaultLabelWidget(TaurusLabel):
             TaurusLabel.setModel(self, None)
             self.setText(devName)
 
-    _BCK_COMPAT_TAGS = {'<attr_name>': 'name',
-                        '<attr_fullname>': 'fullname',
-                        '<dev_alias>': 'parentObj.name',
-                        '<dev_name>': 'parentObj.name',
-                        '<dev_fullname>': 'parentObj.fullname',
+    _BCK_COMPAT_TAGS = {'<attr_name>': '{attr.name}',
+                        '<attr_fullname>': '{attr.fullname}',
+                        '<dev_alias>': '{dev.name}',
+                        '<dev_name>': '{dev.name}',
+                        '<dev_fullname>': '{dev.fullname}',
                         }
 
     def getDisplayValue(self, cache=True, fragmentName=None):
+        """Reimplementation of getDisplayValue"""
         if self.modelObj is None or fragmentName is None:
             return self.getNoneValue()
         # support bck-compat tags
@@ -122,7 +123,8 @@ class DefaultLabelWidget(TaurusLabel):
             new = self._BCK_COMPAT_TAGS.get(old, '{attr.%s}' % old)
             self.deprecated(dep=old, alt=new)
             fragmentName = fragmentName.replace(old, new)
-        return TaurusLabel.getDisplayValue(self, cache, fragmentName)
+
+        return TaurusLabel.displayValue(self, fragmentName)
 
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
@@ -347,7 +349,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         self._allowWrite = True
         self._minimumHeight = None
-        self._labelConfig = 'label'
+        self._labelConfig = '{attr.label}'
         self._labelText = None
         self.setModifiableByUser(False)
 
@@ -636,6 +638,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def onChangeLabelConfig(self):
         keys = ['{attr.label}', '{attr.name}', '{attr.fullname}', '{dev.name}',
                 '{dev.fullname}']
+
         try:
             current = keys.index(self.labelConfig)
         except:
@@ -650,7 +653,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         labelConfig, ok = Qt.QInputDialog.getItem(self, 'Change Label', msg,
                                                   keys, current, True)
         if ok:
-            self.labelConfig = str(labelConfig)
+            self.labelConfig = labelConfig
 
     def onChangeReadWidget(self):
         classnames = ['None', 'Auto'] + \
@@ -809,7 +812,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 self._labelWidget.setModel(self.getFullModelName())
 
             if self._labelText is not None:
-                self._labelWidget.setPermanentText(self._labelText)
+                self._labelWidget.setText(self._labelText)
 
     def updateReadWidget(self):
         # get the class for the widget and replace it if necessary
@@ -1233,19 +1236,21 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         """
         # backwards compatibility: this method used to work for setting
         # an arbitrary text to the label widget
+        self._labelConfig = config
         try:
             self.getModelFragmentObj(config)
+            self._labelWidget._permanentText = None
         except Exception:
             try:
                 self._labelWidget.setText(config)
             except:
                 self.debug("Setting permanent text to the label widget failed")
             return
-        self._labelConfig = config
+
         self.updateLabelWidget()
 
     def resetLabelConfig(self):
-        self._labelConfig = 'label'
+        self._labelConfig = '{attr.label}'
         self.updateLabelWidget()
 
     def getSwitcherClass(self):
