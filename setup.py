@@ -81,10 +81,6 @@ extras_require = {
 
 console_scripts = [
     'taurustestsuite = taurus.test.testsuite:main',
-    # TODO: taurusdoc,
-]
-
-gui_scripts = [
     'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main',
     'taurusplot = taurus.qt.qtgui.plot.taurusplot:main',
     'taurustrend = taurus.qt.qtgui.plot.taurustrend:main',
@@ -99,11 +95,11 @@ gui_scripts = [
     'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
     'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main',
     'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main',
+    # TODO: taurusdoc,
 ]
 
 entry_points = {'console_scripts': console_scripts,
-                'gui_scripts': gui_scripts,
-                }
+}
 
 classifiers = [
     'Development Status :: 3 - Alpha',
