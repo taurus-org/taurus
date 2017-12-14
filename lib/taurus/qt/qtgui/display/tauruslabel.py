@@ -457,14 +457,22 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
     def displayValue(self, v):
         """Reimplementation of displayValue for TaurusLabel"""
-        if self._permanentText is not None:
-            value = self._permanentText
-        else:
+        if self._permanentText is None:
             value = TaurusBaseWidget.displayValue(self, v)
+        else:
+            value = self._permanentText
 
         attr = self.getModelObj()
         dev = attr.getParent()
-        return value.format(dev=dev, attr=attr)
+
+        try:
+            v = value.format(dev=dev, attr=attr)
+        except Exception as e:
+            self.warning(
+                "Error formatting display (%r). Reverting to raw string", e)
+            v = value
+
+        return v
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
