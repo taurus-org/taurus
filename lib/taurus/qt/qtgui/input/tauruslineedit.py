@@ -237,7 +237,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             elif model_type == DataType.Bytes:
                 return bytes(text)
             else:
-                raise TypeError('Unsupported model type "%s"', model_type)
+                raise TypeError('Unsupported model type "%s"'%model_type)
         except Exception, e:
             self.warning('Cannot return value for "%s". Reason: %r', text, e)
             return None
