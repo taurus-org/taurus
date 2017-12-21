@@ -268,12 +268,13 @@ class TangoSchemeTest(Device):
                                  **attrs['float_scalar'])
 
 
-    _float_scalar_evt = numpy.random.random() * 100
+    _float_scalar_evt = default_rvalue['float']
+    _float_scalar_poll = default_rvalue['float']
 
     # READ ONLY METHODS
     # SCALARS
     def read_float_scalar_poll(self):
-        return numpy.random.random() * 100
+        self._float_scalar_poll *= -1
 
     def read_float_scalar_evt(self):
         return self._float_scalar_evt
@@ -485,17 +486,17 @@ class TangoSchemeTest(Device):
         while True:
             sleep(0.1)
             try:
-                if self.use_fixed_time:
-                    sleeptime = self.sleeptime
-                else:
-                    sleeptime = numpy.random.random()*10
+                if not self.use_fixed_time:
+                    self.sleeptime *= 2
+                    if self.sleeptime > 5:
+                        self.sleeptime = 0.1
 
-                self._float_scalar_evt = numpy.random.random() * 100
+                self._float_scalar_evt *= -1
 
                 self.push_change_event('float_scalar_evt',
                                        self._float_scalar_evt, time(),
                                        AttrQuality.ATTR_VALID)
-                sleep(sleeptime)
+                sleep(self.sleeptime)
             except Exception as e:
                 print 'Exception in update loop', e
                 sleep(1)
@@ -522,7 +523,7 @@ class TangoSchemeTest(Device):
     @command(dtype_in=float)
     def SetEventPeriod(self, period):
         """ Set a fixed event period for float_scalar_evt attribute.
-        If period is 0,  the event period will be random.
+        If period is 0,  the event period will vary from 0.1 to 5
         """
         if period == 0:
             self.use_fixed_time = False
