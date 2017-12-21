@@ -447,24 +447,24 @@ class TangoAttribute(TaurusAttribute):
                 if single:
                     self.read(cache=False)
                 else:
-                        value = self.decode(value)
-                        self.__attr_err = error
-                        if self.__attr_err:
-                            raise self.__attr_err
-                        # Avoid "valid-but-outdated" notifications
-                        # if FILTER_OLD_TANGO_EVENTS is enabled
-                        # and the given timestamp is older than the timestamp
-                        # of the cached value
-                        filter_old_event = getattr(tauruscustomsettings,
-                                                   'FILTER_OLD_TANGO_EVENTS',
-                                                   False)
-                        if (self.__attr_value is not None
-                                and filter_old_event
-                                and time is not None
-                                and time < self.__attr_value.time.totime()
-                           ):
-                            return
-                        self.__attr_value = value
+                    value = self.decode(value)
+                    self.__attr_err = error
+                    if self.__attr_err:
+                        raise self.__attr_err
+                    # Avoid "valid-but-outdated" notifications
+                    # if FILTER_OLD_TANGO_EVENTS is enabled
+                    # and the given timestamp is older than the timestamp
+                    # of the cached value
+                    filter_old_event = getattr(tauruscustomsettings,
+                                               'FILTER_OLD_TANGO_EVENTS',
+                                               False)
+                    if (self.__attr_value is not None
+                            and filter_old_event
+                            and time is not None
+                            and time < self.__attr_value.time.totime()
+                       ):
+                        return
+                    self.__attr_value = value
             except PyTango.DevFailed, df:
                 self.__subscription_event.set()
                 self.debug("Error polling: %s" % df[0].desc)
