@@ -23,10 +23,12 @@
 ##
 #############################################################################
 import numpy
-from time import time
+from time import (time, sleep)
 
 from PyTango import DeviceProxy, AttrWriteType, DevState, AttrQuality
 from PyTango.server import Device, DeviceMeta, attribute, run, command
+
+from threading import Thread
 
 
 class TangoSchemeTest(Device):
@@ -107,6 +109,10 @@ class TangoSchemeTest(Device):
              'short_scalar_nu': dict(dtype=numpy.int16),
              'float_scalar': dict(unit=default_unit["float"],
                                   dtype=numpy.float32),
+             'float_scalar_poll': dict(unit=default_unit["float"],
+                                  dtype=numpy.float32,
+                                  polling_period=500),
+
              'double_scalar': dict(unit=default_unit["float"],
                                    dtype=numpy.float64),
              'string_scalar': dict(dtype=str),
@@ -254,8 +260,36 @@ class TangoSchemeTest(Device):
     uchar_image = attribute(access=AttrWriteType.READ_WRITE,
                             **attrs['uchar_image'])
 
+
+    # EVENTS
+    float_scalar_poll = attribute(access=AttrWriteType.READ,
+                                  **attrs['float_scalar_poll'])
+    float_scalar_evt = attribute(access=AttrWriteType.READ_WRITE,
+                                 **attrs['float_scalar'])
+
+
+    _float_scalar_evt = numpy.random.random() * 100
+
     # READ ONLY METHODS
     # SCALARS
+    def read_float_scalar_poll(self):
+        return numpy.random.random() * 100
+
+    def read_float_scalar_evt(self):
+        return self._float_scalar_evt
+
+    def write_float_scalar_evt(self, value):
+        self._float_scalar_evt = value
+        self.push_change_event('float_scalar_evt', self._float_scalar_evt)
+
+    @command(dtype_in=numpy.float32)
+    def PushEvent(self, data):
+        # push_change_event (self, attr_name, data, time_stamp, quality,
+        #                    dim_x = 1, dim_y = 0)
+        self.push_change_event('float_scalar_evt', data, time.time(),
+                               PyTango.AttrQuality.ATTR_VALID, 1, 0)
+
+
     def read_boolean_scalar_ro(self):
         return self.default_rvalue['bool']
 
@@ -447,12 +481,54 @@ class TangoSchemeTest(Device):
     def write_uchar_image(self, v):
         self._uchar_image = v
 
+    def _update_loop(self):
+        while True:
+            sleep(0.1)
+            try:
+                if self.use_fixed_time:
+                    sleeptime = self.sleeptime
+                else:
+                    sleeptime = numpy.random.random()*10
+
+                self._float_scalar_evt = numpy.random.random() * 100
+
+                self.push_change_event('float_scalar_evt',
+                                       self._float_scalar_evt, time(),
+                                       AttrQuality.ATTR_VALID)
+                sleep(sleeptime)
+            except Exception as e:
+                print 'Exception in update loop', e
+                sleep(1)
+
     def init_device(self):
         # To setUp the state
         Device.init_device(self)
         self.set_state(DevState.ON)
         self._quality = AttrQuality.ATTR_VALID
+        self.set_change_event('float_scalar_evt', True, False)
+        # event thread
+        self.use_fixed_time = False
+        self.sleeptime = None
+        self.t = Thread(target=self._update_loop)
+        self.t.setDaemon(True)
+        self.t.start()
 
+    @command(dtype_in=int)
+    def ChangePollingPeriod(self, period):
+        """ Change the polling period of float_scalar_poll attribute"""
+        self.poll_attribute('float_scalar_poll', period)
+
+
+    @command(dtype_in=float)
+    def SetEventPeriod(self, period):
+        """ Set a fixed event period for float_scalar_evt attribute.
+        If period is 0,  the event period will be random.
+        """
+        if period == 0:
+            self.use_fixed_time = False
+        else:
+            self.use_fixed_time = True
+            self.sleeptime = period
 
     @command(dtype_in=str)
     def ChangeState(self, state):
