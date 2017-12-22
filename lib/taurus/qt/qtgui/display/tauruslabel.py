@@ -367,7 +367,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         - 'none' : no background
         - 'state' a color depending on the device state
         - 'quality' a color depending on the attribute quality
-        - 'value' a color depending on the rvalue of the attribute
+        - 'rvalue' a color depending on the rvalue of the attribute
         - <arbitrary member name> a color based on the value of an arbitrary
           member of the model object (warning: experimental feature!)
 
@@ -378,12 +378,23 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self.controllerUpdate()
 
     def resetBgRole(self):
+        """Reset the background role to its default value"""
         self.setBgRole(self.DefaultBgRole)
 
     def getFgRole(self):
+        """get the foreground role for this label (see :meth:`setFgRole`)"""
         return self._fgRole
 
     def setFgRole(self, fgRole):
+        """Set what is shown as the foreground (the text) of the label
+        Valid Roles are:
+
+        - 'rvalue' the read value of the attribute
+        - 'wvalue' the write value of the attribute
+        - 'none' : no text
+        - 'quality' - the quality of the attribute is displayed
+        - 'state' - the device state
+        """
         # warn about deprecated roles
         role = self._deprecatedRoles.get(fgRole, fgRole)
         if fgRole != role:
@@ -393,6 +404,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self.controllerUpdate()
 
     def resetFgRole(self):
+        """Reset the foreground role to its default value"""
         self.setFgRole(self.DefaultFgRole)
 
     def getPrefixText(self):
@@ -423,6 +435,11 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self._permanentText = text
 
     def setAutoTrim(self, trim):
+        """Enable/disable auto-trimming of the text. If trim is True, the text
+        in the label will be trimmed when it doesn't fit in the available space
+
+        :param trim: (bool)
+        """
         self._autoTrim = trim
         self.controllerUpdate()
 
@@ -442,9 +459,15 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self.dynamicTextInteractionFlags = True
 
     def getAutoTrim(self):
+        """
+        Whether auto-trimming of the text is enabled.
+
+        :return: (bool)
+        """
         return self._autoTrim
 
     def resetAutoTrim(self):
+        """Reset auto-trimming to its default value"""
         self.setAutoTrim(self.DefaultAutoTrim)
 
     def displayValue(self, v):
@@ -526,8 +549,8 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #: Valid values are:
     #:
     #:     #. ''/'None' - no value is displayed
-    #:     #. 'value' - the value is displayed
-    #:     #. 'w_value' - the write value is displayed
+    #:     #. 'rvalue' - the value is displayed
+    #:     #. 'wvalue' - the write value is displayed
     #:     #. 'quality' - the quality is displayed
     #:     #. 'state' - the device state is displayed
     #:
@@ -550,7 +573,8 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     bgRole = Qt.pyqtProperty("QString", getBgRole, setBgRole,
                              resetBgRole, doc="background role")
 
-    #: This property holds the
+    #: Specifies wether the text will be trimmed when it doesn't fit in the
+    #: available space
     #:
     #: **Access functions:**
     #:
@@ -560,7 +584,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     autoTrim = Qt.pyqtProperty("bool", getAutoTrim, setAutoTrim,
                                resetAutoTrim, doc="auto trim text")
 
-    #: This property holds the
+    #: Specifies whether the user can drag data from this widget
     #:
     #: **Access functions:**
     #:
