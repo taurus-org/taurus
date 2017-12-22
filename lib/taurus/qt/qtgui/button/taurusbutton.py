@@ -30,8 +30,6 @@ __all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
 
 __docformat__ = 'restructuredtext'
 
-import PyTango
-
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
 from taurus.core.taurusdevice import TaurusDevice
@@ -265,7 +263,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
 
     .. seealso:: :class:`TaurusCommandsForm` provides a good example of use of
                  TaurusCommandButton (including managing the return value) '''
-
+    # TODO: tango-centric
     commandExecuted = Qt.pyqtSignal(object)
 
     def __init__(self, parent=None, designMode=False, command=None,
@@ -372,6 +370,8 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
 
         :return: (sequence or scalar) a sequence of parameters (or a scalar if only one parameter)
         '''
+        import PyTango
+
         if parameters is None:
             parameters = self._parameters
         if command is None:
@@ -545,10 +545,10 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
 
 class TaurusLockButton(Qt.QPushButton, TaurusBaseWidget):
 
-    _LOCK_MAP = {LockStatus.Unlocked: "extra_icon:lock_unlocked.svg",
-                 LockStatus.Locked: "extra_icon:lock_locked_unpreviledged.svg",
-                 LockStatus.LockedMaster: "extra_icon:lock_locked.svg",
-                 LockStatus.Unknown: "extra_icon:lock_unknown.svg"}
+    _LOCK_MAP = {LockStatus.Unlocked: "extra_icons:lock_unlocked.svg",
+                 LockStatus.Locked: "extra_icons:lock_locked_unpreviledged.svg",
+                 LockStatus.LockedMaster: "extra_icons:lock_locked.svg",
+                 LockStatus.Unknown: "extra_icons:lock_unknown.svg"}
 
     def __init__(self, parent=None, designMode=False):
         self._lock_info = TaurusLockInfo()

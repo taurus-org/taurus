@@ -8,16 +8,44 @@ the master branch after [3.7.1] and maintained in parallel to the
 develop branch) won't be reflected in this file.
 
 ## Unreleased
+### Deprecated
+- taurus.core.tango.search
+- TaurusMainWindow's "Change Tango Host" action (#379)
+
+### Added
+- User Interface to set custom formatters (#564)
+- Re-added `taurus.external.ordereddict` (#599)
+- Option to ignore outdated Tango events (#559)
+- Travis-built docs (not yet replacing the RTD ones) (#572)
+- TaurusLed now supports non-boolean attributes (#617)
+- Support for arbitrary bgRole in labels (#629)
+- `--import-ascii` option in `taurusplot` launcher (#632)
+- `ChangeState` command in TangoSchemeTest DS (#628)
+- Model info in widget tooltips (#640)
 
 ### Changed
+- taurus.qt widgets can now be used without installing PyTango (#590)
 - Tango model name validators now always return FQDN instead of PQDN
   for the tango host (#488)
-- Improved generated PDF doc (#525, #546, #548) (thanks @PhilLAL !)
+- Improved docs (#525, #540, #546, #548) (thanks @PhilLAL !)
+- Make spyder dependency optional (#556)
 
 ### Fixed
-- Doc issues
-- Deprecation warnings in taurus.core.util.event (#550)
+- Wrong "missing units" warnings for non-numerical attributes (#580)
+- Taurus3 backwards compatibility issues (#496, #550)
+- False positives in taurus.check_dependencies (#612)
+- Main Window Splash screen not showing (#595)
+- TaurusTrend2DDialog not usable from designer (#597)
+- TaurusLockButton icons (#598)
+- Exception in TaurusCommandForm (#608)
+- Taurus4 regressions in:
+  - QComboBox (#623)
+  - TaurusTrend (#618)
+  - TaurusGrid (#609)
+- [Many other issues](https://github.com/taurus-org/taurus/issues?utf8=%E2%9C%93&q=milestone%3AJan18%20label%3Abug%20)
 
+### Removed
+- taurus.qt.qtgui.panel.taurusfilterpanel
 
 ## [4.1.1] - 2017-07-21
 
@@ -80,7 +108,7 @@ For a full log of commits since Jul16, run (in your git repo):
 `git log 4.0.1..4.0.3` 
 
 ### Added
-- Generic Attribute, Device and  Authority getters in TaurusFactory`
+- Generic Attribute, Device and  Authority getters in TaurusFactory
 - spyder >=3 support (#343)
 - bumpversion support (for maintainers) (#347)
 - Contribution policy explicited in CONTRIBUTING.md
@@ -106,7 +134,7 @@ For a full log of commits since Jul16, run (in your git repo):
     - Macrolistener (affects sardana) (#373)
     - Synoptics (#363)
     - TaurusValueLineEdit (#265)
-    - taurusgui.macrolistener` (#260)
+    - taurusgui.macrolistener (#260)
     - TaurusEditor (#343)
 - Bug causing high CPU usage in TaurusForms (#247)
 - Deprecation warnings in `TaurusWheelEdit` (#337)

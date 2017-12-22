@@ -44,8 +44,6 @@ import datetime
 from taurus.core.util.containers import CaselessList
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from sardana.taurus.core.tango.sardana import PlotType
-from sardana.taurus.core.tango.sardana.pool import getChannelConfigs
 
 
 class ChannelFilter(object):
@@ -126,6 +124,9 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
                         QDoor.getExperimentDescription`
                         for more details
         '''
+
+        from sardana.taurus.core.tango.sardana import PlotType
+        from sardana.taurus.core.tango.sardana.pool import getChannelConfigs
         activeMntGrp = expconf['ActiveMntGrp']
         if activeMntGrp is None:
             return

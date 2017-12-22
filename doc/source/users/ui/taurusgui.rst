@@ -155,6 +155,10 @@ bar (or selecting `Panels->New Panel...`). This will open a dialog offering
 a catalog of different panel types and options for your new panel. Once
 accepted, the new panel will appear floating, ready to be docked to the main window.
 
+.. tip:: if you are interested in creating a panel different from those offered in
+         the catalog, you can do so by using the "other..." button and manually
+         selecting the module and widget class of your choice.
+
 .. figure:: /_static/taurusgui-newpanel01.png
   :align: center
   

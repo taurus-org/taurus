@@ -32,10 +32,9 @@ __docformat__ = 'restructuredtext'
 from datetime import datetime
 
 from taurus.external.qt import Qt
-import PyTango
 
 import taurus.core
-from taurus.core import TaurusDevState
+from taurus.core import TaurusDevState, DisplayLevel
 
 from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE,
                                         TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_MODEL_MIME_TYPE)
@@ -89,6 +88,8 @@ class TaurusForm(TaurusWidget):
                  buttons=None,
                  withButtons=True,
                  designMode=False):
+
+        self._children = []
         TaurusWidget.__init__(self, parent, designMode)
 
         if buttons is None:
@@ -96,7 +97,7 @@ class TaurusForm(TaurusWidget):
                 Qt.QDialogButtonBox.Reset
         self._customWidgetMap = {}
         self._model = []
-        self._children = []
+        # self._children = []
         self.setFormWidget(formWidget)
 
         self.setLayout(Qt.QVBoxLayout())
@@ -137,6 +138,10 @@ class TaurusForm(TaurusWidget):
         self.addAction(self.compactModeAction)
         self.compactModeAction.triggered[bool].connect(self.setCompact)
 
+        self.setFormatterAction = Qt.QAction('Set formatter (all items)', self)
+        self.addAction(self.setFormatterAction)
+        self.setFormatterAction.triggered[()].connect(self.onSetFormatter)
+
         self.resetModifiableByUser()
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE,
                                     TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE, 'text/plain'])
@@ -170,6 +175,7 @@ class TaurusForm(TaurusWidget):
                       type strings (i.e. see :class:`PyTango.DeviceInfo`) and
                       whose values are tuples of classname,args,kwargs
         '''
+        # TODO: tango-centric
         self._customWidgetMap = cwmap
 
     def getCustomWidgetMap(self):
@@ -179,6 +185,7 @@ class TaurusForm(TaurusWidget):
                  type strings (i.e. see :class:`PyTango.DeviceInfo`) and whose
                  values are tuples of classname,args,kwargs
         '''
+        # TODO: tango-centric
         return self._customWidgetMap
 
     @Qt.pyqtSlot('QString', name='modelChanged')
@@ -361,6 +368,17 @@ class TaurusForm(TaurusWidget):
 
     def resetWithButtons(self):
         self.setWithButtons(True)
+
+    def onSetFormatter(self):
+        """Reimplemented from TaurusBaseWidget"""
+        # Form delegates se to the taurusvalues
+        format = TaurusWidget.onSetFormatter(self)
+        if format is not None:
+            for item in self.getItems():
+                rw = item.readWidget()
+                if hasattr(rw, 'setFormat'):
+                    rw.setFormat(format)
+        return format
 
     def setCompact(self, compact):
         self._compact = compact
@@ -546,6 +564,7 @@ class TaurusForm(TaurusWidget):
 class TaurusCommandsForm(TaurusWidget):
     '''A form that shows commands available for a Device Server'''
 
+    # TODO: tango-centric
     def __init__(self, parent=None, designMode=False):
         TaurusWidget.__init__(self, parent, designMode)
 
@@ -574,7 +593,7 @@ class TaurusCommandsForm(TaurusWidget):
         self._defaultParameters = []
         self._sortKey = lambda x: x.cmd_name
 
-        self._operatorViewFilter = lambda x: x.disp_level == PyTango.DispLevel.OPERATOR
+        self._operatorViewFilter = lambda x: x.disp_level == DisplayLevel.OPERATOR
 
         # self.setLayout(Qt.QGridLayout())
         self.modelChanged.connect(self._updateCommandWidgets)
@@ -639,8 +658,11 @@ class TaurusCommandsForm(TaurusWidget):
             button.setUseParentModel(True)
             self._cmdWidgets.append(button)
             button.commandExecuted.connect(self._onCommandExecuted)
+            
+            import taurus.core.tango.util.tango_taurus as tango_taurus
+            in_type = tango_taurus.FROM_TANGO_TO_TAURUS_TYPE[c.in_type]
 
-            if c.in_type != PyTango.CmdArgType.DevVoid:
+            if in_type is not None:
                 self.debug('Adding arguments for command %s' % c.cmd_name)
                 pwidget = ParameterCB()
                 if c.cmd_name.lower() in self._defaultParameters:
@@ -654,7 +676,7 @@ class TaurusCommandsForm(TaurusWidget):
                         button.setParameters(self._defaultParameters[
                                              c.cmd_name.lower()][0])
                 pwidget.editTextChanged.connect(button.setParameters)
-                pwidget.currentIndexChanged.connect(button.setParameters)
+                pwidget.currentIndexChanged['QString'].connect(button.setParameters)
                 pwidget.activated.connect(button.setFocus)
                 button.commandExecuted.connect(pwidget.rememberCurrentText)
                 layout.addWidget(pwidget, row, 1)
@@ -771,7 +793,7 @@ class TaurusAttrForm(TaurusWidget):
         TaurusWidget.__init__(self, parent, designMode)
 
         self._viewFilters = []
-        self._operatorViewFilter = lambda x: x.disp_level == PyTango.DispLevel.OPERATOR
+        self._operatorViewFilter = lambda x: x.disp_level == DisplayLevel.OPERATOR
 
         self.setLayout(Qt.QVBoxLayout())
 

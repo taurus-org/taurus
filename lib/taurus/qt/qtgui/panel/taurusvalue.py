@@ -27,9 +27,10 @@
 taurusvalue.py:
 """
 
-__all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox", "DefaultLabelWidget",
+__all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox",
            "DefaultUnitsWidget", "TaurusPlotButton", "TaurusArrayEditorButton",
-           "TaurusValuesTableButton", "TaurusValuesTableButton_W", "TaurusDevButton"]
+           "TaurusValuesTableButton", "TaurusValuesTableButton_W",
+           "DefaultLabelWidget", "TaurusDevButton", "TaurusImageButton"]
 
 __docformat__ = 'restructuredtext'
 
@@ -106,11 +107,11 @@ class DefaultLabelWidget(TaurusLabel):
             TaurusLabel.setModel(self, None)
             self.setText(devName)
 
-    _BCK_COMPAT_TAGS = {'<attr_name>': '{attr.name}',
-                        '<attr_fullname>': '{attr.fullname}',
-                        '<dev_alias>': '{dev.name}',
-                        '<dev_name>': '{dev_name}',
-                        '<dev_fullname>': '{dev.fullname}',
+    _BCK_COMPAT_TAGS = {'<attr_name>': 'name',
+                        '<attr_fullname>': 'fullname',
+                        '<dev_alias>': 'parentObj.name',
+                        '<dev_name>': 'parentObj.name',
+                        '<dev_fullname>': 'parentObj.fullname',
                         }
 
     def getDisplayValue(self, cache=True, fragmentName=None):
@@ -121,9 +122,7 @@ class DefaultLabelWidget(TaurusLabel):
             new = self._BCK_COMPAT_TAGS.get(old, '{attr.%s}' % old)
             self.deprecated(dep=old, alt=new)
             fragmentName = fragmentName.replace(old, new)
-        attr = self.getModelObj()
-        dev = attr.getParent()
-        return fragmentName.format(dev=dev, attr=attr)
+        return TaurusLabel.getDisplayValue(self, cache, fragmentName)
 
     def sizeHint(self):
         return Qt.QSize(Qt.QLabel.sizeHint(self).width(), 18)
@@ -144,6 +143,8 @@ class DefaultLabelWidget(TaurusLabel):
                            self.taurusValueBuddy().onChangeLabelConfig)
             menu.addAction("Change Read Widget",
                            self.taurusValueBuddy().onChangeReadWidget)
+            menu.addAction("Set Formatter",
+                           self.taurusValueBuddy().onSetFormatter)
             cw_action = menu.addAction(
                 "Change Write Widget", self.taurusValueBuddy().onChangeWriteWidget)
             # disable the action if the taurusValue is readonly
@@ -254,9 +255,9 @@ class TaurusArrayEditorButton(_AbstractTaurusValueButton):
 
 
 class TaurusImageButton(_AbstractTaurusValueButton):
-    '''A button that launches a TaurusPlot'''
+    '''A button that launches an ImageDialog'''
     _widgetClassName = 'TaurusImageDialog'
-    _icon = ':/mimetypes/image-x-generic.svg'
+    _icon = 'mimetypes:image-x-generic.svg'
 
 
 class TaurusValuesTableButton(_AbstractTaurusValueButton):
@@ -275,7 +276,7 @@ class TaurusValuesTableButton_W(TaurusValuesTableButton):
 class TaurusDevButton(_AbstractTaurusValueButton):
     '''A button that launches a TaurusAttrForm'''
     _widgetClassName = 'TaurusDevicePanel'
-    _icon = ':/places/folder-remote.svg'
+    _icon = 'places:folder-remote.svg'
     _text = 'Show Device'
 
 
@@ -346,7 +347,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         self._allowWrite = True
         self._minimumHeight = None
-        self._labelConfig = '{attr.label}'
+        self._labelConfig = 'label'
+        self._labelText = None
         self.setModifiableByUser(False)
 
         if parent is not None:
@@ -430,6 +432,13 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         # do the base class stuff too
         Qt.QWidget.setParent(self, parent)
+
+    def onSetFormatter(self):
+        """
+        Reimplemented to call onSetFormatter of the read widget (if provided)
+        """
+        if hasattr(self._readWidget, 'onSetFormatter'):
+            return self._readWidget.onSetFormatter()
 
     def getAllowWrite(self):
         return self._allowWrite
@@ -798,6 +807,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             # set the model for the subwidget
             if hasattr(self._labelWidget, 'setModel'):
                 self._labelWidget.setModel(self.getFullModelName())
+
+            if self._labelText is not None:
+                self._labelWidget.setPermanentText(self._labelText)
 
     def updateReadWidget(self):
         # get the class for the widget and replace it if necessary
@@ -1214,11 +1226,26 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
     @Qt.pyqtSlot('QString')
     def setLabelConfig(self, config):
+        """Sets fragment configuration to the label widget.
+
+        :param config: fragment
+        :type config: str
+        """
+        # backwards compatibility: this method used to work for setting
+        # an arbitrary text to the label widget
+        try:
+            self.getModelFragmentObj(config)
+        except Exception:
+            try:
+                self._labelWidget.setText(config)
+            except:
+                self.debug("Setting permanent text to the label widget failed")
+            return
         self._labelConfig = config
         self.updateLabelWidget()
 
     def resetLabelConfig(self):
-        self._labelConfig = '{attr.label}'
+        self._labelConfig = 'label'
         self.updateLabelWidget()
 
     def getSwitcherClass(self):
