@@ -1025,13 +1025,16 @@ class TangoAttribute(TaurusAttribute):
         return self._pytango_attrinfoex.data_type
 
     def _unit_from_tango(self, unit):
-        if unit == PyTango.constants.UnitNotSpec:
+        # silently treat unit-not-defined as unitless
+        # TODO: consider logging that unit-not-defined is treated as unitless
+        # TODO: See https://github.com/taurus-org/taurus/issues/584
+        if unit == PyTango.constants.UnitNotSpec or unit == "No unit":
             unit = None
         try:
             return UR.parse_units(unit)
         except Exception as e:
             # TODO: Maybe we could dynamically register the unit in the UR
-            msg = 'Unknown unit "%s (will be treated as unitless)"'
+            msg = 'Unknown unit "%s" (will be treated as unitless)'
             if self.__already_warned_unit == unit:
                 self.debug(msg, unit)
             else:

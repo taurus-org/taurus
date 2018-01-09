@@ -117,14 +117,14 @@ def unit_from_tango(unit):
     from taurus import deprecated
     deprecated(dep='unit_from_tango', rel='4.0.4', alt="pint's parse_units")
 
-    if unit == PyTango.constants.UnitNotSpec:
+    if unit == PyTango.constants.UnitNotSpec or unit == "No unit":
         unit = None
     try:
         return UR.parse_units(unit)
     except (UndefinedUnitError, UnicodeDecodeError):
         # TODO: Maybe we could dynamically register the unit in the UR
         from taurus import warning
-        warning('Unknown unit "%s (will be treated as unitless)"', unit)
+        warning('Unknown unit "%s" (will be treated as unitless)', unit)
         return UR.parse_units(None)
 
 
