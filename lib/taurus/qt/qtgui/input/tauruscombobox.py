@@ -388,15 +388,22 @@ def _taurusValueComboboxTest():
         ('name3', 3)
     ]
     a = TaurusApplication()
-    w = TaurusValueComboBox()
-    w.setModel(model)
-    w.addValueNames(names)
-    #w.autoApply = True
+    w = Qt.QWidget()
+    w.setLayout(Qt.QVBoxLayout())
+
+    cs = []
+    for c in range(2):
+        c = TaurusValueComboBox()
+        c.setModel(model)
+        c.addValueNames(names)
+        w.layout().addWidget(c)
+        cs.append(c)
+        #c.autoApply = True
     w.show()
     return a.exec_()
 
 if __name__ == '__main__':
     import sys
-    # main = _taurusValueComboboxTest #uncomment to test TaurusValueCombobox
-    main = _taurusAttrListTest  # uncomment to testtaurusAttrList
+    main = _taurusValueComboboxTest #uncomment to test TaurusValueCombobox
+    # main = _taurusAttrListTest  # uncomment to testtaurusAttrList
     sys.exit(main())
