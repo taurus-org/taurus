@@ -124,7 +124,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
     def updateStyle(self):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         if self.hasPendingOperations():
-            self.setStyleSheet('TaurusValueComboBox {color: blue; }')
+            self.setStyleSheet('TaurusValueComboBox {color: blue; font-weight: bold;}')
         else:
             self.setStyleSheet('TaurusValueComboBox {}')
         super(TaurusValueComboBox, self).updateStyle()
