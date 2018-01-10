@@ -286,7 +286,7 @@ class TangoSchemeTest(Device):
         # push_change_event (self, attr_name, data, time_stamp, quality,
         #                    dim_x = 1, dim_y = 0)
         self.push_change_event('float_scalar_evt', data, time.time(),
-                               PyTango.AttrQuality.ATTR_VALID, 1, 0)
+                               AttrQuality.ATTR_VALID, 1, 0)
 
     def read_boolean_scalar_ro(self):
         return self.default_rvalue['bool']
