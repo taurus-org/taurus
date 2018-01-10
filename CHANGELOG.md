@@ -38,6 +38,7 @@ develop branch) won't be reflected in this file.
 - TaurusTrend2DDialog not usable from designer (#597)
 - TaurusLockButton icons (#598)
 - Exception in TaurusCommandForm (#608)
+- Launchers not showing output on MS Windows (#644)
 - Taurus4 regressions in:
   - QComboBox (#623)
   - TaurusTrend (#618)
