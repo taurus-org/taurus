@@ -20,7 +20,7 @@ develop branch) won't be reflected in this file.
 - TaurusLed now supports non-boolean attributes (#617)
 - Support for arbitrary bgRole in labels (#629)
 - `--import-ascii` option in `taurusplot` launcher (#632)
-- `ChangeState` command in TangoSchemeTest DS (#628)
+- State and event support in TangoSchemeTest DS (#628, #655)
 - Model info in widget tooltips (#640)
 
 ### Changed
