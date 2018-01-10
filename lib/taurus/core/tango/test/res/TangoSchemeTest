@@ -81,7 +81,6 @@ class TangoSchemeTest(Device):
                       'string': 'hello world',
                       'uchar': 1,
                       }
-
     default_unit = {'int': "mm",
                     'float': "mm"}
     # x10 default_rvalue
@@ -102,7 +101,6 @@ class TangoSchemeTest(Device):
                         'float': [-default_rvalue["float"] * 3,
                                   default_rvalue["float"] * 3]
                         }
-
     attrs = {'bool_scalar': dict(dtype=bool),
              'short_scalar': dict(unit=default_unit["int"],
                                   dtype=numpy.int16),
@@ -112,7 +110,6 @@ class TangoSchemeTest(Device):
              'float_scalar_poll': dict(unit=default_unit["float"],
                                   dtype=numpy.float32,
                                   polling_period=500),
-
              'double_scalar': dict(unit=default_unit["float"],
                                    dtype=numpy.float64),
              'string_scalar': dict(dtype=str),
@@ -150,7 +147,6 @@ class TangoSchemeTest(Device):
                                  max_dim_x=MAXDIMX, max_dim_y=MAXDIMY),
              'MIXEDcase': dict(dtype=str)
              }
-
     extra_cfg = {'short_scalar': dict(min_value=default_ranges['int'][0],
                                       max_value=default_ranges['int'][1],
                                       min_alarm=default_alarms['int'][0],
@@ -188,7 +184,8 @@ class TangoSchemeTest(Device):
                                  **attrs['string_scalar'])
     uchar_scalar_ro = attribute(access=AttrWriteType.READ,
                                 **attrs['uchar_scalar'])
-    # SPECTRUMS
+
+    # SPECTRA
     boolean_spectrum_ro = attribute(access=AttrWriteType.READ,
                                     **attrs['bool_spectrum'])
     short_spectrum_ro = attribute(access=AttrWriteType.READ,
@@ -197,6 +194,7 @@ class TangoSchemeTest(Device):
                                   **attrs['float_spectrum'])
     string_spectrum_ro = attribute(access=AttrWriteType.READ,
                                    **attrs['string_spectrum'])
+
     # IMAGES
     uchar_image_ro = attribute(access=AttrWriteType.READ,
                                  **attrs['uchar_image'])
@@ -233,7 +231,8 @@ class TangoSchemeTest(Device):
                               **attrs['string_scalar'])
     uchar_scalar = attribute(access=AttrWriteType.READ_WRITE,
                              **attrs['uchar_scalar'])
-    # SPECTRUM
+
+    # SPECTRA
     boolean_spectrum = attribute(access=AttrWriteType.READ_WRITE,
                                  **attrs['bool_spectrum'])
     short_spectrum = attribute(access=AttrWriteType.READ_WRITE,
@@ -246,6 +245,7 @@ class TangoSchemeTest(Device):
                                 **attrs['string_spectrum'])
     uchar_spectrum = attribute(access=AttrWriteType.READ_WRITE,
                                **attrs['uchar_spectrum'])
+
     # IMAGES
     boolean_image = attribute(access=AttrWriteType.READ_WRITE,
                               **attrs['bool_image'])
@@ -260,13 +260,11 @@ class TangoSchemeTest(Device):
     uchar_image = attribute(access=AttrWriteType.READ_WRITE,
                             **attrs['uchar_image'])
 
-
     # EVENTS
     float_scalar_poll = attribute(access=AttrWriteType.READ,
                                   **attrs['float_scalar_poll'])
     float_scalar_evt = attribute(access=AttrWriteType.READ_WRITE,
                                  **attrs['float_scalar'])
-
 
     _float_scalar_evt = default_rvalue['float']
     _float_scalar_poll = default_rvalue['float']
@@ -290,7 +288,6 @@ class TangoSchemeTest(Device):
         self.push_change_event('float_scalar_evt', data, time.time(),
                                PyTango.AttrQuality.ATTR_VALID, 1, 0)
 
-
     def read_boolean_scalar_ro(self):
         return self.default_rvalue['bool']
 
@@ -312,7 +309,7 @@ class TangoSchemeTest(Device):
     def read_uchar_scalar_ro(self):
         return self.default_rvalue['uchar']
 
-    # SPECTRUMS
+    # SPECTRA
     def read_boolean_spectrum_ro(self):
         return [self.default_rvalue['bool']] * self.DIMX
 
@@ -394,7 +391,7 @@ class TangoSchemeTest(Device):
     def write_uchar_scalar(self, v):
         self._uchar_scalar = v
 
-    # SPECTRUMS
+    # SPECTRA
     def read_boolean_spectrum(self):
         return getattr(self, '_boolean_spectrum',
                        [self.default_rvalue['bool']] * self.DIMX)
@@ -518,7 +515,6 @@ class TangoSchemeTest(Device):
     def ChangePollingPeriod(self, period):
         """ Change the polling period of float_scalar_poll attribute"""
         self.poll_attribute('float_scalar_poll', period)
-
 
     @command(dtype_in=float)
     def SetEventPeriod(self, period):
