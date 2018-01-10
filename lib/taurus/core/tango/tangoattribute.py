@@ -1027,7 +1027,10 @@ class TangoAttribute(TaurusAttribute):
     def _unit_from_tango(self, unit):
         # silently treat unit-not-defined as unitless
         # TODO: consider logging that unit-not-defined is treated as unitless
-        # TODO: See https://github.com/taurus-org/taurus/issues/584
+        # TODO: See https://github.com/taurus-org/taurus/issues/584 and
+        # https://github.com/taurus-org/taurus/pull/662
+        # The extra comparison to "No unit" is necessary where
+        # server/database runs Tango 7 or 8 and client runs higher versions.
         if unit == PyTango.constants.UnitNotSpec or unit == "No unit":
             unit = None
         try:
