@@ -24,6 +24,7 @@ develop branch) won't be reflected in this file.
 - Model info in widget tooltips (#640)
 
 ### Changed
+- Treat unit="No unit" as unitless in Tango attributes (#662)
 - taurus.qt widgets can now be used without installing PyTango (#590)
 - Tango model name validators now always return FQDN instead of PQDN
   for the tango host (#488)
