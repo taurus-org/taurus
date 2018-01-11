@@ -22,13 +22,14 @@ develop branch) won't be reflected in this file.
 - `--import-ascii` option in `taurusplot` launcher (#632)
 - State and event support in TangoSchemeTest DS (#628, #655)
 - Model info in widget tooltips (#640)
+- (experimental) Delayed event subscription API (#605, #593)
 
 ### Changed
 - Treat unit="No unit" as unitless in Tango attributes (#662)
 - taurus.qt widgets can now be used without installing PyTango (#590)
 - Tango model name validators now always return FQDN instead of PQDN
-  for the tango host (#488)
-- Improved docs (#525, #540, #546, #548) (thanks @PhilLAL !)
+  for the tango host (#488, #589)
+- Improved docs (#525, #540, #546, #548, #636) (thanks @PhilLAL !)
 - Make spyder dependency optional (#556)
 
 ### Fixed
@@ -37,13 +38,14 @@ develop branch) won't be reflected in this file.
 - False positives in taurus.check_dependencies (#612)
 - Main Window Splash screen not showing (#595)
 - TaurusTrend2DDialog not usable from designer (#597)
-- TaurusLockButton icons (#598)
+- Missing icons in buttons (#583, #598)
 - Exception in TaurusCommandForm (#608)
 - Launchers not showing output on MS Windows (#644)
-- Taurus4 regressions in:
-  - QComboBox (#623)
+- Various issues with input widgets (#623, #661, #650)
+- Regressions in:
   - TaurusTrend (#618)
   - TaurusGrid (#609)
+  - TaurusGUI edit with `taurusgui --new-gui` (#532)
 - [Many other issues](https://github.com/taurus-org/taurus/issues?utf8=%E2%9C%93&q=milestone%3AJan18%20label%3Abug%20)
 
 ### Removed
