@@ -344,6 +344,11 @@ class DelayedSubscriber(Logger):
     DelayedSubscriber(schema) will use a TaurusEmitterThread to perform
     a thread safe delayed subscribing on all Attributes of a given 
     Taurus Schema that has not been previously subscribed.
+
+    .. warning:: This class belongs to a "Delayed Event Subscription" API added
+                 in v.4.2.1-alpha as an *experimental* feature. This API may
+                 not be stable and/or it may be removed in a future release
+                 (even on a minor version change)
     """
 
     def __init__(self, schema, parent=None, sleep=10000, pause=5, period=0):
