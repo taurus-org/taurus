@@ -77,7 +77,7 @@ FILTER_OLD_TANGO_EVENTS = True
 
 # Custom formatter. Taurus widgets use a default formatter based on the
 # attribute type, but sometimes a custom formatter is needed.
-# IMPORTANT: seting this option in this file will affect to ALL widgets 
+# IMPORTANT: setting this option in this file will affect ALL widgets
 # of ALL applications (which is probably **not** what you want, since it 
 # may have unexpected effects in some applications). 
 # Consider using the API for modifying this on a per-widget or per-class
