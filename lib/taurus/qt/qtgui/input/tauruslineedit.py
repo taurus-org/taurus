@@ -206,7 +206,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         if model is None:
             v_str = str(v)
         else:
-            v_str = str(self.displayValue(v))
+            v_str = str(self.getDisplayValue(v))
         v_str = v_str.strip()
         self.setText(v_str)
 
