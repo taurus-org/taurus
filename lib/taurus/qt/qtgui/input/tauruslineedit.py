@@ -201,6 +201,29 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         value = self.getValue()
         self.setValue(value + Quantity(v, value.units))
 
+    def getDisplayValue(self, cache=True, fragmentName=None):
+        """Returns a string representation of the model value associated with
+        this component. As this is a writable widget, if there is no fragment
+        specified, the default behaviour is to display the wvalue.
+
+        :param cache: (bool) (ignored, just for bck-compat).
+        :param fragmentName: (str or None) the returned value will correspond
+                        to the given fragmentName. If None passed,
+                         self.modelFragmentName will be used, and if None is
+                         set, the defaultFragmentName of the model will be used
+                         instead.
+
+        :return: (str) a string representation of the model value.
+        """
+        if fragmentName is None and self.modelFragmentName is None:
+            return super(TaurusValueLineEdit,
+                         self).getDisplayValue(cache=cache,
+                                               fragmentName='wvalue')
+        else:
+            return super(TaurusValueLineEdit,
+                         self).getDisplayValue(cache=cache,
+                                               fragmentName=fragmentName)
+
     def setValue(self, v):
         model = self.getModelObj()
         if model is None:

@@ -2061,6 +2061,30 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         '''
         return []
 
+    def getDisplayValue(self, cache=True, fragmentName=None):
+        """Returns a string representation of the model value associated with
+        this component.
+
+        :param cache: (bool) (ignored, just for bck-compat).
+        :param fragmentName: (str or None) the returned value will correspond
+                        to the given fragmentName. If None passed,
+                         self.modelFragmentName will be used, and if None is
+                         set, the defaultFragmentName of the model will be used
+                         instead.
+
+        :return: (str) a string representation of the model value.
+        """
+        # @fixme: Even the widgets inheriting from this class interacts with
+        #         writable models (then the fragmentName by default that one
+        #         expects is 'wvalue' and not 'rvalue') it has been considered
+        #         that perhaps this could be considered an API modification
+        #         instead of a bugfix.
+        #         The bugfix impact has been bounded only within the
+        #         TaurusValueLineEdit.
+        return super(TaurusBaseWritableWidget,
+                     self).getDisplayValue(cache=cache,
+                                           fragmentName=fragmentName)
+
     def getValue(self):
         '''
         This method must be implemented in derived classes to return
