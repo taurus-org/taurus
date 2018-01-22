@@ -2081,9 +2081,8 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         #         instead of a bugfix.
         #         The bugfix impact has been bounded only within the
         #         TaurusValueLineEdit.
-        return super(TaurusBaseWritableWidget,
-                     self).getDisplayValue(cache=cache,
-                                           fragmentName=fragmentName)
+        return TaurusBaseWidget.getDisplayValue(self, cache=cache,
+                                                fragmentName=fragmentName)
 
     def getValue(self):
         '''

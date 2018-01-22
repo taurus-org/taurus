@@ -216,13 +216,11 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         :return: (str) a string representation of the model value.
         """
         if fragmentName is None and self.modelFragmentName is None:
-            return super(TaurusValueLineEdit,
-                         self).getDisplayValue(cache=cache,
-                                               fragmentName='wvalue')
+            return TaurusBaseWritableWidget.\
+                getDisplayValue(self, cache=cache, fragmentName='wvalue')
         else:
-            return super(TaurusValueLineEdit,
-                         self).getDisplayValue(cache=cache,
-                                               fragmentName=fragmentName)
+            return TaurusBaseWritableWidget.\
+                getDisplayValue(self, cache=cache, fragmentName=fragmentName)
 
     def setValue(self, v):
         model = self.getModelObj()
