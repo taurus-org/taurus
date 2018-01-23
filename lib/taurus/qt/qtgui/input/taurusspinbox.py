@@ -23,17 +23,19 @@
 ##
 #############################################################################
 
-"""This module provides a set of basic taurus widgets based on QAbstractSpinBox"""
-
-__all__ = ["TaurusValueSpinBox", "TaurusValueSpinBoxEx"]
-
-__docformat__ = 'restructuredtext'
+"""
+This module provides a set of basic taurus widgets based on QAbstractSpinBox
+"""
 
 from taurus.external.qt import Qt
 
 from tauruslineedit import TaurusValueLineEdit
 from taurus.qt.qtgui.icon import getStandardIcon
 from taurus.external.pint import Quantity
+
+__all__ = ["TaurusValueSpinBox", "TaurusValueSpinBoxEx"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusValueSpinBox(Qt.QAbstractSpinBox):
@@ -64,9 +66,9 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
     def keyPressEvent(self, evt):
         return self.lineEdit().keyPressEvent(evt)
 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     # Mandatory overload from QAbstractSpinBox
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
     def stepBy(self, steps):
         self.setValue(self.getValue() + self._getSingleStepQuantity() * steps)
@@ -99,9 +101,9 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
             ret |= Qt.QAbstractSpinBox.StepDownEnabled
         return ret
 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     # Overload from QAbstractSpinBox
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
     def validate(self, input, pos):
         """Overloaded to use the current validator from the TaurusValueLineEdit,
@@ -113,9 +115,9 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
             return Qt.QAbstractSpinBox.validate(self, input, pos)
         return val.validate(input, pos)
 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     # Model related methods
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
     def setModel(self, model):
         self.lineEdit().setModel(model)
@@ -195,6 +197,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
     forcedApply = Qt.pyqtProperty("bool", getForcedApply, setForcedApply,
                                   resetForcedApply)
 
+
 _S = """
 QSpinBox::up-button {
     border-width: 0px;
@@ -247,14 +250,54 @@ class TaurusValueSpinBoxEx(Qt.QWidget):
         setattr(self.spinBox, name, value)
 
 
-if __name__ == "__main__":
+def main():
     import sys
-    from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication()
+    import taurus.qt.qtgui.application
+    Application = taurus.qt.qtgui.application.TaurusApplication
 
-    w = TaurusValueSpinBox()
-    w.setModel('sys/tg_test/1/double_scalar')
-    w.resize(300, 50)
+    app = Application.instance()
+    owns_app = app is None
+
+    if owns_app:
+        import taurus.core.util.argparse
+        parser = taurus.core.util.argparse.get_taurus_parser()
+        parser.usage = "%prog [options] <full_attribute_name(s)>"
+        app = Application(sys.argv, cmd_line_parser=parser,
+                          app_name="Taurus spinbox demo", app_version="1.0",
+                          org_domain="Taurus", org_name="Tango community")
+
+    args = app.get_command_line_args()
+
+    if len(args) == 0:
+        w = TaurusValueSpinBox()
+        w.setModel('sys/tg_test/1/double_scalar')
+        w.resize(300, 50)
+    else:
+        w = Qt.QWidget()
+        layout = Qt.QGridLayout()
+        w.setLayout(layout)
+        for model in args:
+            label = TaurusValueSpinBox()
+            label.setModel(model)
+            layout.addWidget(label)
+        w.resize(300, 50)
     w.show()
 
-    sys.exit(app.exec_())
+    if owns_app:
+        sys.exit(app.exec_())
+    else:
+        return w
+
+
+if __name__ == "__main__":
+    main()
+#     import sys
+#     from taurus.qt.qtgui.application import TaurusApplication
+#     app = TaurusApplication()
+
+#     w = TaurusValueSpinBox()
+#     w.setModel('sys/tg_test/1/double_scalar')
+#     w.resize(300, 50)
+#     w.show()
+
+#     sys.exit(app.exec_())

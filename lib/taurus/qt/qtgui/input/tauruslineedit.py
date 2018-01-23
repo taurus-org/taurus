@@ -23,11 +23,9 @@
 ##
 #############################################################################
 
-"""This module provides a set of basic taurus widgets based on QLineEdit"""
-
-__all__ = ["TaurusValueLineEdit"]
-
-__docformat__ = 'restructuredtext'
+"""
+This module provides a set of basic taurus widgets based on QLineEdit
+"""
 
 import sys
 import numpy
@@ -36,6 +34,10 @@ from taurus.external.pint import Quantity
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from taurus.qt.qtgui.util import PintValidator
 from taurus.core import DataType, DataFormat, TaurusEventType
+
+__all__ = ["TaurusValueLineEdit"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
@@ -72,7 +74,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             if units != val.units:
                 val.setUnits(units)
 
-        # @TODO Other validators can be configured for other types (e.g. with string lengths, tango names,...)
+        # @TODO Other validators can be configured for other types
+        #       (e.g. with string lengths, tango names,...)
         else:
             self.setValidator(None)
             self.debug("Validator disabled")
@@ -93,9 +96,9 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         if self._autoApply:
             self.writeValue()
 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     # TaurusBaseWritableWidget overwriting
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     def notifyValueChanged(self, *args):
         '''reimplement to avoid autoapply on every partial edition'''
         self.emitValueChanged()
@@ -140,14 +143,15 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 color, weight = 'black', 'normal'
             # also check alarms (if applicable)
             modelObj = self.getModelObj()
-            if modelObj and modelObj.type in [DataType.Integer, DataType.Float]:
+            if modelObj and modelObj.type in [DataType.Integer,
+                                              DataType.Float]:
                 min_, max_ = modelObj.alarms
                 if ((min_ is not None and value < min_) or
                         (max_ is not None and value > max_)):
                     color = 'orange'
         # apply style
-        style = 'TaurusValueLineEdit {color: %s; font-weight: %s}' %\
-                (color, weight)
+        style = ('TaurusValueLineEdit {color: %s; font-weight: %s}' %
+                 (color, weight))
         self.setStyleSheet(style)
 
     def wheelEvent(self, evt):
@@ -197,12 +201,33 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         value = self.getValue()
         self.setValue(value + Quantity(v, value.units))
 
+    def getDisplayValue(self, cache=True, fragmentName=None):
+        """Returns a string representation of the model value associated with
+        this component. As this is a writable widget, if there is no fragment
+        specified, the default behaviour is to display the wvalue.
+
+        :param cache: (bool) (ignored, just for bck-compat).
+        :param fragmentName: (str or None) the returned value will correspond
+                        to the given fragmentName. If None passed,
+                         self.modelFragmentName will be used, and if None is
+                         set, the defaultFragmentName of the model will be used
+                         instead.
+
+        :return: (str) a string representation of the model value.
+        """
+        if fragmentName is None and self.modelFragmentName is None:
+            return TaurusBaseWritableWidget.getDisplayValue(
+                self, cache=cache, fragmentName='wvalue')
+        else:
+            return TaurusBaseWritableWidget.getDisplayValue(
+                self, cache=cache, fragmentName=fragmentName)
+
     def setValue(self, v):
         model = self.getModelObj()
         if model is None:
             v_str = str(v)
         else:
-            v_str = str(self.displayValue(v))
+            v_str = str(self.getDisplayValue(v))
         v_str = v_str.strip()
         self.setText(v_str)
 
@@ -258,23 +283,25 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         ret['icon'] = "designer:lineedit.png"
         return ret
 
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     # QT properties
-    #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+    # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
     model = Qt.pyqtProperty("QString", TaurusBaseWritableWidget.getModel,
                             TaurusBaseWritableWidget.setModel,
                             TaurusBaseWritableWidget.resetModel)
 
-    useParentModel = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getUseParentModel,
-                                     TaurusBaseWritableWidget.setUseParentModel,
-                                     TaurusBaseWritableWidget.resetUseParentModel)
+    useParentModel = Qt.pyqtProperty(
+        "bool", TaurusBaseWritableWidget.getUseParentModel,
+        TaurusBaseWritableWidget.setUseParentModel,
+        TaurusBaseWritableWidget.resetUseParentModel)
 
     autoApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getAutoApply,
                                 TaurusBaseWritableWidget.setAutoApply,
                                 TaurusBaseWritableWidget.resetAutoApply)
 
-    forcedApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getForcedApply,
+    forcedApply = Qt.pyqtProperty("bool",
+                                  TaurusBaseWritableWidget.getForcedApply,
                                   TaurusBaseWritableWidget.setForcedApply,
                                   TaurusBaseWritableWidget.resetForcedApply)
 
@@ -285,21 +312,41 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
 def main():
     import sys
-    from taurus.qt.qtgui.application import TaurusApplication
+    import taurus.qt.qtgui.application
+    Application = taurus.qt.qtgui.application.TaurusApplication
 
-    app = TaurusApplication()
+    app = Application.instance()
+    owns_app = app is None
+
+    if owns_app:
+        import taurus.core.util.argparse
+        parser = taurus.core.util.argparse.get_taurus_parser()
+        parser.usage = "%prog [options] <full_attribute_name(s)>"
+        app = Application(sys.argv, cmd_line_parser=parser,
+                          app_name="Taurus lineedit demo", app_version="1.0",
+                          org_domain="Taurus", org_name="Tango community")
+
+    args = app.get_command_line_args()
 
     form = Qt.QWidget()
     layout = Qt.QVBoxLayout()
     form.setLayout(layout)
-    for m in ('sys/tg_test/1/double_scalar',
-              'sys/tg_test/1/double_scalar'
-              ):
+    if len(args) == 0:
+        models = ['sys/tg_test/1/double_scalar', 'sys/tg_test/1/double_scalar']
+    else:
+        models = args
+    for model in models:
         w = TaurusValueLineEdit()
-        w.setModel(m)
+        w.setModel(model)
         layout.addWidget(w)
+    form.resize(300, 50)
     form.show()
-    sys.exit(app.exec_())
+
+    if owns_app:
+        sys.exit(app.exec_())
+    else:
+        return form
+
 
 if __name__ == "__main__":
     sys.exit(main())

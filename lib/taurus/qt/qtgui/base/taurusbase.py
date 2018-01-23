@@ -2061,6 +2061,21 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         '''
         return []
 
+    def getDisplayValue(self, cache=True, fragmentName=None):
+        """Reimplemented from class:`TaurusBaseWidget`"""
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # The widgets inheriting from this class interact with
+        # writable models and therefore the fragmentName should fall back to 'wvalue' 
+        # instead of 'rvalue'. 
+        # But changing it now is delicate due to risk of introducing API
+        # incompatibilities for widgets already assuming the current default.
+        # So instead of reimplementing it here, the fix was constrained to 
+        # TaurusValueLineEdit.getDisplayValue()
+        # TODO: Consider reimplementing this to use wvalue by default
+        return TaurusBaseWidget.getDisplayValue(self, cache=cache,
+                                                fragmentName=fragmentName)
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     def getValue(self):
         '''
         This method must be implemented in derived classes to return
