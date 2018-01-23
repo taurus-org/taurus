@@ -126,12 +126,6 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         TaurusBaseWritableWidget.updateStyle(self)
 
         value = self.getValue()
-        if value is None and self.hasPendingOperations():
-            try:
-                value = self.getModelValueObj().wvalue
-                self.setValue(value)
-            except:
-                value = None
 
         if value is None or not self.isTextValid():
             # invalid value
