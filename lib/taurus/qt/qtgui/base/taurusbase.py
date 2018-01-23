@@ -2062,27 +2062,19 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         return []
 
     def getDisplayValue(self, cache=True, fragmentName=None):
-        """Returns a string representation of the model value associated with
-        this component.
-
-        :param cache: (bool) (ignored, just for bck-compat).
-        :param fragmentName: (str or None) the returned value will correspond
-                        to the given fragmentName. If None passed,
-                         self.modelFragmentName will be used, and if None is
-                         set, the defaultFragmentName of the model will be used
-                         instead.
-
-        :return: (str) a string representation of the model value.
-        """
-        # @fixme: Even the widgets inheriting from this class interacts with
-        #         writable models (then the fragmentName by default that one
-        #         expects is 'wvalue' and not 'rvalue') it has been considered
-        #         that perhaps this could be considered an API modification
-        #         instead of a bugfix.
-        #         The bugfix impact has been bounded only within the
-        #         TaurusValueLineEdit.
+        """Reimplemented from class:`TaurusBaseWidget`"""
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # The widgets inheriting from this class interact with
+        # writable models and therefore the fragmentName should fall back to 'wvalue' 
+        # instead of 'rvalue'. 
+        # But changing it now is delicate due to risk of introducing API
+        # incompatibilities for widgets already assuming the current default.
+        # So instead of reimplementing it here, the fix was constrained to 
+        # TaurusValueLineEdit.getDisplayValue()
+        # TODO: Consider reimplementing this to use wvalue by default
         return TaurusBaseWidget.getDisplayValue(self, cache=cache,
                                                 fragmentName=fragmentName)
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def getValue(self):
         '''
