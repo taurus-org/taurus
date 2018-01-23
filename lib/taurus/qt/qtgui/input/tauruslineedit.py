@@ -150,8 +150,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                         (max_ is not None and value > max_)):
                     color = 'orange'
         # apply style
-        style = 'TaurusValueLineEdit {color: %s; font-weight: %s}' %\
-                (color, weight)
+        style = ('TaurusValueLineEdit {color: %s; font-weight: %s}' %
+                 (color, weight))
         self.setStyleSheet(style)
 
     def wheelEvent(self, evt):
@@ -216,11 +216,11 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         :return: (str) a string representation of the model value.
         """
         if fragmentName is None and self.modelFragmentName is None:
-            return TaurusBaseWritableWidget.\
-                getDisplayValue(self, cache=cache, fragmentName='wvalue')
+            return TaurusBaseWritableWidget.getDisplayValue(
+                self, cache=cache, fragmentName='wvalue')
         else:
-            return TaurusBaseWritableWidget.\
-                getDisplayValue(self, cache=cache, fragmentName=fragmentName)
+            return TaurusBaseWritableWidget.getDisplayValue(
+                self, cache=cache, fragmentName=fragmentName)
 
     def setValue(self, v):
         model = self.getModelObj()
@@ -291,10 +291,10 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                             TaurusBaseWritableWidget.setModel,
                             TaurusBaseWritableWidget.resetModel)
 
-    useParentModel = \
-        Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getUseParentModel,
-                        TaurusBaseWritableWidget.setUseParentModel,
-                        TaurusBaseWritableWidget.resetUseParentModel)
+    useParentModel = Qt.pyqtProperty(
+        "bool", TaurusBaseWritableWidget.getUseParentModel,
+        TaurusBaseWritableWidget.setUseParentModel,
+        TaurusBaseWritableWidget.resetUseParentModel)
 
     autoApply = Qt.pyqtProperty("bool", TaurusBaseWritableWidget.getAutoApply,
                                 TaurusBaseWritableWidget.setAutoApply,
