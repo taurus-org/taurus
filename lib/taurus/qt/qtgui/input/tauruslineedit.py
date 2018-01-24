@@ -239,6 +239,10 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             model_format = model_obj.data_format
             if model_type in [DataType.Integer, DataType.Float]:
                 try:
+                    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    # workaround for https://github.com/hgrecco/pint/issues/614
+                    text = text.lstrip('0') or '0'
+                    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     q = Quantity(text)
                     # allow implicit units (assume wvalue.units implicitly)
                     if q.unitless:
