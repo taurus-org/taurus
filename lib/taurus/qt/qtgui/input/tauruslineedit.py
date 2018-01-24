@@ -48,6 +48,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.call__init__(TaurusBaseWritableWidget,
                           name, designMode=designMode)
         self._enableWheelEvent = False
+        self._value = None
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
@@ -124,14 +125,16 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def updateStyle(self):
         TaurusBaseWritableWidget.updateStyle(self)
 
-        value = self.getValue()
-        if value is None and self.hasPendingOperations():
+        if self._value is None and self.hasPendingOperations():
             try:
                 value = self.getModelValueObj().wvalue
+                self.info('Overwriting wvalue=None with %s' % (value))
                 self.setValue(value)
             except:
                 value = None
 
+        value = self.getValue()
+        
         if value is None or not self.isTextValid():
             # invalid value
             color, weight = 'gray', 'normal'
@@ -229,6 +232,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         else:
             v_str = str(self.getDisplayValue(v))
         v_str = v_str.strip()
+        self._value = v
         self.setText(v_str)
 
     def getValue(self):
