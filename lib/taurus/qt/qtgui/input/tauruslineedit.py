@@ -110,6 +110,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             self._updateValidator(evt_value)
         TaurusBaseWritableWidget.handleEvent(
             self, evt_src, evt_type, evt_value)
+        if evt_type == TaurusEventType.Error:
+            self.updateStyle()
 
     def isTextValid(self):
         """
@@ -138,7 +140,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
         value = self.getValue()
         
-        if value is None or not self.isTextValid():
+        if value is None or not self.isTextValid() or not self.isEnabled():
             # invalid value
             color, weight = 'gray', 'normal'
         else:
