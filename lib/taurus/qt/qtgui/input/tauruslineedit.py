@@ -105,6 +105,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.emitValueChanged()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
+        self.setEnabled(evt_type != TaurusEventType.Error)
         if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self._updateValidator(evt_value)
         TaurusBaseWritableWidget.handleEvent(
@@ -131,6 +132,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 value = self.getModelValueObj().wvalue
                 self.info('Overwriting wvalue=None with %s' % (value))
                 self.setValue(value)
+                self.setEnabled(value is not None)
             except:
                 value = None
 
