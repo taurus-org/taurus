@@ -48,7 +48,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.call__init__(TaurusBaseWritableWidget,
                           name, designMode=designMode)
         self._enableWheelEvent = False
-        self._value = None
+        self._last_value = None
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
@@ -128,7 +128,9 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def updateStyle(self):
         TaurusBaseWritableWidget.updateStyle(self)
 
-        if self._value is None and self.hasPendingOperations():
+        if self._last_value is None and self.hasPendingOperations():
+            # This check must be done at updateStyle() because pending
+            # operations list is not updated yet at handleEvent() stage
             try:
                 self.getModelObj().getAttributeInfoEx(cache = False)
                 value = self.getModelValueObj().wvalue
@@ -237,7 +239,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         else:
             v_str = str(self.getDisplayValue(v))
         v_str = v_str.strip()
-        self._value = v
+        self._last_value = v
         self.setText(v_str)
 
     def getValue(self):
@@ -273,7 +275,11 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             else:
                 raise TypeError('Unsupported model type "%s"' % model_type)
         except Exception, e:
-            self.warning('Cannot return value for "%s". Reason: %r', text, e)
+            msg = 'Cannot return value for "%s". Reason: %r' %(text, e)
+            if text not in (str(None),self.getNoneValue()):
+                self.warning(msg)
+            else:
+                self.debug(msg)
             return None
 
     def setEnableWheelEvent(self, b):
