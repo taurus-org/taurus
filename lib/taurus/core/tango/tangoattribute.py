@@ -1162,7 +1162,16 @@ class TangoAttribute(TaurusAttribute):
         """Returns the current configuration of the attribute."""
         return weakref.proxy(self)
 
-    def getAttributeInfoEx(self):
+    def getAttributeInfoEx(self, cache=True):
+        if not cache:
+            try:
+                attr_name = self.getSimpleName()
+                attrinfoex = self.__dev_hw_obj.attribute_query(attr_name)
+                self._decodeAttrInfoEx(attrinfoex)
+            except:
+                self.warning("Error getting attribute configuration")
+                self.traceback()
+
         return self._pytango_attrinfoex
 
     @taurus4_deprecation(alt='.rvalue.units')
