@@ -650,6 +650,12 @@ class TangoAttribute(TaurusAttribute):
     def _call_dev_hw_subscribe_event(self, stateless=True):
         """ Executes event subscription on parent TangoDevice objectName
         """
+        
+        if self.__chg_evt_id is not None:
+            self.warning("chg events already subscribed (id=%s)"
+                       %self.__chg_evt_id)
+            return
+                
         attr_name = self.getSimpleName()
 
         self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
