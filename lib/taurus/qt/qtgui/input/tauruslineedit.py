@@ -127,6 +127,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
         if self._value is None and self.hasPendingOperations():
             try:
+                self.getModelObj().getAttributeInfoEx(cache = False)
                 value = self.getModelValueObj().wvalue
                 self.info('Overwriting wvalue=None with %s' % (value))
                 self.setValue(value)
