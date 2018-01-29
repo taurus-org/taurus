@@ -60,7 +60,7 @@ class TaurusModel(Logger):
             s_obj = parent
             if s_obj is None:
                 s_obj = self.factory()
-                serializationMode = s_obj.getSerializationMode()
+            serializationMode = s_obj.getSerializationMode()
         self._serialization_mode = serializationMode
 
         self._parentObj = parent
