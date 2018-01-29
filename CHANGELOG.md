@@ -34,6 +34,7 @@ develop branch) won't be reflected in this file.
 - Make spyder dependency optional (#556)
 
 ### Fixed
+- TaurusModel ignoring the serialization mode (#678)
 - Wrong "missing units" warnings for non-numerical attributes (#580)
 - Taurus3 backwards compatibility issues (#496, #550)
 - False positives in taurus.check_dependencies (#612)
