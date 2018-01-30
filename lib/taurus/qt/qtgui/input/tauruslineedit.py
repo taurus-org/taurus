@@ -59,7 +59,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.editingFinished.connect(self._onEditingFinished)
 
     def _updateValidator(self, value):
-        '''This method sets a validator depending on the data type'''
+        """This method sets a validator depending on the data type"""
         if isinstance(value.wvalue, Quantity):
             val = self.validator()
             if not isinstance(val, PintValidator):
@@ -82,8 +82,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             self.debug("Validator disabled")
 
     def __decimalDigits(self, fmt):
-        '''returns the number of decimal digits from a format string
-        (or None if they are not defined)'''
+        """returns the number of decimal digits from a format string
+        (or None if they are not defined)"""
         try:
             if fmt[-1].lower() in ['f', 'g'] and '.' in fmt:
                 return int(fmt[:-1].split('.')[-1])
@@ -93,7 +93,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return None
 
     def _onEditingFinished(self):
-        '''slot for performing autoapply only when edition is finished'''
+        """slot for performing autoapply only when edition is finished"""
         if self._autoApply:
             self.writeValue()
 
@@ -101,7 +101,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     # TaurusBaseWritableWidget overwriting
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     def notifyValueChanged(self, *args):
-        '''reimplement to avoid autoapply on every partial edition'''
+        """reimplement to avoid autoapply on every partial edition"""
         self.emitValueChanged()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
@@ -126,19 +126,22 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         return val.validate(str(self.text()), 0)[0] == val.Acceptable
 
     def updateStyle(self):
+        """Reimplemented from :class:`TaurusBaseWritableWidget`"""
         TaurusBaseWritableWidget.updateStyle(self)
 
-        if self._last_value is None and self.hasPendingOperations():
-            # This check must be done at updateStyle() because pending
-            # operations list is not updated yet at handleEvent() stage
-            try:
-                self.getModelObj().getAttributeInfoEx(cache = False)
-                value = self.getModelValueObj().wvalue
-                self.info('Overwriting wvalue=None with %s' % (value))
-                self.setValue(value)
-                self.setEnabled(value is not None)
-            except:
-                value = None
+        # TODO: All this block should be moved to handleEvent
+        # if self._last_value is None and self.hasPendingOperations():
+        #     # This check must be done at updateStyle() because pending
+        #     # operations list is not updated yet at handleEvent() stage
+        #     try:
+        #         # TODO: Tango-centric
+        #         self.getModelObj().getAttributeInfoEx(cache = False)
+        #         value = self.getModelValueObj().wvalue
+        #         self.info('Overwriting wvalue=None with %s' % (value))
+        #         self.setValue(value)
+        #         self.setEnabled(value is not None)
+        #     except:
+        #         value = None
 
         value = self.getValue()
         
@@ -165,6 +168,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.setStyleSheet(style)
 
     def wheelEvent(self, evt):
+        """Wheel event handler"""
         if not self.getEnableWheelEvent() or Qt.QLineEdit.isReadOnly(self):
             return Qt.QLineEdit.wheelEvent(self, evt)
         model = self.getModelObj()
@@ -182,6 +186,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self._stepBy(numSteps)
 
     def keyPressEvent(self, evt):
+        """Key press event handler"""
         if evt.key() in (Qt.Qt.Key_Return, Qt.Qt.Key_Enter):
             Qt.QLineEdit.keyPressEvent(self, evt)
             evt.accept()
@@ -253,6 +258,10 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             model_format = model_obj.data_format
             if model_type in [DataType.Integer, DataType.Float]:
                 try:
+                    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    # workaround for https://github.com/hgrecco/pint/issues/614
+                    text = text.lstrip('0') or '0'
+                    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     q = Quantity(text)
                     # allow implicit units (assume wvalue.units implicitly)
                     if q.unitless:
@@ -275,11 +284,11 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             else:
                 raise TypeError('Unsupported model type "%s"' % model_type)
         except Exception, e:
-            msg = 'Cannot return value for "%s". Reason: %r' %(text, e)
-            if text not in (str(None),self.getNoneValue()):
-                self.warning(msg)
+            msg = 'Cannot return value for "%s". Reason: %r'
+            if text in (str(None), self.getNoneValue()):
+                self.debug(msg, text, e)
             else:
-                self.debug(msg)
+                self.warning(msg, text, e)
             return None
 
     def setEnableWheelEvent(self, b):
