@@ -652,8 +652,8 @@ class TangoAttribute(TaurusAttribute):
         """
         
         if self.__chg_evt_id is not None:
-            self.warning("chg events already subscribed (id=%s)"
-                       %self.__chg_evt_id)
+            self.warning("chg events already subscribed (id=%s)",
+                         self.__chg_evt_id)
             return
                 
         attr_name = self.getSimpleName()

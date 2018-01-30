@@ -99,8 +99,8 @@ class TaurusBaseController(object):
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_src == self.modelObj():  # update the "_last" values only if the event source is the model (it could be the background...)
             if evt_type == TaurusEventType.Change or evt_type == TaurusEventType.Periodic:
-                if self.widget() and self._last_value is None and \
-                        self._last_config_value is None:
+                if (self.widget() and self._last_value is None 
+	                    and self._last_config_value is None):
                     # After a device is reconnected, attribute config must 
                     # be reloaded if no config event has been received yet
                     self.widget().info('Reloading attr_config')
