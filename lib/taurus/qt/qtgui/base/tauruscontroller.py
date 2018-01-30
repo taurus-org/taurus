@@ -104,6 +104,7 @@ class TaurusBaseController(object):
                     # After a device is reconnected, attribute config must 
                     # be reloaded if no config event has been received yet
                     self.widget().info('Reloading attr_config')
+		    # TODO: Tango-centric
                     self.modelObj().getAttributeInfoEx(cache = False)
                 self._last_value = evt_value
             elif evt_type == TaurusEventType.Config:  # TODO: adapt to tep14
