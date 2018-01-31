@@ -38,7 +38,7 @@ import weakref
 import re
 from taurus.external.qt import Qt
 import taurus.core
-from taurus.core import DataType, DataFormat
+from taurus.core import DataType, DataFormat, TaurusEventType
 
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
@@ -310,6 +310,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.call__init__wo_kw(Qt.QWidget, parent)
         self.call__init__(TaurusBaseWidget, name, designMode=designMode)
 
+        self.__error = False
         self.__modelClass = None
         self._designMode = designMode
 
@@ -1165,13 +1166,19 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         """Reimplemented from :meth:`TaurusBaseWidget.handleEvent`
         to update subwidgets on config events
         """
-        if evt_type == taurus.core.taurusbasetypes.TaurusEventType.Config and not self._designMode:
+        if self._designMode:
+            return
+
+        if self.__error or evt_type == TaurusEventType.Config:
             self.updateCustomWidget()
             self.updateLabelWidget()
             self.updateReadWidget()
             self.updateWriteWidget()
             self.updateUnitsWidget()
             self.updateExtraWidget()
+
+        # set/unset the error flag
+        self.__error = (evt_type == TaurusEventType.Error)
 
     def isValueChangedByUser(self):
         try:
