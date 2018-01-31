@@ -399,7 +399,9 @@ class TangoAttribute(TaurusAttribute):
     def decode(self, attr_value):
         """Decodes a value that was received from PyTango into the expected
         representation"""
-        # TODO decode of the configuration
+        if self._pytango_attrinfoex is None:
+            self.getAttributeInfoEx(cache=False)
+            self._decodeAttrInfoEx()
         value = TangoAttrValue(pytango_dev_attr=attr_value, attr=self)
         return value
 
@@ -1169,8 +1171,8 @@ class TangoAttribute(TaurusAttribute):
                 attr_name = self.getSimpleName()
                 attrinfoex = self.__dev_hw_obj.attribute_query(attr_name)
                 self._decodeAttrInfoEx(attrinfoex)
-            except:
-                self.warning("Error getting attribute configuration")
+            except Exception as e:
+                self.debug("Error getting attribute configuration: %s", e)
                 self.traceback()
 
         return self._pytango_attrinfoex
