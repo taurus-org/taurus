@@ -105,6 +105,19 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.emitValueChanged()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
+
+        # handle the case in which the line edit is not yet initialized
+        if self._last_value is None:
+            try:
+                self.getModelObj().read(cache=True)
+                frag_name = self.modelFragmentName or 'wvalue'
+                value = self.getModelFragmentObj(fragmentName=frag_name)
+                self.debug('Overwriting wvalue=None with %s' % (value))
+                self.setValue(value)
+                self.setEnabled(value is not None)
+            except Exception as e:
+                self.debug('Failed attempt to initialize value: %r', e)
+
         self.setEnabled(evt_type != TaurusEventType.Error)
         if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self._updateValidator(evt_value)
@@ -128,20 +141,6 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def updateStyle(self):
         """Reimplemented from :class:`TaurusBaseWritableWidget`"""
         TaurusBaseWritableWidget.updateStyle(self)
-
-        # TODO: All this block should be moved to handleEvent
-        # if self._last_value is None and self.hasPendingOperations():
-        #     # This check must be done at updateStyle() because pending
-        #     # operations list is not updated yet at handleEvent() stage
-        #     try:
-        #         # TODO: Tango-centric
-        #         self.getModelObj().getAttributeInfoEx(cache = False)
-        #         value = self.getModelValueObj().wvalue
-        #         self.info('Overwriting wvalue=None with %s' % (value))
-        #         self.setValue(value)
-        #         self.setEnabled(value is not None)
-        #     except:
-        #         value = None
 
         value = self.getValue()
         
@@ -283,7 +282,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 return bytes(text)
             else:
                 raise TypeError('Unsupported model type "%s"' % model_type)
-        except Exception, e:
+        except Exception as e:
             msg = 'Cannot return value for "%s". Reason: %r'
             if text in (str(None), self.getNoneValue()):
                 self.debug(msg, text, e)
