@@ -97,18 +97,17 @@ class TaurusBaseController(object):
         return self.widget().getDisplayValue()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_src == self.modelObj():  # update the "_last" values only if the event source is the model (it could be the background...)
-            if evt_type == TaurusEventType.Change or evt_type == TaurusEventType.Periodic:
-                if (self.widget() and self._last_value is None 
-	                    and self._last_config_value is None):
-                    # After a device is reconnected, attribute config must 
-                    # be reloaded if no config event has been received yet
-                    self.widget().info('Reloading attr_config')
-		    # TODO: Tango-centric
-                    self.modelObj().getAttributeInfoEx(cache = False)
+        # update the "_last" values only if the event source is the model
+        # (it could be the background...)
+        if evt_src == self.modelObj():
+            if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
+                if self._last_value is None:
+                    # reset the format so that it gets updated by displayValue
+                    self.widget().resetFormat()
                 self._last_value = evt_value
             elif evt_type == TaurusEventType.Config:  # TODO: adapt to tep14
                 self._last_config_value = evt_value
+                self.widget().resetFormat()
             else:
                 self._last_error_value = evt_value
                 # In case of error, modify the last_value as well
