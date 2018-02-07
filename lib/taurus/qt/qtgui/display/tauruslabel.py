@@ -252,7 +252,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
         # register configurable properties
         self.registerConfigProperty(
-            self.getPermanentText, self.setPermanentText, "permanentText"
+            self.getPermanentText, self._setPermanentText, "permanentText"
             )
 
     def _calculate_controller_class(self):
@@ -418,9 +418,10 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     def getPermanentText(self):
         return self._permanentText
 
-    def setPermanentText(self, text):
-        self.setText_(text)
+    def _setPermanentText(self, text):
         self._permanentText = text
+        if text is not None:
+            self.setText_(text)
 
     def setText_(self, text):
         """Method to expose QLabel.setText"""
@@ -428,7 +429,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
     def setText(self, text):
         """Reimplementation of setText to set permanentText"""
-        self.setPermanentText(text)
+        self._setPermanentText(text)
 
     def setAutoTrim(self, trim):
         self._autoTrim = trim
