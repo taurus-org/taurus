@@ -142,7 +142,7 @@ class DefaultLabelWidget(TaurusLabel):
             r_action.setEnabled(self.taurusValueBuddy().hasPendingOperations())
         if self.taurusValueBuddy().isModifiableByUser():
             menu.addAction("Change label",
-                           self.taurusValueBuddy().onChangeLabelConfig)
+                           self.taurusValueBuddy()._onChangeLabelText)
             menu.addAction("Change Read Widget",
                            self.taurusValueBuddy().onChangeReadWidget)
             menu.addAction("Set Formatter",
@@ -350,7 +350,6 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self._allowWrite = True
         self._minimumHeight = None
         self._labelConfig = '{attr.label}'
-        self._labelText = None
         self.setModifiableByUser(False)
 
         if parent is not None:
@@ -636,6 +635,10 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         return self._customWidgetMap
 
     def onChangeLabelConfig(self):
+        self.deprecated(msg="onChangeLabelConfig is deprecated", rel="Jan2018")
+        self._onChangeLabelText()
+
+    def _onChangeLabelText(self):
         keys = ['{attr.label}', '{attr.name}', '{attr.fullname}', '{dev.name}',
                 '{dev.fullname}']
 
@@ -810,9 +813,6 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             # set the model for the subwidget
             if hasattr(self._labelWidget, 'setModel'):
                 self._labelWidget.setModel(self.getFullModelName())
-
-            if self._labelText is not None:
-                self._labelWidget.setText(self._labelText)
 
     def updateReadWidget(self):
         # get the class for the widget and replace it if necessary
@@ -1234,9 +1234,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         :param config: fragment
         :type config: str
         """
+        self._labelConfig = config
         # backwards compatibility: this method used to work for setting
         # an arbitrary text to the label widget
-        self._labelConfig = config
         try:
             self.getModelFragmentObj(config)
             self._labelWidget._permanentText = None
