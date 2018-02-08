@@ -42,7 +42,7 @@ develop branch) won't be reflected in this file.
 - Missing icons in buttons (#583, #598)
 - Exception in TaurusCommandForm (#608)
 - Launchers not showing output on MS Windows (#644)
-- Various issues with input widgets (#623, #661, #650, #669)
+- Various issues with input widgets (#623, #661, #650, #669, #651, #663)
 - Regressions in:
   - TaurusTrend (#618)
   - TaurusGrid (#609)
