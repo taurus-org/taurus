@@ -1242,7 +1242,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self._labelWidget._permanentText = None
         except Exception:
             try:
-                self._labelWidget.setText(config)
+                self._labelWidget.setText(self._BCK_COMPAT_TAGS.get(config,
+                                                                    config))
             except:
                 self.debug("Setting permanent text to the label widget failed")
             return
