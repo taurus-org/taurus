@@ -70,14 +70,12 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         TaurusBaseWritableWidget.preAttach(self)
         self.currentIndexChanged.connect(self.writeIndexValue)
-        self.applied.connect(self.writeValue)
 
     def postDetach(self):
         '''reimplemented from :class:`TaurusBaseWritableWidget`'''
         TaurusBaseWritableWidget.postDetach(self)
         try:
             self.currentIndexChanged.disconnect(self.writeIndexValue)
-            self.applied.disconnect(self.writeValue)
         except TypeError:
             # In new style-signal if a signal is disconnected without
             # previously was connected it, it raises a TypeError
@@ -136,16 +134,19 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
 
     @Qt.pyqtSlot(int, name='currentIndexChanged')
     def writeIndexValue(self, index):
-        '''slot called to emit a valueChanged signal when the currentIndex is changed'''
+        """slot called to emit a valueChanged signal when the currentIndex is
+        changed (and trigger a write if AutoApply is enabled)
+        """
         self.emitValueChanged()
         if self.getAutoApply():
-            self.applied.emit()
+            self.writeValue()
 
     def keyPressEvent(self, event):
-        '''reimplemented to emit an 'applied()' signal when Enter (or Return)
-        key is pressed'''
+        """reimplemented to trigger a write when Enter (or Return) key is
+        pressed
+        """
         if event.key() in [Qt.Qt.Key_Return, Qt.Qt.Key_Enter]:
-            self.applied.emit()
+            self.writeValue()
             event.accept()
         else:
             return Qt.QComboBox.keyPressEvent(self, event)
@@ -380,7 +381,7 @@ def _taurusValueComboboxTest():
     from taurus.qt.qtgui.application import TaurusApplication
     """tests TaurusValueCombobox """
     # model = sys.argv[1]
-    model = 'sys/tg_test/1/short_scalar'
+
     names = [
         ('name0', 0),
         ('name1', 1),
@@ -392,13 +393,13 @@ def _taurusValueComboboxTest():
     w.setLayout(Qt.QVBoxLayout())
 
     cs = []
-    for c in range(2):
+    for model in ['sys/tg_test/1/short_scalar'] * 2:
         c = TaurusValueComboBox()
         c.setModel(model)
         c.addValueNames(names)
         w.layout().addWidget(c)
         cs.append(c)
-        #c.autoApply = True
+        # c.autoApply = True
     w.show()
     return a.exec_()
 
