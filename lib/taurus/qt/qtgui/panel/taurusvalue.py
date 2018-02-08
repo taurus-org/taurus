@@ -1242,8 +1242,12 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self._labelWidget._permanentText = None
         except Exception:
             try:
-                self._labelWidget.setText(self._BCK_COMPAT_TAGS.get(config,
-                                                                    config))
+                for old in re.findall('<.+?>', config):
+                    new = self._BCK_COMPAT_TAGS.get(old, old)
+                    self.deprecated(dep=old, alt=new)
+                    config = config.replace(old, new)
+
+                self._labelWidget.setText(config)
             except:
                 self.debug("Setting permanent text to the label widget failed")
             return
