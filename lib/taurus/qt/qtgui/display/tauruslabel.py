@@ -90,7 +90,7 @@ class TaurusLabelController(TaurusBaseController):
         elif fgRole.lower() in ('', 'none'):
             pass
         else:
-            value = label.getDisplayValue(fragmentName=fgRole)
+            value = self.getDisplayValue()
         self._text = text = label.prefixText + value + label.suffixText
 
         # Checks that the display fits in the widget and sets it to "..." if
