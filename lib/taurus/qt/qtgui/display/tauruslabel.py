@@ -98,7 +98,7 @@ class TaurusLabelController(TaurusBaseController):
         self._trimmedText = self._shouldTrim(label, text)
         if self._trimmedText:
             text = "<a href='...'>...</a>"
-        label.setText(text)
+        label.setText_(text)
 
     def _shouldTrim(self, label, text):
         if not label.autoTrim:
@@ -252,7 +252,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
         # register configurable properties
         self.registerConfigProperty(
-            self.getPermanentText, self.setPermanentText, "permanentText"
+            self.getPermanentText, self._setPermanentText, "permanentText"
             )
 
     def _calculate_controller_class(self):
@@ -418,9 +418,18 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     def getPermanentText(self):
         return self._permanentText
 
-    def setPermanentText(self, text):
-        self.setText(text)
+    def _setPermanentText(self, text):
         self._permanentText = text
+        if text is not None:
+            self.setText_(text)
+
+    def setText_(self, text):
+        """Method to expose QLabel.setText"""
+        Qt.QLabel.setText(self, text)
+
+    def setText(self, text):
+        """Reimplementation of setText to set permanentText"""
+        self._setPermanentText(text)
 
     def setAutoTrim(self, trim):
         self._autoTrim = trim
@@ -448,9 +457,23 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self.setAutoTrim(self.DefaultAutoTrim)
 
     def displayValue(self, v):
-        if self._permanentText is not None:
-            return self._permanentText
-        return TaurusBaseWidget.displayValue(self, v)
+        """Reimplementation of displayValue for TaurusLabel"""
+        if self._permanentText is None:
+            value = TaurusBaseWidget.displayValue(self, v)
+        else:
+            value = self._permanentText
+
+        attr = self.getModelObj()
+        dev = attr.getParent()
+
+        try:
+            v = value.format(dev=dev, attr=attr)
+        except Exception as e:
+            self.warning(
+                "Error formatting display (%r). Reverting to raw string", e)
+            v = value
+
+        return v
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
