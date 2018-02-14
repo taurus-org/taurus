@@ -257,7 +257,7 @@ class TaurusConfigurationControllerHelper(object):
             try:
                 no_val = getattr(model, "no_" + param)  # TODO: Tango-centric
                 if val.lower() == no_val.lower():
-                    val = widget.getNoneValue()
+                    return widget.getNoneValue()
             except:
                 pass
         except AttributeError:
@@ -278,13 +278,13 @@ class TaurusConfigurationControllerHelper(object):
                     val = val.replace('<dev_name>', dev.getNormalName() or
                                       '---')
             else:
-                val = widget.getNoneValue()
+                return widget.getNoneValue()
         except:
             widget.debug("Invalid configuration parameter '%s'" % param)
-            val = widget.getNoneValue()
+            return widget.getNoneValue()
         if val is None:
-            val = widget.getNoneValue()
-        return val
+            return widget.getNoneValue()
+        return widget.displayValue(val)
 
 
 StyleSheetTemplate = """border-style: outset; border-width: 2px; border-color: {0}; {1}"""
