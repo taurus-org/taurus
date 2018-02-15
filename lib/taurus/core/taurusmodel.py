@@ -225,7 +225,8 @@ class TaurusModel(Logger):
         if self._listeners is None or listener is None:
             return False
 
-        weak_listener = self._getCallableRef(listener, self._listenerDied)
+        weak_listener = self._getCallableRef(
+            listener, BoundMethodWeakref(self._listenerDied))
         if weak_listener in self._listeners:
             return False
         self._listeners.append(weak_listener)
