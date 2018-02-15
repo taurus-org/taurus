@@ -640,6 +640,14 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             fragmentName = self.modelFragmentName
         return self.modelObj.getFragmentObj(fragmentName)
 
+    def getModelIndexValue(self):
+        """
+        Called inside getDisplayValue to use with spectrum attributes. By default not used, but some widget might want to support this feature.
+
+        Override when needed.
+        """
+        return None
+
     def getFormatedToolTip(self, cache=True):
         """Returns a string with contents to be displayed in a tooltip.
 
@@ -817,6 +825,11 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             v = self.getModelFragmentObj(fragmentName=fragmentName)
         except:
             return self.getNoneValue()
+
+        idx = self.getModelIndexValue()
+        if v is not None and idx is not None and len(idx):
+            for i in idx:
+                v = v[i]
 
         return self.displayValue(v)
 

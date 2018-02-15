@@ -96,7 +96,7 @@ class TaurusLCDControllerAttribute(TaurusScalarAttributeControllerHelper, Taurus
         TaurusScalarAttributeControllerHelper.__init__(self)
         TaurusLCDController.__init__(self, lcd)
 
-    def _getDisplayValue(self, widget, valueObj, idx, write, fragmentName):
+    def _getDisplayValue(self, widget, valueObj, idx, write):
         try:
             if write:
                 value = valueObj.wvalue.magnitude

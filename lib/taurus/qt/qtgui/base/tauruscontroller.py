@@ -175,25 +175,25 @@ class TaurusAttributeControllerHelper(object):
 
 class TaurusScalarAttributeControllerHelper(TaurusAttributeControllerHelper):
 
-    def getDisplayValue(self, write=False, fragmentName=None):
+    def getDisplayValue(self, write=False):
         valueObj = self.valueObj()
         widget = self.widget()
         if valueObj is None or valueObj.rvalue is None:
-            return widget.getDisplayValue(fragmentName=fragmentName)
+            return widget.getDisplayValue()
 
         format = self.attrObj().data_format
         if format == DataFormat._0D:
-            return self._getDisplayValue(widget, valueObj, None, write, fragmentName)
+            return self._getDisplayValue(widget, valueObj, None, write)
 
         idx = widget.getModelIndexValue()
-        return self._getDisplayValue(widget, valueObj, idx, write, fragmentName)
+        return self._getDisplayValue(widget, valueObj, idx, write)
 
-    def _getDisplayValue(self, widget, valueObj, idx, write, fragmentName):
+    def _getDisplayValue(self, widget, valueObj, idx, write):
         try:
             if write:
                 value = valueObj.wvalue
             else:
-                value = widget.getModelFragmentObj(fragmentName)
+                value = valueObj.rvalue
             if idx is not None and len(idx):
                 for i in idx:
                     value = value[i]
@@ -246,18 +246,18 @@ class TaurusConfigurationControllerHelper(object):
             self._configParam = self.widget().modelFragmentName or ''
         return self._configParam
 
-    def getDisplayValue(self, write=False, fragmentName=None):
+    def getDisplayValue(self, write=False):
         widget = self.widget()
         model = self.configObj()
         if model is None:
             return widget.getNoneValue()
         param = self.configParam
         try:
-            val = widget.getModelFragmentObj(fragmentName)
+            val = widget.getModelFragmentObj()
             try:
                 no_val = getattr(model, "no_" + param)  # TODO: Tango-centric
                 if val.lower() == no_val.lower():
-                    return widget.getNoneValue()
+                    val = widget.getNoneValue()
             except:
                 pass
         except AttributeError:
@@ -278,13 +278,13 @@ class TaurusConfigurationControllerHelper(object):
                     val = val.replace('<dev_name>', dev.getNormalName() or
                                       '---')
             else:
-                return widget.getNoneValue()
+                val = widget.getNoneValue()
         except:
             widget.debug("Invalid configuration parameter '%s'" % param)
-            return widget.getNoneValue()
+            val = widget.getNoneValue()
         if val is None:
-            return widget.getNoneValue()
-        return widget.displayValue(val)
+            val = widget.getNoneValue()
+        return val
 
 
 StyleSheetTemplate = """border-style: outset; border-width: 2px; border-color: {0}; {1}"""
