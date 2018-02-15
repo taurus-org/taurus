@@ -124,7 +124,7 @@ def demo():
     p1.w_model.setText("sys/tg_test/1/double_scalar")
     p2 = TaurusLabelTestPanel()
     p2.w_model.setText("sys/tg_test/1/double_scalar#label")
-    p2.w_bg.setCurrentIndex(2)
+    p2.w_bg.setCurrentIndex(3)  # bgRole='none'
     layout.addWidget(p1, 0, 0)
     layout.addWidget(p2, 0, 1)
     layout.addItem(Qt.QSpacerItem(10, 10), 1, 0, 1, 2)
