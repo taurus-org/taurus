@@ -399,7 +399,9 @@ class TangoAttribute(TaurusAttribute):
     def decode(self, attr_value):
         """Decodes a value that was received from PyTango into the expected
         representation"""
-        # TODO decode of the configuration
+        if self._pytango_attrinfoex is None:
+            self.getAttributeInfoEx(cache=False)
+            self._decodeAttrInfoEx()
         value = TangoAttrValue(pytango_dev_attr=attr_value, attr=self)
         return value
 
@@ -509,14 +511,14 @@ class TangoAttribute(TaurusAttribute):
                     self.__attr_value = self.decode(v)
                     self.__attr_err = None
                     return self.__attr_value
-                except PyTango.DevFailed, df:
+                except PyTango.DevFailed as df:
                     self.__attr_value = None
                     self.__attr_err = df
                     err = df[0]
                     self.debug("[Tango] read failed (%s): %s",
                                err.reason, err.desc)
                     raise df
-                except Exception, e:
+                except Exception as e:
                     self.__attr_value = None
                     self.__attr_err = e
                     self.debug("[Tango] read failed: %s", e)
@@ -650,6 +652,12 @@ class TangoAttribute(TaurusAttribute):
     def _call_dev_hw_subscribe_event(self, stateless=True):
         """ Executes event subscription on parent TangoDevice objectName
         """
+        
+        if self.__chg_evt_id is not None:
+            self.warning("chg events already subscribed (id=%s)",
+                         self.__chg_evt_id)
+            return
+                
         attr_name = self.getSimpleName()
 
         self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
@@ -705,7 +713,7 @@ class TangoAttribute(TaurusAttribute):
                 attr_name,
                 PyTango.EventType.ATTR_CONF_EVENT,
                 self, [], True)  # connects to self.push_event callback
-        except PyTango.DevFailed, e:
+        except PyTango.DevFailed as e:
             self.debug("Error trying to subscribe to CONFIGURATION events.")
             self.traceback()
             # Subscription failed either because event mechanism is not available
@@ -883,7 +891,7 @@ class TangoAttribute(TaurusAttribute):
 
     def setLabel(self, lbl):
         TaurusAttribute.setLabel(self, lbl)
-        infoex = self._pytango_attrinfoex
+        infoex = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         infoex.label = lbl
         self._applyConfig()
 
@@ -898,7 +906,7 @@ class TangoAttribute(TaurusAttribute):
         if high.unitless:
             high = Quantity(high.magnitude, self._units)
         TaurusAttribute.setRange(self, [low, high])
-        infoex = self._pytango_attrinfoex
+        infoex = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         if low.magnitude != float('-inf'):
             infoex.min_value = str(low.to(self._units).magnitude)
         else:
@@ -920,7 +928,7 @@ class TangoAttribute(TaurusAttribute):
         if high.unitless:
             high = Quantity(high.magnitude, self._units)
         TaurusAttribute.setWarnings(self, [low, high])
-        infoex = self._pytango_attrinfoex
+        infoex = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         if low.magnitude != float('-inf'):
             infoex.alarms.min_warning = str(low.to(self._units).magnitude)
         else:
@@ -942,7 +950,7 @@ class TangoAttribute(TaurusAttribute):
         if high.unitless:
             high = Quantity(high.magnitude, self._units)
         TaurusAttribute.setAlarms(self, [low, high])
-        infoex = self._pytango_attrinfoex
+        infoex = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         if low.magnitude != float('-inf'):
             infoex.alarms.min_alarm = str(low.to(self._units).magnitude)
         else:
@@ -954,75 +962,76 @@ class TangoAttribute(TaurusAttribute):
         self._applyConfig()
 
     def _applyConfig(self):
-        config = self._pytango_attrinfoex
+        config = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         self.setConfigEx(config)
 
     def _decodeAttrInfoEx(self, pytango_attrinfoex=None):
         if pytango_attrinfoex is None:
-            self._pytango_attrinfoex = PyTango.AttributeInfoEx()
+            return
+
+        self._pytango_attrinfoex = i = pytango_attrinfoex
+
+        self.writable = i.writable != PyTango.AttrWriteType.READ
+        self._label = i.label
+        self.data_format = data_format_from_tango(i.data_format)
+        desc = description_from_tango(i.description)
+        if desc != "":
+            self._description = desc
+        self.type = data_type_from_tango(i.data_type)
+        ###############################################################
+        # changed in taurus4: range, alarm and warning now return
+        # quantities if appropriate
+        if self.isNumeric():
+            units = self._unit_from_tango(i.unit)
         else:
-            self._pytango_attrinfoex = i = pytango_attrinfoex
+            units = UR.parse_units(None)
 
-            self.writable = i.writable != PyTango.AttrWriteType.READ
-            self._label = i.label
-            self.data_format = data_format_from_tango(i.data_format)
-            desc = description_from_tango(i.description)
-            if desc != "":
-                self._description = desc
-            self.type = data_type_from_tango(i.data_type)
-            ###############################################################
-            # changed in taurus4: range, alarm and warning now return
-            # quantities if appropriate
-            if self.isNumeric():
-                units = self._unit_from_tango(i.unit)
-            else:
-                units = UR.parse_units(None)
+        if PyTango.is_numerical_type(i.data_type, inc_array=True):
+            Q_ = partial(quantity_from_tango_str, units=units,
+                         dtype=i.data_type)
+            ninf, inf = float('-inf'), float('inf')
+            min_value = Q_(i.min_value) or Quantity(ninf, units)
+            max_value = Q_(i.max_value) or Quantity(inf, units)
+            min_alarm = Q_(i.alarms.min_alarm) or Quantity(ninf, units)
+            max_alarm = Q_(i.alarms.max_alarm) or Quantity(inf, units)
+            min_warning = Q_(i.alarms.min_warning) or Quantity(ninf, units)
+            max_warning = Q_(i.alarms.max_warning) or Quantity(inf, units)
+            self._range = [min_value, max_value]
+            self._warning = [min_warning, max_warning]
+            self._alarm = [min_alarm, max_alarm]
 
-            if PyTango.is_numerical_type(i.data_type, inc_array=True):
-                Q_ = partial(quantity_from_tango_str, units=units,
-                             dtype=i.data_type)
-                ninf, inf = float('-inf'), float('inf')
-                min_value = Q_(i.min_value) or Quantity(ninf, units)
-                max_value = Q_(i.max_value) or Quantity(inf, units)
-                min_alarm = Q_(i.alarms.min_alarm) or Quantity(ninf, units)
-                max_alarm = Q_(i.alarms.max_alarm) or Quantity(inf, units)
-                min_warning = Q_(i.alarms.min_warning) or Quantity(ninf, units)
-                max_warning = Q_(i.alarms.max_warning) or Quantity(inf, units)
-                self._range = [min_value, max_value]
-                self._warning = [min_warning, max_warning]
-                self._alarm = [min_alarm, max_alarm]
-
-            ###############################################################
-            # The following members will be accessed via __getattr__
-            # self.standard_unit
-            # self.display_unit
-            # self.disp_level
-            ###############################################################
-            # Tango-specific extension of TaurusConfigValue
-            self.display_level = display_level_from_tango(i.disp_level)
-            self.tango_writable = i.writable
-            self.max_dim = i.max_dim_x, i.max_dim_y
-            ###############################################################
-            fmt = standard_display_format_from_tango(i.data_type, i.format)
-            self.format_spec = fmt.lstrip('%')  # format specifier
-            match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
-            if match:
-                self.precision = int(match.group(1))
-            # self._units and self._display_format is to be used by
-            # TangoAttrValue for performance reasons. Do not rely on it in other
-            # code
-            self._units = units
+        ###############################################################
+        # The following members will be accessed via __getattr__
+        # self.standard_unit
+        # self.display_unit
+        # self.disp_level
+        ###############################################################
+        # Tango-specific extension of TaurusConfigValue
+        self.display_level = display_level_from_tango(i.disp_level)
+        self.tango_writable = i.writable
+        self.max_dim = i.max_dim_x, i.max_dim_y
+        ###############################################################
+        fmt = standard_display_format_from_tango(i.data_type, i.format)
+        self.format_spec = fmt.lstrip('%')  # format specifier
+        match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
+        if match:
+            self.precision = int(match.group(1))
+        # self._units and self._display_format is to be used by
+        # TangoAttrValue for performance reasons. Do not rely on it in other
+        # code
+        self._units = units
 
     @property
     @deprecation_decorator(alt='format_spec or precision', rel='4.0.4')
     def format(self):
-        i = self._pytango_attrinfoex
+        i = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         return standard_display_format_from_tango(i.data_type, i.format)
 
     @property
     def _tango_data_type(self):
         '''returns the *tango* (not Taurus) data type'''
-        return self._pytango_attrinfoex.data_type
+        i = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
+        return i.data_type
 
     def _unit_from_tango(self, unit):
         # silently treat unit-not-defined as unitless
@@ -1156,7 +1165,16 @@ class TangoAttribute(TaurusAttribute):
         """Returns the current configuration of the attribute."""
         return weakref.proxy(self)
 
-    def getAttributeInfoEx(self):
+    def getAttributeInfoEx(self, cache=True):
+        if not cache:
+            try:
+                attr_name = self.getSimpleName()
+                attrinfoex = self.__dev_hw_obj.attribute_query(attr_name)
+                self._decodeAttrInfoEx(attrinfoex)
+            except Exception as e:
+                self.debug("Error getting attribute configuration: %s", e)
+                self.traceback()
+
         return self._pytango_attrinfoex
 
     @taurus4_deprecation(alt='.rvalue.units')
