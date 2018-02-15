@@ -1,3 +1,6 @@
+# Use old ubuntu image as a workarount to Tango DS launch problems
+group: deprecated-2017Q4
+
 language: python
 
 python:
@@ -22,14 +25,14 @@ matrix:
         - env: DOCKER_IMG=cpascual/taurus-test:debian-buster
 
 before_install:
-  - travis_wait docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus $DOCKER_IMG
+  - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus $DOCKER_IMG
   - sleep 10
   
 script:
   - python -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
   - set -e
   - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py install"
-  - travis_wait docker exec -t taurus-test /bin/bash -c "TAURUS_STARTER_WAIT=5 taurustestsuite -e 'taurus\.core\.util\.test\.test_timer'"
+  - docker exec -t taurus-test /bin/bash -c "TAURUS_STARTER_WAIT=5 taurustestsuite -e 'taurus\.core\.util\.test\.test_timer'"
   - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py build_sphinx"
   # deploy sphinx-built docs to taurus-doc repo
   - if [[ "$DOCKER_IMG" == "cpascual/taurus-test:debian-stretch" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
