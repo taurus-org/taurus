@@ -175,25 +175,25 @@ class TaurusAttributeControllerHelper(object):
 
 class TaurusScalarAttributeControllerHelper(TaurusAttributeControllerHelper):
 
-    def getDisplayValue(self, write=False):
+    def getDisplayValue(self, write=False, fragmentName=None):
         valueObj = self.valueObj()
         widget = self.widget()
         if valueObj is None or valueObj.rvalue is None:
-            return widget.getDisplayValue()
+            return widget.getDisplayValue(fragmentName=fragmentName)
 
         format = self.attrObj().data_format
         if format == DataFormat._0D:
-            return self._getDisplayValue(widget, valueObj, None, write)
+            return self._getDisplayValue(widget, valueObj, None, write, fragmentName)
 
         idx = widget.getModelIndexValue()
-        return self._getDisplayValue(widget, valueObj, idx, write)
+        return self._getDisplayValue(widget, valueObj, idx, write, fragmentName)
 
-    def _getDisplayValue(self, widget, valueObj, idx, write):
+    def _getDisplayValue(self, widget, valueObj, idx, write, fragmentName):
         try:
             if write:
                 value = valueObj.wvalue
             else:
-                value = valueObj.rvalue
+                value = widget.getModelFragmentObj(fragmentName)
             if idx is not None and len(idx):
                 for i in idx:
                     value = value[i]
@@ -246,14 +246,14 @@ class TaurusConfigurationControllerHelper(object):
             self._configParam = self.widget().modelFragmentName or ''
         return self._configParam
 
-    def getDisplayValue(self, write=False):
+    def getDisplayValue(self, write=False, fragmentName=None):
         widget = self.widget()
         model = self.configObj()
         if model is None:
             return widget.getNoneValue()
         param = self.configParam
         try:
-            val = widget.getModelFragmentObj()
+            val = widget.getModelFragmentObj(fragmentName)
             try:
                 no_val = getattr(model, "no_" + param)  # TODO: Tango-centric
                 if val.lower() == no_val.lower():
