@@ -48,6 +48,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.call__init__(TaurusBaseWritableWidget,
                           name, designMode=designMode)
         self._enableWheelEvent = False
+        self._last_value = None
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
@@ -58,7 +59,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.editingFinished.connect(self._onEditingFinished)
 
     def _updateValidator(self, value):
-        '''This method sets a validator depending on the data type'''
+        """This method sets a validator depending on the data type"""
         if isinstance(value.wvalue, Quantity):
             val = self.validator()
             if not isinstance(val, PintValidator):
@@ -81,8 +82,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             self.debug("Validator disabled")
 
     def __decimalDigits(self, fmt):
-        '''returns the number of decimal digits from a format string
-        (or None if they are not defined)'''
+        """returns the number of decimal digits from a format string
+        (or None if they are not defined)"""
         try:
             if fmt[-1].lower() in ['f', 'g'] and '.' in fmt:
                 return int(fmt[:-1].split('.')[-1])
@@ -92,7 +93,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return None
 
     def _onEditingFinished(self):
-        '''slot for performing autoapply only when edition is finished'''
+        """slot for performing autoapply only when edition is finished"""
         if self._autoApply:
             self.writeValue()
 
@@ -100,14 +101,30 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     # TaurusBaseWritableWidget overwriting
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     def notifyValueChanged(self, *args):
-        '''reimplement to avoid autoapply on every partial edition'''
+        """reimplement to avoid autoapply on every partial edition"""
         self.emitValueChanged()
 
     def handleEvent(self, evt_src, evt_type, evt_value):
+
+        # handle the case in which the line edit is not yet initialized
+        if self._last_value is None:
+            try:
+                self.getModelObj().read(cache=True)
+                frag_name = self.modelFragmentName or 'wvalue'
+                value = self.getModelFragmentObj(fragmentName=frag_name)
+                self.debug('Overwriting wvalue=None with %s' % (value))
+                self.setValue(value)
+                self.setEnabled(value is not None)
+            except Exception as e:
+                self.debug('Failed attempt to initialize value: %r', e)
+
+        self.setEnabled(evt_type != TaurusEventType.Error)
         if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self._updateValidator(evt_value)
         TaurusBaseWritableWidget.handleEvent(
             self, evt_src, evt_type, evt_value)
+        if evt_type == TaurusEventType.Error:
+            self.updateStyle()
 
     def isTextValid(self):
         """
@@ -122,17 +139,12 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         return val.validate(str(self.text()), 0)[0] == val.Acceptable
 
     def updateStyle(self):
+        """Reimplemented from :class:`TaurusBaseWritableWidget`"""
         TaurusBaseWritableWidget.updateStyle(self)
 
         value = self.getValue()
-        if value is None and self.hasPendingOperations():
-            try:
-                value = self.getModelValueObj().wvalue
-                self.setValue(value)
-            except:
-                value = None
-
-        if value is None or not self.isTextValid():
+        
+        if value is None or not self.isTextValid() or not self.isEnabled():
             # invalid value
             color, weight = 'gray', 'normal'
         else:
@@ -155,6 +167,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self.setStyleSheet(style)
 
     def wheelEvent(self, evt):
+        """Wheel event handler"""
         if not self.getEnableWheelEvent() or Qt.QLineEdit.isReadOnly(self):
             return Qt.QLineEdit.wheelEvent(self, evt)
         model = self.getModelObj()
@@ -172,6 +185,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self._stepBy(numSteps)
 
     def keyPressEvent(self, evt):
+        """Key press event handler"""
         if evt.key() in (Qt.Qt.Key_Return, Qt.Qt.Key_Enter):
             Qt.QLineEdit.keyPressEvent(self, evt)
             evt.accept()
@@ -229,6 +243,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         else:
             v_str = str(self.getDisplayValue(v))
         v_str = v_str.strip()
+        self._last_value = v
         self.setText(v_str)
 
     def getValue(self):
@@ -242,6 +257,10 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             model_format = model_obj.data_format
             if model_type in [DataType.Integer, DataType.Float]:
                 try:
+                    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    # workaround for https://github.com/hgrecco/pint/issues/614
+                    text = text.lstrip('0') or '0'
+                    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     q = Quantity(text)
                     # allow implicit units (assume wvalue.units implicitly)
                     if q.unitless:
@@ -263,8 +282,12 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 return bytes(text)
             else:
                 raise TypeError('Unsupported model type "%s"' % model_type)
-        except Exception, e:
-            self.warning('Cannot return value for "%s". Reason: %r', text, e)
+        except Exception as e:
+            msg = 'Cannot return value for "%s". Reason: %r'
+            if text in (str(None), self.getNoneValue()):
+                self.debug(msg, text, e)
+            else:
+                self.warning(msg, text, e)
             return None
 
     def setEnableWheelEvent(self, b):
