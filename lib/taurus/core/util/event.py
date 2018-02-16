@@ -48,8 +48,8 @@ class BoundMethodWeakref(object):
 
     def __init__(self, bound_method, del_cb=None):
         cb = (del_cb and self._deleted)
-        self.func_ref = weakref.ref(bound_method.__func__, cb)
-        self.obj_ref = weakref.ref(bound_method.__self__, cb)
+        self.func_ref = weakref.ref(bound_method.im_func, cb)
+        self.obj_ref = weakref.ref(bound_method.im_self, cb)
         if cb:
             self.del_cb = CallableRef(del_cb)
         self.already_deleted = 0
@@ -61,12 +61,12 @@ class BoundMethodWeakref(object):
                 del_cb(self)
                 self.already_deleted = 1
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self):
         obj = self.obj_ref()
         if obj is not None:
             func = self.func_ref()
             if func is not None:
-                return func(obj, *args, **kwargs)
+                return func.__get__(obj)
 
     def __hash__(self):
         return id(self)

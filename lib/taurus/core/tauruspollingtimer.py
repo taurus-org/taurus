@@ -30,11 +30,10 @@ __all__ = ["TaurusPollingTimer"]
 __docformat__ = "restructuredtext"
 
 import time
-import weakref
 import threading
 
 from .util.log import Logger, DebugIt
-from .util.containers import CaselessWeakValueDict
+from .util.containers import CaselessDict
 from .util.timer import Timer
 
 
@@ -98,9 +97,9 @@ class TaurusPollingTimer(Logger):
         attr_dict = self.dev_dict.get(dev)
         if attr_dict is None:
             if attribute.factory().caseSensitive:
-                self.dev_dict[dev] = attr_dict = weakref.WeakValueDictionary()
+                self.dev_dict[dev] = attr_dict = {}
             else:
-                self.dev_dict[dev] = attr_dict = CaselessWeakValueDict()
+                self.dev_dict[dev] = attr_dict = CaselessDict()
         if attr_name not in attr_dict:
             attr_dict[attr_name] = attribute
             self.attr_nb += 1
