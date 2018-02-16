@@ -249,7 +249,7 @@ class TaurusConfigurationControllerHelper(object):
     @property
     def configParam(self):
         if self._configParam is None:
-            self._configParam = self.widget().getModelFragmentName() or ''
+            self._configParam = self.widget().modelFragmentName or ''
         return self._configParam
 
     def getDisplayValue(self, write=False):

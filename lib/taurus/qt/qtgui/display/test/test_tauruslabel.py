@@ -101,6 +101,10 @@ testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
 @testOldFgroles(fgRole='none', expected='')
 # ------------------------------------------------------------------------------
 @insertTest(helper_name='text',
+            model='tango:' + DEV_NAME + '/double_spectrum',
+            modelIndex=1,
+            expected='1.23 mm')
+@insertTest(helper_name='text',
             model='tango:' + DEV_NAME + '/double_scalar#state',
             expected='Ready')
 @insertTest(helper_name='text',
@@ -138,11 +142,14 @@ class TaurusLabelTest2(TangoSchemeTestLauncher, BaseWidgetTestCase,
     '''
     _klass = TaurusLabel
 
-    def text(self, model=None, expected=None, fgRole=None, maxdepr=0):
-        '''Check that the label text'''
+    def text(self, model=None, expected=None, fgRole=None, maxdepr=0,
+             modelIndex=None):
+        """Check that the label text"""
         self._widget.setModel(model)
         if fgRole is not None:
             self._widget.setFgRole(fgRole)
+        if modelIndex is not None:
+            self._widget.setModelIndex(modelIndex)
         self.processEvents(repetitions=10, sleep=.1)
         got = str(self._widget.text())
         msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
