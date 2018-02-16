@@ -34,7 +34,9 @@ __docformat__ = 'restructuredtext'
 # register icon path files and icon theme on import of taurus.qt.qtgui
 import icon as __icon
 import os
+import sys
 import glob
+import pkg_resources
 from taurus import tauruscustomsettings as __S
 
 icon_dir = os.path.join(os.path.dirname(os.path.abspath(__icon.__file__)))
@@ -46,3 +48,15 @@ __icon.registerTheme(name=getattr(__S, 'QT_THEME_NAME', 'Tango'),
                      force=getattr(__S, 'QT_THEME_FORCE_ON_LINUX', False))
 
 del os, glob, __icon, icon_dir
+
+
+# Discover the taurus.qt.qtgui plugins
+plugins = {
+    entry_point.name: entry_point.load()
+    for entry_point in pkg_resources.iter_entry_points('taurus.qt.qtgui')
+}
+
+# Add plugins to the module
+for mod_name, mod in plugins.items():
+    setattr(sys.modules[__name__], mod_name, mod)
+
