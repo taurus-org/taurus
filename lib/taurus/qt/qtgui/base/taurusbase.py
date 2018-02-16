@@ -642,7 +642,9 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     def getModelIndexValue(self):
         """
-        Called inside getDisplayValue to use with spectrum attributes. By default not used, but some widget might want to support this feature.
+        Called inside getDisplayValue to use with spectrum attributes.
+        By default not used, but some widget might want to support this
+        feature.
 
         Override when needed.
         """
@@ -827,7 +829,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             return self.getNoneValue()
 
         idx = self.getModelIndexValue()
-        if v is not None and idx is not None and len(idx):
+        if v is not None and idx:
             for i in idx:
                 v = v[i]
 
