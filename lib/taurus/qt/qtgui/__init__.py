@@ -51,15 +51,13 @@ __icon.registerTheme(name=getattr(__S, 'QT_THEME_NAME', 'Tango'),
 # Note: this is an experimental feature introduced in v 4.3.0a
 # It may be removed or changed in future releases
 
-# Discover the taurus.qt.qtgui plugins 
-__plugins = {
-    __entry_point.name: __entry_point.load()
-    for __entry_point in pkg_resources.iter_entry_points('taurus.qt.qtgui')
-}
-# Add plugins to the module
-for __mod_name, __mod in __plugins.items():
-    setattr(sys.modules[__name__], __mod_name, __mod)
+# Discover the taurus.qt.qtgui plugins
+for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui'):
+    __mod = __p.load()
+    setattr(sys.modules[__name__], __p.name, __mod)
+    sys.modules['%s.%s' % (__name__, __p.name)] = __mod
+
 # ------------------------------------------------------------------------
     
-del os, glob, __icon, icon_dir, pkg_resources, sys
+del os, glob, __icon, icon_dir, pkg_resources, sys, __mod
 
