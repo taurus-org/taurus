@@ -38,6 +38,7 @@ import sys
 import glob
 import pkg_resources
 from taurus import tauruscustomsettings as __S
+from taurus import debug as __debug
 
 icon_dir = os.path.join(os.path.dirname(os.path.abspath(__icon.__file__)))
 # TODO: get .path file glob pattern from tauruscustomsettings
@@ -53,11 +54,18 @@ __icon.registerTheme(name=getattr(__S, 'QT_THEME_NAME', 'Tango'),
 
 # Discover the taurus.qt.qtgui plugins
 for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui'):
-    __mod = __p.load()
-    setattr(sys.modules[__name__], __p.name, __mod)
-    sys.modules['%s.%s' % (__name__, __p.name)] = __mod
+    try:
+        __modname = '%s.%s' % (__name__, __p.name)
+        __mod = __p.load()
+        # Add it to the current module
+        setattr(sys.modules[__name__], __p.name, __mod)
+        # Add it to sys.modules
+        sys.modules[__modname] = __mod
+        __debug('Plugin "%s" loaded as "%s"', __p.module_name, __modname)
+    except Exception as e:
+        __debug('Could not load plugin "%s". Reason: %s', __p.module_name, e)
 
 # ------------------------------------------------------------------------
     
-del os, glob, __icon, icon_dir, pkg_resources, sys, __mod
+del os, glob, __icon, icon_dir, pkg_resources, sys, __mod, __modname, __debug
 
