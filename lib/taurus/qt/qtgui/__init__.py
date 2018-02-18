@@ -53,6 +53,7 @@ __icon.registerTheme(name=getattr(__S, 'QT_THEME_NAME', 'Tango'),
 # It may be removed or changed in future releases
 
 # Discover the taurus.qt.qtgui plugins
+__mod = __modname = None
 for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui'):
     try:
         __modname = '%s.%s' % (__name__, __p.name)
