@@ -65,6 +65,22 @@ from .util.tango_taurus import (description_from_tango,
                                 data_type_from_tango)
 
 
+# Reimplementation of BoundMethodWeakref class to avoid to have a hard
+# reference in the event callbacks.
+# Related to "Keeping references to event callbacks after unsubscribe_event"
+# PyTango #185 issue.
+class __BoundMethodWeakrefWithCall(BoundMethodWeakref):
+
+    def __call__(self, *args, **kwargs):
+        """ Retrieve references and call callback with arguments
+        """
+        obj = self.obj_ref()
+        if obj is not None:
+            func = self.func_ref()
+            if func is not None:
+                return func(obj, *args, **kwargs)
+
+
 class TangoAttrValue(TaurusAttrValue):
     """A TaurusAttrValue specialization to decode PyTango.DeviceAttribute
     objects
@@ -665,7 +681,7 @@ class TangoAttribute(TaurusAttribute):
         # connects to self.push_event callback
         self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name, PyTango.EventType.CHANGE_EVENT,
-                BoundMethodWeakref(self.push_event), [], stateless)
+                __BoundMethodWeakrefWithCall(self.push_event), [], stateless)
         
         return self.__chg_evt_id
                 
@@ -716,7 +732,7 @@ class TangoAttribute(TaurusAttribute):
             self.__cfg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name,
                 PyTango.EventType.ATTR_CONF_EVENT,
-                BoundMethodWeakref(self.push_event), [], True)
+                __BoundMethodWeakrefWithCall(self.push_event), [], True)
         except PyTango.DevFailed as e:
             self.debug("Error trying to subscribe to CONFIGURATION events.")
             self.traceback()
