@@ -61,12 +61,12 @@ class BoundMethodWeakref(object):
                 del_cb(self)
                 self.already_deleted = 1
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self):
         obj = self.obj_ref()
         if obj is not None:
             func = self.func_ref()
             if func is not None:
-                return func(obj, *args, **kwargs)
+                return func.__get__(obj)
 
     def __hash__(self):
         return id(self)
