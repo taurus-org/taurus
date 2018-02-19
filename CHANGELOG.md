@@ -7,7 +7,7 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## Unreleased
+## [4.3.0] - 2018-02-2X
 ### Deprecated
 - taurus.core.tango.search
 - TaurusMainWindow's "Change Tango Host" action (#379)
@@ -23,7 +23,8 @@ develop branch) won't be reflected in this file.
 - State and event support in TangoSchemeTest DS (#628, #655)
 - Model info in widget tooltips (#640)
 - (experimental) Delayed event subscription API (#605, #593)
-- Support DevVoid in Tango to numpy type translation dicts (#666)
+- (experimental) Entry point for taurus.qt.qtgui extensions (#684)
+- Support DevVoid in Tango-to-numpy type translation dicts (#666)
 
 ### Changed
 - Treat unit="No unit" as unitless in Tango attributes (#662)
@@ -42,7 +43,7 @@ develop branch) won't be reflected in this file.
 - Missing icons in buttons (#583, #598)
 - Exception in TaurusCommandForm (#608)
 - Launchers not showing output on MS Windows (#644)
-- Various issues with input widgets (#623, #661, #650, #669, #651, #663)
+- Various issues with input widgets (#623, #661, #663, #669, #674, #681)
 - Regressions in:
   - TaurusTrend (#618)
   - TaurusGrid (#609)
