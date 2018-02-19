@@ -77,26 +77,19 @@ class _TaurusLedController(object):
         value = None
         if fgRole == 'rvalue':
             value = obj.rvalue
-            if type(value) == int:
-                value = bool(value)
         elif fgRole == 'wvalue':
             value = obj.wvalue
-            if type(value) == int:
-                value = bool(value)
         elif fgRole == 'quality':
             return obj.quality
 
         # handle 1D and 2D values
-        if obj.data_format == DataFormat._0D:
-            return value
+        if obj.data_format is not DataFormat._0D:
+            idx = widget.getModelIndexValue()
+            if idx:
+                for i in idx:
+                    value = value[i]
 
-        idx = widget.getModelIndexValue()
-        if idx is None or len(idx) == 0:
-            return value
-
-        for i in idx:
-            value = value[i]
-        return value
+        return bool(value)
 
     def usePreferedColor(self, widget):
         return True
