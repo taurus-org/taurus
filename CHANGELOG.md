@@ -25,6 +25,7 @@ develop branch) won't be reflected in this file.
 - (experimental) Delayed event subscription API (#605, #593)
 - (experimental) Entry point for taurus.qt.qtgui extensions (#684)
 - Support DevVoid in Tango-to-numpy type translation dicts (#666)
+- `removeLogHandler` method to `Logger` class (#691)
 
 ### Changed
 - Treat unit="No unit" as unitless in Tango attributes (#662)
