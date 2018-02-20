@@ -48,7 +48,11 @@ from taurus.core.taurusbasetypes import (TaurusEventType,
                                          SubscriptionState, TaurusAttrValue,
                                          DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
-from taurus.core.util.event import (EventListener, _BoundMethodWeakrefWithCall)
+from taurus.core.util.event import EventListener
+# -------------------------------------------------------------------------
+# TODO: remove this when PyTango's bug 185 is fixed
+from taurus.core.util.event import _BoundMethodWeakrefWithCall  
+# -------------------------------------------------------------------------
 from taurus.core.util.log import (debug, taurus4_deprecation,
                                   deprecation_decorator)
 
