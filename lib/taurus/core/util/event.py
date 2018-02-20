@@ -100,6 +100,22 @@ def CallableRef(object, del_cb=None):
     return weakref.ref(object, del_cb)
 
 
+# Reimplementation of BoundMethodWeakref class to avoid to have a hard
+# reference in the event callbacks.
+# Related to "Keeping references to event callbacks after unsubscribe_event"
+# PyTango #185 issue.
+class _BoundMethodWeakrefWithCall(BoundMethodWeakref):
+
+    def __call__(self, *args, **kwargs):
+        """ Retrieve references and call callback with arguments
+        """
+        obj = self.obj_ref()
+        if obj is not None:
+            func = self.func_ref()
+            if func is not None:
+                return func(obj, *args, **kwargs)
+
+
 class EventStack(object):
     "internal usage event stack"
 
