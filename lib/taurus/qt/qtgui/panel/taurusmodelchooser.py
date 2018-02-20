@@ -165,8 +165,12 @@ class TaurusModelChooser(TaurusWidget):
                             model. Otherwise (default) a list of models can be selected
         '''
         TaurusWidget.__init__(self, parent)
+
         if host is None:
-            host = taurus.Authority().getNormalName()
+            try:  # TODO: Tango-centric!
+                host = taurus.Factory('tango').getAuthority().getFullName()
+            except Exception as e:
+                taurus.info('Cannot populate Tango Tree: %r', e)
 
         self._allowDuplicates = False
 
@@ -296,7 +300,9 @@ class TaurusModelChooser(TaurusWidget):
         self.setSingleModelMode(self, False)
 
     @staticmethod
-    def modelChooserDlg(parent=None, selectables=None, host=None, asMimeData=False, singleModel=False, windowTitle='Model Chooser'):
+    def modelChooserDlg(parent=None, selectables=None, host=None, asMimeData=False,
+                        singleModel=False, windowTitle='Model Chooser',
+                        listedModels=None):
         '''Static method that launches a modal dialog containing a TaurusModelChooser
 
         :param parent: (QObject) parent for the dialog
@@ -322,6 +328,8 @@ class TaurusModelChooser(TaurusWidget):
         layout = Qt.QVBoxLayout()
         w = TaurusModelChooser(
             parent=parent, selectables=selectables, host=host, singleModel=singleModel)
+        if listedModels is not None:
+            w.setListedModels(listedModels)
         layout.addWidget(w)
         dlg.setLayout(layout)
         w.updateModels.connect(dlg.accept)
