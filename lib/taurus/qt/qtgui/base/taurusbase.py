@@ -640,6 +640,16 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             fragmentName = self.modelFragmentName
         return self.modelObj.getFragmentObj(fragmentName)
 
+    def getModelIndexValue(self):
+        """
+        Called inside getDisplayValue to use with spectrum attributes.
+        By default not used, but some widget might want to support this
+        feature.
+
+        Override when needed.
+        """
+        return None
+
     def getFormatedToolTip(self, cache=True):
         """Returns a string with contents to be displayed in a tooltip.
 
@@ -680,19 +690,23 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :function:`defaultFormatter`, which makes use of 
         :attribute:`defaultFormatDict`. 
  
-        In order to customize the formatting behaviour, one can change
-        :attribute:`defaultFormatDict` or :attribute:`FORMAT` directly
-        at class level, or use :method:`setFormat` to alter the 
-        format string of an specific instance
+        In order to customize the formatting behaviour, one can
+        use :method:`setFormat` to alter the formatter of an specific instance
+        (recommended) or change :attribute:`defaultFormatDict` or
+        :attribute:`FORMAT` directly at class level.
         
-        `FORMAT` can be set to a python format string [1] or a callable 
+        The formatter can be set to a python format string [1] or a callable
         that returns a python format string.
         If a callable is used, it will be called with the following 
         keyword arguments:
         - dtype: the data type of the value to be formatted
-        - basecomponent: the affected widget    
+        - basecomponent: the affected widget
   
         The following are some examples for customizing the formatting:
+
+        - Change the format for widget instance `foo`:
+
+            foo.setFormat("{:.2e}")
 
         - Change FORMAT for all widgets (using a string):
 
@@ -705,9 +719,13 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
             TaurusLabel.FORMAT = baseFormatter
 
-        - Use the defaultFormatter but modify the format string for dtype=str:
+        - Use the defaultFormatDict but modify the format string for dtype=str:
 
-            TaurusBaseComponent.defaultFormatDict.update({"str": "{!r}"})
+            TaurusLabel.defaultFormatDict.update({"str": "{!r}"})
+
+        .. seealso:: :attribute:`tauruscustomsettings.DEFAULT_FORMATTER`,
+                     `--default-formatter` option in :class:`TaurusApplication`,
+                     :meth:`TaurusBaseWidget.onSetFormatter`
 
         [1] https://docs.python.org/2/library/string.html
 
@@ -809,6 +827,11 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             v = self.getModelFragmentObj(fragmentName=fragmentName)
         except:
             return self.getNoneValue()
+
+        idx = self.getModelIndexValue()
+        if v is not None and idx:
+            for i in idx:
+                v = v[i]
 
         return self.displayValue(v)
 
@@ -1295,7 +1318,12 @@ class TaurusBaseWidget(TaurusBaseComponent):
         return None
 
     def onSetFormatter(self):
-        """ Slot to be called by setFormatter action"""
+        """Slot to allow interactive setting of the Formatter.
+
+        .. seealso:: :meth:`TaurusBaseWidget.showFormatterDlg`,
+                     :meth:`TaurusBaseComponent.displayValue`,
+                     :attribute:`tauruscustomsettings.DEFAULT_FORMATTER`
+        """
         format = self.showFormatterDlg()
         if format is not None:
             self.debug(
@@ -2060,6 +2088,21 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
         :return: (sequence<callable>)
         '''
         return []
+
+    def getDisplayValue(self, cache=True, fragmentName=None):
+        """Reimplemented from class:`TaurusBaseWidget`"""
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # The widgets inheriting from this class interact with
+        # writable models and therefore the fragmentName should fall back to 'wvalue' 
+        # instead of 'rvalue'. 
+        # But changing it now is delicate due to risk of introducing API
+        # incompatibilities for widgets already assuming the current default.
+        # So instead of reimplementing it here, the fix was constrained to 
+        # TaurusValueLineEdit.getDisplayValue()
+        # TODO: Consider reimplementing this to use wvalue by default
+        return TaurusBaseWidget.getDisplayValue(self, cache=cache,
+                                                fragmentName=fragmentName)
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     def getValue(self):
         '''

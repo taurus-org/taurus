@@ -34,8 +34,11 @@ __docformat__ = 'restructuredtext'
 # register icon path files and icon theme on import of taurus.qt.qtgui
 import icon as __icon
 import os
+import sys
 import glob
+import pkg_resources
 from taurus import tauruscustomsettings as __S
+from taurus import debug as __debug
 
 icon_dir = os.path.join(os.path.dirname(os.path.abspath(__icon.__file__)))
 # TODO: get .path file glob pattern from tauruscustomsettings
@@ -45,4 +48,25 @@ __icon.registerTheme(name=getattr(__S, 'QT_THEME_NAME', 'Tango'),
                      path=getattr(__S, 'QT_THEME_DIR', ''),
                      force=getattr(__S, 'QT_THEME_FORCE_ON_LINUX', False))
 
-del os, glob, __icon, icon_dir
+# ------------------------------------------------------------------------
+# Note: this is an experimental feature introduced in v 4.3.0a
+# It may be removed or changed in future releases
+
+# Discover the taurus.qt.qtgui plugins
+__mod = __modname = None
+for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui'):
+    try:
+        __modname = '%s.%s' % (__name__, __p.name)
+        __mod = __p.load()
+        # Add it to the current module
+        setattr(sys.modules[__name__], __p.name, __mod)
+        # Add it to sys.modules
+        sys.modules[__modname] = __mod
+        __debug('Plugin "%s" loaded as "%s"', __p.module_name, __modname)
+    except Exception as e:
+        __debug('Could not load plugin "%s". Reason: %s', __p.module_name, e)
+
+# ------------------------------------------------------------------------
+    
+del os, glob, __icon, icon_dir, pkg_resources, sys, __mod, __modname, __debug
+

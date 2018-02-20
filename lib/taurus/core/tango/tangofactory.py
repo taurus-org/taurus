@@ -185,12 +185,22 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         return self._default_tango_host
     
     def set_tango_subscribe_enabled(self,value):
-        """ If True, enables event subscribing on TangoAttribute objects 
+        """ If True, enables event subscribing on TangoAttribute objects
+
+        .. warning:: This method belongs to a "Delayed Event Subscription" API
+                 added in v.4.2.1-alpha as an *experimental* feature. This API
+                 may not be stable and/or it may be removed in a future release
+                 (even on a minor version change)
         """
         self._tango_subscribe_enabled = value
     
     def is_tango_subscribe_enabled(self):
         """ Returns the current tango_subscribe_enabled status
+
+        .. warning:: This method belongs to a "Delayed Event Subscription" API
+                 added in v.4.2.1-alpha as an *experimental* feature. This API
+                 may not be stable and/or it may be removed in a future release
+                 (even on a minor version change)
         """
         return self._tango_subscribe_enabled
 

@@ -290,7 +290,8 @@ class TaurusAttribute(TaurusModel):
 
     def getDisplayDescrObj(self, cache=True):
         name = self.getLabel(cache=cache)
-        obj = [('name', name)]
+        obj = [('name', name),
+               ('model', self.getFullName() or '')]
         descr = self.description
         if descr:
             _descr = descr.replace("<", "&lt;").replace(">", "&gt;")
