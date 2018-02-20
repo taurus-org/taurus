@@ -316,6 +316,8 @@ class TaurusModelChooser(TaurusWidget):
         :param singleModel: (bool) If True, the selection will be of just one
                             model. Otherwise (default) a list of models can be selected
         :param windowTitle: (str) Title of the dialog (default="Model Chooser")
+        :param listedModels: (list<str>) List of model names for initializing the 
+                             model list
 
         :return: (list,bool or QMimeData,bool) Returns a models,ok tuple. models can be
                  either a list of models or a QMimeData object, depending on
