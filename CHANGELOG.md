@@ -26,6 +26,7 @@ develop branch) won't be reflected in this file.
 - (experimental) Entry point for taurus.qt.qtgui extensions (#684)
 - Support DevVoid in Tango-to-numpy type translation dicts (#666)
 - `removeLogHandler` method to `Logger` class (#691)
+- modelChooserDlg static method now accepts listedModels arg (#693)
 
 ### Changed
 - Treat unit="No unit" as unitless in Tango attributes (#662)
@@ -49,6 +50,7 @@ develop branch) won't be reflected in this file.
   - TaurusTrend (#618)
   - TaurusGrid (#609)
   - TaurusGUI edit with `taurusgui --new-gui` (#532)
+- Epics scheme is now case sensitive (#694)
 - [Many other issues](https://github.com/taurus-org/taurus/issues?utf8=%E2%9C%93&q=milestone%3AJan18%20label%3Abug%20)
 
 ### Removed
