@@ -55,6 +55,7 @@
   <https://tools.ietf.org/html/rfc3986#section-3.3>)
 
 """
+from __future__ import absolute_import
 
 __all__ = ["TaurusFactory"]
 
@@ -62,12 +63,12 @@ __docformat__ = "restructuredtext"
 
 import atexit
 from weakref import WeakValueDictionary
-from taurusbasetypes import TaurusElementType
-from taurusauthority import TaurusAuthority
-from taurusdevice import TaurusDevice
-from taurusattribute import TaurusAttribute
-from taurusconfiguration import TaurusConfiguration, TaurusConfigurationProxy
-from taurusexception import TaurusException
+from .taurusbasetypes import TaurusElementType
+from .taurusauthority import TaurusAuthority
+from .taurusdevice import TaurusDevice
+from .taurusattribute import TaurusAttribute
+from .taurusconfiguration import TaurusConfiguration, TaurusConfigurationProxy
+from .taurusexception import TaurusException
 from taurus.core.tauruspollingtimer import TaurusPollingTimer
 
 
@@ -93,7 +94,7 @@ class TaurusFactory(object):
         self._devs = WeakValueDictionary()
         self._auths = WeakValueDictionary()
 
-        import taurusmanager
+        from . import taurusmanager
         manager = taurusmanager.TaurusManager()
         self._serialization_mode = manager.getSerializationMode()
 

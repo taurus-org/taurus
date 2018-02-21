@@ -33,6 +33,7 @@ The json implementation follows the rule:
     #. if python >= 2.6 use standard json from python distribution
     #. otherwise use private implementation distributed with taurus
 """
+from __future__ import absolute_import
 
 __docformat__ = "restructuredtext"
 
@@ -61,7 +62,7 @@ from .prop import *
 from .threadpool import *
 from .user import *
 
-import eventfilters
+from . import eventfilters
 
 try:
     from lxml import etree

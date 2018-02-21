@@ -23,6 +23,7 @@
 ##
 #############################################################################
 
+from __future__ import print_function
 import sys
 import operator
 
@@ -75,10 +76,10 @@ class TaurusDemoPanel(Qt.QWidget):
                 continue
             try:
                 self.addDemo(demo_func.__doc__, demo_func, group)
-            except Exception, e:
-                print 80 * "-"
-                print "Problems adding demo", demo_name
-                print e
+            except Exception as e:
+                print(80 * "-")
+                print("Problems adding demo", demo_name)
+                print(e)
 
     def addGroup(self, name):
         g = Qt.QGroupBox(name)
@@ -111,12 +112,12 @@ class TaurusDemoPanel(Qt.QWidget):
             dialog.setLayout(layout)
             layout.addWidget(w)
             dialog.exec_()
-        except Exception, e:
+        except Exception as e:
             if dialog is not None:
                 dialog.done(0)
                 dialog.hide()
                 dialog = None
-            print str(e)
+            print(str(e))
             return
             d = Qt.QErrorMessage()
             d.showMessage(str(e))

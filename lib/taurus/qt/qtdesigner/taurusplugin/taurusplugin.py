@@ -36,6 +36,7 @@
     - 'model' - will have a '...' button that will open a customized dialog for
       editing the widget model (same has 'Edit model...' task menu item
 """
+from __future__ import print_function
 
 import inspect
 
@@ -103,11 +104,11 @@ class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
                                                 designMode=True,
                                                 parent=parent)
             w = klass(*args, **kwargs)
-        except Exception, e:
+        except Exception as e:
             name = self._getWidgetClassName()
-            print 100 * "="
-            print "taurus designer plugin error creating %s: %s" % (name, str(e))
-            print 100 * "-"
+            print(100 * "=")
+            print("taurus designer plugin error creating %s: %s" % (name, str(e)))
+            print(100 * "-")
             import traceback
             traceback.print_exc()
             w = None

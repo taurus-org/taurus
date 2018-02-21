@@ -25,6 +25,8 @@
 '''
 Epics module. See __init__.py for more detailed documentation
 '''
+from __future__ import print_function
+from __future__ import absolute_import
 __all__ = ['EpicsAttribute']
 
 
@@ -233,12 +235,12 @@ class EpicsAttribute(TaurusAttribute):
 # ------------------------------------------------------------------------------
 
     def factory(self):
-        from epicsfactory import EpicsFactory
+        from .epicsfactory import EpicsFactory
         return EpicsFactory()
 
     @classmethod
     def getNameValidator(cls):
-        from epicsvalidator import EpicsAttributeNameValidator
+        from .epicsvalidator import EpicsAttributeNameValidator
         return EpicsAttributeNameValidator()
 
 
@@ -251,6 +253,6 @@ if __name__ == '__main__':
     b.write(4.)
     s.read()
 
-    print "!$!", s.read(cache=False)
-    print "a,b,s", a.read().rvalue, b.read().rvalue, s.read().rvalue
-    print "DF=", a.getDataFormat(), DataFormat.whatis(a.getDataFormat())
+    print("!$!", s.read(cache=False))
+    print("a,b,s", a.read().rvalue, b.read().rvalue, s.read().rvalue)
+    print("DF=", a.getDataFormat(), DataFormat.whatis(a.getDataFormat()))

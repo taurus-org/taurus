@@ -138,7 +138,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                 key = val[0]
             dict[key] = self.removeBranch(dict[key], path)
             if self._delete == True:
-                if not dict.has_key('__orderedConfigNames__'):
+                if '__orderedConfigNames__' not in dict:
                     return dict
                 dict['__orderedConfigNames__'] = self.removeBranch(
                     dict['__orderedConfigNames__'], path)
@@ -150,7 +150,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                     return dict
                 dict.remove(val[0])
                 return dict
-            if not dict.has_key('__orderedConfigNames__'):
+            if '__orderedConfigNames__' not in dict:
                 self._delete = True
             dict.pop(val[0])
             return dict
@@ -346,7 +346,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         if qstate is not None and not qstate.isNull():
             try:
                 result = pickle.loads(qstate.data())
-            except Exception, e:
+            except Exception as e:
                 msg = 'problems loading TaurusConfig: \n%s' % repr(e)
                 Qt.QMessageBox.critical(None, 'Error loading settings', msg)
         return result

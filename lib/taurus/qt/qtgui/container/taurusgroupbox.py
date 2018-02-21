@@ -24,13 +24,14 @@
 #############################################################################
 
 """This module provides basic taurus group box widget"""
+from __future__ import absolute_import
 
 __all__ = ["TaurusGroupBox"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
-from taurusbasecontainer import TaurusBaseContainer
+from .taurusbasecontainer import TaurusBaseContainer
 
 
 class TaurusGroupBox(Qt.QGroupBox, TaurusBaseContainer):

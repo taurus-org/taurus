@@ -25,6 +25,7 @@
 
 """DataExportDlg.py: A Qt dialog for showing and exporting x-y Ascii data from
 one or more curves"""
+from __future__ import print_function
 
 __all__ = ["QDataExportDialog"]
 
@@ -123,9 +124,9 @@ class QDataExportDialog(Qt.QDialog):
                 else:
                     for x,y in zip(xdata, ydata):
                         text+="%r\t%r\n" % (x, y)
-                print >> ofile, str(text)
+                print(str(text), file=ofile)
             else:
-                print >> ofile, str(self.dataTE.toPlainText())
+                print(str(self.dataTE.toPlainText()), file=ofile)
         except:
             Qt.QMessageBox.warning(self,
                                    "File saving failed",

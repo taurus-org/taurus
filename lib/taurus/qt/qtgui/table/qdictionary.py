@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module provides basic python dictionary/list editor widgets"""
+from __future__ import print_function
 
 __all__ = ["QDictionaryEditor", "QListEditor"]
 

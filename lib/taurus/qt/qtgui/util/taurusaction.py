@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module is designed to provide a library of taurus Qt actions"""
+from __future__ import absolute_import
 
 __all__ = ["ExternalAppAction",
            "TaurusMenu",
@@ -171,7 +172,7 @@ class TaurusMenu(Qt.QMenu):
         self.buildFromXML(m_node)
 
     def getActionFactory(self):
-        import taurusactionfactory
+        from . import taurusactionfactory
         return taurusactionfactory.ActionFactory()
 
     def buildFromXML(self, m_node):

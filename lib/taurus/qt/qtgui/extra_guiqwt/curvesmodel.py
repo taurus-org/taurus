@@ -26,6 +26,7 @@
 """
 curvesmodel Model and view for new CurveItem configuration
 """
+from __future__ import print_function
 __all__ = ['TaurusCurveItemTableModel', 'CurveItemConf', 'CurveItemConfDlg']
 #raise UnimplementedError('Under Construction!')
 
@@ -108,7 +109,7 @@ class CurveItemConf(object):
         self.taurusparam = taurusparam
         if curveparam is None:
             curveparam = CurveParam()
-            style = make.style.next()  # cycle through colors and linestyles
+            style = next(make.style)  # cycle through colors and linestyles
             update_style_attr(style, curveparam)
             curveparam.line.width = 2
         self.curveparam = curveparam
@@ -488,7 +489,7 @@ class CurveItemConfDlg(Qt.QWidget):
         self.applied.emit()
 
     def onReload(self):
-        print "RELOAD!!! (todo)"
+        print("RELOAD!!! (todo)")
 
 
 #

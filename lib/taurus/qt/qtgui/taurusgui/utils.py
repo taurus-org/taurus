@@ -387,7 +387,7 @@ class PanelDescription(TaurusGuiComponentDescription):
             # if model is a sequence, convert to space-separated string
             try:
                 model = " ".join(model)
-            except Exception, e:
+            except Exception as e:
                 msg = ('Cannot convert %s to a space-separated string: %s' %
                        (model, e))
                 Logger().debug(msg)

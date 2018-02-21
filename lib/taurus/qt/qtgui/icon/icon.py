@@ -135,7 +135,7 @@ def registerPathFiles(pathfilenames):
     for filename in pathfilenames:
         try:
             pathmap = json.load(open(filename))
-        except Exception, e:
+        except Exception as e:
             __LOGGER.error('Error registering "%s": %r', filename, e)
             pathmap = []
 

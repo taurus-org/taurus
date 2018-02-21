@@ -170,7 +170,7 @@ class Properties(object):
             # same property
             while line[-1] == '\\':
                 # Read next line
-                nextline = i.next()
+                nextline = next(i)
                 nextline = nextline.strip()
                 lineno += 1
                 # This line will become part of the value
@@ -216,7 +216,7 @@ class Properties(object):
         self._props[key] = value.strip()
 
         # Check if an entry exists in pristine keys
-        if self._keymap.has_key(key):
+        if key in self._keymap:
             oldkey = self._keymap.get(key)
             self._origprops[oldkey] = oldvalue.strip()
         else:
@@ -247,15 +247,15 @@ class Properties(object):
 
         # For the time being only accept file input streams
         if type(stream) is not file:
-            raise TypeError, 'Argument should be a file object!'
+            raise TypeError('Argument should be a file object!')
         # Check for the opened mode
         if stream.mode != 'r':
-            raise ValueError, 'Stream should be opened in read-only mode!'
+            raise ValueError('Stream should be opened in read-only mode!')
 
         try:
             lines = stream.readlines()
             self.__parse(lines)
-        except IOError, e:
+        except IOError as e:
             raise
 
     def getProperty(self, key):
@@ -269,7 +269,7 @@ class Properties(object):
         if type(key) is str and type(value) is str:
             self.processPair(key, value)
         else:
-            raise TypeError, 'both key and value should be strings!'
+            raise TypeError('both key and value should be strings!')
 
     def propertyNames(self):
         """ Return an iterator over all the keys of the property
@@ -290,7 +290,7 @@ class Properties(object):
         with the optional 'header' """
 
         if out.mode[0] != 'w':
-            raise ValueError, 'Steam should be opened in write mode!'
+            raise ValueError('Steam should be opened in write mode!')
 
         try:
             out.write(''.join(('#', header, '\n')))
@@ -302,7 +302,7 @@ class Properties(object):
                 out.write(''.join((prop, '=', self.escape(val), '\n')))
 
             out.close()
-        except IOError, e:
+        except IOError as e:
             raise
 
     def getPropertyDict(self):

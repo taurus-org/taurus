@@ -24,6 +24,7 @@
 #############################################################################
 
 """ """
+from functools import reduce
 
 __all__ = ["Table"]
 
@@ -64,7 +65,7 @@ class Table:
         if row_head_str is not None and len(row_head_str) != self.nr_row:
             msg = 'RowHeadStr nr (%d) and RowNr (%d) mistmatch' % \
                   (len(row_head_str), self.nr_row)
-            raise ValueError, msg
+            raise ValueError(msg)
         if row_head_width is None:
             if row_head_str is not None:
                 row_head_width = max_len_fn(row_head_str)
@@ -77,7 +78,7 @@ class Table:
         if col_head_str is not None and len(col_head_str) != self.nr_col:
             msg = 'ColHeadStr nr (%d) and ColNr (%d) mistmatch' % \
                   len(col_head_str), self.nr_col
-            raise ValueError, msg
+            raise ValueError(msg)
         if col_head_width is None:
             if col_head_str is not None:
                 col_head_width = reduce(max, map(max_len_fn, col_head_str))

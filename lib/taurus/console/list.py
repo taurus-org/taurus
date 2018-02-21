@@ -24,6 +24,7 @@
 #############################################################################
 
 """ """
+from __future__ import absolute_import
 
 __all__ = ["List"]
 
@@ -32,7 +33,7 @@ __docformat__ = "restructuredtext"
 import textwrap
 import operator
 
-from enums import Alignment
+from .enums import Alignment
 
 
 class List(list):

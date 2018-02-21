@@ -56,7 +56,7 @@ from taurus.core.taurusbasetypes import TaurusAttrValue
                                 error=None,
                                 )
             )
-@unittest.skipIf(sys.modules.has_key('epics') is False,
+@unittest.skipIf(('epics' in sys.modules) is False,
                  "epics module is not available")
 class AttributeTestCase(unittest.TestCase):
     """TestCase for the taurus.Attribute helper"""

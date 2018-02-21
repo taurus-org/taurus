@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module contains the graphics view widget for jdraw files"""
+from __future__ import absolute_import
 
 __all__ = ["TaurusJDrawSynopticsView"]
 
@@ -39,7 +40,7 @@ from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsI
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 
-import jdraw_parser
+from . import jdraw_parser
 
 
 class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
@@ -268,7 +269,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         # self.fitting()
 
     def getGraphicsFactory(self, delayed=False):
-        import jdraw
+        from . import jdraw
         # self.parent())
         return jdraw.TaurusJDrawGraphicsFactory(self, alias=(self.alias or None), delayed=delayed)
 

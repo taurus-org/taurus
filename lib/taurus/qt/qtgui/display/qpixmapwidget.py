@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module contains a pure Qt widget that displays an image"""
+from __future__ import absolute_import
 
 __all__ = ["QPixmapWidget"]
 
@@ -225,8 +226,9 @@ class QPixmapWidget(Qt.QWidget):
 
 def demo():
     "QPixmap Widget"
-    import demo.qpixmapwidgetdemo
-    return demo.qpixmapwidgetdemo.main()
+    from .demo import qpixmapwidgetdemo # after futurize stage1
+    return qpixmapwidgetdemo.main()
+
 
 
 def main():

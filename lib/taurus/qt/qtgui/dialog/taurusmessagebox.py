@@ -334,7 +334,7 @@ def py_tg_serv_exc():
     try:
         PyTango.Except.throw_exception('TangoException',
                                        'A simple tango exception', 'right here')
-    except PyTango.DevFailed, df1:
+    except PyTango.DevFailed as df1:
         try:
             import traceback
             import StringIO

@@ -125,7 +125,7 @@ def get_device_for_alias(alias):
     db = taurus.Authority()
     try:
         return db.get_device_alias(alias)
-    except Exception, e:
+    except Exception as e:
         if 'no device found' in str(e).lower():
             return None
         return None  # raise e
@@ -137,7 +137,7 @@ def get_alias_for_device(dev):
         # .get_database_device().DbGetDeviceAlias(dev)
         result = db.get_alias(dev)
         return result
-    except Exception, e:
+    except Exception as e:
         if 'no alias found' in str(e).lower():
             return None
         return None  # raise e

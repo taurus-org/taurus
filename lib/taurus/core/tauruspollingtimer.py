@@ -75,7 +75,7 @@ class TaurusPollingTimer(Logger):
         self.lock.acquire()
         try:
             attr_dict = self.dev_dict.get(dev)
-            return attr_dict and attr_dict.has_key(attr_name)
+            return attr_dict and attr_name in attr_dict
         finally:
             self.lock.release()
 

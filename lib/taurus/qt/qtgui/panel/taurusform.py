@@ -24,6 +24,8 @@
 #############################################################################
 
 """This module contains taurus Qt form widgets"""
+from __future__ import print_function
+from __future__ import absolute_import
 
 __all__ = ["TaurusAttrForm", "TaurusCommandsForm", "TaurusForm"]
 
@@ -40,7 +42,7 @@ from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_T
                                         TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_MODEL_MIME_TYPE)
 from taurus.qt.qtgui.container import TaurusWidget, TaurusScrollArea
 from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
-from taurusmodelchooser import TaurusModelChooser
+from .taurusmodelchooser import TaurusModelChooser
 
 
 class ParameterCB(Qt.QComboBox):
@@ -979,7 +981,7 @@ def test4():
     class DummyCW(TaurusValue):
 
         def setModel(self, model):
-            print "!!!!! IN DUMMYCW.SETMODEL", model
+            print("!!!!! IN DUMMYCW.SETMODEL", model)
             TaurusValue.setModel(self, model + '/double_scalar')
 
     models = ['sys/database/2', 'sys/tg_test/1', 'sys/tg_test/1/short_spectrum',

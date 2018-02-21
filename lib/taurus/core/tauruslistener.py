@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module contains the taurus base listeners classes"""
+from __future__ import print_function
 
 __all__ = ["TaurusListener", "TaurusExceptionListener"]
 
@@ -70,4 +71,4 @@ class TaurusExceptionListener(object):
         self._printException(exception)
 
     def _printException(self, exception):
-        print self.__class__.__name__, "received", exception.__class__.__name__, str(exception)
+        print(self.__class__.__name__, "received", exception.__class__.__name__, str(exception))

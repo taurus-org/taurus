@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module is designed to provide a factory class for taurus Qt actions """
+from __future__ import absolute_import
 
 __all__ = ["ActionFactory"]
 
@@ -33,7 +34,7 @@ from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 from taurus.external.qt import Qt
 
-import taurusaction
+from . import taurusaction
 
 
 class ActionFactory(Singleton, Logger):

@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module provides a set of dialog based widgets"""
+from __future__ import print_function
 
 __all__ = ["TaurusInputDialog", "get_input"]
 
@@ -199,7 +200,7 @@ def main():
               data_type='Text', key="Memo", default_value="By default a memo is\na long thing")
 
     for d in [d1, d2, d3, d4, d5, d6, d7, d8]:
-        print get_input(input_data=d, title=d['prompt'])
+        print(get_input(input_data=d, title=d['prompt']))
 
 if __name__ == "__main__":
     main()

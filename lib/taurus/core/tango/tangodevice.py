@@ -201,7 +201,7 @@ class TangoDevice(TaurusDevice):
     def _createHWObject(self):
         try:
             return DeviceProxy(self.getFullName())
-        except DevFailed, e:
+        except DevFailed as e:
             self.warning('Could not create HW object: %s' % (e[0].desc))
             self.traceback()
 

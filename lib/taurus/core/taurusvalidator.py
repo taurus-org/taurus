@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module contains the base taurus name validator classes"""
+from __future__ import print_function
 
 
 __all__ = ["TaurusAuthorityNameValidator", "TaurusDeviceNameValidator",
@@ -313,5 +314,5 @@ if __name__ == '__main__':
 
     v = FooAttributeNameValidator()
     name = 'foo://bar#label'
-    print v.isValid(name)
-    print v.getUriGroups(name)
+    print(v.isValid(name))
+    print(v.getUriGroups(name))

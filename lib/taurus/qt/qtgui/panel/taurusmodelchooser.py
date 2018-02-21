@@ -26,6 +26,8 @@
 """
 AttributeChooser.py: widget for choosing (a list of) attributes from a tango DB
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 __all__ = ["TaurusModelSelectorTree", "TaurusModelChooser"]
 
@@ -35,7 +37,7 @@ import taurus.core
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.tree import TaurusDbTreeWidget
 from taurus.core.util.containers import CaselessList
-from taurusmodellist import TaurusModelList
+from .taurusmodellist import TaurusModelList
 
 
 class TaurusModelSelectorTree(TaurusWidget):
@@ -358,7 +360,7 @@ def main(args):
         host = None
 
     app = Qt.QApplication(args)
-    print TaurusModelChooser.modelChooserDlg(host=host)
+    print(TaurusModelChooser.modelChooserDlg(host=host))
     sys.exit()
 
 if __name__ == "__main__":

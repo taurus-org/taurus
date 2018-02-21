@@ -36,6 +36,7 @@
     - 'model' - will have a '...' button that will open a customized dialog for
       editing the widget model (same has 'Edit model...' task menu item
 """
+from __future__ import absolute_import
 
 from taurus.core.util.log import Logger
 from taurus.external.qt import Qt
@@ -105,7 +106,8 @@ class QGroupWidgetExtensionFactory(QtDesigner.QExtensionFactory):
 
 
 def create_plugin():
-    from taurusplugin.taurusplugin import TaurusWidgetPlugin
+    #from .taurusplugin.taurusplugin import TaurusWidgetPlugin # - after futurize stage1
+    from taurusplugin.taurusplugin import TaurusWidgetPlugin # + after futurize stage1
 
     class QGroupWidgetPlugin(TaurusWidgetPlugin):
 

@@ -98,7 +98,7 @@ class QLed(QPixmapWidget):
         :type  color: str
         :return: True is the given color name is valid or False otherwise
         :rtype: bool"""
-        return LedColor.has_key(name.upper())
+        return name.upper() in LedColor
 
     def _refresh(self):
         """internal usage only"""

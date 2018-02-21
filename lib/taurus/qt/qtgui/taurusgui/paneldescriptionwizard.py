@@ -23,6 +23,7 @@
 ##
 ###########################################################################
 
+from __future__ import print_function
 __all__ = ["PanelDescriptionWizard"]
 """
 paneldescriptionwizard.py:
@@ -99,7 +100,7 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
             # We use this because __import__('x.y') returns x instead of y !!
             self.module = sys.modules[modulename]
             self.moduleNameLE.setStyleSheet('QLineEdit {color: green}')
-        except Exception, e:
+        except Exception as e:
             Logger().debug(repr(e))
             self.moduleNameLE.setStyleSheet('QLineEdit {color: red}')
             return
@@ -129,7 +130,7 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
             membername = str(self.membersCB.currentText())
             member = getattr(self.module, membername, None)
             result = {'modulename': self.module.__name__}
-        except Exception, e:
+        except Exception as e:
             Logger().debug('Cannot get member description: %s', repr(e))
             return None
         if inspect.isclass(member):
@@ -307,7 +308,7 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
             paneldesc.name = Qt.from_qvariant(self.field('panelname'), str)
             # allow the wizard to proceed
             return True
-        except Exception, e:
+        except Exception as e:
             Qt.QMessageBox.warning(
                 self, 'Invalid panel', 'The requested panel cannot be created. \nReason:\n%s' % repr(e))
             return False
@@ -406,7 +407,7 @@ class AdvSettingsPage(Qt.QWizardPage):
     def initializePage(self):
         try:
             widget = self.wizard().getPanelDescription().getWidget()
-        except Exception, e:
+        except Exception as e:
             Logger().debug(repr(e))
             widget = None
         # prevent the user from changing the model if it was already set
@@ -417,7 +418,7 @@ class AdvSettingsPage(Qt.QWizardPage):
         try:
             if isinstance(Qt.qApp.SDM, SharedDataManager):
                 sdm = Qt.qApp.SDM
-        except Exception, e:
+        except Exception as e:
             Logger().debug(repr(e))
             sdm = None
         #@todo set selection filter in modelChooser based on the widget's modelclass
@@ -652,7 +653,7 @@ def test():
     form = PanelDescriptionWizard()
 
     def kk(d):
-        print d
+        print(d)
     Qt.qApp.SDM = SharedDataManager(form)
     Qt.qApp.SDM.connectReader('111111', kk)
     Qt.qApp.SDM.connectWriter('222222', form, 'thisisasignalname')
@@ -664,7 +665,7 @@ def test():
 def test2():
     from taurus.qt.qtgui.application import TaurusApplication
     app = TaurusApplication(sys.argv)
-    print ExpertWidgetChooserDlg.getDialog()
+    print(ExpertWidgetChooserDlg.getDialog())
     sys.exit()
 
 
@@ -675,7 +676,7 @@ def main():
     form = Qt.QMainWindow()
 
     def kk(d):
-        print d
+        print(d)
     Qt.qApp.SDM = SharedDataManager(form)
     Qt.qApp.SDM.connectReader('someUID', kk)
     Qt.qApp.SDM.connectWriter('anotherUID', form, 'thisisasignalname')
@@ -688,7 +689,7 @@ def main():
         w = paneldesc.getWidget(sdm=Qt.qApp.SDM)
         form.setCentralWidget(w)
         form.setWindowTitle(paneldesc.name)
-    print Qt.qApp.SDM.info()
+    print(Qt.qApp.SDM.info())
 
     sys.exit(app.exec_())
 

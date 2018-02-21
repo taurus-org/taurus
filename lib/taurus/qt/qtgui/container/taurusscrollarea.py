@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module provides basic taurus scroll area widget"""
+from __future__ import absolute_import
 
 __all__ = ["TaurusScrollArea"]
 
@@ -32,7 +33,7 @@ __docformat__ = 'restructuredtext'
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 
-from taurusbasecontainer import TaurusBaseContainer
+from .taurusbasecontainer import TaurusBaseContainer
 
 
 class TaurusScrollArea(Qt.QScrollArea, TaurusBaseContainer):

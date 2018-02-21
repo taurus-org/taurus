@@ -49,14 +49,15 @@ configuration options (in case of conflict, the options set in `config.py`
 prevail).
 
 """
+from __future__ import absolute_import
 
 __docformat__ = 'restructuredtext'
 
-import utils
-from paneldescriptionwizard import *
-from taurusgui import *
-from appsettingswizard import *
+from . import utils
+from .paneldescriptionwizard import *
+from .taurusgui import *
+from .appsettingswizard import *
 try:
-    from macrolistener import *
+    from .macrolistener import *
 except ImportError:
     pass  # allow for sardana not being installed

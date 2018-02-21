@@ -36,6 +36,7 @@
 the API of a python module with sphinx'''
 
 from __future__ import with_statement
+from __future__ import print_function
 
 import os
 import sys
@@ -268,11 +269,11 @@ def guess_submodules_from_package(module_name, exclude=(), include=()):
             continue
         # check if the module is indeed importable
         try:
-            print name
+            print(name)
             _import(name)
             full_module_names.append(name)
         except:
-            print '!'
+            print('!')
             pass
     return full_module_names
 
@@ -338,7 +339,7 @@ def build_mocks_for_taurus(output='mock.zip'):
     if zfile:
         _zipdir(outdir, zfile)  # compress the dir into the zip file
         shutil.rmtree(outdir)  # delete the dir
-    print '\nMocks written in %s' % output
+    print('\nMocks written in %s' % output)
 
 
 if __name__ == "__main__":

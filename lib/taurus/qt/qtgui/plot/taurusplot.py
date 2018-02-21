@@ -26,6 +26,8 @@
 """
 taurusplot.py: Generic graphical plotting widget for Taurus
 """
+from __future__ import print_function
+from __future__ import absolute_import
 __all__ = ["TaurusCurve", "TaurusCurveMarker",
            "TaurusXValues", "TaurusPlot", "isodatestr2float"]
 
@@ -48,7 +50,7 @@ from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.plot import TaurusPlotConfigDialog, FancyScaleDraw,\
     DateTimeScaleEngine, FixedLabelsScaleEngine, FixedLabelsScaleDraw
-from curvesAppearanceChooserDlg import CurveAppearanceProperties
+from .curvesAppearanceChooserDlg import CurveAppearanceProperties
 
 
 def isodatestr2float(s, sep='_'):
@@ -535,7 +537,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
         '''
         if self.isRawData:
             #self.warning('fireEvent of a RawData curve has been called by %s'%repr(self.sender()))
-            raise StandardError('called handleEvent of a RawData curve')
+            raise Exception('called handleEvent of a RawData curve')
             return
         model = src if src is not None else self.getModelObj()
         if model is None:
@@ -554,7 +556,7 @@ class TaurusCurve(Qwt5.QwtPlotCurve, TaurusBaseComponent):
             return
         try:
             self.setXYFromModel(value)
-        except Exception, e:
+        except Exception as e:
             self._onDroppedEvent(reason=str(e))
             return
         self._updateMarkers()
@@ -1457,7 +1459,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def __debug(self, *args, **kwargs):
         '''put code here that you want to debug'''
-        print "!!!!!!!!!!!!!!!1", self.pos()
+        print("!!!!!!!!!!!!!!!1", self.pos())
         Qt.QToolTip.showText(self.mapToGlobal(self.pos()),
                              "ASDASDASDASD DASDAS ASDA", self)
 
@@ -1568,7 +1570,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         TaurusPlot.getPlot()'''
         self.info(
             'DEPRECATION WARNING!: Calling TaurusPlot.getPlot() is deprecated. Use the TaurusPlot object itself instead')
-        print self.sender()
+        print(self.sender())
         return self
 
     def getCurve(self, name):
@@ -1807,11 +1809,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             properties = CurveAppearanceProperties(
                 lColor=self._curvePens.next().color(), lWidth=2)
         # Deprecation Warning:
-        if rawdata.has_key("pen") or rawdata.has_key("style"):
+        if "pen" in rawdata or "style" in rawdata:
             raise DeprecationWarning(
                 "'pen' or 'style' are no longer supported. Use the properties parameter instead")
-        if rawdata.has_key("name"):
-            if rawdata.has_key("title"):
+        if "name" in rawdata:
+            if "title" in rawdata:
                 self.error(
                     'Inconsistence: both "name" and "title" passed for rawdata. Use "title" only')
             else:
@@ -1861,7 +1863,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             name = id
         self.curves_lock.acquire()
         try:
-            if self.curves.has_key(name):
+            if name in self.curves:
                 curve = self.curves.get(name)
                 if curve.isRawData:
                     self.detachRawData(name)
@@ -1942,7 +1944,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         self.curves_lock.acquire()
         try:
-            if self.curves.has_key(curvename):
+            if curvename in self.curves:
                 data = self.curves[curvename].data()
                 x = [data.x(i) for i in xrange(data.size())]
                 y = [data.y(i) for i in xrange(data.size())]
@@ -1992,7 +1994,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 xname = xnames[i]
                 name = str(name)
                 self.debug('updating curve %s' % name)
-                if not self.curves.has_key(name):
+                if name not in self.curves:
                     curve = TaurusCurve(name, xname, self,
                                         optimized=self.isOptimizationEnabled())
                     curve.attach(self)
@@ -2003,7 +2005,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                         curve.attachMaxMarker(self)
                     if self._showMinPeaks:
                         curve.attachMinMarker(self)
-                    curve.setPen(self._curvePens.next())
+                    curve.setPen(next(self._curvePens))
                     curve.setUseParentModel(self.getUseParentModel())
                     curve.setTitleText(self.getDefaultCurvesTitle())
                     curve.registerDataChanged(self, self.curveDataChanged)
@@ -2399,7 +2401,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                     rawdatadict[name] = curve.getRawData()
                 else:
                     tangodict[name] = curve.getModel()
-        except Exception, e:
+        except Exception as e:
             self.error(
                 'Exception while gathering curves configuration info' + str(e))
         finally:
@@ -2889,8 +2891,8 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         :param axis: (Qwt5.QwtPlot.Axis) the axis
         """
         if not Qwt5.QwtPlot.axisValid(axis):
-            raise ValueError, "TaurusPlot::setCurvesYAxis. Invalid axis ID: " + \
-                repr(axis)
+            raise ValueError("TaurusPlot::setCurvesYAxis. Invalid axis ID: " + \
+                repr(axis))
         self.curves_lock.acquire()
         try:
             for curveName in curvesNamesList:
@@ -3725,12 +3727,12 @@ def main():
 
         def exportIfAllCurves(curve, trend=w, counters=curves):
             curve = str(curve)
-            print '*' * 10 + ' %s: Event received for %s  ' % (datetime.now().isoformat(), curve) + '*' * 10
+            print('*' * 10 + ' %s: Event received for %s  ' % (datetime.now().isoformat(), curve) + '*' * 10)
             if curve in counters:
                 counters[curve] += 1
                 if all(counters.values()):
                     trend.exportPdf(options.export_file)
-                    print '*' * 10 + ' %s: Exported to : %s  ' % (datetime.now().isoformat(), options.export_file) + '*' * 10
+                    print('*' * 10 + ' %s: Exported to : %s  ' % (datetime.now().isoformat(), options.export_file) + '*' * 10)
                     trend.close()
             return
         if not curves:

@@ -26,6 +26,7 @@
 """
 qsevensegmentdisplay.py
 """
+from __future__ import print_function
 
 __all__ = ['Q7SegDigit']
 
@@ -574,7 +575,7 @@ def main2():
     dw = Q7SegDigit()
     dw.setValue(int(sys.argv[1]))
     dw.setVisible(True)
-    print dw
+    print(dw)
     a.exec_()
 
 

@@ -24,6 +24,7 @@
 
 
 """Taurus import tests"""
+from __future__ import absolute_import
 
 from taurus.external import unittest
 
@@ -36,7 +37,7 @@ class TaurusImportTestCase(unittest.TestCase):
 
     def setUp(self):
         """Preconditions: moduleexplorer utility has to be available """
-        from moduleexplorer import ModuleExplorer
+        from .moduleexplorer import ModuleExplorer
         self.explore = ModuleExplorer.explore
 
     def testImportSubmodules(self):

@@ -29,6 +29,7 @@ original idea and development by gcuni
 integrated with taurus and regular expressions by srubio
 alba, 2009
 """
+from __future__ import print_function
 
 # This module needs a total cleanup. Both re. code conventions and algorithms.
 #   --cpascual 20140827
@@ -128,7 +129,7 @@ def get_all_models(expressions, limit=1000):
                                  taurus_dp.attribute_list_query(
                                  ) if re_match_low(attribute, att.name)]
                         targets.extend(dev + '/' + att for att in attrs)
-                    except Exception, e:
+                    except Exception as e:
                         # self.warning( 'ERROR! TaurusGrid.get_all_models(): Unable to get attributes for device %s: %s' % (dev,str(e)))
                         pass
                 else:
@@ -195,7 +196,7 @@ def get_readwrite_models(expressions, limit=1000):
                                  ) if re_match_low(attribute,
                                                    att.name) and att.isReadOnly()]
                         targets.extend(dev + '/' + att for att in attrs)
-                    except Exception, e:
+                    except Exception as e:
                         pass
                 else:
                     targets.append(dev + '/' + attribute)
@@ -494,7 +495,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     else:
                         # print 'In setModel(): Thread already started! (%d
                         # objs in queue)'%(self.modelsThread.queue.qsize())
-                        self.modelsThread.next()
+                        next(self.modelsThread)
                 else:
                     self.trace('In setModel(): models loading delayed!')
                     pass
@@ -526,7 +527,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             try:
                 labels = eval(text)
                 return labels
-            except Exception, e:
+            except Exception as e:
                 self.warning(
                     'ERROR! Unable to parse labels property: %s' % str(e))
                 return []
@@ -546,7 +547,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                 section = self.rows[i]
                 self.table.setVerticalHeaderItem(
                     i, QtGui.QTableWidgetItem(section))
-        except Exception, e:
+        except Exception as e:
             self.debug("setRowLabels(): Exception! %s" % e)
             # self.create_widgets_table(self._columnsNames)
 
@@ -567,7 +568,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                 equipment = self.columns[i]
                 self.table.setHorizontalHeaderItem(
                     i, QtGui.QTableWidgetItem(equipment))
-        except Exception, e:
+        except Exception as e:
             self.debug("setColumnLabels(): Exception! %s" % e)
             # self.create_widgets_table(self._columnsNames)
 
@@ -1022,9 +1023,9 @@ if __name__ == '__main__':
     from taurus.qt.qtgui.application import TaurusApplication
 
     if len(sys.argv) < 2:
-        print "The format of the call is something like:"
-        print '\t/usr/bin/python taurusgrid.py grid.pickle.file'
-        print '\t/usr/bin/python taurusgrid.py "model=lt.*/VC.*/.*/((C*)|(P*)|(I*))" cols=IP,CCG,PNV rows=LT01,LT02 others=False rowframe=True colframe=False'
+        print("The format of the call is something like:")
+        print('\t/usr/bin/python taurusgrid.py grid.pickle.file')
+        print('\t/usr/bin/python taurusgrid.py "model=lt.*/VC.*/.*/((C*)|(P*)|(I*))" cols=IP,CCG,PNV rows=LT01,LT02 others=False rowframe=True colframe=False')
         exit()
 
     app = TaurusApplication(sys.argv[0:1])
@@ -1037,7 +1038,7 @@ if __name__ == '__main__':
     except:
         args = sysargs_to_dict(
             ['model', 'rows', 'cols', 'others', 'rowframe', 'colframe'])
-        print "args = %s" % args
+        print("args = %s" % args)
         if args.get('rows'):
             gui.setRowLabels(args['rows'])
         if args.get('cols'):
@@ -1048,6 +1049,6 @@ if __name__ == '__main__':
         gui.showColumnFrame('colframe' in args and args['colframe'] and True)
         gui.showOthers('others' in args and args['others'] or True)
 
-    print "current TaurusGrid model= %s" % (gui.getModel())
+    print("current TaurusGrid model= %s" % (gui.getModel()))
     gui.show()
     sys.exit(app.exec_())

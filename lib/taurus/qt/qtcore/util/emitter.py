@@ -225,7 +225,7 @@ class TaurusEmitterThread(Qt.QThread):
             size = self.getQueue().qsize()
             if size:
                 self.log.info('onRefresh(%s)' % size)
-                self.next()
+                next(self)
             else:
                 self.log.debug('onRefresh()')
         except:
@@ -266,7 +266,7 @@ class TaurusEmitterThread(Qt.QThread):
                 nqueue.put(i)
         while not nqueue.empty():
             self.queue.put(nqueue.get())
-        self.next()
+        next(self)
 
     def _doSomething(self, params):
         self.log.debug('At TaurusEmitterThread._doSomething(%s)' % str(params))
@@ -317,7 +317,7 @@ class TaurusEmitterThread(Qt.QThread):
         Qt.QApplication.instance().thread().msleep(self.timewait)
         self.log.info('#' * 80)
         self.log.info('At TaurusEmitterThread.run()')
-        self.next()
+        next(self)
 
         if self.refreshTimer:
             self.refreshTimer.start(self.polling)
@@ -394,7 +394,7 @@ class DelayedSubscriber(Logger):
                 self.info('addUnsubscribedAttributes([%d])' % len(items))
                 for attr in items:
                     self._addModelObj(attr)
-                self._modelsThread.next()
+                next(self._modelsThread)
                 self.info('Thread queue: [%d]' % (self._modelsQueue.qsize()))
         except:
             self.warning(traceback.format_exc())
@@ -504,7 +504,7 @@ class SingletonWorker():
             self.thread.start()
         except:
             pass
-        self.next()
+        next(self)
         self._running = True
         return
 
@@ -535,7 +535,7 @@ class SingletonWorker():
                 nqueue.put(i)
         while not nqueue.empty():
             self.queue.put(nqueue.get())
-        self.next()
+        next(self)
 
     def isRunning(self):
         return self._running
