@@ -1157,6 +1157,8 @@ class TaurusTrend(TaurusPlot):
         try:
             # For it to work properly, 'names' must be a CaselessList, just as
             # self.trendSets is a CaselessDict
+            if not isinstance(names, CaselessList):
+                names = CaselessList(names)
             del_sets = [name for name in self.trendSets.keys()
                         if name not in names]
 
