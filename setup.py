@@ -66,7 +66,6 @@ extras_require = {
                   'ply >=2.3',  # [Taurus-Qt-Synoptic]
                   'lxml >=2.1',  # [Taurus-Qt-TaurusGUI]
                   'guiqwt >=3',  # [Taurus-Qt-Guiqwt]
-                  'pyqtgraph',  # [Taurus-Qt-PyQtGraph]
                   ],
     'taurus-tango': ['PyTango >=7.1',
                      ],
