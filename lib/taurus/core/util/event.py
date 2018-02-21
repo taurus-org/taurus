@@ -48,8 +48,8 @@ class BoundMethodWeakref(object):
 
     def __init__(self, bound_method, del_cb=None):
         cb = (del_cb and self._deleted)
-        self.func_ref = weakref.ref(bound_method.im_func, cb)
-        self.obj_ref = weakref.ref(bound_method.im_self, cb)
+        self.func_ref = weakref.ref(bound_method.__func__, cb)
+        self.obj_ref = weakref.ref(bound_method.__self__, cb)
         if cb:
             self.del_cb = CallableRef(del_cb)
         self.already_deleted = 0
@@ -98,6 +98,22 @@ def CallableRef(object, del_cb=None):
         if object.im_self is not None:
             return BoundMethodWeakref(object, del_cb)
     return weakref.ref(object, del_cb)
+
+
+# Reimplementation of BoundMethodWeakref class to avoid to have a hard
+# reference in the event callbacks.
+# Related to "Keeping references to event callbacks after unsubscribe_event"
+# PyTango #185 issue.
+class _BoundMethodWeakrefWithCall(BoundMethodWeakref):
+
+    def __call__(self, *args, **kwargs):
+        """ Retrieve references and call callback with arguments
+        """
+        obj = self.obj_ref()
+        if obj is not None:
+            func = self.func_ref()
+            if func is not None:
+                return func(obj, *args, **kwargs)
 
 
 class EventStack(object):

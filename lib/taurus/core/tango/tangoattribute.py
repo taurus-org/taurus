@@ -49,6 +49,10 @@ from taurus.core.taurusbasetypes import (TaurusEventType,
                                          DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
+# -------------------------------------------------------------------------
+# TODO: remove this when PyTango's bug 185 is fixed
+from taurus.core.util.event import _BoundMethodWeakrefWithCall  
+# -------------------------------------------------------------------------
 from taurus.core.util.log import (debug, taurus4_deprecation,
                                   deprecation_decorator)
 
@@ -293,6 +297,8 @@ class TangoAttribute(TaurusAttribute):
         if self.factory().is_tango_subscribe_enabled():
             self._subscribeConfEvents()
 
+    def __del__(self):
+        self.cleanUp()
 
     def cleanUp(self):
         self.trace("[TangoAttribute] cleanUp")
@@ -660,9 +666,12 @@ class TangoAttribute(TaurusAttribute):
                 
         attr_name = self.getSimpleName()
 
+        # connects to self.push_event callback
+        # TODO: _BoundMethodWeakrefWithCall is used as workaround for
+        # PyTango #185 issue
         self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name, PyTango.EventType.CHANGE_EVENT,
-                self, [], stateless) # connects to self.push_event callback
+                _BoundMethodWeakrefWithCall(self.push_event), [], stateless)
         
         return self.__chg_evt_id
                 
@@ -709,10 +718,13 @@ class TangoAttribute(TaurusAttribute):
 
         attr_name = self.getSimpleName()
         try:
+            # connects to self.push_event callback
+            # TODO: _BoundMethodWeakrefWithCall is used as workaround for
+            # PyTango #185 issue
             self.__cfg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name,
                 PyTango.EventType.ATTR_CONF_EVENT,
-                self, [], True)  # connects to self.push_event callback
+                _BoundMethodWeakrefWithCall(self.push_event), [], True)
         except PyTango.DevFailed as e:
             self.debug("Error trying to subscribe to CONFIGURATION events.")
             self.traceback()
