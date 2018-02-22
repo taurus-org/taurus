@@ -143,7 +143,7 @@ Hint: this list can be used as a template to be copy-pasted on a release PR
 - [ ] Test that selecting a panel changes the selection on "example01 synoptic"
 - [ ] Test the actions in the menus
 - [ ] Create a new TaurusGui (call it `foogui`) with `taurusgui --new-gui` (follow the wizard)
-- [ ] Install `foogui` with pip (using a virtualenv may be a good idea)
+- [ ] Install `foogui` with pip (using a the taurus-test docker or a virtualenv may be a good idea)
 - [ ] launch `foogui` using the script that has been installed
 - [ ] ... other features from [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
