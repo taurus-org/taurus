@@ -139,7 +139,6 @@ Hint: this list can be used as a template to be copy-pasted on a release PR
 - [ ] Move panels around (with view unlocked!) and hide ("close") and re-show them
 - [ ] Test saving and restoring perspectives
 - [ ] Test drag&drop from a form to a trend
-- [ ] Test drag&drop from a form to a trend
 - [ ] Test clicking on "example01 synoptic" elements and check that the panels raised
 - [ ] Test that selecting a panel changes the selection on "example01 synoptic"
 - [ ] Test the actions in the menus
