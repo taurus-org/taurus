@@ -92,11 +92,12 @@ Hint: this list can be used as a template to be copy-pasted on a release PR
 ### Tauruscurve & taurustrend1d
 (unused and to be deprecated, you may test but **do not worry too much if they fail**)
 
-- [ ] Execute: `tauruscurve --demo` and `taurustrend1d "eval:Q(rand(),'mm')"`
+- [ ] Execute: `tauruscurve --demo`
 - [ ] Change size
 - [ ] Move curve with mouse
 - [ ] Resize curve with mouse
 - [ ] Test some option of the menu with mouse.
+- [ ] Execute: `taurustrend1d "eval:Q(rand(),'mm')"` and test it in the same way
 
 ### taurusdesigner
 - [ ] Check that taurusdesigner is correctly opened and taurus widgets are present in the catalog
@@ -106,7 +107,7 @@ Hint: this list can be used as a template to be copy-pasted on a release PR
 - [ ] Execute: `taurusdevicepanel sys/tg_test/1`
 - [ ] Check that it opens correctly and that the attrs and commands are populated
 - [ ] Execute SwitchStates command (see that the state label changes to FAULT and its color to red)
-      and then execute the Init command and the label returns to RUNNING (green)
+      and then execute the Init command and the label returns to RUNNING (blue)
 
 ### tauruspanel
 - [ ] Execute: `tauruspanel`
