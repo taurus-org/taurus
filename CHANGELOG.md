@@ -46,6 +46,7 @@ develop branch) won't be reflected in this file.
 - Exception in TaurusCommandForm (#608)
 - Launchers not showing output on MS Windows (#644)
 - Various issues with input widgets (#623, #661, #663, #669, #674, #681)
+- Exceptions in TaurusMessagePanel (#704)
 - TangoAttribute receiving events after being deleted (#692)
 - Regressions in:
   - TaurusTrend (#618)
