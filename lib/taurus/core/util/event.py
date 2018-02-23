@@ -106,6 +106,12 @@ def CallableRef(object, del_cb=None):
 # PyTango #185 issue.
 class _BoundMethodWeakrefWithCall(BoundMethodWeakref):
 
+    def __init__(self, bound_method, del_cb=None):
+        """ Reimplementation of __init__ method"""
+        super(_BoundMethodWeakrefWithCall, self).__init__(bound_method,
+                                                          del_cb=del_cb)
+        self.__name__ = self.func_ref().__name__
+
     def __call__(self, *args, **kwargs):
         """ Retrieve references and call callback with arguments
         """
