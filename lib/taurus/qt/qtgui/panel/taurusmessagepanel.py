@@ -486,7 +486,7 @@ class TaurusMessagePanel(Qt.QWidget):
         return self._exc_info
 
     try:
-        import Pyango
+        import PyTango
         ErrorHandlers = {PyTango.DevFailed: TangoMessageErrorHandler}
     except:
         ErrorHandlers = {}
