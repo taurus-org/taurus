@@ -109,20 +109,20 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         # handle the case in which the line edit is not yet initialized
         if self._last_value is None:
             try:
-                self.getModelObj().read(cache=True)
-                frag_name = self.modelFragmentName or 'wvalue'
-                value = self.getModelFragmentObj(fragmentName=frag_name)
-                self.debug('Overwriting wvalue=None with %s' % (value))
-                self.setValue(value)
-                self.setEnabled(value is not None)
+                value = self.getModelObj().read(cache=True)
+                self._updateValidator(value)
+                self.setValue(value.wvalue)
             except Exception as e:
-                self.debug('Failed attempt to initialize value: %r', e)
+                self.info('Failed attempt to initialize value: %r', e)
 
         self.setEnabled(evt_type != TaurusEventType.Error)
+
         if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self._updateValidator(evt_value)
+
         TaurusBaseWritableWidget.handleEvent(
             self, evt_src, evt_type, evt_value)
+
         if evt_type == TaurusEventType.Error:
             self.updateStyle()
 
@@ -215,36 +215,18 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         value = self.getValue()
         self.setValue(value + Quantity(v, value.units))
 
-    def getDisplayValue(self, cache=True, fragmentName=None):
-        """Returns a string representation of the model value associated with
-        this component. As this is a writable widget, if there is no fragment
-        specified, the default behaviour is to display the wvalue.
-
-        :param cache: (bool) (ignored, just for bck-compat).
-        :param fragmentName: (str or None) the returned value will correspond
-                        to the given fragmentName. If None passed,
-                         self.modelFragmentName will be used, and if None is
-                         set, the defaultFragmentName of the model will be used
-                         instead.
-
-        :return: (str) a string representation of the model value.
-        """
-        if fragmentName is None and self.modelFragmentName is None:
-            return TaurusBaseWritableWidget.getDisplayValue(
-                self, cache=cache, fragmentName='wvalue')
-        else:
-            return TaurusBaseWritableWidget.getDisplayValue(
-                self, cache=cache, fragmentName=fragmentName)
-
     def setValue(self, v):
-        model = self.getModelObj()
-        if model is None:
-            v_str = str(v)
-        else:
-            v_str = str(self.getDisplayValue(v))
-        v_str = v_str.strip()
+        """Set the displayed text from a given value object"""
+        # Support displaying the value without units (enabled by fragment)
+        # Other fragments are ignored by setValue
+        if self.modelFragmentName == "wvalue.magnitude":
+            try:
+                units = self.validator().units
+                v = v.to(units).magnitude
+            except Exception as e:
+                self.debug('Cannot enforce fragment. Reason: %r', e)
         self._last_value = v
-        self.setText(v_str)
+        self.setText(str(self.displayValue(v)).strip())
 
     def getValue(self):
         text = self.text()
