@@ -47,7 +47,7 @@ FROM_TANGO_TO_TAURUS_TYPE = {PyTango.CmdArgType.DevVoid: None,
                              PyTango.CmdArgType.DevUShort: DataType.Integer,
                              PyTango.CmdArgType.DevULong: DataType.Integer,
                              PyTango.CmdArgType.DevString: DataType.String,
-                             PyTango.CmdArgType.DevVarCharArray: DataType.Integer,
+                             PyTango.CmdArgType.DevVarCharArray: DataType.Bytes,
                              PyTango.CmdArgType.DevVarShortArray: DataType.Integer,
                              PyTango.CmdArgType.DevVarLongArray: DataType.Integer,
                              PyTango.CmdArgType.DevVarFloatArray: DataType.Float,
@@ -60,7 +60,7 @@ FROM_TANGO_TO_TAURUS_TYPE = {PyTango.CmdArgType.DevVoid: None,
                              PyTango.CmdArgType.DevState: DataType.DevState,
                              PyTango.CmdArgType.ConstDevString: DataType.String,
                              PyTango.CmdArgType.DevVarBooleanArray: DataType.Boolean,
-                             PyTango.CmdArgType.DevUChar: DataType.Integer,
+                             PyTango.CmdArgType.DevUChar: DataType.Bytes,
                              PyTango.CmdArgType.DevLong64: DataType.Integer,
                              PyTango.CmdArgType.DevULong64: DataType.Integer,
                              PyTango.CmdArgType.DevVarLong64Array: DataType.Integer,
@@ -117,14 +117,14 @@ def unit_from_tango(unit):
     from taurus import deprecated
     deprecated(dep='unit_from_tango', rel='4.0.4', alt="pint's parse_units")
 
-    if unit == PyTango.constants.UnitNotSpec:
+    if unit == PyTango.constants.UnitNotSpec or unit == "No unit":
         unit = None
     try:
         return UR.parse_units(unit)
     except (UndefinedUnitError, UnicodeDecodeError):
         # TODO: Maybe we could dynamically register the unit in the UR
         from taurus import warning
-        warning('Unknown unit "%s (will be treated as unitless)"', unit)
+        warning('Unknown unit "%s" (will be treated as unitless)', unit)
         return UR.parse_units(None)
 
 

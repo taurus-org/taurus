@@ -41,6 +41,7 @@ from functools import partial
 from taurus import Manager
 from taurus.external.pint import Quantity, UR, UndefinedUnitError
 
+from taurus import tauruscustomsettings
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import (TaurusEventType,
                                          TaurusSerializationMode,
@@ -48,6 +49,10 @@ from taurus.core.taurusbasetypes import (TaurusEventType,
                                          DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
+# -------------------------------------------------------------------------
+# TODO: remove this when PyTango's bug 185 is fixed
+from taurus.core.util.event import _BoundMethodWeakrefWithCall  
+# -------------------------------------------------------------------------
 from taurus.core.util.log import (debug, taurus4_deprecation,
                                   deprecation_decorator)
 
@@ -90,10 +95,8 @@ class TangoAttrValue(TaurusAttrValue):
         if self._attrRef is None:
             return
 
-        numerical = (PyTango.is_numerical_type(self._attrRef._tango_data_type,
-                                              inc_array=True) or
-                     p.type == PyTango.CmdArgType.DevUChar
-                     )
+        numerical = PyTango.is_numerical_type(self._attrRef._tango_data_type,
+                                              inc_array=True)
 
         if p.has_failed:
             self.error = PyTango.DevFailed(*p.get_err_stack())
@@ -150,7 +153,6 @@ class TangoAttrValue(TaurusAttrValue):
     @taurus4_deprecation(alt='.rvalue')
     def _get_value(self):
         """for backwards compat with taurus < 4"""
-        debug(repr(self))
         try:
             return self.__fix_int(self.rvalue.magnitude)
         except AttributeError:
@@ -246,12 +248,15 @@ class TangoAttribute(TaurusAttribute):
     _description = 'A Tango Attribute'
 
     def __init__(self, name, parent, **kwargs):
-
         # the last attribute value
         self.__attr_value = None
 
         # the last attribute error
         self.__attr_err = None
+
+        # Lock for protecting the critical read region 
+        # where __attr_value and __attr_err are updated
+        self.__read_lock = threading.RLock()
 
         # the change event identifier
         self.__chg_evt_id = None
@@ -289,7 +294,11 @@ class TangoAttribute(TaurusAttribute):
 
         # subscribe to configuration events (unsubscription done at cleanup)
         self.__cfg_evt_id = None
-        self._subscribeConfEvents()
+        if self.factory().is_tango_subscribe_enabled():
+            self._subscribeConfEvents()
+
+    def __del__(self):
+        self.cleanUp()
 
     def cleanUp(self):
         self.trace("[TangoAttribute] cleanUp")
@@ -315,10 +324,6 @@ class TangoAttribute(TaurusAttribute):
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # PyTango connection
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-
-    def isNumeric(self, inc_array=False):
-        tgtype = self._tango_data_type
-        return PyTango.is_numerical_type(tgtype, inc_array=inc_array)
 
     def isInteger(self, inc_array=False):
         tgtype = self._tango_data_type
@@ -400,7 +405,9 @@ class TangoAttribute(TaurusAttribute):
     def decode(self, attr_value):
         """Decodes a value that was received from PyTango into the expected
         representation"""
-        # TODO decode of the configuration
+        if self._pytango_attrinfoex is None:
+            self.getAttributeInfoEx(cache=False)
+            self._decodeAttrInfoEx()
         value = TangoAttrValue(pytango_dev_attr=attr_value, attr=self)
         return value
 
@@ -441,29 +448,43 @@ class TangoAttribute(TaurusAttribute):
             self.error("[Tango] write failed: %s" % str(e))
             raise e
 
-    def poll(self, **kwargs):
+    def poll(self,  single=True, value=None, time=None, error=None):
         """ Notify listeners when the attribute has been polled"""
-        single = kwargs.get('single', True)
-        try:
-            if single:
-                self.read(cache=False)
+        with self.__read_lock:
+            try:
+                if single:
+                    self.read(cache=False)
+                else:
+                    value = self.decode(value)
+                    self.__attr_err = error
+                    if self.__attr_err:
+                        raise self.__attr_err
+                    # Avoid "valid-but-outdated" notifications
+                    # if FILTER_OLD_TANGO_EVENTS is enabled
+                    # and the given timestamp is older than the timestamp
+                    # of the cached value
+                    filter_old_event = getattr(tauruscustomsettings,
+                                               'FILTER_OLD_TANGO_EVENTS',
+                                               False)
+                    if (self.__attr_value is not None
+                            and filter_old_event
+                            and time is not None
+                            and time < self.__attr_value.time.totime()
+                       ):
+                        return
+                    self.__attr_value = value
+            except PyTango.DevFailed, df:
+                self.__subscription_event.set()
+                self.debug("Error polling: %s" % df[0].desc)
+                self.traceback()
+                self.fireEvent(TaurusEventType.Error, self.__attr_err)
+            except Exception, e:
+                self.__subscription_event.set()
+                self.debug("Error polling: %s" % str(e))
+                self.fireEvent(TaurusEventType.Error, self.__attr_err)
             else:
-                self.__attr_value = self.decode(kwargs.get('value'))
-                self.__attr_err = kwargs.get('error')
-                if self.__attr_err:
-                    raise self.__attr_err
-        except PyTango.DevFailed, df:
-            self.__subscription_event.set()
-            self.debug("Error polling: %s" % df[0].desc)
-            self.traceback()
-            self.fireEvent(TaurusEventType.Error, self.__attr_err)
-        except Exception, e:
-            self.__subscription_event.set()
-            self.debug("Error polling: %s" % str(e))
-            self.fireEvent(TaurusEventType.Error, self.__attr_err)
-        else:
-            self.__subscription_event.set()
-            self.fireEvent(TaurusEventType.Periodic, self.__attr_value)
+                self.__subscription_event.set()
+                self.fireEvent(TaurusEventType.Periodic, self.__attr_value)
 
     def read(self, cache=True):
         """ Returns the current value of the attribute.
@@ -471,7 +492,6 @@ class TangoAttribute(TaurusAttribute):
             active then it will return the local cached value. Otherwise it will
             read the attribute value from the tango device."""
         curr_time = time.time()
-
         if cache:
             try:
                 attr_timestamp = self.__attr_value.time.totime()
@@ -486,34 +506,43 @@ class TangoAttribute(TaurusAttribute):
                                self.fullname, self.__attr_err)
                     raise self.__attr_err
 
-        if not cache or (self.__subscription_state in (SubscriptionState.PendingSubscribe, SubscriptionState.Unsubscribed) and not self.isPollingActive()):
-            try:
-                dev = self.getParentObj()
-                v = dev.read_attribute(self.getSimpleName())
-                self.__attr_value, self.__attr_err = self.decode(v), None
-                return self.__attr_value
-            except PyTango.DevFailed, df:
-                self.__attr_value, self.__attr_err = None, df
-                err = df[0]
-                self.debug("[Tango] read failed (%s): %s",
-                           err.reason, err.desc)
-                raise df
-            except Exception, e:
-                self.__attr_value, self.__attr_err = None, e
-                self.debug("[Tango] read failed: %s", e)
-                raise e
-        elif self.__subscription_state in (SubscriptionState.Subscribing, SubscriptionState.PendingSubscribe):
+        if not cache or (self.__subscription_state in 
+                         (SubscriptionState.PendingSubscribe,
+                          SubscriptionState.Unsubscribed)
+                         and not self.isPollingActive()):
+            with self.__read_lock:
+                try:
+                    dev = self.getParentObj()
+                    v = dev.read_attribute(self.getSimpleName())
+                    self.__attr_value = self.decode(v)
+                    self.__attr_err = None
+                    return self.__attr_value
+                except PyTango.DevFailed as df:
+                    self.__attr_value = None
+                    self.__attr_err = df
+                    err = df[0]
+                    self.debug("[Tango] read failed (%s): %s",
+                               err.reason, err.desc)
+                    raise df
+                except Exception as e:
+                    self.__attr_value = None
+                    self.__attr_err = e
+                    self.debug("[Tango] read failed: %s", e)
+                    raise e
+        elif self.__subscription_state in (SubscriptionState.Subscribing,
+                                           SubscriptionState.PendingSubscribe):
             self.__subscription_event.wait()
 
         if self.__attr_err is not None:
             raise self.__attr_err
         return self.__attr_value
-    
+
+
     def getAttributeProxy(self):
         """Convenience method that creates and returns a PyTango.AttributeProxy
         object"""
         return PyTango.AttributeProxy(self.getFullName())
-    
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -588,6 +617,9 @@ class TangoAttribute(TaurusAttribute):
 
     def isUsingEvents(self):
         return self.__subscription_state == SubscriptionState.Subscribed
+    
+    def getSubscriptionState(self):
+        return self.__subscription_state    
 
     def _process_event_exception(self, ex):
         pass
@@ -595,6 +627,11 @@ class TangoAttribute(TaurusAttribute):
     def _subscribeEvents(self):
         """ Enable subscription to the attribute events. If change events are
             not supported polling is activated """
+            
+        if self.__chg_evt_id is not None:
+            self.warning("chg events already subscribed (id=%s)"
+                       %self.__chg_evt_id)
+            return
 
         if self.__dev_hw_obj is None:
             dev = self.getParentObj()
@@ -606,26 +643,43 @@ class TangoAttribute(TaurusAttribute):
                 self.debug("failed to subscribe to chg events: HW is None")
                 return
 
-        self.__subscription_event = threading.Event()
-        attr_name = self.getSimpleName()
+        if not self.factory().is_tango_subscribe_enabled():
+            self.enablePolling(True)
+            return       
 
         try:
             self.__subscription_state = SubscriptionState.Subscribing
-            self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
-                attr_name, PyTango.EventType.CHANGE_EVENT,
-                self, [])  # connects to self.push_event callback
-
+            self._call_dev_hw_subscribe_event(False)
         except:
             self.__subscription_state = SubscriptionState.PendingSubscribe
             self._activatePolling()
-            self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
-                attr_name, PyTango.EventType.CHANGE_EVENT,
-                self, [], True)  # connects to self.push_event callback
+            self._call_dev_hw_subscribe_event(True)
+                
+    def _call_dev_hw_subscribe_event(self, stateless=True):
+        """ Executes event subscription on parent TangoDevice objectName
+        """
+        
+        if self.__chg_evt_id is not None:
+            self.warning("chg events already subscribed (id=%s)",
+                         self.__chg_evt_id)
+            return
+                
+        attr_name = self.getSimpleName()
 
+        # connects to self.push_event callback
+        # TODO: _BoundMethodWeakrefWithCall is used as workaround for
+        # PyTango #185 issue
+        self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
+                attr_name, PyTango.EventType.CHANGE_EVENT,
+                _BoundMethodWeakrefWithCall(self.push_event), [], stateless)
+        
+        return self.__chg_evt_id
+                
     def _unsubscribeEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object
+        
         if self.__dev_hw_obj is not None and self.__chg_evt_id is not None:
             self.trace("Unsubscribing to change events (ID=%d)",
                        self.__chg_evt_id)
@@ -646,6 +700,12 @@ class TangoAttribute(TaurusAttribute):
     def _subscribeConfEvents(self):
         """ Enable subscription to the attribute configuration events."""
         self.trace("Subscribing to configuration events...")
+
+        if self.__cfg_evt_id is not None:
+            self.warning("cfg events already subscribed (id=%s)"
+                       %self.__cfg_evt_id)
+            return
+        
         if self.__dev_hw_obj is None:
             dev = self.getParentObj()
             if dev is None:
@@ -658,11 +718,14 @@ class TangoAttribute(TaurusAttribute):
 
         attr_name = self.getSimpleName()
         try:
+            # connects to self.push_event callback
+            # TODO: _BoundMethodWeakrefWithCall is used as workaround for
+            # PyTango #185 issue
             self.__cfg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name,
                 PyTango.EventType.ATTR_CONF_EVENT,
-                self, [], True)  # connects to self.push_event callback
-        except PyTango.DevFailed, e:
+                _BoundMethodWeakrefWithCall(self.push_event), [], True)
+        except PyTango.DevFailed as e:
             self.debug("Error trying to subscribe to CONFIGURATION events.")
             self.traceback()
             # Subscription failed either because event mechanism is not available
@@ -676,12 +739,13 @@ class TangoAttribute(TaurusAttribute):
             except:
                 self.debug("Error getting attribute configuration")
                 self.traceback()
-
+                
     def _unsubscribeConfEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object
-        if self.__cfg_evt_id and not self.__dev_hw_obj is None:
+        
+        if self.__cfg_evt_id is not None and self.__dev_hw_obj is not None:
             self.trace("Unsubscribing to configuration events (ID=%s)",
                        str(self.__cfg_evt_id))
             try:
@@ -690,30 +754,40 @@ class TangoAttribute(TaurusAttribute):
             except PyTango.DevFailed, e:
                 self.debug("Error trying to unsubscribe configuration events")
                 self.trace(str(e))
+                
+    def subscribePendingEvents(self):
+        """ Execute delayed event subscription
+        """                
+        if (self.__subscription_state == SubscriptionState.Unsubscribed 
+                          or self.isPollingActive()):
+            self.__subscription_state = SubscriptionState.PendingSubscribe
+        self._subscribeConfEvents()
+        self._call_dev_hw_subscribe_event(True)
 
     def push_event(self, event):
         """Method invoked by the PyTango layer when an event occurs.
         It propagates the event to listeners and delegates other tasks to
         specific handlers for different event types.
         """
-        # if it is a configuration event
-        if isinstance(event, PyTango.AttrConfEventData):
-            etype, evalue = self._pushConfEvent(event)
-        # if it is an attribute event
-        else:
-            etype, evalue = self._pushAttrEvent(event)
+        with self.__read_lock:
+            # if it is a configuration event
+            if isinstance(event, PyTango.AttrConfEventData):
+                etype, evalue = self._pushConfEvent(event)
+            # if it is an attribute event
+            else:
+                etype, evalue = self._pushAttrEvent(event)
 
-        # notify the listeners if required (i.e, if etype is not None)
-        if etype is None:
-            return
-        manager = Manager()
-        sm = self.getSerializationMode()
-        listeners = tuple(self._listeners)
-        if sm == TaurusSerializationMode.Concurrent:
-            manager.addJob(self.fireEvent, None, etype, evalue,
-                           listeners=listeners)
-        else:
-            self.fireEvent(etype, evalue, listeners=listeners)
+            # notify the listeners if required (i.e, if etype is not None)
+            if etype is None:
+                return
+            manager = Manager()
+            sm = self.getSerializationMode()
+            listeners = tuple(self._listeners)
+            if sm == TaurusSerializationMode.Concurrent:
+                manager.addJob(self.fireEvent, None, etype, evalue,
+                               listeners=listeners)
+            else:
+                self.fireEvent(etype, evalue, listeners=listeners)
 
     def _pushAttrEvent(self, event):
         """Handler of (non-configuration) events from the PyTango layer.
@@ -727,8 +801,22 @@ class TangoAttribute(TaurusAttribute):
                  evt_value is a TaurusValue, an Exception, or None.
         """
         if not event.err:
-            self.__attr_value, self.__attr_err = self.decode(
-                event.attr_value), None
+            attr_value = self.decode(event.attr_value)
+            filter_old_event = getattr(tauruscustomsettings,
+                                       'FILTER_OLD_TANGO_EVENTS', False)
+            time = event.attr_value.time.totime()
+
+            # Discard "valid" events if the attribute value is not None
+            # and FILTER_OLD_TANGO_EVENTS is enabled
+            # and the given timestamp is older than the timestamp
+            # of the cache value
+            if (self.__attr_value is not None
+                and filter_old_event
+                and time < self.__attr_value.time.totime()):
+                return [None, None]
+
+            self.__attr_value = attr_value
+            self.__attr_err = None
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
             if not self.isPollingForced():
@@ -741,7 +829,7 @@ class TangoAttribute(TaurusAttribute):
                           event.errors[0].reason)
                 self.__subscription_state = SubscriptionState.PendingSubscribe
                 self._activatePolling()
-            return None, None
+            return [None, None]
 
         else:
             self.__attr_value, self.__attr_err = None, PyTango.DevFailed(
@@ -815,7 +903,7 @@ class TangoAttribute(TaurusAttribute):
 
     def setLabel(self, lbl):
         TaurusAttribute.setLabel(self, lbl)
-        infoex = self._pytango_attrinfoex
+        infoex = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         infoex.label = lbl
         self._applyConfig()
 
@@ -830,7 +918,7 @@ class TangoAttribute(TaurusAttribute):
         if high.unitless:
             high = Quantity(high.magnitude, self._units)
         TaurusAttribute.setRange(self, [low, high])
-        infoex = self._pytango_attrinfoex
+        infoex = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         if low.magnitude != float('-inf'):
             infoex.min_value = str(low.to(self._units).magnitude)
         else:
@@ -852,7 +940,7 @@ class TangoAttribute(TaurusAttribute):
         if high.unitless:
             high = Quantity(high.magnitude, self._units)
         TaurusAttribute.setWarnings(self, [low, high])
-        infoex = self._pytango_attrinfoex
+        infoex = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         if low.magnitude != float('-inf'):
             infoex.alarms.min_warning = str(low.to(self._units).magnitude)
         else:
@@ -874,7 +962,7 @@ class TangoAttribute(TaurusAttribute):
         if high.unitless:
             high = Quantity(high.magnitude, self._units)
         TaurusAttribute.setAlarms(self, [low, high])
-        infoex = self._pytango_attrinfoex
+        infoex = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         if low.magnitude != float('-inf'):
             infoex.alarms.min_alarm = str(low.to(self._units).magnitude)
         else:
@@ -886,80 +974,91 @@ class TangoAttribute(TaurusAttribute):
         self._applyConfig()
 
     def _applyConfig(self):
-        config = self._pytango_attrinfoex
+        config = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         self.setConfigEx(config)
 
     def _decodeAttrInfoEx(self, pytango_attrinfoex=None):
         if pytango_attrinfoex is None:
-            self._pytango_attrinfoex = PyTango.AttributeInfoEx()
-        else:
-            self._pytango_attrinfoex = i = pytango_attrinfoex
+            return
 
-            self.writable = i.writable != PyTango.AttrWriteType.READ
-            self._label = i.label
-            self.data_format = data_format_from_tango(i.data_format)
-            desc = description_from_tango(i.description)
-            if desc != "":
-                self._description = desc
-            self.type = data_type_from_tango(i.data_type)
-            ###############################################################
-            # changed in taurus4: range, alarm and warning now return
-            # quantities if appropriate
+        self._pytango_attrinfoex = i = pytango_attrinfoex
+
+        self.writable = i.writable != PyTango.AttrWriteType.READ
+        self._label = i.label
+        self.data_format = data_format_from_tango(i.data_format)
+        desc = description_from_tango(i.description)
+        if desc != "":
+            self._description = desc
+        self.type = data_type_from_tango(i.data_type)
+        ###############################################################
+        # changed in taurus4: range, alarm and warning now return
+        # quantities if appropriate
+        if self.isNumeric():
             units = self._unit_from_tango(i.unit)
-            if PyTango.is_numerical_type(i.data_type, inc_array=True):
-                Q_ = partial(quantity_from_tango_str, units=units,
-                             dtype=i.data_type)
-                ninf, inf = float('-inf'), float('inf')
-                min_value = Q_(i.min_value) or Quantity(ninf, units)
-                max_value = Q_(i.max_value) or Quantity(inf, units)
-                min_alarm = Q_(i.alarms.min_alarm) or Quantity(ninf, units)
-                max_alarm = Q_(i.alarms.max_alarm) or Quantity(inf, units)
-                min_warning = Q_(i.alarms.min_warning) or Quantity(ninf, units)
-                max_warning = Q_(i.alarms.max_warning) or Quantity(inf, units)
-                self._range = [min_value, max_value]
-                self._warning = [min_warning, max_warning]
-                self._alarm = [min_alarm, max_alarm]
+        else:
+            units = UR.parse_units(None)
 
-            ###############################################################
-            # The following members will be accessed via __getattr__
-            # self.standard_unit
-            # self.display_unit
-            # self.disp_level
-            ###############################################################
-            # Tango-specific extension of TaurusConfigValue
-            self.display_level = display_level_from_tango(i.disp_level)
-            self.tango_writable = i.writable
-            self.max_dim = i.max_dim_x, i.max_dim_y
-            ###############################################################
-            fmt = standard_display_format_from_tango(i.data_type, i.format)
-            self.format_spec = fmt.lstrip('%')  # format specifier
-            match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
-            if match:
-                self.precision = int(match.group(1))
-            # self._units and self._display_format is to be used by
-            # TangoAttrValue for performance reasons. Do not rely on it in other
-            # code
-            self._units = units
+        if PyTango.is_numerical_type(i.data_type, inc_array=True):
+            Q_ = partial(quantity_from_tango_str, units=units,
+                         dtype=i.data_type)
+            ninf, inf = float('-inf'), float('inf')
+            min_value = Q_(i.min_value) or Quantity(ninf, units)
+            max_value = Q_(i.max_value) or Quantity(inf, units)
+            min_alarm = Q_(i.alarms.min_alarm) or Quantity(ninf, units)
+            max_alarm = Q_(i.alarms.max_alarm) or Quantity(inf, units)
+            min_warning = Q_(i.alarms.min_warning) or Quantity(ninf, units)
+            max_warning = Q_(i.alarms.max_warning) or Quantity(inf, units)
+            self._range = [min_value, max_value]
+            self._warning = [min_warning, max_warning]
+            self._alarm = [min_alarm, max_alarm]
+
+        ###############################################################
+        # The following members will be accessed via __getattr__
+        # self.standard_unit
+        # self.display_unit
+        # self.disp_level
+        ###############################################################
+        # Tango-specific extension of TaurusConfigValue
+        self.display_level = display_level_from_tango(i.disp_level)
+        self.tango_writable = i.writable
+        self.max_dim = i.max_dim_x, i.max_dim_y
+        ###############################################################
+        fmt = standard_display_format_from_tango(i.data_type, i.format)
+        self.format_spec = fmt.lstrip('%')  # format specifier
+        match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
+        if match:
+            self.precision = int(match.group(1))
+        # self._units and self._display_format is to be used by
+        # TangoAttrValue for performance reasons. Do not rely on it in other
+        # code
+        self._units = units
 
     @property
     @deprecation_decorator(alt='format_spec or precision', rel='4.0.4')
     def format(self):
-        i = self._pytango_attrinfoex
+        i = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
         return standard_display_format_from_tango(i.data_type, i.format)
 
     @property
     def _tango_data_type(self):
         '''returns the *tango* (not Taurus) data type'''
-        return self._pytango_attrinfoex.data_type
+        i = self._pytango_attrinfoex or PyTango.AttributeInfoEx()
+        return i.data_type
 
     def _unit_from_tango(self, unit):
-        if unit == PyTango.constants.UnitNotSpec:
+        # silently treat unit-not-defined as unitless
+        # TODO: consider logging that unit-not-defined is treated as unitless
+        # TODO: See https://github.com/taurus-org/taurus/issues/584 and
+        # https://github.com/taurus-org/taurus/pull/662
+        # The extra comparison to "No unit" is necessary where
+        # server/database runs Tango 7 or 8 and client runs higher versions.
+        if unit == PyTango.constants.UnitNotSpec or unit == "No unit":
             unit = None
         try:
             return UR.parse_units(unit)
         except Exception as e:
             # TODO: Maybe we could dynamically register the unit in the UR
-            msg = 'Unknown unit "%s (will be treated as unitless)"'
+            msg = 'Unknown unit "%s" (will be treated as unitless)'
             if self.__already_warned_unit == unit:
                 self.debug(msg, unit)
             else:
@@ -1078,7 +1177,16 @@ class TangoAttribute(TaurusAttribute):
         """Returns the current configuration of the attribute."""
         return weakref.proxy(self)
 
-    def getAttributeInfoEx(self):
+    def getAttributeInfoEx(self, cache=True):
+        if not cache:
+            try:
+                attr_name = self.getSimpleName()
+                attrinfoex = self.__dev_hw_obj.attribute_query(attr_name)
+                self._decodeAttrInfoEx(attrinfoex)
+            except Exception as e:
+                self.debug("Error getting attribute configuration: %s", e)
+                self.traceback()
+
         return self._pytango_attrinfoex
 
     @taurus4_deprecation(alt='.rvalue.units')

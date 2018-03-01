@@ -57,7 +57,7 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
     schemes = ("ca", "epics",)
     DEFAULT_DEVICE = 'ca:'
     DEFAULT_AUTHORITY = 'ca://'
-    caseSensitive = False
+    caseSensitive = True
     elementTypesMap = {TaurusElementType.Authority: EpicsAuthority,
                        TaurusElementType.Device: EpicsDevice,
                        TaurusElementType.Attribute: EpicsAttribute

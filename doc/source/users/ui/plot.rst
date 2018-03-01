@@ -148,6 +148,8 @@ where you can add data sets to the plot from the following sources:
   You can use `x` as a dependent variable, which you can set as regular steps or
   using an arbitrary expression.
 
+Note that there is actually no way to remove RawData curve from the GUI.
+
 .. figure:: /_static/taurusplot-inputdata02.png 
    :align: center
 
@@ -157,7 +159,7 @@ Storing and recovering current configuration
 
 Once you have customized the way the plot looks (see the
 `Plot Configuration dialog`_ section), you may want to save the settings for
-later use. This can be done using the `Store current settings` option from the
+later use. This can be done using the `Save current settings` option from the
 `TaurusPlot context menu`_.
 
 This will save which curves should be plotted and how they should look.
@@ -192,7 +194,7 @@ features can be useful:
 
 - Peak locator: :class:`TaurusPlot` can locate and put a mark at the maximum and/or minimum
   points in the plotted data. You switch this option on and off using the
-  `Show Peaks` option from the `TaurusPlot context menu`_ or use from the
+  `Show min` and `Show max` option from the `TaurusPlot context menu`_ or use from the
   `Peak Markers` option in the `Plot Configuration dialog`_
 
   .. image:: /_static/taurusplot-datainfo03.png
@@ -266,9 +268,8 @@ Here are some tips for entering valid date/time values:
     - The date can be written in various formats. ISO format is recommended
       (e.g. "1917-10-25"), although others like, e.g. "25/10/1917"
       are also accepted.
-    - The time is given in 24 hours format (e.g. "21:45") and may include
-      (e.g. "21:45:01") secondshours:minutes , if given, may optionally 
-      include seconds: e.g.,  is
+    - The time is given in 24 hours format (e.g. "21:45") and may optionnaly
+      include seconds if given (e.g. "21:45:01")
     - Date is mandatory while time is optional. If time is given, it must be
       separated from the date with a single space (e.g. "1917-10-25 21:45:01")
     

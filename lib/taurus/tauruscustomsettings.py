@@ -64,9 +64,32 @@ LIGHTWEIGHT_IMPORTS = False
 # Set your default scheme (if not defined, "tango" is assumed)
 DEFAULT_SCHEME = "tango"
 
+# Filter old tango events:
+# Sometimes TangoAttribute can receive an event with an older timestamp
+# than its current one. See https://github.com/taurus-org/taurus/issues/216
+# True discards (Tango) events whose timestamp is older than the cached one.
+# False (or commented out) for backwards (pre 4.1) compatibility
+FILTER_OLD_TANGO_EVENTS = True
+
 # Extra Taurus schemes. You can add a list of modules to be loaded for
 # providing support to new schemes
 # EXTRA_SCHEME_MODULES = ['myownschememodule']
+
+# Custom formatter. Taurus widgets use a default formatter based on the
+# attribute type, but sometimes a custom formatter is needed.
+# IMPORTANT: setting this option in this file will affect ALL widgets
+# of ALL applications (which is probably **not** what you want, since it 
+# may have unexpected effects in some applications). 
+# Consider using the API for modifying this on a per-widget or per-class
+# basis at runtime, or using the related `--default-formatter` parameter 
+# from TaurusApplication, e.g.:
+#     $ taurusform MODEL --default-formatter='{:2.3f}'
+# The formatter can be a python format string or the name of a formatter
+# callable
+# e.g.
+# DEFAULT_FORMATTER = '{0}'
+# DEFAULT_FORMATTER = 'taurus.core.tango.util.formatter.tangoFormatter'
+
 
 # ----------------------------------------------------------------------------
 # PLY (lex/yacc) optimization: 1=Active (default) , 0=disabled.

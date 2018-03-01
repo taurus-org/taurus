@@ -136,8 +136,8 @@ model name:
 - :func:`taurus.Attribute`
 - :func:`taurus.Object`
 
-The first four helpers require you to know which type of Element (e.g., 
-Attribute, Device,...) is represented by the model name. If you do not know that
+The first three helpers require you to know which type of Element (i.e., 
+Attribute, Device or Authority) is represented by the model name. If you do not know that
 beforehand, you can use :meth:`taurus.Object` which will automatically find the 
 type and provide you with the corresponding model object (but of course this is 
 slightly less efficient than using one of the first three helpers).

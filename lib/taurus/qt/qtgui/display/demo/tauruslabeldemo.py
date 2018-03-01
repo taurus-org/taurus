@@ -91,7 +91,7 @@ def demo():
             fg_widget.addItems(["", "rvalue", "rvalue.magnitude",
                                 "rvalue.units", "wvalue", "wvalue.magnitude",
                                 "wvalue.units", "state", "quality", "none"])
-            bg_widget.addItems(["quality", "state", "none"])
+            bg_widget.addItems(["quality", "state", "value", "none"])
 
             model_widget.textChanged.connect(w.setModel)
             fg_widget.currentIndexChanged[str].connect(w.setFgRole)
@@ -104,6 +104,7 @@ def demo():
             fg_widget.setCurrentIndex(0)
             fg_widget.setEditable(True)
             bg_widget.setCurrentIndex(0)
+            bg_widget.setEditable(True)
 
             self.w_label = w
             self.w_model = model_widget
@@ -123,7 +124,7 @@ def demo():
     p1.w_model.setText("sys/tg_test/1/double_scalar")
     p2 = TaurusLabelTestPanel()
     p2.w_model.setText("sys/tg_test/1/double_scalar#label")
-    p2.w_bg.setCurrentIndex(2)
+    p2.w_bg.setCurrentIndex(3)  # bgRole='none'
     layout.addWidget(p1, 0, 0)
     layout.addWidget(p2, 0, 1)
     layout.addItem(Qt.QSpacerItem(10, 10), 1, 0, 1, 2)

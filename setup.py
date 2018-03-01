@@ -44,8 +44,8 @@ packages = find_packages(where='lib')
 
 provides = [
     'taurus',
-    'taurus.core',
-    'taurus.qt',
+    # 'taurus.core',
+    # 'taurus.qt',
     # 'Taurus-Tango',  # [Taurus-Tango]
     # 'Taurus-Qt',  # [Taurus-Qt]
     # 'Taurus-Qt-PyQwt',  # [Taurus-Qt-Plot]
@@ -65,7 +65,6 @@ extras_require = {
                   # 'PyQt4.Qwt5 >=5.2.0',  # [Taurus-Qt-Plot]
                   'ply >=2.3',  # [Taurus-Qt-Synoptic]
                   'lxml >=2.1',  # [Taurus-Qt-TaurusGUI]
-                  'spyder >=3.0',  # [Taurus-Qt-Editor]
                   'guiqwt >=3',  # [Taurus-Qt-Guiqwt]
                   ],
     'taurus-tango': ['PyTango >=7.1',
@@ -74,14 +73,14 @@ extras_require = {
                      ],
     'taurus-h5file': ['h5file',
                       ],
+    # separate the editor from 'taurus-qt' to avoid forcing spyder>3
+    # which implies many more dependencies that may be hard on older system
+    'taurus-qt-editor': ['spyder >=3',
+                         ],
 }
 
 console_scripts = [
     'taurustestsuite = taurus.test.testsuite:main',
-    # TODO: taurusdoc,
-]
-
-gui_scripts = [
     'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main',
     'taurusplot = taurus.qt.qtgui.plot.taurusplot:main',
     'taurustrend = taurus.qt.qtgui.plot.taurustrend:main',
@@ -96,11 +95,11 @@ gui_scripts = [
     'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
     'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main',
     'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main',
+    # TODO: taurusdoc,
 ]
 
 entry_points = {'console_scripts': console_scripts,
-                'gui_scripts': gui_scripts,
-                }
+}
 
 classifiers = [
     'Development Status :: 3 - Alpha',

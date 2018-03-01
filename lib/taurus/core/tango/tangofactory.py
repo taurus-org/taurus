@@ -109,6 +109,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def reInit(self):
         """Reinitialize the singleton"""
         self._default_tango_host = None
+        self._tango_subscribe_enabled = True
         self.dft_db = None
         self.tango_db = CaselessWeakValueDict()
         self.tango_db_queries = CaselessWeakValueDict()
@@ -182,6 +183,26 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         """Retruns the current default tango host
         """
         return self._default_tango_host
+    
+    def set_tango_subscribe_enabled(self,value):
+        """ If True, enables event subscribing on TangoAttribute objects
+
+        .. warning:: This method belongs to a "Delayed Event Subscription" API
+                 added in v.4.2.1-alpha as an *experimental* feature. This API
+                 may not be stable and/or it may be removed in a future release
+                 (even on a minor version change)
+        """
+        self._tango_subscribe_enabled = value
+    
+    def is_tango_subscribe_enabled(self):
+        """ Returns the current tango_subscribe_enabled status
+
+        .. warning:: This method belongs to a "Delayed Event Subscription" API
+                 added in v.4.2.1-alpha as an *experimental* feature. This API
+                 may not be stable and/or it may be removed in a future release
+                 (even on a minor version change)
+        """
+        return self._tango_subscribe_enabled
 
     def registerAttributeClass(self, attr_name, attr_klass):
         """Registers a new attribute class for the attribute name.

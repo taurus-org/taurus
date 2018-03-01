@@ -34,7 +34,9 @@ import operator
 import threading
 
 from .util.log import Logger
-from .util.event import CallableRef, BoundMethodWeakref
+from .util.event import (CallableRef,
+                         BoundMethodWeakref,
+                         _BoundMethodWeakrefWithCall)
 from .taurusbasetypes import TaurusEventType, MatchLevel
 from .taurushelper import Factory
 
@@ -210,8 +212,8 @@ class TaurusModel(Logger):
             return
         try:
             self._listeners.remove(weak_listener)
-        except Exception, e:
-            pass
+        except Exception as e:
+            self.debug("Problem removing listener: %r", e)
 
     def _getCallableRef(self, listener, cb=None):
         # return weakref.ref(listener, self._listenerDied)
@@ -225,7 +227,11 @@ class TaurusModel(Logger):
         if self._listeners is None or listener is None:
             return False
 
-        weak_listener = self._getCallableRef(listener, self._listenerDied)
+        # TODO: _BoundMethodWeakrefWithCall is used as workaround for
+        # PyTango #185 issue
+        weak_listener = self._getCallableRef(
+            listener, _BoundMethodWeakrefWithCall(self._listenerDied))
+            # listener, self._listenerDied)
         if weak_listener in self._listeners:
             return False
         self._listeners.append(weak_listener)
@@ -237,7 +243,7 @@ class TaurusModel(Logger):
         weak_listener = self._getCallableRef(listener)
         try:
             self._listeners.remove(weak_listener)
-        except Exception, e:
+        except Exception as e:
             return False
         return True
 

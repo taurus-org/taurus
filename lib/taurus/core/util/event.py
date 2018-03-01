@@ -48,8 +48,8 @@ class BoundMethodWeakref(object):
 
     def __init__(self, bound_method, del_cb=None):
         cb = (del_cb and self._deleted)
-        self.func_ref = weakref.ref(bound_method.im_func, cb)
-        self.obj_ref = weakref.ref(bound_method.im_self, cb)
+        self.func_ref = weakref.ref(bound_method.__func__, cb)
+        self.obj_ref = weakref.ref(bound_method.__self__, cb)
         if cb:
             self.del_cb = CallableRef(del_cb)
         self.already_deleted = 0
@@ -98,6 +98,28 @@ def CallableRef(object, del_cb=None):
         if object.im_self is not None:
             return BoundMethodWeakref(object, del_cb)
     return weakref.ref(object, del_cb)
+
+
+# Reimplementation of BoundMethodWeakref class to avoid to have a hard
+# reference in the event callbacks.
+# Related to "Keeping references to event callbacks after unsubscribe_event"
+# PyTango #185 issue.
+class _BoundMethodWeakrefWithCall(BoundMethodWeakref):
+
+    def __init__(self, bound_method, del_cb=None):
+        """ Reimplementation of __init__ method"""
+        super(_BoundMethodWeakrefWithCall, self).__init__(bound_method,
+                                                          del_cb=del_cb)
+        self.__name__ = self.func_ref().__name__
+
+    def __call__(self, *args, **kwargs):
+        """ Retrieve references and call callback with arguments
+        """
+        obj = self.obj_ref()
+        if obj is not None:
+            func = self.func_ref()
+            if func is not None:
+                return func(obj, *args, **kwargs)
 
 
 class EventStack(object):
@@ -540,7 +562,7 @@ class AttributeEventWait(object):
         elif t == taurus.core.taurusbasetypes.TaurusEventType.Error:
             self.fireEvent(None)
         else:
-            self.fireEvent(v.value)
+            self.fireEvent(v.rvalue)
 
     def fireEvent(self, v):
         """Notifies that a given event has arrived
@@ -683,7 +705,7 @@ class AttributeEventIterator(object):
     def eventReceived(self, s, t, v):
         if t not in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic):
             return
-        self.fireEvent(s, v.value)
+        self.fireEvent(s, v.rvalue)
 
     def fireEvent(self, s, v):
         t = time.time()

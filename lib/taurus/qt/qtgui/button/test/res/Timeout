@@ -40,7 +40,7 @@ The argument value is the time that will take to execute the command.
 
 """
 
-import PyTango
+import PyTango  # Tango-centric
 import sys
 import time
 

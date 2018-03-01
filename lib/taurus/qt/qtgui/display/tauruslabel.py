@@ -32,10 +32,8 @@ __docformat__ = 'restructuredtext'
 import operator
 import re
 
-# shame of me for importing PyTango!
-import PyTango
-
-from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
+from taurus.core.taurusbasetypes import (TaurusElementType, TaurusEventType,
+                                         AttrQuality, TaurusDevState)
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.base import TaurusBaseController
@@ -100,7 +98,7 @@ class TaurusLabelController(TaurusBaseController):
         self._trimmedText = self._shouldTrim(label, text)
         if self._trimmedText:
             text = "<a href='...'>...</a>"
-        label.setText(text)
+        label.setText_(text)
 
     def _shouldTrim(self, label, text):
         if not label.autoTrim:
@@ -170,10 +168,10 @@ class TaurusLabelControllerDesignMode(object):
         return 0.0
 
     def quality(self):
-        return PyTango.AttrQuality.ATTR_VALID
+        return AttrQuality.ATTR_VALID
 
     def state(self):
-        return PyTango.DevState.ON
+        return TaurusDevState.Ready
 
     def _updateToolTip(self, lcd):
         lcd.setToolTip("Some random value for design purposes only")
@@ -231,6 +229,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     def __init__(self, parent=None, designMode=False):
         self._prefix = self.DefaultPrefix
         self._suffix = self.DefaultSuffix
+        self._permanentText = None
         self._bgRole = self.DefaultBgRole
         self._fgRole = self.DefaultFgRole
         self._modelIndex = self.DefaultModelIndex
@@ -250,6 +249,11 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         # creation of a controller object
         if self._designMode:
             self.controllerUpdate()
+
+        # register configurable properties
+        self.registerConfigProperty(
+            self.getPermanentText, self._setPermanentText, "permanentText"
+            )
 
     def _calculate_controller_class(self):
         ctrl_map = _CONTROLLER_MAP
@@ -357,7 +361,20 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         return self._bgRole
 
     def setBgRole(self, bgRole):
-        self._bgRole = str(bgRole).lower()
+        """
+        Set the background role. The label background will be set according
+        to the current palette and the role. Valid roles are:
+        - 'none' : no background
+        - 'state' a color depending on the device state
+        - 'quality' a color depending on the attribute quality
+        - 'value' a color depending on the rvalue of the attribute
+        - <arbitrary member name> a color based on the value of an arbitrary
+          member of the model object (warning: experimental feature!)
+
+        .. warning:: the <arbitrary member name> support is still experimental
+                     and its API may change in future versions
+        """
+        self._bgRole = str(bgRole)
         self.controllerUpdate()
 
     def resetBgRole(self):
@@ -398,6 +415,22 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     def resetSuffixText(self):
         self.setSuffixText(self.DefaultSuffix)
 
+    def getPermanentText(self):
+        return self._permanentText
+
+    def _setPermanentText(self, text):
+        self._permanentText = text
+        if text is not None:
+            self.setText_(text)
+
+    def setText_(self, text):
+        """Method to expose QLabel.setText"""
+        Qt.QLabel.setText(self, text)
+
+    def setText(self, text):
+        """Reimplementation of setText to set permanentText"""
+        self._setPermanentText(text)
+
     def setAutoTrim(self, trim):
         self._autoTrim = trim
         self.controllerUpdate()
@@ -422,6 +455,25 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
     def resetAutoTrim(self):
         self.setAutoTrim(self.DefaultAutoTrim)
+
+    def displayValue(self, v):
+        """Reimplementation of displayValue for TaurusLabel"""
+        if self._permanentText is None:
+            value = TaurusBaseWidget.displayValue(self, v)
+        else:
+            value = self._permanentText
+
+        attr = self.getModelObj()
+        dev = attr.getParent()
+
+        try:
+            v = value.format(dev=dev, attr=attr)
+        except Exception as e:
+            self.warning(
+                "Error formatting display (%r). Reverting to raw string", e)
+            v = value
+
+        return v
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

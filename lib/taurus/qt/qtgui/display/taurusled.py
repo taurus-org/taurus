@@ -36,7 +36,6 @@ import operator
 from taurus.external.qt import Qt
 
 from taurus.core import DataFormat, AttrQuality, DataType
-from taurus.core.tango import DevState
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from qled import QLed
@@ -77,9 +76,9 @@ class _TaurusLedController(object):
         fgRole = widget.fgRole
         value = None
         if fgRole == 'rvalue':
-            value = obj.rvalue
+            value = bool(obj.rvalue)
         elif fgRole == 'wvalue':
-            value = obj.wvalue
+            value = bool(obj.wvalue)
         elif fgRole == 'quality':
             return obj.quality
 
@@ -148,29 +147,44 @@ class _TaurusLedControllerBool(_TaurusLedController):
         # value. If representing the quality, use the quality map
         return widget.fgRole != 'quality'
 
+try:
+    from taurus.core.tango import DevState  # TODO: Tango-centric
+    class _TaurusLedControllerState(_TaurusLedController):
 
-class _TaurusLedControllerState(_TaurusLedController):
+        #                key      status,       color, inTrouble
+        LedMap = {DevState.ON: (True,    "green",    False),
+                  DevState.OFF: (False,    "black",    False),
+                  DevState.CLOSE: (True,    "white",    False),
+                  DevState.OPEN: (True,    "green",    False),
+                  DevState.INSERT: (True,    "green",    False),
+                  DevState.EXTRACT: (True,    "green",    False),
+                  DevState.MOVING: (True,     "blue",    False),
+                  DevState.STANDBY: (True,   "yellow",    False),
+                  DevState.FAULT: (True,      "red",    False),
+                  DevState.INIT: (True,   "yellow",    False),
+                  DevState.RUNNING: (True,     "blue",    False),
+                  DevState.ALARM: (True,   "orange",    False),
+                  DevState.DISABLE: (True,  "magenta",    False),
+                  DevState.UNKNOWN: (False,    "black",    False),
+                  None: (False,    "black",     True)}
 
-    #                key      status,       color, inTrouble
-    LedMap = {DevState.ON: (True,    "green",    False),
-              DevState.OFF: (False,    "black",    False),
-              DevState.CLOSE: (True,    "white",    False),
-              DevState.OPEN: (True,    "green",    False),
-              DevState.INSERT: (True,    "green",    False),
-              DevState.EXTRACT: (True,    "green",    False),
-              DevState.MOVING: (True,     "blue",    False),
-              DevState.STANDBY: (True,   "yellow",    False),
-              DevState.FAULT: (True,      "red",    False),
-              DevState.INIT: (True,   "yellow",    False),
-              DevState.RUNNING: (True,     "blue",    False),
-              DevState.ALARM: (True,   "orange",    False),
-              DevState.DISABLE: (True,  "magenta",    False),
-              DevState.UNKNOWN: (False,    "black",    False),
-              None: (False,    "black",     True)}
+        def value(self):
+            widget, obj = self.widget(), self.modelObj()
+            fgRole = widget.fgRole
+            value = None
+            if fgRole == 'rvalue':
+                value = obj.rvalue
+            elif fgRole == 'wvalue':
+                value = obj.wvalue
+            elif fgRole == 'quality':
+                value = obj.quality
+            return value
 
-    def usePreferedColor(self, widget):
-        # never use prefered widget color. Use always the map
-        return False
+        def usePreferedColor(self, widget):
+            # never use prefered widget color. Use always the map
+            return False
+except:
+    pass
 
 
 class _TaurusLedControllerDesignMode(_TaurusLedController):
@@ -226,7 +240,7 @@ class TaurusLed(QLed, TaurusBaseWidget):
         elif model.isBoolean():
             klass = _TaurusLedControllerBool
         elif model.type == DataType.DevState:
-            klass = _TaurusLedControllerState
+            klass = _TaurusLedControllerState  # TODO: tango-centric
         return klass
 
     def controller(self):

@@ -33,10 +33,16 @@ from taurus.test import getResourcePath
 from taurus.qt.qtgui.test import BaseWidgetTestCase, GenericWidgetTestCase
 from taurus.qt.qtgui.button import TaurusCommandButton
 
-# The following are Tango-centric imports.
-# TODO: change them if/when TaurusCommandbuttongets generalized
-from PyTango import CommunicationFailed
-from taurus.core.tango.starter import ProcessStarter
+skip, skipmsg = False, None
+
+try:
+    # The following are Tango-centric imports.
+    # TODO: change them if/when TaurusCommandbuttongets generalized
+    from PyTango import CommunicationFailed
+    from taurus.core.tango.starter import ProcessStarter
+except:
+    skip = True
+    skipmsg = "tango-dependent test"
 
 
 class TaurusCommandButtonTest(GenericWidgetTestCase, unittest.TestCase):
@@ -44,6 +50,7 @@ class TaurusCommandButtonTest(GenericWidgetTestCase, unittest.TestCase):
     _modelnames = ['sys/tg_test/1', None, 'sys/database/2', '']
 
 
+@unittest.skipIf(skip, skipmsg)
 class TaurusCommandButtonTest2(BaseWidgetTestCase, unittest.TestCase):
 
     _klass = TaurusCommandButton

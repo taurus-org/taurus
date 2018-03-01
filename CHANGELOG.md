@@ -7,6 +7,62 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
+## [4.3.0] - 2018-03-01
+### Deprecated
+- taurus.core.tango.search
+- TaurusMainWindow's "Change Tango Host" action (#379)
+
+### Added
+- User Interface to set custom formatters (#564)
+- Re-added `taurus.external.ordereddict` (#599)
+- Option to ignore outdated Tango events (#559)
+- Travis-built docs (not yet replacing the RTD ones) (#572)
+- TaurusLed now supports non-boolean attributes (#617)
+- Support for arbitrary bgRole in labels (#629)
+- `--import-ascii` option in `taurusplot` launcher (#632)
+- State and event support in TangoSchemeTest DS (#628, #655)
+- Model info in widget tooltips (#640)
+- (experimental) Delayed event subscription API (#605, #593)
+- (experimental) Entry point for taurus.qt.qtgui extensions (#684)
+- Support DevVoid in Tango-to-numpy type translation dicts (#666)
+- `removeLogHandler` method to `Logger` class (#691)
+- modelChooserDlg static method now accepts listedModels arg (#693)
+
+### Changed
+- Treat unit="No unit" as unitless in Tango attributes (#662)
+- taurus.qt widgets can now be used without installing PyTango (#590)
+- Tango model name validators now always return FQDN instead of PQDN
+  for the tango host (#488, #589)
+- Improved docs (#525, #540, #546, #548, #636) (thanks @PhilLAL !)
+- Make spyder dependency optional (#556)
+
+### Fixed
+- Wrong "missing units" warnings for non-numerical attributes (#580)
+- Taurus3 backwards compatibility issues (#496, #550)
+- False positives in taurus.check_dependencies (#612)
+- Main Window Splash screen not showing (#595)
+- TaurusTrend2DDialog not usable from designer (#597)
+- Missing icons in buttons (#583, #598)
+- Exception in TaurusCommandForm (#608)
+- Launchers not showing output on MS Windows (#644)
+- Various issues with input widgets (#623, #661, #663, #669, #674, #681)
+- Exceptions in TaurusMessagePanel (#704)
+- TangoAttribute receiving events after being deleted (#692)
+- Regressions in:
+  - TaurusTrend (#618)
+  - TaurusGrid (#609)
+  - TaurusGUI edit with `taurusgui --new-gui` (#532)
+- Epics scheme is now case sensitive (#694)
+- [Many other issues](https://github.com/taurus-org/taurus/issues?utf8=%E2%9C%93&q=milestone%3AJan18%20label%3Abug%20)
+
+### Removed
+- taurus.qt.qtgui.panel.taurusfilterpanel
+
+## [4.1.1] - 2017-07-21
+
+### Fixed
+- Issue with PyPI metadata (hotfix 4.1.1)
+
 
 ## [4.1.0] - 2017-07-21
 
@@ -63,7 +119,7 @@ For a full log of commits since Jul16, run (in your git repo):
 `git log 4.0.1..4.0.3` 
 
 ### Added
-- Generic Attribute, Device and  Authority getters in TaurusFactory`
+- Generic Attribute, Device and  Authority getters in TaurusFactory
 - spyder >=3 support (#343)
 - bumpversion support (for maintainers) (#347)
 - Contribution policy explicited in CONTRIBUTING.md
@@ -89,7 +145,7 @@ For a full log of commits since Jul16, run (in your git repo):
     - Macrolistener (affects sardana) (#373)
     - Synoptics (#363)
     - TaurusValueLineEdit (#265)
-    - taurusgui.macrolistener` (#260)
+    - taurusgui.macrolistener (#260)
     - TaurusEditor (#343)
 - Bug causing high CPU usage in TaurusForms (#247)
 - Deprecation warnings in `TaurusWheelEdit` (#337)
@@ -241,6 +297,8 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [TEP3]: http://www.taurus-scada.org/tep/?TEP3.md
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [Unreleased]: https://github.com/taurus-org/taurus/tree/develop
+[4.3.0]: https://github.com/taurus-org/taurus/tree/4.3.0
+[4.1.1]: https://github.com/taurus-org/taurus/tree/4.1.1
 [4.1.0]: https://github.com/taurus-org/taurus/tree/4.1.0
 [4.0.3]: https://github.com/taurus-org/taurus/tree/4.0.3
 [4.0.1]: https://github.com/taurus-org/taurus/tree/4.0.1

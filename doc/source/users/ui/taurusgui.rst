@@ -151,9 +151,13 @@ want to extend the application by adding custom panels to provide more features
 (e.g., to add an extra plot panel, or a new form).
 
 You can add a new panel by clicking in the "New Panel" button of the main tool
-bar (or selecting `View->Panel->New Panel...`). This will open a dialog offering
+bar (or selecting `Panels->New Panel...`). This will open a dialog offering
 a catalog of different panel types and options for your new panel. Once
 accepted, the new panel will appear floating, ready to be docked to the main window.
+
+.. tip:: if you are interested in creating a panel different from those offered in
+         the catalog, you can do so by using the "other..." button and manually
+         selecting the module and widget class of your choice.
 
 .. figure:: /_static/taurusgui-newpanel01.png
   :align: center
@@ -174,10 +178,10 @@ future use and which are only meant for the current session.
   
   The dialog for selection which custom panels are to be stored permanently
   
-You can also open this dialog from the `Tools->Select panel Configuration` option.
+You can also open this dialog from the `Panels->Switch temporary/permanent status...` option.
 
 .. tip:: if you want to remove a custom panel from an application, just hide it
-         and use the `Select panel Configuration` option for making it
+         and use the `Switch temporary/permanent status...` option for making it
          "temporary" so that it is not stored for future sessions.
  
 .. _perspectives:
@@ -203,9 +207,9 @@ functionalities from the `View` menu).
   shows all available perspectives. The button on the right allows you to save
   the current arrangement as a perspective.
 
-Switching to another perspective can be done using the `Load perspectives` drop-
-down button in the perspectives toolbar (or using the `View->Load perspective`
-option).
+Switching to another perspective can be done using the `Load perspectives` 
+drop-down button in the perspectives toolbar (or using the
+`View->Load perspective` option).
 
 Apart from the pre-defined perspectives, you can always re-arrange panels and 
 store your preferred arrangement as a perspective using the
@@ -214,8 +218,8 @@ perspective` option).
 
 .. tip:: If you want to backup your current perspectives, or you want to use
   some perspectives you created in one computer in another computer (or another
-  user of the same computer) you can do so by using the `File->Export Settings`
-  option. Similarly, use the `File->Import Settings` option to update the application
+  user of the same computer) you can do so by using the `File->Export Settings ...`
+  option. Similarly, use the `File->Import Settings ...` option to update the application
   perspectives with those contained in the imported file.
   
 .. _synopticpanels:
@@ -223,7 +227,7 @@ perspective` option).
 Synoptic panels
 ---------------
 
-An special type of panel present in some TaurusGui-based applications is the
+A special type of panel present in some TaurusGui-based applications is the
 Synoptics. Synoptics panels are typically used for providing a visual
 representation of the hardware that is controlled by the GUI. Some elements or
 areas of the synoptic panel may be *active*, meaning that they can be selected
@@ -235,6 +239,11 @@ cause that panel to be shown (and conversely, if the panel is selected, the
 element in the synoptic will be highlighted). This is very useful because
 synoptic panels can be used as a sort of quick index or browser to navigate in
 panel-crowded applications.
+
+To add a Synoptic panel to a taurusgui after the creation of the taurusgui, 
+use the "Add Panel" button (or menu), select the "TaurusJDrawSynopticsView", 
+enter "Advanced settings..." to enter the full path of the JDraw file 
+into the "Model" field.
 
 Also note that you can find a button in the application toolbar for
 showing/hiding each synoptic panel.
@@ -308,7 +317,7 @@ Also, some other temporary panels may be dynamically created depending on the ex
   
 In most specific GUIs the macroserver and door name to use are pre-configured and
 the user does not need to change them. Sometimes though, you may want to alter it.
-You can do so by using the `Tools->Macro execution configuration` option.
+You can do so by using the `Taurus->Macro execution configuration...` option.
 
 Automatic creation of Instrument panels from Pool info
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''
