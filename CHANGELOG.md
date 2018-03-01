@@ -7,7 +7,7 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## [4.3.0] - 2018-02-2X
+## [4.3.0] - 2018-03-01
 ### Deprecated
 - taurus.core.tango.search
 - TaurusMainWindow's "Change Tango Host" action (#379)
@@ -297,6 +297,8 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [TEP3]: http://www.taurus-scada.org/tep/?TEP3.md
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [Unreleased]: https://github.com/taurus-org/taurus/tree/develop
+[4.3.0]: https://github.com/taurus-org/taurus/tree/4.3.0
+[4.1.1]: https://github.com/taurus-org/taurus/tree/4.1.1
 [4.1.0]: https://github.com/taurus-org/taurus/tree/4.1.0
 [4.0.3]: https://github.com/taurus-org/taurus/tree/4.0.3
 [4.0.1]: https://github.com/taurus-org/taurus/tree/4.0.1
