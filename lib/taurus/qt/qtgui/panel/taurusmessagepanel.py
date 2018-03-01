@@ -486,7 +486,7 @@ class TaurusMessagePanel(Qt.QWidget):
         return self._exc_info
 
     try:
-        import Pyango
+        import PyTango
         ErrorHandlers = {PyTango.DevFailed: TangoMessageErrorHandler}
     except:
         ErrorHandlers = {}
@@ -553,6 +553,8 @@ def py_exc():
 
 def tg_exc():
     """Shows a tango exception in a TaurusMessagePanel"""
+    # TODO: This function is Tango centric
+    import PyTango
     try:
         PyTango.Except.throw_exception(
             'TangoException', 'A simple tango exception', 'right here')
@@ -563,6 +565,8 @@ def tg_exc():
 
 def tg_serv_exc():
     """Shows a tango exception from a server in a TaurusMessagePanel"""
+    # TODO: This function is Tango centric
+    import PyTango
     import taurus
     dev = taurus.Device("sys/tg_test/1")
     try:
@@ -577,6 +581,8 @@ def tg_serv_exc():
 
 def py_tg_serv_exc():
     """Shows a tango exception from a python server in a TaurusMessagePanel"""
+    # TODO: This function is Tango centric
+    import PyTango
     try:
         PyTango.Except.throw_exception(
             'TangoException', 'A simple tango exception', 'right here')

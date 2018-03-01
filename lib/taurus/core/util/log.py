@@ -700,6 +700,14 @@ class Logger(Object):
         self.log_obj.addHandler(handler)
         self.log_handlers.append(handler)
 
+    def removeLogHandler(self, handler):
+        """Removes the given handler from this object's logger
+
+           :param handler: (logging.Handler) the handler to be removed
+        """
+        self.log_obj.removeHandler(handler)
+        self.log_handlers.remove(handler)
+
     def copyLogHandlers(self, other):
         """Copies the log handlers of other object to this object
 

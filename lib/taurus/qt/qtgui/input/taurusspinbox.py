@@ -32,6 +32,7 @@ from taurus.external.qt import Qt
 from tauruslineedit import TaurusValueLineEdit
 from taurus.qt.qtgui.icon import getStandardIcon
 from taurus.external.pint import Quantity
+from taurus.qt.qtgui.util import PintValidator
 
 __all__ = ["TaurusValueSpinBox", "TaurusValueSpinBoxEx"]
 
@@ -51,6 +52,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         self._singleStep = 1.0
 
         lineEdit = TaurusValueLineEdit(designMode=designMode)
+        lineEdit.setValidator(PintValidator(self))
         self.setLineEdit(lineEdit)
         self.setAccelerated(True)
 
