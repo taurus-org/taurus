@@ -7,6 +7,17 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
+
+
+## [Unreleased]
+### Changed
+- Serialization mode now is explicitly set to Serial
+  in the case of TangoFactory (Taurus defaults to Concurrent) (#678)
+
+### Fixed
+- TaurusModel ignoring the serialization mode (#678)
+
+
 ## [4.3.0] - 2018-03-01
 ### Deprecated
 - taurus.core.tango.search
@@ -37,7 +48,6 @@ develop branch) won't be reflected in this file.
 - Make spyder dependency optional (#556)
 
 ### Fixed
-- TaurusModel ignoring the serialization mode (#678)
 - Wrong "missing units" warnings for non-numerical attributes (#580)
 - Taurus3 backwards compatibility issues (#496, #550)
 - False positives in taurus.check_dependencies (#612)
