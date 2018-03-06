@@ -7,6 +7,17 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
+
+
+## [Unreleased]
+### Changed
+- Serialization mode now is explicitly set to Serial
+  in the case of TangoFactory (Taurus defaults to Concurrent) (#678)
+
+### Fixed
+- TaurusModel ignoring the serialization mode (#678)
+
+
 ## [4.3.0] - 2018-03-01
 ### Deprecated
 - taurus.core.tango.search

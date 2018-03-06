@@ -39,7 +39,8 @@ except ImportError:
     debug(msg)
     raise
 
-from taurus.core.taurusbasetypes import TaurusElementType
+from taurus.core.taurusbasetypes import (TaurusElementType,
+                                         TaurusSerializationMode)
 from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusbasetypes import OperationMode
 from taurus.core.taurusexception import TaurusException, DoubleRegistration
@@ -105,6 +106,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         self._polling_enabled = True
         self.reInit()
         self.scheme = 'tango'
+        self._serialization_mode = TaurusSerializationMode.Serial
 
     def reInit(self):
         """Reinitialize the singleton"""
