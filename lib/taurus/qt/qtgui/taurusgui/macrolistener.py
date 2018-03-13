@@ -151,7 +151,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
             elif ptype == PlotType.Spectrum:
                 axes = tuple(chdata['plot_axes'])
                 # TODO: get default value from the channel.
-                ndim = chdata.get('ndim', 0)
+                ndim = chdata.get('ndim', 0) or 0
                 if ndim == 0:  # this is a trend
                     if axes in trends1d:
                         trends1d[axes].append(chname)
