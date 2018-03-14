@@ -906,7 +906,13 @@ class TaurusGui(TaurusMainWindow):
             instrument = elem.instrument
             if instrument:
                 i_name = instrument
-                e_name = "tango://%s" % elem.full_name
+                # -----------------------------------------------------------
+                # Support sardana v<2.4 (which used tango names instead of 
+                # taurus full names
+                e_name = elem.full_name
+                if not e_name.startswith("tango://"):
+                    e_name = "tango://%s" % e_name
+                # -----------------------------------------------------------
                 instrument_dict[i_name].model.append(e_name)
         # filter out empty panels
         ret = [instrument for instrument in instrument_dict.values()
