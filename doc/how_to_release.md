@@ -24,6 +24,15 @@ of stuff that should be manually tested.
 6. Perform manual tests (see checklist below). You may use the CI artifacts (e.g., from appveyor) and post the results in the comments of the PR.
 7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, merge the PR and tag in master
 8. Merge also the  `release-XXX` branch into develop, and bump the version of develop with `bumpversion patch`
+9. Release to PyPI **from a clean checkout** and using [twine](https://github.com/pypa/twine):
+   ```
+   cd /tmp
+   git clone https://github.com/taurus-org/taurus.git -b <RELEASE_TAG>
+   cd taurus
+   python setup.py sdist bdist_wheel
+   twine upload dist/*
+   ```
+   
 
 
 ## Manual test checklist
