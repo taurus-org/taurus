@@ -57,6 +57,7 @@ provides = [
 
 install_requires = [
     'numpy>=1.1',
+    'enum34',
 ]
 
 extras_require = {

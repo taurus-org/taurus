@@ -37,7 +37,7 @@ import threading
 from types import MethodType
 
 from taurus.external.qt import Qt
-from taurus.external.enum import Enum
+from enum import Enum
 
 import taurus
 from taurus.core.util import eventfilters
