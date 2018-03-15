@@ -79,7 +79,7 @@ def run(disableLogger=True, exclude_pattern='(?!)'):
 def main():
     import sys
     import taurus.test.skip
-    from taurus.external import argparse
+    import argparse
     from taurus import Release
     parser = argparse.ArgumentParser(description='Main test suite for Taurus')
     parser.add_argument('--skip-gui-tests', dest='skip_gui',
