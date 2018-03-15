@@ -29,7 +29,7 @@
 
 import numpy
 import unittest
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 import taurus
 from taurus.test import insertTest
 from taurus.core.taurusbasetypes import DataType, DataFormat, AttrQuality

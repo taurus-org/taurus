@@ -28,7 +28,7 @@ This module is used for the tests of custom evaluation devices.
 """
 
 import os
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 
 modattr = 'hello world'
 

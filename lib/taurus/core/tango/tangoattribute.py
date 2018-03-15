@@ -39,7 +39,8 @@ import numpy
 from functools import partial
 
 from taurus import Manager
-from taurus.external.pint import Quantity, UR, UndefinedUnitError
+from taurus.core.units import Quantity, UR
+from pint import UndefinedUnitError
 
 from taurus import tauruscustomsettings
 from taurus.core.taurusattribute import TaurusAttribute

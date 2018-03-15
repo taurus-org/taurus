@@ -30,7 +30,7 @@ import sys
 import numpy
 import subprocess
 import unittest
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 import taurus
 from taurus.test import insertTest, getResourcePath
 from taurus.core.taurusbasetypes import DataType, AttrQuality, DataFormat

@@ -24,7 +24,8 @@
 __all__ = ["PintValidator"]
 
 from taurus.external.qt import Qt
-from taurus.external.pint import (Quantity, DimensionalityError, UR)
+from taurus.core.units import Quantity, UR
+from pint import DimensionalityError
 
 
 class PintValidator(Qt.QValidator):

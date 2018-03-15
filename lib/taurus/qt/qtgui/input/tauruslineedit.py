@@ -30,7 +30,7 @@ This module provides a set of basic taurus widgets based on QLineEdit
 import sys
 import numpy
 from taurus.external.qt import Qt
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from taurus.qt.qtgui.util import PintValidator
 from taurus.core import DataType, DataFormat, TaurusEventType

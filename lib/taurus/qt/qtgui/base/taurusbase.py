@@ -56,7 +56,7 @@ from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.util import ActionFactory
 
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 
 DefaultNoneValue = "-----"
 

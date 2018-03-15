@@ -34,7 +34,7 @@ import math
 import numpy
 
 from taurus.external.qt import Qt
-from taurus.external.pint import Q_
+from taurus.core.units import Q_
 
 class _ArrowButton(Qt.QPushButton):
     """Private class to be used by QWheelEdit for an arrow button"""

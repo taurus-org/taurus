@@ -27,7 +27,8 @@
 
 import PyTango
 
-from taurus.external.pint import Quantity, UndefinedUnitError, UR
+from taurus.core.units import Quantity, UR
+from pint import UndefinedUnitError
 from taurus.core.taurusbasetypes import (AttrQuality, DisplayLevel,
                                          TaurusAttrValue, DataType, DataFormat)
 

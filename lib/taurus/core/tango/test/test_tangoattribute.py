@@ -32,7 +32,9 @@ __docformat__ = 'restructuredtext'
 import numpy
 import PyTango
 import unittest
-from taurus.external.pint import Quantity, UR, UndefinedUnitError
+from taurus.core.units import Quantity, UR
+from pint import UndefinedUnitError
+
 import taurus
 from taurus.core import DataType, DataFormat
 from taurus.core.tango.tangoattribute import TangoAttrValue

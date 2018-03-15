@@ -28,7 +28,7 @@ import numpy
 import re
 import weakref
 
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import SubscriptionState, TaurusEventType, \
     TaurusAttrValue, TaurusTimeVal, AttrQuality, DataType

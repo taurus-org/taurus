@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import numpy
 import functools
 import unittest
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 import taurus
 from taurus.test import insertTest
 from taurus.core import (TaurusElementType, TaurusAttribute, TaurusDevice,
