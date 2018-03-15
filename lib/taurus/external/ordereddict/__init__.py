@@ -23,8 +23,9 @@
 ##
 ##############################################################################
 
-from collections import OrderedDict
 from taurus.core.util import log as __log
 
 __log.deprecated(dep='taurus.external.ordereddict', rel='4.0.3',
                  alt='collections.OrderedDict')
+
+from collections import OrderedDict
