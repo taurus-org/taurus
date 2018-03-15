@@ -30,7 +30,7 @@
 __docformat__ = 'restructuredtext'
 
 import copy
-from taurus.external import unittest
+import unittest
 from taurus.test import insertTest
 from taurus.core.util.codecs import CodecFactory
 import numpy

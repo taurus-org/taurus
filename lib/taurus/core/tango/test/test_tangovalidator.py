@@ -30,7 +30,7 @@
 __docformat__ = 'restructuredtext'
 
 
-from taurus.external import unittest
+import unittest
 from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)
 from taurus.core.tango.tangovalidator import (TangoAuthorityNameValidator,

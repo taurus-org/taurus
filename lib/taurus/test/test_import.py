@@ -25,7 +25,7 @@
 
 """Taurus import tests"""
 
-from taurus.external import unittest
+import unittest
 
 
 class TaurusImportTestCase(unittest.TestCase):

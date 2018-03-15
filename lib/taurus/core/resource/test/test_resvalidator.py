@@ -29,7 +29,7 @@ import os.path as osp
 
 import taurus
 from taurus.core.taurusexception import TaurusException
-from taurus.external import unittest
+import unittest
 from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)
 from taurus.core.resource.resvalidator import (ResourceAuthorityNameValidator,

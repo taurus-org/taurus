@@ -130,7 +130,7 @@ if __name__ == '__main__':
 
     # a demo of use of insertTest
 
-    from taurus.external import unittest
+    import unittest
 
     isPos = functools.partial(insertTest, helper_name='isPositive')
     isNeg = functools.partial(insertTest, helper_name='isPositive',

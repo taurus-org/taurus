@@ -29,7 +29,7 @@ import os
 import sys
 import numpy
 import subprocess
-from taurus.external import unittest
+import unittest
 from taurus.external.pint import Quantity
 import taurus
 from taurus.test import insertTest, getResourcePath

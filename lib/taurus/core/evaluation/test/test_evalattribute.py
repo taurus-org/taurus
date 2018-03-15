@@ -28,7 +28,7 @@
 # __all__ = []
 
 import numpy
-from taurus.external import unittest
+import unittest
 from taurus.external.pint import Quantity
 import taurus
 from taurus.test import insertTest
