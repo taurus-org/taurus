@@ -8,6 +8,13 @@ the master branch after [3.7.1] and maintained in parallel to the
 develop branch) won't be reflected in this file.
 
 ## [Unreleased]
+
+### Deprecated
+- taurus.external.pint
+- taurus.external.enum
+- taurus.external.unittest
+- taurus.external.argparse
+
 ### Changed
 - Serialization mode now is explicitly set to Serial
   in the case of TangoFactory (Taurus defaults to Concurrent) (#678)
@@ -15,6 +22,9 @@ develop branch) won't be reflected in this file.
 ### Fixed
 - TaurusModel ignoring the serialization mode (#678)
 
+### Removed
+- All 3rd party code from taurus.external (now using dependencies
+  instead of embeded 3rd party code)
 
 ## [4.3.1] - 2018-03-14
 A hotfix release needed for sardana 2.4
