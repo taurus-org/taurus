@@ -28,7 +28,7 @@ from taurus.core.util import log as __log
 
 __log.deprecated(
     dep='taurus.external.pint', rel='4.3.2',
-    alt='pint (for the module) or taurus.core.util (for UR and Q_)'
+    alt='pint (for the module) or taurus.core.units (for UR and Q_)'
 )
 
 from pint import *
