@@ -8,6 +8,12 @@ pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/p
 :: Install lxml
 pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ lxml==3.7.0
 
+:: Install pint
+pip install pint
+
+:: Install enum34
+pip install enum34
+
 :: Install guiqwt 
 :: TODO, install guiqwt from pypi
 :: pip install --upgrade guiqwt

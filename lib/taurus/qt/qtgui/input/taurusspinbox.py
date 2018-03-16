@@ -31,7 +31,7 @@ from taurus.external.qt import Qt
 
 from tauruslineedit import TaurusValueLineEdit
 from taurus.qt.qtgui.icon import getStandardIcon
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 from taurus.qt.qtgui.util import PintValidator
 
 __all__ = ["TaurusValueSpinBox", "TaurusValueSpinBoxEx"]

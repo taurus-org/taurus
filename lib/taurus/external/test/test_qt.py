@@ -27,7 +27,7 @@ import sys
 
 import taurus
 from taurus import tauruscustomsettings
-from taurus.external import unittest
+import unittest
 
 _QtAPIs = ["PyQt4", "PySide", "PyQt5"]
 

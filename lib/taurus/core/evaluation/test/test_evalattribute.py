@@ -28,8 +28,8 @@
 # __all__ = []
 
 import numpy
-from taurus.external import unittest
-from taurus.external.pint import Quantity
+import unittest
+from taurus.core.units import Quantity
 import taurus
 from taurus.test import insertTest
 from taurus.core.taurusbasetypes import DataType, DataFormat, AttrQuality

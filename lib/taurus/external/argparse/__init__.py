@@ -23,14 +23,10 @@
 ##
 ##############################################################################
 
-from __future__ import absolute_import
 
-try:
-    # argparse from python 2.7 or from argparse installed package?
-    from argparse import *
-except ImportError:
-    # argparse from local import
-    import warnings
-    warnings.warn("argparse not available. Using local argparse", ImportWarning)
-    from .argparse_local import *
-    del warnings
+from taurus.core.util import log as __log
+
+__log.deprecated(dep='taurus.external.argparse', rel='4.3.2',
+                 alt='argparse')
+
+from argparse import *

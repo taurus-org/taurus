@@ -30,7 +30,7 @@ __docformat__ = 'restructuredtext'
 
 import sys
 
-from taurus.external import unittest
+import unittest
 from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)
 from taurus.core.epics.epicsvalidator import (EpicsAuthorityNameValidator,

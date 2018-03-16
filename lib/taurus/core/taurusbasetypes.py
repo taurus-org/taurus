@@ -39,7 +39,7 @@ import datetime
 
 from .util.enumeration import Enumeration
 from .util.log import taurus4_deprecation
-from taurus.external.enum import IntEnum
+from enum import IntEnum
 
 
 class TaurusDevState(IntEnum):

@@ -23,19 +23,11 @@
 ##
 ##############################################################################
 
-from __future__ import absolute_import
+from taurus.core.util import log as __log
 
-try:
-    # enum from python 3.4 or from enum34 installed package?
-    from enum import *
-except ImportError:
-    # enum from local import
-    import os
-    import sys
-    import warnings
-    warnings.warn("enum not available. Using local enum", ImportWarning)
-    sys.path.append(os.path.dirname(__file__))
-    from enum import *
-    del warnings
-    del sys
-    del os
+__log.deprecated(dep='taurus.external.enum', rel='4.3.2',
+                 alt='enum (enum34 module)')
+
+from enum import *  # enum is provided by the enum34 package for python2.7
+
+

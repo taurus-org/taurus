@@ -58,7 +58,7 @@ class SafeEvaluator(object):
         self.safe_dict = safedict
         if defaultSafe:
             import numpy
-            from taurus.external.pint import Quantity
+            from taurus.core.units import Quantity
             self.safe_dict['pow'] = pow
             self.safe_dict['len'] = len
             self.safe_dict['int'] = int

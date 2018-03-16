@@ -30,7 +30,7 @@ __all__ = ["TaurusImageItem", "TaurusRGBImageItem", "TaurusTrend2DItem",
            "TaurusTrend2DScanItem", "TaurusEncodedImageItem",
            "TaurusEncodedRGBImageItem"]
 
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtcore.util.signal import baseSignal

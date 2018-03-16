@@ -32,7 +32,7 @@ __docformat__ = 'restructuredtext'
 import time
 import threading
 import numpy
-from taurus.external import unittest
+import unittest
 from taurus.core.util.timer import Timer
 
 

@@ -27,7 +27,7 @@
 
 import time
 import taurus.core
-from taurus.external import unittest
+import unittest
 from taurus.qt.qtgui.application import TaurusApplication
 
 

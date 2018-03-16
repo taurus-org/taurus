@@ -23,24 +23,16 @@
 ##
 ##############################################################################
 
-from __future__ import absolute_import
 
-try:
-    from pint import __version__
-    if __version__.split('.') < ['0','8']:
-        raise ImportError()
-    from pint import *
+from taurus.core.util import log as __log
 
-except ImportError:
-    import warnings
-    warnings.warn("pint >=0.8 not available. Using local pint", ImportWarning)
-    from .pint_local import *
-    from .pint_local import __version__ as __local_pint_version
-    __version__ = __local_pint_version + '-taurus'
-    del warnings
+__log.deprecated(
+    dep='taurus.external.pint', rel='4.3.2',
+    alt='pint (for the module) or taurus.core.units (for UR and Q_)'
+)
 
-# Ininitialize the unit registry for taurus
-UR = UnitRegistry()
-UR.default_format = '~' # use abbreviated units
-Q_ = Quantity = UR.Quantity
+from pint import *
+from taurus.core.units import UR, Q_
+
+
 

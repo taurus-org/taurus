@@ -27,7 +27,7 @@
 """Unit tests for taurus.button"""
 
 
-from taurus.external import unittest
+import unittest
 
 from taurus.test import getResourcePath
 from taurus.qt.qtgui.test import BaseWidgetTestCase, GenericWidgetTestCase

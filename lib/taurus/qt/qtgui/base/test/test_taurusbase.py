@@ -26,7 +26,7 @@
 """Unit tests for taurusbase"""
 
 
-from taurus.external import unittest
+import unittest
 from taurus.test import insertTest
 from taurus.qt.qtgui.test import BaseWidgetTestCase
 from taurus.core.tango.test import TangoSchemeTestLauncher  # tango-centric
