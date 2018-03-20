@@ -15,10 +15,6 @@
     :target: https://github.com/taurus-org/taurus
     :alt: GitHub
     
-.. image:: https://readthedocs.org/projects/taurus/badge/
-    :target: http://taurus-scada.org/docs.html
-    :alt: Documentation
-    
 .. image:: https://travis-ci.org/taurus-org/taurus.svg?branch=develop
     :target: https://travis-ci.org/taurus-org/taurus
     :alt: Travis
