@@ -34,7 +34,6 @@ script:
   - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py install"
   # in taurus 3.x the testsuite is not ready for CI, so we just test that it imports
   - docker exec taurus-test python -c "import taurus; print taurus"
-  - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py build_doc"
   # deploy sphinx-built docs to taurus-doc repo
   - if [[ "$DOCKER_IMG" == "cpascual/taurus-test:debian-stretch" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
       pip install doctr ;
