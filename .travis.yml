@@ -1,4 +1,4 @@
-# Use old ubuntu image as a workarount to Tango DS launch problems
+# Use old ubuntu image as a workaround to Tango DS launch problems
 group: deprecated-2017Q4
 
 language: python
