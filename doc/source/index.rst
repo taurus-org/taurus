@@ -7,6 +7,7 @@
     Project Page <https://github.com/taurus-org/taurus>
     Download from PyPI <http://pypi.python.org/pypi/taurus>
     docs
+    other_versions
 
 
 Welcome to Taurus Home Page!
