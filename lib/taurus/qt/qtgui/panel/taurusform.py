@@ -636,13 +636,19 @@ class TaurusCommandsForm(TaurusWidget):
         Inserts command buttons and parameter widgets in the layout, according to
         the commands from the model
         '''
-        #self.debug('In TaurusCommandsForm._updateCommandWidgets())')
+
         dev = self.getModelObj()
-        if dev is None or dev.state != TaurusDevState.Ready:
-            self.debug('Cannot connect to device')
+        if dev is None:
             self._clearFrame()
             return
-        commands = sorted(dev.command_list_query(), key=self._sortKey)
+
+        try:
+            commands = sorted(dev.command_list_query(), key=self._sortKey)
+        except Exception as e:
+            self.warning('Problem querying commands from %s. Reason: %s',
+                         dev, e)
+            self._clearFrame()
+            return
 
         for f in self.getViewFilters():
             commands = filter(f, commands)
