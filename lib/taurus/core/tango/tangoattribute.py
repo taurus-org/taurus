@@ -580,12 +580,12 @@ class TangoAttribute(TaurusAttribute):
             self._subscribeEvents()
 
         # if initial_subscription_state == SubscriptionState.Subscribed:
-        if len(listeners) > 1 and (initial_subscription_state == SubscriptionState.Subscribed or self.isPollingActive()):
-            sm = self.getSerializationMode()
-            if sm == TaurusSerializationMode.Concurrent:
-                Manager().addJob(self.__fireRegisterEvent, None, (listener,))
-            else:
-                self.__fireRegisterEvent((listener,))
+        if len(listeners) > 1 and\
+                (initial_subscription_state == SubscriptionState.Subscribed or
+                     self.isPollingActive()):
+
+            Manager().addJob(self.__fireRegisterEvent, None, (listener,),
+                             taurus_serialization_mode=self._serialization_mode)
         return ret
 
     def removeListener(self, listener):
@@ -782,13 +782,10 @@ class TangoAttribute(TaurusAttribute):
             if etype is None:
                 return
             manager = Manager()
-            sm = self.getSerializationMode()
             listeners = tuple(self._listeners)
-            if sm == TaurusSerializationMode.Concurrent:
-                manager.addJob(self.fireEvent, None, etype, evalue,
-                               listeners=listeners)
-            else:
-                self.fireEvent(etype, evalue, listeners=listeners)
+            manager.addJob(self.fireEvent, None, etype, evalue,
+                           listeners=listeners,
+                           taurus_serialization_mode=self._serialization_mode)
 
     def _pushAttrEvent(self, event):
         """Handler of (non-configuration) events from the PyTango layer.

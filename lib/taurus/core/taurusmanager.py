@@ -82,13 +82,16 @@ class TaurusManager(Singleton, Logger):
         this_path = os.path.abspath(__file__)
         self._this_path = os.path.dirname(this_path)
         self._serialization_mode = self.DefaultSerializationMode
-        if self._serialization_mode == TaurusSerializationMode.Concurrent:
-            self._thread_pool = ThreadPool(name="TaurusTP",
-                                           parent=self,
-                                           Psize=5,
-                                           Qsize=1000)
-        else:
-            self._thread_pool = None
+
+        self._thread_pool = ThreadPool(name="TaurusTP",
+                                       parent=self,
+                                       Psize=5,
+                                       Qsize=1000)
+
+        self._sthread_pool = ThreadPool(name="TaurusTSP",
+                                       parent=self,
+                                       Psize=1,
+                                       Qsize=float("inf")) #TODO check value
         self._plugins = None
 
         self._initial_default_scheme = self.default_scheme
@@ -108,6 +111,8 @@ class TaurusManager(Singleton, Logger):
 
         self._thread_pool.join()
         self._thread_pool = None
+        self._sthread_pool.join()
+        self._sthread_pool = None
 
         self._state = ManagerState.CLEANED
 
@@ -120,15 +125,28 @@ class TaurusManager(Singleton, Logger):
         :param args: (list) list of arguments passed to the job
         :param kw: (dict) keyword arguments passed to the job
         """
-        if self._serialization_mode == TaurusSerializationMode.Concurrent:
+        if kw.has_key("taurus_serialization_mode"):
+            serialization_mode = kw.pop("taurus_serialization_mode")
+        else:
+            serialization_mode = self._serialization_mode
+
+        if serialization_mode == TaurusSerializationMode.Concurrent:
             if not hasattr(self, "_thread_pool") or self._thread_pool is None:
                 self.info("Job cannot be processed.")
                 self.debug(
-                    "The requested job cannot be processed. Make sure this manager is initialized")
+                    "The requested job cannot be processed. " +
+                    "Make sure this manager is initialized")
                 return
             self._thread_pool.add(job, callback, *args, **kw)
         else:
-            job(*args, **kw)
+            if not hasattr(self, "_sthread_pool") or \
+                            self._sthread_pool is None:
+                self.info("Job cannot be processed.")
+                self.debug(
+                    "The requested job cannot be processed. " +
+                    "Make sure this manager is initialized")
+                return
+            self._sthread_pool.add(job, callback, *args, **kw)
 
     def setSerializationMode(self, mode):
         """Sets the serialization mode for the system.
