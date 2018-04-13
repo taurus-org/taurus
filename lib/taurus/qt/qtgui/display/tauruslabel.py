@@ -318,6 +318,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     def setModel(self, m):
         # force to build another controller
         self._controller = None
+        self._permanentText = None
         TaurusBaseWidget.setModel(self, m)
         if self.modelFragmentName:
             self.setFgRole(self.modelFragmentName)
