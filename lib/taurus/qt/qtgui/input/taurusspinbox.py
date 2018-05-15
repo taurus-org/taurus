@@ -49,8 +49,6 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         # Overwrite not to show quality by default
         self._showQuality = False
 
-        self._singleStep = 1.0
-
         lineEdit = TaurusValueLineEdit(designMode=designMode)
         lineEdit.setValidator(PintValidator(self))
         self.setLineEdit(lineEdit)
@@ -158,14 +156,14 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         return self.lineEdit().resetForcedApply()
 
     def getSingleStep(self):
-        return self._singleStep
+        return self.lineEdit().getSingleStep()
 
     @Qt.pyqtSlot(float)
     def setSingleStep(self, step):
-        self._singleStep = step
+        self.lineEdit().setSingleStep(step)
 
     def resetSingleStep(self):
-        self.setSingleStep(1.0)
+        self.lineEdit().resetSingleStep()
 
     def _getSingleStepQuantity(self):
         """

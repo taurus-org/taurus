@@ -49,6 +49,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                           name, designMode=designMode)
         self._enableWheelEvent = False
         self._last_value = None
+        self._singleStep = 1.
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
@@ -182,7 +183,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             numSteps *= 10
         elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
             numSteps *= .1
-        self._stepBy(numSteps)
+        self._stepBy(numSteps * self._singleStep)
 
     def keyPressEvent(self, evt):
         """Key press event handler"""
@@ -209,7 +210,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             numSteps *= 10
         elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
             numSteps *= .1
-        self._stepBy(numSteps)
+        self._stepBy(numSteps * self._singleStep)
 
     def _stepBy(self, v):
         value = self.getValue()
@@ -280,6 +281,15 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def resetEnableWheelEvent(self):
         self.setEnableWheelEvent(False)
+
+    def getSingleStep(self):
+        return self._singleStep
+
+    def setSingleStep(self, step):
+        self._singleStep = step
+
+    def resetSingleStep(self):
+        self.setSingleStep(1.0)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
