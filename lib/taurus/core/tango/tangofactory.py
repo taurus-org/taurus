@@ -296,7 +296,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                 self.debug("Could not create Authority %s", groups['authority'],
                            exc_info=1)
 
-            self.tango_db[name] = ret
+            if ret is not None:
+                self.tango_db[name] = ret
         return ret
 
     def getDevice(self, dev_name, create_if_needed=True, **kw):
