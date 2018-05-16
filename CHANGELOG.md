@@ -25,11 +25,14 @@ develop branch) won't be reflected in this file.
 ### Removed
 - All 3rd party code from taurus.external (now using dependencies
   instead of embeded 3rd party code)
+- CTRL and ALT keys are no longer used to modify step size in
+  TaurusValueLineEdit and TaurusValueSpinbox (#749)
 
 ## [4.3.1] - 2018-03-14
 A hotfix release needed for sardana 2.4
 
-### Fixed 
+### Fixed
+- consistency issues in stepping support in spinboxes and line edits (#749)
 - duplicated "tango://" prefix in panels created from Pool for sardana>=2.4
 - avoid problems if channel dimension info is set to None by sardana (#722)
 
