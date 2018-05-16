@@ -49,6 +49,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                           name, designMode=designMode)
         self._enableWheelEvent = False
         self._last_value = None
+        self._singleStep = 1.
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
@@ -177,11 +178,6 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         evt.accept()
         numDegrees = evt.delta() / 8
         numSteps = numDegrees / 15
-        modifiers = evt.modifiers()
-        if modifiers & Qt.Qt.ControlModifier:
-            numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
-            numSteps *= .1
         self._stepBy(numSteps)
 
     def keyPressEvent(self, evt):
@@ -204,16 +200,19 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return Qt.QLineEdit.keyPressEvent(self, evt)
 
         evt.accept()
-        modifiers = evt.modifiers()
-        if modifiers & Qt.Qt.ControlModifier:
-            numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
-            numSteps *= .1
         self._stepBy(numSteps)
 
-    def _stepBy(self, v):
+    def _stepBy(self, steps):
         value = self.getValue()
-        self.setValue(value + Quantity(v, value.units))
+        self.setValue(value + Quantity(steps * self._singleStep, value.units))
+
+        if self.getAutoApply():
+            self.editingFinished.emit()
+        else:
+            kmods = Qt.QCoreApplication.instance().keyboardModifiers()
+            controlpressed = bool(kmods & Qt.Qt.ControlModifier)
+            if controlpressed:
+                self.writeValue(forceApply=True)
 
     def setValue(self, v):
         """Set the displayed text from a given value object"""
@@ -280,6 +279,15 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def resetEnableWheelEvent(self):
         self.setEnableWheelEvent(False)
+
+    def getSingleStep(self):
+        return self._singleStep
+
+    def setSingleStep(self, step):
+        self._singleStep = step
+
+    def resetSingleStep(self):
+        self.setSingleStep(1.0)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
