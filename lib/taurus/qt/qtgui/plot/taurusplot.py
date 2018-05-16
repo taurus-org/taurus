@@ -52,11 +52,16 @@ from curvesAppearanceChooserDlg import CurveAppearanceProperties
 
 
 def isodatestr2float(s, sep='_'):
-    '''
+    """
     converts a date string in iso format to a timestamp (seconds since epoch)
-    with microseconds precision
-    '''
-    d = datetime.strptime(s, '%Y-%m-%d' + sep + '%H:%M:%S.%f')
+    with microseconds precision if available
+    """
+    try:
+        # with microseconds
+        d = datetime.strptime(s, '%Y-%m-%d' + sep + '%H:%M:%S.%f')
+    except:
+        # without microseconds
+        d = datetime.strptime(s, '%Y-%m-%d' + sep + '%H:%M:%S')
     return time.mktime(d.timetuple()) + d.microsecond * 1e-6
 
 
