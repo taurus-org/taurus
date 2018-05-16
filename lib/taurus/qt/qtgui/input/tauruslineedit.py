@@ -178,12 +178,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         evt.accept()
         numDegrees = evt.delta() / 8
         numSteps = numDegrees / 15
-        modifiers = evt.modifiers()
-        if modifiers & Qt.Qt.ControlModifier:
-            numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
-            numSteps *= .1
-        self._stepBy(numSteps * self._singleStep)
+        self._stepBy(numSteps)
 
     def keyPressEvent(self, evt):
         """Key press event handler"""
@@ -205,16 +200,19 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return Qt.QLineEdit.keyPressEvent(self, evt)
 
         evt.accept()
-        modifiers = evt.modifiers()
-        if modifiers & Qt.Qt.ControlModifier:
-            numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
-            numSteps *= .1
-        self._stepBy(numSteps * self._singleStep)
+        self._stepBy(numSteps)
 
-    def _stepBy(self, v):
+    def _stepBy(self, steps):
         value = self.getValue()
-        self.setValue(value + Quantity(v, value.units))
+        self.setValue(value + Quantity(steps * self._singleStep, value.units))
+
+        if self.getAutoApply():
+            self.editingFinished.emit()
+        else:
+            kmods = Qt.QCoreApplication.instance().keyboardModifiers()
+            controlpressed = bool(kmods & Qt.Qt.ControlModifier)
+            if controlpressed:
+                self.writeValue(forceApply=True)
 
     def setValue(self, v):
         """Set the displayed text from a given value object"""

@@ -51,6 +51,7 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
 
         lineEdit = TaurusValueLineEdit(designMode=designMode)
         lineEdit.setValidator(PintValidator(self))
+        lineEdit.setEnableWheelEvent(True)
         self.setLineEdit(lineEdit)
         self.setAccelerated(True)
 
@@ -66,20 +67,15 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
     def keyPressEvent(self, evt):
         return self.lineEdit().keyPressEvent(evt)
 
+    def wheelEvent(self, evt):
+        return self.lineEdit().wheelEvent(evt)
+
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     # Mandatory overload from QAbstractSpinBox
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
     def stepBy(self, steps):
-        self.setValue(self.getValue() + self._getSingleStepQuantity() * steps)
-
-        if self.lineEdit().getAutoApply():
-            self.lineEdit().editingFinished.emit()
-        else:
-            kmods = Qt.QCoreApplication.instance().keyboardModifiers()
-            controlpressed = bool(kmods & Qt.Qt.ControlModifier)
-            if controlpressed:
-                self.lineEdit().writeValue(forceApply=True)
+        return self.lineEdit()._stepBy(steps)
 
     def stepEnabled(self):
         ret = Qt.QAbstractSpinBox.StepEnabled(Qt.QAbstractSpinBox.StepNone)
