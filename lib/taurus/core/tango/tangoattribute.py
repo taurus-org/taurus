@@ -1003,12 +1003,26 @@ class TangoAttribute(TaurusAttribute):
             Q_ = partial(quantity_from_tango_str, units=units,
                          dtype=i.data_type)
             ninf, inf = float('-inf'), float('inf')
-            min_value = Q_(i.min_value) or Quantity(ninf, units)
-            max_value = Q_(i.max_value) or Quantity(inf, units)
-            min_alarm = Q_(i.alarms.min_alarm) or Quantity(ninf, units)
-            max_alarm = Q_(i.alarms.max_alarm) or Quantity(inf, units)
-            min_warning = Q_(i.alarms.min_warning) or Quantity(ninf, units)
-            max_warning = Q_(i.alarms.max_warning) or Quantity(inf, units)
+
+            min_value = Q_(i.min_value)
+            if min_value is None:
+                min_value = Quantity(ninf, units)
+            max_value = Q_(i.max_value)
+            if max_value is None:
+                max_value = Quantity(inf, units)
+            min_alarm = Q_(i.alarms.min_alarm)
+            if min_alarm is None:
+                min_alarm = Quantity(ninf, units)
+            max_alarm = Q_(i.alarms.max_alarm)
+            if max_alarm is None:
+                max_alarm = Quantity(inf, units)
+            min_warning = Q_(i.alarms.min_warning)
+            if min_warning is None:
+                min_warning = Quantity(ninf, units)
+            max_warning = Q_(i.alarms.max_warning)
+            if max_warning is None:
+                max_warning = Quantity(inf, units)
+
             self._range = [min_value, max_value]
             self._warning = [min_warning, max_warning]
             self._alarm = [min_alarm, max_alarm]
