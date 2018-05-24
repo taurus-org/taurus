@@ -35,7 +35,8 @@ A hotfix release needed for sardana 2.4
 - consistency issues in stepping support in spinboxes and line edits (#749)
 - duplicated "tango://" prefix in panels created from Pool for sardana>=2.4
 - avoid problems if channel dimension info is set to None by sardana (#722)
-
+- unexpected "inf" values in tangoAttribute range, warning and alarm 
+  attributes (#750)
 
 ## [4.3.0] - 2018-03-01
 [Jan18 milestone](https://github.com/taurus-org/taurus/milestone/10)
