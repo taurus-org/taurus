@@ -23,7 +23,7 @@ Proposals list
   [TEP14][] | ACCEPTED  | Core refactoring (quantities and configuration)
   [TEP15][] | DRAFT     | fragment-based slicing support in URIs
   [TEP16][] | ACCEPTED     | Moving Taurus to Github
-
+  [TEP17][] | DRAFT   | Implement plots with pyqtgraph
 
 [TEP0]: http://www.taurus-scada.org/tep/?TEP0.md
 [TEP3]: http://www.taurus-scada.org/tep/?TEP3.md
@@ -38,3 +38,4 @@ Proposals list
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [TEP16]: http://www.taurus-scada.org/tep/?TEP16.md
+[TEP17]: https://github.com/cpascual/taurus/blob/tep17/doc/source/tep/TEP17.md
