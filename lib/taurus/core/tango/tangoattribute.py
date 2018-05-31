@@ -84,8 +84,12 @@ class TangoAttrValue(TaurusAttrValue):
             attr = config
         if attr is None:
             self._attrRef = None
+            self.__attrType = None
         else:
             self._attrRef = weakref.proxy(attr)
+            self.__attrName = attr.getFullName()
+            self.__attrType = attr.type
+
         self.config = self._attrRef  # bck-compat
 
         self._pytango_dev_attr = p = pytango_dev_attr
@@ -135,12 +139,21 @@ class TangoAttrValue(TaurusAttrValue):
 
     def __getattr__(self, name):
         try:
-            ret = getattr(self._attrRef, name)
+            try:
+                # Use the attr reference if the attr is still valid
+                ret = getattr(self._attrRef, name)
+            except ReferenceError:
+                # re-create the attribute in case it was no longer referenced
+                # (this may happen in some rare cases in which the value is
+                # still used but the attr is no longer referenced elsewhere)
+                from taurus import Attribute
+                a = Attribute(self.__attrName)
+                ret = getattr(a, name)
         except AttributeError:
             try:
                 ret = getattr(self._pytango_dev_attr, name)
             except AttributeError:
-                raise AttributeError('%s has no attribute %s'
+                raise AttributeError("'%s' object has no attribute %s"
                                      % (self.__class__.__name__, name))
         # return the attr but only after warning
         from taurus.core.util.log import deprecated
@@ -214,10 +227,10 @@ class TangoAttrValue(TaurusAttrValue):
         return self.error
 
     def __fix_int(self, value):
-        """cast value to int if  it is an integer.
+        """cast value to int if it is an integer.
         Works on scalar and non-scalar values
         """
-        if self._attrRef.type is None or self._attrRef.type != DataType.Integer:
+        if self.__attrType != DataType.Integer:
             return value
         try:
             return int(value)
@@ -312,8 +325,8 @@ class TangoAttribute(TaurusAttribute):
         try:
             return getattr(self._pytango_attrinfoex, name)
         except AttributeError:
-            raise Exception('TangoAttribute does not have the attribute %s'
-                            % name)
+            raise AttributeError("'TangoAttribute' object has no attribute %s"
+                                 % name)
 
     def getNewOperation(self, value):
         attr_value = PyTango.AttributeValue()
