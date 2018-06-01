@@ -146,8 +146,7 @@ class TangoAttrValue(TaurusAttrValue):
                 # re-create the attribute in case it was no longer referenced
                 # (this may happen in some rare cases in which the value is
                 # still used but the attr is no longer referenced elsewhere)
-                from taurus import Attribute
-                a = Attribute(self.__attrName)
+                a = TangoAttribute.factory().getAttribute(self.__attrName)
                 ret = getattr(a, name)
         except AttributeError:
             try:
