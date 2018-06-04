@@ -58,7 +58,7 @@ class SafeEvaluator(object):
         self.safe_dict = safedict
         if defaultSafe:
             import numpy
-            from taurus.core.units import Quantity
+            from taurus.core.units import Quantity, UR
             self.safe_dict['pow'] = pow
             self.safe_dict['len'] = len
             self.safe_dict['int'] = int
@@ -77,6 +77,7 @@ class SafeEvaluator(object):
                 self.safe_dict[n] = getattr(numpy.random, n)
             self.safe_dict['Quantity'] = Quantity
             self.safe_dict['Q'] = Quantity  # Q() is an alias for Quantity()
+            self.safe_dict['UR'] = UR
 
         self._originalSafeDict = self.safe_dict.copy()
 
