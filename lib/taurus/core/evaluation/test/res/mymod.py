@@ -107,7 +107,7 @@ if __name__ == "__main__":
       'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass()/c.foo',
       # passing args to the instance
       'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(1)/c.foo',
-      'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(2)/float(c.get_foo())',
+      'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(2)/c.get_foo()',
       'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(foomag=2)/c.foo',
       # module models
       'eval:@taurus.core.evaluation.test.res.mymod.*/modattr',
