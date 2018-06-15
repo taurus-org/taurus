@@ -106,7 +106,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         self._polling_enabled = True
         self.reInit()
         self.scheme = 'tango'
-        self._serialization_mode = TaurusSerializationMode.Serial
+        self._serialization_mode = TaurusSerializationMode.SerialSync
 
     def reInit(self):
         """Reinitialize the singleton"""
