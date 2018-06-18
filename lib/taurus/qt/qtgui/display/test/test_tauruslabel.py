@@ -101,6 +101,12 @@ testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
 @testOldFgroles(fgRole='none', expected='')
 # ------------------------------------------------------------------------------
 @insertTest(helper_name='text',
+            model='tango:' + DEV_NAME + '/double_image#rvalue[1,::2]',
+            expected='[ 1.23  1.23] mm')
+@insertTest(helper_name='text',
+            model='tango:' + DEV_NAME + '/double_spectrum#rvalue[1]',
+            expected='1.23 mm')
+@insertTest(helper_name='text',
             model='tango:' + DEV_NAME + '/double_spectrum',
             modelIndex=1,
             expected='1.23 mm')
