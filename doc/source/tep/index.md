@@ -36,6 +36,6 @@ Proposals list
 [SEP12]: http:/www.sardana-controls.org/sep/?SEP12.md
 [TEP13]: http://www.taurus-scada.org/tep/?TEP13.md
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
-[TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
+[TEP15]: https://github.com/cpascual/taurus/blob/tep15/doc/source/tep/TEP15.md
 [TEP16]: http://www.taurus-scada.org/tep/?TEP16.md
 [TEP17]: https://github.com/cpascual/taurus/blob/tep17/doc/source/tep/TEP17.md
