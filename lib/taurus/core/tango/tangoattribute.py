@@ -584,9 +584,9 @@ class TangoAttribute(TaurusAttribute):
                 (initial_subscription_state == SubscriptionState.Subscribed or
                      self.isPollingActive()):
             sm = self._serialization_mode
-            if sm == TaurusSerializationMode.Serial:
-                self.deprecated('TaurusSerializationMode.Serial mode',
-                                alt="TaurusSerializationMode.SerialSync",
+            if sm == TaurusSerializationMode.TangoSerial:
+                self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
+                                alt="TaurusSerializationMode.Serial",
                                 rel='4.3.2')
                 self.__fireRegisterEvent((listener,))
             else:
@@ -790,9 +790,9 @@ class TangoAttribute(TaurusAttribute):
             manager = Manager()
             listeners = tuple(self._listeners)
             sm = self._serialization_mode
-            if sm == TaurusSerializationMode.Serial:
-                self.deprecated('TaurusSerializationMode.Serial mode',
-                                alt="TaurusSerializationMode.SerialSync",
+            if sm == TaurusSerializationMode.TangoSerial:
+                self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
+                                alt="TaurusSerializationMode.Serial",
                                 rel='4.3.2')
                 self.fireEvent(etype, evalue, listeners=listeners)
             else:

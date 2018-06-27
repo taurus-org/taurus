@@ -73,7 +73,7 @@ TaurusSerializationMode = Enumeration(
     'TaurusSerializationMode', (
         'Serial',
         'Concurrent',
-        'SerialSync',
+        'TangoSerial',
     ))
 
 TaurusEventType = Enumeration(
