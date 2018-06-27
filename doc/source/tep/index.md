@@ -14,7 +14,7 @@ Proposals list
   [TEP3][]   | ACCEPTED | Tango-Independent                                        
   [SEP5][]   | ACCEPTED  | Implementation of tests infrastructure                   
   [TEP7][]   | OBSOLETE  | Code contribution workflow                               
-  [TEP8][]   | CANDIDATE | Remove from Taurus objects the direct Logger dependence  
+  [TEP8][]   | REJECTED | Remove from Taurus objects the direct Logger dependence  
   [SEP9][]   | ACCEPTED  | Compact Read+Write widgets in Taurus                     
   [SEP10][] | ACCEPTED  | Taurus separation                                        
   [SEP11][] | ACCEPTED  | Direct load of .ui files                                       
