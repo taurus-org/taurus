@@ -33,11 +33,12 @@ Implementation
 ===============
 
 Three alternative syntaxes were proposed (see "Considered alternatives" section below).
-Of them, the first one was chosen because it is the most pythonic one.
+Of them, the first one was chosen because it is the most pythonic one:
 
 The proposed implementation involves refactoring TaurusModel.getFragmentObj so that
 the fragment name can be used in a python evaluation of the type `eval('v.fragmentName')`
 
+See more details in the implementation PR: https://github.com/taurus-org/taurus/pull/764
 
 
 Considered alternatives
