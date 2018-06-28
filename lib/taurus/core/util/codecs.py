@@ -62,6 +62,7 @@ A Taurus related example::
     >>> codec = CodecFactory().getCodec(v.format)
     >>> f, d = codec.decode((v.format, v.value))
 """
+from __future__ import absolute_import
 
 __all__ = ["Codec", "NullCodec", "ZIPCodec", "BZ2Codec", "JSONCodec",
            "FunctionCodec", "PlotCodec", "CodecPipeline", "CodecFactory"]
@@ -74,9 +75,9 @@ import copy
 import struct
 import numpy
 
-from singleton import Singleton
-from log import Logger
-from containers import CaselessDict
+from .singleton import Singleton
+from .log import Logger
+from .containers import CaselessDict
 
 
 class Codec(Logger):
@@ -879,7 +880,7 @@ class CodecFactory(Singleton, Logger):
         self._codec_klasses[format] = klass
 
         # del old codec if exists
-        if self._codecs.has_key(format):
+        if format in self._codecs:
             del self._codecs[format]
 
     def unregisterCodec(self, format):
@@ -889,10 +890,10 @@ class CodecFactory(Singleton, Logger):
         :param format: (str) the codec id
 
         :raises: KeyError"""
-        if self._codec_klasses.has_key(format):
+        if format in self._codec_klasses:
             del self._codec_klasses[format]
 
-        if self._codecs.has_key(format):
+        if format in self._codecs:
             del self._codecs[format]
 
     def getCodec(self, format):

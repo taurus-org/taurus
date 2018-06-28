@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module contains all taurus tango authority"""
+from __future__ import print_function
 
 __all__ = ["TangoInfo", "TangoAttrInfo", "TangoDevInfo", "TangoServInfo",
            "TangoDevClassInfo", "TangoDatabaseCache", "TangoDatabase",
@@ -289,8 +290,8 @@ class TangoServInfo(TangoInfo):
                     if not alive:
                         break
                 self._alive = alive
-            except Exception, e:
-                print "except", e
+            except Exception as e:
+                print("except", e)
                 self._alive = False
             self._alivePending = False
         return self._alive
@@ -515,9 +516,9 @@ class TangoDevTree(CaselessDict):
             for dev in other:
                 try:
                     self.addDevice(dev)
-                except Exception, e:
-                    print e
-        except Exception, e:
+                except Exception as e:
+                    print(e)
+        except Exception as e:
             raise Exception(
                 "Must give dict<obj, TangoDevInfo> or sequence<TangoDevInfo>")
 
@@ -561,9 +562,9 @@ class TangoServerTree(dict):
             for serv in other:
                 try:
                     self.addServer(serv)
-                except Exception, e:
-                    print e
-        except Exception, e:
+                except Exception as e:
+                    print(e)
+        except Exception as e:
             raise Exception(
                 "Must give dict<obj, TangoServInfo> or sequence<TangoServInfo>")
 
@@ -666,7 +667,8 @@ class TangoAuthority(TaurusAuthority):
         if host is None or port is None:
             try:
                 host, port = TangoAuthority.get_default_tango_host().rsplit(':', 1)
-            except Exception, e:
+                pars = host, port
+            except Exception as e:
                 from taurus import warning
                 warning("Error getting default Tango host")
 

@@ -33,6 +33,7 @@ to be used within a TaurusGui for managing panels for:
 
 .. note:: This module will be moved to sardana.taurus at some point.
 """
+from __future__ import print_function
 
  # TODO: move to sardana.taurus
 
@@ -596,5 +597,5 @@ if __name__ == "__main__":
 
     b.setModel('door/cp1/1')
 
-    print '...'
+    print('...')
     sys.exit(app.exec_())

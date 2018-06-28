@@ -26,6 +26,7 @@
 """
 curveprops: Model and view for curve properties
 """
+from __future__ import absolute_import
 __all__ = ['CurveConf', 'CurvesTableModel',
            'ExtendedSelectionModel', 'CurvePropertiesView']
 #raise NotImplementedError('Under Construction!')
@@ -40,7 +41,7 @@ from taurus.core import TaurusElementType
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.util.ui import UILoadable
 
-from curvesAppearanceChooserDlg import NamedLineStyles, ReverseNamedLineStyles, \
+from .curvesAppearanceChooserDlg import NamedLineStyles, ReverseNamedLineStyles, \
     NamedCurveStyles, ReverseNamedCurveStyles, \
     NamedSymbolStyles, ReverseNamedSymbolStyles, \
     NamedColors, CurveAppearanceProperties

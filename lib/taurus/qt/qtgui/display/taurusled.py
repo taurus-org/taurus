@@ -25,6 +25,7 @@
 #############################################################################
 
 """This module provides a set of basic Taurus widgets based on QLed"""
+from __future__ import absolute_import
 
 __all__ = ["TaurusLed"]
 
@@ -38,7 +39,7 @@ from taurus.external.qt import Qt
 from taurus.core import DataFormat, AttrQuality, DataType
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
-from qled import QLed
+from .qled import QLed
 
 _QT_PLUGIN_INFO = {
     'module': 'taurus.qt.qtgui.display',
@@ -451,8 +452,9 @@ class TaurusLed(QLed, TaurusBaseWidget):
 
 def demo():
     "Led"
-    import demo.taurusleddemo
-    return demo.taurusleddemo.main()
+    #from . import demo.taurusleddemo # - after futurize stage1
+    import display.demo.taurusleddemo # + after futurize stage1
+    return display.demo.taurusleddemo.main()
 
 
 def main():

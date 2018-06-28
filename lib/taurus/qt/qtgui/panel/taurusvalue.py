@@ -820,7 +820,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         try:
             klass = self.readWidgetClassFactory(self.readWidgetClassID)
             self._readWidget = self._newSubwidget(self._readWidget, klass)
-        except Exception, e:
+        except Exception as e:
             self._destroyWidget(self._readWidget)
             self._readWidget = Qt.QLabel('[Error]')
             msg = 'Error creating read widget:\n' + str(e)
@@ -1145,7 +1145,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 widget_configdict = configdict[key]
                 getattr(self, 'set%sClass' % key)(
                     widget_configdict.get('classid', None))
-                if widget_configdict.has_key('delegate'):
+                if 'delegate' in widget_configdict:
                     widget = getattr(self, key[0].lower() + key[1:])()
                     if isinstance(widget, BaseConfigurableClass):
                         widget.applyConfig(widget_configdict[

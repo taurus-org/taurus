@@ -24,7 +24,8 @@
 #############################################################################
 
 """The sardana package. It contains specific part of sardana"""
+from __future__ import absolute_import
 
 __docformat__ = 'restructuredtext'
 
-from formatter import tangoFormatter
+from .formatter import tangoFormatter

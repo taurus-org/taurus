@@ -28,6 +28,7 @@ curvesAppearanceChooserDlg.py:
     A Qt dialog for choosing plot appearance (symbols and lines)
     for a QwtPlot-derived widget (like Taurusplot)
 """
+from __future__ import print_function
 
 import copy
 
@@ -430,10 +431,10 @@ class CurveAppearanceProperties(object):
 
     def _print(self):
         """Just for debug"""
-        print "-" * 77
+        print("-" * 77)
         for k in self.propertyList:
-            print k + "= ", self.__getattribute__(k)
-        print "-" * 77
+            print(k + "= ", self.__getattribute__(k))
+        print("-" * 77)
 
     @staticmethod
     def inConflict_update_a(a, b):

@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module provides an Input panel (usually used inside a TaurusDialog)"""
+from __future__ import print_function
 
 __all__ = ["TaurusInputPanel"]
 
@@ -402,7 +403,7 @@ def main():
     class Listener(object):
 
         def on_accept(self):
-            print "user selected", self.panel.value()
+            print("user selected", self.panel.value())
 
     d = dict(prompt="What's your favourite car brand?",
              data_type=["Mazda", "Skoda", "Citroen",

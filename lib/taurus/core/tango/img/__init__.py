@@ -25,10 +25,11 @@
 
 """The img package. It contains specific part of tango devices dedicated to
 images (CCDs, detectors, etc)"""
+from __future__ import absolute_import
 
 __docformat__ = 'restructuredtext'
 
-from img import *
+from .img import *
 
 
 def registerExtensions():

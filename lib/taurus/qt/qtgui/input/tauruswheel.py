@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module provides a set of basic taurus widgets based on QWheelEdit"""
+from __future__ import absolute_import
 
 __all__ = ["TaurusWheelEdit"]
 
@@ -34,7 +35,7 @@ from taurus.external.qt import Qt
 
 from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
-from qwheel import QWheelEdit
+from .qwheel import QWheelEdit
 
 
 class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):

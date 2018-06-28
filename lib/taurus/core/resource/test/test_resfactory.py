@@ -24,6 +24,7 @@
 #############################################################################
 
 """Test for taurus.core.resource.test.test_resfactory..."""
+from __future__ import print_function
 __all__ = ["ResourceFactoryTestCase"]
 
 import os.path as osp
@@ -68,7 +69,7 @@ auth_dict1 = {'auth_1': 'foo:10000',
 
 file_name1 = osp.join(osp.dirname(osp.abspath(__file__)),
                       'res', 'attr_resources_file.py')
-print file_name1
+print(file_name1)
 
 # TODO: the same key can be defined in different dictionaries (with different
 # priority) but getValue method can not access to the less priority values in

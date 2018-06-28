@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module contains the graphics factory for the jdraw file format"""
+from __future__ import absolute_import
 
 __all__ = ["TaurusJDrawGraphicsFactory"]
 
@@ -371,9 +372,9 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
                 pen.setWidth(lineWidth)
                 pen.setStyle(LINESTYLE_JDW2QT[params.get("lineStyle", 0)])
             item.setPen(pen)
-        except AttributeError, ae:
+        except AttributeError as ae:
             pass
-        except Exception, e:
+        except Exception as e:
             self.warning('jdraw.set_common_params(%s(%s)).(foreground,width,style) failed!: \n\t%s' % (
                 type(item).__name__, name, traceback.format_exc()))
 
@@ -419,5 +420,5 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         return
 
 if __name__ == "__main__":
-    import jdraw_view
+    from . import jdraw_view
     jdraw_view.jdraw_view_main()

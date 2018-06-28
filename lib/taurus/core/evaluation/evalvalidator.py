@@ -22,6 +22,7 @@
 ##
 #############################################################################
 
+from __future__ import absolute_import
 __all__ = ['EvaluationDeviceNameValidator',
            'EvaluationAttributeNameValidator']
 
@@ -180,7 +181,7 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
 
     def getNames(self, fullname, factory=None):
         '''reimplemented from :class:`TaurusDeviceNameValidator`'''
-        from evalfactory import EvaluationFactory
+        from .evalfactory import EvaluationFactory
         # TODO: add mechanism to select strict mode instead of hardcoding here
         groups = self.getUriGroups(fullname)
         if groups is None:
@@ -424,7 +425,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
 
     def getNames(self, fullname, factory=None, fragment=False):
         '''reimplemented from :class:`TaurusDeviceNameValidator`'''
-        from evalfactory import EvaluationFactory
+        from .evalfactory import EvaluationFactory
         groups = self.getUriGroups(fullname)
         if groups is None:
             return None
@@ -497,7 +498,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
     def getDeviceName(self, name):
         #@TODO: Maybe this belongs to the factory, not the validator
         '''Obtain the fullname of the device from the attribute name'''
-        from evalfactory import EvaluationFactory
+        from .evalfactory import EvaluationFactory
         groups = self.getUriGroups(name)
         if groups is None:
             return None
@@ -512,7 +513,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
     def getDBName(self, s):
         #@TODO: Maybe this belongs to the factory, not the validator
         '''returns the full data base name for the given attribute name'''
-        from evalfactory import EvaluationFactory
+        from .evalfactory import EvaluationFactory
         m = self.name_re.match(s)
         if m is None:
             return None

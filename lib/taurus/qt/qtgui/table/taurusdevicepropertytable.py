@@ -26,6 +26,7 @@
 """
 taurusdevicepropertytable.py:
 """
+from __future__ import print_function
 
 # todo: tango-centric
 
@@ -54,7 +55,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
             self.defineStyle()
             self.db = None
 
-        except Exception, e:
+        except Exception as e:
             self.traceback()
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

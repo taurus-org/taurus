@@ -25,13 +25,14 @@
 
 """This module provides a base widget that can be used to display a taurus
 model in a tree widget"""
+from __future__ import absolute_import
 
 __all__ = ["TaurusBaseTreeWidget"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.qt.qtgui.model import TaurusBaseModelWidget
-from qtree import QBaseTreeWidget
+from .qtree import QBaseTreeWidget
 
 
 class TaurusBaseTreeWidget(QBaseTreeWidget, TaurusBaseModelWidget):

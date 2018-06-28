@@ -23,4 +23,5 @@
 ##
 #############################################################################
 
-from tgtestds import TangoSchemeTestLauncher
+from __future__ import absolute_import
+from .tgtestds import TangoSchemeTestLauncher

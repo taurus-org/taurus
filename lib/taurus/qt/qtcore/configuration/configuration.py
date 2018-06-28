@@ -25,6 +25,7 @@
 
 """This module provides the set of base classes designed to provide
 configuration features to the classes that inherit from them"""
+from __future__ import print_function
 
 __all__ = ["configurableProperty", "BaseConfigurableClass"]
 
@@ -149,7 +150,7 @@ class BaseConfigurableClass:
 
         for k in x['__orderedConfigNames__']:
             if k not in x['__itemConfigurations__']:
-                print 'missing configuration for "%s" in %s' % (k, repr(x))
+                print('missing configuration for "%s" in %s' % (k, repr(x)))
         return True
 
     def createConfig(self, allowUnpickable=False):
@@ -250,7 +251,7 @@ class BaseConfigurableClass:
         self.__configurableItems = {}
 
     def registerConfigurableItem(self, item, name=None):
-        print "Deprecation WARNING: %s.registerConfigurableItem() has been deprecated. Use registerConfigDelegate() instead" % repr(self)
+        print("Deprecation WARNING: %s.registerConfigurableItem() has been deprecated. Use registerConfigDelegate() instead" % repr(self))
         self._registerConfigurableItem(item, name=name)
 
     def registerConfigDelegate(self, delegate, name=None):

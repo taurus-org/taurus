@@ -26,6 +26,7 @@
 """
 taurustrend.py: Generic trend widget for Taurus
 """
+from __future__ import print_function
 __all__ = ["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]
 
 from datetime import datetime
@@ -338,7 +339,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                 v = value.rvalue
             try:
                 self._yBuffer.append(v)
-            except Exception, e:
+            except Exception as e:
                 self.warning('Problem updating history (%s=%s):%s',
                              model, v, e)
                 value = None
@@ -354,7 +355,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                 if self.parent().getXDynScale() or not self.parent().axisAutoScale(Qwt5.QwtPlot.xBottom):
                     try:
                         getArchivedTrendValues(self, model, insert=True)
-                    except Exception, e:
+                    except Exception as e:
                         import traceback
                         self.warning('%s: reading from archiving failed: %s' % (
                             datetime.now().isoformat('_'), traceback.format_exc()))
@@ -438,7 +439,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         try:
             self._xValues, self._yValues = self._updateHistory(
                 model=model or self.getModel(), value=value)
-        except Exception, e:
+        except Exception as e:
             self._onDroppedEvent(reason=str(e))
             raise
 
@@ -1171,7 +1172,7 @@ class TaurusTrend(TaurusPlot):
                     raise ValueError(
                         'composed ("X|Y") models are not supported by TaurusTrend')
                 # create a new TrendSet if not already there
-                if not self.trendSets.has_key(name):
+                if name not in self.trendSets:
                     # check if the model name is of scan type and provides a
                     # door
                     matchScan = re.search(r"scan:\/\/(.*)", name)
@@ -1926,12 +1927,12 @@ def main():
 
         def exportIfAllCurves(curve, trend=w, counters=curves):
             curve = str(curve)
-            print '*' * 10 + ' %s: Event received for %s  ' % (datetime.now().isoformat(), curve) + '*' * 10
+            print('*' * 10 + ' %s: Event received for %s  ' % (datetime.now().isoformat(), curve) + '*' * 10)
             if curve in counters:
                 counters[curve] += 1
                 if all(counters.values()):
                     trend.exportPdf(options.export_file)
-                    print '*' * 10 + ' %s: Exported to : %s  ' % (datetime.now().isoformat(), options.export_file) + '*' * 10
+                    print('*' * 10 + ' %s: Exported to : %s  ' % (datetime.now().isoformat(), options.export_file) + '*' * 10)
                     trend.close()
             return
         if not curves:

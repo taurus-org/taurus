@@ -25,6 +25,8 @@
 
 """This module contains a set of useful logging elements based on python's
 :mod:`logging` system."""
+from __future__ import print_function
+from __future__ import absolute_import
 
 __all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
            "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
@@ -45,9 +47,9 @@ import inspect
 import threading
 import functools
 
-from object import Object
-from wrap import wraps
-from excepthook import BaseExceptHook
+from .object import Object
+from .wrap import wraps
+from .excepthook import BaseExceptHook
 
 # ------------------------------------------------------------------------------
 # TODO: substitute this ugly hack (below) by a more general mechanism
@@ -168,7 +170,7 @@ class LogIt(object):
                 return f(*args, **kwargs)
 
             has_log = hasattr(f_self, "log")
-            fname = f.func_name
+            fname = f.__name__
             log_obj = f_self
             if not has_log:
                 log_obj = logging.getLogger()
@@ -188,7 +190,7 @@ class LogIt(object):
             out_msg = "<-"
             try:
                 ret = f(*args, **kwargs)
-            except Exception, e:
+            except Exception as e:
                 exc_info = sys.exc_info()
                 out_msg += " (with %s) %s" % (e.__class__.__name__, fname)
                 log_obj.log(self._level, out_msg, exc_info=exc_info)
@@ -325,27 +327,27 @@ class PrintIt(object):
     def __call__(self, f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            fname = f.func_name
+            fname = f.__name__
             in_msg = "-> %s" % fname
             if self._showargs:
                 if len(args) > 1:
                     in_msg += str(args[1:])
                 if len(kwargs):
                     in_msg += str(kwargs)
-            print
-            print in_msg
+            print()
+            print(in_msg)
             out_msg = "<-"
             try:
                 ret = f(*args, **kwargs)
-            except Exception, e:
+            except Exception as e:
                 out_msg += " (with %s) %s" % (e.__class__.__name__, fname)
-                print out_msg
+                print(out_msg)
                 raise
             out_msg += " %s" % fname
             if not ret is None and self._showret:
                 out_msg += " = %s" % str(ret)
-            print out_msg
-            print
+            print(out_msg)
+            print()
             return ret
         return wrapper
 
@@ -1078,4 +1080,4 @@ if __name__ == '__main__':
         - zab
         """
 
-    print foo.__doc__
+    print(foo.__doc__)

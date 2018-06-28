@@ -23,6 +23,7 @@
 ##
 #############################################################################
 
+from __future__ import print_function
 from ast import literal_eval
 
 
@@ -60,7 +61,7 @@ def parse_args(s, strip_pars=False):
 
 if __name__ == "__main__":
 
-    print parse_args('1, 2, b=3, c=4')
-    print parse_args(' (1, 2, b=3, c=4 )', strip_pars=True)
+    print(parse_args('1, 2, b=3, c=4'))
+    print(parse_args(' (1, 2, b=3, c=4 )', strip_pars=True))
 
-    print parse_args('1, 2, b=3, c=4, 5')  # <--this should raise a SyntaxError
+    print(parse_args('1, 2, b=3, c=4, 5'))  # <--this should raise a SyntaxError

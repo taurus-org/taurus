@@ -26,12 +26,13 @@
 """
 arrayedit.py: Widget for editing a spectrum/array via control points
 """
+from __future__ import absolute_import
 
 
 import numpy
 from taurus.external.qt import Qt, Qwt5
 from taurus.qt.qtgui.util.ui import UILoadable
-from curvesAppearanceChooserDlg import CurveAppearanceProperties
+from .curvesAppearanceChooserDlg import CurveAppearanceProperties
 
 
 @UILoadable

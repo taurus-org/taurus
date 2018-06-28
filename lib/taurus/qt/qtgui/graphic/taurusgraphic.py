@@ -25,6 +25,7 @@
 """
 taurusgraphic.py:
 """
+from __future__ import print_function
 
 # TODO: Tango-centric
 
@@ -140,7 +141,7 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
         p = self.parent()
         while True:
             item = p.getQueue().get(True)
-            if type(item) in types.StringTypes:
+            if type(item) in (str,):
                 if item == "exit":
                     break
                 else:
@@ -214,7 +215,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 self.debug = self.info = self.warning = self.error = lambda l: self.logger.warning(
                     l)
         except:
-            print 'Unable to initialize TaurusGraphicsSceneLogger: %s' % traceback.format_exc()
+            print('Unable to initialize TaurusGraphicsSceneLogger: %s' % traceback.format_exc())
 
         try:
             if parent and parent.panelClass() is not None:
@@ -439,7 +440,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     elif not last_was_separator:
                         menu.addSeparator()
                         last_was_separator = True
-                except Exception, e:
+                except Exception as e:
                     self.warning('Unable to add Menu Action: %s:%s' % (k, e))
                 return last_was_separator
             if (mouseEvent.button() == Qt.Qt.RightButton):
@@ -575,7 +576,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 if item not in self._selectedItems:
                     self._selectedItems.append(item)
                 retval = True
-            except Exception, e:
+            except Exception as e:
                 self.warning('selectGraphicsItem(%s) failed! %s' %
                              (getattr(item, '_name', item), str(e)))
                 self.warning(traceback.format_exc())

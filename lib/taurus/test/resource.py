@@ -24,6 +24,7 @@
 ###########################################################################
 
 '''Utility code for working with test resources'''
+from __future__ import print_function
 
 import os
 import sys
@@ -62,8 +63,8 @@ def getResourcePath(resmodule, fname=''):
 
 
 if __name__ == "__main__":
-    print getResourcePath('taurus.test')
-    print getResourcePath('taurus.test', 'resource.py')
+    print(getResourcePath('taurus.test'))
+    print(getResourcePath('taurus.test', 'resource.py'))
     # print getResourcePath('taurus.qt.qtgui.plot', 'taurusplot.py')
     # print getResourcePath('taurus.test', 'kk.py')
     # print getResourcePath('taurus.kk', 'resource.py')

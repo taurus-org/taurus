@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module provides a set of basic Taurus widgets based on QLabel"""
+from __future__ import absolute_import
 
 __all__ = ["TaurusLabel"]
 
@@ -620,8 +621,9 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
 def demo():
     "Label"
-    import demo.tauruslabeldemo
-    return demo.tauruslabeldemo.main()
+    #from . import demo.tauruslabeldemo # - after futurize stage1
+    from display.demo import tauruslabeldemo # + after futurize stage1
+    return tauruslabeldemo.main()
 
 
 def main():

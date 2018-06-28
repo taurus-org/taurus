@@ -24,12 +24,13 @@
 #############################################################################
 
 
+from __future__ import absolute_import
 from taurus.external.qt import Qt
 import taurus
 import numpy
 
 from taurus.qt.qtgui.container import TaurusWidget
-from arrayedit import ArrayEditor
+from .arrayedit import ArrayEditor
 
 
 class TaurusArrayEditor(TaurusWidget):
@@ -137,7 +138,7 @@ class TaurusArrayEditor(TaurusWidget):
                 x = numpy.arange(y.size)
             else:
                 x = numpy.array(self._xAttr.read().rvalue)
-        except Exception, e:
+        except Exception as e:
             self.error('Error reading from attribute(s): %s' % (str(e)))
             if not quiet:
                 Qt.QMessageBox.warning(
@@ -182,7 +183,7 @@ class TaurusArrayEditor(TaurusWidget):
             if self._xAttr is not None and numpy.any(self._xAttr.read(cache=False).wvalue != x):
                 raise IOError('Unexpected Write error: %s' %
                               self._xAttr.getFullName())
-        except Exception, e:
+        except Exception as e:
             self.error('Error writing to attribute(s): %s' % (str(e)))
             if not quiet:
                 Qt.QMessageBox.warning(

@@ -162,7 +162,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
                     module = __import__(modulename, fromlist=[''])
                     klass = getattr(module, classname)
                     w = klass()
-                except Exception, e:
+                except Exception as e:
                     raise RuntimeError(
                         'Cannot create widget from classname "%s". Reason: %s' % (classname, repr(e)))
             # set customwidgetmap if necessary
@@ -191,7 +191,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
                 'widgetClassName'), modulename=configdict.get('widgetModuleName', None))
             if isinstance(self.widget(), BaseConfigurableClass):
                 self.widget().applyConfig(configdict['widget'])
-        except Exception, e:
+        except Exception as e:
             self.info(
                 'Failed to set the widget for this panel. Reason: %s' % repr(e))
             self.traceback(self.Debug)
@@ -820,7 +820,7 @@ class TaurusGui(TaurusMainWindow):
             synoptic = TaurusJDrawSynopticsView()
             synoptic.setModel(jdwFileName)
             self.__synoptics.append(synoptic)
-        except Exception, e:
+        except Exception as e:
             # print repr(e)
             msg = 'Error loading synoptic file "%s".\nSynoptic won\'t be available' % jdwFileName
             self.error(msg)
@@ -880,7 +880,7 @@ class TaurusGui(TaurusMainWindow):
             instruments = ms.getElementsOfType('Instrument')
             if instruments is None:
                 raise
-        except Exception, e:
+        except Exception as e:
             msg = 'Could not fetch Instrument list from "%s"' % macroservername
             self.error(msg)
             result = Qt.QMessageBox.critical(self, 'Initialization error', '%s\n\n%s' % (
@@ -990,7 +990,7 @@ class TaurusGui(TaurusMainWindow):
             else:  # if confname is not a dir name, we assume it is a module name in the python path
                 conf = self._importConfiguration(confname)
                 self._confDirectory = os.path.dirname(conf.__file__)
-        except Exception, e:
+        except Exception as e:
             import traceback
             msg = 'Error loading configuration: %s' % traceback.format_exc()  # repr(e)
             self.error(msg)
@@ -1016,7 +1016,7 @@ class TaurusGui(TaurusMainWindow):
                 xmlstring = xmlFile.read()
                 xmlFile.close()
                 xmlroot = etree.fromstring(xmlstring)
-            except Exception, e:
+            except Exception as e:
                 msg = 'Error reading the XML file: "%s"' % xmlfname
                 self.error(msg)
                 self.traceback(level=taurus.Info)
@@ -1191,7 +1191,7 @@ class TaurusGui(TaurusMainWindow):
                 # create a panel
                 self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
                                  instrumentkey=instrumentkey, permanent=True)
-            except Exception, e:
+            except Exception as e:
                 msg = 'Cannot create panel %s' % getattr(
                     p, 'name', '__Unknown__')
                 self.error(msg)
@@ -1233,7 +1233,7 @@ class TaurusGui(TaurusMainWindow):
                 if isinstance(w, BaseConfigurableClass):
                     self.registerConfigDelegate(w, d.name)
 
-            except Exception, e:
+            except Exception as e:
                 msg = 'Cannot add toolbar %s' % getattr(
                     d, 'name', '__Unknown__')
                 self.error(msg)
@@ -1279,7 +1279,7 @@ class TaurusGui(TaurusMainWindow):
                 # register the toolbar as delegate if it supports it
                 if isinstance(w, BaseConfigurableClass):
                     self.registerConfigDelegate(w, d.name)
-            except Exception, e:
+            except Exception as e:
                 msg = 'Cannot add applet %s' % getattr(
                     d, 'name', '__Unknown__')
                 self.error(msg)
@@ -1515,7 +1515,7 @@ class TaurusGui(TaurusMainWindow):
                 f = open(self._xmlConfigFileName, 'r')
                 xmlroot = etree.fromstring(f.read())
                 f.close()
-            except Exception, e:
+            except Exception as e:
                 self.error('Cannot parse file "%s": %s',
                            self._xmlConfigFileName, str(e))
                 return
@@ -1570,7 +1570,7 @@ class TaurusGui(TaurusMainWindow):
                 f.write(xml)
                 f.close()
                 break
-            except Exception, e:
+            except Exception as e:
                 msg = 'Cannot write to %s: %s' % (fname, str(e))
                 self.error(msg)
                 Qt.QMessageBox.warning(

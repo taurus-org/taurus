@@ -24,6 +24,7 @@
 #############################################################################
 
 """Extension of :mod:`guiqwt.curve`"""
+from __future__ import print_function
 
 __all__ = ["TaurusCurveItem"]
 
@@ -356,11 +357,11 @@ def taurusCurveMain():
         elif n == 2:
             mx, my = mx_my
         else:
-            print "Invalid model: %s\n" % mx_my
+            print("Invalid model: %s\n" % mx_my)
             parser.print_help(sys.stderr)
             sys.exit(1)
         # cycle colors
-        style = make.style.next()
+        style = next(make.style)
         color = style[0]
         linestyle = style[1:]
         plot.add_item(make.curve(mx, my, color=color,

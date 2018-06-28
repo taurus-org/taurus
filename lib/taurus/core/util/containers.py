@@ -27,6 +27,7 @@
 This module contains a set of useful containers that are not part of the standard
 python distribution.
 """
+from __future__ import print_function
 
 __all__ = ["CaselessList", "CaselessDict", "CaselessWeakValueDict", "LoopList",
            "CircBuf", "LIFO", "TimedQueue", "self_locked", "ThreadDict",
@@ -682,12 +683,12 @@ def self_locked(func, reentrant=True):
         self.lock.acquire()
         try:
             if self.trace:
-                print "locked: %s" % self.lock
+                print("locked: %s" % self.lock)
             result = func(self, *args, **kwargs)
         finally:
             self.lock.release()
             if self.trace:
-                print "released: %s" % self.lock
+                print("released: %s" % self.lock)
         return result
     return lock_fun
 
@@ -721,7 +722,7 @@ class ThreadDict(dict):
         self.parent = type(self).mro()[1]
 
     def tracer(self, text):
-        print text
+        print(text)
 
     def start(self):
         import threading
@@ -1052,7 +1053,7 @@ def getDictAsTree(dct):
         lines = []
         if isinstance(d, dict):
             for k, v in d.items():
-                print 'with key "%s"' % k
+                print('with key "%s"' % k)
                 lines.append([''] * l + [str(k)])
                 lines += add_to_level(l + 1, v)
         elif type(d) in [list, set]:  # End of recursion
@@ -1065,7 +1066,7 @@ def getDictAsTree(dct):
             lines.append([''] * l + [str(d)])
         return lines
     ls = ['\t'.join(line) for line in add_to_level(0, dct)]
-    print 'lines are : \n', ls
+    print('lines are : \n', ls)
     return '\n'.join(ls)
 
 

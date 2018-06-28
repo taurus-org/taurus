@@ -26,6 +26,7 @@
 """
 scales.py: Custom scales used by taurus.qt.qtgui.plot module
 """
+from __future__ import print_function
 __all__ = ["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine",
            "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw",
            "FixedLabelsScaleDraw"]
@@ -318,8 +319,8 @@ class TaurusTimeScaleDraw(FancyScaleDraw):
         t = datetime.fromtimestamp(val)
         try:  # If the scaleDiv was created by a DateTimeScaleEngine it has a _datetimeLabelFormat
             s = t.strftime(self._datetimeLabelFormat)
-        except AttributeError, e:
-            print "Warning: cannot get the datetime label format (Are you using a DateTimeScaleEngine?)"
+        except AttributeError as e:
+            print("Warning: cannot get the datetime label format (Are you using a DateTimeScaleEngine?)")
             s = t.isoformat(' ')
         return Qwt5.QwtText(s)
 

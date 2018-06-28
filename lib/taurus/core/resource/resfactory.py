@@ -26,6 +26,7 @@
 """
 resfactory.py:
 """
+from __future__ import absolute_import
 
 import os
 import imp
@@ -86,7 +87,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
             raise ValueError('priority must be >=1')
         if operator.isMappingType(obj):
             name = name or 'DICT%02d' % priority
-        elif type(obj) in types.StringTypes or obj is None:
+        elif type(obj) in (str,) or obj is None:
             name, mod = self.__reloadResource(obj)
             obj = {}
             for k, v in mod.__dict__.items():
@@ -136,7 +137,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
             m = imp.load_module(module_name, file_, pathname, desc)
             if file_:
                 file_.close()
-        except Exception, e:
+        except Exception as e:
             if file_:
                 file_.close()
             raise e
@@ -246,15 +247,15 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
 
     def getAuthorityNameValidator(self):
         """Return ResourceAuthorityNameValidator"""
-        import resvalidator
+        from . import resvalidator
         return resvalidator.ResourceAuthorityNameValidator()
 
     def getDeviceNameValidator(self):
         """Return ResourceDeviceNameValidator"""
-        import resvalidator
+        from . import resvalidator
         return resvalidator.ResourceDeviceNameValidator()
 
     def getAttributeNameValidator(self):
         """Return ResourceAttributeNameValidator"""
-        import resvalidator
+        from . import resvalidator
         return resvalidator.ResourceAttributeNameValidator()

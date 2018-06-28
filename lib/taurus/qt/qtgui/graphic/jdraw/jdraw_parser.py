@@ -325,7 +325,7 @@ def new_parser(optimize=None, debug=0, outputdir=None):
     try:
         p = yacc.yacc(tabmodule=jdraw_yacctab, debugfile=None, write_tables=1,
                       **common_kwargs)
-    except Exception, e:
+    except Exception as e:
         msg = ('Error creating jdraw parser.\n' +
                'HINT: Try removing jdraw_lextab.* and jdraw_yacctab.* from %s' %
                outputdir)

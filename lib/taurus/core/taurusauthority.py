@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module contains the base class for a taurus database"""
+from __future__ import absolute_import
 
 __all__ = ["TaurusAuthority"]
 
@@ -87,7 +88,7 @@ class TaurusAuthority(TaurusModel):
 
     def getDevice(self, devname):
         """Returns the device object given its name"""
-        import taurusdevice
+        from . import taurusdevice
         return self.factory().getObject(taurusdevice.TaurusDevice, devname)
 
     @property

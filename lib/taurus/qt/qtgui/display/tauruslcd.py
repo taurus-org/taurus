@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module provides a Taurus widget based on QLCDNumber"""
+from __future__ import absolute_import
 
 __all__ = ["TaurusLCD"]
 
@@ -106,7 +107,7 @@ class TaurusLCDControllerAttribute(TaurusScalarAttributeControllerHelper, Taurus
                 for i in idx:
                     value = value[i]
             return widget.displayValue(value)
-        except Exception, e:
+        except Exception as e:
             return widget.getNoneValue()
 
 
@@ -386,7 +387,8 @@ class TaurusLCD(Qt.QLCDNumber, TaurusBaseWidget):
 
 def demo():
     "LCD"
-    import demo.tauruslcddemo
+    #from . import demo.tauruslcddemo # - after futurize stage1
+    import display.demo.tauruslcddemo # + after futurize stage1
     return demo.tauruslcddemo.main()
 
 

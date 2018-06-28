@@ -24,6 +24,7 @@
 #############################################################################
 
 """a list of helper methods"""
+from __future__ import print_function
 
 __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'getValidTypesForName', 'isValidName', 'makeSchemeExplicit',
@@ -74,36 +75,36 @@ def check_dependencies():
                 }
     import pkg_resources
     d = pkg_resources.get_distribution('taurus')
-    print "Dependencies for %s:" % d
+    print("Dependencies for %s:" % d)
     # minimum requirements (without extras)
     for r in d.requires():
         try:
             pkg_resources.require(str(r))
-            print '\t[*]',
+            print('\t[*]', end=' ')
         except Exception:
-            print '\t[ ]',
-        print '%s' % r
+            print('\t[ ]', end=' ')
+        print('%s' % r)
     # requirements for the extras
-    print '\nExtras:'
+    print('\nExtras:')
     for extra in sorted(d.extras):
-        print "Dependencies for taurus[%s]:" % extra
+        print("Dependencies for taurus[%s]:" % extra)
         # requirements from PyPI
         for r in d.requires(extras=[extra]):
             try:
                 r = str(r).split(';')[0]  # remove marker if present (see #612)
                 pkg_resources.require(r)
-                print '\t[*]',
+                print('\t[*]', end=' ')
             except Exception:
-                print '\t[ ]',
-            print '%s' % r
+                print('\t[ ]', end=' ')
+            print('%s' % r)
         # requirements outside PyPI
         for r, check in non_pypi.get(extra, ()):
             try:
                 check()
-                print '\t[*]',
+                print('\t[*]', end=' ')
             except Exception:
-                print '\t[ ]',
-            print '%s (not in PyPI)' % r
+                print('\t[ ]', end=' ')
+            print('%s (not in PyPI)' % r)
 
 
 def log_dependencies():
@@ -296,7 +297,7 @@ def Attribute(dev_or_attr_name, attr_name=None):
     if attr_name is None:
         return Factory(scheme=getSchemeFromName(dev_or_attr_name)).getAttribute(dev_or_attr_name)
     else:
-        if type(dev_or_attr_name) in types.StringTypes:
+        if type(dev_or_attr_name) in (str,):
             dev = Device(dev_or_attr_name)
         else:
             dev = dev_or_attr_name

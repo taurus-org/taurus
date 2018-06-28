@@ -26,6 +26,8 @@
 """
 qwtdialog.py: Dialogs for Taurusplot
 """
+from __future__ import print_function
+from __future__ import absolute_import
 
 __all__ = ["TaurusPlotConfigDialog"]
 
@@ -72,7 +74,7 @@ class TaurusPlotConfigDialog(Qt.QDialog):
 
         # insert the CurvesAppearanceWidget
         #(@TODO:must be changed to be done directly in the ui, but I couldn't make the widget available to TaurusDesigner)
-        from curvesAppearanceChooserDlg import CurvesAppearanceChooser
+        from .curvesAppearanceChooserDlg import CurvesAppearanceChooser
         layout = Qt.QVBoxLayout()
         self.curvesAppearanceChooser = CurvesAppearanceChooser(None)
         layout.addWidget(self.curvesAppearanceChooser)
@@ -165,7 +167,7 @@ class TaurusPlotConfigDialog(Qt.QDialog):
             elif scaleType == Qwt5.QwtScaleTransformation.Log10:
                 axes[axis].setCurrentIndex(1)
             else:
-                raise TypeError, "TaurusPlotConfigDialog::__init__(): unexpected axis scale type (linear or logarihtmic expected)"
+                raise TypeError("TaurusPlotConfigDialog::__init__(): unexpected axis scale type (linear or logarihtmic expected)")
         self.ui.xModeComboBox.setEnabled(not self.parent.getXIsTime())
 
         # determine which axes are visible
@@ -268,11 +270,11 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         if strtime[-1] in timeunits.keys():
             try:
                 return float(strtime[:-1]) * timeunits[strtime[-1]]
-            except Exception, e:
-                print '[str2deltatime] No format could be applied to "%s"' % strtime
+            except Exception as e:
+                print('[str2deltatime] No format could be applied to "%s"' % strtime)
                 return None
         else:
-            print '[str2deltatime] Non-supported unit "%s"' % strtime[-1]
+            print('[str2deltatime] Non-supported unit "%s"' % strtime[-1])
             return None
 
     def strtime2epoch(self, strtime):
@@ -321,12 +323,12 @@ class TaurusPlotConfigDialog(Qt.QDialog):
                     t = (lt[0], lt[1], lt[2], t[3], t[
                          4], lt[5], lt[6], lt[7], lt[8])
                     break
-            except Exception, e:
+            except Exception as e:
                 pass
         if t:
             return time.mktime(t)
         else:
-            print 'No format could be applied to "%s"' % strtime
+            print('No format could be applied to "%s"' % strtime)
             return None
 
     def validate(self):

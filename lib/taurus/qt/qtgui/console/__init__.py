@@ -35,7 +35,7 @@ deprecated(dep='TaurusConsole', alt='silx.gui.console.IPythonWidget',
 
 try:
     from silx.gui.console import IPythonWidget as TaurusConsole
-except Exception, e:
+except Exception as e:
     from taurus.qt.qtgui.display import TaurusFallBackWidget
 
     class TaurusConsole(TaurusFallBackWidget):

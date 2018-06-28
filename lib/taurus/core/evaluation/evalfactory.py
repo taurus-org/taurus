@@ -25,15 +25,16 @@
 '''
 evaluation module. See __init__.py for more detailed documentation
 '''
+from __future__ import absolute_import
 __all__ = ['EvaluationFactory']
 
 
 import weakref
 
 from taurus.core.taurusbasetypes import TaurusElementType
-from evalattribute import EvaluationAttribute
-from evalauthority import EvaluationAuthority
-from evaldevice import EvaluationDevice
+from .evalattribute import EvaluationAttribute
+from .evalauthority import EvaluationAuthority
+from .evaldevice import EvaluationDevice
 from taurus.core.taurusexception import TaurusException, DoubleRegistration
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
@@ -195,7 +196,7 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
             if a is None:  # if the full name is not there, create one
                 dev = self.getDevice(validator.getDeviceName(attr_name))
                 kwargs['storeCallback'] = self._storeAttr
-                if not kwargs.has_key('pollingPeriod'):
+                if 'pollingPeriod' not in kwargs:
                     kwargs['pollingPeriod'] = self.getDefaultPollingPeriod()
                 a = EvaluationAttribute(fullname, parent=dev, **kwargs)
         return a
@@ -242,15 +243,15 @@ class EvaluationFactory(Singleton, TaurusFactory, Logger):
 
     def getAuthorityNameValidator(self):
         """Return EvaluationAuthorityNameValidator"""
-        import evalvalidator
+        from . import evalvalidator
         return evalvalidator.EvaluationAuthorityNameValidator()
 
     def getDeviceNameValidator(self):
         """Return EvaluationDeviceNameValidator"""
-        import evalvalidator
+        from . import evalvalidator
         return evalvalidator.EvaluationDeviceNameValidator()
 
     def getAttributeNameValidator(self):
         """Return EvaluationAttributeNameValidator"""
-        import evalvalidator
+        from . import evalvalidator
         return evalvalidator.EvaluationAttributeNameValidator()

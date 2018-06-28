@@ -117,7 +117,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             value = self.typeCastingMap[tabledata.dtype.kind](value)
             return Qt.QVariant(value)
         elif role == Qt.Qt.DecorationRole:
-            if (self._modifiedDict.has_key((index.row(), index.column()))) and\
+            if ((index.row(), index.column()) in self._modifiedDict) and\
                     (self._writeMode):
                 if self.getAttr().type in [DataType.Integer, DataType.Float]:
                     value = self._modifiedDict[(index.row(), index.column())]
@@ -130,7 +130,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 return Qt.QVariant(icon)
         elif role == Qt.Qt.EditRole:
             value = None
-            if self._modifiedDict.has_key((index.row(), index.column())) and\
+            if (index.row(), index.column()) in self._modifiedDict and\
                     (self._writeMode):
                 value = self._modifiedDict[(index.row(), index.column())]
             else:
@@ -144,7 +144,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             else:
                 return Qt.QVariant(Qt.QColor('white'))
         elif role == Qt.Qt.ForegroundRole:
-            if self._modifiedDict.has_key((index.row(), index.column())) and\
+            if (index.row(), index.column()) in self._modifiedDict and\
                     (self._writeMode):
                 if self.getAttr().type in [DataType.Integer, DataType.Float]:
                     value = self._modifiedDict[(index.row(), index.column())]
@@ -156,11 +156,11 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                     return Qt.QVariant(Qt.QColor('blue'))
             return Qt.QVariant(Qt.QColor('black'))
         elif role == Qt.Qt.FontRole:
-            if self._modifiedDict.has_key((index.row(), index.column())) and\
+            if (index.row(), index.column()) in self._modifiedDict and\
                     (self._writeMode):
                 return Qt.QVariant(Qt.QFont("Arial", 10, Qt.QFont.Bold))
         elif role == Qt.Qt.ToolTipRole:
-            if self._modifiedDict.has_key((index.row(), index.column())) and\
+            if (index.row(), index.column()) in self._modifiedDict and\
                     (self._writeMode):
                 value = str(self._modifiedDict[(index.row(), index.column())])
                 msg = 'Original value: %s.\nNew value that will be saved: %s' %\
@@ -243,7 +243,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
 
         :param index:  (QModelIndex) table index
         '''
-        if self._modifiedDict.has_key((index.row(), index.column())):
+        if (index.row(), index.column()) in self._modifiedDict:
             self._modifiedDict.pop((index.row(), index.column()))
 
     def flags(self, index):
@@ -748,7 +748,7 @@ class TaurusValuesTable(TaurusWidget):
             index = self._tableView.selectedIndexes()[0]
             if index.isValid():
                 val = self._tableView.model().getReadValue(index)
-                if self._tableView.model().getModifiedDict().has_key((index.row(), index.column())):
+                if (index.row(), index.column()) in self._tableView.model().getModifiedDict():
                     menu.addAction(Qt.QIcon.fromTheme(
                         'edit-undo'), "Reset to original value (%s) " % repr(val), self._tableView.removeChange)
                     menu.addSeparator()

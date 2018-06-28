@@ -1,4 +1,5 @@
 """Provide a Signal class for non-QObject objects"""
+from __future__ import print_function
 
 __all__ = ['baseSignal']
 

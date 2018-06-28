@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module contains the taurus base manager class"""
+from __future__ import print_function
 
 __all__ = ["TaurusManager"]
 
@@ -291,7 +292,7 @@ class TaurusManager(Singleton, Logger):
         for plugin_class in plugin_classes:
             schemes = list(plugin_class.schemes)
             for scheme in schemes:
-                if plugins.has_key(scheme):
+                if scheme in plugins:
                     k = plugins[scheme]
                     self.warning("Conflicting plugins: %s and %s both implement "
                                  "scheme %s. Will keep using %s" % (k.__name__,
@@ -336,7 +337,7 @@ class TaurusManager(Singleton, Logger):
         for full_module_name in full_module_names:
             try:
                 m = __import__(full_module_name, fromlist=['*'], level=0)
-            except Exception, imp1:
+            except Exception as imp1:
                 # just in case we are in python 2.4
                 try:
                     m = __import__(full_module_name,
@@ -397,4 +398,4 @@ class TaurusManager(Singleton, Logger):
 
 if __name__ == '__main__':
     manager = TaurusManager()
-    print manager.getPlugins()
+    print(manager.getPlugins())

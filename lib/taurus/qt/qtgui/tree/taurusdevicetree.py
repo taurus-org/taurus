@@ -26,6 +26,7 @@
 """
 taurusdevicetree.py:
 """
+from __future__ import print_function
 
 # @todo: This module is not being used anywhere in Taurus and depends on
 # non-standard and non-provided modules. It is also quite specific and
@@ -568,7 +569,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     def trace(self, msg):
         if self.TRACE_ALL or self.getLogLevel() in ('DEBUG', 40,):
             # @TODO: use the taurus logger instead! ~~cpascual 20121121
-            print 'TaurusDevTree.%s: %s' % (self.getLogLevel(), msg)
+            print('TaurusDevTree.%s: %s' % (self.getLogLevel(), msg))
 
     def setTangoHost(self, tango_host=None):
         self.db = taurus.Authority(tango_host)
@@ -761,12 +762,12 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                 label = aname == my_attr.label and aname.lower(
                 ) or "%s (%s)" % (aname.lower(), my_attr.label)
                 dct[str(my_device).lower() + '/' + label] = 0
-        except PyTango.DevFailed, e:
+        except PyTango.DevFailed as e:
             self.warning('addAttrToDev(%s): %s' % (my_device, str(e)))
             qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical, '%s Error' %
                                   my_device, '%s not available' % my_device, Qt.QMessageBox.Ok, self)
             qmsg.show()
-        except Exception, e:
+        except Exception as e:
             self.warning('addAttrToDev(%s): %s' % (my_device, str(e)))
             qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical, '%s Error' %
                                   my_device, str(e), Qt.QMessageBox.Ok, self)
@@ -1006,7 +1007,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                          for item in self.item_list if item.isExpanded()]
                 self.debug('findInTree(%s): Node not found' % (regexp))
             if queue:
-                self.Expander.next()
+                next(self.Expander)
         except:
             self.warning('findInTree(%s): failed' % (regexp))
             self.error(traceback.format_exc())
@@ -1019,7 +1020,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
             allChildren[str(it.text(0))] = it
 
         sorter = lambda k, ks=[re.compile(c) for c in order]: str(
-            (i for i, r in enumerate(ks) if r.match(k.lower())).next()) + str(k)
+            next((i for i, r in enumerate(ks) if r.match(k.lower())))) + str(k)
         for c, it in sorted(allChildren.items(), key=lambda k: sorter(k[0])):
             self.debug('tree.sortCustom(%s): %s inserted at %d' %
                        (order, it.text(0), self.topLevelItemCount()))
@@ -1298,7 +1299,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                     elif not last_was_separator:
                         menu.addSeparator()
                         last_was_separator = True
-                except Exception, e:
+                except Exception as e:
                     self.warning('Unable to add Menu Action: %s:%s' % (t, e))
 
         if hasattr(node, 'ExpertMenu'):
@@ -1319,7 +1320,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                     elif not last_was_separator:
                         expert.addSeparator()
                         last_was_separator = True
-                except Exception, e:
+                except Exception as e:
                     self.warning('Unable to add Expert Action: %s:%s' % (t, e))
         # menu.addSeparator()
         menu.exec_(event.globalPos())
@@ -1666,7 +1667,7 @@ class TaurusSearchTree(TaurusWidget):
             try:
                 setattr(self, k, partial(
                     self.method_forwarder, method=k, object=self.tree))
-            except Exception, e:
+            except Exception as e:
                 self.warning('Unable to add slot %s: %s' % (k, e))
         # Event forwarding ...
         self.tree.refreshTree.connect(self.refreshTree)

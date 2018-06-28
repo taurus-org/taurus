@@ -152,7 +152,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
             else:
                 self.warning('Invalid model "%s" (Skipping)' % mx_my)
             # cycle styles
-            style = self.style.next()
+            style = next(self.style)
             color = style[0]
             linestyle = style[1:]
             # add the item
@@ -289,7 +289,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         # create and attach new TaurusCurveItems
         for m in modelNames:
             # cycle styles
-            style = self.style.next()
+            style = next(self.style)
             # add the item
             item = make.ttrend(m, color=style[0], linestyle=style[
                                1:], linewidth=2, taurusparam=copy.deepcopy(self.defaultTaurusparam))

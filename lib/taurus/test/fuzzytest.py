@@ -24,6 +24,7 @@
 #############################################################################
 
 '''Utility functions to deal with non-ideal (fuzzy) tests'''
+from __future__ import print_function
 
 
 def loopTest(testname, maxtries=100, maxfails=10):
@@ -97,8 +98,8 @@ def calculateTestFuzziness(test, maxtries=100, maxfails=10, **kwargs):
              times that the test should be passed to have a confidence>99%%
              that the bug is fixed'
     '''
-    print ("Running the test %i times (or until it fails %i times)" +
-           "to estimate the failure rate") % (maxtries, maxfails)
+    print(("Running the test %i times (or until it fails %i times)" +
+           "to estimate the failure rate") % (maxtries, maxfails))
     import numpy
 
     if isinstance(test, str):
@@ -108,11 +109,11 @@ def calculateTestFuzziness(test, maxtries=100, maxfails=10, **kwargs):
                                       maxfails=maxfails, **kwargs)
     r = float(fails) / tries
     dr = numpy.sqrt(fails) / tries
-    print 'Failure rate = %g +/- %g  (%i/%i)' % (r, dr, fails, tries)
+    print('Failure rate = %g +/- %g  (%i/%i)' % (r, dr, fails, tries))
     # calculating n using p-value=1% and failure rate with -1 sigma
     n = numpy.ceil(numpy.log(.01) / numpy.log(1 - (r - dr)))
-    print ('Number of consecutive times that the test should be passed ' +
-           'to have a confidence>99%% that the bug is fixed: %g') % n
+    print(('Number of consecutive times that the test should be passed ' +
+           'to have a confidence>99%% that the bug is fixed: %g') % n)
     return r, dr, n
 
 
@@ -127,7 +128,7 @@ if __name__ == "__main__":
             exit(1)
         return
 
-    print calculateTestFuzziness(kk)
+    print(calculateTestFuzziness(kk))
 
 #     print calculateTestFuzziness('test_pytango_bug659.TestPyTango_Bug659')
 #

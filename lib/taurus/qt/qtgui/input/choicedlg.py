@@ -24,6 +24,7 @@
 ###########################################################################
 
 """This package provides a dialog for graphically choosing a Taurus class"""
+from __future__ import print_function
 
 __all__ = ["GraphicalChoiceDlg", "GraphicalChoiceWidget"]
 
@@ -255,7 +256,7 @@ def main():
         for k in row:
             pixmaps[k] = getCachedPixmap('snapshot:%s.png' % k)
 
-    print GraphicalChoiceDlg.getChoice(parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=choices, pixmaps=pixmaps)
+    print(GraphicalChoiceDlg.getChoice(parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=choices, pixmaps=pixmaps))
 
     sys.exit()
 

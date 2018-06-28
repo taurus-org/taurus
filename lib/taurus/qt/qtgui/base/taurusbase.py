@@ -736,7 +736,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         if self._format is None:
             try:
                 self._updateFormat(type(v))
-            except Exception, e:
+            except Exception as e:
                 self.warning(('Cannot update format. Reverting to default.' +
                               ' Reason: %r'), e)
                 self.setFormat(defaultFormatter)
@@ -2147,9 +2147,9 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
             bottom = evt_value.min_value
             top = evt_value.max_value
             bottom = int(
-                bottom) if bottom != TaurusConfiguration.no_min_value else -sys.maxint
+                bottom) if bottom != TaurusConfiguration.no_min_value else -sys.maxsize
             top = int(
-                top) if top != TaurusConfiguration.no_max_value else sys.maxint
+                top) if top != TaurusConfiguration.no_max_value else sys.maxsize
             v.setRange(bottom, top)
             self.debug("Validator range set to %i-%i" % (bottom, top))
         elif isinstance(v, Qt.QDoubleValidator):

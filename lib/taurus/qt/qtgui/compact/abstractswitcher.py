@@ -193,7 +193,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         for sig in self.enterEditSignals:
             try:
                 getattr(self.readWidget, sig).connect(self.enterEdit)
-            except Exception, e:
+            except Exception as e:
                 self.debug('Cannot connect signal. Reason: %s', e)
         # update size policy
         self._updateSizePolicy()
@@ -220,7 +220,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         for sig in self.exitEditSignals:
             try:
                 getattr(self.writeWidget, sig).connect(self.exitEdit)
-            except Exception, e:
+            except Exception as e:
                 if isinstance(e, AttributeError) and hasattr(Qt, "SIGNAL"):
                     # Support old-style signal
                     self.connect(self.writeWidget, Qt.SIGNAL(sig),

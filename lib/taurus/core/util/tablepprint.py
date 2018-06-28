@@ -24,6 +24,8 @@
 #############################################################################
 
 """Adapted from http://code.activestate.com/recipes/267662/"""
+from __future__ import print_function
+from functools import reduce
 
 __docformat__ = "restructuredtext"
 
@@ -135,19 +137,19 @@ if __name__ == '__main__':
        Aristidis,Papageorgopoulos,28,Senior Reseacher'''
     rows = [row.strip().split(',') for row in data.splitlines()]
 
-    print 'Without wrapping function\n'
+    print('Without wrapping function\n')
     for l in indent([labels] + rows, hasHeader=True):
-        print l
+        print(l)
 
     # test indent with different wrapping functions
     width = 10
     for wrapper in (wrap_always, wrap_onspace, wrap_onspace_strict):
-        print 'Wrapping function: %s(x,width=%d)\n' % (wrapper.__name__, width)
+        print('Wrapping function: %s(x,width=%d)\n' % (wrapper.__name__, width))
         o = indent([labels] + rows, headerChar='=', hasHeader=True, separateRows=False,
                    prefix='|', postfix='|', delim=' ',
                    wrapfunc=lambda x: wrapper(x, width))
         for l in o:
-            print l
+            print(l)
 
     # output:
     #

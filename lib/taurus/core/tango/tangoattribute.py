@@ -426,7 +426,7 @@ class TangoAttribute(TaurusAttribute):
                     # handle old PyTango
                     dev.write_attribute(name, value)
                     result = dev.read_attribute(name)
-                except PyTango.DevFailed, df:
+                except PyTango.DevFailed as df:
                     for err in df:
                         # Handle old device servers
                         if err.reason == 'API_UnsupportedFeature':
@@ -440,12 +440,12 @@ class TangoAttribute(TaurusAttribute):
             else:
                 dev.write_attribute(name, value)
                 return None
-        except PyTango.DevFailed, df:
+        except PyTango.DevFailed as df:
             err = df[0]
             self.error("[Tango] write failed (%s): %s" %
                        (err.reason, err.desc))
             raise df
-        except Exception, e:
+        except Exception as e:
             self.error("[Tango] write failed: %s" % str(e))
             raise e
 
@@ -474,12 +474,12 @@ class TangoAttribute(TaurusAttribute):
                        ):
                         return
                     self.__attr_value = value
-            except PyTango.DevFailed, df:
+            except PyTango.DevFailed as df:
                 self.__subscription_event.set()
                 self.debug("Error polling: %s" % df[0].desc)
                 self.traceback()
                 self.fireEvent(TaurusEventType.Error, self.__attr_err)
-            except Exception, e:
+            except Exception as e:
                 self.__subscription_event.set()
                 self.debug("Error polling: %s" % str(e))
                 self.fireEvent(TaurusEventType.Error, self.__attr_err)
@@ -687,7 +687,7 @@ class TangoAttribute(TaurusAttribute):
             try:
                 self.__dev_hw_obj.unsubscribe_event(self.__chg_evt_id)
                 self.__chg_evt_id = None
-            except PyTango.DevFailed, df:
+            except PyTango.DevFailed as df:
                 if len(df.args) and df[0].reason == 'API_EventNotFound':
                     # probably tango shutdown has been initiated before and
                     # it unsubscribed from events itself
@@ -752,7 +752,7 @@ class TangoAttribute(TaurusAttribute):
             try:
                 self.__dev_hw_obj.unsubscribe_event(self.__cfg_evt_id)
                 self.__cfg_evt_id = None
-            except PyTango.DevFailed, e:
+            except PyTango.DevFailed as e:
                 self.debug("Error trying to unsubscribe configuration events")
                 self.trace(str(e))
                 
