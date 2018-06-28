@@ -39,6 +39,7 @@ import sys
 import weakref
 import threading
 import time
+import collections
 import operator
 
 import taurus.core
@@ -678,7 +679,7 @@ class AttributeEventIterator(object):
             self.connect(attrs)
 
     def connect(self, attrs):
-        if not operator.isSequenceType(attrs):
+        if not isinstance(attrs, collections.Sequence):
             attrs = (attrs,)
         self.disconnect()
         self._attrs = attrs

@@ -31,6 +31,7 @@ __all__ = ["List"]
 __docformat__ = "restructuredtext"
 
 import textwrap
+import collections
 import operator
 
 from .enums import Alignment
@@ -83,7 +84,7 @@ class List(list):
     def setMaxColumnWidth(self, max_col_width):
         if max_col_width is None:
             max_col_width = -1
-        if not operator.isSequenceType(max_col_width):
+        if not isinstance(max_col_width, collections.Sequence):
             max_col_width = self.col_nb * [max_col_width]
         self.MaxColumnWidth = max_col_width
 
@@ -93,7 +94,7 @@ class List(list):
     max_column_width = property(getMaxColumnWidth, setMaxColumnWidth)
 
     def setTextAlignment(self, text_alignment):
-        if not operator.isSequenceType(text_alignment):
+        if not isinstance(text_alignment, collections.Sequence):
             text_alignment = self.col_nb * [text_alignment]
         self.TextAlignment = text_alignment
 
