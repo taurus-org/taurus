@@ -142,6 +142,12 @@ class Enumeration(object):
         self._uniqueId += 1
         return n
 
+    def __contains__(self, i):
+        if isinstance(i, (int, long)):
+            return i in self.reverseLookup
+        elif isinstance(i, (str, unicode)):
+            return i in self.lookup
+
     def __getitem__(self, i):
         if isinstance(i, (int, long)):
             return self.whatis(i)
@@ -155,7 +161,7 @@ class Enumeration(object):
 
     def __doc_enum(self):
         rl = self.reverseLookup
-        keys = rl.keys()
+        keys = list(rl)
         keys.sort()
         values = "\n".join(["    - {0} ({1})".format(rl[k], k) for k in keys])
         self.__doc__ = self._name + " enumeration. " + \
@@ -163,14 +169,14 @@ class Enumeration(object):
 
     def __str__(self):
         rl = self.reverseLookup
-        keys = rl.keys()
+        keys = list(rl)
         keys.sort()
         values = ", ".join([rl[k] for k in keys])
         return self._name + "(" + values + ")"
 
     def __repr__(self):
         rl = self.reverseLookup
-        keys = rl.keys()
+        keys = list(rl)
         keys.sort()
         values = [rl[k] for k in keys]
         return "Enumeration('" + self._name + "', " + str(values) + ")"
