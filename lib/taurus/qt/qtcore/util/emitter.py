@@ -28,7 +28,7 @@ emitter.py: This module provides a task scheduler used by TaurusGrid and
     TaurusDevTree widgets
 """
 
-from Queue import Queue, Empty
+from six.moves.queue import Queue, Empty
 import traceback
 from functools import partial
 from collections import Iterable
@@ -144,7 +144,7 @@ class TaurusEmitterThread(Qt.QThread):
     .. code-block:: python
 
         #Applying TaurusEmitterThread to an existing class:
-        from Queue import Queue
+        from six.moves.queue import Queue
         from functools import partial
 
         def modelSetter(args):
