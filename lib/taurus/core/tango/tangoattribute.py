@@ -580,9 +580,9 @@ class TangoAttribute(TaurusAttribute):
             self._subscribeEvents()
 
         # if initial_subscription_state == SubscriptionState.Subscribed:
-        if len(listeners) > 1 and\
-                (initial_subscription_state == SubscriptionState.Subscribed or
-                     self.isPollingActive()):
+        if (len(listeners) > 1
+            and (initial_subscription_state == SubscriptionState.Subscribed or
+                     self.isPollingActive())):
             sm = self._serialization_mode
             if sm == TaurusSerializationMode.TangoSerial:
                 self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',

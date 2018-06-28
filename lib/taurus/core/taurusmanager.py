@@ -139,8 +139,8 @@ class TaurusManager(Singleton, Logger):
                 return
             self._thread_pool.add(job, callback, *args, **kw)
         else:
-            if not hasattr(self, "_sthread_pool") or \
-                            self._sthread_pool is None:
+            if (not hasattr(self, "_sthread_pool")
+                or self._sthread_pool is None):
                 self.info("Job cannot be processed.")
                 self.debug(
                     "The requested job cannot be processed. " +
