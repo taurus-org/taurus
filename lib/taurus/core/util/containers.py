@@ -265,8 +265,8 @@ class CaselessDict(dict):
         return dict.__contains__(self, key.lower())
 
     def has_key(self, key):
-        """overwritten from :meth:`dict.has_key`"""
-        return dict.has_key(self, key.lower())
+        """overwritten from :meth:`dict.has_key` (needed for python2)"""
+        return key.lower() in self
 
     def get(self, key, def_val=None):
         """overwritten from :meth:`dict.get`"""
@@ -318,8 +318,10 @@ class CaselessWeakValueDict(weakref.WeakValueDictionary):
         return weakref.WeakValueDictionary.__contains__(self, key.lower())
 
     def has_key(self, key):
-        """overwritten from :meth:`weakref.WeakValueDictionary.has_key`"""
-        return weakref.WeakValueDictionary.has_key(self, key.lower())
+        """overwritten from :meth:`weakref.WeakValueDictionary
+        (needed for python2)
+        """
+        return key in self
 
     def get(self, key, def_val=None):
         """overwritten from :meth:`weakref.WeakValueDictionary.get`"""
@@ -799,7 +801,7 @@ class ThreadDict(dict):
 
     @self_locked
     def append(self, key, value=None):
-        if not dict.has_key(self, key):
+        if key not in self:
             self.parent.__setitem__(self, key, value)
         if key not in self._threadkeys:
             self._threadkeys.append(key)
@@ -865,7 +867,7 @@ class ThreadDict(dict):
     #__repr__ = self_locked(dict.__repr__)
 
     #get = self_locked(dict.get)
-    has_key = self_locked(dict.has_key)
+    #has_key = self_locked(dict.has_key)
     update = self_locked(dict.update)
     copy = self_locked(dict.copy)
 
