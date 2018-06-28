@@ -289,9 +289,8 @@ class QLed(QPixmapWidget):
 class QLedOld(Qt.QLabel):
     ledDirPattern = ":leds/images%(size)d"
 
-    #def __init__(self, parent=None, ledsize=LedSize.SMALL, ledcolor=LedColor.GREEN): #BUG
-    def __init__(self, parent=None, ledsize=24, ledcolor=LedColor.GREEN):
-
+    def __init__(self, parent=None, ledsize=LedSize.SMALL,
+                 ledcolor=LedColor.GREEN):
         Qt.QLabel.__init__(self, parent)
 
         self.ledsize = ledsize
