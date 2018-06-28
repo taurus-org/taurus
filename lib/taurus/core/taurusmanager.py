@@ -91,7 +91,7 @@ class TaurusManager(Singleton, Logger):
         self._sthread_pool = ThreadPool(name="TaurusTSP",
                                        parent=self,
                                        Psize=1,
-                                       Qsize=float("inf")) #TODO check value
+                                       Qsize=0)
         self._plugins = None
 
         self._initial_default_scheme = self.default_scheme
