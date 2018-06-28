@@ -874,9 +874,9 @@ class ThreadDict(dict):
     keys = self_locked(dict.keys)
     values = self_locked(dict.values)
     items = self_locked(dict.items)
-    iterkeys = self_locked(dict.iterkeys)
-    itervalues = self_locked(dict.itervalues)
-    iteritems = self_locked(dict.iteritems)
+    #iterkeys = self_locked(dict.iterkeys)
+    #itervalues = self_locked(dict.itervalues)
+    #iteritems = self_locked(dict.iteritems)
 
 
 class SortedDict(dict):
