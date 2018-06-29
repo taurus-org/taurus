@@ -117,17 +117,24 @@ class TaurusManager(Singleton, Logger):
         self._state = ManagerState.CLEANED
 
     def addJob(self, job, callback=None, *args, **kw):
-        """Add a new job (callable) to the queue. The new job will be processed
-        by a separate thread
+        """ Deprecated. Wrapper of enqueueJob. See enqueueJob documentation.
+        """
+        self.deprecated(dep='addJob', alt='enqueueJob', rel='4.3.2')
+        self.enqueueJob(job, callback=callback, jobargs=args, jobkwargs=kw)
 
+    def enqueueJob(self, job, callback=None, jobargs=None, jobkwargs=None,
+                   serialization_mode=None):
+        """ Enqueue a job (callable) to the queue. The new job will be
+        processed by a separate thread
         :param job: (callable) a callable object
         :param callback: (callable) called after the job has been processed
-        :param args: (list) list of arguments passed to the job
-        :param kw: (dict) keyword arguments passed to the job
+        :param jobargs: (list) list of arguments passed to the job
+        :param jobkwargs: (dict) keyword arguments passed to the job
+        :param serialization_mode:
+        (taurus.core.taurusbasetypes.TaurusSerializationMode) serialization
+        mode
         """
-        if kw.has_key("taurus_serialization_mode"):
-            serialization_mode = kw.pop("taurus_serialization_mode")
-        else:
+        if serialization_mode is None:
             serialization_mode = self._serialization_mode
 
         if serialization_mode == TaurusSerializationMode.Concurrent:
@@ -137,7 +144,7 @@ class TaurusManager(Singleton, Logger):
                     "The requested job cannot be processed. " +
                     "Make sure this manager is initialized")
                 return
-            self._thread_pool.add(job, callback, *args, **kw)
+            self._thread_pool.add(job, callback, *jobargs, **jobkwargs)
         else:
             if (not hasattr(self, "_sthread_pool")
                 or self._sthread_pool is None):
@@ -146,7 +153,7 @@ class TaurusManager(Singleton, Logger):
                     "The requested job cannot be processed. " +
                     "Make sure this manager is initialized")
                 return
-            self._sthread_pool.add(job, callback, *args, **kw)
+            self._sthread_pool.add(job, callback, *jobargs, **jobkwargs)
 
     def setSerializationMode(self, mode):
         """Sets the serialization mode for the system.

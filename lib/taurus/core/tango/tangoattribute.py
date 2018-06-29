@@ -586,12 +586,12 @@ class TangoAttribute(TaurusAttribute):
             sm = self._serialization_mode
             if sm == TaurusSerializationMode.TangoSerial:
                 self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
-                                alt="TaurusSerializationMode.Serial",
+                                alt='TaurusSerializationMode.Serial',
                                 rel='4.3.2')
                 self.__fireRegisterEvent((listener,))
             else:
-                Manager().addJob(self.__fireRegisterEvent, None, (listener,),
-                                 taurus_serialization_mode=sm)
+                Manager().enqueueJob(self.__fireRegisterEvent, None,
+                                     (listener,), serialization_mode=sm)
         return ret
 
     def removeListener(self, listener):
@@ -796,9 +796,8 @@ class TangoAttribute(TaurusAttribute):
                                 rel='4.3.2')
                 self.fireEvent(etype, evalue, listeners=listeners)
             else:
-                manager.addJob(self.fireEvent, None, etype, evalue,
-                               listeners=listeners,
-                               taurus_serialization_mode=sm)
+                manager.enqueueJob(self.fireEvent, None, etype, evalue,
+                                   serialization_mode=sm)
 
     def _pushAttrEvent(self, event):
         """Handler of (non-configuration) events from the PyTango layer.
