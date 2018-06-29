@@ -63,7 +63,7 @@ import traceback
 import operator
 import types
 
-from six.moves.queue import Queue
+import Queue
 
 from taurus import Manager
 from taurus.core import AttrQuality, DataType
@@ -830,7 +830,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     def start(self):
         if self.updateThread:
             return
-        self.updateQueue = Queue()
+        self.updateQueue = Queue.Queue()
         self.updateThread = TaurusGraphicsUpdateThread(self)
         self.updateThread.start()  # Qt.QThread.HighPriority)
 

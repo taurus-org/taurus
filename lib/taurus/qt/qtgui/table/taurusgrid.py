@@ -41,7 +41,7 @@ __docformat__ = 'restructuredtext'
 import re
 import operator
 import traceback
-from six.moves.queue import Queue
+import Queue
 from functools import partial
 
 from taurus.external.qt import Qt, QtGui, QtCore
@@ -275,7 +275,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self.hideLabels = False
 
         self.defineStyle()
-        self.modelsQueue = Queue()
+        self.modelsQueue = Queue.Queue()
         self.__modelsThread = None
         if not designMode:
             self.modelsThread
