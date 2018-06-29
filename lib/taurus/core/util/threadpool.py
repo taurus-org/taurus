@@ -32,7 +32,7 @@ __all__ = ["ThreadPool", "Worker"]
 __docformat__ = "restructuredtext"
 
 from threading import Thread, currentThread
-from six.moves.queue import Queue
+from Queue import Queue
 from time import sleep, time
 from traceback import extract_stack, format_list
 
