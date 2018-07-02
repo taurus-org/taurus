@@ -30,7 +30,8 @@ taurusvalue.py:
 __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox",
            "DefaultUnitsWidget", "TaurusPlotButton", "TaurusArrayEditorButton",
            "TaurusValuesTableButton", "TaurusValuesTableButton_W",
-           "DefaultLabelWidget", "TaurusDevButton", "TaurusImageButton"]
+           "DefaultLabelWidget", "DefaultReadWidgetLabel", "TaurusDevButton",
+           "TaurusImageButton"]
 
 __docformat__ = 'restructuredtext'
 
