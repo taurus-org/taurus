@@ -144,7 +144,7 @@ class TaurusManager(Singleton, Logger):
                     "The requested job cannot be processed. " +
                     "Make sure this manager is initialized")
                 return
-            self._thread_pool.add(job, callback, jobargs, jobkwargs)
+            self._thread_pool.add(job, callback, *jobargs, **jobkwargs)
         else:
             if (not hasattr(self, "_sthread_pool")
                 or self._sthread_pool is None):
@@ -153,7 +153,7 @@ class TaurusManager(Singleton, Logger):
                     "The requested job cannot be processed. " +
                     "Make sure this manager is initialized")
                 return
-            self._sthread_pool.add(job, callback, jobargs, jobkwargs)
+            self._sthread_pool.add(job, callback, *jobargs, **jobkwargs)
 
     def setSerializationMode(self, mode):
         """Sets the serialization mode for the system.
