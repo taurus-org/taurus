@@ -206,6 +206,8 @@ class CenteredLed(TaurusLed):
 
 class DefaultUnitsWidget(TaurusLabel):
 
+    FORMAT = "{}"
+
     def __init__(self, *args):
         TaurusLabel.__init__(self, *args)
         self.setNoneValue('')
