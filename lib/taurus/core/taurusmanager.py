@@ -134,6 +134,12 @@ class TaurusManager(Singleton, Logger):
         (taurus.core.taurusbasetypes.TaurusSerializationMode) serialization
         mode
         """
+        if jobargs is None:
+            jobargs = ()
+
+        if jobkwargs is None:
+            jobkwargs = {}
+
         if serialization_mode is None:
             serialization_mode = self._serialization_mode
 
