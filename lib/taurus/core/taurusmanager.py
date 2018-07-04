@@ -36,7 +36,8 @@ from .util.singleton import Singleton
 from .util.log import Logger, taurus4_deprecation
 from .util.threadpool import ThreadPool
 
-from .taurusbasetypes import OperationMode, ManagerState, TaurusSerializationMode
+from .taurusbasetypes import (OperationMode, ManagerState,
+                              TaurusSerializationMode)
 from .taurusauthority import TaurusAuthority
 from .taurusdevice import TaurusDevice
 from .taurusattribute import TaurusAttribute
@@ -147,18 +148,19 @@ class TaurusManager(Singleton, Logger):
             if not hasattr(self, "_thread_pool") or self._thread_pool is None:
                 self.info("Job cannot be processed.")
                 self.debug(
-                    "The requested job cannot be processed. " +
-                    "Make sure this manager is initialized")
+                    "The requested job cannot be processed. "
+                    + "Make sure this manager is initialized")
                 return
             self._thread_pool.add(job, callback, *jobargs, **jobkwargs)
         elif serialization_mode == TaurusSerializationMode.Serial:
             if (not hasattr(self, "_sthread_pool")
-                or self._sthread_pool is None):
+                    or self._sthread_pool is None):
                 self.info("Job cannot be processed.")
                 self.debug(
-                    "The requested job cannot be processed. " +
-                    "Make sure this manager is initialized")
+                    "The requested job cannot be processed. "
+                    + "Make sure this manager is initialized")
                 return
+
             self._sthread_pool.add(job, callback, *jobargs, **jobkwargs)
         else:
             raise TaurusException("{} serialization mode not supported".format(
@@ -327,9 +329,11 @@ class TaurusManager(Singleton, Logger):
             for scheme in schemes:
                 if plugins.has_key(scheme):
                     k = plugins[scheme]
-                    self.warning("Conflicting plugins: %s and %s both implement "
-                                 "scheme %s. Will keep using %s" % (k.__name__,
-                                                                    plugin_class.__name__, scheme, k.__name__))
+                    self.warning(
+                        "Conflicting plugins: %s and %s both implement "
+                        "scheme %s. Will keep using %s" % (k.__name__,
+                                                           plugin_class.__name__,
+                                                           scheme, k.__name__))
                 else:
                     plugins[scheme] = plugin_class
         return plugins
@@ -382,8 +386,8 @@ class TaurusManager(Singleton, Logger):
             for s in m.__dict__.values():
                 plugin = None
                 try:
-                    if issubclass(s, TaurusFactory) and \
-                       issubclass(s, Singleton):
+                    if (issubclass(s, TaurusFactory)
+                            and issubclass(s, Singleton)):
                         if hasattr(s, 'schemes'):
                             schemes = getattr(s, 'schemes')
                             if len(schemes):
@@ -428,6 +432,7 @@ class TaurusManager(Singleton, Logger):
 
     def __repr__(self):
         return self.__str__name__("")
+
 
 if __name__ == '__main__':
     manager = TaurusManager()
