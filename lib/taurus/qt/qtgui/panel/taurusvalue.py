@@ -321,7 +321,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             layout = Qt.QHBoxLayout(self)
             dummy = ExpandingLabel()
             layout.addWidget(dummy)
-            dummy.setUseParentModel(True)
+            #dummy.setUseParentModel(True)
             dummy.setModel("#attr_fullname")
             dummy.setPrefixText("< TaurusValue: ")
             dummy.setSuffixText(" >")
