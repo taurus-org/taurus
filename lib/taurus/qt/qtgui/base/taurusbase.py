@@ -1167,6 +1167,9 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
         :param yesno: (bool) whether or not to use parent model
         """
+        if yesno:
+            self.deprecated(dep='setUseParentModel(True)', rel="4.3.2",
+                            alt='explicit models including the parent model')
         if yesno == self._useParentModel:
             return
         self._useParentModel = yesno
