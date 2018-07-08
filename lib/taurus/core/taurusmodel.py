@@ -32,6 +32,7 @@ __docformat__ = "restructuredtext"
 import weakref
 import operator
 import threading
+import collections
 
 from .util.log import Logger
 from .util.event import (CallableRef,
@@ -280,7 +281,7 @@ class TaurusModel(Logger):
         if listeners is None:
             return
 
-        if not operator.isSequenceType(listeners):
+        if not isinstance(listeners, collections.Sequence):
             listeners = listeners,
 
         for listener in listeners:

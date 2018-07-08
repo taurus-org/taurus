@@ -37,6 +37,7 @@ __all__ = ["CaselessList", "CaselessDict", "CaselessWeakValueDict", "LoopList",
 __docformat__ = "restructuredtext"
 
 import copy
+import collections
 import time
 import weakref
 import operator
@@ -622,7 +623,7 @@ class TimedQueue(list):
         """ Initializes the list with a sequence or an initial value. """
         if arg is None:
             list.__init__(self)
-        elif operator.isSequenceType(arg):
+        elif isinstance(arg, collections.Sequence):
             list.__init__(self, arg)
         else:
             list.__init__(self)

@@ -60,6 +60,7 @@ import re
 import os
 import subprocess
 import traceback
+import collections
 import operator
 import types
 
@@ -146,7 +147,7 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
                     break
                 else:
                     continue
-            if not operator.isSequenceType(item):
+            if not isinstance(item, collections.Sequence):
                 item = (item,)
             # @todo: Unless the call to boundingRect() has a side effect, this line is useless..  probably related to todo in _updateView()
             item_rects = [i.boundingRect() for i in item]
