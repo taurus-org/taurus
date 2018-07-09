@@ -899,10 +899,9 @@ class Logger(Object):
                 raise Exception(msg)
             if _DEPRECATION_COUNT[msg] > _MAX_DEPRECATIONS_LOGGED:
                 return
-
         if _callerinfo is None:
             _callerinfo = self.log_obj.findCaller()
-        filename, lineno, fname, sinfo = _callerinfo
+        filename, lineno, fname  = _callerinfo[0], _callerinfo[1], _callerinfo[2]
         depr_msg = warnings.formatwarning(
             msg, DeprecationWarning, filename, lineno)
         self.log_obj.warning(depr_msg, **kw)
