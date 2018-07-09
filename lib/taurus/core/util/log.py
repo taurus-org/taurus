@@ -890,7 +890,7 @@ class Logger(Object):
 
         if _callerinfo is None:
             _callerinfo = self.log_obj.findCaller()
-        filename, lineno, _ = _callerinfo
+        filename, lineno, _, _ = _callerinfo
         depr_msg = warnings.formatwarning(
             msg, DeprecationWarning, filename, lineno)
         self.log_obj.warning(depr_msg, **kw)
