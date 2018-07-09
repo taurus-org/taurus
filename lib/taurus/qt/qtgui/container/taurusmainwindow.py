@@ -38,6 +38,8 @@ __docformat__ = 'restructuredtext'
 import os
 import sys
 
+from future.utils import string_types
+
 from taurus import tauruscustomsettings
 from taurus.core.util import deprecation_decorator
 from taurus.external.qt import Qt
@@ -57,7 +59,7 @@ class CommandArgsLineEdit(Qt.QLineEdit):
         self.textEdited.connect(self.setCmdText)
 
     def setCmdText(self, cmdargs):
-        if not isinstance(cmdargs, (basestring, Qt.QString)):
+        if not isinstance(cmdargs, string_types + (Qt.QString,)):
             cmdargs = " ".join(cmdargs)
         self.setText(cmdargs)
         self._extapp.setCmdArgs(self.getCmdArgs(), False)

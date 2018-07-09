@@ -37,6 +37,8 @@ __docformat__ = 'restructuredtext'
 
 from datetime import datetime
 
+from future.utils import string_types
+
 from taurus.external.qt import Qt
 
 import taurus.core
@@ -169,7 +171,7 @@ class TaurusForm(TaurusWidget):
 
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
-        if isinstance(modelNames, (basestring, Qt.QString)):
+        if isinstance(modelNames, string_types + (Qt.QString,)):
             modelNames = str(modelNames).replace(',', ' ')
             modelNames = modelNames.split()
         return modelNames

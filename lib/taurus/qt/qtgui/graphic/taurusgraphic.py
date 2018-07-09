@@ -72,7 +72,8 @@ import collections
 import operator
 import types
 
-from six.moves.queue import Queue
+from future.utils import string_types
+from queue import Queue
 
 from taurus import Manager
 from taurus.core import AttrQuality, DataType
@@ -698,7 +699,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 else:
                     if isinstance(picture, Qt.QPixmap):
                         pixmap = picture
-                    elif isinstance(picture, basestring) or isinstance(picture, Qt.QString):
+                    elif isinstance(picture, string_types) or isinstance(picture, Qt.QString):
                         picture = str(picture)
                         pixmap = Qt.QPixmap(os.path.realpath(picture))
                     SelectionMark = Qt.QGraphicsPixmapItem()

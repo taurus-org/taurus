@@ -30,6 +30,8 @@ __all__ = ["ActionFactory"]
 
 __docformat__ = 'restructuredtext'
 
+from future.utils import string_types
+
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 from taurus.external.qt import Qt
@@ -130,7 +132,7 @@ class ActionFactory(Singleton, Logger):
             action.toggled.connect(toggled)
             action.setCheckable(True)
         if icon is not None:
-            if isinstance(icon, (str, str)):
+            if isinstance(icon, string_types):
                 icon = Qt.QIcon.fromTheme(icon)
             action.setIcon(icon)
         if shortcut is not None:

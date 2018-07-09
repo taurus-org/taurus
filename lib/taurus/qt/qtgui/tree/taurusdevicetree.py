@@ -47,6 +47,8 @@ import re
 import traceback
 from functools import partial
 
+from future.utils import string_types
+
 # @todo: icons_dev_tree is not an included or standard module.
 #        Is anybody using it? If not, the following lines should be removed and
 #        the TaurusDevTree.setStateIcon method should be cleaned
@@ -938,7 +940,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         """ Needed to do threaded expansion of the tree """
         if node is None:
             node = self.getNode()
-        if isinstance(node, (basestring, Qt.QString)):
+        if isinstance(node, string_types + (Qt.QString,)):
             name, node = str(node), self.getNode(node)
         else:
             name = self.getNodeText(node)
