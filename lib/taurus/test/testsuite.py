@@ -47,6 +47,11 @@ def _filter_suite(suite, exclude_pattern, ret=None):
         ret = unittest.TestSuite()
     for e in suite:
         if isinstance(e, unittest.TestCase):
+            
+
+            if (e.__module__ == 'unittest.case'):
+                continue
+            
             if re.match(exclude_pattern, e.id()):
                 print("Excluded %s" % e.id())
                 continue
