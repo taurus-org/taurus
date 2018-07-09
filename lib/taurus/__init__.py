@@ -30,7 +30,7 @@ from builtins import object
 from .core import release as __R
 
 
-class Release(object):
+class Release:
     pass
 
 for attr, value in __R.__dict__.items():
