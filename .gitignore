@@ -8,3 +8,4 @@ doc/~thumbnails.zip
 *.bak
 *.swp
 *.orig
+.eggs/
