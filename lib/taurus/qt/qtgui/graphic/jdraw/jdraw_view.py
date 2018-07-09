@@ -446,7 +446,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     model = Qt.pyqtProperty("QString", getModel, setModel)
 
     def setSelectionStyle(self, selectionStyle):
-        if isinstance(selectionStyle, (Qt.QString, string_types)):
+        if isinstance(selectionStyle,  string_types + (Qt.QString,)):
             selectionStyle = str(selectionStyle).upper()
             try:
                 selectionStyle = SynopticSelectionStyle[selectionStyle]
