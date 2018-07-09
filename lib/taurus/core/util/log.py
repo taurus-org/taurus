@@ -433,6 +433,8 @@ class _Logger(logging.Logger):
             if filename in (_srcfile, logging._srcfile):
                 f = f.f_back
                 continue
+            
+            sinfo = None
             if stack_info:
                 sio = io.StringIO()
                 sio.write('Stack (most recent call last):\n')
@@ -441,7 +443,7 @@ class _Logger(logging.Logger):
                 if sinfo[-1] == '\n':
                     sinfo = sinfo[:-1]
                 sio.close()
-            rv = (co.co_filename, f.f_lineno, co.co_name, stack_info)
+            rv = (co.co_filename, f.f_lineno, co.co_name, sinfo)
             break
         return rv
 
