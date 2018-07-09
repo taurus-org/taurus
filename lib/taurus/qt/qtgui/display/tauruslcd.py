@@ -388,8 +388,7 @@ class TaurusLCD(Qt.QLCDNumber, TaurusBaseWidget):
 
 def demo():
     "LCD"
-    #from . import demo.tauruslcddemo # - after futurize stage1
-    import display.demo.tauruslcddemo # + after futurize stage1
+    from . import demo
     return demo.tauruslcddemo.main()
 
 

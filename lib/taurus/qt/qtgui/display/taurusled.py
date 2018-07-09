@@ -453,9 +453,8 @@ class TaurusLed(QLed, TaurusBaseWidget):
 
 def demo():
     "Led"
-    #from . import demo.taurusleddemo # - after futurize stage1
-    import display.demo.taurusleddemo # + after futurize stage1
-    return display.demo.taurusleddemo.main()
+    from . import demo
+    return demo.taurusleddemo.main()
 
 
 def main():
