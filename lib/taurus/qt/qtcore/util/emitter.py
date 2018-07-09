@@ -153,7 +153,7 @@ class TaurusEmitterThread(Qt.QThread):
     .. code-block:: python
 
         #Applying TaurusEmitterThread to an existing class:
-        from Queue import Queue
+        from queue import Queue
         from functools import partial
 
         def modelSetter(args):
