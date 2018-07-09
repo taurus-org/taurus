@@ -39,7 +39,7 @@ __all__ = ["EnumException", "Enumeration"]
 
 __docformat__ = "restructuredtext"
 
-from future.utils import string_types
+from future.utils import integer_types, string_types
 
 
 class EnumException(Exception):
@@ -147,7 +147,7 @@ class Enumeration(object):
         return n
 
     def __contains__(self, i):
-        if isinstance(i, (int, long)):
+        if isinstance(i, integer_types):
             return i in self.reverseLookup
         elif isinstance(i, string_types):
             return i in self.lookup

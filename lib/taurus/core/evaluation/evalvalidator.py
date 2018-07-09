@@ -30,7 +30,7 @@ __all__ = ['EvaluationDeviceNameValidator',
 import re
 import hashlib
 
-from future.util import string_types
+from future.utils import string_types
 
 import taurus
 from taurus import isValidName, debug
@@ -253,7 +253,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
                           string containing a semi-colon separated list of
                           symbol=value pairs can also be passed.
         '''
-        if isinstance(substmap, (str, unicode)):
+        if isinstance(substmap, string_types):
             substmap = dict(K_EQUALS_V_RE.findall(substmap))
         ret = expr
         protected = {}
