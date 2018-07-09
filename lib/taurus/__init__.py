@@ -33,8 +33,9 @@ from .core import release as __R
 class Release(object):
     pass
 
-for key, value in list(__R.__dict__.items()):
-    setattr(Release, key, value)
+for attr, value in __R.__dict__.items():
+	setattr(Release, attr, value)
+
 Release.__doc__ = __R.__doc__
 
 from .core.taurushelper import *
