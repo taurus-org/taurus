@@ -25,6 +25,7 @@
 
 """utilities to load ui files for widgets"""
 
+from builtins import object
 __all__ = ["loadUi",
            "UILoadable",
            ]

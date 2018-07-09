@@ -24,7 +24,9 @@
 #############################################################################
 
 """This module contains the polling class"""
+from __future__ import division
 
+from past.utils import old_div
 __all__ = ["TaurusPollingTimer"]
 
 __docformat__ = "restructuredtext"
@@ -52,7 +54,7 @@ class TaurusPollingTimer(Logger):
         self.call__init__(Logger, name, parent)
         self.dev_dict = {}
         self.attr_nb = 0
-        self.timer = Timer(period / 1000.0, self._pollAttributes, self)
+        self.timer = Timer(old_div(period, 1000.0), self._pollAttributes, self)
         self.lock = threading.RLock()
 
     def start(self):
@@ -134,14 +136,14 @@ class TaurusPollingTimer(Logger):
            when it is time to poll. Do not call this method directly
         """
         req_ids = {}
-        for dev, attrs in self.dev_dict.items():
+        for dev, attrs in list(self.dev_dict.items()):
             try:
                 req_id = dev.poll(attrs, asynch=True)
                 req_ids[dev] = attrs, req_id
             except Exception as e:
                 self.error("poll_asynch error")
                 self.debug("Details:", exc_info=1)
-        for dev, (attrs, req_id) in req_ids.items():
+        for dev, (attrs, req_id) in list(req_ids.items()):
             try:
                 dev.poll(attrs, req_id=req_id)
             except Exception as e:

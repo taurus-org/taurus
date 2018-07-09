@@ -27,12 +27,15 @@
 taurusconfigeditor.py:
 """
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 __all__ = ["QConfigEditor"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
-import cPickle as pickle
+import pickle as pickle
 import os
 import tempfile
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
@@ -77,9 +80,9 @@ class QConfigEditorModel(Qt.QStandardItemModel):
 
         :param iniFileName: (str)
         '''
-        self.originalFile = unicode(iniFileName)
+        self.originalFile = str(iniFileName)
         self._file = tempfile.NamedTemporaryFile()
-        self._temporaryFile = unicode(self._file.name)
+        self._temporaryFile = str(self._file.name)
 
         shutil.copyfile(self.originalFile, self._temporaryFile)
 

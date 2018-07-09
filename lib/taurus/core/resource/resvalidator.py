@@ -22,6 +22,7 @@
 ##
 #############################################################################
 
+from builtins import object
 __all__ = ['ResDeviceNameValidator',
            'ResAttributeNameValidator']
 

@@ -28,6 +28,8 @@ safeeval.py: Safe eval replacement with whitelist support
 """
 from __future__ import print_function
 
+from builtins import range
+from builtins import object
 __all__ = ["SafeEvaluator"]
 
 __docformat__ = "restructuredtext"
@@ -117,7 +119,7 @@ class SafeEvaluator(object):
 
 if __name__ == '__main__':
 
-    x = range(6)
+    x = list(range(6))
     sev = SafeEvaluator()
     print("trying to evaluate a variable that has not been registered")
     try:

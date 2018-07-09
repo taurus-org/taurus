@@ -23,6 +23,7 @@
 ##
 #############################################################################
 
+from builtins import str
 __all__ = ["TaurusValuesTable"]
 
 __docformat__ = 'restructuredtext'
@@ -58,7 +59,7 @@ def _value2Quantity(value, units):
 
 class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
     typeCastingMap = {'f': float, 'b': bool,
-                      'u': int, 'i': int, 'S': str, 'U': unicode}
+                      'u': int, 'i': int, 'S': str, 'U': str}
     # Need to have an array
 
     dataChanged = Qt.pyqtSignal('QModelIndex', 'QModelIndex')
@@ -265,11 +266,11 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         kind = table.dtype.kind
         if kind in 'SU':
             table = table.tolist()  # we want to allow the strings to be larger than the original ones
-            for (r, c), v in self._modifiedDict.items():
+            for (r, c), v in list(self._modifiedDict.items()):
                 table[r][c] = Qt.from_qvariant(v, str)
             table = numpy.array(table, dtype=str)
         else:
-            for k, v in self._modifiedDict.items():
+            for k, v in list(self._modifiedDict.items()):
                 if kind in ['f', 'i', 'u']:
                     units = self._parent.getCurrentUnits()
                     q = _value2Quantity(v, units)

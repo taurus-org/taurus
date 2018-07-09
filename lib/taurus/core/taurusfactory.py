@@ -57,6 +57,7 @@
 """
 from __future__ import absolute_import
 
+from builtins import object
 __all__ = ["TaurusFactory"]
 
 __docformat__ = "restructuredtext"
@@ -324,14 +325,14 @@ class TaurusFactory(object):
         if not self.isPollingEnabled():
             return
         self._polling_enabled = False
-        for period, timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.items():
             timer.stop()
 
     def enablePolling(self):
         """Enable the application tango polling"""
         if self.isPollingEnabled():
             return
-        for period, timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.items():
             timer.start()
         self._polling_enabled = True
 
@@ -354,7 +355,7 @@ class TaurusFactory(object):
            :param attribute: (str) attribute name.
         """
         p = None
-        for period, timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.items():
             if timer.containsAttribute(attribute):
                 timer.removeAttribute(attribute)
                 if timer.getAttributeCount() == 0:

@@ -25,6 +25,7 @@
 
 """This module provides base taurus tree item and a base tree model"""
 
+from builtins import object
 __all__ = ["TaurusBaseTreeItem", "TaurusBaseModel", "TaurusBaseProxyModel"]
 
 __docformat__ = 'restructuredtext'

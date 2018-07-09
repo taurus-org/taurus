@@ -212,7 +212,7 @@ class IsValidNameTestCase(unittest.TestCase):
             elementType = [elementType]
         manager = taurus.Manager()
         scheme = manager.getScheme(name)
-        supportedSchemes = manager.getPlugins().keys()
+        supportedSchemes = list(manager.getPlugins().keys())
         if scheme not in supportedSchemes:
             self.skipTest('"%s" scheme not supported' % scheme)
         returned = taurus.isValidName(name, etypes=elementType, strict=strict)
@@ -240,7 +240,7 @@ class AuthorityTestCase(unittest.TestCase):
             klass = TaurusAuthority
         manager = taurus.Manager()
         scheme = manager.getScheme(name)
-        supportedSchemes = manager.getPlugins().keys()
+        supportedSchemes = list(manager.getPlugins().keys())
         if scheme not in supportedSchemes:
             self.skipTest('"%s" scheme not supported' % scheme)
         a = taurus.Authority(name)
@@ -265,7 +265,7 @@ class DeviceTestCase(unittest.TestCase):
             klass = TaurusDevice
         manager = taurus.Manager()
         scheme = manager.getScheme(name)
-        supportedSchemes = manager.getPlugins().keys()
+        supportedSchemes = list(manager.getPlugins().keys())
         if scheme not in supportedSchemes:
             self.skipTest('"%s" scheme not supported' % scheme)
 
@@ -419,7 +419,7 @@ class AttributeTestCase(unittest.TestCase):
             klass = TaurusAttribute
         manager = taurus.Manager()
         scheme = manager.getScheme(name)
-        supportedSchemes = manager.getPlugins().keys()
+        supportedSchemes = list(manager.getPlugins().keys())
         if scheme not in supportedSchemes:
             self.skipTest('"%s" scheme not supported' % scheme)
         a = taurus.Attribute(name)
@@ -441,7 +441,7 @@ class AttributeTestCase(unittest.TestCase):
         msg = ('read() for "%s" did not return a TaurusAttrValue (got a %s)' %
                (name, readvalue.__class__.__name__))
         self.assertTrue(isinstance(readvalue, TaurusAttrValue), msg)
-        for k, exp in expected.iteritems():
+        for k, exp in expected.items():
             try:
                 got = getattr(readvalue, k)
             except AttributeError:

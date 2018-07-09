@@ -26,6 +26,9 @@
 """This module provides a Taurus widget based on QLCDNumber"""
 from __future__ import absolute_import
 
+from builtins import map
+from builtins import str
+from builtins import object
 __all__ = ["TaurusLCD"]
 
 __docformat__ = 'restructuredtext'
@@ -413,7 +416,7 @@ def main():
     if len(args) == 0:
         w = demo()
     else:
-        models = map(str.lower, args)
+        models = list(map(str.lower, args))
 
         w = Qt.QWidget()
         layout = Qt.QGridLayout()

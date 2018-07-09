@@ -26,6 +26,7 @@
 """a list of helper methods"""
 from __future__ import print_function
 
+from builtins import str
 __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'getValidTypesForName', 'isValidName', 'makeSchemeExplicit',
            'Manager', 'Factory', 'Device', 'Attribute', 'Configuration',

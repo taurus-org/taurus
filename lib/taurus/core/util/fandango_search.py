@@ -31,6 +31,7 @@ These methods have been borrowed from fandango modules.
 """
 # TODO: tango-centric
 
+from builtins import str
 import re
 import taurus
 
@@ -116,8 +117,8 @@ def get_matching_devices(expressions, limit=0, exported=False):
     #all_devs.extend('%s/%s'%(host,d) for d in odb.get_device_name('*','*'))
     result = [e for e in expressions if e.lower() in all_devs]
     expressions = [extend_regexp(e) for e in expressions if e not in result]
-    result.extend(filter(lambda d: any(matchCl(extend_regexp(e), d)
-                                       for e in expressions), all_devs))
+    result.extend([d for d in all_devs if any(matchCl(extend_regexp(e), d)
+                                       for e in expressions)])
     return result
 
 

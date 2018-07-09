@@ -22,6 +22,7 @@
 ##
 #############################################################################
 
+from builtins import str
 __all__ = ['EvaluationAttribute']
 
 import numpy
@@ -260,7 +261,7 @@ class EvaluationAttribute(TaurusAttribute):
             trstring = v.replaceUnquotedRef(trstring, '{%s}' % r, symbol)
 
         # validate the expression (look for missing symbols)
-        safesymbols = evaluator.getSafe().keys()
+        safesymbols = list(evaluator.getSafe().keys())
         # remove literal text strings from the validation
         trimmedstring = re.sub(QUOTED_TEXT_RE, '', trstring)
         for s in set(re.findall(PY_VAR_RE, trimmedstring)):

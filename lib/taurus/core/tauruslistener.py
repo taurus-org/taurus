@@ -26,6 +26,8 @@
 """This module contains the taurus base listeners classes"""
 from __future__ import print_function
 
+from builtins import str
+from builtins import object
 __all__ = ["TaurusListener", "TaurusExceptionListener"]
 
 __docformat__ = "restructuredtext"

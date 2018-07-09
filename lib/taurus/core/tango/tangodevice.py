@@ -25,6 +25,7 @@
 
 """This module defines the TangoDevice object"""
 
+from builtins import object
 __all__ = ["TangoDevice"]
 
 __docformat__ = "restructuredtext"
@@ -320,7 +321,7 @@ class TangoDevice(TaurusDevice):
 
     def __pollResult(self, attrs, ts, result, error=False):
         if error:
-            for attr in attrs.values():
+            for attr in list(attrs.values()):
                 attr.poll(single=False, value=None, error=result, time=ts)
             return
 
@@ -335,7 +336,7 @@ class TangoDevice(TaurusDevice):
     def __pollAsynch(self, attrs):
         ts = time.time()
         try:
-            req_id = self.read_attributes_asynch(attrs.keys())
+            req_id = self.read_attributes_asynch(list(attrs.keys()))
         except DevFailed as e:
             return False, e, ts
         return True, req_id, ts
@@ -363,7 +364,7 @@ class TangoDevice(TaurusDevice):
         error = False
         ts = time.time()
         try:
-            result = self.read_attributes(attrs.keys())
+            result = self.read_attributes(list(attrs.keys()))
         except DevFailed as e:
             error = True
             result = e

@@ -131,16 +131,16 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def cleanUp(self):
         """Cleanup the singleton instance"""
         self.trace("[TangoFactory] cleanUp")
-        for k, v in self.tango_attrs.items():
+        for k, v in list(self.tango_attrs.items()):
             v.cleanUp()
-        for k, v in self.tango_dev_queries.items():
+        for k, v in list(self.tango_dev_queries.items()):
             v.cleanUp()
-        for k, v in self.tango_devs.items():
+        for k, v in list(self.tango_devs.items()):
             v.cleanUp()
         self.dft_db = None
-        for k, v in self.tango_db_queries.items():
+        for k, v in list(self.tango_db_queries.items()):
             v.cleanUp()
-        for k, v in self.tango_db.items():
+        for k, v in list(self.tango_db.items()):
             v.cleanUp()
         self.reInit()
 
@@ -552,14 +552,14 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         if not self.isPollingEnabled():
             return
         self._polling_enabled = False
-        for period, timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.items():
             timer.stop()
 
     def enablePolling(self):
         """Enable the application tango polling"""
         if self.isPollingEnabled():
             return
-        for period, timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.items():
             timer.start()
         self._polling_enabled = True
 

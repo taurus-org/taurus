@@ -328,7 +328,7 @@ class SharedDataManager(QtCore.QObject):
 
         :returns: (list<str>) UIDs of currently shared data.
         '''
-        return self.__models.keys()
+        return list(self.__models.keys())
 
     def debugReader(self, data):
         '''
@@ -338,6 +338,6 @@ class SharedDataManager(QtCore.QObject):
 
     def info(self):
         s = ""
-        for uid, m in sorted(self.__models.iteritems()):
+        for uid, m in sorted(self.__models.items()):
             s += m.info() + '\n'
         return s

@@ -25,6 +25,7 @@
 
 """This module provides a set of basic taurus widgets based on QCheckBox"""
 
+from builtins import str
 __all__ = ["TaurusValueCheckBox"]
 
 __docformat__ = 'restructuredtext'

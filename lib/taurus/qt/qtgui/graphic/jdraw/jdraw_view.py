@@ -26,6 +26,8 @@
 """This module contains the graphics view widget for jdraw files"""
 from __future__ import absolute_import
 
+from builtins import str
+from past.builtins import basestring
 __all__ = ["TaurusJDrawSynopticsView"]
 
 __docformat__ = 'restructuredtext'
@@ -121,7 +123,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.emitColors()
 
     def openJDraw(self):
-        ifile = unicode(Qt.QFileDialog.getOpenFileName(
+        ifile = str(Qt.QFileDialog.getOpenFileName(
             self, 'Load JDraw File', '', 'JDraw File (*.jdw)'))
         if not ifile:
             return
@@ -139,7 +141,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         return
 
     def get_item_list(self):
-        return [item._name for item in self.scene().items() if hasattr(item, '_name') and item._name]
+        return [item._name for item in list(self.scene().items()) if hasattr(item, '_name') and item._name]
 
     def get_device_list(self):
         items = [(item, parseTangoUri(item)) for item in self.get_item_list()]
@@ -148,7 +150,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     def get_item_colors(self, emit=False):
         item_colors = {}
         try:
-            for item in self.scene().items():
+            for item in list(self.scene().items()):
                 if not getattr(item, '_name', '') or not getattr(item, '_currBgBrush', None):
                     continue
                 item_colors[item._name] = item._currBgBrush.color().name()
@@ -421,7 +423,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
 
     def setModels(self):
         """ This method triggers item.setModel(item._name) in all internal items. """
-        for item in self.scene().items():
+        for item in list(self.scene().items()):
             if item._name and isinstance(item, TaurusGraphicsItem):
                 self.debug(
                     'TaurusJDrawGraphicsFactory.setModels(): calling item.setModel(%s)' % (item._name))

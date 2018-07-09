@@ -25,6 +25,7 @@
 
 """This module contains a taurus text editor widget."""
 
+from builtins import str
 __all__ = ["TaurusBaseEditor"]
 
 __docformat__ = 'restructuredtext'

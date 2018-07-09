@@ -26,6 +26,7 @@
 """This module contains the taurus base manager class"""
 from __future__ import print_function
 
+from builtins import range
 __all__ = ["TaurusManager"]
 
 __docformat__ = "restructuredtext"
@@ -346,7 +347,7 @@ class TaurusManager(Singleton, Logger):
                     self.debug('Failed to inspect %s' % (full_module_name))
                     self.debug('Details:', exc_info=1)
                     continue
-            for s in m.__dict__.values():
+            for s in list(m.__dict__.values()):
                 plugin = None
                 try:
                     if issubclass(s, TaurusFactory) and \
@@ -369,7 +370,7 @@ class TaurusManager(Singleton, Logger):
 
     def _find_scheme(self, factory_class):
         class_name = factory_class.__name__
-        for i in xrange(1, len(class_name)):
+        for i in range(1, len(class_name)):
             if class_name[i].isupper():
                 return class_name[:i].lower()
 

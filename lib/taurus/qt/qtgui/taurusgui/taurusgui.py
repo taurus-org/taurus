@@ -25,6 +25,8 @@
 
 """This package provides the TaurusGui class"""
 
+from builtins import str
+from past.builtins import basestring
 __all__ = ["DockWidgetPanel", "TaurusGui"]
 
 __docformat__ = 'restructuredtext'
@@ -91,7 +93,7 @@ class AssociationDialog(Qt.QDialog):
         self.onInstrumentChanged(self.ui.instrumentCB.currentText())
 
     def onInstrumentChanged(self, instrumentname):
-        instrumentname = unicode(instrumentname)
+        instrumentname = str(instrumentname)
         panelname = self.associations.get(instrumentname)
         if panelname is None:
             self.ui.panelCB.setCurrentIndex(0)
@@ -104,10 +106,10 @@ class AssociationDialog(Qt.QDialog):
         role = self.ui.buttonBox.buttonRole(button)
         if role in (Qt.QDialogButtonBox.AcceptRole, Qt.QDialogButtonBox.ApplyRole):
             if self.ui.panelCB.currentIndex() > 0:
-                panelname = unicode(self.ui.panelCB.currentText())
+                panelname = str(self.ui.panelCB.currentText())
             else:
                 panelname = None
-            instrumentname = unicode(self.ui.instrumentCB.currentText())
+            instrumentname = str(self.ui.instrumentCB.currentText())
             self.associations[instrumentname] = panelname
             self.parent().setInstrumentAssociation(instrumentname, panelname)
 
@@ -128,7 +130,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
         self.setWidget(widget)
         # self._widget = self.widget()  #keep a pointer that may change if the
         # widget changes
-        name = unicode(name)
+        name = str(name)
         self.setWindowTitle(name)
         self.setObjectName(name)
         self._custom = False
@@ -342,7 +344,7 @@ class TaurusGui(TaurusMainWindow):
         except:
             pass
         TaurusMainWindow.closeEvent(self, event)
-        for n, panel in self.__panels.items():
+        for n, panel in list(self.__panels.items()):
             panel.closeEvent(event)
             panel.widget().closeEvent(event)
             if not event.isAccepted():
@@ -361,7 +363,7 @@ class TaurusGui(TaurusMainWindow):
         permanent = (panelsmenu == self.__permPanelsMenu)
         panelsmenu.clear()
         panelnames = sorted(
-            [n for n, p in self.__panels.items() if (p.isPermanent() == permanent)])
+            [n for n, p in list(self.__panels.items()) if (p.isPermanent() == permanent)])
         for name in panelnames:
             panelsmenu.addAction(self.__panels[name].toggleViewAction())
 
@@ -500,7 +502,7 @@ class TaurusGui(TaurusMainWindow):
                      removed
                      If None given, the user will be prompted
         '''
-        apps = self.__external_app.keys() + self.__permanent_ext_apps
+        apps = list(self.__external_app.keys()) + self.__permanent_ext_apps
         if name is None:
             items = sorted(apps)
             msg1 = "Remove External application"
@@ -510,13 +512,13 @@ class TaurusGui(TaurusMainWindow):
                                                False)
             if not ok:
                 return
-        name = unicode(name)
+        name = str(name)
         if name not in apps:
             msg = ('Cannot remove the external application "%s"'
                    ' (not found)' % name)
             self.debug(msg)
             return
-        if name in self.__external_app.keys():
+        if name in list(self.__external_app.keys()):
             self.__external_app.pop(name)
         else:
             self.__permanent_ext_apps.remove(name)
@@ -570,12 +572,12 @@ class TaurusGui(TaurusMainWindow):
         '''
         if name is None:
             items = sorted(
-                [n for n, p in self.__panels.iteritems() if p.isCustom()])
+                [n for n, p in self.__panels.items() if p.isCustom()])
             name, ok = Qt.QInputDialog.getItem(self, "Remove Panel",
                                                "Panel to be removed (only custom panels can be removed).\n Important: you may want to save the perspective afterwards,\n and maybe remove the panel from other perspectives as well", items, 0, False)
             if not ok:
                 return
-        name = unicode(name)
+        name = str(name)
         if name not in self.__panels:
             self.debug('Cannot remove panel "%s" (not found)' % name)
             return
@@ -626,7 +628,7 @@ class TaurusGui(TaurusMainWindow):
                 'Deprecation warning: please note that the "area" argument is deprecated. See TaurusGui.createPanel doc')
             floating = not(floating)
 
-        name = unicode(name)
+        name = str(name)
         if name in self.__panels:
             self.info('Panel with name "%s" already exists. Reusing.' % name)
             return self.__panels[name]
@@ -636,7 +638,7 @@ class TaurusGui(TaurusMainWindow):
         # we will only place panels in this area
         self.addDockWidget(Qt.Qt.TopDockWidgetArea, panel)
         if len(self.__panels) != 0:
-            self.tabifyDockWidget(self.__panels.values()[-1], panel)
+            self.tabifyDockWidget(list(self.__panels.values())[-1], panel)
 
         panel.setFloating(floating)
 
@@ -674,14 +676,14 @@ class TaurusGui(TaurusMainWindow):
 
         :return: (DockWidgetPanel)
         '''
-        return self.__panels[unicode(name)]
+        return self.__panels[str(name)]
 
     def getPanelNames(self):
         '''returns the names of existing panels
 
         :return: (list<str>)
         '''
-        return copy.deepcopy(self.__panels.keys())
+        return copy.deepcopy(list(self.__panels.keys()))
 
     def _setPermanentExternalApps(self, permExternalApps):
         '''creates empty panels for restoring custom panels.
@@ -717,7 +719,7 @@ class TaurusGui(TaurusMainWindow):
 
         :return: (list<str>)
         '''
-        return [n for n, p in self.__panels.iteritems() if (p.isCustom() and p.isPermanent())]
+        return [n for n, p in self.__panels.items() if (p.isCustom() and p.isPermanent())]
 
     def updatePermanentCustomPanels(self, showAlways=True):
         '''
@@ -729,7 +731,7 @@ class TaurusGui(TaurusMainWindow):
         # check if there are some newly created panels that may be made
         # permanent
         perm = self._getPermanentCustomPanels()
-        temp = [n for n, p in self.__panels.iteritems() if (
+        temp = [n for n, p in self.__panels.items() if (
             p.isCustom() and not p.isPermanent())]
         if len(temp) > 0 or showAlways:
             dlg = QDoubleListDlg(winTitle='Stored panels',
@@ -765,7 +767,7 @@ class TaurusGui(TaurusMainWindow):
                                  mainLabel=msg,
                                  label1='Temporary (to be discarded)',
                                  label2='Permanent (to be stored)',
-                                 list1=self.__external_app.keys(),
+                                 list1=list(self.__external_app.keys()),
                                  list2=self.__permanent_ext_apps)
             result = dlg.exec_()
             if result == Qt.QDialog.Accepted:
@@ -888,7 +890,7 @@ class TaurusGui(TaurusMainWindow):
             if result == Qt.QMessageBox.Abort:
                 sys.exit()
             return []
-        for i in instruments.values():
+        for i in list(instruments.values()):
             i_name = i.full_name
             #i_name, i_unknown, i_type, i_pools = i.split()
             i_view = PanelDescription(
@@ -896,12 +898,12 @@ class TaurusGui(TaurusMainWindow):
             instrument_dict[i_name] = i_view
 
         from operator import attrgetter
-        pool_elements = sorted(ms.getElementsWithInterface(
-            'Moveable').values(), key=attrgetter('name'))
-        pool_elements += sorted(ms.getElementsWithInterface(
-            'ExpChannel').values(), key=attrgetter('name'))
-        pool_elements += sorted(ms.getElementsWithInterface(
-            'IORegister').values(), key=attrgetter('name'))
+        pool_elements = sorted(list(ms.getElementsWithInterface(
+            'Moveable').values()), key=attrgetter('name'))
+        pool_elements += sorted(list(ms.getElementsWithInterface(
+            'ExpChannel').values()), key=attrgetter('name'))
+        pool_elements += sorted(list(ms.getElementsWithInterface(
+            'IORegister').values()), key=attrgetter('name'))
         for elem in pool_elements:
             instrument = elem.instrument
             if instrument:
@@ -915,7 +917,7 @@ class TaurusGui(TaurusMainWindow):
                 # -----------------------------------------------------------
                 instrument_dict[i_name].model.append(e_name)
         # filter out empty panels
-        ret = [instrument for instrument in instrument_dict.values()
+        ret = [instrument for instrument in list(instrument_dict.values())
                if len(instrument.model) > 0]
         return ret
 
@@ -1332,7 +1334,7 @@ class TaurusGui(TaurusMainWindow):
             dwfeat = Qt.QDockWidget.AllDockWidgetFeatures
         else:
             dwfeat = Qt.QDockWidget.NoDockWidgetFeatures
-        for panel in self.__panels.values():
+        for panel in list(self.__panels.values()):
             panel.toggleViewAction().setEnabled(modifiable)
             panel.setFeatures(dwfeat)
         for action in (self.newPanelAction, self.showAllPanelsAction,
@@ -1355,12 +1357,12 @@ class TaurusGui(TaurusMainWindow):
 
     def hideAllPanels(self):
         '''hides all current panels'''
-        for panel in self.__panels.itervalues():
+        for panel in self.__panels.values():
             panel.hide()
 
     def showAllPanels(self):
         '''shows all current panels'''
-        for panel in self.__panels.itervalues():
+        for panel in self.__panels.values():
             panel.show()
 
     def onShowAssociationDialog(self):
@@ -1391,7 +1393,7 @@ class TaurusGui(TaurusMainWindow):
                           panel or None to remove the association
                           for this instrument.
         '''
-        instrumentname = unicode(instrumentname)
+        instrumentname = str(instrumentname)
         # remove a previous association if it exists
         oldpanelname = self.__instrumentToPanelMap.get(instrumentname, None)
         self.__panelToInstrumentMap.pop(oldpanelname, None)
@@ -1426,12 +1428,12 @@ class TaurusGui(TaurusMainWindow):
         else:
             self.__instrumentToPanelMap.update(copy.deepcopy(associationsdict))
         self.__panelToInstrumentMap = {}
-        for k, v in self.__instrumentToPanelMap.iteritems():
+        for k, v in self.__instrumentToPanelMap.items():
             self.__panelToInstrumentMap[v] = k
 
     def _onPanelVisibilityChanged(self, visible):
         if visible:
-            panelname = unicode(self.sender().objectName())
+            panelname = str(self.sender().objectName())
             instrumentname = self.__panelToInstrumentMap.get(panelname)
             if instrumentname is not None:
                 self.SelectedInstrument.emit(instrumentname)
@@ -1442,7 +1444,7 @@ class TaurusGui(TaurusMainWindow):
 
         :param instrumentname: (str) The name that identifies the instrument.
         '''
-        instrumentname = unicode(instrumentname)
+        instrumentname = str(instrumentname)
         panelname = self.getInstrumentAssociation(instrumentname)
         self.setFocusToPanel(panelname)
 
@@ -1452,7 +1454,7 @@ class TaurusGui(TaurusMainWindow):
         :param panelname: (str) The name that identifies the panel.
                                This name must be unique within the panels in the GUI.
         '''
-        panelname = unicode(panelname)
+        panelname = str(panelname)
         try:
             panel = self.__panels[panelname]
             panel.show()
@@ -1490,9 +1492,9 @@ class TaurusGui(TaurusMainWindow):
         raise DeprecationWarning(
             'findPanelsInArea is no longer supported (now all panels reside in the same DockWidget Area)')
         if area == 'FLOATING':
-            return [p for p in self.__panels.values() if p.isFloating()]
+            return [p for p in list(self.__panels.values()) if p.isFloating()]
         else:
-            return [p for p in self.__panels.values() if self.dockWidgetArea(p) == area]
+            return [p for p in list(self.__panels.values()) if self.dockWidgetArea(p) == area]
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
@@ -1530,7 +1532,7 @@ class TaurusGui(TaurusMainWindow):
         dlg = QDoubleListDlg(winTitle='Export Panels to XML',
                              mainLabel='Select which of the custom panels you want to export as xml configuration',
                              label1='Not Exported', label2='Exported',
-                             list1=[n for n, p in self.__panels.iteritems() if p.isCustom()], list2=[])
+                             list1=[n for n, p in self.__panels.items() if p.isCustom()], list2=[])
         result = dlg.exec_()
         if result != Qt.QDialog.Accepted:
             return

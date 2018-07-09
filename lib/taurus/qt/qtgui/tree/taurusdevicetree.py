@@ -34,6 +34,11 @@ from __future__ import print_function
 # Taurusdbtree
 
 # ,"SearchEdit"] #"TaurusTreeNode"]
+from builtins import next
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 __all__ = ["TaurusDevTree", "TaurusSearchTree", "TaurusDevTreeOptions"]
 
 import time
@@ -194,11 +199,11 @@ class TaurusTreeNodeContainer(object):
             node = self.getNode()
         try:
             name, url = self.getNodeText(node), ''
-            for k, v in self.getIconMap().items():
+            for k, v in list(self.getIconMap().items()):
                 if re.match(k.lower(), name.lower()):
                     url = v
             if not url:
-                for k, v in self.getIconMap().items():
+                for k, v in list(self.getIconMap().items()):
                     if k.lower() in name.lower():
                         url = v
             # if name.count('/')==2:
@@ -640,10 +645,10 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                 dct = self.getTangoDict(filters)
             else:  # if isMap(filters):
                 self.setWindowTitle('TaurusDevTree:%s' %
-                                    ','.join(filters.keys()))
+                                    ','.join(list(filters.keys())))
 
                 def expand_dict(d):
-                    return [x for v in d.values() for x in (expand_dict(v) if hasattr(v, 'values') else (v,))]
+                    return [x for v in list(d.values()) for x in (expand_dict(v) if hasattr(v, 'values') else (v,))]
                 targets = [t.upper() for t in get_matching_devices(
                     ['*%s*' % f if '*' not in f else f for f in expand_dict(filters)])]
 
@@ -651,7 +656,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                     return dict.fromkeys(t for t in targets if matchCl(f, t))
 
                 def expand_filter(f):
-                    return dict((k, expand_filter(v) if hasattr(v, 'values') else get_devs(v)) for k, v in f.items() if v)
+                    return dict((k, expand_filter(v) if hasattr(v, 'values') else get_devs(v)) for k, v in list(f.items()) if v)
                 dct = expand_filter(filters)
             # self.Loader.next([self.setTree,dct,True])
             self.setTree(dct, clear=True)
@@ -800,7 +805,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                 if alias:
                     self.trace('Got aliases for %s: %s' % (aname, alias))
                     [setattr(natt, 'AttributeAlias', v)
-                     for k, v in alias.items() if k in aname.lower()]
+                     for k, v in list(alias.items()) if k in aname.lower()]
                 else:
                     natt.AttributeAlias = aname.split()[0].strip()
         node.setExpanded(True)
@@ -825,7 +830,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         return self.item_index[key]
 
     def getNodeList(self):
-        return self.item_index.keys()
+        return list(self.item_index.keys())
 
     def getMatchingNodes(self, regexp, limit=0, all=False, exclude=None):
         """ It returns all nodes matching the given expression. """
@@ -838,7 +843,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
             if node is not None:
                 return [node]
         regexp = re.compile(extend_regexp(regexp))
-        for k, node in self.item_index.iteritems():
+        for k, node in self.item_index.items():
             nname = self.getNodeText(node, full=True).lower()
             if (regexp.match(k) or regexp.match(nname)) and \
                     (not exclude or not any(re.match(x.lower(), y) for x in exclude for y in (k.lower(), nname))):
@@ -869,7 +874,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     def unpackChildren(self):
         """ removes all nodes from the tree and returns them in a list, used for resorting """
         allChildren = []
-        nodes = self.getAllNodes().values()
+        nodes = list(self.getAllNodes().values())
 
         for node in nodes:
             allChildren.extend(node.takeChildren())
@@ -1021,7 +1026,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
 
         sorter = lambda k, ks=[re.compile(c) for c in order]: str(
             next((i for i, r in enumerate(ks) if r.match(k.lower())))) + str(k)
-        for c, it in sorted(allChildren.items(), key=lambda k: sorter(k[0])):
+        for c, it in sorted(list(allChildren.items()), key=lambda k: sorter(k[0])):
             self.debug('tree.sortCustom(%s): %s inserted at %d' %
                        (order, it.text(0), self.topLevelItemCount()))
             self.insertTopLevelItem(self.topLevelItemCount(), it)
@@ -1062,12 +1067,12 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         if not isinstance(dct, dict):
             dct = dict.fromkeys(dct, '')
         nodes = self.getAllNodes()
-        for name, node in nodes.iteritems():
+        for name, node in nodes.items():
             name = str(name).split()[0]
             if node.isHidden():
                 continue
             if regexps:
-                matches = [v for k, v in dct.items() if re.match(
+                matches = [v for k, v in list(dct.items()) if re.match(
                     k.lower(), name.lower())]
                 if matches:
                     update_node(node, name, {name: matches[0]})
@@ -1286,7 +1291,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
 
         if hasattr(node, 'ContextMenu'):
             last_was_separator = True
-            for t in (type(node.ContextMenu) is dict and node.ContextMenu.items() or node.ContextMenu):
+            for t in (type(node.ContextMenu) is dict and list(node.ContextMenu.items()) or node.ContextMenu):
                 try:
                     k, action = t
                     if k:
@@ -1307,7 +1312,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
             expert = menu.addMenu('Expert')
             # expert.addSeparator()
             last_was_separator = True
-            for t in (type(node.ContextMenu) is dict and node.ExpertMenu.items() or node.ExpertMenu):
+            for t in (type(node.ContextMenu) is dict and list(node.ExpertMenu.items()) or node.ExpertMenu):
                 try:
                     k, action = t
                     if k:
@@ -1660,7 +1665,7 @@ class TaurusSearchTree(TaurusWidget):
         self.layout().addWidget(self.tree)
         self.registerConfigDelegate(self.tree)
         # Slot forwarding ...
-        for k in TaurusDevTree.__dict__.keys():
+        for k in list(TaurusDevTree.__dict__.keys()):
             # if k in ['__init__','defineStyle']: continue
             if k not in self.__slots__:
                 continue

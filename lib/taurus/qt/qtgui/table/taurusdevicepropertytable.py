@@ -30,6 +30,8 @@ from __future__ import print_function
 
 # todo: tango-centric
 
+from builtins import str
+from builtins import range
 __all__ = ["TaurusPropTable"]
 
 from taurus.external.qt import Qt, QtCore, QtGui
@@ -230,7 +232,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         text, ok = QtGui.QInputDialog.getText(
             self, 'New Property', 'Property name:')
         if ok:
-            text1 = unicode(text)
+            text1 = str(text)
             new_prop_name = str(text1)
             new_prop_value = '0'
             dict1 = {new_prop_name: [new_prop_value]}
@@ -269,7 +271,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
             new_text, ok = QtGui.QInputDialog.getText(
                 self, 'Rename', 'Write new name of property:')
             if ok:
-                new_text = unicode(new_text)
+                new_text = str(new_text)
                 new_text = str(new_text)
                 list = [prop_name]
                 dict = {new_text: [prop_value]}
@@ -289,7 +291,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
                 self.setNewPropertyValue(new_text)
 
     def setNewPropertyValue(self, new_text):
-        new_text = unicode(new_text)
+        new_text = str(new_text)
         new_text = str(new_text)
         values = {self.prop_name2: new_text.replace('\r', '').split('\n')}
         self.db.put_device_property(self.dev_name, values)

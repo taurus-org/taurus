@@ -25,6 +25,9 @@
 
 """This module provides a set of dialog based widgets"""
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 __all__ = ["TaurusMessageBox", "protectTaurusMessageBox",
            "ProtectTaurusMessageBox", "TaurusExceptHookMessageBox"]
 
@@ -337,8 +340,8 @@ def py_tg_serv_exc():
     except PyTango.DevFailed as df1:
         try:
             import traceback
-            import StringIO
-            origin = StringIO.StringIO()
+            import io
+            origin = io.StringIO()
             traceback.print_stack(file=origin)
             origin.seek(0)
             origin = origin.read()

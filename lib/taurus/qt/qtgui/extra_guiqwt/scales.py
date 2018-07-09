@@ -27,6 +27,11 @@
 scales.py: Custom scales used by taurus.qt.qtgui.plot module
 """
 from __future__ import print_function
+from __future__ import division
+from builtins import map
+from builtins import str
+from builtins import range
+from past.utils import old_div
 __all__ = ["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine",
            "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw",
            "FixedLabelsScaleDraw"]
@@ -37,7 +42,7 @@ from time import mktime
 from taurus.external.qt import Qt
 
 import guiqwt
-__guiqwt_version = map(int, guiqwt.__version__.split('.')[:3])
+__guiqwt_version = list(map(int, guiqwt.__version__.split('.')[:3]))
 
 if __guiqwt_version <= [2, 3, 1]:
     import taurus.external.qt.Qwt5 as qwt
@@ -226,7 +231,7 @@ class DateTimeScaleEngine(qwt.QwtLinearScaleEngine):
 
         elif dx > 2:  # 2s
             format = "%H:%M:%S"
-            majticks = range(int(x1) + 1, int(x2))
+            majticks = list(range(int(x1) + 1, int(x2)))
 
         else:  # less than 2s (show microseconds)
             scaleDiv = qwt.QwtLinearScaleEngine.divideScale(
@@ -237,7 +242,7 @@ class DateTimeScaleEngine(qwt.QwtLinearScaleEngine):
         # make sure to comply with maxMajTicks
         L = len(majticks)
         if L > maxMajSteps:
-            majticks = majticks[::int(numpy.ceil(float(L) / maxMajSteps))]
+            majticks = majticks[::int(numpy.ceil(old_div(float(L), maxMajSteps)))]
 
         scaleDiv = qwt.QwtScaleDiv(interval, minticks, medticks, majticks)
         self.scaleDraw().setDatetimeLabelFormat(format)
@@ -370,7 +375,7 @@ class DeltaTimeScaleEngine(qwt.QwtLinearScaleEngine):
             s = 86400  # 1 day
         # calculate a step size that respects the base step (s) and also
         # enforces the maxMajSteps
-        stepSize = s * int(numpy.ceil(float(d_range // s) / maxMajSteps))
+        stepSize = s * int(numpy.ceil(old_div(float(d_range // s), maxMajSteps)))
         return qwt.QwtLinearScaleEngine.divideScale(self, x1, x2, maxMajSteps, maxMinSteps, stepSize)
 
     @staticmethod

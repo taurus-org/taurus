@@ -25,6 +25,7 @@
 
 """Unit tests for Taurus Label"""
 
+from builtins import str
 import unittest
 from taurus.external.qt import Qt
 from taurus.test import insertTest

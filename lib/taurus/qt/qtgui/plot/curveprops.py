@@ -27,6 +27,9 @@
 curveprops: Model and view for curve properties
 """
 from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from builtins import object
 __all__ = ['CurveConf', 'CurvesTableModel',
            'ExtendedSelectionModel', 'CurvePropertiesView']
 #raise NotImplementedError('Under Construction!')
@@ -50,7 +53,7 @@ from .curvesAppearanceChooserDlg import NamedLineStyles, ReverseNamedLineStyles,
 # set some named constants
 # columns:
 NUMCOLS = 4
-X, Y, TITLE, VIS = range(NUMCOLS)
+X, Y, TITLE, VIS = list(range(NUMCOLS))
 SRC_ROLE = Qt.Qt.UserRole + 1
 PROPS_ROLE = Qt.Qt.UserRole + 2
 
@@ -74,7 +77,7 @@ class Component(object):
 
     def processSrc(self, src):
         '''returns src,display,icon,ok'''
-        src = unicode(src)
+        src = str(src)
         # empty
         if src == '':
             return '', '', Qt.QIcon(), True
@@ -243,7 +246,7 @@ class CurvesTableModel(Qt.QAbstractTableModel):
                     row, 0), self.index(row, self.ncolumns - 1))
             else:
                 column = index.column()
-                value = Qt.from_qvariant(value, unicode)
+                value = Qt.from_qvariant(value, str)
                 if column == X:
                     curve.x.setSrc(value)
                 elif column == Y:
@@ -357,8 +360,8 @@ class CurvePropertiesView(Qt.QAbstractItemView):
         self.loadUi()
 
         self.ui.sStyleCB.insertItems(0, sorted(NamedSymbolStyles.values()))
-        self.ui.lStyleCB.insertItems(0, NamedLineStyles.values())
-        self.ui.cStyleCB.insertItems(0, NamedCurveStyles.values())
+        self.ui.lStyleCB.insertItems(0, list(NamedLineStyles.values()))
+        self.ui.cStyleCB.insertItems(0, list(NamedCurveStyles.values()))
         self.ui.sColorCB.addItem("")
         self.ui.lColorCB.addItem("")
         for color in NamedColors:

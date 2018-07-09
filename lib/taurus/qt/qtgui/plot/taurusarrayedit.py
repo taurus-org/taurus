@@ -25,6 +25,7 @@
 
 
 from __future__ import absolute_import
+from builtins import str
 from taurus.external.qt import Qt
 import taurus
 import numpy

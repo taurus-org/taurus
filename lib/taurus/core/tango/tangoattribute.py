@@ -25,6 +25,8 @@
 
 """This module contains all taurus tango attribute"""
 
+from builtins import str
+from builtins import range
 __all__ = ["TangoAttribute", "TangoAttributeEventListener", "TangoAttrValue"]
 
 __docformat__ = "restructuredtext"
@@ -114,7 +116,7 @@ class TangoAttrValue(TaurusAttrValue):
                 if not (numerical or self._attrRef.type == DataType.Boolean):
                     # generate a nested empty list of given shape
                     p.value = []
-                    for _ in xrange(len(shape) - 1):
+                    for _ in range(len(shape) - 1):
                         p.value = [p.value]
 
         rvalue = p.value
@@ -378,7 +380,7 @@ class TangoAttribute(TaurusAttribute):
             elif PyTango.is_int_type(tgtype):
                 # changed as a partial workaround to a problem in PyTango
                 # writing to DevULong64 attributes (see ALBA RT#29793)
-                attrvalue = long(magnitude)
+                attrvalue = int(magnitude)
             elif tgtype == PyTango.CmdArgType.DevBoolean:
                 try:
                     attrvalue = bool(int(magnitude))

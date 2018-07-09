@@ -25,7 +25,9 @@
 
 """This module contains a pure Qt widget that displays an image"""
 from __future__ import absolute_import
+from __future__ import division
 
+from past.utils import old_div
 __all__ = ["QPixmapWidget"]
 
 __docformat__ = 'restructuredtext'
@@ -80,11 +82,11 @@ class QPixmapWidget(Qt.QWidget):
         vAlign = align & Qt.Qt.AlignVertical_Mask
         x, y = 0, 0
         if hAlign & Qt.Qt.AlignHCenter:
-            x = (w - pw) / 2
+            x = old_div((w - pw), 2)
         elif hAlign & Qt.Qt.AlignRight:
             x = w - pw
         if vAlign & Qt.Qt.AlignVCenter:
-            y = (h - ph) / 2
+            y = old_div((h - ph), 2)
         elif vAlign & Qt.Qt.AlignBottom:
             y = h - ph
         x, y = max(0, x), max(0, y)

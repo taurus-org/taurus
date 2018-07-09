@@ -37,6 +37,7 @@ from __future__ import print_function
 
  # TODO: move to sardana.taurus
 
+from builtins import object
 __all__ = ['MacroBroker', 'DynamicPlotManager']
 __docformat__ = 'restructuredtext'
 
@@ -145,7 +146,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
         plots1d = {}
         images = {}
 
-        for chname, chdata in channels.items():
+        for chname, chdata in list(channels.items()):
             ptype = chdata['plot_type']
             if ptype == PlotType.No:
                 continue
@@ -195,7 +196,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
         '''
         from taurus.qt.qtgui.plot import TaurusTrend
         newpanels = []
-        for axes, plotables in trends1d.items():
+        for axes, plotables in list(trends1d.items()):
             if not axes:
                 continue
             if axes not in self._trends1d:
@@ -250,7 +251,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
             raise
             return
 
-        for axes, plotables in trends2d.items():
+        for axes, plotables in list(trends2d.items()):
             for chname in plotables:
                 pname = u'Trend2D - %s' % chname
                 if pname in self._trends2d:
@@ -306,7 +307,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
                       given (default), all the panels are removed.
         '''
         if names is None:
-            names = self._trends1d.values() + self._trends2d.values()
+            names = list(self._trends1d.values()) + list(self._trends2d.values())
             # TODO: do the same for other temporary panels
         for pname in names:
             self.removePanel(pname)
@@ -552,7 +553,7 @@ class MacroBroker(DynamicPlotManager):
         door.command_inout('abort')
         # send stop/abort to all pools
         pools = door.macro_server.getElementsOfType('Pool')
-        for pool in pools.values():
+        for pool in list(pools.values()):
             self.info('Sending %s command to %s' % (cmd, pool.getFullName()))
             try:
                 pool.getObj().command_inout(cmd)

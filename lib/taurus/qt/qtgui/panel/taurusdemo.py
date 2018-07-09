@@ -24,6 +24,7 @@
 #############################################################################
 
 from __future__ import print_function
+from builtins import str
 import sys
 import operator
 
@@ -55,12 +56,12 @@ class TaurusDemoPanel(Qt.QWidget):
                 continue
             internal_widget_module = sys.modules[internal_widget_module_name]
             if hasattr(internal_widget_module, "demo"):
-                if operator.isCallable(internal_widget_module.demo):
+                if hasattr(internal_widget_module.demo, '__call__'):
                     demos[internal_widget_module_name] = internal_widget_module.demo
 
         groups = set()
 
-        for demo_name in demos.keys():
+        for demo_name in list(demos.keys()):
             parts = demo_name.split(".")
             group = parts[-2]
             groups.add(group)

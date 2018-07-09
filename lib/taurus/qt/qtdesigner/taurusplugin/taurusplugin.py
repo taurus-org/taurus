@@ -38,6 +38,8 @@
 """
 from __future__ import print_function
 
+from builtins import str
+from builtins import zip
 import inspect
 
 from taurus.external.qt import Qt
@@ -86,8 +88,8 @@ class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         if aspec.defaults is None:
             kwspec = {}
         else:
-            kwspec = dict(zip(aspec.args[-len(aspec.defaults):],
-                              aspec.defaults))
+            kwspec = dict(list(zip(aspec.args[-len(aspec.defaults):],
+                              aspec.defaults)))
         args, kwargs = [], {}
         if 'designMode' in kwspec:
             kwargs['designMode'] = designMode

@@ -26,6 +26,7 @@
 """This module provides a panel to display taurus messages"""
 from __future__ import absolute_import
 
+from builtins import str
 __all__ = ["TicketReportHandler"]
 
 __docformat__ = 'restructuredtext'

@@ -26,6 +26,7 @@
 """This module defines a *slow* lock class that provides additional debugging
 information"""
 
+from builtins import object
 __all__ = ["TaurusLock"]
 
 __docformat__ = 'restructuredtext'

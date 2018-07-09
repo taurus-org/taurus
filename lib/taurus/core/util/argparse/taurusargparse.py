@@ -78,6 +78,7 @@ Suppose you want to add an option like ``--model=<model name>``::
         sys.exit(app.exec_())
 """
 
+from builtins import str
 __all__ = ["get_taurus_parser", "init_taurus_args", "parse_taurus_args",
            "split_taurus_args"]
 

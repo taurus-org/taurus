@@ -25,6 +25,7 @@
 
 """This module provides taurus-specific functions related to icons"""
 
+from builtins import range
 __all__ = [
     'sanitizePrefix',
     'registerPathFiles',
@@ -68,7 +69,7 @@ __2DQS = Qt.QSize(2 * __DW, __DH)
 __3DQS = Qt.QSize(3 * __DW, __DH)
 
 # Indexes for the map below
-__IDX_ELEM_TYPE_ICON, __IDX_ELEM_TYPE_SIZE, __IDX_ELEM_TYPE_TOOLTIP = range(3)
+__IDX_ELEM_TYPE_ICON, __IDX_ELEM_TYPE_SIZE, __IDX_ELEM_TYPE_TOOLTIP = list(range(3))
 
 # New default role map
 # Elements are: icon theme, preferred size, description/tooltip
@@ -102,7 +103,7 @@ _ELEM_TYPE_MAP = {
 }
 
 # Indexes for the map below
-__IDX_STATE_ICON, __IDX_STATE_TOOLTIP = range(2)
+__IDX_STATE_ICON, __IDX_STATE_TOOLTIP = list(range(2))
 
 _STATE_MAP = {
     TaurusDevState.Ready: ("status:available.svg", "Element ready"),

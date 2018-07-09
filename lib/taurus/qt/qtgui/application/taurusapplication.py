@@ -26,6 +26,7 @@
 """This module provides the base
 :class:`taurus.qt.qtgui.application.TaurusApplication` class."""
 
+from builtins import str
 from __future__ import with_statement
 
 __all__ = ["TaurusApplication"]

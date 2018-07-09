@@ -26,6 +26,7 @@
 """This module provides a taurus group widget"""
 from __future__ import absolute_import
 
+from builtins import map
 __all__ = ["TaurusGroupWidget"]
 
 __docformat__ = 'restructuredtext'
@@ -195,7 +196,7 @@ def main():
     if len(args) == 0:
         w = demo()
     else:
-        models = map(str.lower, args)
+        models = list(map(str.lower, args))
 
         w = Qt.QWidget()
         w.setWindowTitle(app.applicationName())

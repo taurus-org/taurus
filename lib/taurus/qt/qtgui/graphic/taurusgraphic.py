@@ -26,9 +26,17 @@
 taurusgraphic.py:
 """
 from __future__ import print_function
+from __future__ import division
 
 # TODO: Tango-centric
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
+from past.utils import old_div
 __all__ = ['SynopticSelectionStyle',
            'parseTangoUri',
            'QEmitter',  # TODO: QEmitter should probably be removed (kept priv)
@@ -64,7 +72,7 @@ import collections
 import operator
 import types
 
-import Queue
+import queue
 
 from taurus import Manager
 from taurus.core import AttrQuality, DataType
@@ -373,7 +381,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         if not target.endswith('$'):
             target += '$'
         result = []
-        for k in self._itemnames.keys():
+        for k in list(self._itemnames.keys()):
             if re.match(target.lower(), k.lower()):
                 #self.debug('getItemByName(%s): _itemnames[%s]: %s'%(target,k,self._itemnames[k]))
                 result.extend(self._itemnames[k])
@@ -383,7 +391,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         """ This method will try first with named objects; if failed then with itemAt """
         pos = Qt.QPointF(x, y)
         itemsAtPos = []
-        for z, o in sorted((i.zValue(), i) for v in self._itemnames.values() for i in v if i.contains(pos) or i.isUnderMouse()):
+        for z, o in sorted((i.zValue(), i) for v in list(self._itemnames.values()) for i in v if i.contains(pos) or i.isUnderMouse()):
             if not hasattr(o, 'getExtensions'):
                 self.debug(
                     'getItemByPosition(%d,%d): adding Qt primitive %s' % (x, y, o))
@@ -685,7 +693,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     SelectionMark = picture
                     SelectionMark.setRect(0, 0, w, h)
                     SelectionMark.hide()
-                elif operator.isCallable(picture):
+                elif hasattr(picture, '__call__'):
                     SelectionMark = picture()
                 else:
                     if isinstance(picture, Qt.QPixmap):
@@ -734,8 +742,8 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 if w > MAX_CIRCLE_SIZE[0] or h > MAX_CIRCLE_SIZE[1]:
                     # Applying correction if the file is too big, half max
                     # circle size around the center
-                    x, y = (x + w / 2.) - .5 * \
-                        MAX_CIRCLE_SIZE[0], (y + h / 2.) - .5 * \
+                    x, y = (x + old_div(w, 2.)) - .5 * \
+                        MAX_CIRCLE_SIZE[0], (y + old_div(h, 2.)) - .5 * \
                         MAX_CIRCLE_SIZE[1],
                     w, h = [.5 * t for t in MAX_CIRCLE_SIZE]
                 else:
@@ -831,7 +839,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     def start(self):
         if self.updateThread:
             return
-        self.updateQueue = Queue.Queue()
+        self.updateQueue = queue.Queue()
         self.updateThread = TaurusGraphicsUpdateThread(self)
         self.updateThread.start()  # Qt.QThread.HighPriority)
 
@@ -985,7 +993,7 @@ class QSpline(Qt.QGraphicsPathItem):
             path.lineTo(cp[1])
         else:
             path.moveTo(cp[0])
-            for i in xrange(1, nb_points - 1, 3):
+            for i in range(1, nb_points - 1, 3):
                 p1 = cp[i + 0]
                 p2 = cp[i + 1]
                 end = cp[i + 2]
@@ -1438,7 +1446,7 @@ TYPE_TO_GRAPHICS = {
 }
 
 
-class TaurusBaseGraphicsFactory:
+class TaurusBaseGraphicsFactory(object):
 
     def __init__(self):
         pass
@@ -1506,7 +1514,7 @@ class TaurusBaseGraphicsFactory:
     def getGraphicsItem(self, type_, params):
         name = params.get(self.getNameParam())
         # applying alias
-        for k, v in getattr(self, 'alias', {}).items():
+        for k, v in list(getattr(self, 'alias', {}).items()):
             if k in name:
                 name = str(name).replace(k, v)
                 params[self.getNameParam()] = name

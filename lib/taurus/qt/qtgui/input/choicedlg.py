@@ -26,6 +26,7 @@
 """This package provides a dialog for graphically choosing a Taurus class"""
 from __future__ import print_function
 
+from builtins import str
 __all__ = ["GraphicalChoiceDlg", "GraphicalChoiceWidget"]
 
 __docformat__ = 'restructuredtext'
@@ -196,7 +197,7 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
 
     def onClick(self):
         '''slot called when a button is clicked'''
-        self._chosen = unicode(self.sender().text())
+        self._chosen = str(self.sender().text())
         self.choiceMade.emit(self._chosen)
 
     def getChosen(self):

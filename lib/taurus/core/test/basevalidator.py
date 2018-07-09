@@ -27,6 +27,8 @@
 
 #__all__ = []
 
+from builtins import str
+from builtins import object
 __docformat__ = 'restructuredtext'
 
 
@@ -49,7 +51,7 @@ class AbstractNameValidatorTestCase(object):
         self.assertTrue(self.validator().isValid(name, strict=strict), msg)
         if groups is not None:
             returned = self.validator().getUriGroups(name, strict=strict)
-            for k, v in groups.iteritems():
+            for k, v in groups.items():
                 msg = ('"%s" not in %s.getUriGroups("%s"). Returned %s' %
                        (k, self.validator.__name__, name, returned))
                 self.assertIn(k, returned, msg=msg)

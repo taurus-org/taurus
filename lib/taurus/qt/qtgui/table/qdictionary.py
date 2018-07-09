@@ -26,6 +26,9 @@
 """This module provides basic python dictionary/list editor widgets"""
 from __future__ import print_function
 
+from builtins import str
+from builtins import range
+from past.builtins import basestring
 __all__ = ["QDictionaryEditor", "QListEditor"]
 
 __docformat__ = 'restructuredtext'
@@ -87,8 +90,8 @@ def dict2array(dct):
 
     def expand(d, level):  # ,nrows=nrows,ncols=ncols):
         # self.debug('\texpand(%s(%s),%s)'%(type(d),d,level))
-        items = d.items() if isinstance(d, SortedDict) else sorted(
-            d.items() if hasattr(d, 'items') else d)
+        items = list(d.items()) if isinstance(d, SortedDict) else sorted(
+            list(d.items()) if hasattr(d, 'items') else d)
         for k, v in items:
             zero = data['nrows']
             data[(data['nrows'], level)] = k
@@ -106,7 +109,7 @@ def dict2array(dct):
     [table.append([]) for r in range(data.pop('nrows'))]
     [table[r].append(None) for c in range(data.pop('ncols'))
      for r in range(len(table))]
-    for coord, value in data.items():
+    for coord, value in list(data.items()):
         table[coord[0]][coord[1]] = value
     return table
 

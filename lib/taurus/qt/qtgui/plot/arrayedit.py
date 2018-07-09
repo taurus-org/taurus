@@ -27,8 +27,13 @@
 arrayedit.py: Widget for editing a spectrum/array via control points
 """
 from __future__ import absolute_import
+from __future__ import division
 
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import numpy
 from taurus.external.qt import Qt, Qwt5
 from taurus.qt.qtgui.util.ui import UILoadable
@@ -266,7 +271,7 @@ class ArrayEditor(Qt.QWidget):
             new_xp = numpy.zeros(table.rowCount())
             new_corrp = numpy.zeros(table.rowCount())
             try:
-                for i in xrange(table.rowCount()):
+                for i in range(table.rowCount()):
                     new_xp[i] = float(table.item(i, 0).text())
                     new_corrp[i] = float(table.item(i, 1).text())
                 self.setCorrection(new_xp, new_corrp)
@@ -407,7 +412,7 @@ class ArrayEditor(Qt.QWidget):
             Qt.QMessageBox.warning(
                 self, 'Scaling Error', 'The master at this control point is zero-valued. This point cannot be used as reference for scaling')
             return
-        v = sender.corrSB.value() / (self.yp[index])
+        v = old_div(sender.corrSB.value(), (self.yp[index]))
         for i in range(0, index):
             self._controllers[i].corrSB.setValue(v * self.yp[i])
 
@@ -420,7 +425,7 @@ class ArrayEditor(Qt.QWidget):
             Qt.QMessageBox.warning(
                 self, 'Scaling Error', 'The master at this control point is zero-valued. This point cannot be used as reference for scaling')
             return
-        v = sender.corrSB.value() / (self.yp[index])
+        v = old_div(sender.corrSB.value(), (self.yp[index]))
         for i in range(index + 1, self.xp.size):
             self._controllers[i].corrSB.setValue(v * self.yp[i])
 

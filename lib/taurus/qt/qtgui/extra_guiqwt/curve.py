@@ -26,6 +26,7 @@
 """Extension of :mod:`guiqwt.curve`"""
 from __future__ import print_function
 
+from builtins import next
 __all__ = ["TaurusCurveItem"]
 
 from taurus.external.qt import Qt

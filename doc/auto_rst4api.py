@@ -28,6 +28,8 @@
 the API of a python module with sphinx'''
 from __future__ import print_function
 
+from builtins import zip
+from builtins import object
 import sys
 import os
 import imp
@@ -172,7 +174,7 @@ class Auto_rst4API_Creator(object):
                 if self.verbose:
                     print(' skipping (file already exists)')
         # recurse for submodules
-        for sminfo in info['submodules'].itervalues():
+        for sminfo in info['submodules'].values():
             self.createStubs(sminfo, absdocpath)
 
     def documentModule(self, modulename, docparentpath, exclude_patterns=None):
@@ -204,7 +206,7 @@ class Auto_rst4API_Creator(object):
         if len(w) == 0:
             return []
         else:
-            return zip(*w)[1]
+            return list(zip(*w))[1]
 
 
 def main():

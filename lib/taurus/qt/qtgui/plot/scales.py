@@ -27,6 +27,10 @@
 scales.py: Custom scales used by taurus.qt.qtgui.plot module
 """
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 __all__ = ["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine",
            "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw",
            "FixedLabelsScaleDraw"]
@@ -218,7 +222,7 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
 
         elif dx > 2:  # 2s
             format = "%H:%M:%S"
-            majticks = range(int(x1) + 1, int(x2))
+            majticks = list(range(int(x1) + 1, int(x2)))
 
         else:  # less than 2s (show microseconds)
             scaleDiv = Qwt5.QwtLinearScaleEngine.divideScale(
@@ -229,7 +233,7 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
         # make sure to comply with maxMajTicks
         L = len(majticks)
         if L > maxMajSteps:
-            majticks = majticks[::int(numpy.ceil(float(L) / maxMajSteps))]
+            majticks = majticks[::int(numpy.ceil(old_div(float(L), maxMajSteps)))]
 
         scaleDiv = Qwt5.QwtScaleDiv(interval, minticks, medticks, majticks)
         self.scaleDraw().setDatetimeLabelFormat(format)
@@ -362,7 +366,7 @@ class DeltaTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
             s = 86400  # 1 day
         # calculate a step size that respects the base step (s) and also
         # enforces the maxMajSteps
-        stepSize = s * int(numpy.ceil(float(d_range // s) / maxMajSteps))
+        stepSize = s * int(numpy.ceil(old_div(float(d_range // s), maxMajSteps)))
         return Qwt5.QwtLinearScaleEngine.divideScale(self, x1, x2, maxMajSteps, maxMinSteps, stepSize)
 
     @staticmethod

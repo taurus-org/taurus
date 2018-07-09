@@ -25,7 +25,14 @@
 
 """This module contains all taurus tango authority"""
 from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import map
+from builtins import range
+from past.utils import old_div
+from builtins import object
+import collections
 __all__ = ["TangoInfo", "TangoAttrInfo", "TangoDevInfo", "TangoServInfo",
            "TangoDevClassInfo", "TangoDatabaseCache", "TangoDatabase",
            "TangoAuthority"]
@@ -105,7 +112,7 @@ class TangoDevClassInfo(TangoInfo):
     def getDeviceNames(self):
         if not hasattr(self, "_device_name_list"):
             self._device_name_list = sorted(map(TangoDevInfo.name,
-                                                self._devices.values()))
+                                                list(self._devices.values())))
         return self._device_name_list
 
 
@@ -122,8 +129,8 @@ class TangoDevInfo(TangoInfo):
         self._alive = None
         self._state = None
         self._host = host
-        self._domain, self._family, self._member = map(str.upper,
-                                                       name.split("/", 2))
+        self._domain, self._family, self._member = list(map(str.upper,
+                                                       name.split("/", 2)))
         self._attributes = None
         self._alivePending = False
 
@@ -245,12 +252,12 @@ class TangoServInfo(TangoInfo):
     def getDeviceNames(self):
         if not hasattr(self, "_device_name_list"):
             self._device_name_list = sorted(map(TangoDevInfo.name,
-                                                self._devices.values()))
+                                                list(self._devices.values())))
         return self._device_name_list
 
     def getClassNames(self):
         if not hasattr(self, "_klass_name_list"):
-            klasses = set(map(TangoDevInfo.klass, self._devices.values()))
+            klasses = set(map(TangoDevInfo.klass, list(self._devices.values())))
             self._klass_name_list = sorted(map(TangoDevClassInfo.name,
                                                klasses))
         return self._klass_name_list
@@ -285,7 +292,7 @@ class TangoServInfo(TangoInfo):
             try:
                 self._alivePending = True
                 alive = True
-                for d in self.devices().values():
+                for d in list(self.devices().values()):
                     alive = d.alive()
                     if not alive:
                         break
@@ -327,7 +334,7 @@ class TangoDatabaseCache(object):
             r = db.command_inout("DbMySqlSelect", query)
             row_nb, column_nb = r[0][-2:]
             data = r[1]
-            assert row_nb == len(data) / column_nb
+            assert row_nb == old_div(len(data), column_nb)
         else:
             # fallback using tango commands (slow but works with sqlite DB)
             # see http://sf.net/p/tauruslib/tickets/148/
@@ -349,7 +356,7 @@ class TangoDatabaseCache(object):
         CD = CaselessDict
         dev_dict, serv_dict, klass_dict, alias_dict = CD(), {}, {}, CD()
 
-        for i in xrange(0, len(data), column_nb):
+        for i in range(0, len(data), column_nb):
             name, alias, exported, host, server, klass = data[i:i + column_nb]
             if name.count("/") != 2:
                 continue  # invalid/corrupted entry: just ignore it
@@ -423,13 +430,13 @@ class TangoDatabaseCache(object):
         :return: (sequence<str>) a sequence with all registered device names"""
         if self._device_name_list is None:
             self._device_name_list = sorted(
-                map(TangoDevInfo.name, self.devices().values()))
+                map(TangoDevInfo.name, list(self.devices().values())))
         return self._device_name_list
 
     def getAliasNames(self):
         if self._alias_name_list is None:
             self._alias_name_list = sorted(
-                map(TangoDevInfo.alias, self.aliases().values()))
+                map(TangoDevInfo.alias, list(self.aliases().values())))
         return self._alias_name_list
 
     def getServerNames(self):
@@ -438,7 +445,7 @@ class TangoDatabaseCache(object):
         :return: (sequence<str>) a sequence with all registered server names"""
         if self._server_name_list is None:
             self._server_name_list = sorted(
-                map(TangoServInfo.name, self.servers().values()))
+                map(TangoServInfo.name, list(self.servers().values())))
         return self._server_name_list
 
     def getClassNames(self):
@@ -447,7 +454,7 @@ class TangoDatabaseCache(object):
         :return: (sequence<str>) a sequence with all registered device classes"""
         if self._klass_name_list is None:
             self._klass_name_list = sorted(
-                map(TangoDevClassInfo.name, self.klasses().values()))
+                map(TangoDevClassInfo.name, list(self.klasses().values())))
         return self._klass_name_list
 
     def deviceTree(self):
@@ -474,13 +481,13 @@ class TangoDatabaseCache(object):
         return self._klasses
 
     def getDeviceDomainNames(self):
-        return self._device_tree.keys()
+        return list(self._device_tree.keys())
 
     def getDeviceFamilyNames(self, domain):
         families = self._device_tree.get(domain)
         if families is None:
             return []
-        return families.keys()
+        return list(families.keys())
 
     def getDeviceMemberNames(self, domain, family):
         families = self._device_tree.get(domain)
@@ -489,7 +496,7 @@ class TangoDatabaseCache(object):
         members = families.get(family)
         if members is None:
             return []
-        return members.keys()
+        return list(members.keys())
 
     def getDomainDevices(self, domain):
         return self.deviceTree().getDomainDevices(domain)
@@ -511,8 +518,8 @@ class TangoDevTree(CaselessDict):
 
     def _update(self, other):
         try:
-            if operator.isMappingType(other):
-                other = other.values()
+            if isinstance(other, collections.Mapping):
+                other = list(other.values())
             for dev in other:
                 try:
                     self.addDevice(dev)
@@ -537,7 +544,7 @@ class TangoDevTree(CaselessDict):
     def getDomainDevices(self, domain):
         """Returns all devices under the given domain. Returns empty list if
         the domain doesn't exist or doesn't contain any devices"""
-        return self._devices.get(domain, {}).values()
+        return list(self._devices.get(domain, {}).values())
 
     def getFamilyDevices(self, domain, family):
         """Returns all devices under the given domain/family. Returns empty list if
@@ -545,7 +552,7 @@ class TangoDevTree(CaselessDict):
         families = self.get(domain)
         if families is None:
             return
-        return families.get(family, {}).values()
+        return list(families.get(family, {}).values())
 
 
 class TangoServerTree(dict):
@@ -557,8 +564,8 @@ class TangoServerTree(dict):
 
     def _update(self, other):
         try:
-            if operator.isMappingType(other):
-                other = other.values()
+            if isinstance(other, collections.Mapping):
+                other = list(other.values())
             for serv in other:
                 try:
                     self.addServer(serv)
@@ -578,7 +585,7 @@ class TangoServerTree(dict):
     def getServerNameInstances(self, serverName):
         """Returns all servers under the given serverName. Returns empty list if
         the server name doesn't exist or doesn't contain any instances"""
-        return self.get(serverName, {}).values()
+        return list(self.get(serverName, {}).values())
 
 
 def get_home():
@@ -649,7 +656,7 @@ def get_env_var(env_var_name):
             # illegal line!
             continue
 
-        key, val = map(str.strip, tup)
+        key, val = list(map(str.strip, tup))
         if key == env_var_name:
             return val
 
@@ -702,7 +709,7 @@ class TangoAuthority(TaurusAuthority):
         serv_name = self.command_inout("DbGetDeviceInfo", dev_name)[1][3]
         devs = self.get_device_class_list(serv_name)
         dev_name_lower = dev_name.lower()
-        for i in xrange(len(devs) / 2):
+        for i in range(old_div(len(devs), 2)):
             idx = i * 2
             if devs[idx].lower() == dev_name_lower:
                 return devs[idx + 1]

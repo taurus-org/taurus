@@ -26,6 +26,7 @@
 """
 taurustrend.py: Generic trend widget for Taurus
 """
+from builtins import str
 __all__ = ["TaurusTrend2DDialog"]
 
 from guiqwt.plot import ImageDialog

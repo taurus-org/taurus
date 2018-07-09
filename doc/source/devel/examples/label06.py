@@ -1,3 +1,4 @@
+from builtins import range
 import sys
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.display import TaurusLabel

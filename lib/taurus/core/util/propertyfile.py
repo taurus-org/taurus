@@ -34,6 +34,8 @@ Created - Anand B Pillai <abpillai@gmail.com>
 Modified - Tiago Coutinho
 """
 
+from builtins import next
+from builtins import object
 __all__ = ["Properties"]
 
 __docformat__ = "restructuredtext"
@@ -69,7 +71,7 @@ class Properties(object):
 
     def __str__(self):
         s = '{'
-        for key, value in self._props.items():
+        for key, value in list(self._props.items()):
             s = ''.join((s, key, '=', value, ', '))
 
         s = ''.join((s[:-2], '}'))
@@ -275,14 +277,14 @@ class Properties(object):
         """ Return an iterator over all the keys of the property
         dictionary, i.e the names of the properties """
 
-        return self._props.keys()
+        return list(self._props.keys())
 
     def list(self, out=sys.stdout):
         """ Prints a listing of the properties to the
         stream 'out' which defaults to the standard output """
 
         out.write('-- listing properties --\n')
-        for key, value in self._props.items():
+        for key, value in list(self._props.items()):
             out.write(''.join((key, '=', value, '\n')))
 
     def store(self, out, header=""):
@@ -298,7 +300,7 @@ class Properties(object):
             tstamp = time.strftime('%a %b %d %H:%M:%S %Z %Y', time.localtime())
             out.write(''.join(('#', tstamp, '\n')))
             # Write properties from the pristine dictionary
-            for prop, val in self._origprops.items():
+            for prop, val in list(self._origprops.items()):
                 out.write(''.join((prop, '=', self.escape(val), '\n')))
 
             out.close()

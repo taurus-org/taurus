@@ -27,6 +27,7 @@
 """[DEPRECATED since taurus v4]
 This module contains the base class for a taurus attribute configuration"""
 
+from builtins import object
 __all__ = ["TaurusConfigurationProxy", "TaurusConfiguration"]
 
 __docformat__ = "restructuredtext"

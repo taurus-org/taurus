@@ -34,6 +34,12 @@ from __future__ import print_function
 # This module needs a total cleanup. Both re. code conventions and algorithms.
 #   --cpascual 20140827
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import next
+from builtins import str
+from builtins import range
 __all__ = ["TaurusGrid"]
 
 __docformat__ = 'restructuredtext'
@@ -41,7 +47,7 @@ __docformat__ = 'restructuredtext'
 import re
 import operator
 import traceback
-import Queue
+import queue
 from functools import partial
 
 from taurus.external.qt import Qt, QtGui, QtCore
@@ -275,7 +281,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self.hideLabels = False
 
         self.defineStyle()
-        self.modelsQueue = Queue.Queue()
+        self.modelsQueue = queue.Queue()
         self.__modelsThread = None
         if not designMode:
             self.modelsThread
@@ -660,12 +666,12 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             self.row_labels = sorted(
                 list(set(m.split('/')[0].upper() for m in models if
                          m.count('/') >= 2)))
-            self.row_labels = zip(self.row_labels, self.row_labels)
+            self.row_labels = list(zip(self.row_labels, self.row_labels))
         if not self.column_labels:  # Families used by default
             self.column_labels = sorted(
                 list(set(m.split('/')[1].upper() for m in models if
                          m.count('/') >= 2)))
-            self.column_labels = zip(self.column_labels, self.column_labels)
+            self.column_labels = list(zip(self.column_labels, self.column_labels))
 
             # for m in models:
             # if m.count('/')<2:

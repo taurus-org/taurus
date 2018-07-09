@@ -29,6 +29,11 @@ python distribution.
 """
 from __future__ import print_function
 
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 __all__ = ["CaselessList", "CaselessDict", "CaselessWeakValueDict", "LoopList",
            "CircBuf", "LIFO", "TimedQueue", "self_locked", "ThreadDict",
            "defaultdict", "defaultdict_fromkey", "CaselessDefaultDict",
@@ -250,7 +255,7 @@ class CaselessDict(dict):
         if other:
             # Doesn't do keyword args
             if isinstance(other, dict):
-                for k, v in other.items():
+                for k, v in list(other.items()):
                     dict.__setitem__(self, k.lower(), v)
             else:
                 for k, v in other:
@@ -279,7 +284,7 @@ class CaselessDict(dict):
 
     def update(self, other):
         """overwritten from :meth:`dict.update`"""
-        for k, v in other.items():
+        for k, v in list(other.items()):
             dict.__setitem__(self, k.lower(), v)
 
     def fromkeys(self, iterable, value=None):
@@ -303,7 +308,7 @@ class CaselessWeakValueDict(weakref.WeakValueDictionary):
         if other:
             # Doesn't do keyword args
             if isinstance(other, dict):
-                for k, v in other.items():
+                for k, v in list(other.items()):
                     weakref.WeakValueDictionary.__setitem__(self, k.lower(), v)
             else:
                 for k, v in other:
@@ -334,7 +339,7 @@ class CaselessWeakValueDict(weakref.WeakValueDictionary):
 
     def update(self, other):
         """overwritten from :meth:`weakref.WeakValueDictionary.update`"""
-        for k, v in other.items():
+        for k, v in list(other.items()):
             weakref.WeakValueDictionary.__setitem__(self, k.lower(), v)
 
     def fromkeys(self, iterable, value=None):
@@ -413,7 +418,7 @@ class PersistentDict(dict):
 
     def dump(self, fileobj):
         if self.format == 'csv':
-            csv.writer(fileobj).writerows(self.items())
+            csv.writer(fileobj).writerows(list(self.items()))
         elif self.format == 'json':
             json.dump(self, fileobj, separators=(',', ':'))
         elif self.format == 'pickle':
@@ -487,7 +492,7 @@ class LoopList(object):
         '''returns the current index'''
         return self._index
 
-    def next(self):
+    def __next__(self):
         '''advances one item in the list and returns it'''
         self._index += 1
         return self.current()
@@ -897,7 +902,7 @@ class SortedDict(dict):
                     or a callable providing a sorting key algorithm.
         """
         import operator
-        if operator.isCallable(key):
+        if hasattr(key, '__call__'):
             self._keys = sorted(self._keys, key=key)
         else:
             for k in self._keys:
@@ -913,7 +918,7 @@ class SortedDict(dict):
 
     def update(self, other):
         if hasattr(other, 'items'):
-            other = other.items()
+            other = list(other.items())
         for k, v in other:
             self.__setitem__(k, v)
 
@@ -989,7 +994,7 @@ except:
                 args = tuple()
             else:
                 args = self.default_factory,
-            return type(self), args, None, None, self.items()
+            return type(self), args, None, None, list(self.items())
 
         def copy(self):
             return self.__copy__()
@@ -1000,7 +1005,7 @@ except:
         def __deepcopy__(self, memo):
             import copy
             return type(self)(self.default_factory,
-                              copy.deepcopy(self.items()))
+                              copy.deepcopy(list(self.items())))
 
         def __repr__(self):
             return 'defaultdict(%s, %s)' % (self.default_factory,
@@ -1055,7 +1060,7 @@ def getDictAsTree(dct):
     def add_to_level(l, d):
         lines = []
         if isinstance(d, dict):
-            for k, v in d.items():
+            for k, v in list(d.items()):
                 print('with key "%s"' % k)
                 lines.append([''] * l + [str(k)])
                 lines += add_to_level(l + 1, v)
@@ -1128,7 +1133,7 @@ class ArrayBuffer(object):
     def __str__(self):
         return self.__buffer[:self.__end].__str__()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.__buffer[:self.__end].__nonzero__()
 
     def __setitem__(self, i, x):
@@ -1317,5 +1322,5 @@ class ArrayBuffer(object):
 
 def chunks(l, n):
     '''Generator which yields successive n-sized chunks from l'''
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i + n]

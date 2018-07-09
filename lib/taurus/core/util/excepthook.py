@@ -25,6 +25,7 @@
 
 """This module contains a base class for exception hooks"""
 
+from builtins import object
 __all__ = ["BaseExceptHook"]
 
 __docformat__ = "restructuredtext"

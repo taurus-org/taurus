@@ -28,6 +28,7 @@ resfactory.py:
 """
 from __future__ import absolute_import
 
+from past.builtins import basestring
 import os
 import imp
 import operator
@@ -38,6 +39,7 @@ from taurus.core.util.singleton import Singleton
 from taurus.core.util.log import Logger
 from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusexception import TaurusException
+import collections
 
 
 class ResourcesFactory(Singleton, TaurusFactory, Logger):
@@ -85,12 +87,12 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
         """
         if priority < 1:
             raise ValueError('priority must be >=1')
-        if operator.isMappingType(obj):
+        if isinstance(obj, collections.Mapping):
             name = name or 'DICT%02d' % priority
         elif type(obj) in (str,) or obj is None:
             name, mod = self.__reloadResource(obj)
             obj = {}
-            for k, v in mod.__dict__.items():
+            for k, v in list(mod.__dict__.items()):
                 if not k.startswith('_') and isinstance(v, basestring):
                     obj[k] = v
         else:
@@ -106,7 +108,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
         if pl is None:
             self._resource_priority[priority] = pl = []
         pl.append(name)
-        self._resource_priority_keys = self._resource_priority.keys()
+        self._resource_priority_keys = list(self._resource_priority.keys())
         self._resource_priority_keys.sort()
         return obj
 

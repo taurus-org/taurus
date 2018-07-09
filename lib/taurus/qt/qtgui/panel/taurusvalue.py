@@ -27,6 +27,7 @@
 taurusvalue.py:
 """
 
+from builtins import str
 __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox",
            "DefaultUnitsWidget", "TaurusPlotButton", "TaurusArrayEditorButton",
            "TaurusValuesTableButton", "TaurusValuesTableButton_W",

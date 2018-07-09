@@ -22,6 +22,7 @@
 ##
 #############################################################################
 
+from builtins import object
 import functools
 
 from taurus import Device, Attribute  # , Authority

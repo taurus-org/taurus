@@ -27,6 +27,8 @@
 TaurusDevicePanel.py:
 """
 
+from builtins import str
+from past.builtins import basestring
 __all__ = ["TaurusDevicePanel", "TaurusDevPanel"]
 
 __docformat__ = 'restructuredtext'
@@ -72,10 +74,10 @@ def searchCl(m, k):  # TODO: Tango-centric
 
 
 def get_regexp_dict(dct, key, default=None):  # TODO: Tango-centric
-    for k, v in dct.items():  # Trying regular expression match
+    for k, v in list(dct.items()):  # Trying regular expression match
         if matchCl(k, key):
             return v
-    for k, v in dct.items():  # If failed, trying if key is contained
+    for k, v in list(dct.items()):  # If failed, trying if key is contained
         if k.lower() in key.lower():
             return v
     if default is not None:
@@ -323,7 +325,7 @@ class TaurusDevicePanel(TaurusWidget):
             font.setPointSize(15)
             self._label.setFont(font)
             if pixmap is None and self.getIconMap():
-                for k, v in self.getIconMap().items():
+                for k, v in list(self.getIconMap().items()):
                     if searchCl(k, model):
                         pixmap = v
             if pixmap is not None:
@@ -348,7 +350,7 @@ class TaurusDevicePanel(TaurusWidget):
                 filters = get_regexp_dict(
                     TaurusDevicePanel._attribute_filter, model, ['.*'])
                 if hasattr(filters, 'keys'):
-                    filters = filters.items()  # Dictionary!
+                    filters = list(filters.items())  # Dictionary!
                 if filters and isinstance(filters[0], (list, tuple)):  # Mapping
                     self._attrs = []
                     for tab, attrs in filters:
@@ -466,7 +468,7 @@ class TaurusDevicePanel(TaurusWidget):
                 form.setViewFilters([lambda c: str(c.cmd_name).lower() not in (
                     'state', 'status') and any(searchCl(s[0], str(c.cmd_name)) for s in params)])
                 form.setDefaultParameters(dict((k, v) for k, v in (
-                    params if not hasattr(params, 'items') else params.items()) if v))
+                    params if not hasattr(params, 'items') else list(params.items())) if v))
             for wid in form._cmdWidgets:
                 if not hasattr(wid, 'getCommand') or not hasattr(wid, 'setDangerMessage'):
                     continue

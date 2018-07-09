@@ -1,4 +1,7 @@
 from __future__ import print_function
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import PyTango
 import sys
 import math
@@ -21,7 +24,7 @@ class TaurusTest(PyTango.Device_4Impl):
         self._velocity = 20.0
         self._acceleration = 4.0
         self._simulation_mode = False
-        self._abscissas = [x / 50.0 for x in xrange(1024)]
+        self._abscissas = [old_div(x, 50.0) for x in range(1024)]
         self._curve = [math.sin(x) for x in self._abscissas]
 
     def always_executed_hook(self):

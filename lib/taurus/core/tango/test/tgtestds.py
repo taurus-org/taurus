@@ -25,6 +25,7 @@
 
 """Module containing base classes for using the TangoSchemeTest DS in tests"""
 
+from builtins import object
 __all__ = ['TangoSchemeTestLauncher']
 
 __docformat__ = 'restructuredtext'

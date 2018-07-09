@@ -26,6 +26,8 @@
 
 """This module provides the set of base class taurus controllers."""
 
+from builtins import str
+from builtins import object
 __all__ = ["TaurusBaseController", "TaurusAttributeControllerHelper",
            "TaurusScalarAttributeControllerHelper",
            "TaurusConfigurationControllerHelper",

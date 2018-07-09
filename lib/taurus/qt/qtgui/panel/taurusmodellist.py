@@ -26,6 +26,10 @@
 """
 itemsmodel Model and view for new CurveItem configuration
 """
+from builtins import str
+from builtins import range
+from past.builtins import basestring
+from builtins import object
 __all__ = ['TaurusModelModel', 'TaurusModelItem', 'TaurusModelList']
 #raise UnimplementedError('Under Construction!')
 
@@ -172,7 +176,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
             row = index.row()
             item = self.items[row]
-            value = Qt.from_qvariant(value, unicode)
+            value = Qt.from_qvariant(value, str)
             if role == Qt.Qt.EditRole:
                 item.src = value
             elif role == Qt.Qt.DisplayRole:
@@ -188,7 +192,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
         if parentindex is None:
             parentindex = Qt.QModelIndex()
         if items is None:
-            slice = [TaurusModelItem() for i in xrange(rows)]
+            slice = [TaurusModelItem() for i in range(rows)]
         else:
             slice = list(items)
             # note that the rows parameter is ignored if items is passed
@@ -424,7 +428,7 @@ class TaurusModelList(Qt.QListView):
 
         .. seealso:: :meth:`getModelItems`
         '''
-        return [unicode(s.src) for s in self.getModelItems()]
+        return [str(s.src) for s in self.getModelItems()]
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

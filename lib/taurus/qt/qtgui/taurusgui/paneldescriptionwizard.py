@@ -24,6 +24,9 @@
 ###########################################################################
 
 from __future__ import print_function
+from builtins import str
+from builtins import zip
+from builtins import range
 __all__ = ["PanelDescriptionWizard"]
 """
 paneldescriptionwizard.py:
@@ -222,7 +225,7 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
         Qt.QWizardPage.__init__(self, parent)
         TaurusBaseWidget.__init__(self, 'WidgetPage')
         if extraWidgets:
-            customWidgets, customWidgetScreenshots = zip(*extraWidgets)
+            customWidgets, customWidgetScreenshots = list(zip(*extraWidgets))
             pixmaps = {}
             for k, s in extraWidgets:
                 if s is None:
@@ -462,7 +465,7 @@ class AdvSettingsPage(Qt.QWizardPage):
 
 class CommTableModel(Qt.QAbstractTableModel):
     NUMCOLS = 3
-    UID, R, W = range(NUMCOLS)
+    UID, R, W = list(range(NUMCOLS))
 
     dataChanged = Qt.pyqtSignal(int, int)
 
@@ -555,7 +558,7 @@ class CommTableModel(Qt.QAbstractTableModel):
 
 class CommItemDelegate(Qt.QStyledItemDelegate):
     NUMCOLS = 3
-    UID, R, W = range(NUMCOLS)
+    UID, R, W = list(range(NUMCOLS))
 
     def __init__(self, parent=None, widget=None, sdm=None):
         super(CommItemDelegate, self).__init__(parent)

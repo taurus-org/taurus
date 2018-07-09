@@ -64,6 +64,7 @@ A Taurus related example::
 """
 from __future__ import absolute_import
 
+from builtins import str
 __all__ = ["Codec", "NullCodec", "ZIPCodec", "BZ2Codec", "JSONCodec",
            "FunctionCodec", "PlotCodec", "CodecPipeline", "CodecFactory"]
 
@@ -348,7 +349,7 @@ class JSONCodec(Codec):
         return format, data
 
     def _transform_ascii(self, data):
-        if isinstance(data, unicode):
+        if isinstance(data, str):
             return data.encode('utf-8')
         elif isinstance(data, dict):
             return self._transform_dict(data)
@@ -364,7 +365,7 @@ class JSONCodec(Codec):
 
     def _transform_dict(self, dct):
         newdict = {}
-        for k, v in dct.iteritems():
+        for k, v in dct.items():
             newdict[self._transform_ascii(k)] = self._transform_ascii(v)
         return newdict
 
@@ -426,7 +427,7 @@ class BSONCodec(Codec):
         return format, data
 
     def _transform_ascii(self, data):
-        if isinstance(data, unicode):
+        if isinstance(data, str):
             return data.encode('utf-8')
         elif isinstance(data, dict):
             return self._transform_dict(data)
@@ -442,7 +443,7 @@ class BSONCodec(Codec):
 
     def _transform_dict(self, dct):
         newdict = {}
-        for k, v in dct.iteritems():
+        for k, v in dct.items():
             newdict[self._transform_ascii(k)] = self._transform_ascii(v)
         return newdict
 

@@ -27,6 +27,10 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import zip
+from builtins import filter
+from builtins import str
+from past.builtins import basestring
 __all__ = ["TaurusAttrForm", "TaurusCommandsForm", "TaurusForm"]
 
 __docformat__ = 'restructuredtext'
@@ -207,7 +211,7 @@ class TaurusForm(TaurusWidget):
         if self.__modelChooserDlg is None:
             self.__modelChooserDlg = Qt.QDialog(self)
             self.__modelChooserDlg.setWindowTitle(
-                "%s - Model Chooser" % unicode(self.windowTitle()))
+                "%s - Model Chooser" % str(self.windowTitle()))
             self.__modelChooserDlg.modelChooser = TaurusModelChooser()
             layout = Qt.QVBoxLayout()
             layout.addWidget(self.__modelChooserDlg.modelChooser)
@@ -653,7 +657,7 @@ class TaurusCommandsForm(TaurusWidget):
             return
 
         for f in self.getViewFilters():
-            commands = filter(f, commands)
+            commands = list(filter(f, commands))
 
         self._clearFrame()
 
@@ -739,7 +743,7 @@ class TaurusCommandsForm(TaurusWidget):
 
         '''
         self._defaultParameters = dict((k.lower(), v)
-                                       for k, v in params.items())
+                                       for k, v in list(params.items()))
         self._updateCommandWidgets()
 
     def setViewFilters(self, filterlist):
@@ -838,7 +842,7 @@ class TaurusAttrForm(TaurusWidget):
             return
         attrlist = sorted(dev.attribute_list_query(), key=self._sortKey)
         for f in self.getViewFilters():
-            attrlist = filter(f, attrlist)
+            attrlist = list(filter(f, attrlist))
         attrnames = []
         devname = self.getModelName()
         for a in attrlist:

@@ -26,6 +26,8 @@
 """This is an experimental property parser"""
 from __future__ import print_function
 
+from builtins import str
+from builtins import range
 import os
 
 import ply.lex as lex
@@ -48,7 +50,7 @@ tokens = ['EQUALS',
           'COMMA',
           'LLST', 'RLST',
           #'LBRACKET', 'RBRACKET',
-          ] + reserved.values()
+          ] + list(reserved.values())
 
 t_EQUALS = r'\='
 t_LLST = r'\['

@@ -27,6 +27,9 @@
 one or more curves"""
 from __future__ import print_function
 
+from builtins import zip
+from builtins import str
+from builtins import range
 __all__ = ["QDataExportDialog"]
 
 import os.path
@@ -76,7 +79,7 @@ class QDataExportDialog(Qt.QDialog):
         self.datadict = datadict
         self.dataSetCB.clear()
         self.dataSetCB.insertItems(0, sortedNames)
-        if len(self.datadict.keys()) > 1:
+        if len(list(self.datadict.keys())) > 1:
             self.dataSetCB.insertItems(
                 0, [self.allInSingleFile, self.allInMultipleFiles])
 
@@ -152,7 +155,7 @@ class QDataExportDialog(Qt.QDialog):
             if not outputdir:
                 return False
             preffix = os.path.join(str(outputdir), "set")
-        for i, k in zip(range(len(self.datadict)), self.sortedNames):
+        for i, k in zip(list(range(len(self.datadict))), self.sortedNames):
             ofile = "%s%03i.dat" % (preffix, i + 1)
             try:
                 self.exportCurrentData(

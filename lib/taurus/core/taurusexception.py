@@ -25,6 +25,7 @@
 
 """This module contains the taurus base exception classes"""
 
+from builtins import str
 __all__ = ["TaurusException", "DoubleRegistration"]
 
 __docformat__ = "restructuredtext"

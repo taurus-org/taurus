@@ -26,6 +26,8 @@
 """This module is designed to provide a library of taurus Qt actions"""
 from __future__ import absolute_import
 
+from builtins import str
+from past.builtins import basestring
 __all__ = ["ExternalAppAction",
            "TaurusMenu",
            "TaurusAction",
@@ -131,10 +133,10 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
             else:
                 return False
         except OSError:
-            err = "Error launching %s" % unicode(self.text())
+            err = "Error launching %s" % str(self.text())
             msg = "Cannot launch application:\n" + \
                   " ".join(self.__cmdargs) + \
-                  "\nHint: Check that %s is installed and in the path" % unicode(
+                  "\nHint: Check that %s is installed and in the path" % str(
                       self.text())
             if self.interactive:
                 Qt.QMessageBox.warning(self.parentWidget(), err, msg)

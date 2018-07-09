@@ -130,7 +130,7 @@ class ActionFactory(Singleton, Logger):
             action.toggled.connect(toggled)
             action.setCheckable(True)
         if icon is not None:
-            if isinstance(icon, (str, unicode)):
+            if isinstance(icon, (str, str)):
                 icon = Qt.QIcon.fromTheme(icon)
             action.setIcon(icon)
         if shortcut is not None:

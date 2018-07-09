@@ -25,6 +25,7 @@
 
 """This module exposes QtCore module"""
 
+from builtins import object
 from taurus.external.qt import API_NAME
 
 __backend = API_NAME
@@ -57,7 +58,7 @@ def __from_qvariant_1(qobj=None, convfunc=None):
     if convfunc is None:
         return qobj.toPyObject()
     elif callable(convfunc):
-        if convfunc in (unicode, str):
+        if convfunc in (str, str):
             return convfunc(qobj.toString())
         elif convfunc is bool:
             return qobj.toBool()
@@ -65,7 +66,7 @@ def __from_qvariant_1(qobj=None, convfunc=None):
             return qobj.toInt()[0]
         elif convfunc is float:
             return qobj.toDouble()[0]
-    elif isinstance(convfunc, (str, unicode)):
+    elif isinstance(convfunc, (str, str)):
         return getattr(qobj, convfunc)()
 
 

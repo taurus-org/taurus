@@ -26,6 +26,7 @@
 """This module provides widgets that display the database in a tree format"""
 # TODO: tango-centric
 
+from builtins import str
 __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
            "TaurusTreeDeviceFamilyItem", "TaurusTreeDeviceMemberItem", "TaurusTreeSimpleDeviceItem",
            "TaurusTreeDeviceItem", "TaurusTreeAttributeItem", "TaurusTreeServerNameItem",
@@ -266,7 +267,7 @@ class TaurusTreeAttributeItem(TaurusTreeDbBaseItem):
             alarms="[%s, %s]" % (di.alarms.min_alarm, di.alarms.max_alarm),
             warnings="[%s, %s]" % (di.alarms.min_warning, di.alarms.max_warning),)
 
-        for id, value in items.items():
+        for id, value in list(items.items()):
             ret += '<TR><TD WIDTH="80" ALIGN="RIGHT" VALIGN="MIDDLE"><B>%s:</B></TD><TD>%s</TD></TR>' % (
                 id.capitalize(), value)
         ret += '</TABLE>'
@@ -553,15 +554,15 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
             data = data.deviceTree()
 
         rootItem = self._rootItem
-        for domain in data.keys():
+        for domain in list(data.keys()):
             families = data[domain]
             domainItem = TaurusTreeDeviceDomainItem(
                 self, domain.upper(), rootItem)
-            for family in families.keys():
+            for family in list(families.keys()):
                 members = families[family]
                 familyItem = TaurusTreeDeviceFamilyItem(
                     self, family.upper(), domainItem)
-                for member in members.keys():
+                for member in list(members.keys()):
                     dev = members[member]
                     memberItem = TaurusTreeDeviceItem(
                         self, dev, parent=familyItem)
@@ -586,7 +587,7 @@ class TaurusDbPlainServerModel(TaurusDbBaseModel):
         servers = data.servers()
         rootItem = self._rootItem
 
-        for server_name, server in servers.items():
+        for server_name, server in list(servers.items()):
             serverInstanceItem = TaurusTreeFullServerItem(
                 self, server, rootItem)
             rootItem.appendChild(serverInstanceItem)

@@ -26,6 +26,7 @@
 """This module contains a class which can be used as a super class for all
 classes that need to implement the Singleton design pattern."""
 
+from builtins import object
 __all__ = ["Singleton"]
 
 __docformat__ = "restructuredtext"

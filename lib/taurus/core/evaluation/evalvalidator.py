@@ -23,6 +23,7 @@
 #############################################################################
 
 from __future__ import absolute_import
+from builtins import zip
 __all__ = ['EvaluationDeviceNameValidator',
            'EvaluationAttributeNameValidator']
 
@@ -263,7 +264,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
 
         # Substitute each k by its v in the expr (unless they are in
         # references)
-        for k, v in substmap.iteritems():
+        for k, v in substmap.items():
             # create a pattern for matching complete word k
             # unless it is within between curly brackets
             keyPattern = r'(?<!\w)%s(?!\w)(?![^\{]*\})' % k
@@ -271,7 +272,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             ret = re.sub(keyPattern, v, ret)
 
         # restore the protected strings
-        for placeholder, s in protected.iteritems():
+        for placeholder, s in protected.items():
             ret = re.sub(placeholder, s, ret)
         return ret
 
@@ -295,7 +296,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         # print refs
 
         if refs and not ign_quoted:
-            _, refs = zip(*refs)
+            _, refs = list(zip(*refs))
             return refs
 
         ret = []
@@ -362,7 +363,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
 
         # create the groups dict with unmangled refs in its values
         groups = {}
-        for n, g in _groups.items():
+        for n, g in list(_groups.items()):
             if isinstance(g, str):  # avoid None or boolean values
                 g = g.format(**refs_dict)
             groups[n] = g

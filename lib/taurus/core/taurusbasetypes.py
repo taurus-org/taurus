@@ -26,6 +26,7 @@
 a misc collection of basic types
 '''
 
+from builtins import object
 __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "TaurusSerializationMode", "SubscriptionState", "TaurusEventType",
            "MatchLevel", "TaurusElementType", "LockStatus", "DataFormat",
@@ -149,7 +150,7 @@ DataType = Enumeration(
 __PYTHON_TYPE_TO_TAURUS_DATATYPE = {
     str: DataType.String,
     int: DataType.Integer,
-    long: DataType.Integer,
+    int: DataType.Integer,
     float: DataType.Float,
     bool: DataType.Boolean,
     # bytes : DataType.Bytes, # see below...

@@ -27,12 +27,17 @@
 configuration features to the classes that inherit from them"""
 from __future__ import print_function
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 __all__ = ["configurableProperty", "BaseConfigurableClass"]
 
 __docformat__ = 'restructuredtext'
 
 
-class configurableProperty:
+class configurableProperty(object):
     '''A dummy class used to handle properties with the configuration API
 
     .. warning:: this class is intended for internal use by the configuration
@@ -66,7 +71,7 @@ class configurableProperty:
         return self.name
 
 
-class BaseConfigurableClass:
+class BaseConfigurableClass(object):
     '''
     A base class defining the API for configurable objects.
 
@@ -191,7 +196,7 @@ class BaseConfigurableClass:
         # store the configurations for all registered configurable items as
         # well
         itemcfgs = {}
-        for k, v in self.__configurableItems.iteritems():
+        for k, v in self.__configurableItems.items():
             itemcfgs[k] = v.createConfig(allowUnpickable=allowUnpickable)
         configdict["__itemConfigurations__"] = itemcfgs
         configdict["__orderedConfigNames__"] = self.__configurableItemNames
@@ -403,7 +408,7 @@ class BaseConfigurableClass:
         .. seealso:: :meth:`restoreQConfig`
         '''
         from taurus.external.qt import Qt
-        import cPickle as pickle
+        import pickle as pickle
         configdict = self.createConfig(allowUnpickable=False)
         return Qt.QByteArray(pickle.dumps(configdict))
 
@@ -417,7 +422,7 @@ class BaseConfigurableClass:
         '''
         if qstate.isNull():
             return
-        import cPickle as pickle
+        import pickle as pickle
         configdict = pickle.loads(qstate.data())
         self.applyConfig(configdict)
 
@@ -428,10 +433,10 @@ class BaseConfigurableClass:
 
         :return: (str) file name used
         """
-        import cPickle as pickle
+        import pickle as pickle
         if ofile is None:
             from taurus.external.qt import Qt
-            ofile = unicode(Qt.QFileDialog.getSaveFileName(
+            ofile = str(Qt.QFileDialog.getSaveFileName(
                 self, 'Save Configuration', '%s.pck' % self.__class__.__name__, 'Configuration File (*.pck)'))
             if not ofile:
                 return
@@ -449,10 +454,10 @@ class BaseConfigurableClass:
 
         :return: (str) file name used
         """
-        import cPickle as pickle
+        import pickle as pickle
         if ifile is None:
             from taurus.external.qt import Qt
-            ifile = unicode(Qt.QFileDialog.getOpenFileName(
+            ifile = str(Qt.QFileDialog.getOpenFileName(
                 self, 'Load Configuration', '', 'Configuration File (*.pck)'))
             if not ifile:
                 return

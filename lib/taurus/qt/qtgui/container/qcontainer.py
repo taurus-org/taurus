@@ -25,6 +25,7 @@
 
 """This module provides basic pure Qt container widgets"""
 
+from builtins import str
 __all__ = ["QGroupWidget"]
 
 __docformat__ = 'restructuredtext'

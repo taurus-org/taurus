@@ -27,6 +27,7 @@
 '''Utility code for returning info about a module'''
 from __future__ import print_function
 
+from builtins import object
 import sys
 import os
 import inspect
@@ -175,7 +176,7 @@ class ModuleExplorer(object):
                 ret = [(mname, el) for el in info[key]]
         except KeyError:
             return []
-        for sminfo in info['submodules'].itervalues():
+        for sminfo in info['submodules'].values():
             ret += ModuleExplorer.getAll(sminfo, key)
         return ret
 

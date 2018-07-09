@@ -25,6 +25,7 @@
 
 """This module provides base tree widget"""
 
+from builtins import range
 __all__ = ["QBaseTreeWidget"]
 
 __docformat__ = 'restructuredtext'

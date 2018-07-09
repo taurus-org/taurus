@@ -26,6 +26,9 @@
 """This configuration contains base modules and classes that may be used
 by specific TaurusGui-based GUIs"""
 
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 __docformat__ = 'restructuredtext'
 
 import os
@@ -38,7 +41,7 @@ from taurus.core.util.log import Logger
 # this is here only for backwards compatibility. It should not be used at all
 
 
-class Qt_Qt:
+class Qt_Qt(object):
     LeftDockWidgetArea = 1
     RightDockWidgetArea = 2
     BottomDockWidgetArea = 3
@@ -223,9 +226,9 @@ class TaurusGuiComponentDescription(object):
             w.setModel(self.model)
         # connect (if an sdm is given)
         if sdm is not None:
-            for dataUID, signalname in self.sharedDataWrite.iteritems():
+            for dataUID, signalname in self.sharedDataWrite.items():
                 sdm.connectWriter(dataUID, w, signalname)
-            for dataUID, slotname in self.sharedDataRead.iteritems():
+            for dataUID, slotname in self.sharedDataRead.items():
                 sdm.connectReader(dataUID, getattr(w, slotname))
         # set the name
         w.name = self.name
@@ -250,12 +253,12 @@ class TaurusGuiComponentDescription(object):
         floating.text = str(self._floating)
 
         sharedDataWrite = etree.SubElement(root, "sharedDataWrite")
-        for k, v in self._sharedDataWrite.iteritems():
+        for k, v in self._sharedDataWrite.items():
             item = etree.SubElement(
                 sharedDataWrite, "item", datauid=k, signalName=v)
 
         sharedDataRead = etree.SubElement(root, "sharedDataRead")
-        for k, v in self._sharedDataRead.iteritems():
+        for k, v in self._sharedDataRead.items():
             item = etree.SubElement(
                 sharedDataRead, "item", datauid=k, slotName=v)
 

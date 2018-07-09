@@ -27,6 +27,10 @@
 python :mod:`logging` module"""
 from __future__ import absolute_import
 
+from past.builtins import cmp
+from builtins import map
+from builtins import str
+from builtins import range
 __all__ = ["QLoggingTableModel", "QLoggingTable", "QLoggingWidget",
            "QRemoteLoggingTableModel"]
 
@@ -50,7 +54,7 @@ from taurus.qt.qtgui.util import ActionFactory
 
 from .qtable import QBaseTableWidget
 
-LEVEL, TIME, MSG, NAME, ORIGIN = range(5)
+LEVEL, TIME, MSG, NAME, ORIGIN = list(range(5))
 HORIZ_HEADER = 'Level', 'Time', 'Message', 'By', 'Origin'
 
 __LEVEL_BRUSH = {
@@ -77,7 +81,7 @@ def getBrushForLevel(level):
         elevel = taurus.Error
     elif level <= taurus.Critical:
         elevel = taurus.Critical
-    f, g = map(Qt.QBrush, __LEVEL_BRUSH[elevel])
+    f, g = list(map(Qt.QBrush, __LEVEL_BRUSH[elevel]))
     return f, g
 
 
@@ -120,7 +124,7 @@ def _get_record_origin_tooltip(rec):
     host, procName, procID, threadName, threadID = _get_record_origin(rec)
     pathname, filename, modulename, funcname, lineno = _get_record_trace(rec)
     timestamp = str(datetime.datetime.fromtimestamp(rec.created))
-    bgcolor, fgcolor = map(Qt.QBrush.color, getBrushForLevel(rec.levelno))
+    bgcolor, fgcolor = list(map(Qt.QBrush.color, getBrushForLevel(rec.levelno)))
     bgcolor = "#%02x%02x%02x" % (
         bgcolor.red(), bgcolor.green(), bgcolor.blue())
     fgcolor = "#%02x%02x%02x" % (
@@ -346,7 +350,7 @@ class QLoggingTable(Qt.QTableView):
         """Overwrite of slot rows inserted to do proper resize and scroll to
         bottom if desired"""
         Qt.QTableView.rowsInserted(self, index, start, end)
-        for i in xrange(start, end + 1):
+        for i in range(start, end + 1):
             self.resizeRowToContents(i)
         if start == 0:
             self.resizeColumnsToContents()
@@ -563,7 +567,7 @@ def fill_log():
     import time
     import random
 
-    for i in xrange(10):
+    for i in range(10):
         taurus.info("Hello world %04d" % i)
 
     loggers = ["Object%02d" % (i + 1) for i in range(10)]

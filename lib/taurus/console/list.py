@@ -26,6 +26,8 @@
 """ """
 from __future__ import absolute_import
 
+from builtins import map
+from builtins import range
 __all__ = ["List"]
 
 __docformat__ = "restructuredtext"
@@ -62,7 +64,7 @@ class List(list):
             self.append(header)
 
     def setHeaderSeparator(self, header_separator):
-        if isinstance(header_separator, (str, unicode)):
+        if isinstance(header_separator, (str, str)):
             header_separator = self.col_nb * [header_separator]
         self.HeaderSeparator = header_separator
 
@@ -72,7 +74,7 @@ class List(list):
     header_separator = property(getHeaderSeparator, setHeaderSeparator)
 
     def setRowSeparator(self, row_separator):
-        if isinstance(row_separator, (str, unicode)):
+        if isinstance(row_separator, (str, str)):
             row_separator = self.col_nb * [row_separator]
         self.RowSeparator = row_separator
 
@@ -104,7 +106,7 @@ class List(list):
     text_alignment = property(getTextAlignment, setTextAlignment)
 
     def _transform_row(self, row):
-        return map(str, row[:self.col_nb])
+        return list(map(str, row[:self.col_nb]))
 
     def __setitem__(self, i, row):
         return list.__setitem__(self, i, self._transform_row(row))

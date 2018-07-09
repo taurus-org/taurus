@@ -27,6 +27,7 @@
 nexusWidget.py:
 """
 
+from builtins import str
 __all__ = ["TaurusNexusBrowser"]
 
 import numpy
@@ -111,7 +112,7 @@ class TaurusNeXusBrowser(TaurusWidget):
 
     def openFile(self, fname=None):
         if fname is None:
-            fname = unicode(Qt.QFileDialog.getOpenFileName(
+            fname = str(Qt.QFileDialog.getOpenFileName(
                 self, "Choose NeXus File", "/home/cpascual/local/tmp/scantest.h5"))  # @TODO!!
         if fname:
             self.__nexusFile = self.__fileModel.openFile(fname)

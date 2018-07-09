@@ -27,6 +27,7 @@
 :meth:`taurus.qt.qtgui.base.TaurusBaseComponent.setFilters`"""
 
 
+from builtins import object
 def IGNORE_ALL(s, t, v):
     '''Will discard all events'''
     return None

@@ -46,10 +46,11 @@ Usage::
   consttype.__del__()     # Remove all attributes
 """
 
+from builtins import object
 __docformat__ = "restructuredtext"
 
 
-class _consttype:
+class _consttype(object):
 
     class _ConstTypeError(TypeError):
         pass

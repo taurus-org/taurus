@@ -25,6 +25,7 @@
 
 """A pure Qt led widget"""
 
+from builtins import str
 __all__ = ["LedColor", "LedStatus", "LedSize", "QLed", "QLedOld"]
 
 __docformat__ = 'restructuredtext'

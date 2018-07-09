@@ -1,6 +1,7 @@
 """Provide a Signal class for non-QObject objects"""
 from __future__ import print_function
 
+from builtins import object
 __all__ = ['baseSignal']
 
 from PyQt4 import Qt

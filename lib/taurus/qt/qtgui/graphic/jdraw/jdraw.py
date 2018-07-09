@@ -26,6 +26,8 @@
 """This module contains the graphics factory for the jdraw file format"""
 from __future__ import absolute_import
 
+from builtins import str
+from builtins import range
 __all__ = ["TaurusJDrawGraphicsFactory"]
 
 __docformat__ = 'restructuredtext'
@@ -181,7 +183,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
 
         polygon = Qt.QPolygonF()
         p = params.get('summit')
-        for i in xrange(0, len(p), 2):
+        for i in range(0, len(p), 2):
             polygon.append(Qt.QPointF(p[i], p[i + 1]))
         item.setPolygon(polygon)
 
@@ -190,7 +192,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
     def getSplineObj(self, params):
         item = self.getGraphicsItem('Spline', params)
         p = params.get('summit')
-        p = [Qt.QPointF(p[i], p[i + 1]) for i in xrange(0, len(p), 2)]
+        p = [Qt.QPointF(p[i], p[i + 1]) for i in range(0, len(p), 2)]
         item.setControlPoints(p)
         isClosed = params.get('isClosed', True)
         item.setClose(isClosed)
@@ -213,8 +215,8 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         # it is parsed as a float
         vAlignment = int(params.get('vAlignment', 0))
         hAlignment = int(params.get('hAlignment', 0))
-        assert(vAlignment in VALIGNMENT.keys())
-        assert(hAlignment in ALIGNMENT.keys())
+        assert(vAlignment in list(VALIGNMENT.keys()))
+        assert(hAlignment in list(ALIGNMENT.keys()))
         vAlignment = VALIGNMENT[vAlignment]
         hAlignment = ALIGNMENT[hAlignment]
         item.setAlignment(hAlignment | vAlignment)
@@ -332,7 +334,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
             params.get('extensions')["ignoreRepaint"] = "true"
 
         if self.alias:
-            for k, v in self.alias.items():
+            for k, v in list(self.alias.items()):
                 name = str(name).replace(k, v)
 
         # Forcing not-Taurus items to have a name and be able to trigger events

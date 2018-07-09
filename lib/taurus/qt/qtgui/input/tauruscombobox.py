@@ -26,6 +26,7 @@
 
 """This module provides a set of basic taurus widgets based on QCheckBox"""
 
+from builtins import str
 __all__ = ["TaurusAttrListComboBox", "TaurusValueComboBox"]
 
 __docformat__ = 'restructuredtext'

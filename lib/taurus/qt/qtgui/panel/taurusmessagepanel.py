@@ -25,6 +25,10 @@
 
 """This module provides a panel to display taurus messages"""
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 __all__ = ["TaurusMessagePanel", "TaurusMessageErrorHandler",
            "TangoMessageErrorHandler", "MacroServerMessageErrorHandler"]
 
@@ -278,7 +282,7 @@ class TaurusMessagePanel(Qt.QWidget):
     def _initReportCombo(self):
         report_handlers = get_report_handlers()
         combo = self.reportComboBox()
-        for name, report_handler in report_handlers.items():
+        for name, report_handler in list(report_handlers.items()):
             name = Qt.QVariant(name)
             combo.addItem(report_handler.Label, name)
 
@@ -504,7 +508,7 @@ class TaurusMessagePanel(Qt.QWidget):
         :return: a message box error handler
         :rtype: TaurusMessageBoxErrorHandler class object"""
 
-        for exc, h_klass in klass.ErrorHandlers.items():
+        for exc, h_klass in list(klass.ErrorHandlers.items()):
             if issubclass(err_type, exc):
                 return h_klass
         return TaurusMessageErrorHandler
@@ -589,8 +593,8 @@ def py_tg_serv_exc():
     except PyTango.DevFailed as df1:
         try:
             import traceback
-            import StringIO
-            origin = StringIO.StringIO()
+            import io
+            origin = io.StringIO()
             traceback.print_stack(file=origin)
             origin.seek(0)
             origin = origin.read()

@@ -25,6 +25,7 @@
 
 """This module contains the base TaurusModel class"""
 
+from builtins import object
 __all__ = ["TaurusModel"]
 
 __docformat__ = "restructuredtext"
@@ -219,7 +220,7 @@ class TaurusModel(Logger):
     def _getCallableRef(self, listener, cb=None):
         # return weakref.ref(listener, self._listenerDied)
         meth = getattr(listener, 'eventReceived', None)
-        if meth is not None and operator.isCallable(meth):
+        if meth is not None and hasattr(meth, '__call__'):
             return weakref.ref(listener, cb)
         else:
             return CallableRef(listener, cb)
@@ -249,7 +250,7 @@ class TaurusModel(Logger):
         return True
 
     def forceListening(self):
-        class __DummyListener:
+        class __DummyListener(object):
 
             def eventReceived(self, *args):
                 pass
@@ -292,9 +293,9 @@ class TaurusModel(Logger):
             if l is None:
                 continue
             meth = getattr(l, 'eventReceived', None)
-            if meth is not None and operator.isCallable(meth):
+            if meth is not None and hasattr(meth, '__call__'):
                 l.eventReceived(self, event_type, event_value)
-            elif operator.isCallable(l):
+            elif hasattr(l, '__call__'):
                 l(self, event_type, event_value)
 
     def isWritable(self):

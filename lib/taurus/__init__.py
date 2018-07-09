@@ -26,13 +26,14 @@
 """The main taurus module. It contains a reduced set of wrappers around the
 real taurus model classes and information regarding the current release."""
 
+from builtins import object
 from .core import release as __R
 
 
-class Release:
+class Release(object):
     pass
 
-for key, value in __R.__dict__.items():
+for key, value in list(__R.__dict__.items()):
     setattr(Release, key, value)
 Release.__doc__ = __R.__doc__
 

@@ -29,6 +29,10 @@ event.py:
 from __future__ import print_function
 from __future__ import absolute_import
 
+from past.builtins import cmp
+from builtins import str
+from builtins import range
+from builtins import object
 __all__ = ["BoundMethodWeakref", "CallableRef", "EventGenerator",
            "ConfigEventGenerator", "ListEventGenerator", "EventListener",
            "AttributeEventWait", "AttributeEventIterator"]
@@ -232,7 +236,7 @@ class EventGenerator(Object):
         try:
             self.lock()
             aux_list = list(self.cb_list)
-            for i in xrange(len(aux_list) - 1, -1, -1):
+            for i in range(len(aux_list) - 1, -1, -1):
                 pair = self.cb_list[i]
                 if pair[0] is cb_ref:
                     del self.cb_list[i]
@@ -446,7 +450,7 @@ class EventListener(object):
                 if t and t >= after:
                     return
             else:
-                for v, t in s.items():
+                for v, t in list(s.items()):
                     if v == val:
                         continue
                     if t >= after:
@@ -646,7 +650,7 @@ class AttributeEventWait(object):
                 retries += 1
             while retries != 0:
                 if any:
-                    for v, t in s.items():
+                    for v, t in list(s.items()):
                         if t >= after:
                             return
                 if equal:
@@ -654,7 +658,7 @@ class AttributeEventWait(object):
                     if (t is not None) and (t >= after):
                         return
                 else:
-                    for v, t in s.items():
+                    for v, t in list(s.items()):
                         if v == val:
                             continue
                         if t >= after:

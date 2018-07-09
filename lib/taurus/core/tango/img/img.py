@@ -25,7 +25,9 @@
 
 """The img submodule. It contains specific device implementation for CCDs and
 2D detectors"""
+from __future__ import division
 
+from past.utils import old_div
 __all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
            'CCDPVCAM', 'ImgBeamAnalyzer', 'Falcon', 'LimaCCDs']
 
@@ -164,9 +166,9 @@ class Falcon(ImageCounterDevice):
     def getImageData(self, names=None):
         data = ImageCounterDevice.getImageData(self, names=names)
         if self._color:
-            for k, v in data.items():
+            for k, v in list(data.items()):
                 s = v[1].value.shape
-                v[1].value = v[1].value.reshape((s[0], s[1] / 3, 3))
+                v[1].value = v[1].value.reshape((s[0], old_div(s[1], 3), 3))
         return data
 
 

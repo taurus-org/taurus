@@ -34,6 +34,8 @@ user will find when launching the GUI for the first time.
 """
 from __future__ import print_function
 
+from builtins import str
+from builtins import range
 __all__ = ["AppSettingsWizard", "ExternalAppEditor"]
 
 import os
@@ -230,14 +232,14 @@ class ProjectPage(BasePage):
         self._projectDirBT.clicked.connect(self.onSelectDir)
 
     def onSelectDir(self):
-        dirname = unicode(Qt.QFileDialog.getExistingDirectory(
+        dirname = str(Qt.QFileDialog.getExistingDirectory(
             self, 'Choose the project directory', self._projectDirLE.text()))
         if not dirname:
             return
         self._projectDirLE.setText(dirname)
 
     def validatePage(self):
-        dirname = unicode(self._projectDirLE.text())
+        dirname = str(self._projectDirLE.text())
 
         if not os.path.exists(dirname):
             try:
@@ -280,7 +282,7 @@ class ProjectPage(BasePage):
         return True
 
     def _getProjectDir(self):
-        return unicode(self._projectDirLE.text())
+        return str(self._projectDirLE.text())
 
 
 class GeneralSettings(BasePage):
@@ -579,7 +581,7 @@ class SynopticPage(BasePage):
         fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr(
             "Open File"), pdir, self.tr("JDW (*.jdw );; All files (*)"))
         for fileName in fileNames:
-            fileName = unicode(fileName)
+            fileName = str(fileName)
             if fileName not in self._synoptics:
                 self._synoptics.append(fileName)
         self._refreshSynopticList()
@@ -1328,8 +1330,8 @@ class OutroPage(BasePage):
                       datetime.datetime.now().isoformat())
         # copy files
         for i in range(self._substTable.rowCount()):
-            src = unicode(self._substTable.item(i, 0).text())
-            dst = os.path.join(install_dir, unicode(
+            src = str(self._substTable.item(i, 0).text())
+            dst = os.path.join(install_dir, str(
                 self._substTable.item(i, 1).text()))
             if os.path.normpath(src) != os.path.normpath(dst):
                 shutil.copy(src, dst)
@@ -1338,7 +1340,7 @@ class OutroPage(BasePage):
         xmlcfgfilename = os.path.join(install_dir,
                                       self.wizard().getXmlConfigFileName())
         f = open(xmlcfgfilename, 'w')
-        f.write(unicode(self._xml.toPlainText()))
+        f.write(str(self._xml.toPlainText()))
         f.close()
         logfile.write('XML Config file created: "%s"\n' % xmlcfgfilename)
         # write python config file
@@ -1391,8 +1393,8 @@ class OutroPage(BasePage):
         warnings = self.wizard().getProjectWarnings()
         if warnings:
             msg += '\n\nHowever, some fine-tuning may be needed. Please check the details:\n'
-            for short, long in warnings:
-                details += '- %s: %s\n\n' % (short, long)
+            for short, int in warnings:
+                details += '- %s: %s\n\n' % (short, int)
         logfile.write(msg + details)
         logfile.close()
         dlg = Qt.QMessageBox(Qt.QMessageBox.Information,
@@ -1482,7 +1484,7 @@ class AppSettingsWizard(Qt.QWizard):
         root = etree.fromstring(xml)
 
         # print self.Pages
-        for pageNumber in range(len(self.Pages.keys())):
+        for pageNumber in range(len(list(self.Pages.keys()))):
             self.page(pageNumber).fromXml(root)
 
     def getXml(self):
@@ -1625,7 +1627,7 @@ class AppSettingsWizard(Qt.QWizard):
                         long = ('The synoptic file "%s" references a file that '
                                 'has been copied to the project dir in order to make the project portable. '
                                 'Please edit "%s" and replace "%s" by "%s"') % (dst, dst, ref, refdst)
-                        self._projectWarnings.append((short, long))
+                        self._projectWarnings.append((short, int))
 
         # macroserver page
         if self.SARDANA_INSTALLED and self.__getitem__("macroServerName"):

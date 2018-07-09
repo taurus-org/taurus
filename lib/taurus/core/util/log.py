@@ -28,6 +28,8 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import str
+from builtins import object
 __all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
            "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
            "LogFilter",
@@ -63,14 +65,14 @@ class _DeprecationCounter(defaultdict):
 
     def getTotal(self):
         c = 0
-        for v in self.itervalues():
+        for v in self.values():
             c += v
         return c
 
     def pretty(self):
         from operator import itemgetter
         sorted_items = sorted(
-            self.iteritems(), key=itemgetter(1), reverse=True)
+            iter(self.items()), key=itemgetter(1), reverse=True)
         ret = '\n'.join(['\t%d * "%s"' % (v, k) for k, v in sorted_items])
         return "< Deprecation Counts (%d):\n%s >" % (self.getTotal(), ret)
 
@@ -680,7 +682,7 @@ class Logger(Object):
            :return: (sequence<logging.Logger) the list of log children
         """
         children = []
-        for _, ref in self.log_children.iteritems():
+        for _, ref in self.log_children.items():
             child = ref()
             if child is not None:
                 children.append(child)
@@ -783,7 +785,7 @@ class Logger(Object):
                     out += '\n\t  -> line = [%d]: %s' % (line, lines[0])
             if frame:
                 out += '\n\t   locals = '
-                for k, v in frame.f_locals.items():
+                for k, v in list(frame.f_locals.items()):
                     out += '\n\t\t%20s = ' % k
                     try:
                         cut = False

@@ -28,7 +28,11 @@ qwtdialog.py: Dialogs for Taurusplot
 """
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 __all__ = ["TaurusPlotConfigDialog"]
 
 import time
@@ -251,11 +255,11 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         elif dt < 120:
             return "%g s" % round(dt, 0)
         elif dt < 7200:
-            return "%g m" % round(dt / 60, 0)
+            return "%g m" % round(old_div(dt, 60), 0)
         elif dt < 172800:
-            return "%g h" % round(dt / 3600, 0)
+            return "%g h" % round(old_div(dt, 3600), 0)
         else:
-            return "%g d" % round(dt / 86400, 0)
+            return "%g d" % round(old_div(dt, 86400), 0)
 
     def str2deltatime(self, strtime):
         '''Translates a time string to seconds
@@ -267,7 +271,7 @@ class TaurusPlotConfigDialog(Qt.QDialog):
                      24, 'w': 3600 * 24 * 7, 'y': 3600 * 24 * 365}
         if strtime.lower() == "now":
             return time.time()
-        if strtime[-1] in timeunits.keys():
+        if strtime[-1] in list(timeunits.keys()):
             try:
                 return float(strtime[:-1]) * timeunits[strtime[-1]]
             except Exception as e:

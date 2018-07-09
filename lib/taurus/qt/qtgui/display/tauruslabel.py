@@ -26,6 +26,8 @@
 """This module provides a set of basic Taurus widgets based on QLabel"""
 from __future__ import absolute_import
 
+from builtins import str
+from builtins import object
 __all__ = ["TaurusLabel"]
 
 __docformat__ = 'restructuredtext'
@@ -116,8 +118,8 @@ class TaurusLabelController(TaurusBaseController):
         toolTip = label.getFormatedToolTip()
         if self._trimmedText:
             toolTip = u"<p><b>Value:</b> %s</p><hr>%s" %\
-                      (unicode(self._text, errors='replace'),
-                       unicode(str(toolTip), errors='replace'))
+                      (str(self._text, errors='replace'),
+                       str(str(toolTip), errors='replace'))
         label.setToolTip(toolTip)
 
     _updateBackground = updateLabelBackground

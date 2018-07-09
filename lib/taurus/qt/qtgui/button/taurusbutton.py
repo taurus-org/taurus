@@ -27,6 +27,9 @@
 """This module provides a taurus QPushButton based widgets"""
 from __future__ import print_function
 
+from builtins import map
+from builtins import str
+from past.builtins import basestring
 __all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
 
 __docformat__ = 'restructuredtext'
@@ -406,7 +409,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
             else:
                 return parameters
         else:
-            return map(cast_type, parameters)
+            return list(map(cast_type, parameters))
 
     def setCommand(self, commandName):
         '''sets the command to be executed when the button is clicked
@@ -638,7 +641,7 @@ def lockButtonMain():
     if len(args) == 0:
         w = demo()
     else:
-        models = map(str.lower, args)
+        models = list(map(str.lower, args))
 
         w = Qt.QWidget()
         layout = Qt.QGridLayout()

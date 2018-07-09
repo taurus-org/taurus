@@ -33,6 +33,8 @@ others unspecified. This approach does those things, while verifying that all
 values (specified and unspecified) are unique. Enum values then are attributes
 of an Enumeration class (Volkswagen.BEETLE, Volkswagen.PASSAT, etc.)."""
 
+from builtins import str
+from builtins import object
 __all__ = ["EnumException", "Enumeration"]
 
 __docformat__ = "restructuredtext"
@@ -95,9 +97,9 @@ class Enumeration(object):
                     raise EnumException(
                         "flagable enum does not accept tuple items")
                 x, i = x
-                if not isinstance(x, (str, unicode)):
+                if not isinstance(x, (str, str)):
                     raise EnumException("enum name is not a string: " + str(x))
-                if not isinstance(i, (int, long)):
+                if not isinstance(i, (int, int)):
                     raise EnumException(
                         "enum value is not an integer: " + str(i))
                 if x in uniqueNames:
@@ -111,7 +113,7 @@ class Enumeration(object):
                 reverseLookup[i] = x
         for x in enumList:
             if not isinstance(x, tuple):
-                if not isinstance(x, (str, unicode)):
+                if not isinstance(x, (str, str)):
                     raise EnumException("enum name is not a string: " + str(x))
                 if x in uniqueNames:
                     raise EnumException("enum name is not unique: " + str(x))
@@ -143,15 +145,15 @@ class Enumeration(object):
         return n
 
     def __contains__(self, i):
-        if isinstance(i, (int, long)):
+        if isinstance(i, (int, int)):
             return i in self.reverseLookup
-        elif isinstance(i, (str, unicode)):
+        elif isinstance(i, (str, str)):
             return i in self.lookup
 
     def __getitem__(self, i):
-        if isinstance(i, (int, long)):
+        if isinstance(i, (int, int)):
             return self.whatis(i)
-        elif isinstance(i, (str, unicode)):
+        elif isinstance(i, (str, str)):
             return self.lookup[i]
 
     def __getattr__(self, attr):
@@ -193,7 +195,7 @@ class Enumeration(object):
         """Returns an iterable containning the valid enumeration keys
         :return: an interable containning the valid enumeration keys
         :rtype: iter<str>"""
-        return self.lookup.keys()
+        return list(self.lookup.keys())
 
     def whatis(self, value):
         """Returns a string representation of the value in the enumeration.

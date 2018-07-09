@@ -27,6 +27,11 @@
 taurustrend.py: Generic trend widget for Taurus
 """
 from __future__ import print_function
+from __future__ import division
+from builtins import zip
+from builtins import str
+from builtins import range
+from past.utils import old_div
 __all__ = ["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]
 
 from datetime import datetime
@@ -113,7 +118,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._orderedCurveNames = []
         else:
             self._curves = curves
-            self._orderedCurveNames = curves.keys()
+            self._orderedCurveNames = list(curves.keys())
         self._titleText = None
         self.setModel(name)
 
@@ -184,7 +189,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         ntrends = len(self._curves)
         if '<trend_index>' in basetitle:
             ret = [basetitle.replace('<trend_index>', "%i" % i)
-                   for i in xrange(ntrends)]
+                   for i in range(ntrends)]
         else:
             ret = [basetitle] * ntrends
         return ret
@@ -472,7 +477,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             # them to the TrendSet
             name = self.getModelName()
             rawdata = {'x': numpy.zeros(0), 'y': numpy.zeros(0)}
-            for i in xrange(ntrends):
+            for i in range(ntrends):
                 subname = "%s[%i]" % (name, i)
                 self.parent().attachRawData(rawdata, id=subname)
                 self.addCurve(subname, self.parent().curves[subname])
@@ -830,7 +835,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         # if autoclear is False we have to work directly with each curve (and
         # cannot buffer)
         else:
-            for n, v in recordData.items():
+            for n, v in list(recordData.items()):
                 c = self._curves.get(n, None)
                 if c is None:
                     continue
@@ -1124,7 +1129,7 @@ class TaurusTrend(TaurusPlot):
         not remove the models, it simply removes all stored data)'''
         self.curves_lock.acquire()
         try:
-            for ts in self.trendSets.itervalues():
+            for ts in self.trendSets.values():
                 ts.clearTrends(replot=False)
         finally:
             self.curves_lock.release()
@@ -1158,7 +1163,7 @@ class TaurusTrend(TaurusPlot):
         try:
             # For it to work properly, 'names' must be a CaselessList, just as
             # self.trendSets is a CaselessDict
-            del_sets = [name for name in self.trendSets.keys()
+            del_sets = [name for name in list(self.trendSets.keys())
                         if name not in names]
 
             # if all trends were removed, reset the color palette
@@ -1276,7 +1281,7 @@ class TaurusTrend(TaurusPlot):
                     index = 0
                 else:
                     return tset.compiledTitle
-            title = unicode(tset[index].title().text())
+            title = str(tset[index].title().text())
         finally:
             self.curves_lock.release()
         return title
@@ -1325,7 +1330,7 @@ class TaurusTrend(TaurusPlot):
                     newTitlesDict = CaselessDict()
                     for curveName in curveNamesList:
                         curvetitle = titletext
-                        for ts in self.trendSets.itervalues():
+                        for ts in self.trendSets.values():
                             if curveName in ts:
                                 curvetitle = ts.compileBaseTitle(curvetitle)
                                 curvetitle = curvetitle.replace(
@@ -1426,7 +1431,7 @@ class TaurusTrend(TaurusPlot):
                 #      calling setInterval only when really needed.
                 self._replotTimer.setInterval(plot_refresh)
                 self.debug('New replot period is %1.2f seconds',
-                           (plot_refresh / 1000.))
+                           (old_div(plot_refresh, 1000.)))
 
         else:
             self.warning(
@@ -1437,7 +1442,7 @@ class TaurusTrend(TaurusPlot):
 
         .. seealso:: :meth:`TaurusBaseComponent.setPaused`
         '''
-        for ts in self.trendSets.itervalues():
+        for ts in self.trendSets.values():
             ts.setPaused(paused)
         self._isPaused = paused
 
@@ -1475,7 +1480,7 @@ class TaurusTrend(TaurusPlot):
         miscdict["MaxBufferSize"] = self.getMaxDataBufferSize()
         self.curves_lock.acquire()
         try:
-            for tsname, ts in self.trendSets.iteritems():
+            for tsname, ts in self.trendSets.items():
                 if tsname in tsnames:
                     # store a dict containing just model names (key and value
                     # are the same)
@@ -1506,11 +1511,11 @@ class TaurusTrend(TaurusPlot):
         if maxBufferSize is not None:
             self.setMaxDataBufferSize(maxBufferSize)
         # attach the curves
-        for rd in configdict["RawData"].values():
+        for rd in list(configdict["RawData"].values()):
             self.attachRawData(rd)
         # for backwards compatibility, if the ordered list of models is not
         # stored, it uses the unsorted dict values
-        models = configdict.get("model", configdict["TrendSets"].values())
+        models = configdict.get("model", list(configdict["TrendSets"].values()))
         self.addModels(models)
         for m in models:
             tset = self.trendSets[m]
@@ -1686,7 +1691,7 @@ class TaurusTrend(TaurusPlot):
 
         self.curves_lock.acquire()
         try:
-            for n, ts in self.trendSets.iteritems():
+            for n, ts in self.trendSets.items():
                 try:
                     ts.setMaxDataBufferSize(maxSize)
                 except ValueError:
@@ -1923,7 +1928,7 @@ def main():
         w.setModel(models)
     # export option
     if options.export_file is not None:
-        curves = dict.fromkeys(w.trendSets.keys(), 0)
+        curves = dict.fromkeys(list(w.trendSets.keys()), 0)
 
         def exportIfAllCurves(curve, trend=w, counters=curves):
             curve = str(curve)
@@ -1938,7 +1943,7 @@ def main():
         if not curves:
             w.close()
         else:
-            for ts in w.trendSets.values():
+            for ts in list(w.trendSets.values()):
                 ts.dataChanged.connect(exportIfAllCurves)
         sys.exit(app.exec_())  # exit without showing the widget
 
