@@ -414,7 +414,7 @@ class LogExceptHook(BaseExceptHook):
 
 class _Logger(logging.Logger):
 
-    def findCaller(self):
+    def findCaller(self, stack_info=False):
         """
         Find the stack frame of the caller so that we can note the source
         file name, line number and function name.
@@ -424,14 +424,14 @@ class _Logger(logging.Logger):
         # IronPython isn't run with -X:Frames.
         if f is not None:
             f = f.f_back
-        rv = "(unknown file)", 0, "(unknown function)"
+        rv = "(unknown file)", 0, "(unknown function)", stack_info
         while hasattr(f, "f_code"):
             co = f.f_code
             filename = os.path.normcase(co.co_filename)
             if filename in (_srcfile, logging._srcfile):
                 f = f.f_back
                 continue
-            rv = (co.co_filename, f.f_lineno, co.co_name)
+            rv = (co.co_filename, f.f_lineno, co.co_name, stack_info)
             break
         return rv
 
