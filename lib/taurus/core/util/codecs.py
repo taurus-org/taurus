@@ -76,9 +76,17 @@ import copy
 import struct
 import numpy
 
+from future.utils import PY2
+
 from .singleton import Singleton
 from .log import Logger
 from .containers import CaselessDict
+
+
+if PY2:
+    buffer_types = buffer, memoryview, 
+else:
+    buffer_types = memoryview,
 
 
 class Codec(Logger):
@@ -280,8 +288,8 @@ class PickleCodec(Codec):
             return data
         format = data[0].partition('_')[2]
 
-        if isinstance(data[1], buffer):
-            data = data[0], str(data[1])
+        if isinstance(data[1], buffer_types):
+            data = data[0], bytes(data[1])
 
         return format, pickle.loads(data[1])
 
@@ -340,7 +348,7 @@ class JSONCodec(Codec):
 
         ensure_ascii = kwargs.pop('ensure_ascii', False)
 
-        if isinstance(data[1], buffer):
+        if isinstance(data[1], buffer_types):
             data = data[0], str(data[1])
 
         data = json.loads(data[1])
