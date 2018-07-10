@@ -306,7 +306,7 @@ class CaselessDict(dict):
 class CaselessWeakValueDict(weakref.WeakValueDictionary):
 
     def __init__(self, other=None):
-        weakref.WeakValueDictionary.__init__(self)
+        weakref.WeakValueDictionary.__init__(self, other)
         if other:
             # Doesn't do keyword args
             if isinstance(other, dict):
@@ -341,8 +341,9 @@ class CaselessWeakValueDict(weakref.WeakValueDictionary):
 
     def update(self, other):
         """overwritten from :meth:`weakref.WeakValueDictionary.update`"""
-        for k, v in list(other.items()):
-            weakref.WeakValueDictionary.__setitem__(self, k.lower(), v)
+        if other:
+            for k, v in list(other.items()):
+                weakref.WeakValueDictionary.__setitem__(self, k.lower(), v)
 
     def fromkeys(self, iterable, value=None):
         d = CaselessWeakValueDict()
