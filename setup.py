@@ -57,11 +57,11 @@ provides = [
 
 install_requires = [
     'numpy>=1.1',
-    'enum34',
     'pint>=0.8',
 ]
 
 extras_require = {
+    ':python_version<"3.4"': ['enum34'],
     'taurus-qt': ['qtpy >=1.2.1',
                   # 'PyQt4 >=4.8',
                   # 'PyQt4.Qwt5 >=5.2.0',  # [Taurus-Qt-Plot]
