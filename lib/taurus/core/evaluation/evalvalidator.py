@@ -260,7 +260,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
 
         # temporarily replace the text within quotes by hash-based placeholders
         for s in QUOTED_TEXT_RE.findall(expr):
-            placeholder = hashlib.md5(s).hexdigest()
+            placeholder = hashlib.md5(s.encode('utf-8')).hexdigest()
             protected[placeholder] = s
             ret = re.sub(s, placeholder, ret)
 
