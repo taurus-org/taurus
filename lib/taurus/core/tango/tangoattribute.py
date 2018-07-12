@@ -591,7 +591,7 @@ class TangoAttribute(TaurusAttribute):
                 self.__fireRegisterEvent((listener,))
             else:
                 Manager().enqueueJob(self.__fireRegisterEvent, None,
-                                     jobargs=((listener,)),
+                                     jobargs=((listener,),),
                                      serialization_mode=sm)
         return ret
 
