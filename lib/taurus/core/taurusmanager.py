@@ -129,7 +129,7 @@ class TaurusManager(Singleton, Logger):
         processed by a separate thread
         :param job: (callable) a callable object
         :param callback: (callable) called after the job has been processed
-        :param jobargs: (list) list of arguments passed to the job
+        :param jobargs: (sequence)  tuple of arguments passed to the job
         :param jobkwargs: (dict) keyword arguments passed to the job
         :param serialization_mode:
         (taurus.core.taurusbasetypes.TaurusSerializationMode) serialization
