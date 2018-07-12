@@ -123,7 +123,7 @@ class TaurusManager(Singleton, Logger):
         self.deprecated(dep='addJob', alt='enqueueJob', rel='4.3.2')
         self.enqueueJob(job, callback, args, kw)
 
-    def enqueueJob(self, job, callback=None, jobargs=None, jobkwargs=None,
+    def enqueueJob(self, job, callback=None, jobargs=(), jobkwargs=None,
                    serialization_mode=None):
         """ Enqueue a job (callable) to the queue. The new job will be
         processed by a separate thread
@@ -135,9 +135,6 @@ class TaurusManager(Singleton, Logger):
         (taurus.core.taurusbasetypes.TaurusSerializationMode) serialization
         mode
         """
-        if jobargs is None:
-            jobargs = ()
-
         if jobkwargs is None:
             jobkwargs = {}
 
