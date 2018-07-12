@@ -590,8 +590,8 @@ class TangoAttribute(TaurusAttribute):
                                 rel='4.3.2')
                 self.__fireRegisterEvent((listener,))
             else:
-                Manager().enqueueJob(self.__fireRegisterEvent, None,
-                                     jobargs=((listener,),),
+                Manager().enqueueJob(self.__fireRegisterEvent,
+                                     job_args=((listener,),),
                                      serialization_mode=sm)
         return ret
 
@@ -797,9 +797,8 @@ class TangoAttribute(TaurusAttribute):
                                 rel='4.3.2')
                 self.fireEvent(etype, evalue, listeners=listeners)
             else:
-                manager.enqueueJob(self.fireEvent, None,
-                                   jobargs=(etype, evalue),
-                                   jobkwargs={'listeners': listeners},
+                manager.enqueueJob(self.fireEvent, job_args=(etype, evalue),
+                                   job_kwargs={'listeners': listeners},
                                    serialization_mode=sm)
 
     def _pushAttrEvent(self, event):

@@ -123,20 +123,20 @@ class TaurusManager(Singleton, Logger):
         self.deprecated(dep='addJob', alt='enqueueJob', rel='4.3.2')
         self.enqueueJob(job, callback, args, kw)
 
-    def enqueueJob(self, job, callback=None, jobargs=(), jobkwargs=None,
+    def enqueueJob(self, job, callback=None, job_args=(), job_kwargs=None,
                    serialization_mode=None):
         """ Enqueue a job (callable) to the queue. The new job will be
         processed by a separate thread
         :param job: (callable) a callable object
         :param callback: (callable) called after the job has been processed
-        :param jobargs: (sequence)  tuple of arguments passed to the job
-        :param jobkwargs: (dict) keyword arguments passed to the job
+        :param job_args: (sequence)  tuple of arguments passed to the job
+        :param job_kwargs: (dict) keyword arguments passed to the job
         :param serialization_mode:
         (taurus.core.taurusbasetypes.TaurusSerializationMode) serialization
         mode
         """
-        if jobkwargs is None:
-            jobkwargs = {}
+        if job_kwargs is None:
+            job_kwargs = {}
 
         if serialization_mode is None:
             serialization_mode = self._serialization_mode
@@ -148,7 +148,7 @@ class TaurusManager(Singleton, Logger):
                     "The requested job cannot be processed. "
                     + "Make sure this manager is initialized")
                 return
-            self._thread_pool.add(job, callback, *jobargs, **jobkwargs)
+            self._thread_pool.add(job, callback, *job_args, **job_kwargs)
         elif serialization_mode == TaurusSerializationMode.Serial:
             if (not hasattr(self, "_sthread_pool")
                     or self._sthread_pool is None):
@@ -158,7 +158,7 @@ class TaurusManager(Singleton, Logger):
                     + "Make sure this manager is initialized")
                 return
 
-            self._sthread_pool.add(job, callback, *jobargs, **jobkwargs)
+            self._sthread_pool.add(job, callback, *job_args, **job_kwargs)
         else:
             raise TaurusException("{} serialization mode not supported".format(
                 serialization_mode))
