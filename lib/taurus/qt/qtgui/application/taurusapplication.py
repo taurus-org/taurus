@@ -25,9 +25,9 @@
 
 """This module provides the base
 :class:`taurus.qt.qtgui.application.TaurusApplication` class."""
-
-from builtins import str
 from __future__ import with_statement
+from builtins import str
+
 
 __all__ = ["TaurusApplication"]
 
@@ -67,6 +67,11 @@ class STD(Logger):
         self.buffer = ''
         self.log_obj.propagate = False
         self.std = std
+    
+#Trying to mimic  stderr
+    @property
+    def errors(self):
+        return self.std.errors
 
     def addLogHandler(self, handler):
         """When called, set to use a private handler and DON'T send messages

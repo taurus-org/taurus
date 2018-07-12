@@ -36,6 +36,8 @@ __docformat__ = 'restructuredtext'
 import re
 import traceback
 
+from future.utils import string_types
+
 import taurus
 from taurus.external.qt import Qt
 
@@ -100,7 +102,7 @@ def str_to_filter(seq):  # TODO: Tango-centric
         f = eval(seq)
     except:
         f = seq
-    if isinstance(f, basestring):
+    if isinstance(f, string_types):
         return {'.*': [f]}
     elif isinstance(f, list):
         return {'.*': f}

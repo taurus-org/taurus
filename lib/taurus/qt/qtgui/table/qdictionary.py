@@ -35,7 +35,10 @@ __docformat__ = 'restructuredtext'
 
 import sys
 import taurus
+
 import numpy
+from future.utils import string_types
+
 from taurus.core.util.containers import SortedDict
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusBaseContainer, TaurusWidget
@@ -46,7 +49,7 @@ from taurus.qt.qtcore.util.properties import join, djoin
 
 
 def isString(seq):
-    if isinstance(seq, basestring):
+    if isinstance(seq, string_types):
         return True  # It matches most python str-like classes
     if any(s in str(type(seq)).lower() for s in ('vector', 'array', 'list',)):
         return False

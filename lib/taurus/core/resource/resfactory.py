@@ -34,6 +34,8 @@ import imp
 import operator
 import types
 
+from future.utils import string_types
+
 from taurus.core.taurushelper import Manager
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.log import Logger

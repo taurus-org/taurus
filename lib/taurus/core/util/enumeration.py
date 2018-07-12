@@ -39,6 +39,8 @@ __all__ = ["EnumException", "Enumeration"]
 
 __docformat__ = "restructuredtext"
 
+from future.utils import integer_types, string_types
+
 
 class EnumException(Exception):
     """Exception thrown by :class:`Enumeration` when trying to declare an
@@ -97,7 +99,7 @@ class Enumeration(object):
                     raise EnumException(
                         "flagable enum does not accept tuple items")
                 x, i = x
-                if not isinstance(x, (str, str)):
+                if not isinstance(x, string_types):
                     raise EnumException("enum name is not a string: " + str(x))
                 if not isinstance(i, (int, int)):
                     raise EnumException(
@@ -113,7 +115,7 @@ class Enumeration(object):
                 reverseLookup[i] = x
         for x in enumList:
             if not isinstance(x, tuple):
-                if not isinstance(x, (str, str)):
+                if not isinstance(x, string_types):
                     raise EnumException("enum name is not a string: " + str(x))
                 if x in uniqueNames:
                     raise EnumException("enum name is not unique: " + str(x))
@@ -145,15 +147,15 @@ class Enumeration(object):
         return n
 
     def __contains__(self, i):
-        if isinstance(i, (int, int)):
+        if isinstance(i, integer_types):
             return i in self.reverseLookup
-        elif isinstance(i, (str, str)):
+        elif isinstance(i, string_types):
             return i in self.lookup
 
     def __getitem__(self, i):
         if isinstance(i, (int, int)):
             return self.whatis(i)
-        elif isinstance(i, (str, str)):
+        elif isinstance(i, string_types):
             return self.lookup[i]
 
     def __getattr__(self, attr):

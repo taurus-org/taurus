@@ -45,7 +45,10 @@ import os
 import copy
 from datetime import datetime
 import time
+
 import numpy
+from future.utils import string_types
+
 from taurus.external.qt import Qt, Qwt5
 
 import taurus
@@ -3256,7 +3259,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
     #-~-~-~-~-~-~-~-~-~-~-~-~
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
-        if isinstance(modelNames, (basestring, Qt.QString)):
+        if isinstance(modelNames, string_types + (Qt.QString,)):
             modelNames = str(modelNames).replace(',', ' ')
             modelNames = modelNames.split()
         return modelNames

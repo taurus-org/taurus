@@ -36,6 +36,8 @@ __all__ = ["configurableProperty", "BaseConfigurableClass"]
 
 __docformat__ = 'restructuredtext'
 
+from future.utils import string_types
+
 
 class configurableProperty(object):
     '''A dummy class used to handle properties with the configuration API
@@ -53,7 +55,7 @@ class configurableProperty(object):
 
     def createConfig(self, allowUnpickable=False):
         '''returns value returned by the fget function of this property. the allowUnpickable parameter is ignored'''
-        if isinstance(self.fget, basestring):  # fget is not a method but a method name...
+        if isinstance(self.fget, string_types):  # fget is not a method but a method name...
             result = getattr(self._obj, self.fget)()
         else:
             result = self.fget()
@@ -61,7 +63,7 @@ class configurableProperty(object):
 
     def applyConfig(self, value, depth=-1):
         '''calls the fset function for this property with the given value. The depth parameter is ignored'''
-        if isinstance(self.fget, basestring):  # fget is not a method but a method name...
+        if isinstance(self.fget, string_types):  # fget is not a method but a method name...
             getattr(self._obj, self.fset)(value)
         else:
             self.fset(value)
@@ -353,7 +355,7 @@ class BaseConfigurableClass(object):
 
         .. seealso:: :meth:`registerConfigProperty`, :meth:`registerConfigDelegate`
         '''
-        if isinstance(item, basestring):
+        if isinstance(item, string_types):
             name = str(item)
         else:
             name = str(item.objectName())

@@ -255,7 +255,7 @@ class AuthorityTestCase(unittest.TestCase):
 @insertTest(helper_name='get_object', name='eval:@Foo')
 @insertTest(helper_name='get_object', name='eval://dev=Foo')
 @insertTest(helper_name='get_object', name='eval:@datetime.*')
-@insertTest(helper_name='get_object', name='eval:@d=datetime.date(2017,03,29)')
+@insertTest(helper_name='get_object', name='eval:@d=datetime.date(2017,3,29)')
 class DeviceTestCase(unittest.TestCase):
     '''TestCase for the taurus.Device helper'''
 
@@ -404,7 +404,7 @@ class DeviceTestCase(unittest.TestCase):
                           label='Q("1km").to("mm").magnitude',
                           type=DataType.Float))
 @insertTest(helper_name='read_attr',
-            name='eval:@d=datetime.date(1931,04,14)/d.isoformat()',
+            name='eval:@d=datetime.date(1931,4,14)/d.isoformat()',
             expected=dict(rvalue='1931-04-14', value='1931-04-14',
                           wvalue=None, w_value=None,
                           label='d.isoformat()',

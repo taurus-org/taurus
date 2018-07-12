@@ -31,6 +31,8 @@ __all__ = ["TaurusReadWriteSwitcher"]
 
 __docformat__ = 'restructuredtext'
 
+from future.utils import string_types
+
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
@@ -158,7 +160,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
                 shortcuts.append(Qt.QKeySequence(e))
             elif isinstance(e, Qt.QEvent.Type):
                 eventTypes.append(e)
-            elif isinstance(e, (basestring, Qt.QString)):
+            elif isinstance(e, string_types +(Qt.QString,)):
                 signals.append(e)
             else:
                 raise TypeError('Unsupported trigger type: %s' % repr(type(e)))

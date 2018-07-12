@@ -33,7 +33,10 @@ __docformat__ = 'restructuredtext'
 
 import os
 import sys
+
 from lxml import etree
+from future.utils import string_types
+
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.core.util.log import Logger
@@ -384,7 +387,7 @@ class PanelDescription(TaurusGuiComponentDescription):
         sharedDataWrite = None
         sharedDataRead = None
         model = getattr(panel.widget(), 'model', None)
-        if model is None or isinstance(model, basestring):
+        if model is None or isinstance(model, string_types):
             pass
         elif hasattr(model, '__iter__'):
             # if model is a sequence, convert to space-separated string

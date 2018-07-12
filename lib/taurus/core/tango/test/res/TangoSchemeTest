@@ -22,6 +22,8 @@
 # along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
+from __future__ import print_function
+
 import numpy
 from time import (time, sleep)
 
@@ -495,7 +497,7 @@ class TangoSchemeTest(Device):
                                        AttrQuality.ATTR_VALID)
                 sleep(self.sleeptime)
             except Exception as e:
-                print 'Exception in update loop', e
+                print('Exception in update loop', e)
                 sleep(1)
 
     def init_device(self):

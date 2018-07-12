@@ -34,6 +34,8 @@ __all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
 
 __docformat__ = 'restructuredtext'
 
+from future.utils import string_types
+
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
 from taurus.core.taurusdevice import TaurusDevice
@@ -448,7 +450,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
                            quotes will be removed and the quoted text will not
                            be splitted.
         '''
-        if isinstance(parameters, (basestring, Qt.QString)):
+        if isinstance(parameters, string_types+ (Qt.QString,)):
             parameters = str(parameters).strip()
             if parameters[0] in ('"', "'") and parameters[0] == parameters[-1]:
                 parameters = [parameters[1:-1]]
