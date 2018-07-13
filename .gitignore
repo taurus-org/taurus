@@ -9,3 +9,4 @@ doc/~thumbnails.zip
 *.swp
 *.orig
 .eggs/
+.vscode/
