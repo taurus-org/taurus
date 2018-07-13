@@ -74,6 +74,7 @@ import copy
 
 # need by VideoImageCodec
 import struct
+import sys
 import numpy
 
 from future.utils import PY2
@@ -331,7 +332,7 @@ class JSONCodec(Codec):
             format += '_%s' % data[0]
         # make it compact by default
         kwargs['separators'] = kwargs.get('separators', (',', ':'))
-        return format, json.dumps(data[1], *args, **kwargs)
+        return format, json.dumps(data[1], *args, **kwargs).encode('utf-8')
 
     def decode(self, data, *args, **kwargs):
         """decodes the given data from a json string.
@@ -669,7 +670,7 @@ class VideoImageCodec(Codec):
     def __packHeader(self, imgMode, frameNumber, width, height):
         magic = 0x5644454f
         version = 1
-        endian = ord(struct.pack('=H', 1)[-1])
+        endian = 0 if sys.byteorder == 'little' else 1
         hsize = struct.calcsize(self.VIDEO_HEADER_FORMAT)
         return struct.pack(self.VIDEO_HEADER_FORMAT,
                            magic,
