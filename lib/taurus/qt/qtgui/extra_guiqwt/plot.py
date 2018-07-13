@@ -241,7 +241,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
 
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
-        if isinstance(modelNames, strin_types + (Qt.QString,)):
+        if isinstance(modelNames, string_types + (Qt.QString,)):
             modelNames = str(modelNames).replace(',', ' ')
             modelNames = modelNames.split()
         return modelNames

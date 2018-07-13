@@ -58,6 +58,7 @@ provides = [
 install_requires = [
     'numpy>=1.1',
     'pint>=0.8',
+    'future',
 ]
 
 extras_require = {
