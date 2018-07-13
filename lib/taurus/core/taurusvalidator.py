@@ -32,6 +32,7 @@ __all__ = ["AbstractTangoValidator", "DatabaseNameValidator",
 __docformat__ = "restructuredtext"
 
 import re
+import socket
 
 from .taurusbasetypes import MatchLevel
 from .util.singleton import Singleton
@@ -113,7 +114,7 @@ class DatabaseNameValidator(Singleton, AbstractTangoValidator):
         if elems is None:
             return str, None, None
         
-        host = elems.get('host')
+        host = socket.getfqdn(elems.get('host'))
         port = elems.get('port')
         
         if host is None or port is None or len(host) == 0 or len(port) == 0:
