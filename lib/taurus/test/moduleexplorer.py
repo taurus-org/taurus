@@ -221,6 +221,7 @@ def main(modulename='taurus', exclude_patterns=(
         print(w)
     print('*' * 50 + '\n')
     print()
+    print(len(allw))
     assert len(allw) == 0
 
     # import pprint
