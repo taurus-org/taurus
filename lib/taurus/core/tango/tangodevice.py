@@ -203,7 +203,7 @@ class TangoDevice(TaurusDevice):
         try:
             return DeviceProxy(self.getFullName())
         except DevFailed as e:
-            self.warning('Could not create HW object: %s' % (e[0].desc))
+            self.warning('Could not create HW object: %s' % (e.args[0].desc))
             self.traceback()
 
     @taurus4_deprecation(alt="getDeviceProxy()")
