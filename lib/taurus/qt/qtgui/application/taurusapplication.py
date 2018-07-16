@@ -176,6 +176,7 @@ class TaurusApplication(Qt.QApplication, Logger):
     For more details on taurus command line parsing check
     :mod:`taurus.core.util.argparse`.
     """
+    __app = None
 
     def __init__(self, *args, **kwargs):
         """The constructor. Parameters are the same as QApplication plus a
@@ -258,6 +259,7 @@ class TaurusApplication(Qt.QApplication, Logger):
         self.__registerQtLogger()
         self.__registerExtensions()
         self.__redirect_std()
+        TaurusApplication.__app = self
 
     def __registerQtLogger(self):
         import taurus.qt.qtcore.util
@@ -373,3 +375,10 @@ class TaurusApplication(Qt.QApplication, Logger):
         from taurus import info
         info('\n*********************\n%s', _DEPRECATION_COUNT.pretty())
         return ret
+    
+    counter = 0
+    @staticmethod
+    def instance(*args):
+        print('XXX',TaurusApplication.counter)
+        TaurusApplication.counter +=1
+        return Qt.QApplication.instance(*args)
