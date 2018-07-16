@@ -111,7 +111,7 @@ class TangoMessageErrorHandler(TaurusMessageErrorHandler):
             formatter = HtmlFormatter()
             style = formatter.get_style_defs()
         html = html_orig.format(style=style)
-        for de in err_value:
+        for de in err_value.args:
             e_html = """<pre>{reason}: {desc}</pre>{origin}<hr>"""
             origin, reason, desc = de.origin, de.reason, de.desc
             if reason.startswith("PyDs_") and pygments is not None:
@@ -120,7 +120,7 @@ class TangoMessageErrorHandler(TaurusMessageErrorHandler):
                 origin = "<pre>%s</pre>" % origin
             html += e_html.format(desc=desc, origin=origin, reason=reason)
         html += "</body></html>"
-        msgbox.setText(err_value[0].desc)
+        msgbox.setText(err_value.args[0].desc)
         msgbox.setDetailedHtml(html)
 
         exc_info = "".join(traceback.format_exception(err_type, err_value,
@@ -208,7 +208,7 @@ def get_report_handlers():
             elem, _ = os.path.splitext(elem)
             _is_report_handler = functools.partial(
                 is_report_handler, abs_file=full_elem)
-            report_lib = __import__(elem, globals(), locals(), [], -1)
+            report_lib = __import__(elem, globals(), locals(), [], 0)
             for name, obj in inspect.getmembers(report_lib, _is_report_handler):
                 _REPORT_HANDLERS[name] = obj
     finally:
