@@ -32,7 +32,7 @@ __all__ = ["TicketReportHandler"]
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
-from .basicreport import SendMailDialog, SMTPReportHandler
+from basicreport import SendMailDialog, SMTPReportHandler
 
 
 class SendTicketDialog(SendMailDialog):
