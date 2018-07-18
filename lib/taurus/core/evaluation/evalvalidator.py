@@ -366,7 +366,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         # create the groups dict with unmangled refs in its values
         groups = {}
         for n, g in list(_groups.items()):
-            if isinstance(g, str):  # avoid None or boolean values
+            if isinstance(g, string_types):  # avoid None or boolean values
                 g = g.format(**refs_dict)
             groups[n] = g
 
