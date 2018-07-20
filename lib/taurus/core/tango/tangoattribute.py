@@ -429,7 +429,7 @@ class TangoAttribute(TaurusAttribute):
                     dev.write_attribute(name, value)
                     result = dev.read_attribute(name)
                 except PyTango.DevFailed as df:
-                    for err in df:
+                    for err in df.args:
                         # Handle old device servers
                         if err.reason == 'API_UnsupportedFeature':
                             dev.write_attribute(name, value)
@@ -443,7 +443,7 @@ class TangoAttribute(TaurusAttribute):
                 dev.write_attribute(name, value)
                 return None
         except PyTango.DevFailed as df:
-            err = df[0]
+            err = df.args[0]
             self.error("[Tango] write failed (%s): %s" %
                        (err.reason, err.desc))
             raise df
@@ -478,7 +478,7 @@ class TangoAttribute(TaurusAttribute):
                     self.__attr_value = value
             except PyTango.DevFailed as df:
                 self.__subscription_event.set()
-                self.debug("Error polling: %s" % df[0].desc)
+                self.debug("Error polling: %s" % df.args[0].desc)
                 self.traceback()
                 self.fireEvent(TaurusEventType.Error, self.__attr_err)
             except Exception as e:
@@ -523,7 +523,7 @@ class TangoAttribute(TaurusAttribute):
                 except PyTango.DevFailed as df:
                     self.__attr_value = None
                     self.__attr_err = df
-                    err = df[0]
+                    err = df.args[0]
                     self.debug("[Tango] read failed (%s): %s",
                                err.reason, err.desc)
                     raise df
@@ -690,7 +690,7 @@ class TangoAttribute(TaurusAttribute):
                 self.__dev_hw_obj.unsubscribe_event(self.__chg_evt_id)
                 self.__chg_evt_id = None
             except PyTango.DevFailed as df:
-                if len(df.args) and df[0].reason == 'API_EventNotFound':
+                if len(df.args) and df.args[0].reason == 'API_EventNotFound':
                     # probably tango shutdown has been initiated before and
                     # it unsubscribed from events itself
                     pass

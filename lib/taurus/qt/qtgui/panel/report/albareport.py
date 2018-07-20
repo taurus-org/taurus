@@ -26,6 +26,8 @@
 """This module provides a panel to display taurus messages"""
 from __future__ import absolute_import
 
+__package__ = 'taurus.qt.qtgui.panel.report'
+
 from builtins import str
 __all__ = ["TicketReportHandler"]
 
