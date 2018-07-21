@@ -429,7 +429,7 @@ class TangoAttribute(TaurusAttribute):
                     dev.write_attribute(name, value)
                     result = dev.read_attribute(name)
                 except PyTango.DevFailed as df:
-                    for err in df:
+                    for err in df.args:
                         # Handle old device servers
                         if err.reason == 'API_UnsupportedFeature':
                             dev.write_attribute(name, value)
