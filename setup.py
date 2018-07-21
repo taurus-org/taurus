@@ -25,7 +25,9 @@
 
 import os
 import imp
-from setuptools import setup, find_packages
+import sys
+from distutils.version import LooseVersion
+from setuptools import setup, find_packages, __version__
 
 
 def get_release_info():
@@ -59,8 +61,16 @@ install_requires = [
     'numpy>=1.1',
     'pint>=0.8',
     'future',
-    'enum34;python_version<"3.4"',
 ]
+
+#Workaround for old setuptools
+
+if LooseVersion(__version__)<LooseVersion('20.2'):
+    if sys.version_info < (3, 4):
+        install_requires.append('enum34')
+else:
+    install_requires.append('enum34;python_version<"3.4"')
+
 
 extras_require = {
     'taurus-qt': ['qtpy >=1.2.1',

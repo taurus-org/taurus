@@ -351,7 +351,9 @@ class JSONCodec(Codec):
 
         if isinstance(data[1], buffer_types):
             data = data[0], str(data[1])
-
+        elif isinstance(data[1], bytes):
+            data = data[0], data[1].decode('utf-8')
+        
         data = json.loads(data[1])
         if ensure_ascii:
             data = self._transform_ascii(data)
