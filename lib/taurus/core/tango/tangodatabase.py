@@ -129,6 +129,7 @@ class TangoDevInfo(TangoInfo):
         self._alive = None
         self._state = None
         self._host = host
+        name = str(name) # python2 compatibility
         self._domain, self._family, self._member = list(map(str.upper,
                                                        name.split("/", 2)))
         self._attributes = None
