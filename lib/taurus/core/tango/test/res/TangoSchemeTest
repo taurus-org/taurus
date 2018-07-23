@@ -23,6 +23,7 @@
 ##
 #############################################################################
 from __future__ import print_function
+from future.utils import with_metaclass
 
 import numpy
 from time import (time, sleep)
@@ -33,7 +34,7 @@ from PyTango.server import Device, DeviceMeta, attribute, run, command
 from threading import Thread
 
 
-class TangoSchemeTest(Device):
+class TangoSchemeTest(with_metaclass(DeviceMeta, Device)):
     """
     This device server emulates the TangoTest device server for taurus test
     purposes (Tango schema). Only works with PyTango8.
@@ -68,7 +69,6 @@ class TangoSchemeTest(Device):
         alarm = default_ranges["int"]
         warning = default_warnings["int"]
     """
-    __metaclass__ = DeviceMeta
 
     doc = __doc__
 
