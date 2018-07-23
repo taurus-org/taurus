@@ -831,7 +831,8 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         idx = self.getModelIndexValue()
         if v is not None and idx:
             try:
-                v = v[idx[-1]]
+                for i in idx:
+                      v = v[i]
             except Exception as e:
                 self.debug('Problem with applying model index: %r', e)
                 return self.getNoneValue()
