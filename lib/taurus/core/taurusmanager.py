@@ -121,7 +121,7 @@ class TaurusManager(Singleton, Logger):
         """ Deprecated. Wrapper of enqueueJob. See enqueueJob documentation.
         """
         self.deprecated(dep='addJob', alt='enqueueJob', rel='4.3.2')
-        self.enqueueJob(job, callback, args, kw)
+        self.enqueueJob(job, callback=callback, job_args=args, job_kwargs=kw)
 
     def enqueueJob(self, job, callback=None, job_args=(), job_kwargs=None,
                    serialization_mode=None):
@@ -129,7 +129,7 @@ class TaurusManager(Singleton, Logger):
         processed by a separate thread
         :param job: (callable) a callable object
         :param callback: (callable) called after the job has been processed
-        :param job_args: (sequence)  tuple of arguments passed to the job
+        :param job_args: (sequence) positional arguments passed to the job
         :param job_kwargs: (dict) keyword arguments passed to the job
         :param serialization_mode:
         (taurus.core.taurusbasetypes.TaurusSerializationMode) serialization
