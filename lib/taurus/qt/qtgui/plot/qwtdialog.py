@@ -182,6 +182,12 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         else:
             self.ui.peaksComboBox.setCurrentIndex(3)
 
+        # define correct focus on a 'apply' button
+        self.ui.buttonBox.button(Qt.QDialogButtonBox.Close).setAutoDefault(False)
+        self.ui.buttonBox.button(Qt.QDialogButtonBox.Close).setDefault(False)
+        self.ui.buttonBox.button(Qt.QDialogButtonBox.Apply).setAutoDefault(True)
+        self.ui.buttonBox.button(Qt.QDialogButtonBox.Apply).setDefault(True)
+
         # connect signals
         self.ui.buttonBox.button(
             Qt.QDialogButtonBox.Close).clicked.connect(self.hide)
