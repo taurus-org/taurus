@@ -657,11 +657,13 @@ class TaurusCommandsForm(TaurusWidget):
 
         layout = self._frame.layout()
 
+        model = self.getFullModelName()
+
         for row, c in enumerate(commands):
             self.debug('Adding button for command %s' % c.cmd_name)
             button = TaurusCommandButton(command=c.cmd_name, text=c.cmd_name)
             layout.addWidget(button, row, 0)
-            button.setUseParentModel(True)
+            button.setModel(model)
             self._cmdWidgets.append(button)
             button.commandExecuted.connect(self._onCommandExecuted)
             
