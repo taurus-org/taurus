@@ -980,6 +980,8 @@ class TaurusTrend(TaurusPlot):
         if self.isTimerNeeded(checkMinimized=False):
             self.debug('(re)starting the timer (in showEvent)')
             self._replotTimer.start()
+            # call a replot now (since it may not have been done while hidden)
+            self.doReplot()
 
     def hideEvent(self, event):
         '''reimplemented from :meth:`TaurusPlot.showEvent` so that
