@@ -53,19 +53,19 @@ or the following for referring to an evaluation authority
 where:
 
     - The `<authority>` segment is optional (except when referring to an
-    EvaluationAuthority). At this point, only `//localhost` is supported.
+      EvaluationAuthority). At this point, only `//localhost` is supported.
 
     - The `@<evaluator>` is optional (except when referring to an
-    EvaluationDevice). If not given, it defaults to `DefaultEvaluator`. See
-    below for further details
+      EvaluationDevice). If not given, it defaults to `DefaultEvaluator`. See
+      below for further details
 
     - `<expr>` is a mathematical expression (using python syntax)
-    that may have references to other taurus **attributes** by enclosing them
-    between `{` and `}`. Expressions will be evaluated by the evaluator device
-    to which the attribute is assigned.
+      that may have references to other taurus **attributes** by enclosing them
+      between `{` and `}`. Expressions will be evaluated by the evaluator device
+      to which the attribute is assigned.
 
     - The optional `<subst>` segment is used to provide substitution symbols.
-    `<subst>` is a semicolon-separated string of `<key>=<value>` strings.
+      `<subst>` is a semicolon-separated string of `<key>=<value>` strings.
 
 The evaluator device inherits from :class:`SafeEvaluator` which by default
 includes a large subset of mathematical functions from the :mod:`numpy`
@@ -75,29 +75,29 @@ device object and may define a source of additional symbols to be present
 for the evaluation. The supported syntax for `@<evaluator>` is:
 
     - `@<ID>` (cannot contain dots or any of `/` `?` `#` `:` `=`). This
-    indicates just an alternative name for the EvaluationDevice, It does not
-    add any extra symbol to the evaluation context.
+      indicates just an alternative name for the EvaluationDevice, It does not
+      add any extra symbol to the evaluation context.
 
     - `@<modulename>.*` (<modulename> may include dots for submodules). It
-    will make all symbols found in the given module available during the
-    evaluation (i.e., it emulates doing `from <modulename> import *` in the
-    evaluation context).
+      will make all symbols found in the given module available during the
+      evaluation (i.e., it emulates doing `from <modulename> import *` in the
+      evaluation context).
 
     - `@<modulename>.<customdeviceclass>`. Use your own custom EvaluationDevice
-    based class. This allows to define custom symbols see
-    :file:`<taurus>/core/evaluation/test/res/dev_example.py`, **but** note
-    that this syntax is is now superseded by the "instance-based" one
-    (see below), which is easier to use and provides write attribute support.
+      based class. This allows to define custom symbols see
+      :file:`<taurus>/core/evaluation/test/res/dev_example.py`, **but** note
+      that this syntax is is now superseded by the "instance-based" one
+      (see below), which is easier to use and provides write attribute support.
 
     - `@<inst>=<modulename>.<class>()` (e.g. `@c=mymod.MyClass()` ). This
-    will import a class from a module, then instantiate it and then
-    make the instance available for evaluation with the given name. Note that
-    the `<inst>=` part may be omitted, in which case the instance will be
-    available for evaluation as `self`. **IMPORTANT:** If the given class
-    declares writable properties, EvaluationAttributes that access one such
-    property will automatically be considered writable. See examples of usage
-    in :file:`<taurus>/core/evaluation/test/res/mymod.py` and in
-    :file:`<taurus>/core/evaluation/test/res/ipap_example.py`
+      will import a class from a module, then instantiate it and then
+      make the instance available for evaluation with the given name. Note that
+      the `<inst>=` part may be omitted, in which case the instance will be
+      available for evaluation as `self`. **IMPORTANT:** If the given class
+      declares writable properties, EvaluationAttributes that access one such
+      property will automatically be considered writable. See examples of usage
+      in :file:`<taurus>/core/evaluation/test/res/mymod.py` and in
+      :file:`<taurus>/core/evaluation/test/res/ipap_example.py`
 
 
 Some examples of valid evaluation models are:
@@ -111,7 +111,7 @@ Some examples of valid evaluation models are:
         eval:k=2;a={tango:a/b/c/d};k*a
 
     - An attribute that adds two tango attributes together (assuming that tango
-    is set as the default scheme)::
+      is set as the default scheme)::
 
         eval:{a/b/c/d}+{f/g/h/i}
 
@@ -128,7 +128,7 @@ Some examples of valid evaluation models are:
         eval:img={tango:sys/tg_test/1/short_image_ro};img+10*rand(*img.shape)
 
     - An attribute that accesses a method from a given module (in this
-    case to use os.path.exists)::
+      case to use os.path.exists)::
 
         eval:@os.*/path.exists("/some/file")
 
@@ -141,21 +141,21 @@ Some examples of valid evaluation models are:
         eval:@foo
 
     - A custom evaluator device (implemented as class `MyEvalDev` in the `mymod`
-    module)::
+      module)::
 
         eval:@mymod.MyEvalDev
 
     - A custom evaluator device (implemented as class `MyEvalDev` in the `mymod`
-    module)::
+      module)::
 
         eval:@mymod.MyEvalDev
 
     - A writable attribute foo (implemented as a writable property of the
-    `MyClass` class from the `mymod` module)::
+      `MyClass` class from the `mymod` module)::
 
         eval:@c=mymod.MyClass()/c.foo
 
-    assuming that the `mymod` module defines `MyClass` as::
+      assuming that the `mymod` module defines `MyClass` as::
 
         class MyClass(object):
             (...)

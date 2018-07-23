@@ -720,7 +720,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             TaurusLabel.FORMAT = baseFormatter
 
         - Use the defaultFormatDict but modify the format string for
-        dtype=str::
+          dtype=str::
 
             TaurusLabel.defaultFormatDict.update({"str": "{!r}"})
 

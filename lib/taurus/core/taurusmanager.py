@@ -131,8 +131,7 @@ class TaurusManager(Singleton, Logger):
         :param callback: (callable) called after the job has been processed
         :param job_args: (sequence) positional arguments passed to the job
         :param job_kwargs: (dict) keyword arguments passed to the job
-        :param serialization_mode:
-        (taurus.core.taurusbasetypes.TaurusSerializationMode) serialization
+        :param serialization_mode: (TaurusSerializationMode) serialization
         mode
         """
         if job_kwargs is None:
