@@ -147,3 +147,7 @@ _MAX_DEPRECATIONS_LOGGED = 1
 # If not set, it defaults to 'logos:taurus.png" 
 # (note that "logos:" is a Qt a registered path for "<taurus>/qt/qtgui/icon/logos/")
 # ORGANIZATION_LOGO = "logos:taurus.png"
+
+#: set the serialization mode for the tango scheme
+#: These are the possible values: 'Serial', 'Concurrent', or 'TangoSerial'
+#TANGO_SERIALIZATION_MODE = 'TangoSerial'

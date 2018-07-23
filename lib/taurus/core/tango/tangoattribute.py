@@ -592,12 +592,20 @@ class TangoAttribute(TaurusAttribute):
             self._subscribeEvents()
 
         # if initial_subscription_state == SubscriptionState.Subscribed:
-        if len(listeners) > 1 and (initial_subscription_state == SubscriptionState.Subscribed or self.isPollingActive()):
-            sm = self.getSerializationMode()
-            if sm == TaurusSerializationMode.Concurrent:
-                Manager().addJob(self.__fireRegisterEvent, None, (listener,))
-            else:
+        if (len(listeners) > 1
+            and (initial_subscription_state == SubscriptionState.Subscribed 
+                 or self.isPollingActive())
+           ):
+            sm = self._serialization_mode
+            if sm == TaurusSerializationMode.TangoSerial:
+                self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
+                                alt='TaurusSerializationMode.Serial',
+                                rel='4.3.2')
                 self.__fireRegisterEvent((listener,))
+            else:
+                Manager().enqueueJob(self.__fireRegisterEvent,
+                                     job_args=((listener,),),
+                                     serialization_mode=sm)
         return ret
 
     def removeListener(self, listener):
@@ -794,13 +802,17 @@ class TangoAttribute(TaurusAttribute):
             if etype is None:
                 return
             manager = Manager()
-            sm = self.getSerializationMode()
             listeners = tuple(self._listeners)
-            if sm == TaurusSerializationMode.Concurrent:
-                manager.addJob(self.fireEvent, None, etype, evalue,
-                               listeners=listeners)
-            else:
+            sm = self._serialization_mode
+            if sm == TaurusSerializationMode.TangoSerial:
+                self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
+                                alt="TaurusSerializationMode.Serial",
+                                rel='4.3.2')
                 self.fireEvent(etype, evalue, listeners=listeners)
+            else:
+                manager.enqueueJob(self.fireEvent, job_args=(etype, evalue),
+                                   job_kwargs={'listeners': listeners},
+                                   serialization_mode=sm)
 
     def _pushAttrEvent(self, event):
         """Handler of (non-configuration) events from the PyTango layer.

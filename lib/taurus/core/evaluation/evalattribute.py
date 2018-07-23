@@ -484,7 +484,8 @@ class EvaluationAttribute(TaurusAttribute):
         if len(self._listeners) > 1 and \
            (initial_subscription_state == SubscriptionState.Subscribed or
                 self.isPollingActive()):
-            Manager().addJob(self.__fireRegisterEvent, None, (listener,))
+            Manager().enqueueJob(self.__fireRegisterEvent,
+                                 job_args=((listener,),))
         return ret
 
     def removeListener(self, listener):
