@@ -86,8 +86,7 @@ _build_doc_api()
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.pngmath',
-              'sphinx.ext.autosummary',
+extensions = ['sphinx.ext.autosummary',
               'sphinx.ext.autodoc',
               'sphinx.ext.doctest',
               'sphinx.ext.graphviz',
