@@ -370,7 +370,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         - 'quality' a color depending on the attribute quality
         - 'rvalue' a color depending on the rvalue of the attribute
         - <arbitrary member name> a color based on the value of an arbitrary
-          member of the model object (warning: experimental feature!)
+        member of the model object (warning: experimental feature!)
 
         .. warning:: the <arbitrary member name> support is still experimental
                      and its API may change in future versions
