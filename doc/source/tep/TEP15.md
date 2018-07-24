@@ -1,6 +1,6 @@
     Title: fragment-based slicing support in URIs
     TEP: 15
-    State: CANDIDATE
+    State: ACCEPTED
     Date: 2016-06-16
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
     URL: http://www.taurus-scada.org/tep?TEP15.md
@@ -147,6 +147,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Changes
 ========
+2018-07-24
+[cpascual][] Move CANDIDATE to ACCEPTED  after voting on PR.
 
 2018-06-18
 [cpascual][] Move DRAFT to CANDIDATE  by proposing an implementation based on using square brackets.
