@@ -108,7 +108,7 @@ class TaurusPollingTimer(Logger):
             self.start()
         else:
             import taurus
-            taurus.Manager().addJob(attribute.poll, None)
+            taurus.Manager().enqueueJob(attribute.poll)
 
     def removeAttribute(self, attribute):
         """Unregisters the attribute from this polling. If the number of registered

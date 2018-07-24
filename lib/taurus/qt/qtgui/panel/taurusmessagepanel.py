@@ -482,7 +482,7 @@ class TaurusMessagePanel(Qt.QWidget):
 
         :return: the current exception information (same as type as returned by
                  :func:`sys.exc_info`)
-        :rtype: tuple<type, value, traceback>"""
+        :rtype: tuple<type, Exception, traceback>"""
         return self._exc_info
 
     try:

@@ -380,6 +380,16 @@ class TaurusForm(TaurusWidget):
                     rw.setFormat(format)
         return format
 
+    def setFormat(self, format):
+        """
+        Reimplemented to call setFormat on the taurusvalues
+        """
+        TaurusWidget.setFormat(self, format)
+        for item in self.getItems():
+            rw = item.readWidget()
+            if hasattr(rw, 'setFormat'):
+                rw.setFormat(format)
+
     def setCompact(self, compact):
         self._compact = compact
         for item in self.getItems():
@@ -472,6 +482,11 @@ class TaurusForm(TaurusWidget):
                 widget.setModifiableByUser(self.isModifiableByUser())
             except:
                 pass
+            try:
+                widget.setFormat(self.getFormat())
+            except Exception:
+                self.debug('Cannot set format %s to child %s',
+                           self.getFormat(), model)
             widget.setObjectName("__item%i" % i)
             self.registerConfigDelegate(widget)
             self._children.append(widget)
@@ -657,11 +672,13 @@ class TaurusCommandsForm(TaurusWidget):
 
         layout = self._frame.layout()
 
+        model = self.getFullModelName()
+
         for row, c in enumerate(commands):
             self.debug('Adding button for command %s' % c.cmd_name)
             button = TaurusCommandButton(command=c.cmd_name, text=c.cmd_name)
             layout.addWidget(button, row, 0)
-            button.setUseParentModel(True)
+            button.setModel(model)
             self._cmdWidgets.append(button)
             button.commandExecuted.connect(self._onCommandExecuted)
             

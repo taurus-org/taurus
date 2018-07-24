@@ -14,6 +14,7 @@ develop branch) won't be reflected in this file.
 - taurus.external.enum
 - taurus.external.unittest
 - taurus.external.argparse
+- setUseParentModel(True)
 
 ### Changed
 - Serialization mode now is explicitly set to Serial

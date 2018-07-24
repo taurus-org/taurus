@@ -39,6 +39,7 @@ except ImportError:
     debug(msg)
     raise
 
+from taurus import tauruscustomsettings
 from taurus.core.taurusbasetypes import (TaurusElementType,
                                          TaurusSerializationMode)
 from taurus.core.taurusfactory import TaurusFactory
@@ -106,7 +107,9 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         self._polling_enabled = True
         self.reInit()
         self.scheme = 'tango'
-        self._serialization_mode = TaurusSerializationMode.Serial
+        self._serialization_mode = TaurusSerializationMode.get(
+            getattr(tauruscustomsettings, 'TANGO_SERIALIZATION_MODE',
+                    'Serial'))
 
     def reInit(self):
         """Reinitialize the singleton"""
@@ -165,13 +168,16 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         return dict(self.tango_db)
 
     def set_default_tango_host(self, tango_host):
-        """Sets the new default tango host. The method will transform the given
+        """
+        Sets the new default tango host. The method will transform the given
         name to an Authority URI.
         
         .. note:: Calling this method also clears the device alias cache.
 
         :param tango_host: (str) the new tango host. It accepts any valid Tango
-        authority name or None to use the defined by $TANGO_HOST env. var.
+                                 authority name or None to use the defined by
+                                 $TANGO_HOST env. var.
+
         """
         # Translate to Authority URI
         if tango_host and "//" not in tango_host:
