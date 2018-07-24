@@ -192,7 +192,7 @@ class TaurusModel(Logger):
         if fragmentName is None:
             fragmentName = self.defaultFragmentName
         try:
-            return eval('obj.' + fragmentName, {}, {'obj':self})
+            return eval('obj.' + fragmentName, {}, {'obj' : self})
         except Exception as e:
             # Note: always raise AttributeError to comply with existing API
             msg = "Cannot get fragment of {!r}.{!s}: Reason: {!r}"
