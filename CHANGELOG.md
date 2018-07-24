@@ -19,6 +19,7 @@ develop branch) won't be reflected in this file.
 ### Changed
 - Serialization mode now is explicitly set to Serial
   in the case of TangoFactory (Taurus defaults to Concurrent) (#678)
+- TaurusMainWindow's "Change Tango Host" action is now invisible (#781)
 
 ### Fixed
 - TaurusModel ignoring the serialization mode (#678)

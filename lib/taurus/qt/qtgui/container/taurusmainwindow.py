@@ -389,6 +389,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             "network-server"), 'Change Tango Host ...', self)
         self.changeTangoHostAction.setShortcut(Qt.QKeySequence("Ctrl+P"))
         self.changeTangoHostAction.triggered[()].connect(self._onChangeTangoHostAction)
+        # make this action invisible since it is deprecated
+        self.changeTangoHostAction.setVisible(False)
 
         self.loadPerspectiveAction = Qt.QAction(Qt.QIcon.fromTheme(
             "document-open"), 'Load Perspective ...', self)
