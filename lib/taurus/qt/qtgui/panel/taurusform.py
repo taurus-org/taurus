@@ -43,6 +43,17 @@ from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
 from taurusmodelchooser import TaurusModelChooser
 
 
+def _normalize_model_name_case(modelname):
+    """
+    Accepts a model name and returns it in lower case if the models is
+    case insensitive. Otherwise it returns the same model name
+    """
+    if taurus.Factory(taurus.getSchemeFromName(modelname)).caseSensitive:
+        return modelname
+    else:
+        return modelname.lower()
+
+
 class ParameterCB(Qt.QComboBox):
     '''A custom combobox'''
 
@@ -213,11 +224,11 @@ class TaurusForm(TaurusWidget):
             self.__modelChooserDlg.modelChooser.updateModels.connect(self.setModel)
 
         models_and_labels = []
-        models = [m.lower() for m in self.getModel()]
         indexdict = {}
-        for m in models:
-            indexdict[m] = indexdict.get(m, -1) + 1
-            item = self.getItemByModel(m, indexdict[m])
+        for m in self.getModel():
+            key = _normalize_model_name_case(m)
+            indexdict[key] = indexdict.get(key, -1) + 1
+            item = self.getItemByModel(m, indexdict[key])
             if item is None:
                 label = None
             else:
@@ -502,7 +513,8 @@ class TaurusForm(TaurusWidget):
         with the same model, the index parameter can be used to distinguish among them
         Please note that his index is only relative to same-model items!'''
         for child in self._children:
-            if child.getModel().lower() == model.lower():
+            if (_normalize_model_name_case(child.getModel()) ==
+                    _normalize_model_name_case(model)):
                 if index <= 0:
                     return child
                 else:
