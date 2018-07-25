@@ -50,8 +50,8 @@ class TaurusGroupWidget(QGroupWidget, TaurusBaseContainer):
         widget.model = 'sys/database/2'
         stateWidget = TaurusLabel()
         layout.addWidget(stateWidget)
-        stateWidget.useParentModel = True
-        stateWidget.model = '/state'"""
+        stateWidget.model = 'sys/database/2/state'
+        """
 
     modelChanged = Qt.pyqtSignal('const QString &')
 
@@ -118,14 +118,11 @@ def demo():
     content.setLayout(layout1)
 
     state_led = taurus.qt.qtgui.display.TaurusLed()
-    state_led.useParentModel = True
-    state_led.model = "/state"
+    state_led.model = groupwidget.model + "/state"
     status_label = taurus.qt.qtgui.display.TaurusLabel()
-    status_label.useParentModel = True
-    status_label.model = "/status"
+    status_label.model = groupwidget.model + "/status"
     double_scalar_label = taurus.qt.qtgui.display.TaurusLabel()
-    double_scalar_label.useParentModel = True
-    double_scalar_label.model = "/double_scalar"
+    double_scalar_label.model = groupwidget.model + "/double_scalar"
     layout1.addRow("State:", state_led)
     layout1.addRow("Status:", status_label)
     layout1.addRow("Double scalar:", double_scalar_label)
@@ -147,11 +144,9 @@ def demo():
     content.setLayout(layout1)
     import taurus.qt.qtgui.display
     long_scalar_label = taurus.qt.qtgui.display.TaurusLabel()
-    long_scalar_label.useParentModel = True
-    long_scalar_label.model = "/long_scalar"
+    long_scalar_label.model = groupwidget.model + "/long_scalar"
     boolean_scalar_led = taurus.qt.qtgui.display.TaurusLed()
-    boolean_scalar_led.useParentModel = True
-    boolean_scalar_led.model = "/boolean_scalar"
+    boolean_scalar_led.model = groupwidget.model + "/boolean_scalar"
     layout1.addRow("Long scalar:", long_scalar_label)
     layout1.addRow("Boolean scalar:", boolean_scalar_led)
 
@@ -163,8 +158,7 @@ def demo():
     content = groupwidget.content()
     content.setLayout(layout1)
     short_scalar_label = taurus.qt.qtgui.display.TaurusLabel()
-    short_scalar_label.useParentModel = True
-    short_scalar_label.model = "/short_scalar"
+    short_scalar_label.model = groupwidget.model + "/short_scalar"
     layout1.addRow("short scalar:", short_scalar_label)
 
     layout.addWidget(Qt.QWidget(), 3, 0)

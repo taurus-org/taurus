@@ -528,12 +528,6 @@ class TaurusDevPanel(TaurusMainWindow):
         self._ui.taurusAttrForm.recheckTaurusParent()
         self._ui.taurusCommandsForm.recheckTaurusParent()
 
-        # Add StateLed to statusBar
-#        self.devStateLed = TaurusLed()
-#        self.statusbar.addPermanentWidget(self.devStateLed)
-#        self.devStateLed.setModel('/state')
-#        self.devStateLed.setUseParentModel(True)
-
         # register subwidgets for configuration purposes
         # self.registerConfigDelegate(self.taurusAttrForm)
         # self.registerConfigDelegate(self.deviceTree)

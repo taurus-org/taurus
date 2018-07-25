@@ -50,8 +50,7 @@ class TaurusScrollArea(Qt.QScrollArea, TaurusBaseContainer):
         widget.model = 'sys/database/2'
         stateWidget = TaurusLabel()
         layout.addWidget(stateWidget)
-        stateWidget.useParentModel = True
-        stateWidget.model = '/state'"""
+        stateWidget.model = 'sys/database/2/state'"""
 
     modelChanged = Qt.pyqtSignal('const QString &')
 
@@ -136,14 +135,11 @@ def demo():
     groupbox.setLayout(layout)
     import taurus.qt.qtgui.display
     state_led = taurus.qt.qtgui.display.TaurusLed()
-    state_led.useParentModel = True
-    state_led.model = "/state"
+    state_led.model = groupbox.model + "/state"
     status_label = taurus.qt.qtgui.display.TaurusLabel()
-    status_label.useParentModel = True
-    status_label.model = "/status"
+    status_label.model = groupbox.model + "/status"
     double_scalar_label = taurus.qt.qtgui.display.TaurusLabel()
-    double_scalar_label.useParentModel = True
-    double_scalar_label.model = "/double_scalar"
+    double_scalar_label.model = groupbox.model + "/double_scalar"
     layout.addRow("State:", state_led)
     layout.addRow("Status:", status_label)
     layout.addRow("Double scalar:", double_scalar_label)
