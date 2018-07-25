@@ -52,13 +52,13 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 - [ ] For TaurusLabel, check foreground role, the background role, the prefix, the suffix, the formatter, etc.
 - [ ] For TaurusLabel, use a model with fragment (e.g., `sys/tg_test/1/ampli#magnitude`, `eval:Q('1mm')#unit"`)
 - [ ] For LCD: Test the foreground roles and the background role
-- [ ] For Led: Test the colors, ON color, Off color.
+- [ ] For Led: Test the colors, ON color, Off color. (hint: you can use `eval:False` as a model for testing)
 
 ### taurusplot
 (basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
 - [ ] Execute: `taurusplot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`
-- [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with
+- [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
 - [ ] Check mouse wheel Zoom
 - [ ] Test panning (dragging with CTRL pressed)
 - [ ] Test inspector mode
@@ -67,6 +67,8 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 - [ ] Test plot configuration dialog
 - [ ] Test changing curve titles
 - [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
+- [ ] Open the "Input data selection" dialog and add/remove/reorder /edit models
+- [ ] export one curve data to ASCII and then load it using "Input data selection"  -> raw data -> open file
 - [ ] ... other features from [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
 ### taurustrend
@@ -74,7 +76,7 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 
 - [ ] Execute: `taurustrend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
 - [ ] Execute: `taurustrend -xe "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
-- [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with
+- [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
 - [ ] Check mouse wheel Zoom
 - [ ] Test panning (dragging with CTRL pressed)
 - [ ] Test inspector mode
@@ -82,8 +84,10 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 - [ ] Move curves between axes by clicking on legend (and test zoom on Y2)
 - [ ] Test plot configuration dialog
 - [ ] Test Forced reading mode
+- [ ] Test autopanning mode
+- [ ] Test autoscale x mode
 - [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
-- [ ] ... other features from [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
+- [ ] ... other features from [user's guide](http://taurus-scada.org/users/ui/index.html)
 
 ### Test taurusimage
 
@@ -97,16 +101,6 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 - [ ] Execute: `taurustrend2d -xe --demo --taurus-polling-period 333`
 - [ ] Test auto-scroll and auto-scale tools
 - [ ] Test Save & restore config (change axes range, zoom, tool status colormap etc & check that everything is restored)
-
-### Tauruscurve & taurustrend1d
-(unused and to be deprecated, you may test but **do not worry too much if they fail**)
-
-- [ ] Execute: `tauruscurve --demo`
-- [ ] Change size
-- [ ] Move curve with mouse
-- [ ] Resize curve with mouse
-- [ ] Test some option of the menu with mouse.
-- [ ] Execute: `taurustrend1d "eval:Q(rand(),'mm')"` and test it in the same way
 
 ### taurusdesigner
 - [ ] Check that taurusdesigner is correctly opened and taurus widgets are present in the catalog
@@ -123,9 +117,10 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 - [ ] Navigate in the tree and select the TangoTest device (the attr an command panels should be populated)
 
 ### taurusform
-(basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
+(basically try all features described in the [user's guide](http://taurus-scada.org/users/ui/index.html)
 
 - [ ] Launch `taurusform sys/tg_test/1/short_scalar`
+- [ ] go to label context menu, change the configuration and set range to (-1000, 1000), alarm to (-500, 500) and unit to `mm`. Close the form and relaunch. The new units should be used. Change the the write value and check that the orange color is used when in warning values, and that the write widget does not allow to write values out of range.
 - [ ] Test to drag and drop of this attribute onto the same form many times (4 times)
       (If it crashes, you are seeing bug #96)
 - [ ] Open "Modify Contents" and add sys/tg_test/1 and all of its attributes. They should all show ok
@@ -133,16 +128,16 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
       value (from the context menu of a value label)
 - [ ] Test compact mode for all values (from the context menu of the whole form)
 - [ ] Test changing labels
-- [ ] Test changing the formatter for a single value (from the context menu of a value label) (use, e.g. `>>{}<<`)
+- [ ] Test changing the formatter for a single value (from the context menu of a value label) (use, e.g. `>>{}<<`). Do this in compact and non compact modes.
 - [ ] Test changing the formatter for all values (from the context menu of the whole form)
 - [ ] Test re-order of values with "Modify contents"
 - [ ] Test the different "show" buttons (tables, images, spectra)
 - [ ] Change the write widget of double_scalar by a TaurusWheelEdit
 - [ ] Change other read and write widgets
-- [ ] ... other features from [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
+- [ ] ... other features from [user's guide](http://taurus-scada.org/users/ui/index.html)
 
 ### taurusgui
-(basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
+(basically try all features described in the [user's guide](http://taurus-scada.org/users/ui/index.html)
 
 - [ ] Launch `taurusgui example01`
 - [ ] Test (un)lock view
@@ -156,7 +151,7 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 - [ ] Create a new TaurusGui (call it `foogui`) with `taurusgui --new-gui` (follow the wizard)
 - [ ] Install `foogui` with pip (using a virtualenv may be a good idea)
 - [ ] launch `foogui` using the script that has been installed
-- [ ] ... other features from [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
+- [ ] ... other features from [user's guide](http://taurus-scada.org/users/ui/index.html)
 
 
 ### taurusconfigbrowser
