@@ -21,7 +21,7 @@ of stuff that should be manually tested.
          ```
     4. Create a PR to merge the `release-XXX` against the **`master`** branch of the taurus-org repo
 5. Request reviews in the PR from at least one integrator from each participating institute. The master branch is protected, so the reviews need to be cleared (or dismissed with an explanation) before the release can be merged.
-6. Perform manual tests (see checklist below). You may use the CI artifacts (e.g., from appveyor) and post the results in the comments of the PR.
+6. Perform manual tests (see checklist below). You may use the CI artifacts (e.g., from appveyor). To avoid spamming the PR comments with the manual test results, a new issue can be created to report the tests results on each platform (and just use a single check for each platform in the PR).
 7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, merge the PR and tag in master
 8. Merge also the  `release-XXX` branch into develop, and bump the version of develop with `bumpversion patch`
 9. Release to PyPI **from a clean checkout** and using [twine](https://github.com/pypa/twine):
@@ -41,7 +41,7 @@ This is a check-list of manual tests. It is just orientative. Expand it at will.
 This list assumes a clean environment with all Taurus dependencies already installed
 and access to a Tango system with the TangoTest DS running.
 
-Hint: this list can be used as a template to be copy-pasted on a release PR
+Hint: this list can be used as a template to be copy-pasted on an issue linked from the release PR
 
 ### Installation
 - [ ] Install Taurus from the tar.gz : `pip install <tarball_artifact_URL>`
