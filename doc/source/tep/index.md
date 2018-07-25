@@ -21,7 +21,7 @@ Proposals list
   [SEP12][] | CANDIDATE | Use python Enum instead of taurus Enumeration
   [TEP13][] | DRAFT     | Plugins support 
   [TEP14][] | ACCEPTED  | Core refactoring (quantities and configuration)
-  [TEP15][] | CANDIDATE | fragment-based slicing support in URIs
+  [TEP15][] | ACCEPTED  | fragment-based slicing support in URIs
   [TEP16][] | ACCEPTED     | Moving Taurus to Github
   [TEP17][] | DRAFT   | Implement plots with pyqtgraph
 
