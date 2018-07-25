@@ -49,7 +49,7 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 ### Taurusdemo
 
 - [ ] Test all of the buttons of the taurusdemo. All demos should launch correctly and without raising exceptions
-- [ ] For TaurusLabel, check foreground role, the background role, the prefix, the suffix, etc.
+- [ ] For TaurusLabel, check foreground role, the background role, the prefix, the suffix, the formatter, etc.
 - [ ] For TaurusLabel, use a model with fragment (e.g., `sys/tg_test/1/ampli#magnitude`, `eval:Q('1mm')#unit"`)
 - [ ] For LCD: Test the foreground roles and the background role
 - [ ] For Led: Test the colors, ON color, Off color.
@@ -133,6 +133,8 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
       value (from the context menu of a value label)
 - [ ] Test compact mode for all values (from the context menu of the whole form)
 - [ ] Test changing labels
+- [ ] Test changing the formatter for a single value (from the context menu of a value label) (use, e.g. `>>{}<<`)
+- [ ] Test changing the formatter for all values (from the context menu of the whole form)
 - [ ] Test re-order of values with "Modify contents"
 - [ ] Test the different "show" buttons (tables, images, spectra)
 - [ ] Change the write widget of double_scalar by a TaurusWheelEdit
