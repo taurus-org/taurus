@@ -387,7 +387,6 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.quitApplicationAction.triggered[()].connect(self.close)
         self.changeTangoHostAction = Qt.QAction(Qt.QIcon.fromTheme(
             "network-server"), 'Change Tango Host ...', self)
-        self.changeTangoHostAction.setShortcut(Qt.QKeySequence("Ctrl+P"))
         self.changeTangoHostAction.triggered[()].connect(self._onChangeTangoHostAction)
         # make this action invisible since it is deprecated
         self.changeTangoHostAction.setVisible(False)
