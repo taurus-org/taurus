@@ -42,7 +42,7 @@ This list assumes a clean environment with all Taurus dependencies already insta
 and access to a Tango system with the TangoTest DS running.
 
 Hint: this list can be used as a template to be copy-pasted on an issue linked from the release PR
-
+```
 ### Installation
 - [ ] Install Taurus from the tar.gz : `pip install <tarball_artifact_URL>`
 
@@ -164,3 +164,4 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 - [ ] Launch `taurusiconcatalog`. Several tabs with an array of icons [should be displayed](http://taurus-scada.org/en/latest/devel/icon_guide.html#taurus-icon-catalog)
 - [ ] Check that tooltips give info on each icon
 - [ ] Click on some icons and check that they give a bigger view of the icon and more info.
+```
