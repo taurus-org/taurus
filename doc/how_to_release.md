@@ -11,7 +11,7 @@ of stuff that should be manually tested.
 3. Work to close all the PR/issues remaining open in the milestone. This can be either done in develop or in a release branch called `release-XXX` (where `XXX` is the milestone name, e.g. `Jul17`). If a release branch is used, `develop` is freed to continue with integrations that may not be suitable for this release. On the other hand, it adds a bit more work  because the release-related PRs (which are done against the `release-XXX` branch), may need to be also merged to develop. Note: the `release-XXX` branch *can* live in the taurus-org repo or on a personal fork (in which case you should do step 4.iv **now** to allow other integrators to push directly to it).
 4. Create the release branch if it was not done already in the previous step and:
     1. Review and update the CHANGELOG.md if necessary. See [this](http://keepachangelog.com)
-    2. Bump version using `bumpversion <major|minor|patch> && bumpversion release`  (use [semver](http://semver.org/) criteria to choose amongst `major`, `minor` or `patch`
+    2. Bump version using `bumpversion <major|minor|patch>`  (use [semver](http://semver.org/) criteria to choose amongst `major`, `minor` or `patch`
     3. Update man pages:
          ```
          cd <taurus>/doc
@@ -22,7 +22,7 @@ of stuff that should be manually tested.
     4. Create a PR to merge the `release-XXX` against the **`master`** branch of the taurus-org repo
 5. Request reviews in the PR from at least one integrator from each participating institute. The master branch is protected, so the reviews need to be cleared (or dismissed with an explanation) before the release can be merged.
 6. Perform manual tests (see checklist below). You may use the CI artifacts (e.g., from appveyor). To avoid spamming the PR comments with the manual test results, a new issue can be created to report the tests results on each platform (and just use a single check for each platform in the PR).
-7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, merge the PR and tag in master
+7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, run `bumpversion release`, push and merge the PR and tag in master
 8. Merge also the  `release-XXX` branch into develop, and bump the version of develop with `bumpversion patch`
 9. Release to PyPI **from a clean checkout** and using [twine](https://github.com/pypa/twine):
    ```
