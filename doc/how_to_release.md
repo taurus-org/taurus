@@ -50,7 +50,8 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 
 - [ ] Test all of the buttons of the taurusdemo. All demos should launch correctly and without raising exceptions
 - [ ] For TaurusLabel, check foreground role, the background role, the prefix, the suffix, the formatter, etc.
-- [ ] For TaurusLabel, use a model with fragment (e.g., `sys/tg_test/1/ampli#magnitude`, `eval:Q('1mm')#unit"`)
+- [ ] For TaurusLabel, in order to test the background role=value, you can use the following attribute: `eval:["FAULT","ON","OFF","ALARM"][randint(4)]`
+- [ ] For TaurusLabel, use a model with fragment (e.g., `sys/tg_test/1/ampli#rvalue.magnitude`, `eval:Q('1mm')#rvalue.unit"`, `eval:10*arange(9)#rvalue[3:4]`)
 - [ ] For LCD: Test the foreground roles and the background role
 - [ ] For Led: Test the colors, ON color, Off color. (hint: you can use `eval:False` as a model for testing)
 
