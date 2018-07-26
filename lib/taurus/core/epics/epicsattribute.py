@@ -29,7 +29,7 @@ __all__ = ['EpicsAttribute']
 
 
 import numpy
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 
 from taurus.core.taurusbasetypes import (TaurusEventType, TaurusAttrValue,
                                          TaurusTimeVal, AttrQuality, DataType,

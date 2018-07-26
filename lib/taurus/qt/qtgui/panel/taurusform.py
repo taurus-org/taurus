@@ -43,6 +43,17 @@ from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
 from taurusmodelchooser import TaurusModelChooser
 
 
+def _normalize_model_name_case(modelname):
+    """
+    Accepts a model name and returns it in lower case if the models is
+    case insensitive. Otherwise it returns the same model name
+    """
+    if taurus.Factory(taurus.getSchemeFromName(modelname)).caseSensitive:
+        return modelname
+    else:
+        return modelname.lower()
+
+
 class ParameterCB(Qt.QComboBox):
     '''A custom combobox'''
 
@@ -213,11 +224,11 @@ class TaurusForm(TaurusWidget):
             self.__modelChooserDlg.modelChooser.updateModels.connect(self.setModel)
 
         models_and_labels = []
-        models = [m.lower() for m in self.getModel()]
         indexdict = {}
-        for m in models:
-            indexdict[m] = indexdict.get(m, -1) + 1
-            item = self.getItemByModel(m, indexdict[m])
+        for m in self.getModel():
+            key = _normalize_model_name_case(m)
+            indexdict[key] = indexdict.get(key, -1) + 1
+            item = self.getItemByModel(m, indexdict[key])
             if item is None:
                 label = None
             else:
@@ -380,6 +391,16 @@ class TaurusForm(TaurusWidget):
                     rw.setFormat(format)
         return format
 
+    def setFormat(self, format):
+        """
+        Reimplemented to call setFormat on the taurusvalues
+        """
+        TaurusWidget.setFormat(self, format)
+        for item in self.getItems():
+            rw = item.readWidget()
+            if hasattr(rw, 'setFormat'):
+                rw.setFormat(format)
+
     def setCompact(self, compact):
         self._compact = compact
         for item in self.getItems():
@@ -472,6 +493,11 @@ class TaurusForm(TaurusWidget):
                 widget.setModifiableByUser(self.isModifiableByUser())
             except:
                 pass
+            try:
+                widget.setFormat(self.getFormat())
+            except Exception:
+                self.debug('Cannot set format %s to child %s',
+                           self.getFormat(), model)
             widget.setObjectName("__item%i" % i)
             self.registerConfigDelegate(widget)
             self._children.append(widget)
@@ -487,7 +513,8 @@ class TaurusForm(TaurusWidget):
         with the same model, the index parameter can be used to distinguish among them
         Please note that his index is only relative to same-model items!'''
         for child in self._children:
-            if child.getModel().lower() == model.lower():
+            if (_normalize_model_name_case(child.getModel()) ==
+                    _normalize_model_name_case(model)):
                 if index <= 0:
                     return child
                 else:
@@ -636,13 +663,19 @@ class TaurusCommandsForm(TaurusWidget):
         Inserts command buttons and parameter widgets in the layout, according to
         the commands from the model
         '''
-        #self.debug('In TaurusCommandsForm._updateCommandWidgets())')
+
         dev = self.getModelObj()
-        if dev is None or dev.state != TaurusDevState.Ready:
-            self.debug('Cannot connect to device')
+        if dev is None:
             self._clearFrame()
             return
-        commands = sorted(dev.command_list_query(), key=self._sortKey)
+
+        try:
+            commands = sorted(dev.command_list_query(), key=self._sortKey)
+        except Exception as e:
+            self.warning('Problem querying commands from %s. Reason: %s',
+                         dev, e)
+            self._clearFrame()
+            return
 
         for f in self.getViewFilters():
             commands = filter(f, commands)
@@ -651,11 +684,13 @@ class TaurusCommandsForm(TaurusWidget):
 
         layout = self._frame.layout()
 
+        model = self.getFullModelName()
+
         for row, c in enumerate(commands):
             self.debug('Adding button for command %s' % c.cmd_name)
             button = TaurusCommandButton(command=c.cmd_name, text=c.cmd_name)
             layout.addWidget(button, row, 0)
-            button.setUseParentModel(True)
+            button.setModel(model)
             self._cmdWidgets.append(button)
             button.commandExecuted.connect(self._onCommandExecuted)
             

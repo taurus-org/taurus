@@ -32,6 +32,7 @@ __all__ = ["TangoInfo", "TangoAttrInfo", "TangoDevInfo", "TangoServInfo",
 __docformat__ = "restructuredtext"
 
 import os
+import socket
 import operator
 import weakref
 
@@ -665,13 +666,14 @@ class TangoAuthority(TaurusAuthority):
         if host is None or port is None:
             try:
                 host, port = TangoAuthority.get_default_tango_host().rsplit(':', 1)
-                pars = host, port
             except Exception, e:
                 from taurus import warning
                 warning("Error getting default Tango host")
-        else:
-            pars = host, port
-        self.dbObj = Database(*pars)
+
+        # Set host to fqdn
+        host = socket.getfqdn(host)
+
+        self.dbObj = Database(host, port)
         self._dbProxy = None
         self._dbCache = None
 

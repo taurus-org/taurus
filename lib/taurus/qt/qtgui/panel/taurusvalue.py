@@ -30,7 +30,8 @@ taurusvalue.py:
 __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox",
            "DefaultUnitsWidget", "TaurusPlotButton", "TaurusArrayEditorButton",
            "TaurusValuesTableButton", "TaurusValuesTableButton_W",
-           "DefaultLabelWidget", "TaurusDevButton", "TaurusImageButton"]
+           "DefaultLabelWidget", "DefaultReadWidgetLabel", "TaurusDevButton",
+           "TaurusImageButton"]
 
 __docformat__ = 'restructuredtext'
 
@@ -205,6 +206,8 @@ class CenteredLed(TaurusLed):
 
 class DefaultUnitsWidget(TaurusLabel):
 
+    FORMAT = "{}"
+
     def __init__(self, *args):
         TaurusLabel.__init__(self, *args)
         self.setNoneValue('')
@@ -321,7 +324,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             layout = Qt.QHBoxLayout(self)
             dummy = ExpandingLabel()
             layout.addWidget(dummy)
-            dummy.setUseParentModel(True)
+            #dummy.setUseParentModel(True)
             dummy.setModel("#attr_fullname")
             dummy.setPrefixText("< TaurusValue: ")
             dummy.setSuffixText(" >")
@@ -441,6 +444,14 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         """
         if hasattr(self._readWidget, 'onSetFormatter'):
             return self._readWidget.onSetFormatter()
+
+    def setFormat(self, format):
+        """
+        Reimplemented to call setFormat of the read widget (if provided)
+        """
+        TaurusBaseWidget.setFormat(self, format)
+        if hasattr(getattr(self, '_readWidget', None), 'setFormat'):
+            return self._readWidget.setFormat(format)
 
     def getAllowWrite(self):
         return self._allowWrite

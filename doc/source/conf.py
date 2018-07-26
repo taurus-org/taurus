@@ -34,35 +34,7 @@ _setup_dir = os.path.abspath(os.path.join(_this_dir, os.path.pardir,
 _lib_dir = os.path.join(_setup_dir, 'lib')
 _doc_dir = os.path.join(_setup_dir, 'doc')
 _api_dir = os.path.join(_doc_dir, 'source', 'devel', 'api')
-_mock_path = os.path.join(_doc_dir, 'mock.zip')
 
-
-# append mock dir to the sys path (mocks will be used if needed)
-sys.path.append(_mock_path)
-
-# insert mock for qtpy (only when building docs in RTD)
-# see https://github.com/taurus-org/taurus/issues/490
-# ... and since we are at it, add also a few other modules to workaround
-# more RTD failures to build API
-# (recipe inspired in https://stackoverflow.com/a/35229746 )
-if os.environ.get('READTHEDOCS') == 'True':
-    from mock import MagicMock
-    MOCK_MODULES = ['qtpy',
-                    'qtpy.QtWidgets',
-                    'epics',
-                    'epics.ca',
-                    'spyder',
-                    'spyder.utils',
-                    'spyder.utils.qthelpers',
-                    'spyder.utils.introspection',
-                    'spyder.utils.introspection.manager',
-                    'spyder.widgets',
-                    'spyder.widgets.findreplace',
-                    'spyder.widgets.editortools',
-                    'spyder.widgets.editor',
-                    'spyder.py3compat',
-                    ]
-    sys.modules.update((mod_name, MagicMock()) for mod_name in MOCK_MODULES)
 
 # Import code from src distribution
 sys.path.insert(0, os.path.abspath(_lib_dir))
@@ -114,8 +86,7 @@ _build_doc_api()
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.pngmath',
-              'sphinx.ext.autosummary',
+extensions = ['sphinx.ext.autosummary',
               'sphinx.ext.autodoc',
               'sphinx.ext.doctest',
               'sphinx.ext.graphviz',
@@ -319,10 +290,10 @@ inheritance_graph_attrs = dict(rankdir="UD", ratio='compress')
 # -- Options for reference to other documentation ------------------------
 
 intersphinx_mapping = {
-    'python': ('http://docs.python.org/dev', None),
+    'python': ('https://docs.python.org/dev', None),
     'numpy': ('http://www.numpy.org', None),
-    'sardana': ('http://www.sardana-controls.org/en/stable/', None),
+    'sardana': ('https://sardana-controls.org', None),
     'pint': ('http://pint.readthedocs.io/en/stable/', None),
-    'PyTango': ('http://www.esrf.fr/computing/cs/tango/tango_doc/kernel_doc/pytango/latest/', None),
+    'PyTango': ('http://pytango.readthedocs.io/en/stable/', None),
     'PyQt4': ('http://pyqt.sourceforge.net/Docs/PyQt4/', None),
 }

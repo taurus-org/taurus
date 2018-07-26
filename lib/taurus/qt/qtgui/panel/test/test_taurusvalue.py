@@ -25,7 +25,7 @@
 
 """Test for taurus.qt.qtgui.panel.taurusvalue"""
 
-from taurus.external import unittest
+import unittest
 from taurus.test import insertTest
 from taurus.qt.qtgui.test import BaseWidgetTestCase
 from taurus.qt.qtgui.panel import TaurusValue

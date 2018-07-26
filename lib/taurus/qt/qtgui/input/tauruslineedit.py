@@ -30,7 +30,7 @@ This module provides a set of basic taurus widgets based on QLineEdit
 import sys
 import numpy
 from taurus.external.qt import Qt
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from taurus.qt.qtgui.util import PintValidator
 from taurus.core import DataType, DataFormat, TaurusEventType
@@ -41,6 +41,30 @@ __docformat__ = 'restructuredtext'
 
 
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
+    """
+    A taurus-aware ``QLineEdit``. It will display the value (or fragment
+    of the value) referenced by its model. It is a
+    :class:`~taurus.qt.qtgui.base.TaurusBaseWritableWidget`
+    and as such it does not apply the changes straight away to the model
+    (unless ``autoApply`` is enabled), but instead shows that there are pending
+    operations which can be applied by pressing "ENTER".
+
+    When used with numerical value Attributes as its model, it provides some
+    extended behaviour:
+
+    - It represents out-of-limit values using different colours (for warning,
+      range, invalid,...)
+    - It uses a validator that is range-aware
+    - The mouse wheel and keyboard arrows can be enabled for doing value
+      increments
+
+    .. note::
+        when used with models whose value is a pint `Quantity`, the text
+        is parsed by pint and therefore one can write e.g. `2 3 mm` which is
+        equivalent to `6 mm` !
+
+    """
+
 
     def __init__(self, qt_parent=None, designMode=False):
         name = self.__class__.__name__
@@ -49,6 +73,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                           name, designMode=designMode)
         self._enableWheelEvent = False
         self._last_value = None
+        self._singleStep = 1.
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
@@ -177,11 +202,6 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         evt.accept()
         numDegrees = evt.delta() / 8
         numSteps = numDegrees / 15
-        modifiers = evt.modifiers()
-        if modifiers & Qt.Qt.ControlModifier:
-            numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
-            numSteps *= .1
         self._stepBy(numSteps)
 
     def keyPressEvent(self, evt):
@@ -204,16 +224,19 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return Qt.QLineEdit.keyPressEvent(self, evt)
 
         evt.accept()
-        modifiers = evt.modifiers()
-        if modifiers & Qt.Qt.ControlModifier:
-            numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
-            numSteps *= .1
         self._stepBy(numSteps)
 
-    def _stepBy(self, v):
+    def _stepBy(self, steps):
         value = self.getValue()
-        self.setValue(value + Quantity(v, value.units))
+        self.setValue(value + Quantity(steps * self._singleStep, value.units))
+
+        if self.getAutoApply():
+            self.editingFinished.emit()
+        else:
+            kmods = Qt.QCoreApplication.instance().keyboardModifiers()
+            controlpressed = bool(kmods & Qt.Qt.ControlModifier)
+            if controlpressed:
+                self.writeValue(forceApply=True)
 
     def setValue(self, v):
         """Set the displayed text from a given value object"""
@@ -280,6 +303,15 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def resetEnableWheelEvent(self):
         self.setEnableWheelEvent(False)
+
+    def getSingleStep(self):
+        return self._singleStep
+
+    def setSingleStep(self, step):
+        self._singleStep = step
+
+    def resetSingleStep(self):
+        self.setSingleStep(1.0)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

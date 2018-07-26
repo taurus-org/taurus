@@ -37,7 +37,7 @@ def loopTest(testname, maxtries=100, maxfails=10):
 
     :return: (tuple) a tuple of ints: tries, failures
     '''
-    from taurus.external import unittest
+    import unittest
     suite = unittest.defaultTestLoader.loadTestsFromName(testname)
     runner = unittest.TextTestRunner(verbosity=0)
     i, f = 0, 0

@@ -29,7 +29,7 @@ __all__ = ["ResourceFactoryTestCase"]
 import os.path as osp
 import taurus
 from taurus.test import insertTest
-from taurus.external import unittest
+import unittest
 from taurus.core.resource.resfactory import ResourcesFactory
 
 

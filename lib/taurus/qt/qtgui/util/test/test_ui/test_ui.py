@@ -27,7 +27,7 @@
 
 import os.path
 
-from taurus.external import unittest
+import unittest
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.test import BaseWidgetTestCase

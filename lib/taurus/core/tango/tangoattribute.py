@@ -39,7 +39,8 @@ import numpy
 from functools import partial
 
 from taurus import Manager
-from taurus.external.pint import Quantity, UR, UndefinedUnitError
+from taurus.core.units import Quantity, UR
+from pint import UndefinedUnitError
 
 from taurus import tauruscustomsettings
 from taurus.core.taurusattribute import TaurusAttribute
@@ -83,8 +84,12 @@ class TangoAttrValue(TaurusAttrValue):
             attr = config
         if attr is None:
             self._attrRef = None
+            self.__attrType = None
         else:
             self._attrRef = weakref.proxy(attr)
+            self.__attrName = attr.getFullName()
+            self.__attrType = attr.type
+
         self.config = self._attrRef  # bck-compat
 
         self._pytango_dev_attr = p = pytango_dev_attr
@@ -134,12 +139,20 @@ class TangoAttrValue(TaurusAttrValue):
 
     def __getattr__(self, name):
         try:
-            ret = getattr(self._attrRef, name)
+            try:
+                # Use the attr reference if the attr is still valid
+                ret = getattr(self._attrRef, name)
+            except ReferenceError:
+                # re-create the attribute in case it was no longer referenced
+                # (this may happen in some rare cases in which the value is
+                # still used but the attr is no longer referenced elsewhere)
+                a = TangoAttribute.factory().getAttribute(self.__attrName)
+                ret = getattr(a, name)
         except AttributeError:
             try:
                 ret = getattr(self._pytango_dev_attr, name)
             except AttributeError:
-                raise AttributeError('%s has no attribute %s'
+                raise AttributeError("'%s' object has no attribute %s"
                                      % (self.__class__.__name__, name))
         # return the attr but only after warning
         from taurus.core.util.log import deprecated
@@ -213,10 +226,10 @@ class TangoAttrValue(TaurusAttrValue):
         return self.error
 
     def __fix_int(self, value):
-        """cast value to int if  it is an integer.
+        """cast value to int if it is an integer.
         Works on scalar and non-scalar values
         """
-        if self._attrRef.type is None or self._attrRef.type != DataType.Integer:
+        if self.__attrType != DataType.Integer:
             return value
         try:
             return int(value)
@@ -311,8 +324,8 @@ class TangoAttribute(TaurusAttribute):
         try:
             return getattr(self._pytango_attrinfoex, name)
         except AttributeError:
-            raise Exception('TangoAttribute does not have the attribute %s'
-                            % name)
+            raise AttributeError("'TangoAttribute' object has no attribute %s"
+                                 % name)
 
     def getNewOperation(self, value):
         attr_value = PyTango.AttributeValue()
@@ -579,12 +592,20 @@ class TangoAttribute(TaurusAttribute):
             self._subscribeEvents()
 
         # if initial_subscription_state == SubscriptionState.Subscribed:
-        if len(listeners) > 1 and (initial_subscription_state == SubscriptionState.Subscribed or self.isPollingActive()):
-            sm = self.getSerializationMode()
-            if sm == TaurusSerializationMode.Concurrent:
-                Manager().addJob(self.__fireRegisterEvent, None, (listener,))
-            else:
+        if (len(listeners) > 1
+            and (initial_subscription_state == SubscriptionState.Subscribed 
+                 or self.isPollingActive())
+           ):
+            sm = self._serialization_mode
+            if sm == TaurusSerializationMode.TangoSerial:
+                self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
+                                alt='TaurusSerializationMode.Serial',
+                                rel='4.3.2')
                 self.__fireRegisterEvent((listener,))
+            else:
+                Manager().enqueueJob(self.__fireRegisterEvent,
+                                     job_args=((listener,),),
+                                     serialization_mode=sm)
         return ret
 
     def removeListener(self, listener):
@@ -781,13 +802,17 @@ class TangoAttribute(TaurusAttribute):
             if etype is None:
                 return
             manager = Manager()
-            sm = self.getSerializationMode()
             listeners = tuple(self._listeners)
-            if sm == TaurusSerializationMode.Concurrent:
-                manager.addJob(self.fireEvent, None, etype, evalue,
-                               listeners=listeners)
-            else:
+            sm = self._serialization_mode
+            if sm == TaurusSerializationMode.TangoSerial:
+                self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
+                                alt="TaurusSerializationMode.Serial",
+                                rel='4.3.2')
                 self.fireEvent(etype, evalue, listeners=listeners)
+            else:
+                manager.enqueueJob(self.fireEvent, job_args=(etype, evalue),
+                                   job_kwargs={'listeners': listeners},
+                                   serialization_mode=sm)
 
     def _pushAttrEvent(self, event):
         """Handler of (non-configuration) events from the PyTango layer.
@@ -1002,12 +1027,26 @@ class TangoAttribute(TaurusAttribute):
             Q_ = partial(quantity_from_tango_str, units=units,
                          dtype=i.data_type)
             ninf, inf = float('-inf'), float('inf')
-            min_value = Q_(i.min_value) or Quantity(ninf, units)
-            max_value = Q_(i.max_value) or Quantity(inf, units)
-            min_alarm = Q_(i.alarms.min_alarm) or Quantity(ninf, units)
-            max_alarm = Q_(i.alarms.max_alarm) or Quantity(inf, units)
-            min_warning = Q_(i.alarms.min_warning) or Quantity(ninf, units)
-            max_warning = Q_(i.alarms.max_warning) or Quantity(inf, units)
+
+            min_value = Q_(i.min_value)
+            if min_value is None:
+                min_value = Quantity(ninf, units)
+            max_value = Q_(i.max_value)
+            if max_value is None:
+                max_value = Quantity(inf, units)
+            min_alarm = Q_(i.alarms.min_alarm)
+            if min_alarm is None:
+                min_alarm = Quantity(ninf, units)
+            max_alarm = Q_(i.alarms.max_alarm)
+            if max_alarm is None:
+                max_alarm = Quantity(inf, units)
+            min_warning = Q_(i.alarms.min_warning)
+            if min_warning is None:
+                min_warning = Quantity(ninf, units)
+            max_warning = Q_(i.alarms.max_warning)
+            if max_warning is None:
+                max_warning = Quantity(inf, units)
+
             self._range = [min_value, max_value]
             self._warning = [min_warning, max_warning]
             self._alarm = [min_alarm, max_alarm]

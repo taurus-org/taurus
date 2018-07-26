@@ -24,8 +24,11 @@
 ##############################################################################
 
 from __future__ import absolute_import
-
 from sys import version_info as __vi
+from taurus.core.util import log as __log
+
+__log.deprecated(dep='taurus.external.unittest', rel='4.3.2', alt='unittest')
+
 
 if __vi[:2] < (2,7):
     try:

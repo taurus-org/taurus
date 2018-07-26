@@ -29,8 +29,8 @@ import os
 import sys
 import numpy
 import subprocess
-from taurus.external import unittest
-from taurus.external.pint import Quantity
+import unittest
+from taurus.core.units import Quantity
 import taurus
 from taurus.test import insertTest, getResourcePath
 from taurus.core.taurusbasetypes import DataType, AttrQuality, DataFormat

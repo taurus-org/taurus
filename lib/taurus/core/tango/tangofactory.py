@@ -39,7 +39,9 @@ except ImportError:
     debug(msg)
     raise
 
-from taurus.core.taurusbasetypes import TaurusElementType
+from taurus import tauruscustomsettings
+from taurus.core.taurusbasetypes import (TaurusElementType,
+                                         TaurusSerializationMode)
 from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusbasetypes import OperationMode
 from taurus.core.taurusexception import TaurusException, DoubleRegistration
@@ -105,6 +107,9 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         self._polling_enabled = True
         self.reInit()
         self.scheme = 'tango'
+        self._serialization_mode = TaurusSerializationMode.get(
+            getattr(tauruscustomsettings, 'TANGO_SERIALIZATION_MODE',
+                    'Serial'))
 
     def reInit(self):
         """Reinitialize the singleton"""
@@ -163,13 +168,16 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         return dict(self.tango_db)
 
     def set_default_tango_host(self, tango_host):
-        """Sets the new default tango host. The method will transform the given
+        """
+        Sets the new default tango host. The method will transform the given
         name to an Authority URI.
         
         .. note:: Calling this method also clears the device alias cache.
 
         :param tango_host: (str) the new tango host. It accepts any valid Tango
-        authority name or None to use the defined by $TANGO_HOST env. var.
+                                 authority name or None to use the defined by
+                                 $TANGO_HOST env. var.
+
         """
         # Translate to Authority URI
         if tango_host and "//" not in tango_host:
@@ -294,7 +302,8 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
                 self.debug("Could not create Authority %s", groups['authority'],
                            exc_info=1)
 
-            self.tango_db[name] = ret
+            if ret is not None:
+                self.tango_db[name] = ret
         return ret
 
     def getDevice(self, dev_name, create_if_needed=True, **kw):

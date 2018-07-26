@@ -73,6 +73,7 @@ def demo():
             control_l.setSpacing(M)
             control_panel.setLayout(control_l)
             model_widget = Qt.QLineEdit()
+            format_widget = Qt.QLineEdit()
             model_index_widget = Qt.QLineEdit()
             fg_widget = Qt.QComboBox()
             bg_widget = Qt.QComboBox()
@@ -82,6 +83,7 @@ def demo():
             control_l.addRow("model index:", model_index_widget)
             control_l.addRow("foreground role:", fg_widget)
             control_l.addRow("background role:", bg_widget)
+            control_l.addRow("formatter:", format_widget)
             control_l.addRow("prefix text:", prefix_widget)
             control_l.addRow("suffix text:", suffix_widget)
 
@@ -94,6 +96,7 @@ def demo():
             bg_widget.addItems(["quality", "state", "value", "none"])
 
             model_widget.textChanged.connect(w.setModel)
+            format_widget.textChanged.connect(w.setFormat)
             fg_widget.currentIndexChanged[str].connect(w.setFgRole)
             bg_widget.currentIndexChanged[str].connect(w.setBgRole)
             prefix_widget.textChanged.connect(w.setPrefixText)
@@ -101,6 +104,7 @@ def demo():
             model_index_widget.textChanged.connect(w.setModelIndex)
 
             model_widget.setText("sys/tg_test/1/double_scalar")
+            format_widget.setText(w.getFormat())
             fg_widget.setCurrentIndex(0)
             fg_widget.setEditable(True)
             bg_widget.setCurrentIndex(0)

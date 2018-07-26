@@ -34,7 +34,7 @@ import weakref
 from .taurusmodel import TaurusModel
 from taurus.core.taurusbasetypes import TaurusElementType, DataType
 from taurus.core.util.log import deprecation_decorator
-from taurus.external.pint import Quantity, UR
+from taurus.core.units import Quantity
 
 
 class TaurusAttribute(TaurusModel):

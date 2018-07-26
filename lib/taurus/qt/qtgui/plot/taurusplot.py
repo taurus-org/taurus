@@ -52,11 +52,16 @@ from curvesAppearanceChooserDlg import CurveAppearanceProperties
 
 
 def isodatestr2float(s, sep='_'):
-    '''
+    """
     converts a date string in iso format to a timestamp (seconds since epoch)
-    with microseconds precision
-    '''
-    d = datetime.strptime(s, '%Y-%m-%d' + sep + '%H:%M:%S.%f')
+    with microseconds precision if available
+    """
+    try:
+        # with microseconds
+        d = datetime.strptime(s, '%Y-%m-%d' + sep + '%H:%M:%S.%f')
+    except:
+        # without microseconds
+        d = datetime.strptime(s, '%Y-%m-%d' + sep + '%H:%M:%S')
     return time.mktime(d.timetuple()) + d.microsecond * 1e-6
 
 
@@ -3333,7 +3338,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                       parent model
 
         .. seealso:: :meth:`TaurusBaseComponent.setParentModel` '''
-
+        if yesno:
+            self.deprecated(dep='setUseParentModel(True)', rel="4.3.2",
+                            alt='explicit models including the parent model')
         if yesno and self._designMode:
             Qt.QMessageBox.information(self, "UseParentModel usage note",
                                        "Using the UseParentModel feature may require you to call " +

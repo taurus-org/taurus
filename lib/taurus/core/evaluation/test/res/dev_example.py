@@ -32,7 +32,7 @@ import os
 import platform
 import ctypes
 from taurus.core.evaluation import EvaluationDevice
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 
 
 class FreeSpaceDevice(EvaluationDevice):

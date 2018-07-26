@@ -10,7 +10,7 @@ panel.setLayout(layout)
 from taurus.qt.qtgui.display import TaurusLabel
 w = TaurusLabel()
 layout.addWidget(w)
-w.model = 'sys/tg_test/1/double_scalar'
+w.model = 'sys/tg_test/1/double_scalar#rvalue.magnitude'
 
 panel.show()
 sys.exit(app.exec_())

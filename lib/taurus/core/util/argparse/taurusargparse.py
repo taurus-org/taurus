@@ -23,6 +23,8 @@
 ##
 #############################################################################
 
+# TODO: This module should be updated to use argparse instead of optparse
+
 """Helper command line parser for taurus based on :mod:`optparse`.
 Suppose you have an application file::
 

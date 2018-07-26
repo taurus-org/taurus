@@ -40,7 +40,7 @@ from guiqwt.styles import XYImageParam
 from guiqwt.config import _
 from guiqwt.histogram import lut_range_threshold
 import numpy
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 
 class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
     '''extension of :class:`guiqwt.builder.PlotItemBuilder` to provide tauruscurve and taurusimage items'''

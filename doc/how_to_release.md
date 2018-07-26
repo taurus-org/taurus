@@ -11,7 +11,7 @@ of stuff that should be manually tested.
 3. Work to close all the PR/issues remaining open in the milestone. This can be either done in develop or in a release branch called `release-XXX` (where `XXX` is the milestone name, e.g. `Jul17`). If a release branch is used, `develop` is freed to continue with integrations that may not be suitable for this release. On the other hand, it adds a bit more work  because the release-related PRs (which are done against the `release-XXX` branch), may need to be also merged to develop. Note: the `release-XXX` branch *can* live in the taurus-org repo or on a personal fork (in which case you should do step 4.iv **now** to allow other integrators to push directly to it).
 4. Create the release branch if it was not done already in the previous step and:
     1. Review and update the CHANGELOG.md if necessary. See [this](http://keepachangelog.com)
-    2. Bump version using `bumpversion <major|minor|patch> && bumpversion release`  (use [semver](http://semver.org/) criteria to choose amongst `major`, `minor` or `patch`
+    2. Bump version using `bumpversion <major|minor|patch>`  (use [semver](http://semver.org/) criteria to choose amongst `major`, `minor` or `patch`
     3. Update man pages:
          ```
          cd <taurus>/doc
@@ -21,9 +21,18 @@ of stuff that should be manually tested.
          ```
     4. Create a PR to merge the `release-XXX` against the **`master`** branch of the taurus-org repo
 5. Request reviews in the PR from at least one integrator from each participating institute. The master branch is protected, so the reviews need to be cleared (or dismissed with an explanation) before the release can be merged.
-6. Perform manual tests (see checklist below). You may use the CI artifacts (e.g., from appveyor) and post the results in the comments of the PR.
-7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, merge the PR and tag in master
+6. Perform manual tests (see checklist below). You may use the CI artifacts (e.g., from appveyor). To avoid spamming the PR comments with the manual test results, a new issue can be created to report the tests results on each platform (and just use a single check for each platform in the PR).
+7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, run `bumpversion release`, push and merge the PR and tag in master
 8. Merge also the  `release-XXX` branch into develop, and bump the version of develop with `bumpversion patch`
+9. Release to PyPI **from a clean checkout** and using [twine](https://github.com/pypa/twine):
+   ```
+   cd /tmp
+   git clone https://github.com/taurus-org/taurus.git -b <RELEASE_TAG>
+   cd taurus
+   python setup.py sdist bdist_wheel
+   twine upload dist/*
+   ```
+   
 
 
 ## Manual test checklist
@@ -32,16 +41,17 @@ This is a check-list of manual tests. It is just orientative. Expand it at will.
 This list assumes a clean environment with all Taurus dependencies already installed
 and access to a Tango system with the TangoTest DS running.
 
-Hint: this list can be used as a template to be copy-pasted on a release PR
-
+Hint: this list can be used as a template to be copy-pasted on an issue linked from the release PR
+```
 ### Installation
 - [ ] Install Taurus from the tar.gz : `pip install <tarball_artifact_URL>`
 
 ### Taurusdemo
 
 - [ ] Test all of the buttons of the taurusdemo. All demos should launch correctly and without raising exceptions
-- [ ] For TaurusLabel, check foreground role, the background role, the prefix, the suffix, etc.
-- [ ] For TaurusLabel, use a model with fragment (e.g., `sys/tg_test/1/ampli#magnitude`, `eval:Q('1mm')#unit"`)
+- [ ] For TaurusLabel, check foreground role, the background role, the prefix, the suffix, the formatter, etc.
+- [ ] For TaurusLabel, in order to test the background role=value, you can use the following attribute: `eval:["FAULT","ON","OFF","ALARM"][randint(4)]`
+- [ ] For TaurusLabel, use a model with fragment (e.g., `sys/tg_test/1/ampli#rvalue.magnitude`, `eval:Q('1mm')#rvalue.unit"`, `eval:10*arange(9)#rvalue[3:4]`)
 - [ ] For LCD: Test the foreground roles and the background role
 - [ ] For Led: Test the colors, ON color, Off color.
 
@@ -92,11 +102,12 @@ Hint: this list can be used as a template to be copy-pasted on a release PR
 ### Tauruscurve & taurustrend1d
 (unused and to be deprecated, you may test but **do not worry too much if they fail**)
 
-- [ ] Execute: `tauruscurve --demo` and `taurustrend1d "eval:Q(rand(),'mm')"`
+- [ ] Execute: `tauruscurve --demo`
 - [ ] Change size
 - [ ] Move curve with mouse
 - [ ] Resize curve with mouse
 - [ ] Test some option of the menu with mouse.
+- [ ] Execute: `taurustrend1d "eval:Q(rand(),'mm')"` and test it in the same way
 
 ### taurusdesigner
 - [ ] Check that taurusdesigner is correctly opened and taurus widgets are present in the catalog
@@ -106,7 +117,7 @@ Hint: this list can be used as a template to be copy-pasted on a release PR
 - [ ] Execute: `taurusdevicepanel sys/tg_test/1`
 - [ ] Check that it opens correctly and that the attrs and commands are populated
 - [ ] Execute SwitchStates command (see that the state label changes to FAULT and its color to red)
-      and then execute the Init command and the label returns to RUNNING (green)
+      and then execute the Init command and the label returns to RUNNING (blue)
 
 ### tauruspanel
 - [ ] Execute: `tauruspanel`
@@ -123,6 +134,8 @@ Hint: this list can be used as a template to be copy-pasted on a release PR
       value (from the context menu of a value label)
 - [ ] Test compact mode for all values (from the context menu of the whole form)
 - [ ] Test changing labels
+- [ ] Test changing the formatter for a single value (from the context menu of a value label) (use, e.g. `>>{}<<`)
+- [ ] Test changing the formatter for all values (from the context menu of the whole form)
 - [ ] Test re-order of values with "Modify contents"
 - [ ] Test the different "show" buttons (tables, images, spectra)
 - [ ] Change the write widget of double_scalar by a TaurusWheelEdit
@@ -137,7 +150,6 @@ Hint: this list can be used as a template to be copy-pasted on a release PR
 - [ ] Create a new panel (a TaurusForm) and drag and drop several models from other forms
 - [ ] Move panels around (with view unlocked!) and hide ("close") and re-show them
 - [ ] Test saving and restoring perspectives
-- [ ] Test drag&drop from a form to a trend
 - [ ] Test drag&drop from a form to a trend
 - [ ] Test clicking on "example01 synoptic" elements and check that the panels raised
 - [ ] Test that selecting a panel changes the selection on "example01 synoptic"
@@ -155,3 +167,4 @@ Hint: this list can be used as a template to be copy-pasted on a release PR
 - [ ] Launch `taurusiconcatalog`. Several tabs with an array of icons [should be displayed](http://taurus-scada.org/en/latest/devel/icon_guide.html#taurus-icon-catalog)
 - [ ] Check that tooltips give info on each icon
 - [ ] Click on some icons and check that they give a bigger view of the icon and more info.
+```
