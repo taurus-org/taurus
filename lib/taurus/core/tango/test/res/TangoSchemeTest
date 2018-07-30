@@ -25,16 +25,38 @@
 from __future__ import print_function
 from future.utils import with_metaclass
 
+from distutils.version import LooseVersion
 import numpy
 from time import (time, sleep)
 
+import PyTango
 from PyTango import DeviceProxy, AttrWriteType, DevState, AttrQuality
-from PyTango.server import Device, DeviceMeta, attribute, run, command
+from PyTango.server import Device, DeviceMeta, LatestDeviceImpl, attribute, run, command
 
 from threading import Thread
 
 
-class TangoSchemeTest(with_metaclass(DeviceMeta, Device)):
+"""
+We should check PyTango version 
+If it lower than 9.2.0 then DeviceMeta is a function and we can not use directly. 
+"""
+
+if LooseVersion(PyTango.__version__)<LooseVersion('9.2.1'):
+
+    class __DeviceMeta(type(LatestDeviceImpl)):
+        __call__ = type.__call__
+        __init__ = type.__init__
+        def __new__(cls, name, this_bases, d):
+            if this_bases is None:
+                this_bases = ()
+            return DeviceMeta(name, this_bases, d)
+    
+    
+else:    
+    __DeviceMeta = DeviceMeta
+
+
+class TangoSchemeTest(with_metaclass(__DeviceMeta, Device)):
     """
     This device server emulates the TangoTest device server for taurus test
     purposes (Tango schema). Only works with PyTango8.
