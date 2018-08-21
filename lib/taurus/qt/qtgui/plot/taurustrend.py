@@ -31,7 +31,6 @@ from __future__ import division
 from builtins import zip
 from builtins import str
 from builtins import range
-from past.utils import old_div
 __all__ = ["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]
 
 from datetime import datetime
@@ -835,7 +834,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         # if autoclear is False we have to work directly with each curve (and
         # cannot buffer)
         else:
-            for n, v in list(recordData.items()):
+            for n, v in recordData.items():
                 c = self._curves.get(n, None)
                 if c is None:
                     continue
@@ -986,6 +985,8 @@ class TaurusTrend(TaurusPlot):
         if self.isTimerNeeded(checkMinimized=False):
             self.debug('(re)starting the timer (in showEvent)')
             self._replotTimer.start()
+            # call a replot now (since it may not have been done while hidden)
+            self.doReplot()
 
     def hideEvent(self, event):
         '''reimplemented from :meth:`TaurusPlot.showEvent` so that
@@ -1163,7 +1164,9 @@ class TaurusTrend(TaurusPlot):
         try:
             # For it to work properly, 'names' must be a CaselessList, just as
             # self.trendSets is a CaselessDict
-            del_sets = [name for name in list(self.trendSets.keys())
+            if not isinstance(names, CaselessList):
+                names = CaselessList(names)
+            del_sets = [name for name in self.trendSets.keys()
                         if name not in names]
 
             # if all trends were removed, reset the color palette
@@ -1431,7 +1434,7 @@ class TaurusTrend(TaurusPlot):
                 #      calling setInterval only when really needed.
                 self._replotTimer.setInterval(plot_refresh)
                 self.debug('New replot period is %1.2f seconds',
-                           (old_div(plot_refresh, 1000.)))
+                           (plot_refresh / 1000.))
 
         else:
             self.warning(
@@ -1511,7 +1514,7 @@ class TaurusTrend(TaurusPlot):
         if maxBufferSize is not None:
             self.setMaxDataBufferSize(maxBufferSize)
         # attach the curves
-        for rd in list(configdict["RawData"].values()):
+        for rd in configdict["RawData"].values():
             self.attachRawData(rd)
         # for backwards compatibility, if the ordered list of models is not
         # stored, it uses the unsorted dict values
@@ -1943,7 +1946,7 @@ def main():
         if not curves:
             w.close()
         else:
-            for ts in list(w.trendSets.values()):
+            for ts in w.trendSets.values():
                 ts.dataChanged.connect(exportIfAllCurves)
         sys.exit(app.exec_())  # exit without showing the widget
 

@@ -14,14 +14,14 @@ Proposals list
   [TEP3][]   | ACCEPTED | Tango-Independent                                        
   [SEP5][]   | ACCEPTED  | Implementation of tests infrastructure                   
   [TEP7][]   | OBSOLETE  | Code contribution workflow                               
-  [TEP8][]   | CANDIDATE | Remove from Taurus objects the direct Logger dependence  
+  [TEP8][]   | REJECTED | Remove from Taurus objects the direct Logger dependence  
   [SEP9][]   | ACCEPTED  | Compact Read+Write widgets in Taurus                     
   [SEP10][] | ACCEPTED  | Taurus separation                                        
   [SEP11][] | ACCEPTED  | Direct load of .ui files                                       
   [SEP12][] | CANDIDATE | Use python Enum instead of taurus Enumeration
   [TEP13][] | DRAFT     | Plugins support 
   [TEP14][] | ACCEPTED  | Core refactoring (quantities and configuration)
-  [TEP15][] | DRAFT     | fragment-based slicing support in URIs
+  [TEP15][] | ACCEPTED  | fragment-based slicing support in URIs
   [TEP16][] | ACCEPTED     | Moving Taurus to Github
   [TEP17][] | DRAFT   | Implement plots with pyqtgraph
 
@@ -36,6 +36,6 @@ Proposals list
 [SEP12]: http:/www.sardana-controls.org/sep/?SEP12.md
 [TEP13]: http://www.taurus-scada.org/tep/?TEP13.md
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
-[TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
+[TEP15]: https://github.com/cpascual/taurus/blob/tep15/doc/source/tep/TEP15.md
 [TEP16]: http://www.taurus-scada.org/tep/?TEP16.md
 [TEP17]: https://github.com/cpascual/taurus/blob/tep17/doc/source/tep/TEP17.md

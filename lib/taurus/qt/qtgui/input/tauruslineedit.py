@@ -45,6 +45,30 @@ __docformat__ = 'restructuredtext'
 
 
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
+    """
+    A taurus-aware ``QLineEdit``. It will display the value (or fragment
+    of the value) referenced by its model. It is a
+    :class:`~taurus.qt.qtgui.base.TaurusBaseWritableWidget`
+    and as such it does not apply the changes straight away to the model
+    (unless ``autoApply`` is enabled), but instead shows that there are pending
+    operations which can be applied by pressing "ENTER".
+
+    When used with numerical value Attributes as its model, it provides some
+    extended behaviour:
+
+    - It represents out-of-limit values using different colours (for warning,
+      range, invalid,...)
+    - It uses a validator that is range-aware
+    - The mouse wheel and keyboard arrows can be enabled for doing value
+      increments
+
+    .. note::
+        when used with models whose value is a pint `Quantity`, the text
+        is parsed by pint and therefore one can write e.g. `2 3 mm` which is
+        equivalent to `6 mm` !
+
+    """
+
 
     def __init__(self, qt_parent=None, designMode=False):
         name = self.__class__.__name__

@@ -49,8 +49,7 @@ class TaurusBaseContainer(TaurusBaseWidget):
         widget.model = 'sys/database/2'
         stateWidget = TaurusLabel()
         layout.addWidget(stateWidget)
-        stateWidget.useParentModel = True
-        stateWidget.model = '/state'
+        stateWidget.model = 'sys/database/2/state'
     """
 
     def __init__(self, name, parent=None, designMode=False):

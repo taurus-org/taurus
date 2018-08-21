@@ -188,6 +188,18 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         else:
             self.ui.peaksComboBox.setCurrentIndex(3)
 
+        # put focus on Apply button by default (otherwise, on some desktop
+        # environments, the "close" button would be focused by default, 
+        # causing the dialog to close when using "ENTER" while editing values
+        self.ui.buttonBox.button(
+            Qt.QDialogButtonBox.Close).setAutoDefault(False)
+        self.ui.buttonBox.button(
+            Qt.QDialogButtonBox.Close).setDefault(False)
+        self.ui.buttonBox.button(
+            Qt.QDialogButtonBox.Apply).setAutoDefault(True)
+        self.ui.buttonBox.button(
+            Qt.QDialogButtonBox.Apply).setDefault(True)
+
         # connect signals
         self.ui.buttonBox.button(
             Qt.QDialogButtonBox.Close).clicked.connect(self.hide)

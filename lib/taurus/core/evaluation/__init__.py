@@ -102,72 +102,69 @@ for the evaluation. The supported syntax for `@<evaluator>` is:
 
 Some examples of valid evaluation models are:
 
-    - An attribute that multiplies a tango attribute by 2:
+    - An attribute that multiplies a tango attribute by 2::
 
-        `eval:2*{tango:a/b/c/d}`
+        eval:2*{tango:a/b/c/d}
 
-    - Same as above, but using substitutions:
+    - Same as above, but using substitutions::
 
-        `eval:k=2;a={tango:a/b/c/d};k*a`
+        eval:k=2;a={tango:a/b/c/d};k*a
 
     - An attribute that adds two tango attributes together (assuming that tango
-      is set as the default scheme)
+      is set as the default scheme)::
 
-        `eval:{a/b/c/d}+{f/g/h/i}`
+        eval:{a/b/c/d}+{f/g/h/i}
 
-    - An attribute that generates an array of random values:
+    - An attribute that generates an array of random values::
 
-        `eval:rand(256)`
+        eval:rand(256)
 
-    - Same as above, but with units:
+    - Same as above, but with units::
 
-        `eval:Q(rand(256),'V')`
+        eval:Q(rand(256),'V')
 
-    - An attribute that adds noise to a tango image attribute:
+    - An attribute that adds noise to a tango image attribute::
 
-        `eval:img={tango:sys/tg_test/1/short_image_ro};img+10*rand(*img.shape)`
+        eval:img={tango:sys/tg_test/1/short_image_ro};img+10*rand(*img.shape)
 
     - An attribute that accesses a method from a given module (in this
-      case to use os.path.exists):
+      case to use os.path.exists)::
 
-        `eval:@os.*/path.exists("/some/file")`
+        eval:@os.*/path.exists("/some/file")
 
-    - Same as before, for getting today's date as an attribute:
+    - Same as before, for getting today's date as an attribute::
 
-        'eval:@datetime.*/date.today().isoformat()'
+        eval:@datetime.*/date.today().isoformat()
 
-    - A default evaluator device named `foo`:
+    - A default evaluator device named `foo`::
 
-        `eval:@foo`
-
-    - A custom evaluator device (implemented as class `MyEvalDev` in the `mymod`
-      module):
-
-        `eval:@mymod.MyEvalDev`
+        eval:@foo
 
     - A custom evaluator device (implemented as class `MyEvalDev` in the `mymod`
-      module):
+      module)::
 
-        `eval:@mymod.MyEvalDev`
+        eval:@mymod.MyEvalDev
+
+    - A custom evaluator device (implemented as class `MyEvalDev` in the `mymod`
+      module)::
+
+        eval:@mymod.MyEvalDev
 
     - A writable attribute foo (implemented as a writable property of the
-      `MyClass` class from the `mymod` module):
+      `MyClass` class from the `mymod` module)::
 
-        `eval:@c=mymod.MyClass()/c.foo`
+        eval:@c=mymod.MyClass()/c.foo
 
-        assuming that the `mymod` module defines `MyClass` as:
+      assuming that the `mymod` module defines `MyClass` as::
 
-            class MyClass(object):
+        class MyClass(object):
+            (...)
+            get_foo(self):
                 (...)
-                get_foo(self):
-                    (...)
-                set_foo(self, value):
-                    (...)
-                foo = property(get_foo, set_foo)
+            set_foo(self, value):
                 (...)
-
-
-
+            foo = property(get_foo, set_foo)
+            (...)
 
 
 .. note:: Previous to SEP3, a RFC3986 non-compliant syntax was used for the

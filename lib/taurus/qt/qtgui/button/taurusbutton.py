@@ -97,11 +97,6 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         button =  TaurusLauncherButton(widget = TaurusLabel())
         button.setModel('a/b/c/attrname') # attr name, which will be set at the TaurusLabel when clicking
 
-        #same as the previous one, but using the parent model and putting a custom text and icon:
-        button =  TaurusLauncherButton(widget = TaurusLabel(), text='click me', icon='logos:taurus.png')
-        button.setUseParentModel(True)  #let's assume that the button's parent has a model of type "/a/b/c"
-        button.setModel('/attrname')
-
     '''
 
     _widgetClassName = ''

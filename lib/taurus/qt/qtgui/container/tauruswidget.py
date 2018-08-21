@@ -49,8 +49,8 @@ class TaurusWidget(Qt.QWidget, TaurusBaseContainer):
         widget.model = 'sys/database/2'
         stateWidget = TaurusLabel()
         layout.addWidget(stateWidget)
-        stateWidget.useParentModel = True
-        stateWidget.model = '/state'"""
+        stateWidget.model = 'sys/database/2/state'
+        """
 
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__

@@ -46,8 +46,10 @@ rm $DOCDIR/*.1
 echo $SCRIPTSDIR
 for f in `ls`
   do echo "--------------------"
-  echo help2man -N -o "$DOCDIR/man/$f.1" ./$f
-  help2man -N -o "$DOCDIR/man/$f.1" ./$f
+  # remove "-alpha" (and other -xxx) from the version if present
+  V=`./$f --version 2>/dev/null |egrep -o '[0-9]+.[0-9]+(.[0-9])?'`
+  echo help2man -N -o "$DOCDIR/man/$f.1" --version-string=$V ./$f
+  help2man -N -o "$DOCDIR/man/$f.1" --version-string=$V ./$f
   done
 
 cd $DOCDIR

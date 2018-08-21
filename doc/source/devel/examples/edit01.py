@@ -19,8 +19,8 @@ layout.addWidget(w2)
 layout.addWidget(w3)
 layout.addWidget(w4)
 w1.model, w1.bgRole = 'sys/tg_test/1/double_scalar#label', ''
-w2.model = 'sys/tg_test/1/double_scalar'
-w3.model = 'sys/tg_test/1/double_scalar'
+w2.model = 'sys/tg_test/1/double_scalar#rvalue.magnitude'
+w3.model = 'sys/tg_test/1/double_scalar#rvalue.magnitude'
 w4.model, w4.bgRole = 'sys/tg_test/1/double_scalar#unit', ''
 
 panel.show()

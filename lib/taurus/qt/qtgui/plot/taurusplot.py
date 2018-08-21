@@ -3353,7 +3353,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                       parent model
 
         .. seealso:: :meth:`TaurusBaseComponent.setParentModel` '''
-
+        if yesno:
+            self.deprecated(dep='setUseParentModel(True)', rel="4.3.2",
+                            alt='explicit models including the parent model')
         if yesno and self._designMode:
             Qt.QMessageBox.information(self, "UseParentModel usage note",
                                        "Using the UseParentModel feature may require you to call " +

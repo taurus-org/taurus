@@ -38,7 +38,8 @@ from .util.singleton import Singleton
 from .util.log import Logger, taurus4_deprecation
 from .util.threadpool import ThreadPool
 
-from .taurusbasetypes import OperationMode, ManagerState, TaurusSerializationMode
+from .taurusbasetypes import (OperationMode, ManagerState,
+                              TaurusSerializationMode)
 from .taurusauthority import TaurusAuthority
 from .taurusdevice import TaurusDevice
 from .taurusattribute import TaurusAttribute
@@ -84,13 +85,16 @@ class TaurusManager(Singleton, Logger):
         this_path = os.path.abspath(__file__)
         self._this_path = os.path.dirname(this_path)
         self._serialization_mode = self.DefaultSerializationMode
-        if self._serialization_mode == TaurusSerializationMode.Concurrent:
-            self._thread_pool = ThreadPool(name="TaurusTP",
-                                           parent=self,
-                                           Psize=5,
-                                           Qsize=1000)
-        else:
-            self._thread_pool = None
+
+        self._thread_pool = ThreadPool(name="TaurusTP",
+                                       parent=self,
+                                       Psize=5,
+                                       Qsize=1000)
+
+        self._sthread_pool = ThreadPool(name="TaurusTSP",
+                                       parent=self,
+                                       Psize=1,
+                                       Qsize=0)
         self._plugins = None
 
         self._initial_default_scheme = self.default_scheme
@@ -110,27 +114,55 @@ class TaurusManager(Singleton, Logger):
 
         self._thread_pool.join()
         self._thread_pool = None
+        self._sthread_pool.join()
+        self._sthread_pool = None
 
         self._state = ManagerState.CLEANED
 
     def addJob(self, job, callback=None, *args, **kw):
-        """Add a new job (callable) to the queue. The new job will be processed
-        by a separate thread
+        """ Deprecated. Wrapper of enqueueJob. See enqueueJob documentation.
+        """
+        self.deprecated(dep='addJob', alt='enqueueJob', rel='4.3.2')
+        self.enqueueJob(job, callback=callback, job_args=args, job_kwargs=kw)
 
+    def enqueueJob(self, job, callback=None, job_args=(), job_kwargs=None,
+                   serialization_mode=None):
+        """ Enqueue a job (callable) to the queue. The new job will be
+        processed by a separate thread
         :param job: (callable) a callable object
         :param callback: (callable) called after the job has been processed
-        :param args: (list) list of arguments passed to the job
-        :param kw: (dict) keyword arguments passed to the job
+        :param job_args: (sequence) positional arguments passed to the job
+        :param job_kwargs: (dict) keyword arguments passed to the job
+        :param serialization_mode: (TaurusSerializationMode) serialization
+        mode
         """
-        if self._serialization_mode == TaurusSerializationMode.Concurrent:
+        if job_kwargs is None:
+            job_kwargs = {}
+
+        if serialization_mode is None:
+            serialization_mode = self._serialization_mode
+
+        if serialization_mode == TaurusSerializationMode.Concurrent:
             if not hasattr(self, "_thread_pool") or self._thread_pool is None:
                 self.info("Job cannot be processed.")
                 self.debug(
-                    "The requested job cannot be processed. Make sure this manager is initialized")
+                    "The requested job cannot be processed. "
+                    + "Make sure this manager is initialized")
                 return
-            self._thread_pool.add(job, callback, *args, **kw)
+            self._thread_pool.add(job, callback, *job_args, **job_kwargs)
+        elif serialization_mode == TaurusSerializationMode.Serial:
+            if (not hasattr(self, "_sthread_pool")
+                    or self._sthread_pool is None):
+                self.info("Job cannot be processed.")
+                self.debug(
+                    "The requested job cannot be processed. "
+                    + "Make sure this manager is initialized")
+                return
+
+            self._sthread_pool.add(job, callback, *job_args, **job_kwargs)
         else:
-            job(*args, **kw)
+            raise TaurusException("{} serialization mode not supported".format(
+                serialization_mode))
 
     def setSerializationMode(self, mode):
         """Sets the serialization mode for the system.
@@ -295,9 +327,11 @@ class TaurusManager(Singleton, Logger):
             for scheme in schemes:
                 if scheme in plugins:
                     k = plugins[scheme]
-                    self.warning("Conflicting plugins: %s and %s both implement "
-                                 "scheme %s. Will keep using %s" % (k.__name__,
-                                                                    plugin_class.__name__, scheme, k.__name__))
+                    self.warning(
+                        "Conflicting plugins: %s and %s both implement "
+                        "scheme %s. Will keep using %s" % (k.__name__,
+                                                           plugin_class.__name__,
+                                                           scheme, k.__name__))
                 else:
                     plugins[scheme] = plugin_class
         return plugins
@@ -350,8 +384,8 @@ class TaurusManager(Singleton, Logger):
             for s in list(m.__dict__.values()):
                 plugin = None
                 try:
-                    if issubclass(s, TaurusFactory) and \
-                       issubclass(s, Singleton):
+                    if (issubclass(s, TaurusFactory)
+                            and issubclass(s, Singleton)):
                         if hasattr(s, 'schemes'):
                             schemes = getattr(s, 'schemes')
                             if len(schemes):
@@ -396,6 +430,7 @@ class TaurusManager(Singleton, Logger):
 
     def __repr__(self):
         return self.__str__name__("")
+
 
 if __name__ == '__main__':
     manager = TaurusManager()

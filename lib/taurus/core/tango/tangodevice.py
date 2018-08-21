@@ -282,7 +282,12 @@ class TangoDevice(TaurusDevice):
         if weWereListening:
             # We were listening already, so we must fake an event to the new
             # subscribed listener with the current value
-            evt_value = self.__decode(self.stateObj.read())
+            try:
+                evt_value = self.__decode(self.stateObj.read())
+            except:
+                # the value may not be available (e.g. if device is not ready)
+                self.debug('Cannot read state')
+                return ret
             listeners = hasattr(listener, '__iter__') and listener or [
                 listener]
             self.fireEvent(TaurusEventType.Change, evt_value, listeners)

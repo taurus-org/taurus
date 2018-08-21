@@ -272,9 +272,6 @@ class _TaurusTreePanel(Qt.QWidget, TaurusBaseWidget):
     #: with which this widget will get its data from. The convention used for
     #: the string can be found :ref:`here <model-concept>`.
     #:
-    #: In case the property :attr:`useParentModel` is set to True, the model
-    #: text must start with a '/' followed by the attribute name.
-    #:
     #: **Access functions:**
     #:
     #:     * :meth:`TaurusBaseWidget.getModel`

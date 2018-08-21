@@ -73,7 +73,7 @@ class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
     def test_bug169(self):
         '''Check if setModel works when using parent model'''
         self._widget.setModel('/double_scalar#label')
-        self.assertMaxDeprecations(0)
+        self.assertMaxDeprecations(1)
 
     def test_relativemodelclass(self):
         '''Check consistency in modelClass when using parent model (re: bug169)
@@ -85,7 +85,7 @@ class Bug169_Test(BaseWidgetTestCase, unittest.TestCase):
             msg = ('getModelClass() inconsistency:\n expected: %s\n got: %s' %
                    (self._expectedModelClass, mc))
             self.assertEqual(self._expectedModelClass, mc, msg)
-        self.assertMaxDeprecations(0)
+        self.assertMaxDeprecations(1)
 
 
 # ------------------------------------------------------------------------------
@@ -101,6 +101,16 @@ testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
 @testOldFgroles(fgRole='quality', expected='ATTR_VALID')
 @testOldFgroles(fgRole='none', expected='')
 # ------------------------------------------------------------------------------
+@insertTest(helper_name='text',
+            model='tango:' + DEV_NAME + '/double_image#rvalue[1,::2]',
+            expected='[ 1.23  1.23] mm')
+@insertTest(helper_name='text',
+            model='tango:' + DEV_NAME + '/double_spectrum#rvalue[1]',
+            expected='1.23 mm')
+@insertTest(helper_name='text',
+            model='tango:' + DEV_NAME + '/double_image',
+            modelIndex=(1,1),
+            expected='1.23 mm')
 @insertTest(helper_name='text',
             model='tango:' + DEV_NAME + '/double_spectrum',
             modelIndex=1,

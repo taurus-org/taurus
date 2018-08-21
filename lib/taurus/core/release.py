@@ -49,7 +49,7 @@ name = 'taurus'
 
 # we use semantic versioning (http://semver.org/) and we update it using the
 # bumpversion script (https://github.com/peritus/bumpversion)
-version = '4.3.2-alpha'
+version = '4.4.1-alpha'
 
 # generate version_info and revision (**deprecated** since version 4.0.2-dev).
 if '-' in version:

@@ -80,7 +80,8 @@ class TaurusWidgetFactory(Singleton, Logger):
         wf = TaurusWidgetFactory()
         print wf.getTaurusWidgetClassNames()"""
 
-    skip_modules = ('widget', 'util', 'qtdesigner', 'uic', 'resource')
+    skip_modules = ('widget', 'util', 'qtdesigner', 'uic', 'resource',
+                    'console')
 
     def __init__(self):
         """ Initialization. Nothing to be done here for now."""

@@ -56,7 +56,6 @@ class TaurusModelSelectorTree(TaurusWidget):
         self._deviceTree = TaurusDbTreeWidget(
             perspective=taurus.core.taurusbasetypes.TaurusElementType.Device)
         self._deviceTree.getQModel().setSelectables(self._selectables)
-        self._deviceTree.setUseParentModel(True)
 
         # toolbar
         self._toolbar = Qt.QToolBar("TangoSelector toolbar")
@@ -68,8 +67,6 @@ class TaurusModelSelectorTree(TaurusWidget):
         # defines the layout
         self.setButtonsPos(buttonsPos)
 
-        self._deviceTree.recheckTaurusParent()  # NOT WORKING????
-        # @todo: This is Workaround because UseSetParentModel is giving trouble again!
         self.modelChanged.connect(self._deviceTree.setModel)
 
     def setButtonsPos(self, buttonsPos):

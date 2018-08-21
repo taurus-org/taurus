@@ -67,8 +67,7 @@ DefaultNoneValue = "-----"
 def defaultFormatter(dtype=None, basecomponent=None, **kwargs):
     """
     Default formatter callable. Returns a format string based on dtype
-    and the mapping provided by 
-    :attribute:`TaurusBaseComponent.defaultFormatDict`
+    and the mapping provided by :attr:`TaurusBaseComponent.defaultFormatDict`
 
     :param dtype: (object) data type
     :param basecomponent: widget whose display is to be formatted
@@ -684,19 +683,20 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         return ret
 
     def displayValue(self, v):
-        """Returns a string representation of the given value
+        """
+        Returns a string representation of the given value
 
         This method will use a format string which is determined 
-        dynamically from :attribute:`FORMAT`.
+        dynamically from :attr:`FORMAT`.
 
         By default `TaurusBaseComponent.FORMAT` is set to 
-        :function:`defaultFormatter`, which makes use of 
-        :attribute:`defaultFormatDict`. 
+        :func:`defaultFormatter`, which makes use of
+        :attr:`defaultFormatDict`.
  
         In order to customize the formatting behaviour, one can
-        use :method:`setFormat` to alter the formatter of an specific instance
-        (recommended) or change :attribute:`defaultFormatDict` or
-        :attribute:`FORMAT` directly at class level.
+        use :meth:`setFormat` to alter the formatter of an specific instance
+        (recommended) or change :attr:`defaultFormatDict` or
+        :attr:`FORMAT` directly at class level.
         
         The formatter can be set to a python format string [1] or a callable
         that returns a python format string.
@@ -705,30 +705,33 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         - dtype: the data type of the value to be formatted
         - basecomponent: the affected widget
   
-        The following are some examples for customizing the formatting:
+        The following are some examples for customizing the formatting::
 
-        - Change the format for widget instance `foo`:
+        - Change the format for widget instance `foo`::
 
             foo.setFormat("{:.2e}")
 
-        - Change FORMAT for all widgets (using a string):
+        - Change FORMAT for all widgets (using a string)::
 
             TaurusBaseComponent.FORMAT = "{:.2e}"
             
-        - Change FORMAT for all TaurusLabels (using a callable):
+        - Change FORMAT for all TaurusLabels (using a callable)::
         
             def baseFormatter(dtype=None, basecomponent=None, **kwargs):
                 return "{:.1f}"
 
             TaurusLabel.FORMAT = baseFormatter
 
-        - Use the defaultFormatDict but modify the format string for dtype=str:
+        - Use the defaultFormatDict but modify the format string for
+          dtype=str::
 
             TaurusLabel.defaultFormatDict.update({"str": "{!r}"})
 
-        .. seealso:: :attribute:`tauruscustomsettings.DEFAULT_FORMATTER`,
+
+        .. seealso:: :attr:`tauruscustomsettings.DEFAULT_FORMATTER`,
                      `--default-formatter` option in :class:`TaurusApplication`,
                      :meth:`TaurusBaseWidget.onSetFormatter`
+
 
         [1] https://docs.python.org/2/library/string.html
 
@@ -774,7 +777,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     def setFormat(self, format):
         """ Method to set the `FORMAT` attribute for this instance.
         It also resets the internal format string, which will be recalculated
-        in the next call to :method:`displayValue`
+        in the next call to :meth:`displayValue`
 
         :param format: (str or callable) A format string
                        or a formatter callable (or the callable name in
@@ -795,8 +798,8 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     def getFormat(self):
         """ Method to get the `FORMAT` attribute for this instance.
 
-        :return: (str) a string of the current format.
-        It could be a python format string or a callable string representation.
+        :return: (str) a string of the current format. It could be a python
+                 format string or a callable string representation.
         """
         if isinstance(self.FORMAT, string_types):
             formatter = self.FORMAT
@@ -807,7 +810,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     def resetFormat(self):
         """Reset the internal format string. It forces a recalculation
-        in the next call to :method:`displayValue`.
+        in the next call to :meth:`displayValue`.
         """
         self._format = None
 
@@ -833,9 +836,12 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
         idx = self.getModelIndexValue()
         if v is not None and idx:
-            for i in idx:
-                v = v[i]
-
+            try:
+                for i in idx:
+                    v = v[i]
+            except Exception as e:
+                self.debug('Problem with applying model index: %r', e)
+                return self.getNoneValue()
         return self.displayValue(v)
 
     def setNoneValue(self, v):
@@ -1170,6 +1176,9 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
         :param yesno: (bool) whether or not to use parent model
         """
+        if yesno:
+            self.deprecated(dep='setUseParentModel(True)', rel="4.3.2",
+                            alt='explicit models including the parent model')
         if yesno == self._useParentModel:
             return
         self._useParentModel = yesno
@@ -1325,7 +1334,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
 
         .. seealso:: :meth:`TaurusBaseWidget.showFormatterDlg`,
                      :meth:`TaurusBaseComponent.displayValue`,
-                     :attribute:`tauruscustomsettings.DEFAULT_FORMATTER`
+                     :attr:`tauruscustomsettings.DEFAULT_FORMATTER`
         """
         format = self.showFormatterDlg()
         if format is not None:

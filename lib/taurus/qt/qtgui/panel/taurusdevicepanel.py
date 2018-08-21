@@ -320,9 +320,14 @@ class TaurusDevicePanel(TaurusWidget):
             if self.getModel():
                 self.detach()  # Do not dettach previous model before pinging the new one (fail message will be shown at except: clause)
             TaurusWidget.setModel(self, model)
-            self.setWindowTitle(str(model).upper())
+            model_obj = self.getModelObj()
+
+            simple_name = model_obj.getSimpleName().upper()
+            self.setWindowTitle(simple_name)
             model = self.getModel()
-            self._label.setText(model.upper())
+            self._label.setToolTip(model_obj.getFullName().upper())
+            self._label.setText(simple_name)
+
             font = self._label.font()
             font.setPointSize(15)
             self._label.setFont(font)
@@ -383,7 +388,7 @@ class TaurusDevicePanel(TaurusWidget):
             qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical, '%s Error' %
                                   model, '%s not available' % model, Qt.QMessageBox.Ok, self)
             qmsg.show()
-        self.setWindowTitle(self.getModel())
+
         return
 
     def detach(self):
@@ -411,6 +416,7 @@ class TaurusDevicePanel(TaurusWidget):
         detach_recursive(self)
         try:
             self._label.setText('')
+            self._label.setToolTip('')
             if hasattr(self, '_statelabel'):
                 self._statelabel.setModel('')
             self._status.setModel('')
@@ -525,12 +531,6 @@ class TaurusDevPanel(TaurusMainWindow):
         # Parents
         self._ui.taurusAttrForm.recheckTaurusParent()
         self._ui.taurusCommandsForm.recheckTaurusParent()
-
-        # Add StateLed to statusBar
-#        self.devStateLed = TaurusLed()
-#        self.statusbar.addPermanentWidget(self.devStateLed)
-#        self.devStateLed.setModel('/state')
-#        self.devStateLed.setUseParentModel(True)
 
         # register subwidgets for configuration purposes
         # self.registerConfigDelegate(self.taurusAttrForm)

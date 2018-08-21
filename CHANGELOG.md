@@ -7,26 +7,47 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## [Unreleased]
+## [4.4.0] - 2018-07-26
 
 ### Deprecated
-- taurus.external.pint
-- taurus.external.enum
-- taurus.external.unittest
-- taurus.external.argparse
+- pint, enum, unittest and argparse submodules of taurus.external (#723)
+- useParentModel feature (warn of deprecation only when enabling) (#769)
+
+### Added
+- Support fragment-based slicing of attributes ([TEP15])
+- New serialization mode in which events are serialized by a Taurus
+  internal queue (the former "Serial" mode that was tango-centric is
+  now deprecated and renamed "TangoSerial") (#738)
 
 ### Changed
-- Serialization mode now is explicitly set to Serial
-  in the case of TangoFactory (Taurus defaults to Concurrent) (#678)
+- Serialization mode now is explicitly set to Serial in the case
+  of TangoFactory (Taurus defaults to Concurrent) (#678)
+- Improved API to set formatter on forms (#767, #759)
+- TaurusCommadnForm is now populated regardless of the state of
+  the device (#728)
+- Improved UI for TaurusSpinBox (#736)
+- Improved responsiveness of ImageCounterDevice (#698)
+- Improved docs and doc generation (#778, #766, #571, #724, #725)
 
 ### Fixed
 - TaurusModel ignoring the serialization mode (#678)
+- modelIndex support (#648, #687, #729)
+- refresh issue in TaurusTrend (#775)
+- Issue with permanent text inTaurusLabel (#735)
+- Issue when importing ascii files with dates in TaurusPlot (#748)
+- Case-sensitivity issues with models of forms and plots (#780, #697)
+- Some FQDN-related issues affecting mostly Sardana (#762, #719, #658)
+- Missing ref in TangoAttrValue (#758)
+- [Many other issues](https://github.com/taurus-org/taurus/issues?utf8=%E2%9C%93&q=milestone%3AJul18%20label%3Abug%20)
 
 ### Removed
 - All 3rd party code from taurus.external (now using dependencies
   instead of embeded 3rd party code)
 - CTRL and ALT keys are no longer used to modify step size in
   TaurusValueLineEdit and TaurusValueSpinbox (#749)
+- TaurusMainWindow's "Change Tango Host" action is now invisible
+  and its key shortcut has been removed (#781)
+
 
 ## [4.3.1] - 2018-03-14
 A hotfix release needed for sardana 2.4
@@ -37,6 +58,7 @@ A hotfix release needed for sardana 2.4
 - avoid problems if channel dimension info is set to None by sardana (#722)
 - unexpected "inf" values in tangoAttribute range, warning and alarm 
   attributes (#750)
+
 
 ## [4.3.0] - 2018-03-01
 [Jan18 milestone](https://github.com/taurus-org/taurus/milestone/10)
@@ -90,6 +112,7 @@ A hotfix release needed for sardana 2.4
 
 ### Removed
 - taurus.qt.qtgui.panel.taurusfilterpanel
+
 
 ## [4.1.1] - 2017-07-21
 Hotfix release needed just for PyPI
@@ -331,7 +354,9 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [keepachangelog.com]: http://keepachangelog.com
 [TEP3]: http://www.taurus-scada.org/tep/?TEP3.md
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
+[TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [Unreleased]: https://github.com/taurus-org/taurus/tree/develop
+[4.4.0]: https://github.com/taurus-org/taurus/tree/4.4.0
 [4.3.1]: https://github.com/taurus-org/taurus/tree/4.3.1
 [4.3.0]: https://github.com/taurus-org/taurus/tree/4.3.0
 [4.1.1]: https://github.com/taurus-org/taurus/tree/4.1.1
