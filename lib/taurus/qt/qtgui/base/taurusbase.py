@@ -702,7 +702,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         - dtype: the data type of the value to be formatted
         - basecomponent: the affected widget
   
-        The following are some examples for customizing the formatting::
+        The following are some examples for customizing the formatting:
 
         - Change the format for widget instance `foo`::
 
