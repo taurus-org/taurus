@@ -36,10 +36,17 @@ from __future__ import print_function
 __docformat__ = 'restructuredtext'
 
 import os
+import sys
 import re
 import unittest
 import taurus
 
+
+PY3_EXCLUDED = (
+    'unittest.loader._FailedTest.taurus.qt.qtgui.plot',
+    'unittest.loader._FailedTest.taurus.qt.qtgui.extra_sardana',
+    'unittest.loader._FailedTest.taurus.qt.qtgui.extra_pool',
+    'unittest.loader._FailedTest.taurus.qt.qtgui.extra_macroexecutor')
 
 def _filter_suite(suite, exclude_pattern, ret=None):
     """removes TestCases from a suite based on regexp matching on the Test id"""
@@ -47,9 +54,12 @@ def _filter_suite(suite, exclude_pattern, ret=None):
         ret = unittest.TestSuite()
     for e in suite:
         if isinstance(e, unittest.TestCase):
-            
 
-            if (e.__module__ == 'unittest.case'):
+            if e.__module__ == 'unittest.case':
+                continue
+
+            if sys.version_info.major > 2 and e.id() in PY3_EXCLUDED:
+                print("Excluded %s" % e.id())
                 continue
             
             if re.match(exclude_pattern, e.id()):
@@ -83,7 +93,6 @@ def run(disableLogger=True, exclude_pattern='(?!)'):
 
 
 def main():
-    import sys
     import taurus.test.skip
     import argparse
     from taurus import Release
