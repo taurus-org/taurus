@@ -37,7 +37,6 @@ from PyMca5.PyMcaGui.io.hdf5 import HDF5Widget, HDF5Info, HDF5DatasetTable
 from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.container import TaurusWidget
-from taurus.qt.qtgui.plot import TaurusPlot
 
 
 class NeXusInfoWidget(Qt.QTabWidget):
@@ -130,6 +129,7 @@ class TaurusNeXusBrowser(TaurusWidget):
             node = ddict['name']
             data = self.__nexusFile[node]
             if len(data.shape) == 1 and isinstance(data[0], (numpy.floating, numpy.integer, int, float)):
+                from taurus.qt.qtgui.plot import TaurusPlot
                 w = TaurusPlot()
                 w.attachRawData({"x": numpy.arange(len(data)), "y": data})
             else:
