@@ -326,7 +326,7 @@ class CaselessWeakValueDict(weakref.WeakValueDictionary):
         return weakref.WeakValueDictionary.__contains__(self, key.lower())
 
     def has_key(self, key):
-        """overwritten from :meth:`weakref.WeakValueDictionary
+        """overwritten from :meth:`weakref.WeakValueDictionary`
         (needed for python2)
         """
         return key in self
