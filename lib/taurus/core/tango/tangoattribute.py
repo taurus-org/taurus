@@ -361,6 +361,9 @@ class TangoAttribute(TaurusAttribute):
         return False
 
     def isState(self):
+        """
+        returns whether the attribute of tango DevState type
+        """
         tgtype = self._tango_data_type
         return tgtype == PyTango.CmdArgType.DevState
 
