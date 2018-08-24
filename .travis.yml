@@ -35,7 +35,10 @@ script:
   - set -e
   - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py install"
   - docker exec -t taurus-test /bin/bash -c "TAURUS_STARTER_WAIT=5 taurustestsuite -e 'taurus\.core\.util\.test\.test_timer'"
-  - docker exec -t taurus-test /bin/bash -c "cd /taurus ; sphinx-build -qW doc/source/ build/sphinx/html"
+  # build docs. The use of LANG=C.UTF-8 is a workaround to avoid an
+  # import error related to https://github.com/h5py/h5py/issues/803
+  # note: the problem is fixed in h5py 2.8 (but debian9 uses 2.7)
+  - docker exec -t taurus-test /bin/bash -c "cd /taurus ; LANG=C.UTF-8 sphinx-build -qW doc/source/ build/sphinx/html"
   # deploy sphinx-built docs to taurus-doc repo
   - if [[ "$DOCKER_IMG" == "cpascual/taurus-test:debian-stretch" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
       pip install doctr ;
