@@ -65,6 +65,12 @@ def _build_doc_api():
             'taurus\.qt\.qtgui\.resource',
             'taurus\.qt\.qtgui\.taurusgui\.conf',
             ]
+    if sys.version_info.major > 2:
+        excl += [
+            'taurus\.qt\.qtgui\.plot',  # for now plot fails to import in PY3
+            '.*\.(object|zip|str)',  # avoid warnings from builtins
+            ]
+
     rstCreator = API_Creator(exclude_patterns=excl,
                              templatespath=_doc_dir,
                              overwrite_old=True,
