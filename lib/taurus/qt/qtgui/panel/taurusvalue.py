@@ -442,8 +442,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         """
         Reimplemented to call onSetFormatter of the read widget (if provided)
         """
-        if hasattr(self._readWidget, 'onSetFormatter'):
-            return self._readWidget.onSetFormatter()
+        rw = readWidget(followCompact=True)
+        if hasattr(rw, 'onSetFormatter'):
+            return rw.onSetFormatter()
 
     def setFormat(self, format):
         """
@@ -1086,10 +1087,19 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def setCompact(self, compact):
         if compact == self._compact:
             return
+
+        # Backup the current RW format
+        rw = self.readWidget(followCompact=True)
+        format = rw.getFormat()
+
         self._compact = compact
         if self.getModel():
             self.updateReadWidget()
             self.updateWriteWidget()
+
+        # Apply the format to the new RW
+        rw = self.readWidget(followCompact=True)
+        rw.setFormat(format)
 
     def isCompact(self):
         return self._compact

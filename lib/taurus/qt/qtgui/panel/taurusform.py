@@ -386,7 +386,7 @@ class TaurusForm(TaurusWidget):
         format = TaurusWidget.onSetFormatter(self)
         if format is not None:
             for item in self.getItems():
-                rw = item.readWidget()
+                rw = item.readWidget(followCompact=True)
                 if hasattr(rw, 'setFormat'):
                     rw.setFormat(format)
         return format
@@ -397,7 +397,7 @@ class TaurusForm(TaurusWidget):
         """
         TaurusWidget.setFormat(self, format)
         for item in self.getItems():
-            rw = item.readWidget()
+            rw = item.readWidget(followCompact=True)
             if hasattr(rw, 'setFormat'):
                 rw.setFormat(format)
 
