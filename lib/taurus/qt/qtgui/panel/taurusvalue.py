@@ -105,7 +105,7 @@ class DefaultLabelWidget(TaurusLabel):
             # The following is a workaround to avoid tango-centricity, but
             # it has the drawback that the model is not set (e.g., no tooltip)
             devName = self.taurusValueBuddy().getModelObj().getSimpleName()
-            TaurusLabel.setModel(self, None)
+            TaurusLabel.setModel(self, model)
             self.setText(devName)
 
     _BCK_COMPAT_TAGS = {'<attr_name>': '{attr.name}',
