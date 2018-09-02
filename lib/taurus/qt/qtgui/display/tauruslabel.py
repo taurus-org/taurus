@@ -44,6 +44,7 @@ from taurus.qt.qtgui.base import TaurusBaseController
 from taurus.qt.qtgui.base import TaurusScalarAttributeControllerHelper
 from taurus.qt.qtgui.base import TaurusConfigurationControllerHelper
 from taurus.qt.qtgui.base import updateLabelBackground
+from taurus.core.util.py2and3 import to_str
 
 _QT_PLUGIN_INFO = {
     'module': 'taurus.qt.qtgui.display',
@@ -118,8 +119,8 @@ class TaurusLabelController(TaurusBaseController):
         toolTip = label.getFormatedToolTip()
         if self._trimmedText:
             toolTip = u"<p><b>Value:</b> %s</p><hr>%s" %\
-                      (str(self._text, errors='replace'),
-                       str(str(toolTip), errors='replace'))
+                      (to_str(self._text, errors='replace'),
+                       to_str(toolTip, errors='replace'))
         label.setToolTip(toolTip)
 
     _updateBackground = updateLabelBackground

@@ -66,7 +66,7 @@ class TaurusDemoPanel(Qt.QWidget):
             group = parts[-2]
             groups.add(group)
 
-        for group in groups:
+        for group in sorted(groups):
             self.addGroup(group)
 
         for demo_name in sorted(demos.keys()):
