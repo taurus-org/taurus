@@ -392,7 +392,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         """ This method will try first with named objects; if failed then with itemAt """
         pos = Qt.QPointF(x, y)
         itemsAtPos = []
-        for z, o in sorted((i.zValue(), i) for v in list(self._itemnames.values()) for i in v if i.contains(pos) or i.isUnderMouse()):
+        for z, o in sorted((i.zValue(), i) for v in self._itemnames.values() for i in v if i.contains(pos) or i.isUnderMouse()):
             if not hasattr(o, 'getExtensions'):
                 self.debug(
                     'getItemByPosition(%d,%d): adding Qt primitive %s' % (x, y, o))

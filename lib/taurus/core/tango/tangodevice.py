@@ -326,7 +326,7 @@ class TangoDevice(TaurusDevice):
 
     def __pollResult(self, attrs, ts, result, error=False):
         if error:
-            for attr in list(attrs.values()):
+            for attr in attrs.values():
                 attr.poll(single=False, value=None, error=result, time=ts)
             return
 

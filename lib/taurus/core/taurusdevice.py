@@ -126,7 +126,7 @@ class TaurusDevice(TaurusModel):
         # synchronous polling.
         if asynch is True:
             return 1
-        for attr in list(attrs.values()):
+        for attr in attrs.values():
             attr.poll()
 
     @property

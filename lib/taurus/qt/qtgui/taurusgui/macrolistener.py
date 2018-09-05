@@ -553,7 +553,7 @@ class MacroBroker(DynamicPlotManager):
         door.command_inout('abort')
         # send stop/abort to all pools
         pools = door.macro_server.getElementsOfType('Pool')
-        for pool in list(pools.values()):
+        for pool in pools.values():
             self.info('Sending %s command to %s' % (cmd, pool.getFullName()))
             try:
                 pool.getObj().command_inout(cmd)

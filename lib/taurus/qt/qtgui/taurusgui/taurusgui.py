@@ -891,7 +891,7 @@ class TaurusGui(TaurusMainWindow):
             if result == Qt.QMessageBox.Abort:
                 sys.exit()
             return []
-        for i in list(instruments.values()):
+        for i in instruments.values():
             i_name = i.full_name
             #i_name, i_unknown, i_type, i_pools = i.split()
             i_view = PanelDescription(
@@ -918,7 +918,7 @@ class TaurusGui(TaurusMainWindow):
                 # -----------------------------------------------------------
                 instrument_dict[i_name].model.append(e_name)
         # filter out empty panels
-        ret = [instrument for instrument in list(instrument_dict.values())
+        ret = [instrument for instrument in instrument_dict.values()
                if len(instrument.model) > 0]
         return ret
 

@@ -381,7 +381,7 @@ class TaurusManager(Singleton, Logger):
                     self.debug('Failed to inspect %s' % (full_module_name))
                     self.debug('Details:', exc_info=1)
                     continue
-            for s in list(m.__dict__.values()):
+            for s in m.__dict__.values():
                 plugin = None
                 try:
                     if (issubclass(s, TaurusFactory)
