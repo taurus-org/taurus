@@ -647,7 +647,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                 dct = self.getTangoDict(filters)
             else:  # if isMap(filters):
                 self.setWindowTitle('TaurusDevTree:%s' %
-                                    ','.join(list(filters.keys())))
+                                    ','.join(list(filters)))
 
                 def expand_dict(d):
                     return [x for v in list(d.values()) for x in (expand_dict(v) if hasattr(v, 'values') else (v,))]

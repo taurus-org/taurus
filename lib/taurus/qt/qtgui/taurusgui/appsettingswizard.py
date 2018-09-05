@@ -1490,7 +1490,7 @@ class AppSettingsWizard(Qt.QWizard):
         root = etree.fromstring(xml)
 
         # print self.Pages
-        for pageNumber in range(len(list(self.Pages.keys()))):
+        for pageNumber in range(len(self.Pages)):
             self.page(pageNumber).fromXml(root)
 
     def getXml(self):

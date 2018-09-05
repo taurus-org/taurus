@@ -215,8 +215,8 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         # it is parsed as a float
         vAlignment = int(params.get('vAlignment', 0))
         hAlignment = int(params.get('hAlignment', 0))
-        assert(vAlignment in list(VALIGNMENT.keys()))
-        assert(hAlignment in list(ALIGNMENT.keys()))
+        assert(vAlignment in VALIGNMENT)
+        assert(hAlignment in ALIGNMENT)
         vAlignment = VALIGNMENT[vAlignment]
         hAlignment = ALIGNMENT[hAlignment]
         item.setAlignment(hAlignment | vAlignment)

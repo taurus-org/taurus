@@ -117,7 +117,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._orderedCurveNames = []
         else:
             self._curves = curves
-            self._orderedCurveNames = list(curves.keys())
+            self._orderedCurveNames = list(curves)
         self._titleText = None
         self.setModel(name)
 
@@ -1931,7 +1931,7 @@ def main():
         w.setModel(models)
     # export option
     if options.export_file is not None:
-        curves = dict.fromkeys(list(w.trendSets.keys()), 0)
+        curves = dict.fromkeys(list(w.trendSets), 0)
 
         def exportIfAllCurves(curve, trend=w, counters=curves):
             curve = str(curve)
