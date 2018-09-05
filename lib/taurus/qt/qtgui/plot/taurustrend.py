@@ -1931,7 +1931,7 @@ def main():
         w.setModel(models)
     # export option
     if options.export_file is not None:
-        curves = dict.fromkeys(list(w.trendSets), 0)
+        curves = dict.fromkeys(w.trendSets, 0)
 
         def exportIfAllCurves(curve, trend=w, counters=curves):
             curve = str(curve)
