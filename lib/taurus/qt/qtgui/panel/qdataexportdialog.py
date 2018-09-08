@@ -79,7 +79,7 @@ class QDataExportDialog(Qt.QDialog):
         self.datadict = datadict
         self.dataSetCB.clear()
         self.dataSetCB.insertItems(0, sortedNames)
-        if len(list(self.datadict.keys())) > 1:
+        if len(self.datadict) > 1:
             self.dataSetCB.insertItems(
                 0, [self.allInSingleFile, self.allInMultipleFiles])
 

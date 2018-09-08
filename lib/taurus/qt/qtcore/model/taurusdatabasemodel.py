@@ -554,15 +554,15 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
             data = data.deviceTree()
 
         rootItem = self._rootItem
-        for domain in list(data.keys()):
+        for domain in data:
             families = data[domain]
             domainItem = TaurusTreeDeviceDomainItem(
                 self, domain.upper(), rootItem)
-            for family in list(families.keys()):
+            for family in families:
                 members = families[family]
                 familyItem = TaurusTreeDeviceFamilyItem(
                     self, family.upper(), domainItem)
-                for member in list(members.keys()):
+                for member in members:
                     dev = members[member]
                     memberItem = TaurusTreeDeviceItem(
                         self, dev, parent=familyItem)

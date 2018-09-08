@@ -111,8 +111,7 @@ class TangoDevClassInfo(TangoInfo):
 
     def getDeviceNames(self):
         if not hasattr(self, "_device_name_list"):
-            self._device_name_list = sorted(map(TangoDevInfo.name,
-                                                list(self._devices.values())))
+            self._device_name_list = sorted(map(TangoDevInfo.name, self._devices.values()))
         return self._device_name_list
 
 
@@ -252,13 +251,12 @@ class TangoServInfo(TangoInfo):
 
     def getDeviceNames(self):
         if not hasattr(self, "_device_name_list"):
-            self._device_name_list = sorted(map(TangoDevInfo.name,
-                                                list(self._devices.values())))
+            self._device_name_list = sorted(map(TangoDevInfo.name, self._devices.values()))
         return self._device_name_list
 
     def getClassNames(self):
         if not hasattr(self, "_klass_name_list"):
-            klasses = set(map(TangoDevInfo.klass, list(self._devices.values())))
+            klasses = set(map(TangoDevInfo.klass, self._devices.values()))
             self._klass_name_list = sorted(map(TangoDevClassInfo.name,
                                                klasses))
         return self._klass_name_list
@@ -293,7 +291,7 @@ class TangoServInfo(TangoInfo):
             try:
                 self._alivePending = True
                 alive = True
-                for d in list(self.devices().values()):
+                for d in self.devices().values():
                     alive = d.alive()
                     if not alive:
                         break
@@ -431,13 +429,13 @@ class TangoDatabaseCache(object):
         :return: (sequence<str>) a sequence with all registered device names"""
         if self._device_name_list is None:
             self._device_name_list = sorted(
-                map(TangoDevInfo.name, list(self.devices().values())))
+                map(TangoDevInfo.name, self.devices().values()))
         return self._device_name_list
 
     def getAliasNames(self):
         if self._alias_name_list is None:
             self._alias_name_list = sorted(
-                map(TangoDevInfo.alias, list(self.aliases().values())))
+                map(TangoDevInfo.alias, self.aliases().values()))
         return self._alias_name_list
 
     def getServerNames(self):
@@ -446,7 +444,7 @@ class TangoDatabaseCache(object):
         :return: (sequence<str>) a sequence with all registered server names"""
         if self._server_name_list is None:
             self._server_name_list = sorted(
-                map(TangoServInfo.name, list(self.servers().values())))
+                map(TangoServInfo.name, self.servers().values()))
         return self._server_name_list
 
     def getClassNames(self):
@@ -455,7 +453,7 @@ class TangoDatabaseCache(object):
         :return: (sequence<str>) a sequence with all registered device classes"""
         if self._klass_name_list is None:
             self._klass_name_list = sorted(
-                map(TangoDevClassInfo.name, list(self.klasses().values())))
+                map(TangoDevClassInfo.name, self.klasses().values()))
         return self._klass_name_list
 
     def deviceTree(self):

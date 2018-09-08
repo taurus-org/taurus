@@ -647,10 +647,10 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                 dct = self.getTangoDict(filters)
             else:  # if isMap(filters):
                 self.setWindowTitle('TaurusDevTree:%s' %
-                                    ','.join(list(filters.keys())))
+                                    ','.join(list(filters)))
 
                 def expand_dict(d):
-                    return [x for v in list(d.values()) for x in (expand_dict(v) if hasattr(v, 'values') else (v,))]
+                    return [x for v in d.values() for x in (expand_dict(v) if hasattr(v, 'values') else (v,))]
                 targets = [t.upper() for t in get_matching_devices(
                     ['*%s*' % f if '*' not in f else f for f in expand_dict(filters)])]
 

@@ -1407,8 +1407,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.curves_lock.acquire()
         try:
             if ordered is None:
-                orderedObjs = sorted(
-                    list(self.curves.values()), key=lambda curve: curve.titleText(compiled=True))
+                orderedObjs = sorted(self.curves.values(), key=lambda curve: curve.titleText(compiled=True))
             else:
                 #current = self.curves.keys()
                 # if len(ordered) != len(current) or set(map(str.lower,current)) - set(map(str.lower, ordered)):
@@ -1943,7 +1942,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         self.curves_lock.acquire()
         try:
-            names = [name for name in list(self.curves.keys()) if self.curves[
+            names = [name for name in self.curves if self.curves[
                 name].isRawData]
         finally:
             self.curves_lock.release()
@@ -2001,7 +2000,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                 xnames.append(xname)
                 ynames.append(yname)
 
-            del_curves = [name for name in list(self.curves.keys())
+            del_curves = [name for name in self.curves
                           if name not in ynames]
 
             # if all curves were removed, reset the color palette
@@ -2114,7 +2113,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''See :meth:`TaurusBaseComponent.parentModelChanged`'''
         self.curves_lock.acquire()
         try:
-            for curve in list(self.curves.values()):
+            for curve in self.curves.values():
                 curve.setModelCheck(curve.getModel(), False)
         finally:
             self.curves_lock.release()
@@ -2410,7 +2409,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.curves_lock.acquire()
         try:
             if curvenames is None:
-                curvenames = list(self.curves.keys())
+                curvenames = list(self.curves)
             curvenames = self._lowerIfInsensitive(curvenames)
             for name in curvenames:
                 curve = self.curves.get(name)
@@ -2536,7 +2535,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         See :meth:`TaurusBaseComponent.setEventFilters`
         '''
         if curvenames is None:
-            curvenames = list(self.curves.keys())
+            curvenames = list(self.curves)
         self.curves_lock.acquire()
         try:
             for name in curvenames:
@@ -2564,7 +2563,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             originalXRange = self.getXAxisRange()
             self.curves_lock.acquire()
             try:
-                for c in list(self.curves.values()):
+                for c in self.curves.values():
                     if c.minXValue() < minX:
                         minX = c.minXValue()
                     if c.maxXValue() > maxX:
@@ -3374,7 +3373,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         self.curves_lock.acquire()
         try:
-            for curve in list(self.curves.values()):
+            for curve in self.curves.values():
                 curve.setUseParentModel(yesno)
         finally:
             self.curves_lock.release()
@@ -3743,7 +3742,7 @@ def main():
         w.setModel(models)
         
     if options.export_file is not None:
-        curves = dict.fromkeys(list(w.trendSets.keys()), 0)
+        curves = dict.fromkeys(w.trendSets, 0)
 
         def exportIfAllCurves(curve, trend=w, counters=curves):
             curve = str(curve)
@@ -3758,7 +3757,7 @@ def main():
         if not curves:
             w.close()
         else:
-            for ts in list(w.trendSets.values()):
+            for ts in w.trendSets.values():
                 ts.dataChanged.connect(exportIfAllCurves)
         sys.exit(app.exec_())  # exit without showing the widget
 

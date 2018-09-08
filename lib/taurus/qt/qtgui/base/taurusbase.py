@@ -332,7 +332,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
               but it can also be called any time the buffer needs to be flushed
         '''
         with self._eventsBufferLock:
-            for evt in list(self._bufferedEvents.values()):
+            for evt in self._bufferedEvents.values():
                 self.taurusEvent.emit(*evt)
             self._bufferedEvents = {}
 

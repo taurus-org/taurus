@@ -119,7 +119,7 @@ class TaurusWidgets(QtDesigner.QPyDesignerCustomWidgetCollectionPlugin):
 
     def customWidgets(self):
         if self._widgets is None:
-            self._widgets = [w(self) for w in list(_plugins.values())]
+            self._widgets = [w(self) for w in _plugins.values()]
         return self._widgets
 
 if __name__ != "__main__":
