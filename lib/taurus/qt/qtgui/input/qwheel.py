@@ -325,6 +325,15 @@ class QWheelEdit(Qt.QFrame):
                                 self.getDecDigitCount())
         ed.setVisible(False)
         self._editor = ed
+
+        # set the minimum height for the widget
+        # (otherwise the hints seem to be ignored by the layouts)
+        min_height = max(ed.minimumSizeHint().height(),
+                         signLabel.minimumSizeHint().height())
+        if self.getShowArrowButtons():
+            min_height += 2 * _ArrowButton.ButtonSize
+        self.setMinimumHeight(min_height)
+
         self.clearWarning()
 
     def _clear(self):
@@ -864,6 +873,7 @@ class QWheelEdit(Qt.QFrame):
 
 
 def main():
+    import taurus.qt.qtgui.icon  # otherwise the arrows don't show in the demo
     global arrowWidget
 
     def resetAll():
