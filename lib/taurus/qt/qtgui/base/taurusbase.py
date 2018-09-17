@@ -2147,31 +2147,6 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
                     v_str, model_v_str)
             self.setToolTip(toolTip)
 
-    def _updateValidator(self, evt_value):  # TODO: Remove this method
-        # re-set the validator ranges if applicable
-        if evt_value is None:
-            return
-        v = self.validator()
-        if isinstance(v, Qt.QIntValidator):
-            bottom = evt_value.min_value
-            top = evt_value.max_value
-            bottom = int(
-                bottom) if bottom != TaurusConfiguration.no_min_value else -sys.maxint
-            top = int(
-                top) if top != TaurusConfiguration.no_max_value else sys.maxint
-            v.setRange(bottom, top)
-            self.debug("Validator range set to %i-%i" % (bottom, top))
-        elif isinstance(v, Qt.QDoubleValidator):
-            bottom = evt_value.min_value
-            top = evt_value.max_value
-            bottom = float(
-                bottom) if bottom != TaurusConfiguration.no_min_value else -float("inf")
-            top = float(
-                top) if top != TaurusConfiguration.no_max_value else float("inf")
-            v.setBottom(bottom)
-            v.setTop(top)
-            self.debug("Validator range set to %f-%f" % (bottom, top))
-
     @classmethod
     def getQtDesignerPluginInfo(cls):
         '''reimplemented from :class:`TaurusBaseWidget`'''
