@@ -32,7 +32,6 @@ __docformat__ = 'restructuredtext'
 import operator
 import re
 
-from taurus.core import (TaurusDevice, TaurusAttribute)
 from taurus.core.taurusbasetypes import (TaurusElementType, TaurusEventType,
                                          AttrQuality, TaurusDevState)
 from taurus.external.qt import Qt
@@ -491,10 +490,10 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         dev = None
         attr = None
 
-        modelclass = self.getModelClass()
-        if modelclass and issubclass(modelclass, TaurusDevice):
+        modeltype = self.getModelType()
+        if modeltype == TaurusElementType.Device:
             dev = self.getModelObj()
-        elif modelclass and issubclass(modelclass, TaurusAttribute):
+        elif modeltype == TaurusElementType.Attribute:
             attr = self.getModelObj()
             dev = attr.getParent()
 
