@@ -129,6 +129,18 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         """reimplement to avoid autoapply on every partial edition"""
         self.emitValueChanged()
 
+    def postAttach(self):
+        """reimplemented from :class:`TaurusBaseWritableWidget`"""
+        TaurusBaseWritableWidget.postAttach(self)
+        if self.isAttached():
+            try:
+                value = self.getModelObj().read(cache=True)
+                self._updateValidator(value)
+                v = value.wvalue
+            except:
+                v = None
+            self.setValue(v)
+
     def handleEvent(self, evt_src, evt_type, evt_value):
 
         # handle the case in which the line edit is not yet initialized
