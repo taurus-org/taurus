@@ -1085,8 +1085,14 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.extraWidgetClassID = 'Auto'
 
     def setCompact(self, compact):
+
+        # don't do anything if it is already done
         if compact == self._compact:
             return
+
+        #do not switch to compact mode if the write widget is None
+        if compact and self.writeWidget() is None:
+           return
 
         # Backup the current RW format
         rw = self.readWidget(followCompact=True)
