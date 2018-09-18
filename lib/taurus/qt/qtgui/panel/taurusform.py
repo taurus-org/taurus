@@ -397,9 +397,8 @@ class TaurusForm(TaurusWidget):
         """
         TaurusWidget.setFormat(self, format)
         for item in self.getItems():
-            rw = item.readWidget(followCompact=True)
-            if hasattr(rw, 'setFormat'):
-                rw.setFormat(format)
+            if hasattr(item, 'setFormat'):
+                item.setFormat(format)
 
     def setCompact(self, compact):
         self._compact = compact

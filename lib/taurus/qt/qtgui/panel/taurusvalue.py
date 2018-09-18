@@ -451,8 +451,12 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         Reimplemented to call setFormat of the read widget (if provided)
         """
         TaurusBaseWidget.setFormat(self, format)
-        if hasattr(getattr(self, '_readWidget', None), 'setFormat'):
-            return self._readWidget.setFormat(format)
+        try:
+            rw = self.readWidget(followCompact=True)
+        except AttributeError:
+            return
+        if hasattr(rw, 'setFormat'):
+            rw.setFormat(format)
 
     def getAllowWrite(self):
         return self._allowWrite
