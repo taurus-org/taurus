@@ -1092,7 +1092,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
         #do not switch to compact mode if the write widget is None
         if compact and self.writeWidget() is None:
-           return
+            self.debug('No write widget. Ignoring setCompact(True)')
+            return
 
         # Backup the current RW format
         rw = self.readWidget(followCompact=True)
