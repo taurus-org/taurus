@@ -442,7 +442,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         """
         Reimplemented to call onSetFormatter of the read widget (if provided)
         """
-        rw = readWidget(followCompact=True)
+        rw = self.readWidget(followCompact=True)
         if hasattr(rw, 'onSetFormatter'):
             return rw.onSetFormatter()
 
