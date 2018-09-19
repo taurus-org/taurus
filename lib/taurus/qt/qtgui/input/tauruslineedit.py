@@ -89,6 +89,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def _updateValidator(self, value):
         """This method sets a validator depending on the data type"""
+        val = None
         if isinstance(value.wvalue, Quantity):
             val = self.validator()
             if not isinstance(val, PintValidator):
@@ -109,6 +110,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         else:
             self.setValidator(None)
             self.debug("Validator disabled")
+        return val
 
     def __decimalDigits(self, fmt):
         """returns the number of decimal digits from a format string
@@ -248,7 +250,11 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         # Other fragments are ignored by setValue
         if self.modelFragmentName == "wvalue.magnitude":
             try:
-                units = self.validator().units
+                validator = self.validator()
+                if validator is None:
+                    value = self.getModelValueObj()
+                    validator = self._updateValidator(value)
+                units = validator.units
                 v = v.to(units).magnitude
             except Exception as e:
                 self.debug('Cannot enforce fragment. Reason: %r', e)

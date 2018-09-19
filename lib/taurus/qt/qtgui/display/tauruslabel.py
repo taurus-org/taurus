@@ -492,8 +492,15 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         else:
             value = self._permanentText
 
-        attr = self.getModelObj()
-        dev = attr.getParent()
+        dev = None
+        attr = None
+
+        modeltype = self.getModelType()
+        if modeltype == TaurusElementType.Device:
+            dev = self.getModelObj()
+        elif modeltype == TaurusElementType.Attribute:
+            attr = self.getModelObj()
+            dev = attr.getParent()
 
         try:
             v = value.format(dev=dev, attr=attr)

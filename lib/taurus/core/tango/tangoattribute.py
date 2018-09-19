@@ -841,6 +841,7 @@ class TangoAttribute(TaurusAttribute):
             # and the given timestamp is older than the timestamp
             # of the cache value
             if (self.__attr_value is not None
+                and self.__subscription_state == SubscriptionState.Subscribed
                 and filter_old_event
                 and time < self.__attr_value.time.totime()):
                 return [None, None]

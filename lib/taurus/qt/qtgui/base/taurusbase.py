@@ -27,8 +27,6 @@
 """This module provides the set of base classes from which the Qt taurus widgets
 should inherit to be considered valid taurus widgets."""
 
-from builtins import str
-from past.builtins import basestring
 __all__ = ["TaurusBaseComponent", "TaurusBaseWidget",
            "TaurusBaseWritableWidget", "defaultFormatter"]
 
@@ -38,7 +36,6 @@ import sys
 import threading
 from types import MethodType
 
-from future.utils import string_types
 from taurus.external.qt import Qt
 from enum import Enum
 
@@ -742,7 +739,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         if self._format is None:
             try:
                 self._updateFormat(type(v))
-            except Exception as e:
+            except Exception, e:
                 self.warning(('Cannot update format. Reverting to default.' +
                               ' Reason: %r'), e)
                 self.setFormat(defaultFormatter)
@@ -765,7 +762,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param kwargs: keyword arguments that will be passed to
                        :attribute:`FORMAT` if it is a callable
         """
-        if not isinstance(self.FORMAT, string_types):
+        if not isinstance(self.FORMAT, basestring):
             # unbound method to callable
             if isinstance(self.FORMAT, MethodType):
                 self.FORMAT = self.FORMAT.__func__
@@ -784,7 +781,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
                        "full.module.callable" format)
         """
         # Check if the format is a callable string representation
-        if isinstance(format, string_types):
+        if isinstance(format, basestring):
             try:
                 moduleName, formatterName = format.rsplit('.', 1)
                 __import__(moduleName)
@@ -801,7 +798,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :return: (str) a string of the current format. It could be a python
                  format string or a callable string representation.
         """
-        if isinstance(self.FORMAT, string_types):
+        if isinstance(self.FORMAT, basestring):
             formatter = self.FORMAT
         else:
             formatter = '{0}.{1}'.format(self.FORMAT.__module__,
@@ -2149,31 +2146,6 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
                 toolTip += '<hr/>Displayed value (%s) differs from applied value (%s)' % (
                     v_str, model_v_str)
             self.setToolTip(toolTip)
-
-    def _updateValidator(self, evt_value):  # TODO: Remove this method
-        # re-set the validator ranges if applicable
-        if evt_value is None:
-            return
-        v = self.validator()
-        if isinstance(v, Qt.QIntValidator):
-            bottom = evt_value.min_value
-            top = evt_value.max_value
-            bottom = int(
-                bottom) if bottom != TaurusConfiguration.no_min_value else -sys.maxsize
-            top = int(
-                top) if top != TaurusConfiguration.no_max_value else sys.maxsize
-            v.setRange(bottom, top)
-            self.debug("Validator range set to %i-%i" % (bottom, top))
-        elif isinstance(v, Qt.QDoubleValidator):
-            bottom = evt_value.min_value
-            top = evt_value.max_value
-            bottom = float(
-                bottom) if bottom != TaurusConfiguration.no_min_value else -float("inf")
-            top = float(
-                top) if top != TaurusConfiguration.no_max_value else float("inf")
-            v.setBottom(bottom)
-            v.setTop(top)
-            self.debug("Validator range set to %f-%f" % (bottom, top))
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

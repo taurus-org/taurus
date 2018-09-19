@@ -100,13 +100,8 @@ class DefaultLabelWidget(TaurusLabel):
             config = self.taurusValueBuddy().getLabelConfig()
             TaurusLabel.setModel(self, '%s#%s' % (fullname, config))
         elif elementtype == TaurusElementType.Device:
-            # @TODO: tango-centric!
-            # TaurusLabel.setModel(self, '%s/state#dev_alias'%fullname)
-            #
-            # The following is a workaround to avoid tango-centricity, but
-            # it has the drawback that the model is not set (e.g., no tooltip)
             devName = self.taurusValueBuddy().getModelObj().getSimpleName()
-            TaurusLabel.setModel(self, None)
+            TaurusLabel.setModel(self, model)
             self.setText(devName)
 
     _BCK_COMPAT_TAGS = {'<attr_name>': '{attr.name}',
@@ -443,16 +438,21 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         """
         Reimplemented to call onSetFormatter of the read widget (if provided)
         """
-        if hasattr(self._readWidget, 'onSetFormatter'):
-            return self._readWidget.onSetFormatter()
+        rw = self.readWidget(followCompact=True)
+        if hasattr(rw, 'onSetFormatter'):
+            return rw.onSetFormatter()
 
     def setFormat(self, format):
         """
         Reimplemented to call setFormat of the read widget (if provided)
         """
         TaurusBaseWidget.setFormat(self, format)
-        if hasattr(getattr(self, '_readWidget', None), 'setFormat'):
-            return self._readWidget.setFormat(format)
+        try:
+            rw = self.readWidget(followCompact=True)
+        except AttributeError:
+            return
+        if hasattr(rw, 'setFormat'):
+            rw.setFormat(format)
 
     def getAllowWrite(self):
         return self._allowWrite
@@ -1085,12 +1085,28 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.extraWidgetClassID = 'Auto'
 
     def setCompact(self, compact):
+
+        # don't do anything if it is already done
         if compact == self._compact:
             return
+
+        #do not switch to compact mode if the write widget is None
+        if compact and self.writeWidget() is None:
+            self.debug('No write widget. Ignoring setCompact(True)')
+            return
+
+        # Backup the current RW format
+        rw = self.readWidget(followCompact=True)
+        format = rw.getFormat()
+
         self._compact = compact
         if self.getModel():
             self.updateReadWidget()
             self.updateWriteWidget()
+
+        # Apply the format to the new RW
+        rw = self.readWidget(followCompact=True)
+        rw.setFormat(format)
 
     def isCompact(self):
         return self._compact
