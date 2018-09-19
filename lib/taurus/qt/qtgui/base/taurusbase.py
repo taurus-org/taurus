@@ -762,7 +762,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param kwargs: keyword arguments that will be passed to
                        :attribute:`FORMAT` if it is a callable
         """
-        if not isinstance(self.FORMAT, basestring):
+        if not isinstance(self.FORMAT, str):
             # unbound method to callable
             if isinstance(self.FORMAT, MethodType):
                 self.FORMAT = self.FORMAT.__func__
@@ -781,7 +781,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
                        "full.module.callable" format)
         """
         # Check if the format is a callable string representation
-        if isinstance(format, basestring):
+        if isinstance(format, str):
             try:
                 moduleName, formatterName = format.rsplit('.', 1)
                 __import__(moduleName)
@@ -798,7 +798,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :return: (str) a string of the current format. It could be a python
                  format string or a callable string representation.
         """
-        if isinstance(self.FORMAT, basestring):
+        if isinstance(self.FORMAT, str):
             formatter = self.FORMAT
         else:
             formatter = '{0}.{1}'.format(self.FORMAT.__module__,
