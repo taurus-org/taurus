@@ -168,9 +168,11 @@ class TangoDevice(TaurusDevice):
             rvalue of the returned TangoAttributeValue is now a member of
             TaurusDevState instead of TaurusSWDevState
         """
+        if not cache:
+            self.warning('Ignoring argument `cache=False`to getValueObj()')
         from taurus.core.tango.tangoattribute import TangoAttrValue
         ret = TangoAttrValue()
-        ret.rvalue = self.state(cache)
+        ret.rvalue = self.state
         return ret
 
     def getDisplayDescrObj(self, cache=True):
