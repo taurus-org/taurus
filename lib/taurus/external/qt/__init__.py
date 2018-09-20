@@ -31,7 +31,6 @@ __all__ = ["initialize", "API_NAME",
 import os
 from taurus.core.util import log as __log
 from taurus import tauruscustomsettings as __config
-from taurus.core.util.py2and3 import to_str
 
 # --------------------------------------------------------------------------
 # Deprecated (in Jul17) pending to be removed later on
@@ -157,7 +156,7 @@ def __initializeQtLogging():
     elif hasattr(QtCore, "qInstallMsgHandler"):
         def taurusMsgHandler(msg_type, msg):
             f = QT_LEVEL_MATCHER.get(msg_type)
-            return f(u"Qt: " + to_str(msg, errors="replace"))
+            return f("Qt: " + msg)
         QtCore.qInstallMsgHandler(taurusMsgHandler)
 
 
