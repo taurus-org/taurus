@@ -81,8 +81,8 @@ class Table(object):
         self.col_head_str = col_head_str
         self.col_head_fmt = col_head_fmt
         if col_head_str is not None and len(col_head_str) != self.nr_col:
-            msg = 'ColHeadStr nr (%d) and ColNr (%d) mistmatch' % \
-                  len(col_head_str), self.nr_col
+            msg = 'ColHeadStr nr (%d) and ColNr (%d) mistmatch' % (
+                  len(col_head_str), self.nr_col)
             raise ValueError(msg)
         if col_head_width is None:
             if col_head_str is not None:
