@@ -144,6 +144,7 @@ if __name__ == '__main__':
         except:
             print('ERROR: %s cannot be evaluated' % f)
 
+    import numpy
     vector = numpy.arange(6)
     # Another way of registering a variable is using the init method...
     sev2 = SafeEvaluator({'x': x, 'y': vector}, defaultSafe=False)
