@@ -38,7 +38,6 @@
 """
 from __future__ import absolute_import
 
-from taurus.core.util.log import Logger
 from taurus.external.qt import Qt
 from taurus.external.qt import QtDesigner
 

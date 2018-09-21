@@ -27,19 +27,13 @@
 emitter.py: This module provides a task scheduler used by TaurusGrid and 
     TaurusDevTree widgets
 """
-from __future__ import division
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import next
 from builtins import str
-from builtins import map
-from past.builtins import basestring
-from past.utils import old_div
 from builtins import object
 from queue import Queue, Empty
 import traceback
-from functools import partial
 from collections import Iterable
 
 from future.utils import string_types
@@ -229,14 +223,14 @@ class TaurusEmitterThread(Qt.QThread):
         self.emitter.doSomething.connect(self._doSomething)
 
         if not self.refreshTimer:
-            self.emitter.somethingDone.connect(self.__next__)
+            self.emitter.somethingDone.connect(self.next)
 
     def onRefresh(self):
         try:
             size = self.getQueue().qsize()
             if size:
                 self.log.info('onRefresh(%s)' % size)
-                next(self)
+                self.next()
             else:
                 self.log.debug('onRefresh()')
         except:
@@ -253,7 +247,7 @@ class TaurusEmitterThread(Qt.QThread):
     def getDone(self):
         """ Returns % of done tasks in 0-1 range """
         pending = self.getQueue().qsize()
-        return old_div(float(self._done), (self._done + pending))
+        return float(self._done) / (self._done + pending)
 
     def clear(self):
         while not self.todo.empty():
@@ -277,7 +271,7 @@ class TaurusEmitterThread(Qt.QThread):
                 nqueue.put(i)
         while not nqueue.empty():
             self.queue.put(nqueue.get())
-        next(self)
+        self.next()
 
     def _doSomething(self, params):
         self.log.debug('At TaurusEmitterThread._doSomething(%s)' % str(params))
@@ -295,7 +289,7 @@ class TaurusEmitterThread(Qt.QThread):
         self._done += 1
         return
 
-    def __next__(self):
+    def next(self):
         queue = self.getQueue()
         msg = ('At TaurusEmitterThread.next(), %d items remaining.'
                % queue.qsize())
@@ -328,7 +322,7 @@ class TaurusEmitterThread(Qt.QThread):
         Qt.QApplication.instance().thread().msleep(self.timewait)
         self.log.info('#' * 80)
         self.log.info('At TaurusEmitterThread.run()')
-        next(self)
+        self.next()
 
         if self.refreshTimer:
             self.refreshTimer.start(self.polling)
@@ -387,8 +381,7 @@ class DelayedSubscriber(Logger):
         """Check all pending subscriptions in the current factory
         """
         attrs = []
-        items = list(self._factory.getExistingAttributes().items())
-        for name, attr in items:
+        for name, attr in self._factory.getExistingAttributes().items():
             if attr is None:
                 continue
             elif attr.hasListeners() and not attr.isUsingEvents():
@@ -405,7 +398,7 @@ class DelayedSubscriber(Logger):
                 self.info('addUnsubscribedAttributes([%d])' % len(items))
                 for attr in items:
                     self._addModelObj(attr)
-                next(self._modelsThread)
+                self._modelsThread.next()
                 self.info('Thread queue: [%d]' % (self._modelsQueue.qsize()))
         except:
             self.warning(traceback.format_exc())
@@ -509,19 +502,19 @@ class SingletonWorker(object):
         return self.thread.getDone()
 
     def start(self):
-        self.thread.emitter.somethingDone.connect(self.__next__)
-        self.thread.emitter.newQueue.connect(self.thread.__next__)
+        self.thread.emitter.somethingDone.connect(self.next)
+        self.thread.emitter.newQueue.connect(self.thread.next)
         try:
             self.thread.start()
         except:
             pass
-        next(self)
+        self.next()
         self._running = True
         return
 
     def stop(self):
-        self.thread.emitter.somethingDone.disconnect(self.__next__)
-        self.thread.emitter.newQueue.disconnect(self.thread.__next__)
+        self.thread.emitter.somethingDone.disconnect(self.next)
+        self.thread.emitter.newQueue.disconnect(self.thread.next)
         self._running = False
         return
 
@@ -546,7 +539,7 @@ class SingletonWorker(object):
                 nqueue.put(i)
         while not nqueue.empty():
             self.queue.put(nqueue.get())
-        next(self)
+        self.next()
 
     def isRunning(self):
         return self._running

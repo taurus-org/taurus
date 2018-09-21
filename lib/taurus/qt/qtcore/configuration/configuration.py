@@ -30,7 +30,6 @@ from __future__ import print_function
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
-from past.builtins import basestring
 from builtins import object
 __all__ = ["configurableProperty", "BaseConfigurableClass"]
 
@@ -410,7 +409,7 @@ class BaseConfigurableClass(object):
         .. seealso:: :meth:`restoreQConfig`
         '''
         from taurus.external.qt import Qt
-        import pickle as pickle
+        import pickle
         configdict = self.createConfig(allowUnpickable=False)
         return Qt.QByteArray(pickle.dumps(configdict))
 
@@ -424,7 +423,7 @@ class BaseConfigurableClass(object):
         '''
         if qstate.isNull():
             return
-        import pickle as pickle
+        import pickle
         configdict = pickle.loads(qstate.data())
         self.applyConfig(configdict)
 
@@ -435,7 +434,7 @@ class BaseConfigurableClass(object):
 
         :return: (str) file name used
         """
-        import pickle as pickle
+        import pickle
         if ofile is None:
             from taurus.external.qt import Qt
             ofile = str(Qt.QFileDialog.getSaveFileName(
@@ -456,7 +455,7 @@ class BaseConfigurableClass(object):
 
         :return: (str) file name used
         """
-        import pickle as pickle
+        import pickle
         if ifile is None:
             from taurus.external.qt import Qt
             ifile = str(Qt.QFileDialog.getOpenFileName(

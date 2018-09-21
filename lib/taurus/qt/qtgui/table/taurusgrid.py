@@ -501,7 +501,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                     else:
                         # print 'In setModel(): Thread already started! (%d
                         # objs in queue)'%(self.modelsThread.queue.qsize())
-                        next(self.modelsThread)
+                        self.modelsThread.next()
                 else:
                     self.trace('In setModel(): models loading delayed!')
                     pass

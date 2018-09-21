@@ -1014,7 +1014,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                          for item in self.item_list if item.isExpanded()]
                 self.debug('findInTree(%s): Node not found' % (regexp))
             if queue:
-                next(self.Expander)
+                self.Expander.next()
         except:
             self.warning('findInTree(%s): failed' % (regexp))
             self.error(traceback.format_exc())

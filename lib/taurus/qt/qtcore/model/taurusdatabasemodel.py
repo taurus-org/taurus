@@ -267,7 +267,7 @@ class TaurusTreeAttributeItem(TaurusTreeDbBaseItem):
             alarms="[%s, %s]" % (di.alarms.min_alarm, di.alarms.max_alarm),
             warnings="[%s, %s]" % (di.alarms.min_warning, di.alarms.max_warning),)
 
-        for id, value in list(items.items()):
+        for id, value in items.items():
             ret += '<TR><TD WIDTH="80" ALIGN="RIGHT" VALIGN="MIDDLE"><B>%s:</B></TD><TD>%s</TD></TR>' % (
                 id.capitalize(), value)
         ret += '</TABLE>'
@@ -587,7 +587,7 @@ class TaurusDbPlainServerModel(TaurusDbBaseModel):
         servers = data.servers()
         rootItem = self._rootItem
 
-        for server_name, server in list(servers.items()):
+        for server_name, server in servers.items():
             serverInstanceItem = TaurusTreeFullServerItem(
                 self, server, rootItem)
             rootItem.appendChild(serverInstanceItem)

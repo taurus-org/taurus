@@ -57,7 +57,6 @@ Not tested yet with the classical declaration:
 
 from builtins import str
 from builtins import map
-from functools import partial
 from taurus.external.qt import Qt
 from taurus.core.util.fandango_search import isSequence, isDictionary
 
@@ -83,7 +82,7 @@ def djoin(a, b):
     other, dct = sorted((a, b), key=isDictionary)
     if not isDictionary(other):
         other = dict.fromkeys(other if isSequence(other) else [other, ])
-    for k, v in list(other.items()):
+    for k, v in other.items():
         dct[k] = v if not k in dct else djoin(dct[k], v)
     return dct
 
