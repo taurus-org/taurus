@@ -5,8 +5,3 @@ MANIFEST
 /setup.cfg
 doc/~thumbnails.zip
 /lib/taurus.egg-info
-*.bak
-*.swp
-*.orig
-.eggs/
-.vscode/
