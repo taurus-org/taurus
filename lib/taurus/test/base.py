@@ -100,7 +100,7 @@ def insertTest(klass=None, helper_name=None, test_method_name=None,
 
     if test_method_doc is None:
         argsrep = ', '.join(['%s=%s' % (k, repr(v))
-                             for k, v in list(helper_kwargs.items())])
+                             for k, v in helper_kwargs.items()])
         if tested_name:
             test_method_doc = 'Testing %s with %s(%s)' % (tested_name,
                                                           helper_name, argsrep)
