@@ -27,6 +27,7 @@
 
 from builtins import object
 from future.utils import string_types
+from future.utils import PY2
 from taurus.external.qt import API_NAME
 
 __backend = API_NAME
@@ -59,7 +60,7 @@ def __from_qvariant_1(qobj=None, convfunc=None):
     if convfunc is None:
         return qobj.toPyObject()
     elif callable(convfunc):
-        if convfunc in (str, str):
+        if convfunc is str:
             return convfunc(qobj.toString())
         elif convfunc is bool:
             return qobj.toBool()
@@ -67,6 +68,8 @@ def __from_qvariant_1(qobj=None, convfunc=None):
             return qobj.toInt()[0]
         elif convfunc is float:
             return qobj.toDouble()[0]
+        elif PY2 and confunc is unicode:  # py2 compatibility
+            return convfunc(qobj.toString())
     elif isinstance(convfunc, string_types):
         return getattr(qobj, convfunc)()
 
