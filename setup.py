@@ -65,7 +65,7 @@ install_requires = [
 
 #Workaround for old setuptools
 
-if LooseVersion(__version__)<LooseVersion('20.2'):
+if LooseVersion(__version__) < LooseVersion('20.2'):
     if sys.version_info < (3, 4):
         install_requires.append('enum34')
 else:
