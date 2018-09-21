@@ -15,7 +15,6 @@ See also:
 https://bugs.launchpad.net/ubuntu/+source/pyqwt5/+bug/672509
 http://www.esrf.eu/mail_archives/tango/archive/msg04025.html
 '''
-from __future__ import print_function
 
 from PyQt4 import Qt, Qwt5
 
