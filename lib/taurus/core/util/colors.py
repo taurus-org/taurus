@@ -26,12 +26,10 @@
 """This module contains color codes for state and quality"""
 from __future__ import print_function
 
-from builtins import str
 from builtins import object
 __all__ = ["DEVICE_STATE_DATA", "ATTRIBUTE_QUALITY_DATA", "ColorPalette",
            "DEVICE_STATE_PALETTE", "ATTRIBUTE_QUALITY_PALETTE"]
 
-import types
 
 DEVICE_STATE_DATA = {
     # map for TaurusDevState states (used for agnostic TaurusDevice.state)
@@ -97,7 +95,7 @@ class ColorPalette(object):
         self._int_decoder_dict = int_decoder_dict
 
     def _decoder(self, elem):
-        if type(elem) == int or type(elem) == int:
+        if type(elem) == int:
             elem = self._int_decoder_dict.get(elem)
         return str(elem)
 

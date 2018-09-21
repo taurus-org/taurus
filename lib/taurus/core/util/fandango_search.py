@@ -69,23 +69,28 @@ def extend_regexp(s):
 
 
 def isString(s):
+    # TODO: UGLY AND FRAGILE!!! (Refactor) May not even work with py3
     typ = s.__class__.__name__.lower()
     return not hasattr(s, '__iter__') and 'str' in typ and 'list' not in typ
 
 
 def isCallable(obj):
+    # TODO: UGLY AND FRAGILE!!! (Refactor) May not even work with py3
     return hasattr(obj, '__call__')
 
 
 def isMap(obj):
+    # TODO: UGLY AND FRAGILE!!! (Refactor) May not even work with py3
     return hasattr(obj, 'has_key') or hasattr(obj, 'items')
 
 
 def isDictionary(obj):
+    # TODO: UGLY AND FRAGILE!!! (Refactor)
     return isMap(obj)
 
 
 def isSequence(obj):
+    # TODO: UGLY AND FRAGILE!!! (Refactor) May not even work with py3
     typ = obj.__class__.__name__.lower()
     return (hasattr(obj, '__iter__') or 'list' in typ) and not isString(obj) and not isMap(obj)
 
@@ -123,6 +128,7 @@ def get_matching_devices(expressions, limit=0, exported=False):
 
 
 def get_device_for_alias(alias):
+    # TODO: Use validators instead
     db = taurus.Authority()
     try:
         return db.get_device_alias(alias)
@@ -133,6 +139,7 @@ def get_device_for_alias(alias):
 
 
 def get_alias_for_device(dev):
+    # TODO: Use validators instead
     db = taurus.Authority()
     try:
         # .get_database_device().DbGetDeviceAlias(dev)

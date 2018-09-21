@@ -31,8 +31,6 @@ __all__ = ["TaurusModel"]
 __docformat__ = "restructuredtext"
 
 import weakref
-import operator
-import threading
 import collections
 
 from .util.log import Logger

@@ -30,8 +30,6 @@ __all__ = ['EvaluationDeviceNameValidator',
 import re
 import hashlib
 
-from future.utils import string_types
-
 import taurus
 from taurus import isValidName, debug
 from taurus.core import TaurusElementType
@@ -253,7 +251,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
                           string containing a semi-colon separated list of
                           symbol=value pairs can also be passed.
         '''
-        if isinstance(substmap, string_types):
+        if isinstance(substmap, str):
             substmap = dict(K_EQUALS_V_RE.findall(substmap))
         ret = expr
         protected = {}
@@ -365,8 +363,8 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
 
         # create the groups dict with unmangled refs in its values
         groups = {}
-        for n, g in list(_groups.items()):
-            if isinstance(g, string_types):  # avoid None or boolean values
+        for n, g in _groups.items():
+            if isinstance(g, str):  # avoid None or boolean values
                 g = g.format(**refs_dict)
             groups[n] = g
 

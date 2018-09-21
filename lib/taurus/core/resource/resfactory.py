@@ -30,10 +30,6 @@ from __future__ import absolute_import
 
 import os
 import imp
-import operator
-import types
-
-from future.utils import string_types
 
 from taurus.core.taurushelper import Manager
 from taurus.core.util.singleton import Singleton
@@ -93,7 +89,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
         elif type(obj) in (str,) or obj is None:
             name, mod = self.__reloadResource(obj)
             obj = {}
-            for k, v in list(mod.__dict__.items()):
+            for k, v in mod.__dict__.items():
                 if not k.startswith('_') and isinstance(v, str):
                     obj[k] = v
         else:

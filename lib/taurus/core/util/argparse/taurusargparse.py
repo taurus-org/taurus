@@ -78,7 +78,6 @@ Suppose you want to add an option like ``--model=<model name>``::
         sys.exit(app.exec_())
 """
 
-from builtins import str
 __all__ = ["get_taurus_parser", "init_taurus_args", "parse_taurus_args",
            "split_taurus_args"]
 
@@ -202,7 +201,7 @@ def init_taurus_args(parser=None, args=None, values=None):
             taurus.info("rconsole started. You can connect to it by typing: rconsole -p %d",
                         options.remote_console_port)
         except Exception as e:
-            taurus.warning("Cannot spawn debugger. Reason: %s", str(e))
+            taurus.warning("Cannot spawn debugger. Reason: %s", e)
 
     # initialize default formatter
     if options.default_formatter is not None:

@@ -22,7 +22,6 @@
 ##
 #############################################################################
 
-from builtins import str
 __all__ = ['EvaluationAttribute']
 
 import numpy

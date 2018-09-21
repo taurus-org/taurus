@@ -25,12 +25,10 @@
 
 """This module contains all taurus tango authority"""
 from __future__ import print_function
-from __future__ import division
 
 from builtins import str
 from builtins import map
 from builtins import range
-from past.utils import old_div
 from builtins import object
 import collections
 __all__ = ["TangoInfo", "TangoAttrInfo", "TangoDevInfo", "TangoServInfo",
@@ -41,7 +39,6 @@ __docformat__ = "restructuredtext"
 
 import os
 import socket
-import operator
 import weakref
 
 from PyTango import (Database, DeviceProxy, DevFailed, ApiUtil)
@@ -111,7 +108,8 @@ class TangoDevClassInfo(TangoInfo):
 
     def getDeviceNames(self):
         if not hasattr(self, "_device_name_list"):
-            self._device_name_list = sorted(map(TangoDevInfo.name, self._devices.values()))
+            self._device_name_list = sorted(map(TangoDevInfo.name,
+                                                self._devices.values()))
         return self._device_name_list
 
 
@@ -333,7 +331,7 @@ class TangoDatabaseCache(object):
             r = db.command_inout("DbMySqlSelect", query)
             row_nb, column_nb = r[0][-2:]
             data = r[1]
-            assert row_nb == old_div(len(data), column_nb)
+            assert row_nb == len(data) // column_nb
         else:
             # fallback using tango commands (slow but works with sqlite DB)
             # see http://sf.net/p/tauruslib/tickets/148/
@@ -669,12 +667,11 @@ class TangoAuthority(TaurusAuthority):
     _description = 'A Tango Authority'
 
     def __init__(self, host=None, port=None, parent=None):
-        pars = ()
         if host is None or port is None:
             try:
-                host, port = TangoAuthority.get_default_tango_host().rsplit(':', 1)
-                pars = host, port
-            except Exception as e:
+                _hp = TangoAuthority.get_default_tango_host()
+                host, port = _hp.rsplit(':', 1)
+            except Exception:
                 from taurus import warning
                 warning("Error getting default Tango host")
 
@@ -708,7 +705,7 @@ class TangoAuthority(TaurusAuthority):
         serv_name = self.command_inout("DbGetDeviceInfo", dev_name)[1][3]
         devs = self.get_device_class_list(serv_name)
         dev_name_lower = dev_name.lower()
-        for i in range(old_div(len(devs), 2)):
+        for i in range(len(devs) // 2):
             idx = i * 2
             if devs[idx].lower() == dev_name_lower:
                 return devs[idx + 1]

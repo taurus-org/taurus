@@ -33,13 +33,14 @@ others unspecified. This approach does those things, while verifying that all
 values (specified and unspecified) are unique. Enum values then are attributes
 of an Enumeration class (Volkswagen.BEETLE, Volkswagen.PASSAT, etc.)."""
 
+from builtins import int
 from builtins import str
 from builtins import object
 __all__ = ["EnumException", "Enumeration"]
 
 __docformat__ = "restructuredtext"
 
-from future.utils import integer_types, string_types
+from future.utils import string_types
 
 
 class EnumException(Exception):
@@ -101,7 +102,7 @@ class Enumeration(object):
                 x, i = x
                 if not isinstance(x, string_types):
                     raise EnumException("enum name is not a string: " + str(x))
-                if not isinstance(i, (int, int)):
+                if not isinstance(i, int):
                     raise EnumException(
                         "enum value is not an integer: " + str(i))
                 if x in uniqueNames:
@@ -147,13 +148,13 @@ class Enumeration(object):
         return n
 
     def __contains__(self, i):
-        if isinstance(i, integer_types):
+        if isinstance(i, int):
             return i in self.reverseLookup
         elif isinstance(i, string_types):
             return i in self.lookup
 
     def __getitem__(self, i):
-        if isinstance(i, (int, int)):
+        if isinstance(i, int):
             return self.whatis(i)
         elif isinstance(i, string_types):
             return self.lookup[i]

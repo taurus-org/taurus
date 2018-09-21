@@ -27,7 +27,6 @@
 
 #__all__ = []
 
-from builtins import str
 from builtins import object
 __docformat__ = 'restructuredtext'
 

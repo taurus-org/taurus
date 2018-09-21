@@ -27,6 +27,8 @@
 from __future__ import print_function
 
 from builtins import str
+from future.utils import string_types
+
 __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'getValidTypesForName', 'isValidName', 'makeSchemeExplicit',
            'Manager', 'Factory', 'Device', 'Attribute', 'Configuration',
@@ -40,7 +42,6 @@ __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
 
 __docformat__ = "restructuredtext"
 
-import sys
 import re
 from taurus import tauruscustomsettings
 from .util.log import taurus4_deprecation
@@ -298,7 +299,7 @@ def Attribute(dev_or_attr_name, attr_name=None):
     if attr_name is None:
         return Factory(scheme=getSchemeFromName(dev_or_attr_name)).getAttribute(dev_or_attr_name)
     else:
-        if type(dev_or_attr_name) in (str,):
+        if isinstance(dev_or_attr_name, string_types):
             dev = Device(dev_or_attr_name)
         else:
             dev = dev_or_attr_name

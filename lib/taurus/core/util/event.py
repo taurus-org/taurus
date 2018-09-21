@@ -29,8 +29,6 @@ event.py:
 from __future__ import print_function
 from __future__ import absolute_import
 
-from past.builtins import cmp
-from builtins import str
 from builtins import range
 from builtins import object
 __all__ = ["BoundMethodWeakref", "CallableRef", "EventGenerator",
@@ -44,7 +42,6 @@ import weakref
 import threading
 import time
 import collections
-import operator
 
 import taurus.core
 
@@ -80,10 +77,23 @@ class BoundMethodWeakref(object):
 
     def __cmp__(self, other):
         if other.__class__ == self.__class__:
+            from past.builtins import cmp
             ret = cmp((self.func_ref, self.obj_ref),
                       (other.func_ref, other.obj_ref))
             return ret
         return 1
+
+    def __eq__(self, other):
+        if other.__class__ != self.__class__:
+            return ((self.func_ref, self.obj_ref)
+                    == (other.func_ref, other.obj_ref))
+        return False
+
+    def __ne__(self, other):
+        if other.__class__ != self.__class__:
+            return ((self.func_ref, self.obj_ref)
+                    != (other.func_ref, other.obj_ref))
+        return True
 
     def __repr__(self):
         obj, func = self.obj_ref(), self.func_ref()
@@ -650,7 +660,7 @@ class AttributeEventWait(object):
                 retries += 1
             while retries != 0:
                 if any:
-                    for v, t in list(s.items()):
+                    for v, t in s.items():
                         if t >= after:
                             return
                 if equal:
@@ -658,7 +668,7 @@ class AttributeEventWait(object):
                     if (t is not None) and (t >= after):
                         return
                 else:
-                    for v, t in list(s.items()):
+                    for v, t in s.items():
                         if v == val:
                             continue
                         if t >= after:
@@ -667,7 +677,7 @@ class AttributeEventWait(object):
                 retries -= 1
         except Exception as e:
             sys.stderr.write(
-                "AttributeEventWait: Caught exception while waitting: %s\n" % str(e))
+                "AttributeEventWait: Caught exception while waiting: %s\n" % str(e))
             raise e
         finally:
             self.unlock()
@@ -706,8 +716,8 @@ class AttributeEventIterator(object):
             lock = getattr(self._cond, "_Condition__lock")
             th = getattr(lock, "_RLock__owner")
             curr_th = threading.current_thread()
-            print("WARNING: Thread %s trying to unlock condition previously " \
-                  "locked by thread %s" % (curr_th.name, th.name))
+            print(("WARNING: Thread %s trying to unlock condition previously "
+                   + "locked by thread %s") % (curr_th.name, th.name))
 
     def eventReceived(self, s, t, v):
         if t not in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic):

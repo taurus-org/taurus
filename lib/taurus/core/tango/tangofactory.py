@@ -134,16 +134,16 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
     def cleanUp(self):
         """Cleanup the singleton instance"""
         self.trace("[TangoFactory] cleanUp")
-        for k, v in list(self.tango_attrs.items()):
+        for k, v in self.tango_attrs.items():
             v.cleanUp()
-        for k, v in list(self.tango_dev_queries.items()):
+        for k, v in self.tango_dev_queries.items():
             v.cleanUp()
-        for k, v in list(self.tango_devs.items()):
+        for k, v in self.tango_devs.items():
             v.cleanUp()
         self.dft_db = None
-        for k, v in list(self.tango_db_queries.items()):
+        for k, v in self.tango_db_queries.items():
             v.cleanUp()
-        for k, v in list(self.tango_db.items()):
+        for k, v in self.tango_db.items():
             v.cleanUp()
         self.reInit()
 

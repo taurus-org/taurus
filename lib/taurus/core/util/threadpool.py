@@ -26,12 +26,10 @@
 """adapted from http://code.activestate.com/recipes/576576/"""
 from __future__ import print_function
 from __future__ import absolute_import
-from __future__ import division
 
 from future import standard_library
 standard_library.install_aliases()
 from builtins import range
-from past.utils import old_div
 __all__ = ["ThreadPool", "Worker"]
 
 __docformat__ = "restructuredtext"
@@ -171,7 +169,7 @@ if __name__ == '__main__':
 
     def badJob(*a, **k):
         print('\n !!! OOOPS !!!\n')
-        a = old_div(1, 0)
+        a = 1 / 0
 
     def show(*arg, **kw):
         print('callback : %s' % arg[0])

@@ -64,8 +64,6 @@ Needed to cast params as floats in function def (or simply divide by 2.0).
 """
 from __future__ import print_function
 
-from builtins import str
-from builtins import map
 __all__ = ["accepts", "returns"]
 
 __docformat__ = "restructuredtext"

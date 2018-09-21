@@ -40,10 +40,7 @@ import logging.handlers
 import struct
 import weakref
 
-try:
-    import socketserver
-except:
-    import socketserver as socketserver
+import socketserver
 
 
 class LogRecordStreamHandler(socketserver.StreamRequestHandler):

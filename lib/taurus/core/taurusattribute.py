@@ -25,7 +25,6 @@
 
 """This module contains the base class for a taurus attribute"""
 
-from builtins import str
 __all__ = ["TaurusAttribute"]
 
 __docformat__ = "restructuredtext"

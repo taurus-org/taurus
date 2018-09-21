@@ -30,8 +30,6 @@ It is not a replacement of the Tango Starter Device Server since this is much
 more limited in scope.
 """
 from __future__ import print_function
-
-from builtins import range
 from builtins import object
 __docformat__ = 'restructuredtext'
 
