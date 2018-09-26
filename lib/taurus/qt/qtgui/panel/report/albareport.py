@@ -46,7 +46,7 @@ class SendTicketDialog(SendMailDialog):
         self.ui.mainLayout.addWidget(self.ui.editTo, 1, 1, 1, 1)
 
     def getTo(self):
-        return str(self.ui.editTo.currentText() + "@rt.cells.es")
+        return str(self.ui.editTo.currentText() + ".desk@cells.es")
 
 
 class TicketReportHandler(SMTPReportHandler):
