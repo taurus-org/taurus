@@ -26,7 +26,6 @@
 """This package provides the TaurusGui class"""
 
 from builtins import str
-from past.builtins import basestring
 __all__ = ["DockWidgetPanel", "TaurusGui"]
 
 __docformat__ = 'restructuredtext'
@@ -345,7 +344,7 @@ class TaurusGui(TaurusMainWindow):
         except:
             pass
         TaurusMainWindow.closeEvent(self, event)
-        for n, panel in list(self.__panels.items()):
+        for n, panel in self.__panels.items():
             panel.closeEvent(event)
             panel.widget().closeEvent(event)
             if not event.isAccepted():
@@ -364,7 +363,7 @@ class TaurusGui(TaurusMainWindow):
         permanent = (panelsmenu == self.__permPanelsMenu)
         panelsmenu.clear()
         panelnames = sorted(
-            [n for n, p in list(self.__panels.items()) if (p.isPermanent() == permanent)])
+            [n for n, p in self.__panels.items() if (p.isPermanent() == permanent)])
         for name in panelnames:
             panelsmenu.addAction(self.__panels[name].toggleViewAction())
 
@@ -882,7 +881,7 @@ class TaurusGui(TaurusMainWindow):
             ms = taurus.Device(macroservername)
             instruments = ms.getElementsOfType('Instrument')
             if instruments is None:
-                raise
+                raise Exception()
         except Exception as e:
             msg = 'Could not fetch Instrument list from "%s"' % macroservername
             self.error(msg)
@@ -899,12 +898,12 @@ class TaurusGui(TaurusMainWindow):
             instrument_dict[i_name] = i_view
 
         from operator import attrgetter
-        pool_elements = sorted(list(ms.getElementsWithInterface(
-            'Moveable').values()), key=attrgetter('name'))
-        pool_elements += sorted(list(ms.getElementsWithInterface(
-            'ExpChannel').values()), key=attrgetter('name'))
-        pool_elements += sorted(list(ms.getElementsWithInterface(
-            'IORegister').values()), key=attrgetter('name'))
+        pool_elements = sorted(ms.getElementsWithInterface(
+            'Moveable').values(), key=attrgetter('name'))
+        pool_elements += sorted(ms.getElementsWithInterface(
+            'ExpChannel').values(), key=attrgetter('name'))
+        pool_elements += sorted(ms.getElementsWithInterface(
+            'IORegister').values(), key=attrgetter('name'))
         for elem in pool_elements:
             instrument = elem.instrument
             if instrument:
@@ -993,7 +992,7 @@ class TaurusGui(TaurusMainWindow):
             else:  # if confname is not a dir name, we assume it is a module name in the python path
                 conf = self._importConfiguration(confname)
                 self._confDirectory = os.path.dirname(conf.__file__)
-        except Exception as e:
+        except Exception:
             import traceback
             msg = 'Error loading configuration: %s' % traceback.format_exc()  # repr(e)
             self.error(msg)
@@ -1335,7 +1334,7 @@ class TaurusGui(TaurusMainWindow):
             dwfeat = Qt.QDockWidget.AllDockWidgetFeatures
         else:
             dwfeat = Qt.QDockWidget.NoDockWidgetFeatures
-        for panel in list(self.__panels.values()):
+        for panel in self.__panels.values():
             panel.toggleViewAction().setEnabled(modifiable)
             panel.setFeatures(dwfeat)
         for action in (self.newPanelAction, self.showAllPanelsAction,
@@ -1493,9 +1492,9 @@ class TaurusGui(TaurusMainWindow):
         raise DeprecationWarning(
             'findPanelsInArea is no longer supported (now all panels reside in the same DockWidget Area)')
         if area == 'FLOATING':
-            return [p for p in list(self.__panels.values()) if p.isFloating()]
+            return [p for p in self.__panels.values() if p.isFloating()]
         else:
-            return [p for p in list(self.__panels.values()) if self.dockWidgetArea(p) == area]
+            return [p for p in self.__panels.values() if self.dockWidgetArea(p) == area]
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

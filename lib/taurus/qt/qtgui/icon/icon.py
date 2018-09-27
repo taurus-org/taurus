@@ -25,7 +25,6 @@
 
 """This module provides taurus-specific functions related to icons"""
 
-from builtins import range
 __all__ = [
     'sanitizePrefix',
     'registerPathFiles',

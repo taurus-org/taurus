@@ -27,12 +27,10 @@
 
 from __future__ import absolute_import
 
-from builtins import str
 __all__ = ["new_parser", "parse"]
 
 import os
 import re
-import imp
 
 from ply import lex
 from ply import yacc

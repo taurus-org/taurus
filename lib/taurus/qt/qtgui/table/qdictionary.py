@@ -26,17 +26,11 @@
 """This module provides basic python dictionary/list editor widgets"""
 from __future__ import print_function
 
-from builtins import str
-from builtins import range
-from past.builtins import basestring
 __all__ = ["QDictionaryEditor", "QListEditor"]
 
 __docformat__ = 'restructuredtext'
 
 import sys
-import taurus
-
-import numpy
 from future.utils import string_types
 
 from taurus.core.util.containers import SortedDict
@@ -112,7 +106,7 @@ def dict2array(dct):
     [table.append([]) for r in range(data.pop('nrows'))]
     [table[r].append(None) for c in range(data.pop('ncols'))
      for r in range(len(table))]
-    for coord, value in list(data.items()):
+    for coord, value in data.items():
         table[coord[0]][coord[1]] = value
     return table
 

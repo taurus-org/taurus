@@ -25,7 +25,6 @@
 
 """This module provides a set of basic taurus widgets based on QLineEdit"""
 
-from builtins import str
 __all__ = ["TaurusConfigurationPanel", "TangoConfigLineEdit",
            "TaurusConfigLineEdit"]
 

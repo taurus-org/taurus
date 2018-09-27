@@ -29,7 +29,6 @@ from __future__ import print_function
 
 from builtins import map
 from builtins import str
-from past.builtins import basestring
 __all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
 
 __docformat__ = 'restructuredtext'
@@ -445,7 +444,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
                            quotes will be removed and the quoted text will not
                            be splitted.
         '''
-        if isinstance(parameters, string_types+ (Qt.QString,)):
+        if isinstance(parameters, string_types + (Qt.QString,)):
             parameters = str(parameters).strip()
             if parameters[0] in ('"', "'") and parameters[0] == parameters[-1]:
                 parameters = [parameters[1:-1]]

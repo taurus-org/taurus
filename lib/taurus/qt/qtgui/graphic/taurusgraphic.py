@@ -26,7 +26,6 @@
 taurusgraphic.py:
 """
 from __future__ import print_function
-from __future__ import division
 
 # TODO: Tango-centric
 
@@ -34,9 +33,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import str
 from builtins import range
-from past.builtins import basestring
 from builtins import object
-from past.utils import old_div
 __all__ = ['SynopticSelectionStyle',
            'parseTangoUri',
            'QEmitter',  # TODO: QEmitter should probably be removed (kept priv)
@@ -69,8 +66,6 @@ import os
 import subprocess
 import traceback
 import collections
-import operator
-import types
 
 from future.utils import string_types
 from queue import Queue
@@ -699,7 +694,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 else:
                     if isinstance(picture, Qt.QPixmap):
                         pixmap = picture
-                    elif isinstance(picture, string_types) or isinstance(picture, Qt.QString):
+                    elif isinstance(picture, string_types + (Qt.QString,)):
                         picture = str(picture)
                         pixmap = Qt.QPixmap(os.path.realpath(picture))
                     SelectionMark = Qt.QGraphicsPixmapItem()
@@ -743,8 +738,8 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 if w > MAX_CIRCLE_SIZE[0] or h > MAX_CIRCLE_SIZE[1]:
                     # Applying correction if the file is too big, half max
                     # circle size around the center
-                    x, y = (x + old_div(w, 2.)) - .5 * \
-                        MAX_CIRCLE_SIZE[0], (y + old_div(h, 2.)) - .5 * \
+                    x, y = (x + w / 2.) - .5 * \
+                        MAX_CIRCLE_SIZE[0], (y + h / 2.) - .5 * \
                         MAX_CIRCLE_SIZE[1],
                     w, h = [.5 * t for t in MAX_CIRCLE_SIZE]
                 else:
@@ -1515,7 +1510,7 @@ class TaurusBaseGraphicsFactory(object):
     def getGraphicsItem(self, type_, params):
         name = params.get(self.getNameParam())
         # applying alias
-        for k, v in list(getattr(self, 'alias', {}).items()):
+        for k, v in getattr(self, 'alias', {}).items():
             if k in name:
                 name = str(name).replace(k, v)
                 params[self.getNameParam()] = name

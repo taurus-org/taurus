@@ -31,7 +31,6 @@ from __future__ import print_function
 # todo: tango-centric
 
 from builtins import str
-from builtins import range
 __all__ = ["TaurusPropTable"]
 
 from taurus.external.qt import Qt, QtCore, QtGui

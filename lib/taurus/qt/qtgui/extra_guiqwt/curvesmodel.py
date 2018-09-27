@@ -27,7 +27,6 @@
 curvesmodel Model and view for new CurveItem configuration
 """
 from __future__ import print_function
-from builtins import map
 from builtins import next
 from builtins import str
 from builtins import range

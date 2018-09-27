@@ -24,11 +24,9 @@
 #############################################################################
 
 """This module provides an arrow based widget."""
-from __future__ import division
 
 from builtins import map
 from builtins import range
-from past.utils import old_div
 __all__ = ["QWheelEdit"]
 
 __docformat__ = 'restructuredtext'
@@ -780,8 +778,8 @@ class QWheelEdit(Qt.QFrame):
         self.setFocus()
 
     def wheelEvent(self, evt):
-        numDegrees = old_div(evt.delta(), 8)
-        numSteps = old_div(numDegrees, 15)
+        numDegrees = evt.delta() // 8
+        numSteps = numDegrees // 15
         #w = Qt.QApplication.focusWidget()
         w = self.focusWidget()
         if not isinstance(w, _DigitLabel):

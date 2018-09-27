@@ -29,8 +29,6 @@ mainwindow.py: a main window implementation with many added features by default
 from __future__ import absolute_import
 
 from builtins import str
-from builtins import range
-from past.builtins import basestring
 __all__ = ["TaurusMainWindow"]
 
 __docformat__ = 'restructuredtext'
@@ -111,13 +109,12 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
         '''
         from taurus.external.qt import Qt
         layout = self.externalAppsPage.widget().layout()
-        for cnt in reversed(list(range(layout.count()))):
+        for cnt in reversed(range(layout.count())):
             widget = layout.itemAt(cnt).widget()
             if widget is not None:
                 text = str(widget.text())  # command1
                 if isinstance(widget, Qt.QLabel):
-                    dialog_text = "Command line for %s" % str(
-                        extapp.text())
+                    dialog_text = "Command line for %s" % str(extapp.text())
                     if text == dialog_text:
                         layout.removeWidget(widget)
                         widget.close()
@@ -682,13 +679,19 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''
         perspectives = self.getPerspectivesList()
         if name is None:
-            name, ok = Qt.QInputDialog.getItem(self, "Save Perspective", "Store current settings as the following perspective:",
-                                               perspectives, 0, True)
+            name, ok = Qt.QInputDialog.getItem(
+                self, "Save Perspective",
+                "Store current settings as the following perspective:",
+                perspectives, 0, True
+            )
             if not ok:
                 return
         if name in perspectives:
-            ans = Qt.QMessageBox.question(self, "Overwrite perspective?", "overwrite existing perspective %s?" % str(name),
-                                          Qt.QMessageBox.Yes, Qt.QMessageBox.No)
+            ans = Qt.QMessageBox.question(
+                self, "Overwrite perspective?",
+                "overwrite existing perspective %s?" % str(name),
+                Qt.QMessageBox.Yes, Qt.QMessageBox.No
+            )
             if ans != Qt.QMessageBox.Yes:
                 return
         self.saveSettings(group="Perspectives/%s" % name)
@@ -765,8 +768,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         :param fname: (str) name of output file. If None given, a file dialog will be shown.
         '''
         if fname is None:
-            fname = str(Qt.QFileDialog.getSaveFileName(self, 'Choose file where the current settings should be saved',
-                                                           '', "Ini files (*.ini);;All files (*)"))
+            fname = str(Qt.QFileDialog.getSaveFileName(
+                self, 'Choose file where the current settings should be saved',
+                '', "Ini files (*.ini);;All files (*)")
+            )
             if not fname:
                 return
         self.saveSettings()
@@ -785,8 +790,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         :param fname: (str) name of ini file. If None given, a file dialog will be shown.
         '''
         if fname is None:
-            fname = str(Qt.QFileDialog.getOpenFileName(self, 'Select a ini-format settings file',
-                                                           '', "Ini files (*.ini);;All files (*)"))
+            fname = str(Qt.QFileDialog.getOpenFileName(
+                self, 'Select a ini-format settings file',
+                '', "Ini files (*.ini);;All files (*)")
+            )
             if not fname:
                 return
         s = Qt.QSettings(fname, Qt.QSettings.IniFormat)

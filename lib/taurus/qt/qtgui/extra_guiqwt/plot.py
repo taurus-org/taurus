@@ -28,7 +28,6 @@ Extension of :mod:`guiqwt.plot`
 """
 from builtins import next
 from builtins import str
-from past.builtins import basestring
 __all__ = ["TaurusCurveDialog", "TaurusTrendDialog", "TaurusImageDialog"]
 
 import copy

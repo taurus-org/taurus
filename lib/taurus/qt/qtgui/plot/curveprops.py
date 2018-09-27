@@ -28,7 +28,6 @@ curveprops: Model and view for curve properties
 """
 from __future__ import absolute_import
 from builtins import str
-from builtins import range
 from builtins import object
 __all__ = ['CurveConf', 'CurvesTableModel',
            'ExtendedSelectionModel', 'CurvePropertiesView']

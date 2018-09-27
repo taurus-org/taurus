@@ -32,7 +32,6 @@ __all__ = ["TaurusLabel"]
 
 __docformat__ = 'restructuredtext'
 
-import operator
 import collections
 import re
 

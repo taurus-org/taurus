@@ -27,7 +27,6 @@
 RawDataChooser.py:  widget for importing RawData (from file or from a function)
 """
 
-from builtins import str
 __all__ = ["QRawDataWidget"]
 
 import numpy

@@ -28,7 +28,6 @@ from __future__ import absolute_import
 
 __package__ = 'taurus.qt.qtgui.panel.report'
 
-from builtins import str
 __all__ = ["TicketReportHandler"]
 
 __docformat__ = 'restructuredtext'

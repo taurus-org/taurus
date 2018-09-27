@@ -26,11 +26,9 @@
 """
 This module provides a set of basic taurus widgets based on QLineEdit
 """
-from __future__ import division
 
 from builtins import bytes
 from builtins import str
-from past.utils import old_div
 import sys
 import numpy
 from taurus.external.qt import Qt
@@ -206,8 +204,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return Qt.QLineEdit.wheelEvent(self, evt)
 
         evt.accept()
-        numDegrees = old_div(evt.delta(), 8)
-        numSteps = old_div(numDegrees, 15)
+        numDegrees = evt.delta() // 8
+        numSteps = numDegrees // 15
         self._stepBy(numSteps)
 
     def keyPressEvent(self, evt):

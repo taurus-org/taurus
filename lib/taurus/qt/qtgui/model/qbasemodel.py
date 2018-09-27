@@ -236,7 +236,7 @@ class PerspectiveToolBar(BaseToolBar):
         menu = Qt.QMenu("Perspective", b)
         b.setMenu(menu)
         af = ActionFactory()
-        for persp, persp_data in list(view.KnownPerspectives.items()):
+        for persp, persp_data in view.KnownPerspectives.items():
             label = persp_data["label"]
             icon = Qt.QIcon.fromTheme(persp_data["icon"])
             tip = persp_data["tooltip"]

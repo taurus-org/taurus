@@ -118,8 +118,8 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             value = self.typeCastingMap[tabledata.dtype.kind](value)
             return Qt.QVariant(value)
         elif role == Qt.Qt.DecorationRole:
-            if ((index.row(), index.column()) in self._modifiedDict) and\
-                    (self._writeMode):
+            if ((index.row(), index.column()) in self._modifiedDict
+                    and self._writeMode):
                 if self.getAttr().type in [DataType.Integer, DataType.Float]:
                     value = self._modifiedDict[(index.row(), index.column())]
                     if not self.inAlarmRange(value):
@@ -131,8 +131,8 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 return Qt.QVariant(icon)
         elif role == Qt.Qt.EditRole:
             value = None
-            if (index.row(), index.column()) in self._modifiedDict and\
-                    (self._writeMode):
+            if ((index.row(), index.column()) in self._modifiedDict
+                    and self._writeMode):
                 value = self._modifiedDict[(index.row(), index.column())]
             else:
                 value = tabledata[index.row(), index.column()]
@@ -145,8 +145,8 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
             else:
                 return Qt.QVariant(Qt.QColor('white'))
         elif role == Qt.Qt.ForegroundRole:
-            if (index.row(), index.column()) in self._modifiedDict and\
-                    (self._writeMode):
+            if ((index.row(), index.column()) in self._modifiedDict
+                    and self._writeMode):
                 if self.getAttr().type in [DataType.Integer, DataType.Float]:
                     value = self._modifiedDict[(index.row(), index.column())]
                     if not self.inAlarmRange(value):
@@ -157,12 +157,12 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                     return Qt.QVariant(Qt.QColor('blue'))
             return Qt.QVariant(Qt.QColor('black'))
         elif role == Qt.Qt.FontRole:
-            if (index.row(), index.column()) in self._modifiedDict and\
-                    (self._writeMode):
+            if ((index.row(), index.column()) in self._modifiedDict
+                    and self._writeMode):
                 return Qt.QVariant(Qt.QFont("Arial", 10, Qt.QFont.Bold))
         elif role == Qt.Qt.ToolTipRole:
-            if (index.row(), index.column()) in self._modifiedDict and\
-                    (self._writeMode):
+            if ((index.row(), index.column()) in self._modifiedDict
+                    and self._writeMode):
                 value = str(self._modifiedDict[(index.row(), index.column())])
                 msg = 'Original value: %s.\nNew value that will be saved: %s' %\
                       (str(tabledata[index.row(), index.column()]), value)
@@ -266,11 +266,11 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         kind = table.dtype.kind
         if kind in 'SU':
             table = table.tolist()  # we want to allow the strings to be larger than the original ones
-            for (r, c), v in list(self._modifiedDict.items()):
+            for (r, c), v in self._modifiedDict.items():
                 table[r][c] = Qt.from_qvariant(v, str)
             table = numpy.array(table, dtype=str)
         else:
-            for k, v in list(self._modifiedDict.items()):
+            for k, v in self._modifiedDict.items():
                 if kind in ['f', 'i', 'u']:
                     units = self._parent.getCurrentUnits()
                     q = _value2Quantity(v, units)

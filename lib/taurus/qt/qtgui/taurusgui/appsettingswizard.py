@@ -35,7 +35,6 @@ user will find when launching the GUI for the first time.
 from __future__ import print_function
 
 from builtins import str
-from builtins import range
 __all__ = ["AppSettingsWizard", "ExternalAppEditor"]
 
 import os
@@ -1399,8 +1398,8 @@ class OutroPage(BasePage):
         warnings = self.wizard().getProjectWarnings()
         if warnings:
             msg += '\n\nHowever, some fine-tuning may be needed. Please check the details:\n'
-            for short, int in warnings:
-                details += '- %s: %s\n\n' % (short, int)
+            for _short, _long in warnings:
+                details += '- %s: %s\n\n' % (_short, _long)
         logfile.write(msg + details)
         logfile.close()
         dlg = Qt.QMessageBox(Qt.QMessageBox.Information,
@@ -1629,11 +1628,11 @@ class AppSettingsWizard(Qt.QWizard):
                     refsrc = os.path.join(os.path.dirname(src), ref)
                     refdst = self.substitutionName(refsrc, mod_dir)
                     if ref != refdst:
-                        short = 'Manual editing needed in "%s"' % dst
-                        long = ('The synoptic file "%s" references a file that '
+                        _short = 'Manual editing needed in "%s"' % dst
+                        _long = ('The synoptic file "%s" references a file that '
                                 'has been copied to the project dir in order to make the project portable. '
                                 'Please edit "%s" and replace "%s" by "%s"') % (dst, dst, ref, refdst)
-                        self._projectWarnings.append((short, int))
+                        self._projectWarnings.append((_short, _long))
 
         # macroserver page
         if self.SARDANA_INSTALLED and self.__getitem__("macroServerName"):

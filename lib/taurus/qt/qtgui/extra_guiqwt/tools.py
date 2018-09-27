@@ -26,7 +26,6 @@
 """Extension of :mod:`guiqwt.tools`"""
 
 
-from builtins import zip
 __docformat__ = 'restructuredtext'
 
 import weakref
@@ -174,7 +173,7 @@ class TimeAxisTool(CommandTool):
 
     def update_status(self, plot):
         active_scale = self._getAxesUseTime(plot)
-        for scale_type, scale_action in list(self.scale_menu.items()):
+        for scale_type, scale_action in self.scale_menu.items():
             scale_action.setEnabled(True)
             if active_scale == scale_type:
                 scale_action.setChecked(True)

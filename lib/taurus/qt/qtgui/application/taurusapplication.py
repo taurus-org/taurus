@@ -25,9 +25,8 @@
 
 """This module provides the base
 :class:`taurus.qt.qtgui.application.TaurusApplication` class."""
-from __future__ import with_statement
-from builtins import str
 
+from builtins import str
 
 __all__ = ["TaurusApplication"]
 
@@ -68,7 +67,7 @@ class STD(Logger):
         self.log_obj.propagate = False
         self.std = std
     
-#Trying to mimic  stderr
+    #Trying to mimic stderr
     @property
     def errors(self):
         return self.std.errors

@@ -25,7 +25,6 @@
 
 """This module provides a panel to display taurus messages"""
 
-from builtins import str
 __all__ = ["ClipboardReportHandler", "SMTPReportHandler"]
 
 __docformat__ = 'restructuredtext'

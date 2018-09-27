@@ -26,7 +26,6 @@
 """This module provides basic taurus scroll area widget"""
 from __future__ import absolute_import
 
-from builtins import map
 __all__ = ["TaurusScrollArea"]
 
 __docformat__ = 'restructuredtext'
@@ -170,7 +169,7 @@ def main():
     if len(args) == 0:
         w = demo()
     else:
-        models = list(map(str.lower, args))
+        models = map(str.lower, args)
 
         w = Qt.QWidget()
         w.setWindowTitle(app.applicationName())

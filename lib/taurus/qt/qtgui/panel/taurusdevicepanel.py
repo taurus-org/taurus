@@ -28,7 +28,6 @@ TaurusDevicePanel.py:
 """
 
 from builtins import str
-from past.builtins import basestring
 __all__ = ["TaurusDevicePanel", "TaurusDevPanel"]
 
 __docformat__ = 'restructuredtext'
@@ -76,16 +75,16 @@ def searchCl(m, k):  # TODO: Tango-centric
 
 
 def get_regexp_dict(dct, key, default=None):  # TODO: Tango-centric
-    for k, v in list(dct.items()):  # Trying regular expression match
+    for k, v in dct.items():  # Trying regular expression match
         if matchCl(k, key):
             return v
-    for k, v in list(dct.items()):  # If failed, trying if key is contained
+    for k, v in dct.items():  # If failed, trying if key is contained
         if k.lower() in key.lower():
             return v
     if default is not None:
         return default
     else:
-        raise Exception('KeyNotFound:%s' % k)
+        raise Exception('KeyNotFound:%s' % key)
 
 
 def get_eqtype(dev):  # TODO: Tango-centric
@@ -332,7 +331,7 @@ class TaurusDevicePanel(TaurusWidget):
             font.setPointSize(15)
             self._label.setFont(font)
             if pixmap is None and self.getIconMap():
-                for k, v in list(self.getIconMap().items()):
+                for k, v in self.getIconMap().items():
                     if searchCl(k, model):
                         pixmap = v
             if pixmap is not None:

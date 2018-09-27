@@ -26,7 +26,6 @@
 """This module provides base classes from which the compact widgets should inherit
 """
 
-from past.builtins import basestring
 __all__ = ["TaurusReadWriteSwitcher"]
 
 __docformat__ = 'restructuredtext'

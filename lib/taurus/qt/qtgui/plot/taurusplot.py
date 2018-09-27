@@ -28,15 +28,11 @@ taurusplot.py: Generic graphical plotting widget for Taurus
 """
 from __future__ import print_function
 from __future__ import absolute_import
-from __future__ import division
 from future import standard_library
 standard_library.install_aliases()
-from builtins import zip
 from builtins import next
 from builtins import str
 from builtins import range
-from past.builtins import basestring
-from past.utils import old_div
 from builtins import object
 __all__ = ["TaurusCurve", "TaurusCurveMarker",
            "TaurusXValues", "TaurusPlot", "isodatestr2float"]
@@ -45,10 +41,8 @@ import os
 import copy
 from datetime import datetime
 import time
-
 import numpy
 from future.utils import string_types
-
 from taurus.external.qt import Qt, Qwt5
 
 import taurus
@@ -157,9 +151,9 @@ class TaurusCurveMarker(Qwt5.QwtPlotMarker, TaurusBaseComponent):
         '''
         xmap = self.plot().canvasMap(self.xAxis())
         ymap = self.plot().canvasMap(self.yAxis())
-        xmiddlepoint = xmap.p1() + old_div(xmap.pDist(), 2)  # p1,p2 are left,right here
+        xmiddlepoint = xmap.p1() + xmap.pDist() / 2  # p1,p2 are left,right here
         # p1,p2 are bottom,top here (and pixel coords start from top!)
-        ymiddlepoint = ymap.p2() + old_div(ymap.pDist(), 2)
+        ymiddlepoint = ymap.p2() + ymap.pDist() / 2
         xPaintPos = xmap.transform(self.xValue())
         yPaintPos = ymap.transform(self.yValue())
 
@@ -1291,8 +1285,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
     def setFormat(self, format):
         """Reimplemented from TaurusBaseComponent"""
-        targetCurveNames = iter(self.curves.keys())
-        for name in targetCurveNames:
+        for name in self.curves:
             curve = self.curves.get(name, None)
             w = getattr(curve, 'owner', curve)
             w.setFormat(format)
@@ -1407,7 +1400,10 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.curves_lock.acquire()
         try:
             if ordered is None:
-                orderedObjs = sorted(self.curves.values(), key=lambda curve: curve.titleText(compiled=True))
+                orderedObjs = sorted(
+                    self.curves.values(),
+                    key=lambda curve: curve.titleText(compiled=True)
+                )
             else:
                 #current = self.curves.keys()
                 # if len(ordered) != len(current) or set(map(str.lower,current)) - set(map(str.lower, ordered)):
@@ -2441,7 +2437,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         if not self.checkConfigVersion(configdict):
             return
         # attach the curves
-        for rd in list(configdict["RawData"].values()):
+        for rd in configdict["RawData"].values():
             self.attachRawData(rd)
         # for backwards compatibility, if the ordered list of models is not
         # stored, it uses the unsorted dict values
@@ -2498,7 +2494,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         :return: (str) file name used
         """
-        import pickle as pickle
+        import pickle
         if ofile is None:
             ofile = str(Qt.QFileDialog.getSaveFileName(self, 'Save Taurusplot Configuration',
                                                        'TaurusplotConfig.pck', 'TaurusPlot Curve Properties File (*.pck)'))
@@ -2518,7 +2514,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         :return: (str) file name used
         """
-        import pickle as pickle
+        import pickle
         if ifile is None:
             ifile = str(Qt.QFileDialog.getOpenFileName(
                 self, 'Load Taurusplot Configuration', '', 'TaurusPlot Curve Properties File (*.pck)'))
@@ -2535,7 +2531,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         See :meth:`TaurusBaseComponent.setEventFilters`
         '''
         if curvenames is None:
-            curvenames = list(self.curves)
+            curvenames = self.curves.keys()
         self.curves_lock.acquire()
         try:
             for name in curvenames:
@@ -2997,7 +2993,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self.curves_lock.acquire()
         try:
             if targetCurveNames is None:
-                targetCurveNames = iter(self.curves.keys())
+                targetCurveNames = self.curves.keys()
             for name in targetCurveNames:
                 curve = self.curves.get(name, None)
                 if curve is None:
@@ -3640,7 +3636,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._optimizationEnabled = enable
         # make sure that already-created curves are also optimized
         try:
-            for curveName in self.curves.keys():
+            for curveName in self.curves:
                 curve = self.curves.get(str(curveName))
                 curve.setPaintAttribute(curve.PaintFiltered, enable)
                 curve.setPaintAttribute(curve.ClipPolygons, enable)

@@ -27,10 +27,6 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-from builtins import zip
-from builtins import filter
-from builtins import str
-from past.builtins import basestring
 __all__ = ["TaurusAttrForm", "TaurusCommandsForm", "TaurusForm"]
 
 __docformat__ = 'restructuredtext'
@@ -773,7 +769,7 @@ class TaurusCommandsForm(TaurusWidget):
 
         '''
         self._defaultParameters = dict((k.lower(), v)
-                                       for k, v in list(params.items()))
+                                       for k, v in params.items())
         self._updateCommandWidgets()
 
     def setViewFilters(self, filterlist):

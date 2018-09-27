@@ -27,7 +27,6 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
 from builtins import object
 __all__ = ["TaurusMessagePanel", "TaurusMessageErrorHandler",
            "TangoMessageErrorHandler", "MacroServerMessageErrorHandler"]
@@ -282,7 +281,7 @@ class TaurusMessagePanel(Qt.QWidget):
     def _initReportCombo(self):
         report_handlers = get_report_handlers()
         combo = self.reportComboBox()
-        for name, report_handler in list(report_handlers.items()):
+        for name, report_handler in report_handlers.items():
             name = Qt.QVariant(name)
             combo.addItem(report_handler.Label, name)
 
@@ -508,7 +507,7 @@ class TaurusMessagePanel(Qt.QWidget):
         :return: a message box error handler
         :rtype: TaurusMessageBoxErrorHandler class object"""
 
-        for exc, h_klass in list(klass.ErrorHandlers.items()):
+        for exc, h_klass in klass.ErrorHandlers.items():
             if issubclass(err_type, exc):
                 return h_klass
         return TaurusMessageErrorHandler

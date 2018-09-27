@@ -27,11 +27,7 @@
 qsevensegmentdisplay.py
 """
 from __future__ import print_function
-from __future__ import division
 
-from builtins import str
-from builtins import range
-from past.utils import old_div
 __all__ = ['Q7SegDigit']
 
 __docformat__ = 'restructuredtext'
@@ -138,7 +134,7 @@ class Q7SegDigit(Qt.QWidget):
 
     DftWidth = 300
     DftHeight = 300
-    DftAspectRatio = old_div(DftWidth, DftHeight)
+    DftAspectRatio = DftWidth // DftHeight
     DftUseFrame = True
 
     def __init__(self, parent=None, **kwargs):
@@ -206,11 +202,11 @@ class Q7SegDigit(Qt.QWidget):
         painter.setRenderHint(Qt.QPainter.Antialiasing)
         painter.setWindow(0, 0, self.DftWidth, self.DftHeight)
         w, h = float(self.width()), float(self.height())
-        aspect = old_div(w, h)
+        aspect = w / h
         if aspect > 0.75:
             w = h * aspect
         else:
-            h = old_div(w, aspect)
+            h = w / aspect
         painter.setViewport(0, 0, w, h)
         self._paintBorder(painter)
         self._paintSegment(painter)

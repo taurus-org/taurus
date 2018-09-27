@@ -26,7 +26,6 @@
 """
 """
 
-from builtins import str
 __all__ = ["QObjectRepresentation", "get_qobject_tree", "get_qobject_tree_str",
            "TreeQObjectModel", "TreeQObjectWidget"]
 

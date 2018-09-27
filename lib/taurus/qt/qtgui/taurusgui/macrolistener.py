@@ -146,7 +146,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
         plots1d = {}
         images = {}
 
-        for chname, chdata in list(channels.items()):
+        for chname, chdata in channels.items():
             ptype = chdata['plot_type']
             if ptype == PlotType.No:
                 continue
@@ -196,7 +196,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
         '''
         from taurus.qt.qtgui.plot import TaurusTrend
         newpanels = []
-        for axes, plotables in list(trends1d.items()):
+        for axes, plotables in trends1d.items():
             if not axes:
                 continue
             if axes not in self._trends1d:
@@ -251,7 +251,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
             raise
             return
 
-        for axes, plotables in list(trends2d.items()):
+        for axes, plotables in trends2d.items():
             for chname in plotables:
                 pname = u'Trend2D - %s' % chname
                 if pname in self._trends2d:

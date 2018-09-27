@@ -36,27 +36,20 @@ from __future__ import print_function
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import zip
-from builtins import next
 from builtins import str
-from builtins import range
 __all__ = ["TaurusGrid"]
 
 __docformat__ = 'restructuredtext'
 
 import re
-import operator
-import traceback
 from queue import Queue
-from functools import partial
 
 from taurus.external.qt import Qt, QtGui, QtCore
 
 import taurus
-from taurus.qt.qtcore.util.emitter import (modelSetter, TaurusEmitterThread,
+from taurus.qt.qtcore.util.emitter import (modelSetter,
                                            SingletonWorker, MethodModel)
 from taurus.core.taurusmanager import TaurusManager
-from taurus.core.util.log import Logger
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.panel import TaurusValue
 

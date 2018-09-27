@@ -334,7 +334,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
             params.get('extensions')["ignoreRepaint"] = "true"
 
         if self.alias:
-            for k, v in list(self.alias.items()):
+            for k, v in self.alias.items():
                 name = str(name).replace(k, v)
 
         # Forcing not-Taurus items to have a name and be able to trigger events

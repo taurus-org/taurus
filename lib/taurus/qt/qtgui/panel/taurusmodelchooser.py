@@ -29,7 +29,6 @@ AttributeChooser.py: widget for choosing (a list of) attributes from a tango DB
 from __future__ import print_function
 from __future__ import absolute_import
 
-from builtins import str
 __all__ = ["TaurusModelSelectorTree", "TaurusModelChooser"]
 
 import sys

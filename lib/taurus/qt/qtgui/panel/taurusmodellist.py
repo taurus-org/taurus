@@ -26,9 +26,6 @@
 """
 itemsmodel Model and view for new CurveItem configuration
 """
-from builtins import str
-from builtins import range
-from past.builtins import basestring
 from builtins import object
 __all__ = ['TaurusModelModel', 'TaurusModelItem', 'TaurusModelList']
 #raise UnimplementedError('Under Construction!')

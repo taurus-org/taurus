@@ -26,7 +26,6 @@
 """This module provides a Taurus widget based on QLCDNumber"""
 from __future__ import absolute_import
 
-from builtins import map
 from builtins import str
 from builtins import object
 __all__ = ["TaurusLCD"]
@@ -34,7 +33,6 @@ __all__ = ["TaurusLCD"]
 __docformat__ = 'restructuredtext'
 
 import collections
-import operator
 
 from taurus.core.taurusbasetypes import (TaurusElementType, TaurusEventType,
                                          AttrQuality, TaurusDevState)
@@ -413,7 +411,7 @@ def main():
     if len(args) == 0:
         w = demo()
     else:
-        models = list(map(str.lower, args))
+        models = map(str.lower, args)
 
         w = Qt.QWidget()
         layout = Qt.QGridLayout()

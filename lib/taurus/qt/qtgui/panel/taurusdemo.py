@@ -24,9 +24,7 @@
 #############################################################################
 
 from __future__ import print_function
-from builtins import str
 import sys
-import operator
 
 import taurus.core.util
 import taurus.qt.qtgui.util

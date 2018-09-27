@@ -78,7 +78,7 @@ class QIconCatalogPage(GraphicalChoiceWidget):
         pixmaps = {}
         choices = []
         row = []
-        for md5, choice in list(hashes.items()):
+        for md5, choice in hashes.items():
             try:
                 pixmaps[choice] = pixmaps_hashed[md5]
             except KeyError:

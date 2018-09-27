@@ -28,7 +28,6 @@ This module provides a set of basic taurus widgets based on QAbstractSpinBox
 """
 from __future__ import absolute_import
 
-from builtins import str
 from taurus.external.qt import Qt
 
 from .tauruslineedit import TaurusValueLineEdit

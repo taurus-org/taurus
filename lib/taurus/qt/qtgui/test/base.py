@@ -25,7 +25,6 @@
 
 """Utilities for creating generic tests for Taurus widgets"""
 
-from builtins import zip
 from builtins import range
 from builtins import object
 import time

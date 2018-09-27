@@ -28,11 +28,8 @@ curvesAppearanceChooserDlg.py:
     A Qt dialog for choosing plot appearance (symbols and lines)
     for a QwtPlot-derived widget (like Taurusplot)
 """
-from __future__ import division
 
-from builtins import zip
 from builtins import range
-from past.utils import old_div
 from taurus.external.qt import Qt, Qwt5
 from datetime import datetime
 from taurus.qt.qtgui.util.ui import UILoadable
@@ -72,7 +69,7 @@ class CurveStatsDialog(Qt.QDialog):
 
         cbs = (self.ui.npointsStatCB, self.ui.minStatCB, self.ui.maxStatCB,
                self.ui.meanStatCB, self.ui.stdStatCB, self.ui.rmsStatCB)
-        self._checkboxToColMap = dict(list(zip(cbs, range(len(self.statColumns)))))
+        self._checkboxToColMap = dict(zip(cbs, range(len(self.statColumns))))
 
         self.minPicker = Qwt5.QwtPlotPicker(Qwt5.QwtPlot.xBottom,
                                             Qwt5.QwtPlot.yLeft,
@@ -137,10 +134,11 @@ class CurveStatsDialog(Qt.QDialog):
 
     def _timestamptToQDateTime(self, ts):
         dt = datetime.fromtimestamp(ts)
-        return Qt.QDateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, old_div(dt.microsecond, 1000))
+        return Qt.QDateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute,
+                            dt.second, dt.microsecond // 1000)
 
     def _QDateTimeToTimestamp(self, qdt):
-        return qdt.toTime_t() + old_div(qdt.time().msec(), 1000.)
+        return qdt.toTime_t() + qdt.time().msec() / 1000.
 
     def onSelectMin(self):
         '''slot called when the user clicks on the selectMin button'''
@@ -253,14 +251,14 @@ class CurveStatsDialog(Qt.QDialog):
         xmin, xmax = None, None
         if self.ui.minCB.isChecked():
             if plot.getXIsTime():
-                xmin = self.ui.minDTE.dateTime().toTime_t() + old_div(self.ui.minDTE.time().msec(), \
-                    1000.)
+                xmin = (self.ui.minDTE.dateTime().toTime_t()
+                        + self.ui.minDTE.time().msec() / 1000.)
             else:
                 xmin = self.ui.minSB.value()
         if self.ui.maxCB.isChecked():
             if plot.getXIsTime():
-                xmax = self.ui.maxDTE.dateTime().toTime_t() + old_div(self.ui.maxDTE.time().msec(), \
-                    1000.)
+                xmax = (self.ui.maxDTE.dateTime().toTime_t()
+                        + self.ui.maxDTE.time().msec() / 1000.)
             else:
                 xmax = self.ui.maxSB.value()
         limits = xmin, xmax

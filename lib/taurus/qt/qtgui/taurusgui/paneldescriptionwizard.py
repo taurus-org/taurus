@@ -24,9 +24,6 @@
 ###########################################################################
 
 from __future__ import print_function
-from builtins import str
-from builtins import zip
-from builtins import range
 __all__ = ["PanelDescriptionWizard"]
 """
 paneldescriptionwizard.py:
@@ -698,6 +695,5 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
     # test2()
     main()

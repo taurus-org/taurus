@@ -29,13 +29,12 @@ taurusconfigeditor.py:
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import str
 __all__ = ["QConfigEditor"]
 
 __docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
-import pickle as pickle
+import pickle
 import os
 import tempfile
 from taurus.qt.qtcore.configuration import BaseConfigurableClass

@@ -27,10 +27,7 @@
 taurustrend.py: Generic trend widget for Taurus
 """
 from __future__ import print_function
-from __future__ import division
-from builtins import zip
 from builtins import str
-from builtins import range
 __all__ = ["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]
 
 from datetime import datetime
