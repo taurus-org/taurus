@@ -67,6 +67,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     """
 
+    _bytesEncoding = sys.stdin.encoding
 
     def __init__(self, qt_parent=None, designMode=False):
         name = self.__class__.__name__
@@ -292,7 +293,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 else:
                     return numpy.array(eval(text), dtype=str).tolist()
             elif model_type == DataType.Bytes:
-                return bytes(text)
+                return bytes(text, self._bytesEncoding)
             else:
                 raise TypeError('Unsupported model type "%s"' % model_type)
         except Exception as e:
