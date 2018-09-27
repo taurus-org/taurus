@@ -36,6 +36,7 @@
     - 'model' - will have a '...' button that will open a customized dialog for
       editing the widget model (same has 'Edit model...' task menu item
 """
+
 from __future__ import print_function
 import inspect
 

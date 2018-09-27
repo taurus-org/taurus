@@ -24,15 +24,15 @@
 #############################################################################
 
 """This module contains the base class for a taurus database"""
+
 from __future__ import absolute_import
+
+from .taurusbasetypes import TaurusElementType
+from .taurusmodel import TaurusModel
 
 __all__ = ["TaurusAuthority"]
 
 __docformat__ = "restructuredtext"
-
-
-from .taurusbasetypes import TaurusElementType
-from .taurusmodel import TaurusModel
 
 
 class TaurusAuthority(TaurusModel):

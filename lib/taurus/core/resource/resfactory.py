@@ -30,13 +30,13 @@ from __future__ import absolute_import
 
 import os
 import imp
+import collections
 
 from taurus.core.taurushelper import Manager
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.log import Logger
 from taurus.core.taurusfactory import TaurusFactory
 from taurus.core.taurusexception import TaurusException
-import collections
 
 
 class ResourcesFactory(Singleton, TaurusFactory, Logger):

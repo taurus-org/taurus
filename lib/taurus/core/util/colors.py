@@ -25,8 +25,8 @@
 
 """This module contains color codes for state and quality"""
 from __future__ import print_function
-
 from builtins import object
+
 __all__ = ["DEVICE_STATE_DATA", "ATTRIBUTE_QUALITY_DATA", "ColorPalette",
            "DEVICE_STATE_PALETTE", "ATTRIBUTE_QUALITY_PALETTE"]
 

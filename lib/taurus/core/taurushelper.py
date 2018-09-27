@@ -24,10 +24,14 @@
 #############################################################################
 
 """a list of helper methods"""
+
 from __future__ import print_function
 
 from builtins import str
 from future.utils import string_types
+import re
+from taurus import tauruscustomsettings
+from .util.log import taurus4_deprecation
 
 __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'getValidTypesForName', 'isValidName', 'makeSchemeExplicit',
@@ -41,11 +45,6 @@ __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'critical', 'deprecated', 'changeDefaultPollingPeriod']
 
 __docformat__ = "restructuredtext"
-
-import re
-from taurus import tauruscustomsettings
-from .util.log import taurus4_deprecation
-
 
 # regexp for finding the scheme
 __SCHEME_RE = re.compile(r'([^:/?#]+):.*')

@@ -26,12 +26,10 @@
 """
 mainwindow.py: a main window implementation with many added features by default
 """
+
 from __future__ import absolute_import
 
 from builtins import str
-__all__ = ["TaurusMainWindow"]
-
-__docformat__ = 'restructuredtext'
 
 import os
 import sys
@@ -46,6 +44,11 @@ from .taurusbasecontainer import TaurusBaseContainer
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.dialog import protectTaurusMessageBox
+
+
+__all__ = ["TaurusMainWindow"]
+
+__docformat__ = 'restructuredtext'
 
 
 class CommandArgsLineEdit(Qt.QLineEdit):

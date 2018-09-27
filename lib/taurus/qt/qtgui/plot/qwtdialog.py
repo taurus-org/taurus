@@ -28,12 +28,14 @@ qwtdialog.py: Dialogs for Taurusplot
 """
 from __future__ import print_function
 from __future__ import absolute_import
-__all__ = ["TaurusPlotConfigDialog"]
 
 import time
 
 from taurus.external.qt import Qt, Qwt5
 from taurus.qt.qtgui.util.ui import UILoadable
+
+
+__all__ = ["TaurusPlotConfigDialog"]
 
 
 # class TaurusPlotConfigCapable:

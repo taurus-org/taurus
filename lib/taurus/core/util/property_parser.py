@@ -24,14 +24,13 @@
 #############################################################################
 
 """This is an experimental property parser"""
+
 from __future__ import print_function
-
 from builtins import str
-import os
 
+import os
 import ply.lex as lex
 import ply.yacc as yacc
-
 from .containers import CaselessDict
 from .log import Logger
 

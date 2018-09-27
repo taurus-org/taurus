@@ -26,13 +26,15 @@
 """
 qsevensegmentdisplay.py
 """
+
 from __future__ import print_function
+
+from taurus.external.qt import Qt
+
 
 __all__ = ['Q7SegDigit']
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
 
 POLY = Qt.QPolygonF
 P = Qt.QPointF

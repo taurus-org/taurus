@@ -24,13 +24,10 @@
 #############################################################################
 
 """This module provides widgets that display the database in a tree format"""
-from __future__ import absolute_import
 
 # todo: tango-centric!!
 
-__all__ = ["TaurusDbTreeWidget"]
-
-__docformat__ = 'restructuredtext'
+from __future__ import absolute_import
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
@@ -39,6 +36,11 @@ from taurus.qt.qtcore.model import *
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.icon import getElementTypeIcon, getElementTypeIconName
 from .taurustree import TaurusBaseTreeWidget
+
+
+__all__ = ["TaurusDbTreeWidget"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusDbTreeWidget(TaurusBaseTreeWidget):

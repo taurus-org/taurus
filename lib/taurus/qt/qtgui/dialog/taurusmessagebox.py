@@ -27,19 +27,21 @@
 
 from future import standard_library
 standard_library.install_aliases()
-from builtins import object
-__all__ = ["TaurusMessageBox", "protectTaurusMessageBox",
-           "ProtectTaurusMessageBox", "TaurusExceptHookMessageBox"]
 
-__docformat__ = 'restructuredtext'
+from builtins import object
 
 import sys
 
 from taurus.external.qt import Qt
-
 from taurus.core.util.excepthook import BaseExceptHook
 from taurus.core.util.log import LogExceptHook
 from taurus.core.util.wrap import wraps
+
+
+__all__ = ["TaurusMessageBox", "protectTaurusMessageBox",
+           "ProtectTaurusMessageBox", "TaurusExceptHookMessageBox"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusMessageBox(Qt.QDialog):

@@ -27,8 +27,6 @@
 
 from __future__ import absolute_import
 
-__all__ = ["new_parser", "parse"]
-
 import os
 import re
 
@@ -36,6 +34,9 @@ from ply import lex
 from ply import yacc
 
 from taurus.core.util.log import Logger
+
+
+__all__ = ["new_parser", "parse"]
 
 tokens = ('NUMBER', 'SYMBOL', 'LBRACKET', 'RBRACKET', 'TWOP', 'COMMA',
           'JDFILE', 'GLOBAL', 'JDLINE', 'JDRECTANGLE', 'JDROUNDRECTANGLE',

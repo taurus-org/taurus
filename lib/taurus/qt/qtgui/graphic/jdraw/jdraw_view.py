@@ -27,9 +27,6 @@
 from __future__ import absolute_import
 
 from builtins import str
-__all__ = ["TaurusJDrawSynopticsView"]
-
-__docformat__ = 'restructuredtext'
 
 import os
 import traceback
@@ -45,6 +42,11 @@ from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TY
 from taurus.qt.qtgui.base import TaurusBaseWidget
 
 from . import jdraw_parser
+
+
+__all__ = ["TaurusJDrawSynopticsView"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):

@@ -24,11 +24,8 @@
 #############################################################################
 
 """This module is designed to provide a factory class for taurus Qt actions """
+
 from __future__ import absolute_import
-
-__all__ = ["ActionFactory"]
-
-__docformat__ = 'restructuredtext'
 
 from future.utils import string_types
 
@@ -37,6 +34,11 @@ from taurus.core.util.singleton import Singleton
 from taurus.external.qt import Qt
 
 from . import taurusaction
+
+
+__all__ = ["ActionFactory"]
+
+__docformat__ = 'restructuredtext'
 
 
 class ActionFactory(Singleton, Logger):

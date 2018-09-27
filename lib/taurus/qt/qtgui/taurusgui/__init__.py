@@ -51,8 +51,6 @@ prevail).
 """
 from __future__ import absolute_import
 
-__docformat__ = 'restructuredtext'
-
 from . import utils
 from .paneldescriptionwizard import *
 from .taurusgui import *
@@ -60,4 +58,7 @@ from .appsettingswizard import *
 try:
     from .macrolistener import *
 except ImportError:
-    pass  # allow for sardana not being installed
+    pass
+
+
+__docformat__ = 'restructuredtext'

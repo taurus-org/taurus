@@ -25,14 +25,11 @@
 
 """This module provides Qt table widgets which display logging messages from the
 python :mod:`logging` module"""
+
 from __future__ import absolute_import
 
 from operator import attrgetter
 from builtins import range
-__all__ = ["QLoggingTableModel", "QLoggingTable", "QLoggingWidget",
-           "QRemoteLoggingTableModel"]
-
-__docformat__ = 'restructuredtext'
 
 import logging
 import logging.handlers
@@ -51,6 +48,12 @@ from taurus.qt.qtgui.model import FilterToolBar
 from taurus.qt.qtgui.util import ActionFactory
 
 from .qtable import QBaseTableWidget
+
+
+__all__ = ["QLoggingTableModel", "QLoggingTable", "QLoggingWidget",
+           "QRemoteLoggingTableModel"]
+
+__docformat__ = 'restructuredtext'
 
 LEVEL, TIME, MSG, NAME, ORIGIN = list(range(5))
 HORIZ_HEADER = 'Level', 'Time', 'Message', 'By', 'Origin'

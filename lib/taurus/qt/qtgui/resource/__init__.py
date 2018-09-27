@@ -27,6 +27,7 @@
 Old module supporting resources (now it just contains a reimplementation
 based on taurus.qt.qtgui.icon for bck-compat)
 """
+
 from __future__ import absolute_import
 
 from taurus.core.util.log import deprecated as __deprecated

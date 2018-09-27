@@ -28,12 +28,13 @@
 This module contains the base class for a taurus attribute configuration"""
 
 from builtins import object
+from .taurusmodel import TaurusModel
+from .util.log import taurus4_deprecation
+
+
 __all__ = ["TaurusConfigurationProxy", "TaurusConfiguration"]
 
 __docformat__ = "restructuredtext"
-
-from .taurusmodel import TaurusModel
-from .util.log import taurus4_deprecation
 
 
 class TaurusConfigurationProxy(object):

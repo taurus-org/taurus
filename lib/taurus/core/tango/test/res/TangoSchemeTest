@@ -22,12 +22,13 @@
 # along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
+
 from __future__ import print_function
 from future.utils import with_metaclass
 
 from distutils.version import LooseVersion
-import numpy
 from time import (time, sleep)
+import numpy
 
 import PyTango
 from PyTango import DeviceProxy, AttrWriteType, DevState, AttrQuality

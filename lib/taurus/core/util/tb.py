@@ -28,7 +28,6 @@
 
 from builtins import str
 import sys
-import inspect
 import traceback
 import threading
 

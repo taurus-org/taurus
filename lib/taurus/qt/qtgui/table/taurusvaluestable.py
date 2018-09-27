@@ -24,9 +24,6 @@
 #############################################################################
 
 from builtins import str
-__all__ = ["TaurusValuesTable"]
-
-__docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 from taurus.core.units import Quantity
@@ -40,6 +37,11 @@ from taurus.qt.qtgui.util import PintValidator
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.core.util.enumeration import Enumeration
+
+
+__all__ = ["TaurusValuesTable"]
+
+__docformat__ = 'restructuredtext'
 
 
 def _value2Quantity(value, units):

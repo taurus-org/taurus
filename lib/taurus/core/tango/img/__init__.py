@@ -27,10 +27,9 @@
 images (CCDs, detectors, etc)"""
 from __future__ import absolute_import
 
-__docformat__ = 'restructuredtext'
-
 from .img import *
 
+__docformat__ = 'restructuredtext'
 
 def registerExtensions():
     """Registers the image extensions in the :class:`taurus.core.tango.TangoFactory`"""

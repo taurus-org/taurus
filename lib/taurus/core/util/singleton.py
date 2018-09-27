@@ -27,6 +27,7 @@
 classes that need to implement the Singleton design pattern."""
 
 from builtins import object
+
 __all__ = ["Singleton"]
 
 __docformat__ = "restructuredtext"

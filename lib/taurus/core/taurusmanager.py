@@ -27,9 +27,6 @@
 from __future__ import print_function
 
 from builtins import range
-__all__ = ["TaurusManager"]
-
-__docformat__ = "restructuredtext"
 
 import os
 import atexit
@@ -37,7 +34,6 @@ import atexit
 from .util.singleton import Singleton
 from .util.log import Logger, taurus4_deprecation
 from .util.threadpool import ThreadPool
-
 from .taurusbasetypes import (OperationMode, ManagerState,
                               TaurusSerializationMode)
 from .taurusauthority import TaurusAuthority
@@ -47,6 +43,10 @@ from .taurusexception import TaurusException
 from .taurusfactory import TaurusFactory
 from .taurushelper import getSchemeFromName
 from taurus import tauruscustomsettings
+
+__all__ = ["TaurusManager"]
+
+__docformat__ = "restructuredtext"
 
 
 class TaurusManager(Singleton, Logger):

@@ -2,11 +2,12 @@
 from __future__ import print_function
 
 from builtins import object
-__all__ = ['baseSignal']
 
 from PyQt4 import Qt
 from threading import Lock
 from weakref import WeakKeyDictionary
+
+__all__ = ['baseSignal']
 
 
 def baseSignal(name, *args):

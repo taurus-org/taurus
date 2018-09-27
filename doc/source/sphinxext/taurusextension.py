@@ -24,7 +24,10 @@
 ##############################################################################
 
 """helper methods for taurus sphinx documentation"""
+
 from __future__ import print_function
+
+
 __expr = ('or',)
 
 

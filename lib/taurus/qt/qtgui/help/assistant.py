@@ -40,10 +40,11 @@ Example usage::
 """
 
 from builtins import object
-__all__ = ["Assistant", "Widgets"]
-
 
 from taurus.external.qt import Qt
+
+
+__all__ = ["Assistant", "Widgets"]
 
 
 class Widgets(object):

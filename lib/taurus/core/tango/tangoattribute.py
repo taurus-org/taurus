@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
 #############################################################################
@@ -25,13 +26,9 @@
 
 """This module contains all taurus tango attribute"""
 
-from builtins import str
 from builtins import range
-__all__ = ["TangoAttribute", "TangoAttributeEventListener", "TangoAttrValue"]
+from builtins import str
 
-__docformat__ = "restructuredtext"
-
-# -*- coding: utf-8 -*-
 import re
 import time
 import threading
@@ -42,7 +39,6 @@ from functools import partial
 
 from taurus import Manager
 from taurus.core.units import Quantity, UR
-from pint import UndefinedUnitError
 
 from taurus import tauruscustomsettings
 from taurus.core.taurusattribute import TaurusAttribute
@@ -54,7 +50,7 @@ from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
 # -------------------------------------------------------------------------
 # TODO: remove this when PyTango's bug 185 is fixed
-from taurus.core.util.event import _BoundMethodWeakrefWithCall  
+from taurus.core.util.event import _BoundMethodWeakrefWithCall
 # -------------------------------------------------------------------------
 from taurus.core.util.log import (debug, taurus4_deprecation,
                                   deprecation_decorator)
@@ -68,8 +64,12 @@ from .util.tango_taurus import (description_from_tango,
                                 quality_from_tango,
                                 standard_display_format_from_tango,
                                 quantity_from_tango_str,
-                                str_2_obj, data_format_from_tango,
+                                data_format_from_tango,
                                 data_type_from_tango)
+
+__all__ = ["TangoAttribute", "TangoAttributeEventListener", "TangoAttrValue"]
+
+__docformat__ = "restructuredtext"
 
 
 class TangoAttrValue(TaurusAttrValue):

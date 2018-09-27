@@ -25,13 +25,10 @@
 
 """This module provides a base widget that can be used to display a taurus
 model in a table widget"""
-from __future__ import absolute_import
 
 # todo: tango-centric!!!
 
-__all__ = ["TaurusDbTableWidget"]
-
-__docformat__ = 'restructuredtext'
+from __future__ import absolute_import
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
@@ -39,6 +36,11 @@ from taurus.qt.qtcore.model import *
 from taurus.core.taurusauthority import TaurusAuthority
 from taurus.qt.qtgui.icon import getElementTypeIcon, getElementTypeIconName
 from .taurustable import TaurusBaseTableWidget
+
+
+__all__ = ["TaurusDbTableWidget"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusDbTableWidget(TaurusBaseTableWidget):

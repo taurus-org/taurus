@@ -26,16 +26,19 @@
 """
 taurusdevicepropertytable.py:
 """
-from __future__ import print_function
 
 # todo: tango-centric
 
+from __future__ import print_function
+
 from builtins import str
-__all__ = ["TaurusPropTable"]
 
 from taurus.external.qt import Qt, QtCore, QtGui
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.taurusdevice import TaurusDevice
+
+
+__all__ = ["TaurusPropTable"]
 
 
 class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):

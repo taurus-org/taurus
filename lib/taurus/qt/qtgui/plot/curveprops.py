@@ -26,15 +26,14 @@
 """
 curveprops: Model and view for curve properties
 """
+
+#raise NotImplementedError('Under Construction!')
+
 from __future__ import absolute_import
 from builtins import str
 from builtins import object
-__all__ = ['CurveConf', 'CurvesTableModel',
-           'ExtendedSelectionModel', 'CurvePropertiesView']
-#raise NotImplementedError('Under Construction!')
 
 import copy
-import re
 
 from taurus.external.qt import Qt, Qwt5
 import taurus
@@ -48,6 +47,9 @@ from .curvesAppearanceChooserDlg import NamedLineStyles, ReverseNamedLineStyles,
     NamedSymbolStyles, ReverseNamedSymbolStyles, \
     NamedColors, CurveAppearanceProperties
 
+
+__all__ = ['CurveConf', 'CurvesTableModel',
+           'ExtendedSelectionModel', 'CurvePropertiesView']
 
 # set some named constants
 # columns:

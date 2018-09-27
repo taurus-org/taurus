@@ -30,14 +30,6 @@ from __future__ import absolute_import
 
 from builtins import str
 from builtins import object
-__all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
-           "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
-           "LogFilter",
-           "_log", "trace", "debug", "info", "warning", "error", "fatal",
-           "critical", "deprecated", "deprecation_decorator",
-           "taurus4_deprecation"]
-
-__docformat__ = "restructuredtext"
 
 import io
 import os
@@ -57,6 +49,16 @@ from .excepthook import BaseExceptHook
 # ------------------------------------------------------------------------------
 # TODO: substitute this ugly hack (below) by a more general mechanism
 from collections import defaultdict
+
+
+__all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
+           "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
+           "LogFilter",
+           "_log", "trace", "debug", "info", "warning", "error", "fatal",
+           "critical", "deprecated", "deprecation_decorator",
+           "taurus4_deprecation"]
+
+__docformat__ = "restructuredtext"
 
 
 class _DeprecationCounter(defaultdict):

@@ -29,10 +29,6 @@ from __future__ import print_function
 
 from builtins import map
 from builtins import str
-__all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
-
-__docformat__ = 'restructuredtext'
-
 from future.utils import string_types
 
 from taurus.external.qt import Qt
@@ -41,6 +37,11 @@ from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import eventfilters
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
+
+
+__all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
+
+__docformat__ = 'restructuredtext'
 
 
 class _ButtonDialog(Qt.QDialog):

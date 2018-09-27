@@ -26,15 +26,16 @@
 """This module provides basic pure Qt container widgets"""
 
 from builtins import str
-__all__ = ["QGroupWidget"]
 
-__docformat__ = 'restructuredtext'
-
-import sys
 import json
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.icon import getStandardIcon
+
+__all__ = ["QGroupWidget"]
+
+__docformat__ = 'restructuredtext'
+
 
 _TitleBarStyleExpanded = """.QFrame {{
 border-width: 0px;

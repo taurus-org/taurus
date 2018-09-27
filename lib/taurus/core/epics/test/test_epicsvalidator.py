@@ -29,7 +29,6 @@
 __docformat__ = 'restructuredtext'
 
 import sys
-
 import unittest
 from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)

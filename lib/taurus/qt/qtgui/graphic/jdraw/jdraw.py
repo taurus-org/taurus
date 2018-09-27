@@ -24,13 +24,11 @@
 #############################################################################
 
 """This module contains the graphics factory for the jdraw file format"""
+
 from __future__ import absolute_import
 
 from builtins import str
 from builtins import range
-__all__ = ["TaurusJDrawGraphicsFactory"]
-
-__docformat__ = 'restructuredtext'
 
 import os
 import traceback
@@ -41,6 +39,11 @@ from taurus.core.util.singleton import Singleton
 from taurus.core.util.containers import CaselessDict
 from taurus.qt.qtgui.graphic import (TaurusBaseGraphicsFactory,
                                      TaurusGraphicsScene, TaurusGraphicsItem)
+
+
+__all__ = ["TaurusJDrawGraphicsFactory"]
+
+__docformat__ = 'restructuredtext'
 
 
 LINESTYLE_JDW2QT = {0: Qt.Qt.SolidLine,

@@ -26,12 +26,15 @@
 """
 curvesmodel Model and view for new CurveItem configuration
 """
+
 from __future__ import print_function
 from builtins import next
 from builtins import str
 from builtins import range
 from builtins import object
+
 __all__ = ['TaurusCurveItemTableModel', 'CurveItemConf', 'CurveItemConfDlg']
+
 #raise UnimplementedError('Under Construction!')
 
 import copy

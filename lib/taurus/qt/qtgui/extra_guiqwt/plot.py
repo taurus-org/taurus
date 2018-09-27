@@ -28,7 +28,6 @@ Extension of :mod:`guiqwt.plot`
 """
 from builtins import next
 from builtins import str
-__all__ = ["TaurusCurveDialog", "TaurusTrendDialog", "TaurusImageDialog"]
 
 import copy
 
@@ -43,6 +42,9 @@ from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.extra_guiqwt.builder import make
 from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendParam, TaurusTrendItem
+
+
+__all__ = ["TaurusCurveDialog", "TaurusTrendDialog", "TaurusImageDialog"]
 
 
 class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):

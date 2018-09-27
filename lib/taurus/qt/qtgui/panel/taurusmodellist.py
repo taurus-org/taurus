@@ -27,7 +27,6 @@
 itemsmodel Model and view for new CurveItem configuration
 """
 from builtins import object
-__all__ = ['TaurusModelModel', 'TaurusModelItem', 'TaurusModelList']
 #raise UnimplementedError('Under Construction!')
 
 import copy
@@ -39,9 +38,13 @@ import taurus
 from taurus.core.taurushelper import getSchemeFromName
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusexception import TaurusException
-from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.icon import getElementTypeIcon
-from taurus.qt.qtcore.util.signal import baseSignal
+
+
+__all__ = ['TaurusModelModel', 'TaurusModelItem', 'TaurusModelList']
 
 # set some named constants
 SRC_ROLE = Qt.Qt.UserRole + 1

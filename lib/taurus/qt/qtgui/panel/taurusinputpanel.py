@@ -28,9 +28,6 @@ from __future__ import print_function
 
 from builtins import str
 from builtins import object
-__all__ = ["TaurusInputPanel"]
-
-__docformat__ = 'restructuredtext'
 
 import collections
 import numpy
@@ -39,6 +36,10 @@ from future.utils import string_types
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
+
+__all__ = ["TaurusInputPanel"]
+
+__docformat__ = 'restructuredtext'
 
 
 @UILoadable(with_ui='_ui')

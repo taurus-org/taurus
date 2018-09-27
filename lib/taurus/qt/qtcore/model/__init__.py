@@ -54,8 +54,8 @@ And now inside a :class:`PyQt4.QtGui.QComboBox`::
 
 """
 from __future__ import absolute_import
-
-__docformat__ = 'restructuredtext'
-
 from .taurusmodel import *
 from .taurusdatabasemodel import *
+
+
+__docformat__ = 'restructuredtext'

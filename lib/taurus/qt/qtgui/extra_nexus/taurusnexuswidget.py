@@ -28,7 +28,6 @@ nexusWidget.py:
 """
 
 from builtins import str
-__all__ = ["TaurusNexusBrowser"]
 
 import numpy
 import posixpath
@@ -37,6 +36,9 @@ from PyMca5.PyMcaGui.io.hdf5 import HDF5Widget, HDF5Info, HDF5DatasetTable
 from taurus.external.qt import Qt
 
 from taurus.qt.qtgui.container import TaurusWidget
+
+
+__all__ = ["TaurusNexusBrowser"]
 
 
 class NeXusInfoWidget(Qt.QTabWidget):

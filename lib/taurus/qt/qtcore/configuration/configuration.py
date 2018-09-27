@@ -31,11 +31,11 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import str
 from builtins import object
+from future.utils import string_types
+
 __all__ = ["configurableProperty", "BaseConfigurableClass"]
 
 __docformat__ = 'restructuredtext'
-
-from future.utils import string_types
 
 
 class configurableProperty(object):

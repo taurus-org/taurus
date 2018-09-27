@@ -29,9 +29,6 @@ from __future__ import absolute_import
 
 from builtins import str
 from builtins import object
-__all__ = ["TaurusLed"]
-
-__docformat__ = 'restructuredtext'
 
 import weakref
 import collections
@@ -42,6 +39,11 @@ from taurus.core import DataFormat, AttrQuality, DataType
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from .qled import QLed
+
+
+__all__ = ["TaurusLed"]
+
+__docformat__ = 'restructuredtext'
 
 _QT_PLUGIN_INFO = {
     'module': 'taurus.qt.qtgui.display',

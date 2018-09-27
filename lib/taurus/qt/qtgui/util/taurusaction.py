@@ -24,9 +24,21 @@
 #############################################################################
 
 """This module is designed to provide a library of taurus Qt actions"""
+
 from __future__ import absolute_import
 
 from builtins import str
+
+import os
+import xml.dom.minidom
+
+from future.utils import string_types
+
+from taurus.external.qt import Qt
+from taurus.core.taurushelper import getSchemeFromName
+from taurus.qt.qtcore.configuration import BaseConfigurableClass
+
+
 __all__ = ["ExternalAppAction",
            "TaurusMenu",
            "TaurusAction",
@@ -40,15 +52,6 @@ __all__ = ["ExternalAppAction",
            ]
 
 __docformat__ = 'restructuredtext'
-
-import os
-import xml.dom.minidom
-
-from future.utils import string_types
-
-from taurus.external.qt import Qt
-from taurus.core.taurushelper import getSchemeFromName
-from taurus.qt.qtcore.configuration import BaseConfigurableClass
 
 
 class ExternalAppAction(Qt.QAction, BaseConfigurableClass):

@@ -24,13 +24,15 @@
 #############################################################################
 
 """This module contains a pure Qt widget that displays an image"""
+
 from __future__ import absolute_import
+
+from taurus.external.qt import Qt
+
 
 __all__ = ["QPixmapWidget"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
 
 
 class QPixmapWidget(Qt.QWidget):

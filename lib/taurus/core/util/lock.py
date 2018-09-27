@@ -27,12 +27,12 @@
 information"""
 
 from builtins import object
+import threading
+import logging
+
 __all__ = ["TaurusLock"]
 
 __docformat__ = 'restructuredtext'
-
-import threading
-import logging
 
 _VERBOSE = False
 

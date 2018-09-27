@@ -33,19 +33,22 @@ to be used within a TaurusGui for managing panels for:
 
 .. note:: This module will be moved to sardana.taurus at some point.
 """
-from __future__ import print_function
 
  # TODO: move to sardana.taurus
 
+from __future__ import print_function
+
 from builtins import object
-__all__ = ['MacroBroker', 'DynamicPlotManager']
-__docformat__ = 'restructuredtext'
 
 import datetime
 
 from taurus.core.util.containers import CaselessList
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
+
+
+__all__ = ['MacroBroker', 'DynamicPlotManager']
+__docformat__ = 'restructuredtext'
 
 
 class ChannelFilter(object):

@@ -29,8 +29,6 @@ TaurusPlotConf: widget for configurating the contents and appearance of a Taurus
 from __future__ import print_function
 from __future__ import absolute_import
 
-__all__ = ['TaurusPlotConfDlg']
-
 raise NotImplementedError('Under Construction!')
 
 import taurus.core
@@ -42,6 +40,9 @@ try:
     import taurus.qt.qtgui.extra_nexus as extra_nexus
 except:
     extra_nexus = None
+
+
+__all__ = ['TaurusPlotConfDlg']
 
 
 @UILoadable(with_ui='ui')

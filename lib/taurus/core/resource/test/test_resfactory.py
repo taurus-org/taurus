@@ -25,14 +25,13 @@
 
 """Test for taurus.core.resource.test.test_resfactory..."""
 from __future__ import print_function
-__all__ = ["ResourceFactoryTestCase"]
-
 import os.path as osp
 import taurus
 from taurus.test import insertTest
 import unittest
 from taurus.core.resource.resfactory import ResourcesFactory
 
+__all__ = ["ResourceFactoryTestCase"]
 
 attr_dict1 = {'attr_1': 'eval:1',
               'attr_2': 'eval:2',

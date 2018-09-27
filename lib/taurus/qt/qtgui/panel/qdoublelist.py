@@ -28,16 +28,19 @@
 qdoublelist.py: Provides a generic dialog containing two list which can move
 items from one to the other
 """
+
 from __future__ import print_function
 
 from builtins import str
 from builtins import range
-__all__ = ["QDoubleListDlg"]
-
-__docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
+
+
+__all__ = ["QDoubleListDlg"]
+
+__docformat__ = 'restructuredtext'
 
 
 @UILoadable(with_ui='ui')

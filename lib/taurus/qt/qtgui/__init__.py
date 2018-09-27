@@ -29,9 +29,6 @@ behavior associated with a specific HW device. They intend to represent only
 abstract model data."""
 from __future__ import absolute_import
 
-__docformat__ = 'restructuredtext'
-
-
 # register icon path files and icon theme on import of taurus.qt.qtgui
 from . import icon as __icon
 import os
@@ -40,6 +37,9 @@ import glob
 import pkg_resources
 from taurus import tauruscustomsettings as __S
 from taurus import debug as __debug
+
+
+__docformat__ = 'restructuredtext'
 
 icon_dir = os.path.join(os.path.dirname(os.path.abspath(__icon.__file__)))
 # TODO: get .path file glob pattern from tauruscustomsettings

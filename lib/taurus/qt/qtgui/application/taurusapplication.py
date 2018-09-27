@@ -28,10 +28,6 @@
 
 from builtins import str
 
-__all__ = ["TaurusApplication"]
-
-__docformat__ = 'restructuredtext'
-
 import os
 import sys
 import logging
@@ -42,6 +38,11 @@ from taurus.external.qt import Qt
 
 from taurus.core.util.log import LogExceptHook, Logger
 import taurus.core.util.argparse
+
+
+__all__ = ["TaurusApplication"]
+
+__docformat__ = 'restructuredtext'
 
 
 class STD(Logger):

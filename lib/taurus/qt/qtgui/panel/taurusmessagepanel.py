@@ -28,10 +28,6 @@
 from future import standard_library
 standard_library.install_aliases()
 from builtins import object
-__all__ = ["TaurusMessagePanel", "TaurusMessageErrorHandler",
-           "TangoMessageErrorHandler", "MacroServerMessageErrorHandler"]
-
-__docformat__ = 'restructuredtext'
 
 import sys
 import traceback
@@ -48,6 +44,12 @@ except:
 from taurus.core.util.report import TaurusMessageReportHandler
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
+
+
+__all__ = ["TaurusMessagePanel", "TaurusMessageErrorHandler",
+           "TangoMessageErrorHandler", "MacroServerMessageErrorHandler"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusMessageErrorHandler(object):

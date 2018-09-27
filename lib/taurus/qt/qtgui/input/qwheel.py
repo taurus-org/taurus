@@ -27,9 +27,6 @@
 
 from builtins import map
 from builtins import range
-__all__ = ["QWheelEdit"]
-
-__docformat__ = 'restructuredtext'
 
 import os
 import math
@@ -37,6 +34,12 @@ import numpy
 
 from taurus.external.qt import Qt
 from taurus.core.units import Q_
+
+
+__all__ = ["QWheelEdit"]
+
+__docformat__ = 'restructuredtext'
+
 
 class _ArrowButton(Qt.QPushButton):
     """Private class to be used by QWheelEdit for an arrow button"""

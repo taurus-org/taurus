@@ -27,7 +27,6 @@
 from __future__ import print_function
 
 from builtins import next
-__all__ = ["TaurusCurveItem"]
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
@@ -38,6 +37,8 @@ from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam, TaurusTrendPar
 
 from taurus.core.util.containers import ArrayBuffer
 import numpy
+
+__all__ = ["TaurusCurveItem"]
 
 
 class TaurusCurveItem(CurveItem, TaurusBaseComponent):

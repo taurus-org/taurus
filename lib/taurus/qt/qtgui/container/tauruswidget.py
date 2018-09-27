@@ -24,14 +24,16 @@
 #############################################################################
 
 """This module provides basic taurus container widget"""
+
 from __future__ import absolute_import
+
+from taurus.external.qt import Qt
+from .taurusbasecontainer import TaurusBaseContainer
+
 
 __all__ = ["TaurusWidget"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
-from .taurusbasecontainer import TaurusBaseContainer
 
 
 class TaurusWidget(Qt.QWidget, TaurusBaseContainer):

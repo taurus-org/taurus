@@ -26,6 +26,7 @@
 """
 comunications.py:
 """
+
 from __future__ import print_function
 
 from taurus.external.qt import QtCore

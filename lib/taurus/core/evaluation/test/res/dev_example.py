@@ -22,18 +22,21 @@
 ##
 #############################################################################
 
-'''
+"""
 Examples on using the evaluation scheme for exposing arbitrary non-tango quantities as taurus attributes
-'''
+"""
+
+
 from __future__ import print_function
-
-__all__ = ['FreeSpaceDevice']
-
 import os
 import platform
 import ctypes
 from taurus.core.evaluation import EvaluationDevice
 from taurus.core.units import Quantity
+
+
+__all__ = ['FreeSpaceDevice']
+
 
 
 class FreeSpaceDevice(EvaluationDevice):

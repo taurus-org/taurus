@@ -26,16 +26,15 @@
 """The img submodule. It contains specific device implementation for CCDs and
 2D detectors"""
 
-__all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
-           'CCDPVCAM', 'ImgBeamAnalyzer', 'Falcon', 'LimaCCDs']
-
-__docformat__ = 'restructuredtext'
-
-
 from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.core.tango import TangoDevice
 from taurus.core.util.containers import CaselessDict, CaselessList
 from threading import Lock
+
+__all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
+           'CCDPVCAM', 'ImgBeamAnalyzer', 'Falcon', 'LimaCCDs']
+
+__docformat__ = 'restructuredtext'
 
 
 class ImageDevice(TangoDevice):

@@ -26,6 +26,7 @@
 """This module contains ANSI color codes"""
 
 from builtins import object
+
 __all__ = ["make_color_table", "NoColors", "TermColors", "HTMLColors"]
 
 __docformat__ = "restructuredtext"

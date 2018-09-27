@@ -36,11 +36,11 @@ of an Enumeration class (Volkswagen.BEETLE, Volkswagen.PASSAT, etc.)."""
 from builtins import int
 from builtins import str
 from builtins import object
-__all__ = ["EnumException", "Enumeration"]
-
-__docformat__ = "restructuredtext"
-
 from future.utils import string_types
+
+
+__all__ = ["EnumException", "Enumeration"]
+__docformat__ = "restructuredtext"
 
 
 class EnumException(Exception):

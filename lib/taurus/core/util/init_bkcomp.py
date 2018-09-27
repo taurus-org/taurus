@@ -35,7 +35,6 @@ The json implementation follows the rule:
 """
 from __future__ import absolute_import
 
-__docformat__ = "restructuredtext"
 
 # taurus cannot work properly without the following modules so
 # they are promptly imported here has a facility (also for backward
@@ -69,6 +68,7 @@ try:
 except:
     etree = None
 
+__docformat__ = "restructuredtext"
 
 def dictFromSequence(seq):
     """Translates a sequence into a dictionary by converting each to elements of
@@ -82,3 +82,13 @@ def dictFromSequence(seq):
         while True:
             yield itnext(), itnext()
     return dict(_pairwise(seq))
+
+
+
+
+
+
+
+
+
+

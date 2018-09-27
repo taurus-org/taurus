@@ -28,13 +28,12 @@
 #__all__ = []
 
 from builtins import object
-__docformat__ = 'restructuredtext'
-
-
 from functools import partial
 from taurus.test import insertTest
-
 from taurus.core.taurusvalidator import TaurusAttributeNameValidator
+
+__docformat__ = 'restructuredtext'
+
 
 valid = partial(insertTest, helper_name='isValid')
 invalid = partial(insertTest, helper_name='isInvalid')

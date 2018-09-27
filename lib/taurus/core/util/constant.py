@@ -47,6 +47,7 @@ Usage::
 """
 
 from builtins import object
+
 __docformat__ = "restructuredtext"
 
 

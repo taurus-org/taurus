@@ -63,12 +63,7 @@ A Taurus related example::
     >>> f, d = codec.decode((v.format, v.value))
 """
 from __future__ import absolute_import
-
 from builtins import str
-__all__ = ["Codec", "NullCodec", "ZIPCodec", "BZ2Codec", "JSONCodec",
-           "FunctionCodec", "PlotCodec", "CodecPipeline", "CodecFactory"]
-
-__docformat__ = "restructuredtext"
 
 import copy
 
@@ -83,9 +78,13 @@ from .singleton import Singleton
 from .log import Logger
 from .containers import CaselessDict
 
+__all__ = ["Codec", "NullCodec", "ZIPCodec", "BZ2Codec", "JSONCodec",
+           "FunctionCodec", "PlotCodec", "CodecPipeline", "CodecFactory"]
+
+__docformat__ = "restructuredtext"
 
 if PY2:
-    buffer_types = buffer, memoryview, 
+    buffer_types = buffer, memoryview,
 else:
     buffer_types = memoryview,
 

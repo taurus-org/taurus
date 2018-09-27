@@ -56,11 +56,7 @@
 
 """
 from __future__ import absolute_import
-
 from builtins import object
-__all__ = ["TaurusFactory"]
-
-__docformat__ = "restructuredtext"
 
 import atexit
 from weakref import WeakValueDictionary
@@ -71,6 +67,10 @@ from .taurusattribute import TaurusAttribute
 from .taurusconfiguration import TaurusConfiguration, TaurusConfigurationProxy
 from .taurusexception import TaurusException
 from taurus.core.tauruspollingtimer import TaurusPollingTimer
+
+__all__ = ["TaurusFactory"]
+
+__docformat__ = "restructuredtext"
 
 
 class TaurusFactory(object):

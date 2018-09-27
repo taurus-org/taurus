@@ -22,15 +22,11 @@
 ##
 #############################################################################
 
-'''
+"""
 Epics module. See __init__.py for more detailed documentation
-'''
+"""
 from __future__ import absolute_import
-__all__ = ['EpicsFactory']
-
-
 import weakref
-
 try:
     import epics
 except ImportError:
@@ -38,16 +34,16 @@ except ImportError:
     debug('cannot import epics module. ' +
           'Taurus will not support the "epics" scheme')
     raise
-
 from taurus.core.taurusexception import TaurusException
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.log import Logger
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusfactory import TaurusFactory
-
 from .epicsattribute import EpicsAttribute
 from .epicsdevice import EpicsDevice
 from .epicsauthority import EpicsAuthority
+
+__all__ = ['EpicsFactory']
 
 
 class EpicsFactory(Singleton, TaurusFactory, Logger):

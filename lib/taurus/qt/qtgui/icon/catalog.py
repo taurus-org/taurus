@@ -24,6 +24,7 @@
 """
 This module provides an icon catalog widget
 """
+
 from __future__ import print_function
 
 import os

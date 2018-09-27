@@ -24,12 +24,8 @@
 
 from __future__ import absolute_import
 from builtins import zip
-__all__ = ['EvaluationDeviceNameValidator',
-           'EvaluationAttributeNameValidator']
-
 import re
 import hashlib
-
 import taurus
 from taurus import isValidName, debug
 from taurus.core import TaurusElementType
@@ -37,6 +33,9 @@ from taurus.core import TaurusElementType
 from taurus.core.taurusvalidator import (TaurusAttributeNameValidator,
                                          TaurusDeviceNameValidator,
                                          TaurusAuthorityNameValidator)
+
+__all__ = ['EvaluationDeviceNameValidator',
+           'EvaluationAttributeNameValidator']
 
 # Pattern for python variables
 PY_VAR = r'(?<![\.a-zA-Z0-9_])[a-zA-Z_][a-zA-Z0-9_]*'

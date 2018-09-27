@@ -24,21 +24,20 @@
 #############################################################################
 
 """This module provides the `TangoFactory` object"""
+
 from __future__ import absolute_import
 
-__all__ = ["TangoFactory"]
-
-__docformat__ = "restructuredtext"
-
 try:
-    import PyTango
+    pass
 except ImportError:
+
     # note that if PyTango is not installed the factory will not be available
     from taurus.core.util.log import debug
     msg = 'cannot import PyTango module. ' + \
           'Taurus will not support the "tango" scheme'
     debug(msg)
     raise
+import PyTango
 
 from taurus import tauruscustomsettings
 from taurus.core.taurusbasetypes import (TaurusElementType,
@@ -57,6 +56,10 @@ from .tangodevice import TangoDevice
 _Authority = TangoAuthority
 _Attribute = TangoAttribute
 _Device = TangoDevice
+
+
+__all__ = ["TangoFactory"]
+__docformat__ = "restructuredtext"
 
 
 class TangoFactory(Singleton, TaurusFactory, Logger):

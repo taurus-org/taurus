@@ -29,14 +29,17 @@ original idea and development by gcuni
 integrated with taurus and regular expressions by srubio
 alba, 2009
 """
-from __future__ import print_function
 
 # This module needs a total cleanup. Both re. code conventions and algorithms.
 #   --cpascual 20140827
 
+from __future__ import print_function
+
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
+
+
 __all__ = ["TaurusGrid"]
 
 __docformat__ = 'restructuredtext'

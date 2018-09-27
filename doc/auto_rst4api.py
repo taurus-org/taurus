@@ -27,7 +27,6 @@
 ''' Creates a tree of dirs and restructured text stub files for documenting
 the API of a python module with sphinx'''
 from __future__ import print_function
-
 from builtins import zip
 from builtins import object
 import sys

@@ -24,18 +24,19 @@
 #############################################################################
 
 """This module provides a set of basic taurus widgets based on QWheelEdit"""
+
 from __future__ import absolute_import
 
-__all__ = ["TaurusWheelEdit"]
-
-__docformat__ = 'restructuredtext'
-
-import taurus
 from taurus.external.qt import Qt
 
 from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from .qwheel import QWheelEdit
+
+
+__all__ = ["TaurusWheelEdit"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):

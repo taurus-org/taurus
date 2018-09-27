@@ -27,6 +27,13 @@
 # TODO: tango-centric
 
 from builtins import str
+
+from taurus.external.qt import Qt
+from taurus.core.taurusbasetypes import TaurusElementType, TaurusDevState
+import taurus.qt.qtcore.mimetypes
+from .taurusmodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
+
+
 __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
            "TaurusTreeDeviceFamilyItem", "TaurusTreeDeviceMemberItem", "TaurusTreeSimpleDeviceItem",
            "TaurusTreeDeviceItem", "TaurusTreeAttributeItem", "TaurusTreeServerNameItem",
@@ -40,11 +47,6 @@ __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
 
 __docformat__ = 'restructuredtext'
 
-from taurus.external.qt import Qt
-from taurus.core.taurusbasetypes import TaurusElementType, TaurusDevState
-import taurus.qt.qtcore.mimetypes
-
-from .taurusmodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 
 ElemType = TaurusElementType
 

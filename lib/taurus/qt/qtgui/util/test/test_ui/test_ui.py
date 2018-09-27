@@ -24,6 +24,7 @@
 #############################################################################
 
 """Unit tests for UILoadable decorator"""
+
 from __future__ import absolute_import
 
 import os.path

@@ -26,17 +26,16 @@
 """This module contains the base taurus name validator classes"""
 from __future__ import print_function
 
+import re
+from taurus import tauruscustomsettings
+from taurus.core.util.singleton import Singleton
+from taurus.core.taurushelper import makeSchemeExplicit
 
 __all__ = ["TaurusAuthorityNameValidator", "TaurusDeviceNameValidator",
            "TaurusAttributeNameValidator"]
 
 
 __docformat__ = "restructuredtext"
-
-import re
-from taurus import tauruscustomsettings
-from taurus.core.util.singleton import Singleton
-from taurus.core.taurushelper import makeSchemeExplicit
 
 
 class _TaurusBaseValidator(Singleton):

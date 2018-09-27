@@ -34,6 +34,29 @@ standard_library.install_aliases()
 from builtins import str
 from builtins import range
 from builtins import object
+
+import re
+import os
+import subprocess
+import traceback
+import collections
+
+from future.utils import string_types
+from queue import Queue
+
+from taurus import Manager
+from taurus.core import AttrQuality, DataType
+from taurus.core.util.containers import CaselessDefaultDict
+from taurus.core.util.log import Logger, deprecation_decorator
+from taurus.core.taurusdevice import TaurusDevice
+from taurus.core.taurusattribute import TaurusAttribute
+from taurus.core.util.enumeration import Enumeration
+from taurus.external.qt import Qt
+from taurus.qt.qtgui.base import TaurusBaseComponent
+from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
+                                  ExternalAppAction, TaurusWidgetFactory)
+
+
 __all__ = ['SynopticSelectionStyle',
            'parseTangoUri',
            'QEmitter',  # TODO: QEmitter should probably be removed (kept priv)
@@ -60,27 +83,6 @@ __all__ = ['SynopticSelectionStyle',
            ]
 
 __docformat__ = 'restructuredtext'
-
-import re
-import os
-import subprocess
-import traceback
-import collections
-
-from future.utils import string_types
-from queue import Queue
-
-from taurus import Manager
-from taurus.core import AttrQuality, DataType
-from taurus.core.util.containers import CaselessDefaultDict
-from taurus.core.util.log import Logger, deprecation_decorator
-from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusattribute import TaurusAttribute
-from taurus.core.util.enumeration import Enumeration
-from taurus.external.qt import Qt
-from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
-                                  ExternalAppAction, TaurusWidgetFactory)
 
 
 SynopticSelectionStyle = Enumeration("SynopticSelectionStyle", [

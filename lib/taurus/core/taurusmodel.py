@@ -26,9 +26,6 @@
 """This module contains the base TaurusModel class"""
 
 from builtins import object
-__all__ = ["TaurusModel"]
-
-__docformat__ = "restructuredtext"
 
 import weakref
 import collections
@@ -39,6 +36,10 @@ from .util.event import (CallableRef,
                          _BoundMethodWeakrefWithCall)
 from .taurusbasetypes import TaurusEventType, MatchLevel
 from .taurushelper import Factory
+
+__all__ = ["TaurusModel"]
+
+__docformat__ = "restructuredtext"
 
 
 class TaurusModel(Logger):

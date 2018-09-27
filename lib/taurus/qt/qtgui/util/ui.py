@@ -26,9 +26,6 @@
 """utilities to load ui files for widgets"""
 
 from builtins import object
-__all__ = ["loadUi",
-           "UILoadable",
-           ]
 
 import os
 import sys
@@ -36,6 +33,11 @@ import functools
 
 from taurus.external.qt import Qt
 from taurus.external.qt import uic
+
+
+__all__ = ["loadUi",
+           "UILoadable",
+           ]
 
 
 class __UI(object):

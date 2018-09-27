@@ -34,10 +34,9 @@ The json implementation follows the rule:
     #. otherwise use private implementation distributed with taurus
 """
 from __future__ import absolute_import
+import taurus.tauruscustomsettings
 
 __docformat__ = "restructuredtext"
-
-import taurus.tauruscustomsettings
 
 LIGHTWEIGHT_IMPORTS = getattr(
     taurus.tauruscustomsettings, 'LIGHTWEIGHT_IMPORTS', False)

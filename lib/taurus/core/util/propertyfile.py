@@ -36,14 +36,14 @@ Modified - Tiago Coutinho
 
 from builtins import next
 from builtins import object
-__all__ = ["Properties"]
-
-__docformat__ = "restructuredtext"
 
 import sys
 import re
 import time
 
+__all__ = ["Properties"]
+
+__docformat__ = "restructuredtext"
 
 class Properties(object):
     """ A Python replacement for java.util.Properties """

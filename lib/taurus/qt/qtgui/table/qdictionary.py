@@ -26,10 +26,6 @@
 """This module provides basic python dictionary/list editor widgets"""
 from __future__ import print_function
 
-__all__ = ["QDictionaryEditor", "QListEditor"]
-
-__docformat__ = 'restructuredtext'
-
 import sys
 from future.utils import string_types
 
@@ -37,6 +33,11 @@ from taurus.core.util.containers import SortedDict
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusBaseContainer, TaurusWidget
 from taurus.qt.qtcore.util.properties import join, djoin
+
+
+__all__ = ["QDictionaryEditor", "QListEditor"]
+
+__docformat__ = 'restructuredtext'
 
 ###############################################################################
 # Methods borrowed from fandango modules

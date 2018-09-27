@@ -31,12 +31,6 @@ from __future__ import print_function
 
 from builtins import range
 from builtins import object
-__all__ = ["CaselessList", "CaselessDict", "CaselessWeakValueDict", "LoopList",
-           "CircBuf", "LIFO", "TimedQueue", "self_locked", "ThreadDict",
-           "defaultdict", "defaultdict_fromkey", "CaselessDefaultDict",
-           "DefaultThreadDict", "getDictAsTree", "ArrayBuffer", ]
-
-__docformat__ = "restructuredtext"
 
 from future.utils import string_types
 
@@ -44,6 +38,14 @@ import copy
 import collections
 import time
 import weakref
+
+
+__all__ = ["CaselessList", "CaselessDict", "CaselessWeakValueDict", "LoopList",
+           "CircBuf", "LIFO", "TimedQueue", "self_locked", "ThreadDict",
+           "defaultdict", "defaultdict_fromkey", "CaselessDefaultDict",
+           "DefaultThreadDict", "getDictAsTree", "ArrayBuffer", ]
+
+__docformat__ = "restructuredtext"
 
 
 class CaselessList(list):

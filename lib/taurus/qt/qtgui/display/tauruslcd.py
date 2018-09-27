@@ -24,13 +24,11 @@
 #############################################################################
 
 """This module provides a Taurus widget based on QLCDNumber"""
+
 from __future__ import absolute_import
 
 from builtins import str
 from builtins import object
-__all__ = ["TaurusLCD"]
-
-__docformat__ = 'restructuredtext'
 
 import collections
 
@@ -42,6 +40,11 @@ from taurus.qt.qtgui.base import TaurusBaseController
 from taurus.qt.qtgui.base import TaurusScalarAttributeControllerHelper
 from taurus.qt.qtgui.base import TaurusConfigurationControllerHelper
 from taurus.qt.qtgui.base import updateLabelBackground
+
+
+__all__ = ["TaurusLCD"]
+
+__docformat__ = 'restructuredtext'
 
 _QT_PLUGIN_INFO = {
     'module': 'taurus.qt.qtgui.display',

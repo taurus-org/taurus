@@ -26,6 +26,7 @@
 """
 taurusplot.py: Generic graphical plotting widget for Taurus
 """
+
 from __future__ import print_function
 from __future__ import absolute_import
 from future import standard_library
@@ -34,8 +35,6 @@ from builtins import next
 from builtins import str
 from builtins import range
 from builtins import object
-__all__ = ["TaurusCurve", "TaurusCurveMarker",
-           "TaurusXValues", "TaurusPlot", "isodatestr2float"]
 
 import os
 import copy
@@ -58,6 +57,10 @@ from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.plot import TaurusPlotConfigDialog, FancyScaleDraw,\
     DateTimeScaleEngine, FixedLabelsScaleEngine, FixedLabelsScaleDraw
 from .curvesAppearanceChooserDlg import CurveAppearanceProperties
+
+
+__all__ = ["TaurusCurve", "TaurusCurveMarker",
+           "TaurusXValues", "TaurusPlot", "isodatestr2float"]
 
 
 def isodatestr2float(s, sep='_'):

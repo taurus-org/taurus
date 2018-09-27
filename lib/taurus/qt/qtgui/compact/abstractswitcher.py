@@ -23,7 +23,8 @@
 ##
 #############################################################################
 
-"""This module provides base classes from which the compact widgets should inherit
+"""
+This module provides base classes from which the compact widgets should inherit
 """
 
 __all__ = ["TaurusReadWriteSwitcher"]
@@ -34,7 +35,7 @@ from future.utils import string_types
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
-from taurus.qt.qtgui.base import TaurusBaseWritableWidget
+# from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 
 
 class TaurusReadWriteSwitcher(TaurusWidget):

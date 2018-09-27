@@ -27,11 +27,13 @@
 from __future__ import print_function
 
 from builtins import str
+
+from taurus.external.qt import Qt
+
+
 __all__ = ["GraphicalChoiceDlg", "GraphicalChoiceWidget"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
 
 
 class GraphicalChoiceDlg(Qt.QDialog):

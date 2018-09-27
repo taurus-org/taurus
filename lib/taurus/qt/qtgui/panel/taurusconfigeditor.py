@@ -29,9 +29,6 @@ taurusconfigeditor.py:
 
 from future import standard_library
 standard_library.install_aliases()
-__all__ = ["QConfigEditor"]
-
-__docformat__ = 'restructuredtext'
 
 from taurus.external.qt import Qt
 import pickle
@@ -40,6 +37,11 @@ import tempfile
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.container import TaurusWidget
 import shutil
+
+
+__all__ = ["QConfigEditor"]
+
+__docformat__ = 'restructuredtext'
 
 
 class QConfigEditorModel(Qt.QStandardItemModel):

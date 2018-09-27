@@ -35,7 +35,6 @@ user will find when launching the GUI for the first time.
 from __future__ import print_function
 
 from builtins import str
-__all__ = ["AppSettingsWizard", "ExternalAppEditor"]
 
 import os
 import re
@@ -54,6 +53,9 @@ import taurus.qt.qtgui.input
 from taurus.core.tango.tangovalidator import TangoDeviceNameValidator
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.util import ExternalAppAction
+
+
+__all__ = ["AppSettingsWizard", "ExternalAppEditor"]
 
 
 class BooleanWidget(Qt.QWidget):

@@ -26,17 +26,16 @@
 """
 taurusdevicetree.py:
 """
-from __future__ import print_function
 
 # @todo: This module is not being used anywhere in Taurus and depends on
 # non-standard and non-provided modules. It is also quite specific and
 # tango-centric, so it should be removed from Taurus or merged with
 # Taurusdbtree
 
-# ,"SearchEdit"] #"TaurusTreeNode"]
+from __future__ import print_function
+
 from builtins import next
 from builtins import object
-__all__ = ["TaurusDevTree", "TaurusSearchTree", "TaurusDevTreeOptions"]
 
 import time
 import os
@@ -73,6 +72,8 @@ from taurus.qt.qtcore.util.properties import djoin
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.container import TaurusWidget
 
+
+__all__ = ["TaurusDevTree", "TaurusSearchTree", "TaurusDevTreeOptions"]
 TREE_ITEM_MIME_TYPE = 'application/x-qabstractitemmodeldatalist'
 
 ###############################################################################
@@ -206,14 +207,14 @@ class TaurusTreeNodeContainer(object):
                     if k.lower() in name.lower():
                         url = v
             # if name.count('/')==2:
-                # if any(a.startswith(name+'/') for a in getArchivedAttributes()):
-                    #url = wdir('image/icons/clock.png')
-                # else:
-                    #url = wdir('image/equips/icon-%s.gif'%name.split('/')[2].split('-')[0].lower())
-            # elif name.count('/')==3:
-                #url = filterAttributes(name) or wdir('image/icons/closetab.png')
+            # if any(a.startswith(name+'/') for a in getArchivedAttributes()):
+            #url = wdir('image/icons/clock.png')
             # else:
-                #url = wdir('image/equips/icon-%s.gif'%name.lower())
+            #url = wdir('image/equips/icon-%s.gif'%name.split('/')[2].split('-')[0].lower())
+            # elif name.count('/')==3:
+            #url = filterAttributes(name) or wdir('image/icons/closetab.png')
+            # else:
+            #url = wdir('image/equips/icon-%s.gif'%name.lower())
         except:
             self.warning(traceback.format_exc())
         if not url or not os.path.isfile(url):

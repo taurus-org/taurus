@@ -26,11 +26,6 @@
 """This package provides the TaurusGui class"""
 
 from builtins import str
-__all__ = ["DockWidgetPanel", "TaurusGui"]
-
-__docformat__ = 'restructuredtext'
-
-
 import os
 import sys
 import copy
@@ -55,6 +50,11 @@ from taurus.qt.qtgui.taurusgui.appsettingswizard import ExternalAppEditor
 from taurus.qt.qtgui.panel import QDoubleListDlg
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.taurusgui.utils import ExternalAppAction
+
+
+__all__ = ["DockWidgetPanel", "TaurusGui"]
+
+__docformat__ = 'restructuredtext'
 
 
 @UILoadable(with_ui='ui')

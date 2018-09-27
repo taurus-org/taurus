@@ -28,9 +28,6 @@ TaurusDevicePanel.py:
 """
 
 from builtins import str
-__all__ = ["TaurusDevicePanel", "TaurusDevPanel"]
-
-__docformat__ = 'restructuredtext'
 
 import re
 import traceback
@@ -46,11 +43,16 @@ from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
 from taurus.qt.qtgui.display import TaurusLabel
-from taurus.qt.qtgui.display import TaurusLed
 from taurus.qt.qtgui.panel.taurusform import TaurusForm
 from taurus.qt.qtgui.panel.taurusform import TaurusCommandsForm
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.icon import getCachedPixmap
+
+
+__all__ = ["TaurusDevicePanel", "TaurusDevPanel"]
+
+__docformat__ = 'restructuredtext'
+
 
 ###############################################################################
 # TaurusDevicePanel (from Vacca)

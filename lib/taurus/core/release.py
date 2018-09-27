@@ -23,9 +23,6 @@
 ##
 #############################################################################
 
-
-__docformat__ = "restructuredtext"
-
 """
 Release data for the taurus project. It contains the following members:
 
@@ -41,6 +38,7 @@ Release data for the taurus project. It contains the following members:
 """
 
 # -*- coding: utf-8 -*-
+__docformat__ = "restructuredtext"
 
 
 # Name of the package for release purposes.  This is the name which labels

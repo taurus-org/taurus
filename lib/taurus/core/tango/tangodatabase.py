@@ -24,6 +24,7 @@
 #############################################################################
 
 """This module contains all taurus tango authority"""
+
 from __future__ import print_function
 
 from builtins import str
@@ -31,11 +32,6 @@ from builtins import map
 from builtins import range
 from builtins import object
 import collections
-__all__ = ["TangoInfo", "TangoAttrInfo", "TangoDevInfo", "TangoServInfo",
-           "TangoDevClassInfo", "TangoDatabaseCache", "TangoDatabase",
-           "TangoAuthority"]
-
-__docformat__ = "restructuredtext"
 
 import os
 import socket
@@ -48,6 +44,12 @@ from taurus.core.taurusauthority import TaurusAuthority
 from taurus.core.util.containers import CaselessDict
 from taurus.core.util.log import taurus4_deprecation
 
+
+__all__ = ["TangoInfo", "TangoAttrInfo", "TangoDevInfo", "TangoServInfo",
+           "TangoDevClassInfo", "TangoDatabaseCache", "TangoDatabase",
+           "TangoAuthority"]
+
+__docformat__ = "restructuredtext"
 
 InvalidAlias = "nada"
 

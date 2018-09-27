@@ -28,12 +28,6 @@
 
 from builtins import str
 from builtins import object
-__all__ = ["TaurusBaseController", "TaurusAttributeControllerHelper",
-           "TaurusScalarAttributeControllerHelper",
-           "TaurusConfigurationControllerHelper",
-           "updateLabelBackground"]
-
-__docformat__ = 'restructuredtext'
 
 import weakref
 
@@ -43,6 +37,14 @@ from taurus.core.taurusbasetypes import DataFormat, TaurusEventType
 
 from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.util import QT_DEVICE_STATE_PALETTE
+
+
+__all__ = ["TaurusBaseController", "TaurusAttributeControllerHelper",
+           "TaurusScalarAttributeControllerHelper",
+           "TaurusConfigurationControllerHelper",
+           "updateLabelBackground"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusBaseController(object):

@@ -22,25 +22,27 @@
 ##
 #############################################################################
 
-'''
+"""
 Epics module. See __init__.py for more detailed documentation
-'''
+"""
+
 from __future__ import print_function
 from __future__ import absolute_import
-__all__ = ['EpicsAttribute']
-
 
 import numpy
 from taurus.core.units import Quantity
-
 from taurus.core.taurusbasetypes import (TaurusEventType, TaurusAttrValue,
                                          TaurusTimeVal, AttrQuality, DataType,
                                          DataFormat)
 from taurus.core.taurusattribute import TaurusAttribute
-
 import epics
 from epics.ca import ChannelAccessException
 from epics import dbr
+
+
+__all__ = ['EpicsAttribute']
+
+
 
 # map for epics DBR types to Taurus Types.
 Dbr2TaurusType = {dbr.STRING: DataType.String,

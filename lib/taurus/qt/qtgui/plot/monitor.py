@@ -26,6 +26,7 @@
 """
 monitor.py: Specialized mini-trend widget to monitor some scalar value
 """
+
 from __future__ import print_function
 
 from taurus.external.qt import Qt

@@ -33,14 +33,14 @@ Usage::
 """
 from __future__ import print_function
 
-__docformat__ = 'restructuredtext'
-
 import os
 import sys
 import re
 import unittest
 import taurus
 
+
+__docformat__ = 'restructuredtext'
 
 PY3_EXCLUDED = (
     'unittest.loader._FailedTest.taurus.qt.qtgui.plot',

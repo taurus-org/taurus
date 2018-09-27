@@ -36,14 +36,12 @@
     - 'model' - will have a '...' button that will open a customized dialog for
       editing the widget model (same has 'Edit model...' task menu item
 """
+
 from __future__ import absolute_import
 
-from taurus.external.qt import Qt
 from taurus.external.qt import QtDesigner
-
 from taurus.qt.qtgui.container.qcontainer import QGroupWidget
 
-#import sip
 
 Q_TYPEID = {'QPyDesignerContainerExtension':     'com.trolltech.Qt.Designer.Container',
             'QPyDesignerPropertySheetExtension': 'com.trolltech.Qt.Designer.PropertySheet',

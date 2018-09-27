@@ -9,7 +9,6 @@ call recheckTaurusParent for all designer created widgets that use TaurusParentM
 You can do it right after calling the setupUi method.
 '''
 from __future__ import print_function
-
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.display import TaurusLabel

@@ -25,17 +25,16 @@
 
 """This module contains the polling class"""
 
-__all__ = ["TaurusPollingTimer"]
-
-__docformat__ = "restructuredtext"
-
-import time
 import weakref
 import threading
 
-from .util.log import Logger, DebugIt
+from .util.log import Logger
 from .util.containers import CaselessWeakValueDict
 from .util.timer import Timer
+
+__all__ = ["TaurusPollingTimer"]
+
+__docformat__ = "restructuredtext"
 
 
 class TaurusPollingTimer(Logger):

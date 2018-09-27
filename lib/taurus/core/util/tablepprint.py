@@ -31,13 +31,11 @@ from builtins import zip
 from builtins import str
 from builtins import range
 from functools import reduce
-
-__docformat__ = "restructuredtext"
-
-import io
 import operator
 import re
 import math
+
+__docformat__ = "restructuredtext"
 
 
 def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
@@ -124,8 +122,6 @@ def wrap_onspace_strict(text, width):
        words longer than width are split."""
     wordRegex = re.compile(r'\S{' + str(width) + r',}')
     return wrap_onspace(wordRegex.sub(lambda m: wrap_always(m.group(), width), text), width)
-
-import math
 
 
 def wrap_always(text, width):

@@ -24,12 +24,9 @@
 #############################################################################
 
 """This module contains taurus Qt form widgets"""
+
 from __future__ import print_function
 from __future__ import absolute_import
-
-__all__ = ["TaurusAttrForm", "TaurusCommandsForm", "TaurusForm"]
-
-__docformat__ = 'restructuredtext'
 
 from datetime import datetime
 
@@ -45,6 +42,10 @@ from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_T
 from taurus.qt.qtgui.container import TaurusWidget, TaurusScrollArea
 from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
 from .taurusmodelchooser import TaurusModelChooser
+
+__all__ = ["TaurusAttrForm", "TaurusCommandsForm", "TaurusForm"]
+
+__docformat__ = 'restructuredtext'
 
 
 def _normalize_model_name_case(modelname):

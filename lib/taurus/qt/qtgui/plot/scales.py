@@ -26,16 +26,18 @@
 """
 scales.py: Custom scales used by taurus.qt.qtgui.plot module
 """
-from __future__ import print_function
 
-__all__ = ["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine",
-           "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw",
-           "FixedLabelsScaleDraw"]
+from __future__ import print_function
 
 import numpy
 from datetime import datetime, timedelta
 from time import mktime
 from taurus.external.qt import Qt, Qwt5
+
+
+__all__ = ["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine",
+           "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw",
+           "FixedLabelsScaleDraw"]
 
 
 def _getDefaultAxisLabelsAlignment(axis, rotation):

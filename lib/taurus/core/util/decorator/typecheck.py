@@ -62,14 +62,13 @@ Needed to cast params as floats in function def (or simply divide by 2.0).
     TypeError: 'fib' method accepts (int), but was given (float)
 
 """
+
 from __future__ import print_function
+import sys
 
 __all__ = ["accepts", "returns"]
 
 __docformat__ = "restructuredtext"
-
-import sys
-
 
 def accepts(*types, **kw):
     """ Function decorator. Checks that inputs given to decorated function

@@ -28,22 +28,21 @@ event.py:
 """
 from __future__ import print_function
 from __future__ import absolute_import
-
 from builtins import range
 from builtins import object
-__all__ = ["BoundMethodWeakref", "CallableRef", "EventGenerator",
-           "ConfigEventGenerator", "ListEventGenerator", "EventListener",
-           "AttributeEventWait", "AttributeEventIterator"]
-
-__docformat__ = "restructuredtext"
-
 import sys
 import weakref
 import threading
 import time
 import collections
-
 import taurus.core
+
+
+__all__ = ["BoundMethodWeakref", "CallableRef", "EventGenerator",
+           "ConfigEventGenerator", "ListEventGenerator", "EventListener",
+           "AttributeEventWait", "AttributeEventIterator"]
+
+__docformat__ = "restructuredtext"
 
 
 class BoundMethodWeakref(object):

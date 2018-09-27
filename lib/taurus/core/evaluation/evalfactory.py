@@ -25,12 +25,9 @@
 '''
 evaluation module. See __init__.py for more detailed documentation
 '''
+
 from __future__ import absolute_import
-__all__ = ['EvaluationFactory']
-
-
 import weakref
-
 from taurus.core.taurusbasetypes import TaurusElementType
 from .evalattribute import EvaluationAttribute
 from .evalauthority import EvaluationAuthority
@@ -39,6 +36,8 @@ from taurus.core.taurusexception import TaurusException, DoubleRegistration
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 from taurus.core.taurusfactory import TaurusFactory
+
+__all__ = ['EvaluationFactory']
 
 
 class EvaluationFactory(Singleton, TaurusFactory, Logger):

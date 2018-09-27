@@ -26,11 +26,12 @@
 """This module provides a set of dialog based widgets"""
 from __future__ import print_function
 
+from taurus.external.qt import Qt
+
+
 __all__ = ["TaurusInputDialog", "get_input"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
 
 
 def get_input(input_data, parent=None, input_panel_klass=None):

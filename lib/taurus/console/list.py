@@ -24,21 +24,18 @@
 #############################################################################
 
 """ """
-from __future__ import absolute_import
 
+from __future__ import absolute_import
 from builtins import map
 from builtins import range
-__all__ = ["List"]
-
-__docformat__ = "restructuredtext"
-
 import textwrap
 import collections
-import operator
-
 from future.utils import string_types
-
 from .enums import Alignment
+
+
+__all__ = ["List"]
+__docformat__ = "restructuredtext"
 
 
 class List(list):

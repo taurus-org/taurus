@@ -25,15 +25,17 @@
 
 """DataExportDlg.py: A Qt dialog for showing and exporting x-y Ascii data from
 one or more curves"""
-from __future__ import print_function
 
-__all__ = ["QDataExportDialog"]
+from __future__ import print_function
 
 import os.path
 from datetime import datetime
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
+
+
+__all__ = ["QDataExportDialog"]
 
 
 @UILoadable

@@ -27,14 +27,15 @@
 by specific TaurusGui-based GUIs"""
 
 from builtins import object
-__docformat__ = 'restructuredtext'
 
 from lxml import etree
 from future.utils import string_types
-
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.core.util.log import Logger
+
+
+__docformat__ = 'restructuredtext'
 
 # this is here only for backwards compatibility. It should not be used at all
 

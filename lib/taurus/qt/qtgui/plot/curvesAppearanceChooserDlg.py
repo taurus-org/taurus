@@ -28,6 +28,7 @@ curvesAppearanceChooserDlg.py:
     A Qt dialog for choosing plot appearance (symbols and lines)
     for a QwtPlot-derived widget (like Taurusplot)
 """
+
 from __future__ import print_function
 
 from builtins import object

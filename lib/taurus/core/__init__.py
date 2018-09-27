@@ -26,9 +26,10 @@
 """The core module"""
 from __future__ import absolute_import
 
+import taurus.tauruscustomsettings
+
 __docformat__ = "restructuredtext"
 
-import taurus.tauruscustomsettings
 
 LIGHTWEIGHT_IMPORTS = getattr(
     taurus.tauruscustomsettings, 'LIGHTWEIGHT_IMPORTS', False)

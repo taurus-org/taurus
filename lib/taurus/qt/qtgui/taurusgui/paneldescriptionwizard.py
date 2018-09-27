@@ -23,11 +23,11 @@
 ##
 ###########################################################################
 
-from __future__ import print_function
-__all__ = ["PanelDescriptionWizard"]
 """
 paneldescriptionwizard.py:
 """
+
+from __future__ import print_function
 
 from taurus.external.qt import Qt
 import sys
@@ -43,6 +43,9 @@ from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.core.util.log import Logger
 import inspect
 import copy
+
+
+__all__ = ["PanelDescriptionWizard"]
 
 
 class ExpertWidgetChooserDlg(Qt.QDialog):

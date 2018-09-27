@@ -22,11 +22,19 @@
 ##
 #############################################################################
 
-'''
+"""
 a misc collection of basic types
-'''
+"""
 
+import datetime
+
+from .util.enumeration import Enumeration
+from .util.log import taurus4_deprecation
+from enum import IntEnum
+from future.utils import PY2
 from builtins import object
+
+
 __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "TaurusSerializationMode", "SubscriptionState", "TaurusEventType",
            "MatchLevel", "TaurusElementType", "LockStatus", "DataFormat",
@@ -35,13 +43,6 @@ __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "TaurusLockInfo", "TaurusDevState", "TaurusModelValue"]
 
 __docformat__ = "restructuredtext"
-
-import datetime
-
-from .util.enumeration import Enumeration
-from .util.log import taurus4_deprecation
-from enum import IntEnum
-from future.utils import PY2
 
 
 class TaurusDevState(IntEnum):
