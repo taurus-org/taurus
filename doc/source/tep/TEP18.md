@@ -6,7 +6,7 @@
     URL: XXXXX (TODO)
     License: http://www.jclark.com/xml/copying.txt
     Abstract: 
-     Implement support for Qt5 in taurus. Also efine the 
+     Implement support for Qt5 in taurus. Also define the 
      migration strategy for applications using taurus. 
      
 
