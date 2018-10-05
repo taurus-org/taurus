@@ -293,9 +293,10 @@ l = TaurusLabel()
 
 ## Links to more details and discussions
 
-Discussions for this TEP are conducted in its associated Pull Request:
+Discussions for this TEP (and eventually the candidate implementation) 
+are conducted in its associated Pull Request:
 
-https://github.com/taurus-org/taurus/pull/XXXXX (TODO)
+https://github.com/taurus-org/taurus/pull/814
 
 Related issues are:
 
