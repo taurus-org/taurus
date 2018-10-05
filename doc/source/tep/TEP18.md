@@ -65,10 +65,10 @@ We studied shims implemented by other projects:
   adding members (e.g. if using the PyQt5 module, it monkey-patches all QtWidgets into QtGui). 
   It is more of a custom solution, not designed to be used by other projects.
 
-### Consequences of goals 1, 2 and 3 on the implementation decisions (and on goal 5)
+### Consequences of Goals 1, 2 and 3 on the implementation decisions (and on Goal 5)
 
 After studying all the mentioned implementations, we conclude that all of them fulfill 
-goals 1 and 2 but none of them , if used directly as it is fulfills goal 3. 
+Goals 1 and 2 but none of them , if used directly as it is fulfills Goal 3. 
 
 Some custom wrapping is necessary in all cases. For example: qtpy 
 and Qt.py impose using PySide2 style (e.g. they do not expose pyqtSignal). In the case 
@@ -79,12 +79,12 @@ since it does not separate the submodules into subpackages, something like
 
 Therefore we are forced to do some custom shimming if we want to keep backwards compatibility
 for apps using `taurus.external.qt`. While this necessarily implies renouncing to fulfill 
-goal 5, we can still borrow most of the solutions implemented in the above projects.
+Goal 5, we can still borrow most of the solutions implemented in the above projects.
 
 ### Patching vs wrapping
 
 Regarding the way of smoothing binding incompatibilities, we should avoid patching existing 
-bindings (goal 4). In this regard, the approaches of Qt.py and silx.gui.qt should be our 
+bindings (Goal 4). In this regard, the approaches of Qt.py and silx.gui.qt should be our 
 reference. The preferred solutions are to use adapters (`taurus.external.qt.Qt*`)
 and provide compatibility wrappers whenever this cannot be done. In the worst case, we could
 accept patching an existing binding, but only if the result never introduces 
@@ -105,16 +105,16 @@ A related but not identical decision to the previous one. Independently of which
 are supported as backends, we need to decide on which programming style(s) will be supported.
 For example, qtpy supports all 4 plugins but only one programming style (that of PySide2). 
 
-In our case, the goal 3 immediately dictates that we must support at least the PyQt4 style.
+In our case, the Goal 3 immediately dictates that we must support at least the PyQt4 style.
 Also, by guaranteeing  backwards compatibility for the apps using `taurus.external.qt`, we 
-are also allowing `taurus.qt` itself to keep using the old style (fulfilling goal 7).
+are also allowing `taurus.qt` itself to keep using the old style (fulfilling Goal 7).
 
 On the other hand, Goal 6 demands that we also support PyQt5 or PySide2 style but 
 for simplicity, we propose to focus this TEP in providing good support for the currently 
 supported style (PyQt4) regardless of the binding, and just keep the design flexible enough to
 possibilitate the support of a more modern style in the future. In other words, fulfilling 
-goal 6 would be optional for this TEP but the chosen design should not block its 
-implementation in the future).
+Goal 6 would be optional for this TEP but the chosen design should not block its 
+implementation in the future.
 
 Similarly, the same conclusion from the previous paragraph is valid for the PySide and 
 PySide2 style support. 
@@ -125,16 +125,16 @@ Another implementation decission revolves around whether importing some of the e
 *within our own shim* to simplify the implementation and maintenance of our own shim 
 (i.e., to partially comply with Goal 5). 
 
-In this case, importing `silx.gui.qt` or `pyqtgraph.Qt` would go against goal 8 
+In this case, importing `silx.gui.qt` or `pyqtgraph.Qt` would go against Goal 8 
 (even if both silx and pyqtgraph are dependencies for some submodules of `taurus.qt.qtgui`, 
 we would like to avoid making them mandatory at the `taurus.qt` level
 since they are relatively heavy). 
 
-On the other hand, qtpy and Qt.py are probably light 
-enough to consider using them but the fact that Qt.py is not yet packaged for 
-debian and that the version of qtpy packaged in debian9 introduces disruptive patching
-of the PyQt4 binding ([qtpy_issue119]). The final decision on this aspect can be left to 
-the implementation phase itself and tested in practice. 
+On the other hand, qtpy and Qt.py are probably light enough to consider using them but 
+the fact that Qt.py is not yet packaged for debian and that the version of qtpy packaged
+in debian9 introduces disruptive patching of the PyQt4 binding ([qtpy_issue119]) should 
+also be weighted in the decision. The final decision on this aspect can be left to 
+the implementation phase itself where the various options can be tested in practice.
 
 
 ## Some examples of code that should work
