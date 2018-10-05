@@ -14,7 +14,7 @@
 
 PyQt4 has been deprecated and unsupported for quite some time.
 
-Support for Qt is going to be dropped in debian buster (freeze
+Support for Qt4 is going to be dropped in debian buster (freeze
 coming in Jan2019) and packages depending on Qt4 will be dropped.
 A release critical bug on taurus is already pending (see [taurus_bug])
 
