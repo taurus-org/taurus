@@ -85,9 +85,9 @@ goal 5, we can still borrow most of the solutions implemented in the above proje
 
 Regarding the way of smoothing binding incompatibilities, we should avoid patching existing 
 bindings (goal 4). In this regard, the approaches of Qt.py and silx.gui.qt should be our 
-reference. The preferred solutions are to use adapters `taurus.external.qt.Qt*`
+reference. The preferred solutions are to use adapters (`taurus.external.qt.Qt*`)
 and provide compatibility wrappers whenever this cannot be done. In the worst case, we could
-accept patching patching an existing binding, but only if the result never introduces 
+accept patching an existing binding, but only if the result never introduces 
 a side-efect in an application that uses valid code (similar to the compromise taken in 
 [qtpy_issue121]).
 
