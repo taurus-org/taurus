@@ -96,7 +96,7 @@ a side-efect in an application that uses valid code (similar to the compromise t
 The priority is on adding PyQt5 binding support while maintaining the PyQt4 binding support. 
 PySide and PySide2 support is also desirable (and probably easy since we already have the 
 examples of the existing implementations that do so), but it is not the main goal of this 
-propossal and therefore the TEP may get accepted even if the support for PiSide/PySide2 is 
+propossal and therefore the TEP may get accepted even if the support for PySide/PySide2 is 
 not complete.    
 
 ### Support for multiple Qt styles within taurus.external.qt
