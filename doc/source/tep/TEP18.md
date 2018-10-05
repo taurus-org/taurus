@@ -103,7 +103,7 @@ not complete.
 
 A related but not identical decision to the previous one. Independently of which plugins 
 are supported as backends, we need to decide on which programming style(s) will be supported.
-For example, qtpy supports all 4 plugins but only on programming style (that of PySide2). 
+For example, qtpy supports all 4 plugins but only one programming style (that of PySide2). 
 
 In our case, the goal 3 immediately dictates that we must support at least the PyQt4 style.
 Also, by guaranteeing  backwards compatibility for the apps using `taurus.external.qt`, we 
