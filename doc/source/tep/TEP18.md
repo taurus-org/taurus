@@ -3,7 +3,7 @@
     State: DRAFT
     Date: 2018-10-04
     Drivers: Carlos Pascual-Izarra cpascual@cells.es
-    URL: https://github.com/cpascual/taurus/edit/tep18/doc/source/tep/TEP18.md (provisional)
+    URL: https://github.com/cpascual/taurus/blob/tep18/doc/source/tep/TEP18.md (provisional)
     License: http://www.jclark.com/xml/copying.txt
     Abstract: 
      Implement support for Qt5 in taurus. Also define the 
