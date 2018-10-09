@@ -651,8 +651,8 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
 def demo():
     "Label"
-    from . import demo
-    return demo.tauruslabeldemo.main()
+    from .demo import tauruslabeldemo
+    return tauruslabeldemo.main()
 
 
 def main():
