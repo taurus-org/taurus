@@ -30,6 +30,8 @@ should inherit to be considered valid taurus widgets."""
 import sys
 import threading
 from types import MethodType
+from future.builtins import str
+from future.utils import string_types
 
 from taurus.external.qt import Qt
 from enum import Enum
@@ -765,7 +767,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param kwargs: keyword arguments that will be passed to
                        :attribute:`FORMAT` if it is a callable
         """
-        if not isinstance(self.FORMAT, str):
+        if not isinstance(self.FORMAT, string_types):
             # unbound method to callable
             if isinstance(self.FORMAT, MethodType):
                 self.FORMAT = self.FORMAT.__func__
@@ -784,7 +786,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
                        "full.module.callable" format)
         """
         # Check if the format is a callable string representation
-        if isinstance(format, str):
+        if isinstance(format, string_types):
             try:
                 moduleName, formatterName = format.rsplit('.', 1)
                 __import__(moduleName)
@@ -801,7 +803,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :return: (str) a string of the current format. It could be a python
                  format string or a callable string representation.
         """
-        if isinstance(self.FORMAT, str):
+        if isinstance(self.FORMAT, string_types):
             formatter = self.FORMAT
         else:
             formatter = '{0}.{1}'.format(self.FORMAT.__module__,
