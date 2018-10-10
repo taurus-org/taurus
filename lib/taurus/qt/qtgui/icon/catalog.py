@@ -27,6 +27,8 @@ This module provides an icon catalog widget
 
 from __future__ import print_function
 
+from builtins import str
+
 import os
 import hashlib
 from taurus.qt.qtgui.application import TaurusApplication
