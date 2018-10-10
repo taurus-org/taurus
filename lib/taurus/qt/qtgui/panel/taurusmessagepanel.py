@@ -594,7 +594,14 @@ def py_tg_serv_exc():
     except PyTango.DevFailed as df1:
         try:
             import traceback
-            import io
+            # ---------------------------------------------------------------
+            # workaround for unicode issues on py2 when using io instead of
+            # StringIO
+            try:
+                import StringIO as io  # py2
+            except ImportError:
+                import io  # py3
+            # ----------------------------------------------------------------
             origin = io.StringIO()
             traceback.print_stack(file=origin)
             origin.seek(0)
