@@ -24,10 +24,10 @@
 #############################################################################
 
 """This module provides a panel to display taurus messages"""
-from __future__ import absolute_import
 
 from taurus.external.qt import Qt
-from .basicreport import SendMailDialog, SMTPReportHandler
+from taurus.qt.qtgui.panel.report.basicreport import (SendMailDialog,
+                                                      SMTPReportHandler)
 
 
 __package__ = 'taurus.qt.qtgui.panel.report'
