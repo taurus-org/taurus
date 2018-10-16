@@ -83,16 +83,13 @@ class BoundMethodWeakref(object):
         return 1
 
     def __eq__(self, other):
-        if other.__class__ != self.__class__:
+        if hasattr(other, 'func_ref') and hasattr(other, 'obj_ref'):
             return ((self.func_ref, self.obj_ref)
                     == (other.func_ref, other.obj_ref))
         return False
 
     def __ne__(self, other):
-        if other.__class__ != self.__class__:
-            return ((self.func_ref, self.obj_ref)
-                    != (other.func_ref, other.obj_ref))
-        return True
+        return not self.__eq__(other)
 
     def __repr__(self):
         obj, func = self.obj_ref(), self.func_ref()
@@ -110,9 +107,14 @@ def CallableRef(object, del_cb=None):
 
     :return: a weak reference for the given callable
     :rtype: BoundMethodWeakref or weakref.ref"""
-    if hasattr(object, 'im_self'):
-        if object.__self__ is not None:
-            return BoundMethodWeakref(object, del_cb)
+    im_self = None
+    if hasattr(object, '__self__'):
+        im_self = object.__self__
+    elif hasattr(object, 'im_self'):
+        im_self = object.im_self
+
+    if im_self is not None:
+        return BoundMethodWeakref(object, del_cb)
     return weakref.ref(object, del_cb)
 
 
