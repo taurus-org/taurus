@@ -140,7 +140,7 @@ class QIconCatalog(Qt.QTabWidget):
     application.
     """
 
-    iconSelected = Qt.pyqtSignal(str)
+    iconSelected = Qt.pyqtSignal('QString')
 
     def __init__(self, parent=None):
         Qt.QTabWidget.__init__(self)

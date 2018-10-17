@@ -56,7 +56,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
     .. seealso:: :class:`TaurusCurveWidget`
     '''
     _modifiableByUser = True
-    modelChanged = Qt.pyqtSignal([], ['QStringList'], [str])
+    modelChanged = Qt.pyqtSignal([], ['QStringList'], ['QString'])
 
     def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
@@ -203,7 +203,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
     '''
     _modifiableByUser = True
 
-    modelChanged = Qt.pyqtSignal([], ['QStringList'], [str])
+    modelChanged = Qt.pyqtSignal([], ['QStringList'], ['QString'])
 
     def __init__(self, parent=None, designMode=False, taurusparam=None, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''

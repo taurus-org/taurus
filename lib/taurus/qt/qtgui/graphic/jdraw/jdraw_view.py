@@ -81,7 +81,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
      allows to configure custom context menus for graphic items using a list
      of tuples. Empty tuples will insert separators in the menu.
     '''
-    itemsChanged = Qt.pyqtSignal(str, dict)
+    itemsChanged = Qt.pyqtSignal('QString', dict)
     modelsChanged = Qt.pyqtSignal(list)
     graphicItemSelected = Qt.pyqtSignal('QString')
     graphicSceneClicked = Qt.pyqtSignal('QPoint')

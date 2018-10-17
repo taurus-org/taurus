@@ -182,7 +182,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 
     '''
     modelChanged = Qt.pyqtSignal('const QString &')
-    perspectiveChanged = Qt.pyqtSignal(str)
+    perspectiveChanged = Qt.pyqtSignal('QString')
 
     # customization options:
     # blinking semi-period in ms. Set to None for not showing the Heart beat

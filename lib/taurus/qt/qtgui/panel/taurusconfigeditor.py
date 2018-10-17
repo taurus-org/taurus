@@ -47,7 +47,7 @@ __docformat__ = 'restructuredtext'
 class QConfigEditorModel(Qt.QStandardItemModel):
     '''A custom Model for QConfigEditor'''
 
-    showError = Qt.pyqtSignal(str, str)
+    showError = Qt.pyqtSignal('QString', 'QString')
 
     def __init__(self, parent=None, designMode=False):
         super(Qt.QStandardItemModel, self).__init__()

@@ -72,7 +72,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
     used.
     '''
 
-    newShortMessage = Qt.pyqtSignal(str)
+    newShortMessage = Qt.pyqtSignal('QString')
 
     def __init__(self, parent=None):
         Qt.QObject.__init__(self, parent)
