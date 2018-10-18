@@ -25,6 +25,7 @@
 
 """The img submodule. It contains specific device implementation for CCDs and
 2D detectors"""
+from future.utils import string_types
 
 from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.core.tango import TangoDevice
@@ -137,7 +138,7 @@ class ImageCounterDevice(ImageDevice):
     def getImageData(self, names=None):
         if names is None:
             names = self.getImageAttrNames()
-        elif isinstance(names, str):
+        elif isinstance(names, string_types):
             names = (names,)
 
         fetch = self._getDirty(names)

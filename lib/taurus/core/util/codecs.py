@@ -72,7 +72,7 @@ import struct
 import sys
 import numpy
 
-from future.utils import PY2
+from future.utils import (PY2, string_types)
 
 from .singleton import Singleton
 from .log import Logger
@@ -359,7 +359,7 @@ class JSONCodec(Codec):
         return format, data
 
     def _transform_ascii(self, data):
-        if isinstance(data, str):
+        if isinstance(data, string_types):
             return data.encode('utf-8')
         elif isinstance(data, dict):
             return self._transform_dict(data)
@@ -437,7 +437,7 @@ class BSONCodec(Codec):
         return format, data
 
     def _transform_ascii(self, data):
-        if isinstance(data, str):
+        if isinstance(data, string_types):
             return data.encode('utf-8')
         elif isinstance(data, dict):
             return self._transform_dict(data)

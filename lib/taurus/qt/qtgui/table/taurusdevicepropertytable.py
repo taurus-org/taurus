@@ -30,7 +30,7 @@ taurusdevicepropertytable.py:
 # todo: tango-centric
 
 from __future__ import print_function
-
+from future.utils import string_types
 from builtins import str
 
 from taurus.external.qt import Qt, QtCore, QtGui
@@ -152,7 +152,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
             if USE_TABLES:
                 self.setPropertyValue(value, i, 1)
             else:
-                if not isinstance(value, str):  # not something like an string
+                if not isinstance(value, string_types):  # not something like an string
                     # adding new lines in between elements in the list
                     value = '\n'.join(str(v) for v in value)
                 self.setText(str(value), i, 1)
@@ -336,9 +336,9 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         ''' This method inserts a new table widget inside the cell
         @deprecated ... use setText() and editProperty() event call instead!!!
         '''
-        if len(value) == 1 and isinstance(value[0], str):
+        if len(value) == 1 and isinstance(value[0], string_types):
             value = value[0]
-        if isinstance(value, str):  # and '\n' in value:
+        if isinstance(value, string_types):  # and '\n' in value:
             value = value.split('\n')
         if False:  # isinstance(value,str):
             item = QtGui.QTableWidgetItem()

@@ -227,7 +227,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         try:
             if parent and parent.panelClass() is not None:
                 defaultClass = parent.panelClass()
-                if defaultClass and isinstance(defaultClass, str):
+                if defaultClass and isinstance(defaultClass, string_types):
                     self.panel_launcher = self.getClass(defaultClass)
                     if self.panel_launcher is None:
                         self.panel_launcher = ExternalAppAction(
@@ -268,7 +268,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 clName.actionTriggered(clParam if isinstance(
                     clParam, (list, tuple)) else [clParam])
             else:
-                if isinstance(clName, str):
+                if isinstance(clName, string_types):
                     klass = self.getClass(clName)
                     if klass is None:
                         self.warning("%s Class not found!" % clName)

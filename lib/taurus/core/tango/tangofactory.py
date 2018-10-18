@@ -26,6 +26,7 @@
 """This module provides the `TangoFactory` object"""
 
 from __future__ import absolute_import
+from future.utils import string_types
 
 try:
     pass
@@ -451,7 +452,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
 
            :return: (taurus.core.tango.TangoAttribute) configuration object
         """
-        if isinstance(param, str):
+        if isinstance(param, string_types):
             return self.getAttribute(param)
         return param
 

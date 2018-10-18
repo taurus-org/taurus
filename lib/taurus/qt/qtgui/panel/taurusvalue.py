@@ -35,6 +35,8 @@ __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox",
 
 __docformat__ = 'restructuredtext'
 
+from future.utils import string_types
+
 import weakref
 import re
 from taurus.external.qt import Qt
@@ -1145,7 +1147,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
             # calls self.getLabelWidgetClass, self.getReadWidgetClass,...
             classID = getattr(self, 'get%sClass' % key)()
-            if isinstance(classID, (str, Qt.QString)) or allowUnpickable:
+            if (isinstance(classID, string_types + (Qt.QString,))
+                    or allowUnpickable):
                 #configdict[key] = classID
                 configdict[key] = {'classid': classID}
                 widget = getattr(self, key[0].lower() + key[1:])()

@@ -34,7 +34,7 @@ alba, 2009
 #   --cpascual 20140827
 
 from __future__ import print_function
-
+from future.utils import string_types
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
@@ -76,7 +76,7 @@ def get_all_models(expressions, limit=1000):
     Move this method to taurus.core.tango.search
     '''
     # print( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
-    if isinstance(expressions, str):
+    if isinstance(expressions, string_types):
         # if any(re.match(s,expressions) for s in ('\{.*\}','\(.*\)','\[.*\]')):
         ##self.debug( 'evaluating expressions ....')
         # expressions = list(eval(expressions))
@@ -150,7 +150,7 @@ def get_readwrite_models(expressions, limit=1000):
     For each device only the good attributes are read.
     '''
     # self.debug( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
-    if isinstance(expressions, str):
+    if isinstance(expressions, string_types):
         if any(re.match(s, expressions) for s in
                ('\{.*\}', '\(.*\)', '\[.*\]')):
             # self.trace( 'evaluating expressions ....')
@@ -435,7 +435,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         if isinstance(model, dict):
             self.load(model)
         else:
-            model = isinstance(model, (str, QtCore.QString)) and [
+            model = isinstance(model, string_types + (QtCore.QString,)) and [
                 model] or list(model)
             self.trace('#' * 80)
             self.trace('In TaurusGrid.setModel(%s)' % str(model)[:100])

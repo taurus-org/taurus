@@ -28,6 +28,7 @@ TaurusDevicePanel.py:
 """
 
 from builtins import str
+from future.utils import string_types
 
 import re
 import traceback
@@ -276,7 +277,7 @@ class TaurusDevicePanel(TaurusWidget):
 
     def loadConfigFile(self, ifile=None):
         self.info('In TaurusDevicePanel.loadConfigFile(%s)' % ifile)
-        if isinstance(ifile, file) or isinstance(ifile, str) and not ifile.endswith('.py'):
+        if isinstance(ifile, file) or isinstance(ifile, string_types) and not ifile.endswith('.py'):
             TaurusWidget.loadConfigFile(self, ifile)
         else:
             from imp import load_source

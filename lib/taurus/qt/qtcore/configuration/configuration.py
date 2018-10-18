@@ -298,7 +298,7 @@ class BaseConfigurableClass(object):
 
         .. seealso:: :meth:`unregisterConfigurableItem`, :meth:`registerConfigDelegate`, :meth:`createConfig`
         '''
-        if isinstance(fget, str) or isinstance(fset, str):
+        if isinstance(fget, string_types) or isinstance(fset, string_types):
             import weakref
             obj = weakref.proxy(self)
         else:
@@ -464,6 +464,7 @@ class BaseConfigurableClass(object):
                 return
         if not isinstance(ifile, file):
             ifile = open(ifile, 'r')
+
         configdict = pickle.load(ifile)
         self.applyConfig(configdict)
         return ifile.name

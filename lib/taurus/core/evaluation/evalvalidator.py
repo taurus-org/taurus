@@ -23,6 +23,8 @@
 #############################################################################
 
 from __future__ import absolute_import
+from future.utils import string_types
+
 from builtins import zip
 import re
 import hashlib
@@ -250,7 +252,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
                           string containing a semi-colon separated list of
                           symbol=value pairs can also be passed.
         '''
-        if isinstance(substmap, str):
+        if isinstance(substmap, string_types):
             substmap = dict(K_EQUALS_V_RE.findall(substmap))
         ret = expr
         protected = {}
@@ -363,7 +365,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         # create the groups dict with unmangled refs in its values
         groups = {}
         for n, g in _groups.items():
-            if isinstance(g, str):  # avoid None or boolean values
+            if isinstance(g, string_types):  # avoid None or boolean values
                 g = g.format(**refs_dict)
             groups[n] = g
 

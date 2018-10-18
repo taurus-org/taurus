@@ -27,6 +27,7 @@
 resfactory.py:
 """
 from __future__ import absolute_import
+from future.utils import string_types
 
 import os
 import imp
@@ -90,7 +91,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
             name, mod = self.__reloadResource(obj)
             obj = {}
             for k, v in mod.__dict__.items():
-                if not k.startswith('_') and isinstance(v, str):
+                if not k.startswith('_') and isinstance(v, string_types):
                     obj[k] = v
         else:
             raise TypeError

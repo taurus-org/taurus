@@ -25,6 +25,7 @@
 
 '''Utility functions to deal with non-ideal (fuzzy) tests'''
 from __future__ import print_function
+from future.utils import string_types
 
 
 def loopTest(testname, maxtries=100, maxfails=10):
@@ -102,7 +103,7 @@ def calculateTestFuzziness(test, maxtries=100, maxfails=10, **kwargs):
            "to estimate the failure rate") % (maxtries, maxfails))
     import numpy
 
-    if isinstance(test, str):
+    if isinstance(test, string_types):
         tries, fails = loopTest(test, maxtries=maxtries, maxfails=maxfails)
     else:
         tries, fails = loopSubprocess(test, maxtries=maxtries,

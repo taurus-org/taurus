@@ -26,6 +26,8 @@
 """ """
 
 from __future__ import absolute_import
+from future.utils import string_types
+
 from builtins import map
 from builtins import range
 import textwrap
@@ -138,7 +140,7 @@ class List(list):
     def _get_separator_row(self, separator):
         columns = []
         for i, width in enumerate(self.cur_col_width):
-            if isinstance(separator[i], str):
+            if isinstance(separator[i], string_types):
                 column = " " + (width - 1) * separator[i]
             else:
                 column = " " + separator[i][:width - 1]
