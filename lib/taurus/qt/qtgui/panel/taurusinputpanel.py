@@ -231,7 +231,7 @@ class TaurusInputPanel(Qt.QWidget):
             else:
                 text, userData = str(item), item
             item_widget = Qt.QListWidgetItem(text, listwidget)
-            item_widget.setData(Qt.Qt.UserRole, Qt.to_qvariant(userData))
+            item_widget.setData(Qt.Qt.UserRole, userData)
             if userData in default_value:
                 item_widget.setSelected(True)
         layout.addWidget(listwidget)
