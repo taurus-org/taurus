@@ -7,6 +7,13 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
+## Unreleased
+
+### Added
+- Support of Python3 (beta stage, not yet production ready) (#703)
+
+
+
 ## [4.4.0] - 2018-07-26
 
 ### Deprecated
