@@ -25,17 +25,17 @@
 
 """The img submodule. It contains specific device implementation for CCDs and
 2D detectors"""
-
-__all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
-           'CCDPVCAM', 'ImgBeamAnalyzer', 'Falcon', 'LimaCCDs']
-
-__docformat__ = 'restructuredtext'
-
+from future.utils import string_types
 
 from taurus.core.taurusbasetypes import TaurusEventType
 from taurus.core.tango import TangoDevice
 from taurus.core.util.containers import CaselessDict, CaselessList
 from threading import Lock
+
+__all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
+           'CCDPVCAM', 'ImgBeamAnalyzer', 'Falcon', 'LimaCCDs']
+
+__docformat__ = 'restructuredtext'
 
 
 class ImageDevice(TangoDevice):
@@ -138,7 +138,7 @@ class ImageCounterDevice(ImageDevice):
     def getImageData(self, names=None):
         if names is None:
             names = self.getImageAttrNames()
-        elif isinstance(names, str):
+        elif isinstance(names, string_types):
             names = (names,)
 
         fetch = self._getDirty(names)
@@ -176,9 +176,9 @@ class Falcon(ImageCounterDevice):
     def getImageData(self, names=None):
         data = ImageCounterDevice.getImageData(self, names=names)
         if self._color:
-            for k, v in data.items():
+            for k, v in list(data.items()):
                 s = v[1].value.shape
-                v[1].value = v[1].value.reshape((s[0], s[1] / 3, 3))
+                v[1].value = v[1].value.reshape((s[0], s[1] // 3, 3))
         return data
 
 

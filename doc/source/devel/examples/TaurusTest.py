@@ -1,3 +1,4 @@
+from __future__ import print_function
 import PyTango
 import sys
 import math
@@ -10,24 +11,24 @@ class TaurusTest(PyTango.Device_4Impl):
         TaurusTest.init_device(self)
 
     def delete_device(self):
-        print "[Device delete_device method] for device", self.get_name()
+        print("[Device delete_device method] for device", self.get_name())
 
     def init_device(self):
-        print "In ", self.get_name(), "::init_device()"
+        print("In ", self.get_name(), "::init_device()")
         self.set_state(PyTango.DevState.ON)
         self.get_device_properties(self.get_device_class())
         self._position = 50.0
         self._velocity = 20.0
         self._acceleration = 4.0
         self._simulation_mode = False
-        self._abscissas = [x / 50.0 for x in xrange(1024)]
+        self._abscissas = [x / 50.0 for x in range(1024)]
         self._curve = [math.sin(x) for x in self._abscissas]
 
     def always_executed_hook(self):
-        print "In ", self.get_name(), "::always_excuted_hook()"
+        print("In ", self.get_name(), "::always_excuted_hook()")
 
     def read_attr_hardware(self, data):
-        print "In ", self.get_name(), "::read_attr_hardware()"
+        print("In ", self.get_name(), "::read_attr_hardware()")
 
     def read_Position(self, attr):
         attr.set_value(self._position)
@@ -68,7 +69,7 @@ class TaurusTest(PyTango.Device_4Impl):
         self._curve = attr.get_write_value()
 
     def create_device_cb(self, device_name):
-        print "About to create device", device_name
+        print("About to create device", device_name)
 
     def CreateTaurusTestDevice(self, device_name):
         klass = self.get_device_class()
@@ -173,7 +174,7 @@ class TaurusTestClass(PyTango.DeviceClass):
     def __init__(self, name):
         PyTango.DeviceClass.__init__(self, name)
         self.set_type(name)
-        print "In TaurusTestClass  constructor"
+        print("In TaurusTestClass  constructor")
 
 
 if __name__ == '__main__':
@@ -185,7 +186,7 @@ if __name__ == '__main__':
         U.server_init()
         U.server_run()
 
-    except PyTango.DevFailed, e:
-        print '-------> Received a DevFailed exception:', e
-    except Exception, e:
-        print '-------> An unforeseen exception occured....', e
+    except PyTango.DevFailed as e:
+        print('-------> Received a DevFailed exception:', e)
+    except Exception as e:
+        print('-------> An unforeseen exception occured....', e)

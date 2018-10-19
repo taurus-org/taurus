@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
 #############################################################################
@@ -25,11 +26,9 @@
 
 """This module contains all taurus tango attribute"""
 
-__all__ = ["TangoAttribute", "TangoAttributeEventListener", "TangoAttrValue"]
+from builtins import range
+from builtins import str
 
-__docformat__ = "restructuredtext"
-
-# -*- coding: utf-8 -*-
 import re
 import time
 import threading
@@ -40,7 +39,6 @@ from functools import partial
 
 from taurus import Manager
 from taurus.core.units import Quantity, UR
-from pint import UndefinedUnitError
 
 from taurus import tauruscustomsettings
 from taurus.core.taurusattribute import TaurusAttribute
@@ -52,7 +50,7 @@ from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.event import EventListener
 # -------------------------------------------------------------------------
 # TODO: remove this when PyTango's bug 185 is fixed
-from taurus.core.util.event import _BoundMethodWeakrefWithCall  
+from taurus.core.util.event import _BoundMethodWeakrefWithCall
 # -------------------------------------------------------------------------
 from taurus.core.util.log import (debug, taurus4_deprecation,
                                   deprecation_decorator)
@@ -66,8 +64,12 @@ from .util.tango_taurus import (description_from_tango,
                                 quality_from_tango,
                                 standard_display_format_from_tango,
                                 quantity_from_tango_str,
-                                str_2_obj, data_format_from_tango,
+                                data_format_from_tango,
                                 data_type_from_tango)
+
+__all__ = ["TangoAttribute", "TangoAttributeEventListener", "TangoAttrValue"]
+
+__docformat__ = "restructuredtext"
 
 
 class TangoAttrValue(TaurusAttrValue):
@@ -118,7 +120,7 @@ class TangoAttrValue(TaurusAttrValue):
                 if not (numerical or self._attrRef.type == DataType.Boolean):
                     # generate a nested empty list of given shape
                     p.value = []
-                    for _ in xrange(len(shape) - 1):
+                    for _ in range(len(shape) - 1):
                         p.value = [p.value]
 
         rvalue = p.value
@@ -359,6 +361,9 @@ class TangoAttribute(TaurusAttribute):
         return False
 
     def isState(self):
+        """
+        returns whether the attribute of tango DevState type
+        """
         tgtype = self._tango_data_type
         return tgtype == PyTango.CmdArgType.DevState
 
@@ -390,7 +395,7 @@ class TangoAttribute(TaurusAttribute):
             elif PyTango.is_int_type(tgtype):
                 # changed as a partial workaround to a problem in PyTango
                 # writing to DevULong64 attributes (see ALBA RT#29793)
-                attrvalue = long(magnitude)
+                attrvalue = int(magnitude)
             elif tgtype == PyTango.CmdArgType.DevBoolean:
                 try:
                     attrvalue = bool(int(magnitude))
@@ -438,8 +443,8 @@ class TangoAttribute(TaurusAttribute):
                     # handle old PyTango
                     dev.write_attribute(name, value)
                     result = dev.read_attribute(name)
-                except PyTango.DevFailed, df:
-                    for err in df:
+                except PyTango.DevFailed as df:
+                    for err in df.args:
                         # Handle old device servers
                         if err.reason == 'API_UnsupportedFeature':
                             dev.write_attribute(name, value)
@@ -452,12 +457,12 @@ class TangoAttribute(TaurusAttribute):
             else:
                 dev.write_attribute(name, value)
                 return None
-        except PyTango.DevFailed, df:
-            err = df[0]
+        except PyTango.DevFailed as df:
+            err = df.args[0]
             self.error("[Tango] write failed (%s): %s" %
                        (err.reason, err.desc))
             raise df
-        except Exception, e:
+        except Exception as e:
             self.error("[Tango] write failed: %s" % str(e))
             raise e
 
@@ -486,12 +491,12 @@ class TangoAttribute(TaurusAttribute):
                        ):
                         return
                     self.__attr_value = value
-            except PyTango.DevFailed, df:
+            except PyTango.DevFailed as df:
                 self.__subscription_event.set()
-                self.debug("Error polling: %s" % df[0].desc)
+                self.debug("Error polling: %s" % df.args[0].desc)
                 self.traceback()
                 self.fireEvent(TaurusEventType.Error, self.__attr_err)
-            except Exception, e:
+            except Exception as e:
                 self.__subscription_event.set()
                 self.debug("Error polling: %s" % str(e))
                 self.fireEvent(TaurusEventType.Error, self.__attr_err)
@@ -533,7 +538,7 @@ class TangoAttribute(TaurusAttribute):
                 except PyTango.DevFailed as df:
                     self.__attr_value = None
                     self.__attr_err = df
-                    err = df[0]
+                    err = df.args[0]
                     self.debug("[Tango] read failed (%s): %s",
                                err.reason, err.desc)
                     raise df
@@ -707,13 +712,13 @@ class TangoAttribute(TaurusAttribute):
             try:
                 self.__dev_hw_obj.unsubscribe_event(self.__chg_evt_id)
                 self.__chg_evt_id = None
-            except PyTango.DevFailed, df:
-                if len(df.args) and df[0].reason == 'API_EventNotFound':
+            except PyTango.DevFailed as df:
+                if len(df.args) and df.args[0].reason == 'API_EventNotFound':
                     # probably tango shutdown has been initiated before and
                     # it unsubscribed from events itself
                     pass
                 else:
-                    self.debug("Failed: %s", df[0].desc)
+                    self.debug("Failed: %s", df.args[0].desc)
                     self.trace(str(df))
         self._deactivatePolling()
         self.__subscription_state = SubscriptionState.Unsubscribed
@@ -772,7 +777,7 @@ class TangoAttribute(TaurusAttribute):
             try:
                 self.__dev_hw_obj.unsubscribe_event(self.__cfg_evt_id)
                 self.__cfg_evt_id = None
-            except PyTango.DevFailed, e:
+            except PyTango.DevFailed as e:
                 self.debug("Error trying to unsubscribe configuration events")
                 self.trace(str(e))
                 

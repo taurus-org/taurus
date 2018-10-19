@@ -26,10 +26,10 @@
 """This module provides Qt table widgets which display logging messages from the
 python :mod:`logging` module"""
 
-__all__ = ["QLoggingTableModel", "QLoggingTable", "QLoggingWidget",
-           "QRemoteLoggingTableModel"]
+from __future__ import absolute_import
 
-__docformat__ = 'restructuredtext'
+from operator import attrgetter
+from builtins import range
 
 import logging
 import logging.handlers
@@ -47,9 +47,15 @@ from taurus.external.qt import Qt
 from taurus.qt.qtgui.model import FilterToolBar
 from taurus.qt.qtgui.util import ActionFactory
 
-from qtable import QBaseTableWidget
+from .qtable import QBaseTableWidget
 
-LEVEL, TIME, MSG, NAME, ORIGIN = range(5)
+
+__all__ = ["QLoggingTableModel", "QLoggingTable", "QLoggingWidget",
+           "QRemoteLoggingTableModel"]
+
+__docformat__ = 'restructuredtext'
+
+LEVEL, TIME, MSG, NAME, ORIGIN = list(range(5))
 HORIZ_HEADER = 'Level', 'Time', 'Message', 'By', 'Origin'
 
 __LEVEL_BRUSH = {
@@ -76,18 +82,9 @@ def getBrushForLevel(level):
         elevel = taurus.Error
     elif level <= taurus.Critical:
         elevel = taurus.Critical
-    f, g = map(Qt.QBrush, __LEVEL_BRUSH[elevel])
+    f, g = list(map(Qt.QBrush, __LEVEL_BRUSH[elevel]))
     return f, g
 
-
-def _origin_cmp(rec1, rec2):
-    c1 = cmp(rec1.process, rec2.process)
-    if c1 == 0:
-        c2 = cmp(rec1.thread, rec2.thread)
-        if c2 == 0:
-            return cmp(rec1.name, rec2.name)
-        return c2
-    return c1
 
 gethostname = memoized(socket.gethostname)
 
@@ -119,7 +116,7 @@ def _get_record_origin_tooltip(rec):
     host, procName, procID, threadName, threadID = _get_record_origin(rec)
     pathname, filename, modulename, funcname, lineno = _get_record_trace(rec)
     timestamp = str(datetime.datetime.fromtimestamp(rec.created))
-    bgcolor, fgcolor = map(Qt.QBrush.color, getBrushForLevel(rec.levelno))
+    bgcolor, fgcolor = list(map(Qt.QBrush.color, getBrushForLevel(rec.levelno)))
     bgcolor = "#%02x%02x%02x" % (
         bgcolor.red(), bgcolor.green(), bgcolor.blue())
     fgcolor = "#%02x%02x%02x" % (
@@ -164,17 +161,13 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
     # ---------------------------------
 
     def sort(self, column, order=Qt.Qt.AscendingOrder):
-        if column == LEVEL:
-            f = lambda a, b: cmp(a.levelno, b.levelno)
-        elif column == TIME:
-            f = lambda a, b: cmp(a.created, b.created)
-        elif column == MSG:
-            f = lambda a, b: cmp(a.msg, b.msg)
-        elif column == NAME:
-            f = lambda a, b: cmp(a.name, b.name)
-        elif column == ORIGIN:
-            f = _origin_cmp
-        self._records = sorted(self._records, cmp=f,
+        column2key_map = {LEVEL: attrgetter('levelno'),
+                          TIME: attrgetter('created'),
+                          MSG: attrgetter('msg'),
+                          NAME: attrgetter('name'),
+                          ORIGIN: attrgetter('process', 'thread', 'name'),
+        }
+        self._records = sorted(self._records, key=column2key_map[column],
                                reverse=order == Qt.Qt.DescendingOrder)
 
     def rowCount(self, index=Qt.QModelIndex()):
@@ -345,7 +338,7 @@ class QLoggingTable(Qt.QTableView):
         """Overwrite of slot rows inserted to do proper resize and scroll to
         bottom if desired"""
         Qt.QTableView.rowsInserted(self, index, start, end)
-        for i in xrange(start, end + 1):
+        for i in range(start, end + 1):
             self.resizeRowToContents(i)
         if start == 0:
             self.resizeColumnsToContents()
@@ -562,7 +555,7 @@ def fill_log():
     import time
     import random
 
-    for i in xrange(10):
+    for i in range(10):
         taurus.info("Hello world %04d" % i)
 
     loggers = ["Object%02d" % (i + 1) for i in range(10)]

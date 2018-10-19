@@ -27,21 +27,28 @@
 mainwindow.py: a main window implementation with many added features by default
 """
 
-__all__ = ["TaurusMainWindow"]
+from __future__ import absolute_import
 
-__docformat__ = 'restructuredtext'
+from builtins import str
 
 import os
 import sys
 
+from future.utils import string_types
+
 from taurus import tauruscustomsettings
 from taurus.core.util import deprecation_decorator
 from taurus.external.qt import Qt
-from taurusbasecontainer import TaurusBaseContainer
+from .taurusbasecontainer import TaurusBaseContainer
 
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.dialog import protectTaurusMessageBox
+
+
+__all__ = ["TaurusMainWindow"]
+
+__docformat__ = 'restructuredtext'
 
 
 class CommandArgsLineEdit(Qt.QLineEdit):
@@ -53,7 +60,7 @@ class CommandArgsLineEdit(Qt.QLineEdit):
         self.textEdited.connect(self.setCmdText)
 
     def setCmdText(self, cmdargs):
-        if not isinstance(cmdargs, (basestring, Qt.QString)):
+        if not isinstance(cmdargs, string_types + (Qt.QString,)):
             cmdargs = " ".join(cmdargs)
         self.setText(cmdargs)
         self._extapp.setCmdArgs(self.getCmdArgs(), False)
@@ -90,7 +97,7 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
             self.externalAppsPage.setWidgetResizable(True)
             self._tabwidget.addTab(self.externalAppsPage,
                                    "External Application Paths")
-        label = "Command line for %s" % unicode(extapp.text())
+        label = "Command line for %s" % str(extapp.text())
         editWidget = CommandArgsLineEdit(extapp, " ".join(extapp.cmdArgs()))
         #editWidget = Qt.QLineEdit(" ".join(extapp.cmdArgs()))
         self.externalAppsPage.widget().layout().addRow(label, editWidget)
@@ -110,8 +117,7 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
             if widget is not None:
                 text = str(widget.text())  # command1
                 if isinstance(widget, Qt.QLabel):
-                    dialog_text = "Command line for %s" % unicode(
-                        extapp.text())
+                    dialog_text = "Command line for %s" % str(extapp.text())
                     if text == dialog_text:
                         layout.removeWidget(widget)
                         widget.close()
@@ -176,7 +182,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 
     '''
     modelChanged = Qt.pyqtSignal('const QString &')
-    perspectiveChanged = Qt.pyqtSignal(str)
+    perspectiveChanged = Qt.pyqtSignal('QString')
 
     # customization options:
     # blinking semi-period in ms. Set to None for not showing the Heart beat
@@ -621,9 +627,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             ba = Qt.from_qvariant(settings.value(
                 "TaurusConfig"), 'toByteArray') or Qt.QByteArray()
             self.applyQConfig(ba)
-        except Exception, e:
+        except Exception as e:
             msg = 'Problem loading configuration from "%s". Some settings may not be restored.\n Details: %s' % (
-                unicode(settings.fileName()), repr(e))
+                str(settings.fileName()), repr(e))
             self.error(msg)
             Qt.QMessageBox.warning(
                 self, 'Error Loading settings', msg, Qt.QMessageBox.Ok)
@@ -676,13 +682,19 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''
         perspectives = self.getPerspectivesList()
         if name is None:
-            name, ok = Qt.QInputDialog.getItem(self, "Save Perspective", "Store current settings as the following perspective:",
-                                               perspectives, 0, True)
+            name, ok = Qt.QInputDialog.getItem(
+                self, "Save Perspective",
+                "Store current settings as the following perspective:",
+                perspectives, 0, True
+            )
             if not ok:
                 return
         if name in perspectives:
-            ans = Qt.QMessageBox.question(self, "Overwrite perspective?", "overwrite existing perspective %s?" % unicode(name),
-                                          Qt.QMessageBox.Yes, Qt.QMessageBox.No)
+            ans = Qt.QMessageBox.question(
+                self, "Overwrite perspective?",
+                "overwrite existing perspective %s?" % str(name),
+                Qt.QMessageBox.Yes, Qt.QMessageBox.No
+            )
             if ans != Qt.QMessageBox.Yes:
                 return
         self.saveSettings(group="Perspectives/%s" % name)
@@ -759,16 +771,18 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         :param fname: (str) name of output file. If None given, a file dialog will be shown.
         '''
         if fname is None:
-            fname = unicode(Qt.QFileDialog.getSaveFileName(self, 'Choose file where the current settings should be saved',
-                                                           '', "Ini files (*.ini);;All files (*)"))
+            fname = str(Qt.QFileDialog.getSaveFileName(
+                self, 'Choose file where the current settings should be saved',
+                '', "Ini files (*.ini);;All files (*)")
+            )
             if not fname:
                 return
         self.saveSettings()
         ok = Qt.QFile.copy(self.getQSettings().fileName(), fname)
         if ok:
-            self.info('MainWindow settings saved in "%s"' % unicode(fname))
+            self.info('MainWindow settings saved in "%s"' % str(fname))
         else:
-            msg = 'Settings could not be exported to %s' % unicode(fname)
+            msg = 'Settings could not be exported to %s' % str(fname)
             Qt.QMessageBox.warning(self, 'Export error', msg)
 
     def importSettingsFile(self, fname=None):
@@ -779,8 +793,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         :param fname: (str) name of ini file. If None given, a file dialog will be shown.
         '''
         if fname is None:
-            fname = unicode(Qt.QFileDialog.getOpenFileName(self, 'Select a ini-format settings file',
-                                                           '', "Ini files (*.ini);;All files (*)"))
+            fname = str(Qt.QFileDialog.getOpenFileName(
+                self, 'Select a ini-format settings file',
+                '', "Ini files (*.ini);;All files (*)")
+            )
             if not fname:
                 return
         s = Qt.QSettings(fname, Qt.QSettings.IniFormat)
@@ -935,8 +951,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.setHelpManualURI(uri)
 
     def showHelpAbout(self):
-        appname = unicode(Qt.qApp.applicationName())
-        appversion = unicode(Qt.qApp.applicationVersion())
+        appname = str(Qt.qApp.applicationName())
+        appversion = str(Qt.qApp.applicationVersion())
         from taurus.core import release
         abouttext = "%s %s\n\nUsing %s %s" % (
             appname, appversion, release.name, release.version)
@@ -961,7 +977,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         if key is None:
             from taurus.core.util.user import getSystemUserName
             username = getSystemUserName()
-            appname = unicode(Qt.QApplication.applicationName())
+            appname = str(Qt.QApplication.applicationName())
             key = "__socket_%s-%s__" % (username, appname)
         from taurus.external.qt import QtNetwork
         socket = QtNetwork.QLocalSocket(self)

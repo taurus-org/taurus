@@ -24,13 +24,15 @@
 #############################################################################
 
 """This module contains the graphics view widget for jdraw files"""
+from __future__ import absolute_import
 
-__all__ = ["TaurusJDrawSynopticsView"]
-
-__docformat__ = 'restructuredtext'
+from builtins import str
 
 import os
 import traceback
+
+from future.utils import string_types
+
 import taurus
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
@@ -39,7 +41,12 @@ from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsI
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 
-import jdraw_parser
+from . import jdraw_parser
+
+
+__all__ = ["TaurusJDrawSynopticsView"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
@@ -74,7 +81,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
      allows to configure custom context menus for graphic items using a list
      of tuples. Empty tuples will insert separators in the menu.
     '''
-    itemsChanged = Qt.pyqtSignal(str, dict)
+    itemsChanged = Qt.pyqtSignal('QString', dict)
     modelsChanged = Qt.pyqtSignal(list)
     graphicItemSelected = Qt.pyqtSignal('QString')
     graphicSceneClicked = Qt.pyqtSignal('QPoint')
@@ -120,7 +127,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.emitColors()
 
     def openJDraw(self):
-        ifile = unicode(Qt.QFileDialog.getOpenFileName(
+        ifile = str(Qt.QFileDialog.getOpenFileName(
             self, 'Load JDraw File', '', 'JDraw File (*.jdw)'))
         if not ifile:
             return
@@ -268,7 +275,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         # self.fitting()
 
     def getGraphicsFactory(self, delayed=False):
-        import jdraw
+        from . import jdraw
         # self.parent())
         return jdraw.TaurusJDrawGraphicsFactory(self, alias=(self.alias or None), delayed=delayed)
 
@@ -440,7 +447,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     model = Qt.pyqtProperty("QString", getModel, setModel)
 
     def setSelectionStyle(self, selectionStyle):
-        if isinstance(selectionStyle, (Qt.QString, basestring)):
+        if isinstance(selectionStyle,  string_types + (Qt.QString,)):
             selectionStyle = str(selectionStyle).upper()
             try:
                 selectionStyle = SynopticSelectionStyle[selectionStyle]

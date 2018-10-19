@@ -25,14 +25,14 @@
 
 """Module containing base classes for using the TangoSchemeTest DS in tests"""
 
+from builtins import object
+import PyTango
+from taurus.core.tango.starter import ProcessStarter
+from taurus.test import getResourcePath
+
 __all__ = ['TangoSchemeTestLauncher']
 
 __docformat__ = 'restructuredtext'
-
-import PyTango
-
-from taurus.core.tango.starter import ProcessStarter
-from taurus.test import getResourcePath
 
 
 class TangoSchemeTestLauncher(object):

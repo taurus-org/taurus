@@ -33,23 +33,26 @@ alba, 2009
 # This module needs a total cleanup. Both re. code conventions and algorithms.
 #   --cpascual 20140827
 
+from __future__ import print_function
+from future.utils import string_types
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+
+
 __all__ = ["TaurusGrid"]
 
 __docformat__ = 'restructuredtext'
 
 import re
-import operator
-import traceback
-import Queue
-from functools import partial
+from queue import Queue
 
 from taurus.external.qt import Qt, QtGui, QtCore
 
 import taurus
-from taurus.qt.qtcore.util.emitter import (modelSetter, TaurusEmitterThread,
+from taurus.qt.qtcore.util.emitter import (modelSetter,
                                            SingletonWorker, MethodModel)
 from taurus.core.taurusmanager import TaurusManager
-from taurus.core.util.log import Logger
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.panel import TaurusValue
 
@@ -73,7 +76,7 @@ def get_all_models(expressions, limit=1000):
     Move this method to taurus.core.tango.search
     '''
     # print( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
-    if isinstance(expressions, str):
+    if isinstance(expressions, string_types):
         # if any(re.match(s,expressions) for s in ('\{.*\}','\(.*\)','\[.*\]')):
         ##self.debug( 'evaluating expressions ....')
         # expressions = list(eval(expressions))
@@ -128,7 +131,7 @@ def get_all_models(expressions, limit=1000):
                                  taurus_dp.attribute_list_query(
                                  ) if re_match_low(attribute, att.name)]
                         targets.extend(dev + '/' + att for att in attrs)
-                    except Exception, e:
+                    except Exception as e:
                         # self.warning( 'ERROR! TaurusGrid.get_all_models(): Unable to get attributes for device %s: %s' % (dev,str(e)))
                         pass
                 else:
@@ -147,7 +150,7 @@ def get_readwrite_models(expressions, limit=1000):
     For each device only the good attributes are read.
     '''
     # self.debug( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
-    if isinstance(expressions, str):
+    if isinstance(expressions, string_types):
         if any(re.match(s, expressions) for s in
                ('\{.*\}', '\(.*\)', '\[.*\]')):
             # self.trace( 'evaluating expressions ....')
@@ -195,7 +198,7 @@ def get_readwrite_models(expressions, limit=1000):
                                  ) if re_match_low(attribute,
                                                    att.name) and att.isReadOnly()]
                         targets.extend(dev + '/' + att for att in attrs)
-                    except Exception, e:
+                    except Exception as e:
                         pass
                 else:
                     targets.append(dev + '/' + attribute)
@@ -274,7 +277,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self.hideLabels = False
 
         self.defineStyle()
-        self.modelsQueue = Queue.Queue()
+        self.modelsQueue = Queue()
         self.__modelsThread = None
         if not designMode:
             self.modelsThread
@@ -432,7 +435,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         if isinstance(model, dict):
             self.load(model)
         else:
-            model = isinstance(model, (str, QtCore.QString)) and [
+            model = isinstance(model, string_types + (QtCore.QString,)) and [
                 model] or list(model)
             self.trace('#' * 80)
             self.trace('In TaurusGrid.setModel(%s)' % str(model)[:100])
@@ -526,7 +529,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             try:
                 labels = eval(text)
                 return labels
-            except Exception, e:
+            except Exception as e:
                 self.warning(
                     'ERROR! Unable to parse labels property: %s' % str(e))
                 return []
@@ -546,7 +549,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                 section = self.rows[i]
                 self.table.setVerticalHeaderItem(
                     i, QtGui.QTableWidgetItem(section))
-        except Exception, e:
+        except Exception as e:
             self.debug("setRowLabels(): Exception! %s" % e)
             # self.create_widgets_table(self._columnsNames)
 
@@ -567,7 +570,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
                 equipment = self.columns[i]
                 self.table.setHorizontalHeaderItem(
                     i, QtGui.QTableWidgetItem(equipment))
-        except Exception, e:
+        except Exception as e:
             self.debug("setColumnLabels(): Exception! %s" % e)
             # self.create_widgets_table(self._columnsNames)
 
@@ -659,12 +662,12 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             self.row_labels = sorted(
                 list(set(m.split('/')[0].upper() for m in models if
                          m.count('/') >= 2)))
-            self.row_labels = zip(self.row_labels, self.row_labels)
+            self.row_labels = list(zip(self.row_labels, self.row_labels))
         if not self.column_labels:  # Families used by default
             self.column_labels = sorted(
                 list(set(m.split('/')[1].upper() for m in models if
                          m.count('/') >= 2)))
-            self.column_labels = zip(self.column_labels, self.column_labels)
+            self.column_labels = list(zip(self.column_labels, self.column_labels))
 
             # for m in models:
             # if m.count('/')<2:
@@ -1022,9 +1025,9 @@ if __name__ == '__main__':
     from taurus.qt.qtgui.application import TaurusApplication
 
     if len(sys.argv) < 2:
-        print "The format of the call is something like:"
-        print '\t/usr/bin/python taurusgrid.py grid.pickle.file'
-        print '\t/usr/bin/python taurusgrid.py "model=lt.*/VC.*/.*/((C*)|(P*)|(I*))" cols=IP,CCG,PNV rows=LT01,LT02 others=False rowframe=True colframe=False'
+        print("The format of the call is something like:")
+        print('\t/usr/bin/python taurusgrid.py grid.pickle.file')
+        print('\t/usr/bin/python taurusgrid.py "model=lt.*/VC.*/.*/((C*)|(P*)|(I*))" cols=IP,CCG,PNV rows=LT01,LT02 others=False rowframe=True colframe=False')
         exit()
 
     app = TaurusApplication(sys.argv[0:1])
@@ -1037,7 +1040,7 @@ if __name__ == '__main__':
     except:
         args = sysargs_to_dict(
             ['model', 'rows', 'cols', 'others', 'rowframe', 'colframe'])
-        print "args = %s" % args
+        print("args = %s" % args)
         if args.get('rows'):
             gui.setRowLabels(args['rows'])
         if args.get('cols'):
@@ -1048,6 +1051,6 @@ if __name__ == '__main__':
         gui.showColumnFrame('colframe' in args and args['colframe'] and True)
         gui.showOthers('others' in args and args['others'] or True)
 
-    print "current TaurusGrid model= %s" % (gui.getModel())
+    print("current TaurusGrid model= %s" % (gui.getModel()))
     gui.show()
     sys.exit(app.exec_())

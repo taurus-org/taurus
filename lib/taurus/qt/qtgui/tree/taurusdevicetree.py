@@ -32,14 +32,18 @@ taurusdevicetree.py:
 # tango-centric, so it should be removed from Taurus or merged with
 # Taurusdbtree
 
-# ,"SearchEdit"] #"TaurusTreeNode"]
-__all__ = ["TaurusDevTree", "TaurusSearchTree", "TaurusDevTreeOptions"]
+from __future__ import print_function
+
+from builtins import next
+from builtins import object
 
 import time
 import os
 import re
 import traceback
 from functools import partial
+
+from future.utils import string_types
 
 # @todo: icons_dev_tree is not an included or standard module.
 #        Is anybody using it? If not, the following lines should be removed and
@@ -68,6 +72,8 @@ from taurus.qt.qtcore.util.properties import djoin
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.container import TaurusWidget
 
+
+__all__ = ["TaurusDevTree", "TaurusSearchTree", "TaurusDevTreeOptions"]
 TREE_ITEM_MIME_TYPE = 'application/x-qabstractitemmodeldatalist'
 
 ###############################################################################
@@ -201,14 +207,14 @@ class TaurusTreeNodeContainer(object):
                     if k.lower() in name.lower():
                         url = v
             # if name.count('/')==2:
-                # if any(a.startswith(name+'/') for a in getArchivedAttributes()):
-                    #url = wdir('image/icons/clock.png')
-                # else:
-                    #url = wdir('image/equips/icon-%s.gif'%name.split('/')[2].split('-')[0].lower())
-            # elif name.count('/')==3:
-                #url = filterAttributes(name) or wdir('image/icons/closetab.png')
+            # if any(a.startswith(name+'/') for a in getArchivedAttributes()):
+            #url = wdir('image/icons/clock.png')
             # else:
-                #url = wdir('image/equips/icon-%s.gif'%name.lower())
+            #url = wdir('image/equips/icon-%s.gif'%name.split('/')[2].split('-')[0].lower())
+            # elif name.count('/')==3:
+            #url = filterAttributes(name) or wdir('image/icons/closetab.png')
+            # else:
+            #url = wdir('image/equips/icon-%s.gif'%name.lower())
         except:
             self.warning(traceback.format_exc())
         if not url or not os.path.isfile(url):
@@ -568,7 +574,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     def trace(self, msg):
         if self.TRACE_ALL or self.getLogLevel() in ('DEBUG', 40,):
             # @TODO: use the taurus logger instead! ~~cpascual 20121121
-            print 'TaurusDevTree.%s: %s' % (self.getLogLevel(), msg)
+            print('TaurusDevTree.%s: %s' % (self.getLogLevel(), msg))
 
     def setTangoHost(self, tango_host=None):
         self.db = taurus.Authority(tango_host)
@@ -639,7 +645,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                 dct = self.getTangoDict(filters)
             else:  # if isMap(filters):
                 self.setWindowTitle('TaurusDevTree:%s' %
-                                    ','.join(filters.keys()))
+                                    ','.join(filters))
 
                 def expand_dict(d):
                     return [x for v in d.values() for x in (expand_dict(v) if hasattr(v, 'values') else (v,))]
@@ -761,12 +767,12 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                 label = aname == my_attr.label and aname.lower(
                 ) or "%s (%s)" % (aname.lower(), my_attr.label)
                 dct[str(my_device).lower() + '/' + label] = 0
-        except PyTango.DevFailed, e:
+        except PyTango.DevFailed as e:
             self.warning('addAttrToDev(%s): %s' % (my_device, str(e)))
             qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical, '%s Error' %
                                   my_device, '%s not available' % my_device, Qt.QMessageBox.Ok, self)
             qmsg.show()
-        except Exception, e:
+        except Exception as e:
             self.warning('addAttrToDev(%s): %s' % (my_device, str(e)))
             qmsg = Qt.QMessageBox(Qt.QMessageBox.Critical, '%s Error' %
                                   my_device, str(e), Qt.QMessageBox.Ok, self)
@@ -824,7 +830,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         return self.item_index[key]
 
     def getNodeList(self):
-        return self.item_index.keys()
+        return list(self.item_index.keys())
 
     def getMatchingNodes(self, regexp, limit=0, all=False, exclude=None):
         """ It returns all nodes matching the given expression. """
@@ -837,7 +843,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
             if node is not None:
                 return [node]
         regexp = re.compile(extend_regexp(regexp))
-        for k, node in self.item_index.iteritems():
+        for k, node in self.item_index.items():
             nname = self.getNodeText(node, full=True).lower()
             if (regexp.match(k) or regexp.match(nname)) and \
                     (not exclude or not any(re.match(x.lower(), y) for x in exclude for y in (k.lower(), nname))):
@@ -868,9 +874,8 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
     def unpackChildren(self):
         """ removes all nodes from the tree and returns them in a list, used for resorting """
         allChildren = []
-        nodes = self.getAllNodes().values()
 
-        for node in nodes:
+        for node in self.getAllNodes().values():
             allChildren.extend(node.takeChildren())
         while self.topLevelItemCount():
             allChildren.append(self.takeTopLevelItem(0))
@@ -932,7 +937,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         """ Needed to do threaded expansion of the tree """
         if node is None:
             node = self.getNode()
-        if isinstance(node, (basestring, Qt.QString)):
+        if isinstance(node, string_types + (Qt.QString,)):
             name, node = str(node), self.getNode(node)
         else:
             name = self.getNodeText(node)
@@ -1019,7 +1024,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
             allChildren[str(it.text(0))] = it
 
         sorter = lambda k, ks=[re.compile(c) for c in order]: str(
-            (i for i, r in enumerate(ks) if r.match(k.lower())).next()) + str(k)
+            next((i for i, r in enumerate(ks) if r.match(k.lower())))) + str(k)
         for c, it in sorted(allChildren.items(), key=lambda k: sorter(k[0])):
             self.debug('tree.sortCustom(%s): %s inserted at %d' %
                        (order, it.text(0), self.topLevelItemCount()))
@@ -1061,7 +1066,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
         if not isinstance(dct, dict):
             dct = dict.fromkeys(dct, '')
         nodes = self.getAllNodes()
-        for name, node in nodes.iteritems():
+        for name, node in nodes.items():
             name = str(name).split()[0]
             if node.isHidden():
                 continue
@@ -1285,7 +1290,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
 
         if hasattr(node, 'ContextMenu'):
             last_was_separator = True
-            for t in (type(node.ContextMenu) is dict and node.ContextMenu.items() or node.ContextMenu):
+            for t in (type(node.ContextMenu) is dict and list(node.ContextMenu.items()) or node.ContextMenu):
                 try:
                     k, action = t
                     if k:
@@ -1298,7 +1303,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                     elif not last_was_separator:
                         menu.addSeparator()
                         last_was_separator = True
-                except Exception, e:
+                except Exception as e:
                     self.warning('Unable to add Menu Action: %s:%s' % (t, e))
 
         if hasattr(node, 'ExpertMenu'):
@@ -1306,7 +1311,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
             expert = menu.addMenu('Expert')
             # expert.addSeparator()
             last_was_separator = True
-            for t in (type(node.ContextMenu) is dict and node.ExpertMenu.items() or node.ExpertMenu):
+            for t in (type(node.ContextMenu) is dict and list(node.ExpertMenu.items()) or node.ExpertMenu):
                 try:
                     k, action = t
                     if k:
@@ -1319,7 +1324,7 @@ class TaurusDevTree(TaurusTreeNodeContainer, Qt.QTreeWidget, TaurusBaseWidget):
                     elif not last_was_separator:
                         expert.addSeparator()
                         last_was_separator = True
-                except Exception, e:
+                except Exception as e:
                     self.warning('Unable to add Expert Action: %s:%s' % (t, e))
         # menu.addSeparator()
         menu.exec_(event.globalPos())
@@ -1659,14 +1664,14 @@ class TaurusSearchTree(TaurusWidget):
         self.layout().addWidget(self.tree)
         self.registerConfigDelegate(self.tree)
         # Slot forwarding ...
-        for k in TaurusDevTree.__dict__.keys():
+        for k in TaurusDevTree.__dict__:
             # if k in ['__init__','defineStyle']: continue
             if k not in self.__slots__:
                 continue
             try:
                 setattr(self, k, partial(
                     self.method_forwarder, method=k, object=self.tree))
-            except Exception, e:
+            except Exception as e:
                 self.warning('Unable to add slot %s: %s' % (k, e))
         # Event forwarding ...
         self.tree.refreshTree.connect(self.refreshTree)

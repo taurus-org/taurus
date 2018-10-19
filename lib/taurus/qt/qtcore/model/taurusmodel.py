@@ -25,15 +25,17 @@
 
 """This module provides base taurus tree item and a base tree model"""
 
-__all__ = ["TaurusBaseTreeItem", "TaurusBaseModel", "TaurusBaseProxyModel"]
-
-__docformat__ = 'restructuredtext'
+from builtins import object
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.util.log import Logger
 
 QtQt = Qt.Qt
+
+__all__ = ["TaurusBaseTreeItem", "TaurusBaseModel", "TaurusBaseProxyModel"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusBaseTreeItem(object):

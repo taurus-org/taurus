@@ -25,12 +25,16 @@
 
 """This module provides a panel to display taurus messages"""
 
+from taurus.external.qt import Qt
+from taurus.qt.qtgui.panel.report.basicreport import (SendMailDialog,
+                                                      SMTPReportHandler)
+
+
+__package__ = 'taurus.qt.qtgui.panel.report'
+
 __all__ = ["TicketReportHandler"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
-from basicreport import SendMailDialog, SMTPReportHandler
 
 
 class SendTicketDialog(SendMailDialog):

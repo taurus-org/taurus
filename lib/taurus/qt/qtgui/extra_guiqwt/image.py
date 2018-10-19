@@ -69,7 +69,7 @@ class TaurusBaseImageItem(TaurusBaseComponent):
             # TODO: units should be used for setting some title in the colorbar
         try:
             v = self.filterData(v)
-        except Exception, e:
+        except Exception as e:
             self.info('Ignoring event. Reason: %s', e.message)
             return
         # this is the range of the z axis (color scale)
@@ -143,7 +143,7 @@ class TaurusEncodedBaseImageItem(TaurusBaseImageItem):
 
             try:
                 fmt, decoded_data = codec.decode(data)
-            except Exception, e:
+            except Exception as e:
                 self.info('Decoder error: %s', e.message)
                 raise e
 

@@ -24,23 +24,25 @@
 #############################################################################
 
 """Extension of :mod:`guiqwt.builder`"""
-
-__all__ = ["TaurusPlotItemBuilder", "make"]
-
-__docformat__ = 'restructuredtext'
+from __future__ import absolute_import
 
 import guiqwt.builder
+import numpy
 
-from curve import TaurusCurveItem, TaurusTrendItem
-from image import (TaurusImageItem, TaurusRGBImageItem, TaurusEncodedImageItem,
+from .curve import TaurusCurveItem, TaurusTrendItem
+from .image import (TaurusImageItem, TaurusRGBImageItem, TaurusEncodedImageItem,
                    TaurusEncodedRGBImageItem, TaurusXYImageItem)
 from guiqwt.curve import CurveParam
 from guiqwt.image import ImageParam, XYImageItem
 from guiqwt.styles import XYImageParam
 from guiqwt.config import _
 from guiqwt.histogram import lut_range_threshold
-import numpy
 from taurus.core.units import Quantity
+
+__all__ = ["TaurusPlotItemBuilder", "make"]
+
+__docformat__ = 'restructuredtext'
+
 
 class TaurusPlotItemBuilder(guiqwt.builder.PlotItemBuilder):
     '''extension of :class:`guiqwt.builder.PlotItemBuilder` to provide tauruscurve and taurusimage items'''

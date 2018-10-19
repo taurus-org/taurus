@@ -25,9 +25,8 @@
 
 """This module provides an arrow based widget."""
 
-__all__ = ["QWheelEdit"]
-
-__docformat__ = 'restructuredtext'
+from builtins import map
+from builtins import range
 
 import os
 import math
@@ -35,6 +34,12 @@ import numpy
 
 from taurus.external.qt import Qt
 from taurus.core.units import Q_
+
+
+__all__ = ["QWheelEdit"]
+
+__docformat__ = 'restructuredtext'
+
 
 class _ArrowButton(Qt.QPushButton):
     """Private class to be used by QWheelEdit for an arrow button"""
@@ -96,7 +101,7 @@ class _DownArrowButton(_ArrowButton):
 class _DigitLabel(Qt.QLabel):
     """A private single digit label to be used by QWheelEdit widget"""
 
-    PixmapKeys = map(str, xrange(10)) + ['blank', 'minus', 'point']
+    PixmapKeys = list(map(str, range(10))) + ['blank', 'minus', 'point']
 
     def __init__(self, lbl, parent=None):
         Qt.QLabel.__init__(self, parent)
@@ -223,7 +228,7 @@ class QWheelEdit(Qt.QFrame):
         @return (float) the minimum possible value
         """
         decmax = 0
-        for i in xrange(self.getDecDigitCount()):
+        for i in range(self.getDecDigitCount()):
             decmax += 9 * math.pow(10, -(i + 1))
         return -math.pow(10.0, self.getIntDigitCount()) + 1 - decmax
 
@@ -236,7 +241,7 @@ class QWheelEdit(Qt.QFrame):
         @return (float) the maximum possible value
         """
         decmax = 0
-        for i in xrange(self.getDecDigitCount()):
+        for i in range(self.getDecDigitCount()):
             decmax += 9 * math.pow(10, -(i + 1))
         return math.pow(10.0, self.getIntDigitCount()) - 1 + decmax
 
@@ -270,7 +275,7 @@ class QWheelEdit(Qt.QFrame):
         l.setColumnMinimumWidth(0, _ArrowButton.ButtonSize)
         l.setColumnStretch(0, 1)
 
-        for i in xrange(id):
+        for i in range(id):
             col = i + 1
             d = _DigitLabel('0')
             up = _UpArrowButton(id - i - 1)
@@ -293,7 +298,7 @@ class QWheelEdit(Qt.QFrame):
             self._digitLabels.append(dotLabel)
             l.addWidget(dotLabel, 1, id + 1)
 
-        for i in xrange(id, digits):
+        for i in range(id, digits):
             col = i + 1
             if showDot:
                 col += 1
@@ -451,7 +456,7 @@ class QWheelEdit(Qt.QFrame):
         if len(v_str) > len(self._digitLabels):
             # do auto adjust
             if '.' in v_str:
-                dc = map(len, v_str.split('.'))
+                dc = list(map(len, v_str.split('.')))
             else:
                 dc = len(v_str), 0
             self._setDigits(*dc)
@@ -776,8 +781,8 @@ class QWheelEdit(Qt.QFrame):
         self.setFocus()
 
     def wheelEvent(self, evt):
-        numDegrees = evt.delta() / 8
-        numSteps = numDegrees / 15
+        numDegrees = evt.delta() // 8
+        numSteps = numDegrees // 15
         #w = Qt.QApplication.focusWidget()
         w = self.focusWidget()
         if not isinstance(w, _DigitLabel):

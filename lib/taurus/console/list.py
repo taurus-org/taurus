@@ -25,14 +25,19 @@
 
 """ """
 
-__all__ = ["List"]
+from __future__ import absolute_import
+from future.utils import string_types
 
-__docformat__ = "restructuredtext"
-
+from builtins import map
+from builtins import range
 import textwrap
-import operator
+import collections
+from future.utils import string_types
+from .enums import Alignment
 
-from enums import Alignment
+
+__all__ = ["List"]
+__docformat__ = "restructuredtext"
 
 
 class List(list):
@@ -60,7 +65,7 @@ class List(list):
             self.append(header)
 
     def setHeaderSeparator(self, header_separator):
-        if isinstance(header_separator, (str, unicode)):
+        if isinstance(header_separator, string_types):
             header_separator = self.col_nb * [header_separator]
         self.HeaderSeparator = header_separator
 
@@ -70,7 +75,7 @@ class List(list):
     header_separator = property(getHeaderSeparator, setHeaderSeparator)
 
     def setRowSeparator(self, row_separator):
-        if isinstance(row_separator, (str, unicode)):
+        if isinstance(row_separator, string_types):
             row_separator = self.col_nb * [row_separator]
         self.RowSeparator = row_separator
 
@@ -82,7 +87,7 @@ class List(list):
     def setMaxColumnWidth(self, max_col_width):
         if max_col_width is None:
             max_col_width = -1
-        if not operator.isSequenceType(max_col_width):
+        if not isinstance(max_col_width, collections.Sequence):
             max_col_width = self.col_nb * [max_col_width]
         self.MaxColumnWidth = max_col_width
 
@@ -92,7 +97,7 @@ class List(list):
     max_column_width = property(getMaxColumnWidth, setMaxColumnWidth)
 
     def setTextAlignment(self, text_alignment):
-        if not operator.isSequenceType(text_alignment):
+        if not isinstance(text_alignment, collections.Sequence):
             text_alignment = self.col_nb * [text_alignment]
         self.TextAlignment = text_alignment
 
@@ -102,7 +107,7 @@ class List(list):
     text_alignment = property(getTextAlignment, setTextAlignment)
 
     def _transform_row(self, row):
-        return map(str, row[:self.col_nb])
+        return list(map(str, row[:self.col_nb]))
 
     def __setitem__(self, i, row):
         return list.__setitem__(self, i, self._transform_row(row))
@@ -135,7 +140,7 @@ class List(list):
     def _get_separator_row(self, separator):
         columns = []
         for i, width in enumerate(self.cur_col_width):
-            if isinstance(separator[i], str):
+            if isinstance(separator[i], string_types):
                 column = " " + (width - 1) * separator[i]
             else:
                 column = " " + separator[i][:width - 1]

@@ -26,12 +26,14 @@
 """
 tauruspluginplugin.py:
 """
+from __future__ import absolute_import
 
 from taurus.external.qt import QtDesigner
 
 
 def build_qtdesigner_widget_plugin(klass):
-    import taurusplugin
+    #from . import taurusplugin # - after futurize stage 1
+    import taurusplugin.taurusplugin as taurusplugin # + after futurize stage 1
 
     class Plugin(taurusplugin.TaurusWidgetPlugin):
         WidgetClass = klass
@@ -74,7 +76,7 @@ def main():
                 #_log.debug("E2: Canceled %s (widget doesn't have getQtDesignerPluginInfo())" % name)
                 e2_nb += 1
                 cont = True
-            except Exception, e:
+            except Exception as e:
                 #_log.debug("E3: Canceled %s (%s)" % (name, str(e)))
                 e3_nb += 1
                 cont = True
@@ -82,7 +84,7 @@ def main():
             if cont:
                 continue
             for k in ('module', ):
-                if not qt_info.has_key(k):
+                if k not in qt_info:
                     #_log.debug("E4: Canceled %s (getQtDesignerPluginInfo doesn't have key %s)" % (name, k))
                     e4_nb += 1
                     cont = True

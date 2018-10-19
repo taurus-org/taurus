@@ -55,7 +55,8 @@ Not tested yet with the classical declaration:
 
 """
 
-from functools import partial
+from builtins import str
+from builtins import map
 from taurus.external.qt import Qt
 from taurus.core.util.fandango_search import isSequence, isDictionary
 

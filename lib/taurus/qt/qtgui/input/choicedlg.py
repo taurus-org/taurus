@@ -24,12 +24,16 @@
 ###########################################################################
 
 """This package provides a dialog for graphically choosing a Taurus class"""
+from __future__ import print_function
+
+from builtins import str
+
+from taurus.external.qt import Qt
+
 
 __all__ = ["GraphicalChoiceDlg", "GraphicalChoiceWidget"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
 
 
 class GraphicalChoiceDlg(Qt.QDialog):
@@ -119,7 +123,7 @@ class GraphicalChoiceDlg(Qt.QDialog):
 class GraphicalChoiceWidget(Qt.QScrollArea):
     '''A widget that presents a 2D grid of buttons'''
 
-    choiceMade = Qt.pyqtSignal(str)
+    choiceMade = Qt.pyqtSignal('QString')
 
     def __init__(self, parent=None, designMode=False, choices=None, pixmaps=None, iconSize=128,
                  defaultPixmap=None, horizontalScrollBarPolicy=Qt.Qt.ScrollBarAsNeeded,
@@ -195,7 +199,7 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
 
     def onClick(self):
         '''slot called when a button is clicked'''
-        self._chosen = unicode(self.sender().text())
+        self._chosen = str(self.sender().text())
         self.choiceMade.emit(self._chosen)
 
     def getChosen(self):
@@ -255,7 +259,7 @@ def main():
         for k in row:
             pixmaps[k] = getCachedPixmap('snapshot:%s.png' % k)
 
-    print GraphicalChoiceDlg.getChoice(parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=choices, pixmaps=pixmaps)
+    print(GraphicalChoiceDlg.getChoice(parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=choices, pixmaps=pixmaps))
 
     sys.exit()
 

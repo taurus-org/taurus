@@ -14,6 +14,9 @@ pip install pint
 :: Install enum34
 pip install enum34
 
+:: Install enum34
+pip install future
+
 :: Install guiqwt 
 :: TODO, install guiqwt from pypi
 :: pip install --upgrade guiqwt

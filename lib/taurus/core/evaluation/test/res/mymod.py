@@ -27,6 +27,8 @@
 This module is used for the tests of custom evaluation devices.
 """
 
+from __future__ import print_function
+from builtins import object
 import os
 from taurus.core.units import Quantity
 
@@ -82,16 +84,16 @@ if __name__ == "__main__":
     def test1():
         n = 'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(987)/c.foo'
         a = taurus.Attribute(n)
-        print "READ 1:   ", a.read()
+        print("READ 1:   ", a.read())
         # print a.range
-        print "WRITE+READ", a.write(Quantity(999, "m"))
-        print "READ 2:   ", a.read(cache=False)
+        print("WRITE+READ", a.write(Quantity(999, "m")))
+        print("READ 2:   ", a.read(cache=False))
 
     def test2(models):
         for m in models:
-            print m
+            print(m)
             a = taurus.Attribute(m)
-            print "   -->", a.writable, a.read().rvalue
+            print("   -->", a.writable, a.read().rvalue)
 
     models = [
       # instance models

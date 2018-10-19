@@ -26,6 +26,14 @@
 """This module provides widgets that display the database in a tree format"""
 # TODO: tango-centric
 
+from builtins import str
+
+from taurus.external.qt import Qt
+from taurus.core.taurusbasetypes import TaurusElementType, TaurusDevState
+import taurus.qt.qtcore.mimetypes
+from .taurusmodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
+
+
 __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
            "TaurusTreeDeviceFamilyItem", "TaurusTreeDeviceMemberItem", "TaurusTreeSimpleDeviceItem",
            "TaurusTreeDeviceItem", "TaurusTreeAttributeItem", "TaurusTreeServerNameItem",
@@ -39,11 +47,6 @@ __all__ = ["TaurusTreeDevicePartItem", "TaurusTreeDeviceDomainItem",
 
 __docformat__ = 'restructuredtext'
 
-from taurus.external.qt import Qt
-from taurus.core.taurusbasetypes import TaurusElementType, TaurusDevState
-import taurus.qt.qtcore.mimetypes
-
-from .taurusmodel import TaurusBaseTreeItem, TaurusBaseModel, TaurusBaseProxyModel
 
 ElemType = TaurusElementType
 
@@ -553,15 +556,15 @@ class TaurusDbDeviceModel(TaurusDbBaseModel):
             data = data.deviceTree()
 
         rootItem = self._rootItem
-        for domain in data.keys():
+        for domain in data:
             families = data[domain]
             domainItem = TaurusTreeDeviceDomainItem(
                 self, domain.upper(), rootItem)
-            for family in families.keys():
+            for family in families:
                 members = families[family]
                 familyItem = TaurusTreeDeviceFamilyItem(
                     self, family.upper(), domainItem)
-                for member in members.keys():
+                for member in members:
                     dev = members[member]
                     memberItem = TaurusTreeDeviceItem(
                         self, dev, parent=familyItem)

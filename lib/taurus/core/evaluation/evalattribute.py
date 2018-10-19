@@ -200,7 +200,7 @@ class EvaluationAttribute(TaurusAttribute):
             for n in names[1:-1]:
                 obj = getattr(obj, n)
             obj = getattr(obj.__class__, names[-1])
-        except Exception, e:
+        except Exception as e:
             # self.info("%r", e)
             return
         ######################################################################
@@ -260,7 +260,7 @@ class EvaluationAttribute(TaurusAttribute):
             trstring = v.replaceUnquotedRef(trstring, '{%s}' % r, symbol)
 
         # validate the expression (look for missing symbols)
-        safesymbols = evaluator.getSafe().keys()
+        safesymbols = list(evaluator.getSafe().keys())
         # remove literal text strings from the validation
         trimmedstring = re.sub(QUOTED_TEXT_RE, '', trstring)
         for s in set(re.findall(PY_VAR_RE, trimmedstring)):
@@ -359,7 +359,7 @@ class EvaluationAttribute(TaurusAttribute):
             self._value.rvalue = rvalue
             self._value.time = TaurusTimeVal.now()
             self._value.quality = AttrQuality.ATTR_VALID
-        except Exception, e:
+        except Exception as e:
             self._value.quality = AttrQuality.ATTR_INVALID
             msg = " the function '%s' could not be evaluated. Reason: %s" \
                 % (self._transformation, repr(e))

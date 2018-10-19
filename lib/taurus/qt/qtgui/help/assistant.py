@@ -39,13 +39,15 @@ Example usage::
     app.exec_()
 """
 
-__all__ = ["Assistant", "Widgets"]
-
+from builtins import object
 
 from taurus.external.qt import Qt
 
 
-class Widgets:
+__all__ = ["Assistant", "Widgets"]
+
+
+class Widgets(object):
     contents = "contents"
     index = "index"
     bookmarks = "bookmarks"

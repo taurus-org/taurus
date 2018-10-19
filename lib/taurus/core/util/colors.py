@@ -24,11 +24,12 @@
 #############################################################################
 
 """This module contains color codes for state and quality"""
+from __future__ import print_function
+from builtins import object
 
 __all__ = ["DEVICE_STATE_DATA", "ATTRIBUTE_QUALITY_DATA", "ColorPalette",
            "DEVICE_STATE_PALETTE", "ATTRIBUTE_QUALITY_PALETTE"]
 
-import types
 
 DEVICE_STATE_DATA = {
     # map for TaurusDevState states (used for agnostic TaurusDevice.state)
@@ -94,7 +95,7 @@ class ColorPalette(object):
         self._int_decoder_dict = int_decoder_dict
 
     def _decoder(self, elem):
-        if type(elem) == types.IntType or type(elem) == types.LongType:
+        if type(elem) == int:
             elem = self._int_decoder_dict.get(elem)
         return str(elem)
 
@@ -122,7 +123,7 @@ class ColorPalette(object):
         return r[0] * 256 * 256 + r[1] * 256 + r[2]
 
     def __iter__(self):
-        return self._rgb_data.keys().__iter__()
+        return list(self._rgb_data.keys()).__iter__()
 
     def name(self, stoq, fg=False):
         """Returns the name of the color."""
@@ -133,7 +134,7 @@ class ColorPalette(object):
             return self._rgb_data[name][0]
 
     def has(self, name):
-        return self._rgb_data.has_key(name)
+        return name in self._rgb_data
 
     def size(self):
         return len(self._rgb_data)
@@ -215,7 +216,7 @@ def print_color_palette(pal):
         bg_color = pal.name(stoq)
         rgb = "(%3.3d, %3.3d, %3.3d)" % pal.rgb(stoq)
         hx = pal.hex(stoq)
-        print "%7s %5s on %13s %15s #%s" % (stoq, fg_color, bg_color, rgb, hx)
+        print("%7s %5s on %13s %15s #%s" % (stoq, fg_color, bg_color, rgb, hx))
 
 
 if __name__ == "__main__":
@@ -223,8 +224,8 @@ if __name__ == "__main__":
     print_color_palette(ATTRIBUTE_QUALITY_PALETTE)
     from taurus.core import TaurusDevState
     import PyTango
-    print
-    print DEVICE_STATE_PALETTE.rgb(TaurusDevState.Ready)
-    print DEVICE_STATE_PALETTE.rgb('TaurusDevState.Ready')
-    print DEVICE_STATE_PALETTE.rgb(PyTango.DevState.ON)
-    print DEVICE_STATE_PALETTE.rgb(0)
+    print()
+    print(DEVICE_STATE_PALETTE.rgb(TaurusDevState.Ready))
+    print(DEVICE_STATE_PALETTE.rgb('TaurusDevState.Ready'))
+    print(DEVICE_STATE_PALETTE.rgb(PyTango.DevState.ON))
+    print(DEVICE_STATE_PALETTE.rgb(0))

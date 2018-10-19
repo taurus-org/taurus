@@ -26,12 +26,13 @@
 """
 arrayedit.py: Widget for editing a spectrum/array via control points
 """
+from __future__ import absolute_import
 
-
+from builtins import range
 import numpy
 from taurus.external.qt import Qt, Qwt5
 from taurus.qt.qtgui.util.ui import UILoadable
-from curvesAppearanceChooserDlg import CurveAppearanceProperties
+from .curvesAppearanceChooserDlg import CurveAppearanceProperties
 
 
 @UILoadable
@@ -265,7 +266,7 @@ class ArrayEditor(Qt.QWidget):
             new_xp = numpy.zeros(table.rowCount())
             new_corrp = numpy.zeros(table.rowCount())
             try:
-                for i in xrange(table.rowCount()):
+                for i in range(table.rowCount()):
                     new_xp[i] = float(table.item(i, 0).text())
                     new_corrp[i] = float(table.item(i, 1).text())
                 self.setCorrection(new_xp, new_corrp)

@@ -36,14 +36,19 @@ to be used within a TaurusGui for managing panels for:
 
  # TODO: move to sardana.taurus
 
-__all__ = ['MacroBroker', 'DynamicPlotManager']
-__docformat__ = 'restructuredtext'
+from __future__ import print_function
+
+from builtins import object
 
 import datetime
 
 from taurus.core.util.containers import CaselessList
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
+
+
+__all__ = ['MacroBroker', 'DynamicPlotManager']
+__docformat__ = 'restructuredtext'
 
 
 class ChannelFilter(object):
@@ -67,7 +72,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
     used.
     '''
 
-    newShortMessage = Qt.pyqtSignal(str)
+    newShortMessage = Qt.pyqtSignal('QString')
 
     def __init__(self, parent=None):
         Qt.QObject.__init__(self, parent)
@@ -305,7 +310,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
                       given (default), all the panels are removed.
         '''
         if names is None:
-            names = self._trends1d.values() + self._trends2d.values()
+            names = list(self._trends1d.values()) + list(self._trends2d.values())
             # TODO: do the same for other temporary panels
         for pname in names:
             self.removePanel(pname)
@@ -596,5 +601,5 @@ if __name__ == "__main__":
 
     b.setModel('door/cp1/1')
 
-    print '...'
+    print('...')
     sys.exit(app.exec_())

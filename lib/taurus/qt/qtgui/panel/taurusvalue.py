@@ -35,6 +35,8 @@ __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox",
 
 __docformat__ = 'restructuredtext'
 
+from future.utils import string_types
+
 import weakref
 import re
 from taurus.external.qt import Qt
@@ -831,7 +833,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         try:
             klass = self.readWidgetClassFactory(self.readWidgetClassID)
             self._readWidget = self._newSubwidget(self._readWidget, klass)
-        except Exception, e:
+        except Exception as e:
             self._destroyWidget(self._readWidget)
             self._readWidget = Qt.QLabel('[Error]')
             msg = 'Error creating read widget:\n' + str(e)
@@ -1145,7 +1147,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
             # calls self.getLabelWidgetClass, self.getReadWidgetClass,...
             classID = getattr(self, 'get%sClass' % key)()
-            if isinstance(classID, (str, Qt.QString)) or allowUnpickable:
+            if (isinstance(classID, string_types + (Qt.QString,))
+                    or allowUnpickable):
                 #configdict[key] = classID
                 configdict[key] = {'classid': classID}
                 widget = getattr(self, key[0].lower() + key[1:])()
@@ -1172,7 +1175,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 widget_configdict = configdict[key]
                 getattr(self, 'set%sClass' % key)(
                     widget_configdict.get('classid', None))
-                if widget_configdict.has_key('delegate'):
+                if 'delegate' in widget_configdict:
                     widget = getattr(self, key[0].lower() + key[1:])()
                     if isinstance(widget, BaseConfigurableClass):
                         widget.applyConfig(widget_configdict[

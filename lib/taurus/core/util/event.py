@@ -26,20 +26,23 @@
 """
 event.py:
 """
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import range
+from builtins import object
+import sys
+import weakref
+import threading
+import time
+import collections
+import taurus.core
+
 
 __all__ = ["BoundMethodWeakref", "CallableRef", "EventGenerator",
            "ConfigEventGenerator", "ListEventGenerator", "EventListener",
            "AttributeEventWait", "AttributeEventIterator"]
 
 __docformat__ = "restructuredtext"
-
-import sys
-import weakref
-import threading
-import time
-import operator
-
-import taurus.core
 
 
 class BoundMethodWeakref(object):
@@ -73,10 +76,20 @@ class BoundMethodWeakref(object):
 
     def __cmp__(self, other):
         if other.__class__ == self.__class__:
+            from past.builtins import cmp
             ret = cmp((self.func_ref, self.obj_ref),
                       (other.func_ref, other.obj_ref))
             return ret
         return 1
+
+    def __eq__(self, other):
+        if hasattr(other, 'func_ref') and hasattr(other, 'obj_ref'):
+            return ((self.func_ref, self.obj_ref)
+                    == (other.func_ref, other.obj_ref))
+        return False
+
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         obj, func = self.obj_ref(), self.func_ref()
@@ -94,9 +107,14 @@ def CallableRef(object, del_cb=None):
 
     :return: a weak reference for the given callable
     :rtype: BoundMethodWeakref or weakref.ref"""
-    if hasattr(object, 'im_self'):
-        if object.im_self is not None:
-            return BoundMethodWeakref(object, del_cb)
+    im_self = None
+    if hasattr(object, '__self__'):
+        im_self = object.__self__
+    elif hasattr(object, 'im_self'):
+        im_self = object.im_self
+
+    if im_self is not None:
+        return BoundMethodWeakref(object, del_cb)
     return weakref.ref(object, del_cb)
 
 
@@ -157,7 +175,7 @@ class EventStack(object):
         return read
 
 
-from object import Object
+from .object import Object
 
 
 class EventGenerator(Object):
@@ -208,7 +226,7 @@ class EventGenerator(Object):
         :type data: boolean
         """
         if not self.events_active:
-            raise RuntimeError, ('%s does not have '
+            raise RuntimeError('%s does not have '
                                  'events/polling active' % self.event_name)
 
         cb_ref = CallableRef(cb, self.unsubscribeDeletedEvent)
@@ -216,7 +234,7 @@ class EventGenerator(Object):
         try:
             self.lock()
             if (cb_ref, data) in self.cb_list:
-                raise RuntimeError, ('Callback %s(%s) already reg. on %s' %
+                raise RuntimeError('Callback %s(%s) already reg. on %s' %
                                      (cb, data, self.event_name))
             self.cb_list.append((cb_ref, data))
             if with_first_event:
@@ -229,7 +247,7 @@ class EventGenerator(Object):
         try:
             self.lock()
             aux_list = list(self.cb_list)
-            for i in xrange(len(aux_list) - 1, -1, -1):
+            for i in range(len(aux_list) - 1, -1, -1):
                 pair = self.cb_list[i]
                 if pair[0] is cb_ref:
                     del self.cb_list[i]
@@ -320,7 +338,7 @@ class EventGenerator(Object):
         :return: the value of the event that unblocked the wait
         :rtype: object"""
         if not self.events_active:
-            raise RuntimeError, ('%s does not have '
+            raise RuntimeError('%s does not have '
                                  'events/polling active' % self.event_name)
         try:
             self.lock()
@@ -443,7 +461,7 @@ class EventListener(object):
                 if t and t >= after:
                     return
             else:
-                for v, t in s.items():
+                for v, t in list(s.items()):
                     if v == val:
                         continue
                     if t >= after:
@@ -545,8 +563,8 @@ class AttributeEventWait(object):
                 name = th.name
             else:
                 name = "<unknown>"
-            print "WARNING: Thread %s trying to unlock condition previously " \
-                  "locked by thread %s" % (curr_th.name, name)
+            print("WARNING: Thread %s trying to unlock condition previously " \
+                  "locked by thread %s" % (curr_th.name, name))
 
     def clearEventSet(self):
         "Clears the internal event buffer"
@@ -658,9 +676,9 @@ class AttributeEventWait(object):
                             return
                 self._cond.wait(timeout)
                 retries -= 1
-        except Exception, e:
+        except Exception as e:
             sys.stderr.write(
-                "AttributeEventWait: Caught exception while waitting: %s\n" % str(e))
+                "AttributeEventWait: Caught exception while waiting: %s\n" % str(e))
             raise e
         finally:
             self.unlock()
@@ -676,7 +694,7 @@ class AttributeEventIterator(object):
             self.connect(attrs)
 
     def connect(self, attrs):
-        if not operator.isSequenceType(attrs):
+        if not isinstance(attrs, collections.Sequence):
             attrs = (attrs,)
         self.disconnect()
         self._attrs = attrs
@@ -699,8 +717,8 @@ class AttributeEventIterator(object):
             lock = getattr(self._cond, "_Condition__lock")
             th = getattr(lock, "_RLock__owner")
             curr_th = threading.current_thread()
-            print "WARNING: Thread %s trying to unlock condition previously " \
-                  "locked by thread %s" % (curr_th.name, th.name)
+            print(("WARNING: Thread %s trying to unlock condition previously "
+                   + "locked by thread %s") % (curr_th.name, th.name))
 
     def eventReceived(self, s, t, v):
         if t not in (taurus.core.taurusbasetypes.TaurusEventType.Change, taurus.core.taurusbasetypes.TaurusEventType.Periodic):
@@ -722,7 +740,7 @@ class AttributeEventIterator(object):
             while True:
                 self._cond.wait(timeout)
                 yield self._data
-        except Exception, e:
-            print "INFO: Caught exception while waiting", str(e)
+        except Exception as e:
+            print("INFO: Caught exception while waiting", str(e))
         finally:
             self.unlock()

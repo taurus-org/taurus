@@ -26,11 +26,7 @@
 """This module provides the base
 :class:`taurus.qt.qtgui.application.TaurusApplication` class."""
 
-from __future__ import with_statement
-
-__all__ = ["TaurusApplication"]
-
-__docformat__ = 'restructuredtext'
+from builtins import str
 
 import os
 import sys
@@ -42,6 +38,11 @@ from taurus.external.qt import Qt
 
 from taurus.core.util.log import LogExceptHook, Logger
 import taurus.core.util.argparse
+
+
+__all__ = ["TaurusApplication"]
+
+__docformat__ = 'restructuredtext'
 
 
 class STD(Logger):
@@ -66,6 +67,11 @@ class STD(Logger):
         self.buffer = ''
         self.log_obj.propagate = False
         self.std = std
+    
+    #Trying to mimic stderr
+    @property
+    def errors(self):
+        return self.std.errors
 
     def addLogHandler(self, handler):
         """When called, set to use a private handler and DON'T send messages

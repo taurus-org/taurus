@@ -77,7 +77,7 @@ def dictFromSequence(seq):
     :return: (dict) dictionary built from the given sequence"""
     def _pairwise(iterable):
         """Utility method used by dictFromSequence"""
-        itnext = iter(iterable).next
+        itnext = iter(iterable).__next__
         while True:
             yield itnext(), itnext()
     return dict(_pairwise(seq))

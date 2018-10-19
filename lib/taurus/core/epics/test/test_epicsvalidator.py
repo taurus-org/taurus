@@ -29,7 +29,6 @@
 __docformat__ = 'restructuredtext'
 
 import sys
-
 import unittest
 from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)
@@ -47,7 +46,7 @@ from taurus.core.epics.epicsvalidator import (EpicsAuthorityNameValidator,
 @invalid(name='ca:/')
 @invalid(name='ca:///')
 @invalid(name='ca://a')
-@unittest.skipIf(sys.modules.has_key('epics') is False,
+@unittest.skipIf(('epics' in sys.modules) is False,
                  "epics module is not available")
 class EpicsAuthValidatorTestCase(AbstractNameValidatorTestCase,
                                  unittest.TestCase):
@@ -66,7 +65,7 @@ class EpicsAuthValidatorTestCase(AbstractNameValidatorTestCase,
 @invalid(name='ca:foo')  #  device requires absolute path
 @invalid(name='ca:/foo')  # devname must be empty (for now)
 @invalid(name='ca:@foo')
-@unittest.skipIf(sys.modules.has_key('epics') is False,
+@unittest.skipIf(('epics' in sys.modules) is False,
                  "epics module is not available")
 class EpicsDevValidatorTestCase(AbstractNameValidatorTestCase,
                                 unittest.TestCase):
@@ -129,7 +128,7 @@ class EpicsDevValidatorTestCase(AbstractNameValidatorTestCase,
 @valid(name='ca:1#units', groups={'fragment': 'units'})
 @valid(name='ca:a')
 @names(name='ca:XXX:sum', out=('ca:XXX:sum', 'XXX:sum', 'XXX:sum'))
-@unittest.skipIf(sys.modules.has_key('epics') is False,
+@unittest.skipIf(('epics' in sys.modules) is False,
                  "epics module is not available")
 class EpicsAttrValidatorTestCase(AbstractNameValidatorTestCase,
                                  unittest.TestCase):

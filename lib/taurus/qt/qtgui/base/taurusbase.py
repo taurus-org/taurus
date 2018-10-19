@@ -27,14 +27,11 @@
 """This module provides the set of base classes from which the Qt taurus widgets
 should inherit to be considered valid taurus widgets."""
 
-__all__ = ["TaurusBaseComponent", "TaurusBaseWidget",
-           "TaurusBaseWritableWidget", "defaultFormatter"]
-
-__docformat__ = 'restructuredtext'
-
 import sys
 import threading
 from types import MethodType
+from future.builtins import str
+from future.utils import string_types
 
 from taurus.external.qt import Qt
 from enum import Enum
@@ -45,18 +42,26 @@ from taurus.core.util.timer import Timer
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusconfiguration import (TaurusConfiguration,
-                                             TaurusConfigurationProxy)
+from taurus.core.taurusconfiguration import TaurusConfigurationProxy
 from taurus.core.tauruslistener import TaurusListener, TaurusExceptionListener
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.eventfilters import filterEvent
 from taurus.core.util.log import deprecation_decorator
 from taurus.qt.qtcore.util.signal import baseSignal
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
-from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_DEV_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.util import ActionFactory
 
 from taurus.core.units import Quantity
+
+
+__all__ = ["TaurusBaseComponent", "TaurusBaseWidget",
+           "TaurusBaseWritableWidget", "defaultFormatter"]
+
+__docformat__ = 'restructuredtext'
+
 
 DefaultNoneValue = "-----"
 
@@ -702,7 +707,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         - dtype: the data type of the value to be formatted
         - basecomponent: the affected widget
   
-        The following are some examples for customizing the formatting:
+        The following are some examples for customizing the formatting::
 
         - Change the format for widget instance `foo`::
 
@@ -739,7 +744,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         if self._format is None:
             try:
                 self._updateFormat(type(v))
-            except Exception, e:
+            except Exception as e:
                 self.warning(('Cannot update format. Reverting to default.' +
                               ' Reason: %r'), e)
                 self.setFormat(defaultFormatter)
@@ -762,7 +767,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param kwargs: keyword arguments that will be passed to
                        :attribute:`FORMAT` if it is a callable
         """
-        if not isinstance(self.FORMAT, basestring):
+        if not isinstance(self.FORMAT, string_types):
             # unbound method to callable
             if isinstance(self.FORMAT, MethodType):
                 self.FORMAT = self.FORMAT.__func__
@@ -781,7 +786,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
                        "full.module.callable" format)
         """
         # Check if the format is a callable string representation
-        if isinstance(format, basestring):
+        if isinstance(format, string_types):
             try:
                 moduleName, formatterName = format.rsplit('.', 1)
                 __import__(moduleName)
@@ -798,7 +803,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :return: (str) a string of the current format. It could be a python
                  format string or a callable string representation.
         """
-        if isinstance(self.FORMAT, basestring):
+        if isinstance(self.FORMAT, string_types):
             formatter = self.FORMAT
         else:
             formatter = '{0}.{1}'.format(self.FORMAT.__module__,

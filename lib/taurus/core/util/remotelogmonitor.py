@@ -28,7 +28,8 @@
 from __future__ import print_function
 from __future__ import with_statement
 
-__all__ = ["LogRecordStreamHandler", "LogRecordSocketReceiver", "log"]
+from future import standard_library
+standard_library.install_aliases()
 
 import time
 import socket
@@ -38,10 +39,10 @@ import logging.handlers
 import struct
 import weakref
 
-try:
-    import socketserver
-except:
-    import SocketServer as socketserver
+import socketserver
+
+
+_all__ = ["LogRecordStreamHandler", "LogRecordSocketReceiver", "log"]
 
 
 class LogRecordStreamHandler(socketserver.StreamRequestHandler):

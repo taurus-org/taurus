@@ -29,16 +29,17 @@ servers
 It is not a replacement of the Tango Starter Device Server since this is much
 more limited in scope.
 """
-
-__docformat__ = 'restructuredtext'
-
+from __future__ import print_function
+from builtins import object
 
 import os
 import time
 import subprocess
 import PyTango
-
 from taurus.core.util.log import Logger
+
+
+__docformat__ = 'restructuredtext'
 
 _log = Logger('Starter')
 
@@ -236,9 +237,9 @@ if __name__ == '__main__':
     s.addNewDevice(devname, klass='Timeout')
     s.startDs()
     try:
-        print 'Is running:', s.isRunning()
-        print "ping:", PyTango.DeviceProxy(devname).ping()
-    except Exception, e:
-        print e
+        print('Is running:', s.isRunning())
+        print("ping:", PyTango.DeviceProxy(devname).ping())
+    except Exception as e:
+        print(e)
     s.stopDs()
     s.cleanDb(force=False)

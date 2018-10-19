@@ -25,11 +25,12 @@
 
 """This module contains taurus Qt form widgets"""
 
-__all__ = ["TaurusAttrForm", "TaurusCommandsForm", "TaurusForm"]
-
-__docformat__ = 'restructuredtext'
+from __future__ import print_function
+from __future__ import absolute_import
 
 from datetime import datetime
+
+from future.utils import string_types
 
 from taurus.external.qt import Qt
 
@@ -40,7 +41,11 @@ from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_T
                                         TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_MODEL_MIME_TYPE)
 from taurus.qt.qtgui.container import TaurusWidget, TaurusScrollArea
 from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
-from taurusmodelchooser import TaurusModelChooser
+from .taurusmodelchooser import TaurusModelChooser
+
+__all__ = ["TaurusAttrForm", "TaurusCommandsForm", "TaurusForm"]
+
+__docformat__ = 'restructuredtext'
 
 
 def _normalize_model_name_case(modelname):
@@ -174,7 +179,7 @@ class TaurusForm(TaurusWidget):
 
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
-        if isinstance(modelNames, (basestring, Qt.QString)):
+        if isinstance(modelNames, string_types + (Qt.QString,)):
             modelNames = str(modelNames).replace(',', ' ')
             modelNames = modelNames.split()
         return modelNames
@@ -216,7 +221,7 @@ class TaurusForm(TaurusWidget):
         if self.__modelChooserDlg is None:
             self.__modelChooserDlg = Qt.QDialog(self)
             self.__modelChooserDlg.setWindowTitle(
-                "%s - Model Chooser" % unicode(self.windowTitle()))
+                "%s - Model Chooser" % str(self.windowTitle()))
             self.__modelChooserDlg.modelChooser = TaurusModelChooser()
             layout = Qt.QVBoxLayout()
             layout.addWidget(self.__modelChooserDlg.modelChooser)
@@ -677,7 +682,7 @@ class TaurusCommandsForm(TaurusWidget):
             return
 
         for f in self.getViewFilters():
-            commands = filter(f, commands)
+            commands = list(filter(f, commands))
 
         self._clearFrame()
 
@@ -864,7 +869,7 @@ class TaurusAttrForm(TaurusWidget):
             return
         attrlist = sorted(dev.attribute_list_query(), key=self._sortKey)
         for f in self.getViewFilters():
-            attrlist = filter(f, attrlist)
+            attrlist = list(filter(f, attrlist))
         attrnames = []
         devname = self.getModelName()
         for a in attrlist:
@@ -1013,7 +1018,7 @@ def test4():
     class DummyCW(TaurusValue):
 
         def setModel(self, model):
-            print "!!!!! IN DUMMYCW.SETMODEL", model
+            print("!!!!! IN DUMMYCW.SETMODEL", model)
             TaurusValue.setModel(self, model + '/double_scalar')
 
     models = ['sys/database/2', 'sys/tg_test/1', 'sys/tg_test/1/short_spectrum',
