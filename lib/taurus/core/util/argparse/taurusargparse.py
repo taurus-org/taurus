@@ -200,8 +200,8 @@ def init_taurus_args(parser=None, args=None, values=None):
             rfoo.utils.rconsole.spawn_server(port=options.remote_console_port)
             taurus.info("rconsole started. You can connect to it by typing: rconsole -p %d",
                         options.remote_console_port)
-        except Exception, e:
-            taurus.warning("Cannot spawn debugger. Reason: %s", str(e))
+        except Exception as e:
+            taurus.warning("Cannot spawn debugger. Reason: %s", e)
 
     # initialize default formatter
     if options.default_formatter is not None:

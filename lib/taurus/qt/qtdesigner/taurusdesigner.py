@@ -23,6 +23,7 @@
 ##
 #############################################################################
 
+from builtins import str
 import sys
 import os.path
 import optparse

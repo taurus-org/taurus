@@ -22,9 +22,18 @@
 ##
 #############################################################################
 
-'''
+"""
 a misc collection of basic types
-'''
+"""
+
+import datetime
+
+from .util.enumeration import Enumeration
+from .util.log import taurus4_deprecation
+from enum import IntEnum
+from future.utils import PY2
+from builtins import object
+
 
 __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "TaurusSerializationMode", "SubscriptionState", "TaurusEventType",
@@ -34,12 +43,6 @@ __all__ = ["TaurusSWDevState", "TaurusSWDevHealth", "OperationMode",
            "TaurusLockInfo", "TaurusDevState", "TaurusModelValue"]
 
 __docformat__ = "restructuredtext"
-
-import datetime
-
-from .util.enumeration import Enumeration
-from .util.log import taurus4_deprecation
-from enum import IntEnum
 
 
 class TaurusDevState(IntEnum):
@@ -150,14 +153,15 @@ DataType = Enumeration(
 __PYTHON_TYPE_TO_TAURUS_DATATYPE = {
     str: DataType.String,
     int: DataType.Integer,
-    long: DataType.Integer,
+    # long : DataType.Integer,  # (only in py2) see below...
     float: DataType.Float,
     bool: DataType.Boolean,
-    # bytes : DataType.Bytes, # see below...
+    # bytes : DataType.Bytes,  # (only in py>=3) see below...
 }
-if str is not bytes:  # Python >=3
+if PY2:  # Python 2
+    __PYTHON_TYPE_TO_TAURUS_DATATYPE[long] = DataType.Integer
+else:  # Python >=3
     __PYTHON_TYPE_TO_TAURUS_DATATYPE[bytes] = DataType.Bytes
-# Note: in Python2, DataType.from_python_type(bytes) --> DataType.String
 DataType.from_python_type = __PYTHON_TYPE_TO_TAURUS_DATATYPE.get
 
 SubscriptionState = Enumeration(

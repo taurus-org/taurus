@@ -25,11 +25,12 @@
 
 """This is an experimental property parser"""
 
-import os
+from __future__ import print_function
+from builtins import str
 
+import os
 import ply.lex as lex
 import ply.yacc as yacc
-
 from .containers import CaselessDict
 from .log import Logger
 
@@ -47,7 +48,7 @@ tokens = ['EQUALS',
           'COMMA',
           'LLST', 'RLST',
           #'LBRACKET', 'RBRACKET',
-          ] + reserved.values()
+          ] + list(reserved.values())
 
 t_EQUALS = r'\='
 t_LLST = r'\['
@@ -68,7 +69,7 @@ def t_NUMBER(t):
         else:
             t.value = float(t.value)
     except:
-        print "[%d]: Number %s is not valid!" % (t.lineno, t.value)
+        print("[%d]: Number %s is not valid!" % (t.lineno, t.value))
         t.value = 0
     return t
 
@@ -117,12 +118,12 @@ def t_newline(t):
 
 
 def t_error(t):
-    print "[%d]: Illegal character '%s'" % (t.lexer.lineno, t.value[0])
+    print("[%d]: Illegal character '%s'" % (t.lexer.lineno, t.value[0]))
     t.lexer.skip(1)
 
 
 def p_error(p):
-    print "[%d]: Syntax error in input [%s]" % (p.lineno, (str(p)))
+    print("[%d]: Syntax error in input [%s]" % (p.lineno, (str(p))))
 
 #-------------------------------------------------------------------------
 # Yacc Starting symbol
@@ -228,7 +229,7 @@ class PropertyParser(Logger):
             res = self.parse_file(
                 f, logger=logger, debug=debug, optimize=optimize)
             f.close()
-        except IOError, e:
+        except IOError as e:
             if f:
                 f.close()
             raise
@@ -241,4 +242,4 @@ if __name__ == '__main__':
     import sys
     pp = PropertyParser()
     res = pp.parse(sys.argv[1])
-    print res
+    print(res)

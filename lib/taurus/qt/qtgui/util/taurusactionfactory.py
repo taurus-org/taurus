@@ -25,15 +25,20 @@
 
 """This module is designed to provide a factory class for taurus Qt actions """
 
-__all__ = ["ActionFactory"]
+from __future__ import absolute_import
 
-__docformat__ = 'restructuredtext'
+from future.utils import string_types
 
 from taurus.core.util.log import Logger
 from taurus.core.util.singleton import Singleton
 from taurus.external.qt import Qt
 
-import taurusaction
+from . import taurusaction
+
+
+__all__ = ["ActionFactory"]
+
+__docformat__ = 'restructuredtext'
 
 
 class ActionFactory(Singleton, Logger):
@@ -129,7 +134,7 @@ class ActionFactory(Singleton, Logger):
             action.toggled.connect(toggled)
             action.setCheckable(True)
         if icon is not None:
-            if isinstance(icon, (str, unicode)):
+            if isinstance(icon, string_types):
                 icon = Qt.QIcon.fromTheme(icon)
             action.setIcon(icon)
         if shortcut is not None:

@@ -24,13 +24,18 @@
 #############################################################################
 
 """Adapted from http://code.activestate.com/recipes/267662/"""
-
-__docformat__ = "restructuredtext"
-
-import cStringIO
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import str
+from builtins import range
+from functools import reduce
 import operator
 import re
 import math
+
+__docformat__ = "restructuredtext"
 
 
 def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
@@ -56,13 +61,13 @@ def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
     # closure for breaking logical rows to physical, using wrapfunc
     def rowWrapper(row):
         newRows = [wrapfunc(item).split('\n') for item in row]
-        return [[substr or '' for substr in item] for item in map(None, *newRows)]
+        return [[substr or '' for substr in item] for item in list(*newRows)]
 
     # break each logical row into one or more physical ones
     logicalRows = [rowWrapper(row) for row in rows]
     # columns of physical rows
 
-    columns = map(None, *reduce(operator.add, logicalRows))
+    columns = list(*reduce(operator.add, logicalRows))
 
     # get the maximum of each column by the string length of its items
     maxWidths = [max([len(str(item)) for item in column])
@@ -118,14 +123,12 @@ def wrap_onspace_strict(text, width):
     wordRegex = re.compile(r'\S{' + str(width) + r',}')
     return wrap_onspace(wordRegex.sub(lambda m: wrap_always(m.group(), width), text), width)
 
-import math
-
 
 def wrap_always(text, width):
     """A simple word-wrap function that wraps text on exactly width characters.
        It doesn't split the text in words."""
     return '\n'.join([text[width * i:width * (i + 1)]
-                      for i in xrange(int(math.ceil(1. * len(text) / width)))])
+                      for i in range(int(math.ceil(1. * len(text) / width)))])
 
 if __name__ == '__main__':
     labels = ('First Name', 'Last Name', 'Age', 'Position')
@@ -135,19 +138,19 @@ if __name__ == '__main__':
        Aristidis,Papageorgopoulos,28,Senior Reseacher'''
     rows = [row.strip().split(',') for row in data.splitlines()]
 
-    print 'Without wrapping function\n'
+    print('Without wrapping function\n')
     for l in indent([labels] + rows, hasHeader=True):
-        print l
+        print(l)
 
     # test indent with different wrapping functions
     width = 10
     for wrapper in (wrap_always, wrap_onspace, wrap_onspace_strict):
-        print 'Wrapping function: %s(x,width=%d)\n' % (wrapper.__name__, width)
+        print('Wrapping function: %s(x,width=%d)\n' % (wrapper.__name__, width))
         o = indent([labels] + rows, headerChar='=', hasHeader=True, separateRows=False,
                    prefix='|', postfix='|', delim=' ',
                    wrapfunc=lambda x: wrapper(x, width))
         for l in o:
-            print l
+            print(l)
 
     # output:
     #

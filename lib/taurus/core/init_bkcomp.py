@@ -24,10 +24,9 @@
 #############################################################################
 
 """The core module"""
+from __future__ import absolute_import
 
-__docformat__ = "restructuredtext"
-
-import release as Release
+from . import release as Release
 # from .enums import * #note: all the enums from enums.py were moved to
 # taurusbasetypes.py
 from .taurusbasetypes import *
@@ -49,3 +48,5 @@ try:
     from .tauv1 import *
 except:
     pass
+
+__docformat__ = "restructuredtext"

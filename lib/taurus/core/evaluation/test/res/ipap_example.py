@@ -27,6 +27,8 @@ Examples on using the evaluation scheme for exposing icepap driver values
 as taurus attributes
 """
 
+from __future__ import print_function
+
 
 ATTR_IPAP_POS = ( 'eval:@ipap=pyIcePAP.EthIcePAP("icepap06", port=5000)' +
                   '/float(ipap.readParameter(1,"POS"))')
@@ -35,7 +37,7 @@ ATTR_IPAP_POS = ( 'eval:@ipap=pyIcePAP.EthIcePAP("icepap06", port=5000)' +
 def _test1():
     import taurus.core
     a = taurus.Attribute(ATTR_IPAP_POS)
-    print "axis pos:", a.read().rvalue
+    print("axis pos:", a.read().rvalue)
 
 
 def _test2():

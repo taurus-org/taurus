@@ -25,6 +25,8 @@
 
 """This module contains ANSI color codes"""
 
+from builtins import object
+
 __all__ = ["make_color_table", "NoColors", "TermColors", "HTMLColors"]
 
 __docformat__ = "restructuredtext"
@@ -63,13 +65,13 @@ def make_color_table(in_class, use_name=False, fake=False):
                 setattr(in_class, name, in_class._base % value)
 
 
-class NoColors:
+class NoColors(object):
     NoColor = ''  # for color schemes in color-less terminals.
     Normal = ''   # Reset normal coloring
     _base = ''  # Template for all other colors
 
 
-class TermColors:
+class TermColors(object):
     """Color escape sequences.
 
     This class defines the escape sequences for all the standard (ANSI?)
@@ -86,7 +88,7 @@ class TermColors:
     _base = '\033[%sm'  # Template for all other colors
 
 
-class HTMLColors:
+class HTMLColors(object):
 
     NoColor = ''
     Normal = '</font>'

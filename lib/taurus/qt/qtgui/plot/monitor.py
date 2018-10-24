@@ -27,6 +27,8 @@
 monitor.py: Specialized mini-trend widget to monitor some scalar value
 """
 
+from __future__ import print_function
+
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.plot import TaurusTrend
 
@@ -109,7 +111,7 @@ if __name__ == "__main__":
         elif a.startswith('-config='):
             CONFIG = a.split('=')[-1]
         elif a.startswith('-'):  # whatever other argument starting by "-"
-            print "\n Usage: \n%s [-xe|-xt] [-config=configfilename] [model1 [model2] ...]\n" % sys.argv[0]
+            print("\n Usage: \n%s [-xe|-xt] [-config=configfilename] [model1 [model2] ...]\n" % sys.argv[0])
             sys.exit(1)
         else:  # anything that is not a parameter is interpreted as a model
             MODELS.append(a)

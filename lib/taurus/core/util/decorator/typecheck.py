@@ -63,12 +63,12 @@ Needed to cast params as floats in function def (or simply divide by 2.0).
 
 """
 
+from __future__ import print_function
+import sys
+
 __all__ = ["accepts", "returns"]
 
 __docformat__ = "restructuredtext"
-
-import sys
-
 
 def accepts(*types, **kw):
     """ Function decorator. Checks that inputs given to decorated function
@@ -97,17 +97,17 @@ def accepts(*types, **kw):
                 if argtypes != types:
                     msg = info(f.__name__, types, argtypes, 0)
                     if debug == 1:
-                        print >> sys.stderr, 'TypeWarning: ', msg
+                        print('TypeWarning: ', msg, file=sys.stderr)
                     elif debug == 2:
-                        raise TypeError, msg
+                        raise TypeError(msg)
                 return f(*args)
             newf.__name__ = f.__name__
             return newf
         return decorator
-    except KeyError, key:
-        raise KeyError, key + "is not a valid keyword argument"
-    except TypeError, msg:
-        raise TypeError, msg
+    except KeyError as key:
+        raise KeyError(key + "is not a valid keyword argument")
+    except TypeError as msg:
+        raise TypeError(msg)
 
 
 def returns(ret_type, **kw):
@@ -138,17 +138,17 @@ def returns(ret_type, **kw):
                 if res_type != ret_type:
                     msg = info(f.__name__, (ret_type,), (res_type,), 1)
                     if debug == 1:
-                        print >> sys.stderr, 'TypeWarning: ', msg
+                        print('TypeWarning: ', msg, file=sys.stderr)
                     elif debug == 2:
-                        raise TypeError, msg
+                        raise TypeError(msg)
                 return result
             newf.__name__ = f.__name__
             return newf
         return decorator
-    except KeyError, key:
-        raise KeyError, key + "is not a valid keyword argument"
-    except TypeError, msg:
-        raise TypeError, msg
+    except KeyError as key:
+        raise KeyError(key + "is not a valid keyword argument")
+    except TypeError as msg:
+        raise TypeError(msg)
 
 
 def info(fname, expected, actual, flag):

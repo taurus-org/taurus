@@ -26,14 +26,18 @@
 """
 scales.py: Custom scales used by taurus.qt.qtgui.plot module
 """
-__all__ = ["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine",
-           "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw",
-           "FixedLabelsScaleDraw"]
+
+from __future__ import print_function
 
 import numpy
 from datetime import datetime, timedelta
 from time import mktime
 from taurus.external.qt import Qt, Qwt5
+
+
+__all__ = ["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine",
+           "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw",
+           "FixedLabelsScaleDraw"]
 
 
 def _getDefaultAxisLabelsAlignment(axis, rotation):
@@ -217,7 +221,7 @@ class DateTimeScaleEngine(Qwt5.QwtLinearScaleEngine):
 
         elif dx > 2:  # 2s
             format = "%H:%M:%S"
-            majticks = range(int(x1) + 1, int(x2))
+            majticks = list(range(int(x1) + 1, int(x2)))
 
         else:  # less than 2s (show microseconds)
             scaleDiv = Qwt5.QwtLinearScaleEngine.divideScale(
@@ -318,8 +322,8 @@ class TaurusTimeScaleDraw(FancyScaleDraw):
         t = datetime.fromtimestamp(val)
         try:  # If the scaleDiv was created by a DateTimeScaleEngine it has a _datetimeLabelFormat
             s = t.strftime(self._datetimeLabelFormat)
-        except AttributeError, e:
-            print "Warning: cannot get the datetime label format (Are you using a DateTimeScaleEngine?)"
+        except AttributeError:
+            print("Warning: cannot get the datetime label format (Are you using a DateTimeScaleEngine?)")
             s = t.isoformat(' ')
         return Qwt5.QwtText(s)
 

@@ -26,12 +26,14 @@
 """
 curveprops: Model and view for curve properties
 """
-__all__ = ['CurveConf', 'CurvesTableModel',
-           'ExtendedSelectionModel', 'CurvePropertiesView']
+
 #raise NotImplementedError('Under Construction!')
 
+from __future__ import absolute_import
+from builtins import str
+from builtins import object
+
 import copy
-import re
 
 from taurus.external.qt import Qt, Qwt5
 import taurus
@@ -40,16 +42,19 @@ from taurus.core import TaurusElementType
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.util.ui import UILoadable
 
-from curvesAppearanceChooserDlg import NamedLineStyles, ReverseNamedLineStyles, \
+from .curvesAppearanceChooserDlg import NamedLineStyles, ReverseNamedLineStyles, \
     NamedCurveStyles, ReverseNamedCurveStyles, \
     NamedSymbolStyles, ReverseNamedSymbolStyles, \
     NamedColors, CurveAppearanceProperties
 
 
+__all__ = ['CurveConf', 'CurvesTableModel',
+           'ExtendedSelectionModel', 'CurvePropertiesView']
+
 # set some named constants
 # columns:
 NUMCOLS = 4
-X, Y, TITLE, VIS = range(NUMCOLS)
+X, Y, TITLE, VIS = list(range(NUMCOLS))
 SRC_ROLE = Qt.Qt.UserRole + 1
 PROPS_ROLE = Qt.Qt.UserRole + 2
 
@@ -73,7 +78,7 @@ class Component(object):
 
     def processSrc(self, src):
         '''returns src,display,icon,ok'''
-        src = unicode(src)
+        src = str(src)
         # empty
         if src == '':
             return '', '', Qt.QIcon(), True
@@ -242,7 +247,7 @@ class CurvesTableModel(Qt.QAbstractTableModel):
                     row, 0), self.index(row, self.ncolumns - 1))
             else:
                 column = index.column()
-                value = Qt.from_qvariant(value, unicode)
+                value = Qt.from_qvariant(value, str)
                 if column == X:
                     curve.x.setSrc(value)
                 elif column == Y:
@@ -356,8 +361,8 @@ class CurvePropertiesView(Qt.QAbstractItemView):
         self.loadUi()
 
         self.ui.sStyleCB.insertItems(0, sorted(NamedSymbolStyles.values()))
-        self.ui.lStyleCB.insertItems(0, NamedLineStyles.values())
-        self.ui.cStyleCB.insertItems(0, NamedCurveStyles.values())
+        self.ui.lStyleCB.insertItems(0, list(NamedLineStyles.values()))
+        self.ui.cStyleCB.insertItems(0, list(NamedCurveStyles.values()))
         self.ui.sColorCB.addItem("")
         self.ui.lColorCB.addItem("")
         for color in NamedColors:

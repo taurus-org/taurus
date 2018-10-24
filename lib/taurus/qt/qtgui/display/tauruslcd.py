@@ -25,11 +25,12 @@
 
 """This module provides a Taurus widget based on QLCDNumber"""
 
-__all__ = ["TaurusLCD"]
+from __future__ import absolute_import
 
-__docformat__ = 'restructuredtext'
+from builtins import str
+from builtins import object
 
-import operator
+import collections
 
 from taurus.core.taurusbasetypes import (TaurusElementType, TaurusEventType,
                                          AttrQuality, TaurusDevState)
@@ -39,6 +40,11 @@ from taurus.qt.qtgui.base import TaurusBaseController
 from taurus.qt.qtgui.base import TaurusScalarAttributeControllerHelper
 from taurus.qt.qtgui.base import TaurusConfigurationControllerHelper
 from taurus.qt.qtgui.base import updateLabelBackground
+
+
+__all__ = ["TaurusLCD"]
+
+__docformat__ = 'restructuredtext'
 
 _QT_PLUGIN_INFO = {
     'module': 'taurus.qt.qtgui.display',
@@ -106,7 +112,7 @@ class TaurusLCDControllerAttribute(TaurusScalarAttributeControllerHelper, Taurus
                 for i in idx:
                     value = value[i]
             return widget.displayValue(value)
-        except Exception, e:
+        except Exception as e:
             return widget.getNoneValue()
 
 
@@ -278,7 +284,7 @@ class TaurusLCD(Qt.QLCDNumber, TaurusBaseWidget):
                 return
             if type(mi_value) == int:
                 mi_value = mi_value,
-            if not operator.isSequenceType(mi_value):
+            if not isinstance(mi_value, collections.Sequence):
                 return
             self._modelIndex = mi_value
         self._modelIndexStr = mi
@@ -383,8 +389,8 @@ class TaurusLCD(Qt.QLCDNumber, TaurusBaseWidget):
 
 def demo():
     "LCD"
-    import demo.tauruslcddemo
-    return demo.tauruslcddemo.main()
+    from .demo import tauruslcddemo
+    return tauruslcddemo.main()
 
 
 def main():

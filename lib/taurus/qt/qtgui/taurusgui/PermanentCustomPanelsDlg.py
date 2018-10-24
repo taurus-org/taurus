@@ -28,6 +28,7 @@
 PermanentCustomPanelDlg.py:
 """
 
+from builtins import object
 from taurus.external.qt import Qt
 
 

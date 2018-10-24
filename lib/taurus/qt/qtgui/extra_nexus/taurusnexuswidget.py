@@ -27,16 +27,18 @@
 nexusWidget.py:
 """
 
-__all__ = ["TaurusNexusBrowser"]
+from builtins import str
 
 import numpy
 import posixpath
 
-from PyMca5.PyMcaGui.io.hdf5 import HDF5Widget, HDF5Info, HDF5DatasetTable
 from taurus.external.qt import Qt
+from PyMca5.PyMcaGui.io.hdf5 import HDF5Widget, HDF5Info, HDF5DatasetTable
 
 from taurus.qt.qtgui.container import TaurusWidget
-from taurus.qt.qtgui.plot import TaurusPlot
+
+
+__all__ = ["TaurusNexusBrowser"]
 
 
 class NeXusInfoWidget(Qt.QTabWidget):
@@ -111,7 +113,7 @@ class TaurusNeXusBrowser(TaurusWidget):
 
     def openFile(self, fname=None):
         if fname is None:
-            fname = unicode(Qt.QFileDialog.getOpenFileName(
+            fname = str(Qt.QFileDialog.getOpenFileName(
                 self, "Choose NeXus File", "/home/cpascual/local/tmp/scantest.h5"))  # @TODO!!
         if fname:
             self.__nexusFile = self.__fileModel.openFile(fname)
@@ -129,6 +131,7 @@ class TaurusNeXusBrowser(TaurusWidget):
             node = ddict['name']
             data = self.__nexusFile[node]
             if len(data.shape) == 1 and isinstance(data[0], (numpy.floating, numpy.integer, int, float)):
+                from taurus.qt.qtgui.plot import TaurusPlot
                 w = TaurusPlot()
                 w.attachRawData({"x": numpy.arange(len(data)), "y": data})
             else:

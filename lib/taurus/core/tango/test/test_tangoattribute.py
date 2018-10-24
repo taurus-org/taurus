@@ -801,7 +801,7 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
         self.assertTrue(isinstance(read_value, TangoAttrValue), msg)
 
         # Test attribute
-        for k, exp in expected.iteritems():
+        for k, exp in expected.items():
             try:
                 got = getattr(a, k)
             except AttributeError:
@@ -813,7 +813,7 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
             self.__assertValidValue(exp, got, msg)
 
         # Test attribute value
-        for k, exp in expected_attrv.iteritems():
+        for k, exp in expected_attrv.items():
             try:
                 got = getattr(read_value, k)
             except AttributeError:

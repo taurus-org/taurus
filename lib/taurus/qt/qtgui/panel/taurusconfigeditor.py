@@ -27,12 +27,11 @@
 taurusconfigeditor.py:
 """
 
-__all__ = ["QConfigEditor"]
-
-__docformat__ = 'restructuredtext'
+from future import standard_library
+standard_library.install_aliases()
 
 from taurus.external.qt import Qt
-import cPickle as pickle
+import pickle
 import os
 import tempfile
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
@@ -40,10 +39,15 @@ from taurus.qt.qtgui.container import TaurusWidget
 import shutil
 
 
+__all__ = ["QConfigEditor"]
+
+__docformat__ = 'restructuredtext'
+
+
 class QConfigEditorModel(Qt.QStandardItemModel):
     '''A custom Model for QConfigEditor'''
 
-    showError = Qt.pyqtSignal(str, str)
+    showError = Qt.pyqtSignal('QString', 'QString')
 
     def __init__(self, parent=None, designMode=False):
         super(Qt.QStandardItemModel, self).__init__()
@@ -77,9 +81,9 @@ class QConfigEditorModel(Qt.QStandardItemModel):
 
         :param iniFileName: (str)
         '''
-        self.originalFile = unicode(iniFileName)
+        self.originalFile = str(iniFileName)
         self._file = tempfile.NamedTemporaryFile()
-        self._temporaryFile = unicode(self._file.name)
+        self._temporaryFile = str(self._file.name)
 
         shutil.copyfile(self.originalFile, self._temporaryFile)
 
@@ -138,7 +142,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                 key = val[0]
             dict[key] = self.removeBranch(dict[key], path)
             if self._delete == True:
-                if not dict.has_key('__orderedConfigNames__'):
+                if '__orderedConfigNames__' not in dict:
                     return dict
                 dict['__orderedConfigNames__'] = self.removeBranch(
                     dict['__orderedConfigNames__'], path)
@@ -150,7 +154,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                     return dict
                 dict.remove(val[0])
                 return dict
-            if not dict.has_key('__orderedConfigNames__'):
+            if '__orderedConfigNames__' not in dict:
                 self._delete = True
             dict.pop(val[0])
             return dict
@@ -346,7 +350,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         if qstate is not None and not qstate.isNull():
             try:
                 result = pickle.loads(qstate.data())
-            except Exception, e:
+            except Exception as e:
                 msg = 'problems loading TaurusConfig: \n%s' % repr(e)
                 Qt.QMessageBox.critical(None, 'Error loading settings', msg)
         return result

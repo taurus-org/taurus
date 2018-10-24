@@ -121,9 +121,9 @@ class TaurusWidgetFactory(Singleton, Logger):
                         qt_ret[dir_name] = package, attr
                         if issubclass(attr, taurus.qt.qtgui.base.TaurusBaseWidget):
                             taurus_ret[dir_name] = package, attr
-                except Exception, e:
+                except Exception as e:
                     pass
-        except Exception, e:
+        except Exception as e:
             return taurus_ret, qt_ret
 
         if not recursive:
@@ -162,13 +162,13 @@ class TaurusWidgetFactory(Singleton, Logger):
             try:
                 self.debug("Trying to find extra module %s", m_name)
                 f, fname, data = imp.find_module(m_name, [path])
-            except ImportError, ie:
+            except ImportError as ie:
                 self.debug("Could not find extra module %s:%s", m_name, ie)
                 continue
             try:
                 self.debug("Trying to load extra module %s", m_name)
                 mod = imp.load_module(m_name, f, fname, data)
-            except ImportError, ie:
+            except ImportError as ie:
                 self.debug("Could not load extra module %s:%s", m_name, ie)
                 continue
             dir_names = dir(mod)
@@ -185,7 +185,7 @@ class TaurusWidgetFactory(Singleton, Logger):
                             taurus_ret[dir_name] = qt_info['module'], attr
                             qt_widgets[dir_name] = qt_info['module'], attr
                             self.debug("registered taurus widget %s", dir_name)
-                except Exception, e:
+                except Exception as e:
                     pass
 
     def getWidgets(self):
@@ -195,7 +195,7 @@ class TaurusWidgetFactory(Singleton, Logger):
         return self._taurus_widgets
 
     def getWidgetClassNames(self):
-        return self._qt_widgets.keys()
+        return list(self._qt_widgets.keys())
 
     def getWidgetClasses(self):
         return [klass for mod_name, klass in self._qt_widgets.values()]
@@ -204,7 +204,7 @@ class TaurusWidgetFactory(Singleton, Logger):
         return self._qt_widgets[name][1]
 
     def getTaurusWidgetClassNames(self):
-        return self._taurus_widgets.keys()
+        return list(self._taurus_widgets.keys())
 
     def getTaurusWidgetClasses(self):
         return [klass for mod_name, klass in self._taurus_widgets.values()]

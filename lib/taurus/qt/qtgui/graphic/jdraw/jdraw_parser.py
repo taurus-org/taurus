@@ -27,16 +27,16 @@
 
 from __future__ import absolute_import
 
-__all__ = ["new_parser", "parse"]
-
 import os
 import re
-import imp
 
 from ply import lex
 from ply import yacc
 
 from taurus.core.util.log import Logger
+
+
+__all__ = ["new_parser", "parse"]
 
 tokens = ('NUMBER', 'SYMBOL', 'LBRACKET', 'RBRACKET', 'TWOP', 'COMMA',
           'JDFILE', 'GLOBAL', 'JDLINE', 'JDRECTANGLE', 'JDROUNDRECTANGLE',
@@ -325,7 +325,7 @@ def new_parser(optimize=None, debug=0, outputdir=None):
     try:
         p = yacc.yacc(tabmodule=jdraw_yacctab, debugfile=None, write_tables=1,
                       **common_kwargs)
-    except Exception, e:
+    except Exception as e:
         msg = ('Error creating jdraw parser.\n' +
                'HINT: Try removing jdraw_lextab.* and jdraw_yacctab.* from %s' %
                outputdir)

@@ -26,19 +26,25 @@
 """
 itemsmodel Model and view for new CurveItem configuration
 """
-__all__ = ['TaurusModelModel', 'TaurusModelItem', 'TaurusModelList']
+from builtins import object
 #raise UnimplementedError('Under Construction!')
 
 import copy
+
+from future.utils import string_types
 
 from taurus.external.qt import Qt
 import taurus
 from taurus.core.taurushelper import getSchemeFromName
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusexception import TaurusException
-from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.icon import getElementTypeIcon
-from taurus.qt.qtcore.util.signal import baseSignal
+
+
+__all__ = ['TaurusModelModel', 'TaurusModelItem', 'TaurusModelList']
 
 # set some named constants
 SRC_ROLE = Qt.Qt.UserRole + 1
@@ -172,7 +178,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
             row = index.row()
             item = self.items[row]
-            value = Qt.from_qvariant(value, unicode)
+            value = Qt.from_qvariant(value, str)
             if role == Qt.Qt.EditRole:
                 item.src = value
             elif role == Qt.Qt.DisplayRole:
@@ -188,7 +194,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
         if parentindex is None:
             parentindex = Qt.QModelIndex()
         if items is None:
-            slice = [TaurusModelItem() for i in xrange(rows)]
+            slice = [TaurusModelItem() for i in range(rows)]
         else:
             slice = list(items)
             # note that the rows parameter is ignored if items is passed
@@ -255,7 +261,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
         for e in items:
             if isinstance(e, TaurusModelItem):
                 itemobjs.append(e)
-            elif isinstance(e, basestring):
+            elif isinstance(e, string_types):
                 itemobjs.append(TaurusModelItem(src=e))
             else:  # assuming it is a sequence of arguments that can be passed to the constructor of TaurusModelItem
                 itemobjs.append(TaurusModelItem(*e))
@@ -424,7 +430,7 @@ class TaurusModelList(Qt.QListView):
 
         .. seealso:: :meth:`getModelItems`
         '''
-        return [unicode(s.src) for s in self.getModelItems()]
+        return [str(s.src) for s in self.getModelItems()]
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

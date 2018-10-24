@@ -26,19 +26,21 @@
 """This configuration contains base modules and classes that may be used
 by specific TaurusGui-based GUIs"""
 
-__docformat__ = 'restructuredtext'
+from builtins import object
 
-import os
-import sys
 from lxml import etree
+from future.utils import string_types
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.core.util.log import Logger
 
+
+__docformat__ = 'restructuredtext'
+
 # this is here only for backwards compatibility. It should not be used at all
 
 
-class Qt_Qt:
+class Qt_Qt(object):
     LeftDockWidgetArea = 1
     RightDockWidgetArea = 2
     BottomDockWidgetArea = 3
@@ -223,9 +225,9 @@ class TaurusGuiComponentDescription(object):
             w.setModel(self.model)
         # connect (if an sdm is given)
         if sdm is not None:
-            for dataUID, signalname in self.sharedDataWrite.iteritems():
+            for dataUID, signalname in self.sharedDataWrite.items():
                 sdm.connectWriter(dataUID, w, signalname)
-            for dataUID, slotname in self.sharedDataRead.iteritems():
+            for dataUID, slotname in self.sharedDataRead.items():
                 sdm.connectReader(dataUID, getattr(w, slotname))
         # set the name
         w.name = self.name
@@ -250,12 +252,12 @@ class TaurusGuiComponentDescription(object):
         floating.text = str(self._floating)
 
         sharedDataWrite = etree.SubElement(root, "sharedDataWrite")
-        for k, v in self._sharedDataWrite.iteritems():
+        for k, v in self._sharedDataWrite.items():
             item = etree.SubElement(
                 sharedDataWrite, "item", datauid=k, signalName=v)
 
         sharedDataRead = etree.SubElement(root, "sharedDataRead")
-        for k, v in self._sharedDataRead.iteritems():
+        for k, v in self._sharedDataRead.items():
             item = etree.SubElement(
                 sharedDataRead, "item", datauid=k, slotName=v)
 
@@ -381,13 +383,13 @@ class PanelDescription(TaurusGuiComponentDescription):
         sharedDataWrite = None
         sharedDataRead = None
         model = getattr(panel.widget(), 'model', None)
-        if model is None or isinstance(model, basestring):
+        if model is None or isinstance(model, string_types):
             pass
         elif hasattr(model, '__iter__'):
             # if model is a sequence, convert to space-separated string
             try:
                 model = " ".join(model)
-            except Exception, e:
+            except Exception as e:
                 msg = ('Cannot convert %s to a space-separated string: %s' %
                        (model, e))
                 Logger().debug(msg)

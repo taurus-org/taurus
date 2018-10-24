@@ -39,14 +39,14 @@ class MyPlot(Qwt5.QwtPlot):
     def __init__(self, parent=None):
         Qwt5.QwtPlot.__init__(self, parent)
         self.setAxisScaleDraw(Qwt5.QwtPlot.xBottom, MyScaleDrawSafe())
-        print "Replotting with MyScaleDrawSafe:..."
+        print("Replotting with MyScaleDrawSafe:...")
         self.replot()
-        print "ok"
+        print("ok")
         self.setAxisScaleDraw(Qwt5.QwtPlot.xBottom, MyScaleDrawDanger())
-        print "Replotting with MyScaleDrawDanger (if it crashes now you are affected by the bug) :..."
+        print("Replotting with MyScaleDrawDanger (if it crashes now you are affected by the bug) :...")
         self.replot()
-        print "SAFE!!!"
-        print "if this is printed, the sip/PyQwt bug does not affect you"
+        print("SAFE!!!")
+        print("if this is printed, the sip/PyQwt bug does not affect you")
 
 app = Qt.QApplication([])
 p = MyPlot()

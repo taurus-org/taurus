@@ -24,7 +24,9 @@
 
 
 """Taurus import tests"""
+from __future__ import absolute_import
 
+import sys
 import unittest
 
 
@@ -36,7 +38,7 @@ class TaurusImportTestCase(unittest.TestCase):
 
     def setUp(self):
         """Preconditions: moduleexplorer utility has to be available """
-        from moduleexplorer import ModuleExplorer
+        from .moduleexplorer import ModuleExplorer
         self.explore = ModuleExplorer.explore
 
     def testImportSubmodules(self):
@@ -56,6 +58,10 @@ class TaurusImportTestCase(unittest.TestCase):
             import epics
         except ImportError:
             exclude_patterns.append(r'taurus\.core\.epics')
+
+        if sys.version_info.major > 2:
+            # PyQwt4.Qwt5 not available for PY3
+            exclude_patterns.append(r'taurus\.qt\.qtgui\.plot')
 
 
         moduleinfo, wrn = self.explore('taurus', verbose=False,

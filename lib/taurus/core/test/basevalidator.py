@@ -27,13 +27,13 @@
 
 #__all__ = []
 
-__docformat__ = 'restructuredtext'
-
-
+from builtins import object
 from functools import partial
 from taurus.test import insertTest
-
 from taurus.core.taurusvalidator import TaurusAttributeNameValidator
+
+__docformat__ = 'restructuredtext'
+
 
 valid = partial(insertTest, helper_name='isValid')
 invalid = partial(insertTest, helper_name='isInvalid')
@@ -49,7 +49,7 @@ class AbstractNameValidatorTestCase(object):
         self.assertTrue(self.validator().isValid(name, strict=strict), msg)
         if groups is not None:
             returned = self.validator().getUriGroups(name, strict=strict)
-            for k, v in groups.iteritems():
+            for k, v in groups.items():
                 msg = ('"%s" not in %s.getUriGroups("%s"). Returned %s' %
                        (k, self.validator.__name__, name, returned))
                 self.assertIn(k, returned, msg=msg)

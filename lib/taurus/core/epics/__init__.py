@@ -66,5 +66,5 @@ taurus attributes. Other model types such as the Authority, and Device classes
 are just convenience dummy objects in the epics scheme at this point.
 Epics records may eventually be mapped as Devices.
 """
-
-from epicsfactory import *
+from __future__ import absolute_import
+from .epicsfactory import *

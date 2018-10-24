@@ -25,6 +25,7 @@
 
 """This module exposes PyQt4/PSide uic module"""
 
+from builtins import object
 from taurus.core.util import log
 from taurus.external.qt import API_NAME
 
@@ -36,7 +37,7 @@ if __backend == 'PyQt4':
     from PyQt4.uic import properties
 
     # prevent ui parser from logging debug messages
-    class __IgnoreCalls:
+    class __IgnoreCalls(object):
         def __call__(self, *args, **kwargs):
             pass
 
@@ -54,7 +55,7 @@ elif __backend == 'PyQt5':
     from PyQt5.uic import properties
 
     # prevent ui parser from logging debug messages
-    class __IgnoreCalls:
+    class __IgnoreCalls(object):
         def __call__(self, *args, **kwargs):
             pass
 

@@ -26,7 +26,15 @@
 """
 curvesmodel Model and view for new CurveItem configuration
 """
+
+from __future__ import print_function
+from builtins import next
+from builtins import str
+from builtins import range
+from builtins import object
+
 __all__ = ['TaurusCurveItemTableModel', 'CurveItemConf', 'CurveItemConfDlg']
+
 #raise UnimplementedError('Under Construction!')
 
 import copy
@@ -42,7 +50,7 @@ from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam
 
 import guiqwt
-__guiqwt_version = map(int, guiqwt.__version__.split('.')[:3])
+__guiqwt_version = list(map(int, guiqwt.__version__.split('.')[:3]))
 if __guiqwt_version <= [2, 3, 1]:
     import taurus.external.qt.Qwt5 as qwt
 else:
@@ -54,7 +62,7 @@ AXIS_ID2NAME = {qwt.QwtPlot.yLeft: 'left', qwt.QwtPlot.yRight: 'right',
 # set some named constants
 # columns:
 NUMCOLS = 3
-X, Y, TITLE = range(NUMCOLS)
+X, Y, TITLE = list(range(NUMCOLS))
 SRC_ROLE = Qt.Qt.UserRole + 1
 
 
@@ -108,7 +116,7 @@ class CurveItemConf(object):
         self.taurusparam = taurusparam
         if curveparam is None:
             curveparam = CurveParam()
-            style = make.style.next()  # cycle through colors and linestyles
+            style = next(make.style)  # cycle through colors and linestyles
             update_style_attr(style, curveparam)
             curveparam.line.width = 2
         self.curveparam = curveparam
@@ -488,7 +496,7 @@ class CurveItemConfDlg(Qt.QWidget):
         self.applied.emit()
 
     def onReload(self):
-        print "RELOAD!!! (todo)"
+        print("RELOAD!!! (todo)")
 
 
 #

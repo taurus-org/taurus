@@ -99,5 +99,6 @@ will return a :class:`EvaluationAttribute`, not a `ResAttribute` (`ResAttribute`
 is not even defined).
 
 """
+from __future__ import absolute_import
 
-from resfactory import *
+from .resfactory import *

@@ -27,18 +27,19 @@
 taurus models. The widgets are generic in the sence that they do not assume any
 behavior associated with a specific HW device. They intend to represent only
 abstract model data."""
-
-__docformat__ = 'restructuredtext'
-
+from __future__ import absolute_import
 
 # register icon path files and icon theme on import of taurus.qt.qtgui
-import icon as __icon
+from . import icon as __icon
 import os
 import sys
 import glob
 import pkg_resources
 from taurus import tauruscustomsettings as __S
 from taurus import debug as __debug
+
+
+__docformat__ = 'restructuredtext'
 
 icon_dir = os.path.join(os.path.dirname(os.path.abspath(__icon.__file__)))
 # TODO: get .path file glob pattern from tauruscustomsettings

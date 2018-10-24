@@ -53,8 +53,9 @@ And now inside a :class:`PyQt4.QtGui.QComboBox`::
     view.setModel(model)
 
 """
+from __future__ import absolute_import
+from .taurusmodel import *
+from .taurusdatabasemodel import *
+
 
 __docformat__ = 'restructuredtext'
-
-from taurusmodel import *
-from taurusdatabasemodel import *

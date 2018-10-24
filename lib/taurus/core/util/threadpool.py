@@ -24,18 +24,25 @@
 #############################################################################
 
 """adapted from http://code.activestate.com/recipes/576576/"""
+from __future__ import print_function
+from __future__ import absolute_import
+
+from future import standard_library
+standard_library.install_aliases()
+
+from builtins import range
+
+from threading import Thread, currentThread
+from queue import Queue
+from time import sleep, time
+from traceback import extract_stack, format_list
+
+from .prop import propertx
+from .log import Logger
 
 __all__ = ["ThreadPool", "Worker"]
 
 __docformat__ = "restructuredtext"
-
-from threading import Thread, currentThread
-from Queue import Queue
-from time import sleep, time
-from traceback import extract_stack, format_list
-
-from prop import propertx
-from log import Logger, DebugIt, TraceIt
 
 
 class ThreadPool(Logger):
@@ -152,44 +159,44 @@ if __name__ == '__main__':
 
     def easyJob(*arg, **kw):
         n = arg[0]
-        print '\tSleep\t\t', n
+        print('\tSleep\t\t', n)
         sleep(n)
         return 'Slept\t%d' % n
 
     def longJob(*arg, **kw):
-        print "\tStart\t\t\t", arg, kw
+        print("\tStart\t\t\t", arg, kw)
         n = arg[0] * 3
         sleep(n)
         return "Job done in %d" % n
 
     def badJob(*a, **k):
-        print '\n !!! OOOPS !!!\n'
+        print('\n !!! OOOPS !!!\n')
         a = 1 / 0
 
     def show(*arg, **kw):
-        print 'callback : %s' % arg[0]
+        print('callback : %s' % arg[0])
 
     def test_1(**kwargs):
         workers = kwargs.pop('workers', 5)
         jobqueue = kwargs.pop('jobqueue', 10)
         pool = ThreadPool(name='ThreadPool', Psize=workers, Qsize=jobqueue)
-        print "\n\t\t... let's add some jobs ...\n"
+        print("\n\t\t... let's add some jobs ...\n")
         for j in range(5):
             if j == 1:
                 pool.add(badJob)
             for i in range(5, 0, -1):
                 pool.add(longJob, show, i)
                 pool.add(easyJob, show, i)
-        print '''
+        print('''
             \t\t... and now, we're waiting for the %i workers to get the %i jobs done ...
-        ''' % (pool.size, pool.qsize)
+        ''' % (pool.size, pool.qsize))
         sleep(15)
-        print "\n\t\t... ok, that may take a while, let's get some reinforcement ...\n"
+        print("\n\t\t... ok, that may take a while, let's get some reinforcement ...\n")
         sleep(5)
         pool.size = 50
-        print '\n\t\t... Joining ...\n'
+        print('\n\t\t... Joining ...\n')
         pool.join()
-        print '\n\t\t... Ok ...\n'
+        print('\n\t\t... Ok ...\n')
 
     def test_2(**kwargs):
         workers = kwargs.pop('workers', 5)
@@ -198,21 +205,21 @@ if __name__ == '__main__':
         sleep_t = kwargs.pop('sleep_t', 1)
         #from taurus.core.util.threadpool import ThreadPool
         pool = ThreadPool(name='ThreadPool', Psize=workers, Qsize=jobqueue)
-        print "\n\t\t... Check the number of busy workers ...\n"
-        print "Num of busy workers = %s" % (pool.getNumOfBusyWorkers())
-        print "\n\t\t... let's add some jobs ...\n"
+        print("\n\t\t... Check the number of busy workers ...\n")
+        print("Num of busy workers = %s" % (pool.getNumOfBusyWorkers()))
+        print("\n\t\t... let's add some jobs ...\n")
         for i in range(numjobs):
             pool.add(easyJob, None, sleep_t)
-        print '\n\t\t... Monitoring the busy workers ...\n'
+        print('\n\t\t... Monitoring the busy workers ...\n')
         t0 = time()
         while pool.getNumOfBusyWorkers() > 0:
-            print "busy workers = %s" % (pool.getNumOfBusyWorkers())
+            print("busy workers = %s" % (pool.getNumOfBusyWorkers()))
             sleep(0.5)
         t1 = time()
-        print "Run %s jobs of 1 second took %.3f" % (numjobs, t1 - t0)
-        print '\n\t\t... Joining ...\n'
+        print("Run %s jobs of 1 second took %.3f" % (numjobs, t1 - t0))
+        print('\n\t\t... Joining ...\n')
         pool.join()
-        print '\n\t\t... Ok ...\n'
+        print('\n\t\t... Ok ...\n')
 
     def main(argv):
         kwargs = {}

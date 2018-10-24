@@ -26,13 +26,16 @@
 """DataExportDlg.py: A Qt dialog for showing and exporting x-y Ascii data from
 one or more curves"""
 
-__all__ = ["QDataExportDialog"]
+from __future__ import print_function
 
 import os.path
 from datetime import datetime
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
+
+
+__all__ = ["QDataExportDialog"]
 
 
 @UILoadable
@@ -75,7 +78,7 @@ class QDataExportDialog(Qt.QDialog):
         self.datadict = datadict
         self.dataSetCB.clear()
         self.dataSetCB.insertItems(0, sortedNames)
-        if len(self.datadict.keys()) > 1:
+        if len(self.datadict) > 1:
             self.dataSetCB.insertItems(
                 0, [self.allInSingleFile, self.allInMultipleFiles])
 
@@ -123,9 +126,9 @@ class QDataExportDialog(Qt.QDialog):
                 else:
                     for x,y in zip(xdata, ydata):
                         text+="%r\t%r\n" % (x, y)
-                print >> ofile, str(text)
+                print(str(text), file=ofile)
             else:
-                print >> ofile, str(self.dataTE.toPlainText())
+                print(str(self.dataTE.toPlainText()), file=ofile)
         except:
             Qt.QMessageBox.warning(self,
                                    "File saving failed",

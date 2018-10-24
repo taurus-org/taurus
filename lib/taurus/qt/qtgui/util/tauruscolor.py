@@ -57,10 +57,10 @@ class QtColorPalette(ColorPalette):
 
         f = self._qbrush_cache_fg
         b = self._qbrush_cache_bg
-        if not f.has_key(name):
+        if name not in f:
             f[name] = Qt.QBrush(self.qcolor(stoq)[1])
 
-        if not b.has_key(name):
+        if name not in b:
             b[name] = Qt.QBrush(self.qcolor(stoq)[0])
             if name == 'None':
                 b[name].setStyle(Qt.Qt.BDiagPattern)
@@ -73,10 +73,10 @@ class QtColorPalette(ColorPalette):
 
         f = self._qcolor_cache_fg
         b = self._qcolor_cache_bg
-        if not f.has_key(name):
+        if name not in f:
             f[name] = Qt.QColor(self.number(name, True))
 
-        if not b.has_key(name):
+        if name not in b:
             b[name] = Qt.QColor(self.number(name))
 
         return (b[name], f[name])
@@ -87,7 +87,7 @@ class QtColorPalette(ColorPalette):
 
         f = self._qvariant_cache_fg
         b = self._qvariant_cache_bg
-        if not f.has_key(name):
+        if name not in f:
             (back, fore) = self.qcolor(name)
             f[name] = Qt.QVariant(fore)
             b[name] = Qt.QVariant(back)

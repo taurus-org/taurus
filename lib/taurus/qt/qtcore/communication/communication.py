@@ -27,6 +27,8 @@
 comunications.py:
 """
 
+from __future__ import print_function
+
 from taurus.external.qt import QtCore
 import weakref
 
@@ -327,16 +329,16 @@ class SharedDataManager(QtCore.QObject):
 
         :returns: (list<str>) UIDs of currently shared data.
         '''
-        return self.__models.keys()
+        return list(self.__models.keys())
 
     def debugReader(self, data):
         '''
         A slot which you can connect as a reader for debugging. It will print info to the stdout
         '''
-        print "SharedDataManager: \n\tSender=: %s\n\tData=%s" % (self.sender(), repr(data))
+        print("SharedDataManager: \n\tSender=: %s\n\tData=%s" % (self.sender(), repr(data)))
 
     def info(self):
         s = ""
-        for uid, m in sorted(self.__models.iteritems()):
+        for uid, m in sorted(self.__models.items()):
             s += m.info() + '\n'
         return s

@@ -25,11 +25,14 @@
 
 """This module contains the taurus base listeners classes"""
 
+from __future__ import print_function
+from builtins import object
+from .util.log import Logger
+
+
 __all__ = ["TaurusListener", "TaurusExceptionListener"]
 
 __docformat__ = "restructuredtext"
-
-from .util.log import Logger
 
 
 class TaurusListener(Logger):
@@ -70,4 +73,4 @@ class TaurusExceptionListener(object):
         self._printException(exception)
 
     def _printException(self, exception):
-        print self.__class__.__name__, "received", exception.__class__.__name__, str(exception)
+        print(self.__class__.__name__, "received", exception.__class__.__name__, str(exception))
