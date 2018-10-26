@@ -110,7 +110,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     taurusEvent = baseSignal('taurusEvent', object, object, object)
 
-    def __init__(self, name, parent=None, designMode=False):
+    def __init__(self, name='', parent=None, designMode=False):
         """Initialization of TaurusBaseComponent"""
         self.modelObj = None
         self.modelName = ''
@@ -1306,7 +1306,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
 
     _dragEnabled = False
 
-    def __init__(self, name, parent=None, designMode=False):
+    def __init__(self, name='', parent=None, designMode=False):
         self._disconnect_on_hide = False
         self._supportedMimeTypes = None
         self._autoTooltip = True
@@ -1910,7 +1910,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
 
     applied = baseSignal('applied')
 
-    def __init__(self, name, taurus_parent=None, designMode=False):
+    def __init__(self, name='', taurus_parent=None, designMode=False):
         self.call__init__(TaurusBaseWidget, name,
                           parent=taurus_parent, designMode=designMode)
 
