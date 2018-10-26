@@ -33,9 +33,5 @@ _updateQtSubModule(globals(), "QtGui")
 
 if __backend == 'PyQt5':
     _updateQtSubModule(globals(), "QtWidgets")
-else:
-    # early import of qtpy.QtWidgets as a workaround for
-    # https://github.com/taurus-org/taurus/issues/401
-    import qtpy.QtWidgets as __qtpy_QtWidgets
 
 del _updateQtSubModule, API_NAME
