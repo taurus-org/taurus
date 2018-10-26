@@ -220,7 +220,6 @@ class TaurusValueSpinBoxEx(Qt.QWidget):
     def __init__(self, qt_parent=None, designMode=False):
         Qt.QWidget.__init__(self, qt_parent)
         layout = Qt.QGridLayout()
-        layout.setMargin(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
