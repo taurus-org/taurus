@@ -25,8 +25,13 @@
 
 """This module exposes Qwt5 module"""
 
-from taurus.external.qt import _updateQtSubModule
 
-_updateQtSubModule(globals(), "Qwt5")
+from . import PYQT4, API_NAME
+from taurus.core.util import log as __log
 
-del _updateQtSubModule
+
+if PYQT4:
+    __log.deprecated(dep="taurus.external.qt.Qwt5", rel="4.5")
+    from PyQt4.QtNetwork import *
+else:
+    raise RuntimeError('Qwt5 bindings not supported for {}'.format(API_NAME))
