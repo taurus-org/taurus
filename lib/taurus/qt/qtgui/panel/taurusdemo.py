@@ -96,7 +96,7 @@ class TaurusDemoPanel(Qt.QWidget):
         button = Qt.QPushButton(name, self)
         button._f = f
         layout.addWidget(button, row, 0)
-        button.connect(button, Qt.SIGNAL("clicked()"), self.go)
+        button.clicked.connect(self.go)
 
     def go(self):
         b = self.sender()
