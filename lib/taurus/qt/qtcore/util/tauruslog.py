@@ -50,14 +50,30 @@ def getQtLogger():
     return qtLogger
 
 
-def qtTaurusMsgHandler(type, msg):
+def qtTaurusMessageHandler(msg_type, log_ctx, msg):
+    # Qt5 version
     global qtLogger
     if qtLogger is not None:
-        caller = QT_LEVEL_MATCHER.get(type)
+        caller = QT_LEVEL_MATCHER.get(msg_type)
+        return caller("Qt%s %s.%s[%s]: %a", log_ctx.category, log_ctx.file,
+                 log_ctx.function, log_ctx.line, msg)
+
+def qtTaurusMsgHandler(msg_type, msg):
+    # Qt4 version
+    global qtLogger
+    if qtLogger is not None:
+        caller = QT_LEVEL_MATCHER.get(msg_type)
         caller(qtLogger, msg)
 
 
 def initTaurusQtLogger():
     global qtLogger
     if not qtLogger:
-        Qt.qInstallMsgHandler(qtTaurusMsgHandler)
+        if hasattr(Qt, "qInstallMessageHandler"):
+            # Qt5
+            Qt.qInstallMessageHandler(qtTaurusMessageHandler)
+
+        elif hasattr(Qt, "qInstallMsgHandler"):
+            # Qt4
+            Qt.qInstallMsgHandler(qtTaurusMsgHandler)
+
