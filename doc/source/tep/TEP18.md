@@ -136,6 +136,28 @@ in debian9 introduces disruptive patching of the PyQt4 binding ([qtpy_issue119])
 also be weighted in the decision. The final decision on this aspect can be left to 
 the implementation phase itself where the various options can be tested in practice.
 
+## Importing from taurus.external.qt VS importing directly from a binding
+
+Should I import from `taurus.external.qt` or directly from PyQt5 / PyQt4 / ... ?
+
+Until now, we recommended our users to always import the QtCore, QtGui, etc
+from `taurus.external.qt`. But with the improved support to multiple bindings
+in this TEP, this recommendation can be revised as follows:
+
+- For code that is going to be part of Taurus (and consequently potentially
+  used as library by other other people), Qt, QtGui, QtCore, etc. should be
+  imported from `taurus.external.qt`. The same applies to plugins to taurus
+  that intend to be used as a library (otherwise, the plugins should be capable
+  failing gracefully in case of incompatible bindings).
+
+- For an end-user application based on taurus it is probably better to import
+  directly from the binding (PyQt5 is the best supported) and let taurus to
+  adapt to that choice. Using the `taurus.external.qt` shim is also possible if
+  one wants to make the code binding-agnostic, but in that case one must keep
+  in mind that the resulting code will be less idiomatic and that the shim's
+  API may be eventually altered to better fit with taurus own requirements.
+
+
 
 ## Some examples of code that should work
 
@@ -290,6 +312,47 @@ o = QtCore.QObject()
 w = QtWidgets.QLabel()
 l = TaurusLabel()
 ```
+
+## Tips for writing code that is Qt binding agnostic:
+
+Apart from using taurus.external.qt for importing the Qt submodules, the
+following tips were found useful when porting applications to taurus 4.5
+
+- all signal usage must be ["new-style signals"]()
+
+- Multiple inheritance. See
+  http://pyqt.sf.net/Docs/PyQt5/pyqt4_differences.html#cooperative-multi-inheritance
+    - Note that in Taurus we use explicit calls to __init__ methods which
+      in some cases it can lead to double-calls to initialization code in pyqt5.
+      This needs to be addressed.
+    - Also note that we had to convert some positional args into keyword args in
+      our mixin classes (TaurusBaseComponent,...) to make them work with Qt5
+
+- QLayout margin, setMargin were deprecated in Qt 4.8 , Use Use setContentsMargins() and getContentsMargins() instead.
+  http://doc.qt.io/archives/qt-4.8/qlayout-obsolete.html
+
+- be careful with qInstallMsgHandler (Qt4) vs qInstallMessageHandler (Qt5).
+  The following code can be used as a reference:
+
+```
+    if hasattr(QtCore, "qInstallMessageHandler"):
+        # Qt5
+        def taurusMessageHandler(msg_type, log_ctx, msg):
+            f = QT_LEVEL_MATCHER.get(msg_type)
+            return f("Qt%s %s.%s[%s]: %a", log_ctx.category, log_ctx.file,
+                     log_ctx.function, log_ctx.line, msg)
+
+        QtCore.qInstallMessageHandler(taurusMessageHandler)
+    elif hasattr(QtCore, "qInstallMsgHandler"):
+        # Qt4
+        def taurusMsgHandler(msg_type, msg):
+            f = QT_LEVEL_MATCHER.get(msg_type)
+            return f("Qt: " + msg)
+
+        QtCore.qInstallMsgHandler(taurusMsgHandler)
+```
+
+TODO: complete this section
 
 ## Links to more details and discussions
 
