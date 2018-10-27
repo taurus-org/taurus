@@ -1,6 +1,6 @@
     Title: Implement support for Qt5 in taurus
     TEP: 18
-    State: DRAFT
+    State: CANDIDATE
     Date: 2018-10-04
     Drivers: Carlos Pascual-Izarra cpascual@cells.es
     URL: https://github.com/cpascual/taurus/blob/tep18/doc/source/tep/TEP18.md (provisional)
@@ -393,6 +393,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## Changes
 
 - 2018-10-04 [cpascual][]. Initial version
+- 2018-11-27 [cpascual][]. Moving to CANDIDATE. Prototype implementation underway
 
 
 
