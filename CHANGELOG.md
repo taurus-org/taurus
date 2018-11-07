@@ -11,6 +11,8 @@ develop branch) won't be reflected in this file.
 
 ### Added
 - Support of Python3 (beta stage, not yet production ready) (#703)
+- Support of other Qt bindings: PyQt4, PyQt5, PySide2, PySide 
+  (beta stage, not yet production ready) (TEP18)
 
 
 
