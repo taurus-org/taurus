@@ -93,7 +93,8 @@ a side-efect in an application that uses valid code (similar to the compromise t
 
 ### Plugin support
 
-The priority is on adding PyQt5 binding support while maintaining the PyQt4 binding support. 
+The priority is on adding PyQt5 (v>=5.6) binding support while maintaining the PyQt4 binding (v>=4.6)
+support. 
 PySide and PySide2 support is also desirable (and probably easy since we already have the 
 examples of the existing implementations that do so), but it is not the main goal of this 
 propossal and therefore the TEP may get accepted even if the support for PySide/PySide2 is 
@@ -152,10 +153,12 @@ in this TEP, this recommendation can be revised as follows:
 
 - For an end-user application based on taurus it is probably better to import
   directly from the binding (PyQt5 is the best supported) and let taurus to
-  adapt to that choice. Using the `taurus.external.qt` shim is also possible if
-  one wants to make the code binding-agnostic, but in that case one must keep
-  in mind that the resulting code will be less idiomatic and that the shim's
-  API may be eventually altered to better fit with taurus own requirements.
+  adapt to that choice. In this way, one can write idiomatic code that matches 
+  better the binding that has been chosen. Using the `taurus.external.qt` shim 
+  is also possible if one wants to make the code binding-agnostic, but in that
+  case one must keep in mind that the resulting code will be less idiomatic 
+  and that the shim's API may be eventually altered to better fit with taurus 
+  own requirements.
 
 
 
@@ -318,7 +321,29 @@ l = TaurusLabel()
 Apart from using taurus.external.qt for importing the Qt submodules, the
 following tips were found useful when porting applications to taurus 4.5
 
-- all signal usage must be ["new-style signals"]()
+- all signal usage must be ["new-style signals"](http://pyqt.sourceforge.net/Docs/PyQt4/new_style_signals_slots.html)
+    - and keep in mind that signals with default arguments are not 
+      supported in exposed as various signals in PyQt>=5.3 
+
+- Use only APIv2 (e.g. QString should *not* be used,...). One way to ensure that
+  your code uses APIv2 (in case that you use PyQt4) is to 
+  [explicitly set it](http://pyqt.sourceforge.net/Docs/PyQt4/incompatible_apis.html) 
+  **before importing PyQt4**:
+  ```python
+  import sip  
+  sip.setapi('QString', 2)
+  sip.setapi('QVariant', 2)
+  sip.setapi('QDate', 2)
+  sip.setapi('QDateTime', 2)
+  sip.setapi('QTextStream', 2)
+  sip.setapi('QTime', 2)
+  sip.setapi('QUrl', 2)
+  ```
+  
+- The code should not use deprecated features. See the following for a 
+  list of things to keep in mind:
+    - https://pyqt.readthedocs.io/en/latest/incompatibilities.html 
+    - https://pyqt.readthedocs.io/en/latest/pyqt4_differences.html
 
 - Multiple inheritance. See
   http://pyqt.sf.net/Docs/PyQt5/pyqt4_differences.html#cooperative-multi-inheritance
