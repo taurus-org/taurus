@@ -202,11 +202,29 @@ def __removePyQtInputHook():
         QtCore.pyqtRemoveInputHook()
 
 
+def __addExceptHook():
+    """
+    Since PyQt 5.5 , unhandled python exceptions cause the application to
+    abort:
+
+    http://pyqt.sf.net/Docs/PyQt5/incompatibilities.html#unhandled-python-exceptions
+
+    By calling __addExceptHook, we restore the old behaviour (just print the
+    exception trace).
+    """
+    import traceback
+    sys.excepthook = traceback.print_exception
+
+
 if getattr(__config, 'QT_AUTO_INIT_LOG', True):
     __initializeQtLogging()
 
 if getattr(__config, 'QT_AUTO_REMOVE_INPUTHOOK', True):
     __removePyQtInputHook()
+
+if PYQT5 and getattr(__config, 'QT_AVOID_ABORT_ON_EXCEPTION', True):
+    # TODO: check if we also want to do this for PySide(2)
+    __addExceptHook()
 
 __log.info('Using %s (v%s , with Qt %s)',
            API_NAME,
