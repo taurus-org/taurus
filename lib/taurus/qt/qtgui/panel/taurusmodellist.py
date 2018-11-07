@@ -208,10 +208,11 @@ class TaurusModelModel(Qt.QAbstractListModel):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
         if parentindex is None:
             parentindex = Qt.QModelIndex()
+        self.beginResetModel()
         self.beginRemoveRows(parentindex, position, position + rows - 1)
         self.items = self.items[:position] + self.items[position + rows:]
         self.endRemoveRows()
-        self.reset()
+        self.endResetModel()
         return True
 
     def clearAll(self):

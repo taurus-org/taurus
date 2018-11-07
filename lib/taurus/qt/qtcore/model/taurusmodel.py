@@ -180,12 +180,6 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
     def __init__(self, parent=None, data=None):
         Qt.QAbstractItemModel.__init__(self, parent)
         Logger.__init__(self)
-        # if qt < 4.6, beginResetModel and endResetModel don't exist. In this
-        # case we set beginResetModel to be an empty function and endResetModel
-        # to be reset.
-        if not hasattr(Qt.QAbstractItemModel, "beginResetModel"):
-            self.beginResetModel = lambda: None
-            self.endResetModel = self.reset
         self._data_src = None
         self._rootItem = None
         self._filters = []

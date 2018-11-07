@@ -296,10 +296,11 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
     def removeRows(self, position, rows=1, parentindex=None):
         if parentindex is None:
             parentindex = Qt.QModelIndex()
+        self.beginResetModel()
         self.beginRemoveRows(parentindex, position, position + rows - 1)
         self.curves = self.curves[:position] + self.curves[position + rows:]
         self.endRemoveRows()
-        self.reset()
+        self.endResetModel()
         return True
 
     def clearAll(self):

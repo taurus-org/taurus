@@ -194,7 +194,8 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                             repr(attr.data_format))
 
         if (self._rowCount != rows) or (self._columnCount != columns):
-            self.reset()
+            self.beginResetModel()
+            self.endResetModel()
 
         self._rowCount = rows
         self._columnCount = columns
