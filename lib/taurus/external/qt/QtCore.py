@@ -10,13 +10,13 @@
 """
 Provides QtCore classes and functions.
 """
-from builtins import str
+from builtins import str as __str
 
 from . import PYQT5, PYSIDE2, PYQT4, PYSIDE, PythonQtError
 
-# Deprecated. QString is kept for now to facilitate transition, of existing
-# codebut using QString should be avoided since it was deprecated
-QString = str
+# Deprecated. QString is kept for now to facilitate transition of existing
+# code but using QString should be avoided since it was deprecated
+QString = __str
 # TODO: remove all occurrences of QString in taurus
 
 if PYQT5:
