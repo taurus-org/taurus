@@ -74,6 +74,15 @@ elif PYQT4:
         CacheLocation = _QDesktopServices.CacheLocation
         writableLocation = _QDesktopServices.storageLocation
 
+
+    # Deprecated. QVariant is kept for now to facilitate transition of existing
+    # code but using QVariant should be avoided (with API 2 it is superfluous)
+    # TODO: Remove all references to QVariant in taurus
+    from taurus.core.util.log import deprecation_decorator
+    @deprecation_decorator(rel='4.0.1', alt='python objects directly')
+    def QVariant(pyobj=None):
+        return pyobj
+
 elif PYSIDE:
     from PySide.QtCore import *
     from PySide.QtCore import Signal as pyqtSignal
