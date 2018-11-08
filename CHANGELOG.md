@@ -14,7 +14,8 @@ develop branch) won't be reflected in this file.
 - Support of other Qt bindings: PyQt4, PyQt5, PySide2, PySide 
   (beta stage, not yet production ready) (TEP18)
 
-
+### Removed
+- taurus.qt.qtgui.tree.taurusdevicetree submodule (obsolete, unused)
 
 ## [4.4.0] - 2018-07-26
 
