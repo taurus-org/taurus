@@ -482,7 +482,11 @@ class QLoggingWidget(QBaseTableWidget):
             klass = QLoggingTable
         view = QBaseTableWidget.createViewWidget(self, klass=klass)
         hh = view.horizontalHeader()
-        hh.setSectionResizeMode(MSG, Qt.QHeaderView.Stretch)
+        if hh.length() > 0:
+            try:
+                hh.setSectionResizeMode(MSG, Qt.QHeaderView.Stretch)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(MSG, Qt.QHeaderView.Stretch)
         view.setShowGrid(False)
         view.sortByColumn(TIME, Qt.Qt.AscendingOrder)
         return view

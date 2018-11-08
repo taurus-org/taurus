@@ -905,11 +905,20 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
         # table.resizeColumnsToContents()
         # table.resizeRowsToContents()
-        table.horizontalHeader().setSectionResizeMode(QtGui.QHeaderView.Stretch)
+        hh = table.horizontalHeader()
+        if hh.length() > 0:
+            try:
+                hh.setSectionResizeMode(hh.Stretch)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(hh.Stretch)
         # table.verticalHeader().setSectionResizeMode(QtGui.QHeaderView.Stretch)
         # table.horizontalHeader().setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
-        table.verticalHeader().setSectionResizeMode(
-            QtGui.QHeaderView.ResizeToContents)
+        vh = table.verticalHeader()
+        if vh.length() > 0:
+            try:
+                vh.setSectionResizeMode(vh.ResizeToContents)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(vh.ResizeToContents)
 
         return table
 

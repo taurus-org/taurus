@@ -521,9 +521,17 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         if(text != self._initialText) & (text != ""):
             model.addValue(index, Qt.QVariant(text))
             hh = self.parent().horizontalHeader()
-            hh.setSectionResizeMode(Qt.QHeaderView.Fixed)
+            if hh.length() > 0:
+                try:
+                    hh.setSectionResizeMode(hh.Fixed)
+                except AttributeError:  # PyQt4
+                    hh.setResizeMode(hh.Fixed)
             vh = self.parent().verticalHeader()
-            vh.setSectionResizeMode(Qt.QHeaderView.Fixed)
+            if vh.length() > 0:
+                try:
+                    vh.setSectionResizeMode(vh.Fixed)
+                except AttributeError:  # PyQt4
+                    hh.setResizeMode(vh.Fixed)
 
         index.model().editedIndex = None
 
@@ -727,9 +735,17 @@ class TaurusValuesTable(TaurusWidget):
             model.setWriteMode(self._writeMode)
 
             hh = self._tableView.horizontalHeader()
-            hh.setSectionResizeMode(Qt.QHeaderView.Fixed)
+            if hh.length() > 0:
+                try:
+                    hh.setSectionResizeMode(hh.Fixed)
+                except AttributeError:  # PyQt4
+                    hh.setResizeMode(hh.Fixed)
             vh = self._tableView.verticalHeader()
-            vh.setSectionResizeMode(Qt.QHeaderView.Fixed)
+            if vh.length() > 0:
+                try:
+                    vh.setSectionResizeMode(vh.Fixed)
+                except AttributeError:  # PyQt4
+                    hh.setResizeMode(vh.Fixed)
             if self.defaultWriteMode == "r":
                 isWritable = False
             else:
