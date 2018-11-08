@@ -359,7 +359,7 @@ following tips were found useful when porting applications to taurus 4.5
 - be careful with qInstallMsgHandler (Qt4) vs qInstallMessageHandler (Qt5).
   The following code can be used as a reference:
 
-```
+  ```python
     if hasattr(QtCore, "qInstallMessageHandler"):
         # Qt5
         def taurusMessageHandler(msg_type, log_ctx, msg):
@@ -375,8 +375,21 @@ following tips were found useful when porting applications to taurus 4.5
             return f("Qt: " + msg)
 
         QtCore.qInstallMsgHandler(taurusMsgHandler)
-```
+  ```
+- Be aware of the [renamed methods in QHeaderView](http://doc.qt.io/qt-5/sourcebreaks.html#changes-to-qheaderview) (from Qt4 to Qt5) 
+  and the fact that in Qt5, setSectionResizeMode may **crash the GUI** if 
+  called on an empty header. The following code snippet takes care of both 
+  issues:
+  ```python
+  headerView = ... # <-- QHeaderView
+  if headerView.length() > 0:
+      try:
+          headerView.setSectionResizeMode(headerView.Stretch)
+      except AttributeError:  # PyQt4
+          headerView.setResizeMode(headerView.Stretch)
+  ```
 
+ 
 TODO: complete this section
 
 ## Links to more details and discussions
