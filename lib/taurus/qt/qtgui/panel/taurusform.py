@@ -29,6 +29,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from datetime import datetime
+from functools import partial
 
 from future.utils import string_types
 
@@ -137,7 +138,7 @@ class TaurusForm(TaurusWidget):
 
         self.chooseModelsAction = Qt.QAction('Modify Contents', self)
         self.addAction(self.chooseModelsAction)
-        self.chooseModelsAction.triggered[()].connect(self.chooseModels)
+        self.chooseModelsAction.triggered.connect(self.chooseModels)
 
         self.showButtonsAction = Qt.QAction('Show Buttons', self)
         self.showButtonsAction.setCheckable(True)
@@ -147,7 +148,7 @@ class TaurusForm(TaurusWidget):
 
         self.changeLabelsAction = Qt.QAction('Change labels (all items)', self)
         self.addAction(self.changeLabelsAction)
-        self.changeLabelsAction.triggered[()].connect(self.onChangeLabelsAction)
+        self.changeLabelsAction.triggered.connect(self.onChangeLabelsAction)
 
         self.compactModeAction = Qt.QAction('Compact mode (all items)', self)
         self.compactModeAction.setCheckable(True)
@@ -156,7 +157,7 @@ class TaurusForm(TaurusWidget):
 
         self.setFormatterAction = Qt.QAction('Set formatter (all items)', self)
         self.addAction(self.setFormatterAction)
-        self.setFormatterAction.triggered[()].connect(self.onSetFormatter)
+        self.setFormatterAction.triggered.connect(self.onSetFormatter)
 
         self.resetModifiableByUser()
         self.setSupportedMimeTypes([TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_DEV_MIME_TYPE,
@@ -1076,15 +1077,16 @@ def taurusFormMain():
 
     quitApplicationAction = Qt.QAction(
         Qt.QIcon.fromTheme("process-stop"), 'Close Form', dialog)
-    quitApplicationAction.triggered[()].connect(dialog.close)
+    quitApplicationAction.triggered.connect(dialog.close)
 
     saveConfigAction = Qt.QAction("Save current settings...", dialog)
     saveConfigAction.setShortcut(Qt.QKeySequence.Save)
-    saveConfigAction.triggered[()].connect(dialog.saveConfigFile)
-
+    saveConfigAction.triggered.connect(
+        partial(dialog.saveConfigFile, ofile=None))
     loadConfigAction = Qt.QAction("&Retrieve saved settings...", dialog)
     loadConfigAction.setShortcut(Qt.QKeySequence.Open)
-    loadConfigAction.triggered[()].connect(dialog.loadConfigFile)
+    loadConfigAction.triggered.connect(
+        partial(dialog.loadConfigFile, ifile=None))
 
     dialog.addActions(
         (saveConfigAction, loadConfigAction, quitApplicationAction))

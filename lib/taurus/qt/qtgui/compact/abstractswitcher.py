@@ -138,8 +138,8 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         self.exitEditAction.setShortcutContext(
             Qt.Qt.WidgetWithChildrenShortcut)
         self.addAction(self.exitEditAction)
-        self.enterEditAction.triggered[()].connect(self._onEnterEditActionTriggered)
-        self.exitEditAction.triggered[()].connect(self._onExitEditActionTriggered)
+        self.enterEditAction.triggered.connect(self._onEnterEditActionTriggered)
+        self.exitEditAction.triggered.connect(self._onExitEditActionTriggered)
 
         # add read and write widgets
         if self.readWClass is not None:

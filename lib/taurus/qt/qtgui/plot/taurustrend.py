@@ -36,6 +36,7 @@ import numpy
 import re
 import gc
 import weakref
+from functools import partial
 from taurus.external.qt import Qt, Qwt5
 
 import taurus.core
@@ -946,12 +947,14 @@ class TaurusTrend(TaurusPlot):
         self._usePollingBufferAction.toggled.connect(self.setUsePollingBuffer)
         self._setForcedReadingPeriodAction = Qt.QAction(
             "Set forced reading period...", None)
-        self._setForcedReadingPeriodAction.triggered[()].connect(self.setForcedReadingPeriod)
+        self._setForcedReadingPeriodAction.triggered.connect(
+            partial(self.setForcedReadingPeriod, msec=None, tsetnames=None))
         self._clearBuffersAction = Qt.QAction("Clear Buffers", None)
-        self._clearBuffersAction.triggered[()].connect(self.clearBuffers)
+        self._clearBuffersAction.triggered.connect(self.clearBuffers)
         self._setMaxBufferSizeAction = Qt.QAction(
             "Change buffers size...", None)
-        self._setMaxBufferSizeAction.triggered[()].connect(self.setMaxDataBufferSize)
+        self._setMaxBufferSizeAction.triggered.connect(
+            partial(self.setMaxDataBufferSize, maxSize=None))
         self._autoClearOnScanAction = Qt.QAction(
             "Auto-clear on new scans", None)
         self._autoClearOnScanAction.setCheckable(True)

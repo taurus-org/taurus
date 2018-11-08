@@ -42,6 +42,7 @@ from datetime import datetime
 import time
 import numpy
 from future.utils import string_types
+from functools import partial
 from taurus.external.qt import Qt, Qwt5
 
 import taurus
@@ -1197,11 +1198,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._dataInspectorAction.toggled[bool].connect(self.toggleDataInspectorMode)
 
         self._setFormatterAction = Qt.QAction("Set Formatter...", None)
-        self._setFormatterAction.triggered[()].connect(self.onSetFormatter)
+        self._setFormatterAction.triggered.connect(self.onSetFormatter)
 
         self._curveStatsAction = Qt.QAction("Calculate statistics", None)
         self._curveStatsAction.setShortcut(Qt.Qt.Key_S)
-        self._curveStatsAction.triggered[()].connect(self.onCurveStatsAction)
+        self._curveStatsAction.triggered.connect(self.onCurveStatsAction)
 
         self._pauseAction = Qt.QAction("&Pause", None)
         self._pauseAction.setShortcuts([Qt.Qt.Key_P, Qt.Qt.Key_Pause])
@@ -1211,28 +1212,31 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         self._autoscaleAllAxisAction = Qt.QAction("Autoscale all axes", None)
         self._autoscaleAllAxisAction.setShortcut(Qt.Qt.Key_Escape)
-        self._autoscaleAllAxisAction.triggered[()].connect(self.autoScaleAllAxes)
+        self._autoscaleAllAxisAction.triggered.connect(self.autoScaleAllAxes)
 
         self._toggleZoomAxisAction = Qt.QAction("Toggle Zoom-aware axis", None)
         self._toggleZoomAxisAction.setShortcut(Qt.Qt.Key_Z)
-        self._toggleZoomAxisAction.triggered[()].connect(self.toggleZoomer)
+        self._toggleZoomAxisAction.triggered.connect(
+            partial(self.toggleZoomer, axis=None))
 
         self._configDialogAction = Qt.QAction("Plot configuration...", None)
         self._configDialogAction.setShortcut(Qt.QKeySequence("Alt+C"))
-        self._configDialogAction.triggered[()].connect(self.showConfigDialog)
+        self._configDialogAction.triggered.connect(self.showConfigDialog)
 
         self._inputDataAction = Qt.QAction("Input data selection...", None)
         self._inputDataAction.setShortcut(Qt.QKeySequence.New)
-        self._inputDataAction.triggered[()].connect(self.showDataImportDlg)
+        self._inputDataAction.triggered.connect(self.showDataImportDlg)
 
         self._saveConfigAction = Qt.QAction("Save current settings...", None)
         self._saveConfigAction.setShortcut(Qt.QKeySequence.Save)
-        self._saveConfigAction.triggered[()].connect(self.saveConfig)
+        self._saveConfigAction.triggered.connect(
+            partial(self.saveConfig, ofile=None, curvenames=None))
 
         self._loadConfigAction = Qt.QAction(
             "&Retrieve saved settings...", None)
         self._loadConfigAction.setShortcut(Qt.QKeySequence.Open)
-        self._loadConfigAction.triggered[()].connect(self.loadConfig)
+        self._loadConfigAction.triggered.connect(
+            partial(self.loadConfig, ifile=None))
 
         self._showLegendAction = Qt.QAction("Show &Legend", None)
         self._showLegendAction.setShortcut(Qt.QKeySequence("Ctrl+L"))
@@ -1252,21 +1256,24 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         self._showMinAction.toggled[bool].connect(self.showMinPeaks)
 
         self._printAction = Qt.QAction("&Print plot...", None)
-        self._printAction.triggered[()].connect(self.exportPrint)
+        self._printAction.triggered.connect(self.exportPrint)
 
         self._exportPdfAction = Qt.QAction("Export plot to PD&F...", None)
-        self._exportPdfAction.triggered[()].connect(self.exportPdf)
+        self._exportPdfAction.triggered.connect(
+            partial(self.exportPdf, fileName=None))
 
         self._exportAsciiAction = Qt.QAction("Export data to &ASCII...", None)
-        self._exportAsciiAction.triggered[()].connect(self.exportAscii)
+        self._exportAsciiAction.triggered.connect(
+            partial(self.exportAscii, curves=None))
 
         self._setCurvesTitleAction = Qt.QAction(
             "Change Curves Titles...", None)
-        self._setCurvesTitleAction.triggered[()].connect(self.changeCurvesTitlesDialog)
+        self._setCurvesTitleAction.triggered.connect(
+            partial(self.changeCurvesTitlesDialog, curveNamesList=None))
 
         self._closeWindowAction = Qt.QAction(
             Qt.QIcon.fromTheme("process-stop"), 'Close Plot', self)
-        self._closeWindowAction.triggered[()].connect(self.close)
+        self._closeWindowAction.triggered.connect(self.close)
 
         # add all actions and limit the scope of the key shortcuts to the
         # widget (default is Window)
@@ -2225,20 +2232,20 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
 
         autoScaleThisAxis = lambda: self.setAxisAutoScale(axis=axis)
         autoscaleAction = menu.addAction("AutoScale %s" % axisname)
-        autoscaleAction.triggered[()].connect(autoScaleThisAxis)
+        autoscaleAction.triggered.connect(autoScaleThisAxis)
 
         if not self.getXIsTime():
             switchThisAxis = lambda: self.setAxisScaleType(
                 axis=axis, scale=None)
             switchThisAxisAction = menu.addAction(
                 "Toggle linear/log for %s" % axisname)
-            switchThisAxisAction.triggered[()].connect(switchThisAxis)
+            switchThisAxisAction.triggered.connect(switchThisAxis)
 
         if axis in (Qwt5.QwtPlot.yLeft, Qwt5.QwtPlot.yRight):
             zoomOnThisAxis = lambda: self.toggleZoomer(axis=axis)
             zoomOnThisAxisAction = menu.addAction(
                 "Zoom-to-region acts on %s" % axisname)
-            zoomOnThisAxisAction.triggered[()].connect(zoomOnThisAxis)
+            zoomOnThisAxisAction.triggered.connect(zoomOnThisAxis)
 
         elif axis in (Qwt5.QwtPlot.xBottom, Qwt5.QwtPlot.xTop):
             if self.isXDynScaleSupported():

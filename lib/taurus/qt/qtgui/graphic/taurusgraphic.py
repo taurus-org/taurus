@@ -440,7 +440,8 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     if k:
                         configDialogAction = menu.addAction(k)
                         if action:
-                            configDialogAction.triggered[()].connect(lambda dev=obj_name, act=action: act(dev))
+                            configDialogAction.triggered.connect(
+                                lambda dev=obj_name, act=action: act(dev))
                         else:
                             configDialogAction.setEnabled(False)
                         last_was_separator = False

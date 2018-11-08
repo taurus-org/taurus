@@ -662,7 +662,7 @@ class TaurusValuesTable(TaurusWidget):
         self.chooseModelAction = Qt.QAction("Choose &Model", self)
         self.chooseModelAction.setEnabled(self.isModifiableByUser())
         self.addAction(self.chooseModelAction)
-        self.chooseModelAction.triggered[()].connect(self.chooseModel)
+        self.chooseModelAction.triggered.connect(self.chooseModel)
 
     def getModelClass(self):
         '''see :meth:`TaurusWidget.getModelClass`'''

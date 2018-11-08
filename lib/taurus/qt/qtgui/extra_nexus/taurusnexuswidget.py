@@ -31,6 +31,7 @@ from builtins import str
 
 import numpy
 import posixpath
+from functools import partial
 
 from taurus.external.qt import Qt
 from PyMca5.PyMcaGui.io.hdf5 import HDF5Widget, HDF5Info, HDF5DatasetTable
@@ -104,13 +105,16 @@ class TaurusNeXusBrowser(TaurusWidget):
         # connections
         self.__fileModel.sigFileAppended.connect(self.treeWidget.fileAppended)
         self.treeWidget.sigHDF5WidgetSignal.connect(self.onHDF5WidgetSignal)
-        self.openFileAction.triggered[()].connect(self.openFile)
+        self.openFileAction.triggered.connect(
+            partial(self.openFile, fname=None))
         self.togglePreviewAction.toggled.connect(self.__previewStack.setVisible)
 
         # configuration
         self.registerConfigProperty(
             self.togglePreviewAction.isChecked, self.togglePreviewAction.setChecked, 'showPreview')
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def openFile(self, fname=None):
         if fname is None:
             fname = str(Qt.QFileDialog.getOpenFileName(

@@ -34,6 +34,8 @@ from builtins import str
 import os
 import sys
 
+from functools import partial
+
 from future.utils import string_types
 
 from taurus import tauruscustomsettings
@@ -390,39 +392,45 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''initializes the application-wide actions'''
         self.quitApplicationAction = Qt.QAction(
             Qt.QIcon.fromTheme("process-stop"), 'Exit Application', self)
-        self.quitApplicationAction.triggered[()].connect(self.close)
+        self.quitApplicationAction.triggered.connect(self.close)
         self.changeTangoHostAction = Qt.QAction(Qt.QIcon.fromTheme(
             "network-server"), 'Change Tango Host ...', self)
-        self.changeTangoHostAction.triggered[()].connect(self._onChangeTangoHostAction)
+        self.changeTangoHostAction.triggered.connect(self._onChangeTangoHostAction)
         # make this action invisible since it is deprecated
         self.changeTangoHostAction.setVisible(False)
 
         self.loadPerspectiveAction = Qt.QAction(Qt.QIcon.fromTheme(
             "document-open"), 'Load Perspective ...', self)
-        self.loadPerspectiveAction.triggered[()].connect(self.loadPerspective)
+        self.loadPerspectiveAction.triggered.connect(
+            partial(self.loadPerspective, name=None, settings=None))
 
         self.savePerspectiveAction = Qt.QAction(Qt.QIcon.fromTheme(
             "document-save"), 'Save Perspective ...', self)
-        self.savePerspectiveAction.triggered[()].connect(self.savePerspective)
+        self.savePerspectiveAction.triggered.connect(
+            partial(self.savePerspective, name=None))
 
         self.deletePerspectiveAction = Qt.QAction(
             Qt.QIcon("actions:edit-delete.svg"), 'Delete Perspective ...', self)
-        self.deletePerspectiveAction.triggered[()].connect(self.removePerspective)
+        self.deletePerspectiveAction.triggered.connect(
+            partial(self.removePerspective, name=None, settings=None))
 
         self.exportSettingsFileAction = Qt.QAction(
             Qt.QIcon.fromTheme("document-save"), 'Export Settings ...', self)
-        self.exportSettingsFileAction.triggered[()].connect(self.exportSettingsFile)
+        self.exportSettingsFileAction.triggered.connect(
+            partial(self.exportSettingsFile, fname=None))
 
         self.importSettingsFileAction = Qt.QAction(
             Qt.QIcon.fromTheme("document-open"), 'Import Settings ...', self)
-        self.importSettingsFileAction.triggered[()].connect(self.importSettingsFile)
+        self.importSettingsFileAction.triggered.connect(
+            partial(self.importSettingsFile, fname=None))
 
         #self.resetSettingsAction = Qt.QAction(Qt.QIcon.fromTheme("edit-undo"),'Reset Settings', self)
         #self.connect(self.resetSettingsAction, Qt.SIGNAL("triggered()"), self.resetSettings)
 
         self.configurationAction = Qt.QAction(Qt.QIcon.fromTheme(
             "preferences-system"), 'Configurations ...', self)
-        self.configurationAction.triggered[()].connect(self.configurationDialog.show)
+        self.configurationAction.triggered.connect(
+            self.configurationDialog.show)
 
         #self.rpdb2Action = Qt.QAction("Spawn rpdb2", self)
         self.spawnRpdb2Shortcut = Qt.QShortcut(self)
@@ -675,6 +683,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             settings.endGroup()
         self.info('MainWindow settings saved in "%s"' % settings.fileName())
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def savePerspective(self, name=None):
         '''Stores current state of the application as a perspective with the given name
 
@@ -700,6 +710,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.saveSettings(group="Perspectives/%s" % name)
         self.updatePerspectivesMenu()
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def loadPerspective(self, name=None, settings=None):
         '''Loads the settings saved for the given perspective.
         It emits a 'perspectiveChanged' signal with name as its parameter
@@ -738,6 +750,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         settings.endGroup()
         return names
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def removePerspective(self, name=None, settings=None):
         '''removes the given perspective from the settings
 
@@ -765,6 +779,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         settings.endGroup()
         self.updatePerspectivesMenu()
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def exportSettingsFile(self, fname=None):
         '''copies the current settings file into the given file name.
 
@@ -785,6 +801,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             msg = 'Settings could not be exported to %s' % str(fname)
             Qt.QMessageBox.warning(self, 'Export error', msg)
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def importSettingsFile(self, fname=None):
         '''
         loads settings (including importing all perspectives) from a given ini

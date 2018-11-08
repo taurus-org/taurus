@@ -32,6 +32,7 @@ from builtins import str
 import os
 import xml.dom.minidom
 
+from functools import partial
 from future.utils import string_types
 
 from taurus.external.qt import Qt
@@ -93,7 +94,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         self.interactive = interactive
         self._process = []
         self.setCmdArgs(cmdargs)
-        self.triggered.connect(self.actionTriggered)
+        self.triggered.connect(partial(self.actionTriggered, args=None))
         self.setToolTip("Launches %s (external application)" % text)
         self.registerConfigProperty(self.cmdArgs, self.setCmdArgs, 'cmdArgs')
 
