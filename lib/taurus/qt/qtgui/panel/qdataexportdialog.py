@@ -62,7 +62,7 @@ class QDataExportDialog(Qt.QDialog):
 
         # connections
         self.exportBT.clicked.connect(self.exportData)
-        self.dataSetCB.currentIndexChanged[str].connect(self.onDataSetCBChange)
+        self.dataSetCB.currentIndexChanged['QString'].connect(self.onDataSetCBChange)
 
         self.setDataSets(datadict, sortedNames)
 

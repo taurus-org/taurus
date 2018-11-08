@@ -1676,11 +1676,11 @@ class TaurusSearchTree(TaurusWidget):
         # Event forwarding ...
         self.tree.refreshTree.connect(self.refreshTree)
         self.tree.nodeFound.connect(self.nodeFound)
-        self.tree.deviceSelected[str].connect(self.deviceSelected)
-        self.tree.search[str].connect(self.search)
-        self.tree.addAttrSelected[str].connect(self.addAttrSelected)
-        self.tree.removeAttrSelected[str].connect(self.removeAttrSelected)
-        self.tree.modelChanged[str].connect(self.modelChanged)
+        self.tree.deviceSelected['QString'].connect(self.deviceSelected)
+        self.tree.search['QString'].connect(self.search)
+        self.tree.addAttrSelected['QString'].connect(self.addAttrSelected)
+        self.tree.removeAttrSelected['QString'].connect(self.removeAttrSelected)
+        self.tree.modelChanged['QString'].connect(self.modelChanged)
         #for signal in TaurusDevTree.__pyqtSignals__:
         #    getattr(self.tree, signal).connect(
         #        lambda args, f=self, s=signal: getattr(f, signal).emit(args))

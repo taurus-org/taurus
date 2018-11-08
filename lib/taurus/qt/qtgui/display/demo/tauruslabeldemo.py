@@ -97,8 +97,8 @@ def demo():
 
             model_widget.textChanged.connect(w.setModel)
             format_widget.textChanged.connect(w.setFormat)
-            fg_widget.currentIndexChanged[str].connect(w.setFgRole)
-            bg_widget.currentIndexChanged[str].connect(w.setBgRole)
+            fg_widget.currentIndexChanged['QString'].connect(w.setFgRole)
+            bg_widget.currentIndexChanged['QString'].connect(w.setBgRole)
             prefix_widget.textChanged.connect(w.setPrefixText)
             suffix_widget.textChanged.connect(w.setSuffixText)
             model_index_widget.textChanged.connect(w.setModelIndex)
