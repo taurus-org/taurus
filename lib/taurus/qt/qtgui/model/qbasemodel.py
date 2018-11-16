@@ -528,7 +528,7 @@ class QBaseModelWidget(Qt.QMainWindow):
         # reversed
         qmodel_class, qmodel_proxy_classes = qmodel_classes[
             -1], qmodel_classes[-2::-1]
-        qmodel = qmodel_class(self)
+        qmodel = qmodel_class(parent=self)
         qmodel_source = qmodel
         if self._proxyModel is None:  # applies the chain of proxies
             for qmodel_proxy_class in qmodel_proxy_classes:
