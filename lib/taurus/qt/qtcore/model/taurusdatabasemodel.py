@@ -26,7 +26,7 @@
 """This module provides widgets that display the database in a tree format"""
 # TODO: tango-centric
 
-from builtins import str
+from builtins import str, bytes
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusDevState
@@ -424,13 +424,15 @@ class TaurusDbBaseModel(TaurusBaseModel):
             mime_data_item = tree_item.mimeData(index)
             if mime_data_item is None:
                 continue
-            data.append(mime_data_item)
+            data.append(bytes(mime_data_item, encoding='utf8'))
         ret.setData(
-            taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, "\r\n".join(data))
-        ret.setText(", ".join(data))
+            taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE,
+            b"\r\n".join(data)
+        )
+        ret.setText(", ".join(map(str, data)))
         if len(data) == 1:
             ret.setData(
-                taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(data[0]))
+                taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, data[0])
         return ret
 
     def pyData(self, index, role):
