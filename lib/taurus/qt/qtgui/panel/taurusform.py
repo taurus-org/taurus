@@ -31,7 +31,7 @@ from __future__ import absolute_import
 from datetime import datetime
 from functools import partial
 
-from future.utils import string_types
+from future.utils import string_types, binary_type
 
 from taurus.external.qt import Qt
 
@@ -180,7 +180,9 @@ class TaurusForm(TaurusWidget):
 
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
-        if isinstance(modelNames, string_types + (Qt.QString,)):
+        if isinstance(modelNames, binary_type):
+            modelNames = modelNames.decode()
+        if isinstance(modelNames, string_types):
             modelNames = str(modelNames).replace(',', ' ')
             modelNames = modelNames.split()
         return modelNames
