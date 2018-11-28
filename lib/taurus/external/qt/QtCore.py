@@ -11,13 +11,30 @@
 Provides QtCore classes and functions.
 """
 from builtins import str as __str
+from taurus.core.util.log import deprecation_decorator as __deprecation
 
 from . import PYQT5, PYSIDE2, PYQT4, PYSIDE, PythonQtError
 
+
+# --------------------------------------------------------------------------
 # Deprecated. QString is kept for now to facilitate transition of existing
 # code but using QString should be avoided since it was deprecated
 QString = __str
 # TODO: remove all occurrences of QString in taurus
+# --------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------
+# Deprecated. from_qvariant and to_qvariant are kept for now to facilitate
+# transition of existing code but using them (or QVariant in general) should be
+# avoided (with API 2 it is superfluous)
+@__deprecation(rel='4.0.1', alt='python objects directly')
+def from_qvariant(qobj=None, convfunc=None):
+    return qobj
+
+@__deprecation(rel='4.0.1', alt='python objects directly')
+def to_qvariant(pyobj=None):
+    return pyobj
+# --------------------------------------------------------------------------
 
 if PYQT5:
     from PyQt5.QtCore import *
@@ -78,10 +95,10 @@ elif PYQT4:
     # Deprecated. QVariant is kept for now to facilitate transition of existing
     # code but using QVariant should be avoided (with API 2 it is superfluous)
     # TODO: Remove all references to QVariant in taurus
-    from taurus.core.util.log import deprecation_decorator
-    @deprecation_decorator(rel='4.0.1', alt='python objects directly')
+    @__deprecation(rel='4.0.1', alt='python objects directly')
     def QVariant(pyobj=None):
         return pyobj
+
 
 elif PYSIDE:
     from PySide.QtCore import *
