@@ -272,15 +272,11 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
         elif role == QtQt.FontRole:
             ret = self.DftFont
         elif role == QtQt.UserRole:
-            ret = Qt.QVariant(item)
+            ret = item
         return ret
 
     def data(self, index, role=QtQt.DisplayRole):
         ret = self.pyData(index, role)
-        if ret is None:
-            ret = Qt.QVariant()
-        else:
-            ret = Qt.QVariant(ret)
         return ret
 
     def _setData(self, index, qvalue, role=QtQt.EditRole):
@@ -317,7 +313,7 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
             elif role == QtQt.DecorationRole:
                 ret = self.columnIcon(section)
 
-        return Qt.QVariant(ret)
+        return ret
 
     def index(self, row, column, parent=Qt.QModelIndex()):
         if not self.hasIndex(row, column, parent):

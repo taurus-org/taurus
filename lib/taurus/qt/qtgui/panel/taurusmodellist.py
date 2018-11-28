@@ -148,24 +148,24 @@ class TaurusModelModel(Qt.QAbstractListModel):
     def data(self, index, role=Qt.Qt.DisplayRole):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
         if not index.isValid() or not (0 <= index.row() < self.rowCount()):
-            return Qt.QVariant()
+            return None
         row = index.row()
         # Display Role
         if role == Qt.Qt.DisplayRole:
-            return Qt.QVariant(Qt.QString(self.items[row].display))
+            return Qt.QString(self.items[row].display)
         elif role == Qt.Qt.DecorationRole:
-            return Qt.QVariant(self.items[row].icon)
+            return self.items[row].icon
         elif role == Qt.Qt.TextColorRole:
             if not self.items[row].src:
-                return Qt.QVariant(Qt.QColor('gray'))
-            return Qt.QVariant(Qt.QColor(self.items[row].ok and 'green' or 'red'))
+                return Qt.QColor('gray')
+            return Qt.QColor(self.items[row].ok and 'green' or 'red')
         elif role == SRC_ROLE:
-            return Qt.QVariant(Qt.QString(self.items[row].src))
+            return Qt.QString(self.items[row].src)
         elif role == Qt.Qt.ToolTipRole:
-            return Qt.QVariant(Qt.QString(self.items[row].src))
+            return Qt.QString(self.items[row].src)
         if role == Qt.Qt.EditRole:
-            return Qt.QVariant(Qt.QString(self.items[row].src))
-        return Qt.QVariant()
+            return Qt.QString(self.items[row].src)
+        return None
 
     def flags(self, index):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
@@ -341,7 +341,7 @@ class TaurusModelList(Qt.QListView):
             self, "Display Value", "Display value for %s?" % src, Qt.QLineEdit.Normal, value)
         if not ok:
             return
-        self._model.setData(idx, Qt.QVariant(value), role=Qt.Qt.DisplayRole)
+        self._model.setData(idx, value, role=Qt.Qt.DisplayRole)
 
     def _onSelectionChanged(self, selected, deselected):
         '''updates the status of the actions that depend on the selection'''

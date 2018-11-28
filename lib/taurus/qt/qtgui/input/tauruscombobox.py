@@ -115,7 +115,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         Set the value for the widget to display, not the value of the
         attribute.
         """
-        index = self.findData(Qt.QVariant(value))
+        index = self.findData(value)
         self._setCurrentIndex(index)
 
     def updateStyle(self):
@@ -179,7 +179,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         bs = self.blockSignals(True)
         try:
             for k, v in names:
-                self.addItem(k, Qt.QVariant(v))
+                self.addItem(k, v)
 
             # Ok, now we should see if the current value matches any
             # of the newly added names. This is kinda a refresh:
@@ -200,7 +200,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
                         a '%s' placeholder which will be substituted with
                         str(value). It defaults to 'UNKNOWN(%s)'.
         """
-        item = self.findData(Qt.QVariant(value))
+        item = self.findData(value)
         if item < 0:
             if '%s' in default:
                 return default % str(value)

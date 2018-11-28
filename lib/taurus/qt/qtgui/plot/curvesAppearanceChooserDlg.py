@@ -124,8 +124,8 @@ class CurvesAppearanceChooser(Qt.QWidget):
             self.resetBT.hide()
         for color in NamedColors:
             icon = self._colorIcon(color)
-            self.sColorCB.addItem(icon, "", Qt.QVariant(Qt.QColor(color)))
-            self.lColorCB.addItem(icon, "", Qt.QVariant(Qt.QColor(color)))
+            self.sColorCB.addItem(icon, "", Qt.QColor(color))
+            self.lColorCB.addItem(icon, "", Qt.QColor(color))
         self.__itemsDict = CaselessDict()
         self.setCurves(curvePropDict)
         # set the icon for the background button (stupid designer limitations
@@ -170,7 +170,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
             # create and insert the item
             item = Qt.QListWidgetItem(Qt.QString(prop.title), self.curvesLW)
             self.__itemsDict[name] = item
-            item.setData(self.NAME_ROLE, Qt.QVariant(Qt.QString(name)))
+            item.setData(self.NAME_ROLE, Qt.QString(name))
             item.setToolTip("<b>Curve Name:</b> %s" % name)
             item.setFlags(Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsSelectable |
                           Qt.Qt.ItemIsUserCheckable | Qt.Qt.ItemIsDragEnabled | Qt.Qt.ItemIsEditable)
@@ -235,20 +235,24 @@ class CurvesAppearanceChooser(Qt.QWidget):
         if prop.sColor is None:
             index = 0
         else:
-            index = self.sColorCB.findData(Qt.QVariant(Qt.QColor(prop.sColor)))
+            index = self.sColorCB.findData(Qt.QColor(prop.sColor))
         if index == -1:  # if the color is not one of the supported colors, add it to the combobox
             index = self.sColorCB.count()  # set the index to what will be the added one
-            self.sColorCB.addItem(self._colorIcon(
-                Qt.QColor(prop.sColor)), "", Qt.QVariant(Qt.QColor(prop.sColor)))
+            self.sColorCB.addItem(self._colorIcon(Qt.QColor(prop.sColor)),
+                                  "",
+                                  Qt.QColor(prop.sColor)
+                                  )
         self.sColorCB.setCurrentIndex(index)
         if prop.lColor is None:
             index = 0
         else:
-            index = self.lColorCB.findData(Qt.QVariant(Qt.QColor(prop.lColor)))
+            index = self.lColorCB.findData(Qt.QColor(prop.lColor))
         if index == -1:  # if the color is not one of the supported colors, add it to the combobox
             index = self.lColorCB.count()  # set the index to what will be the added one
-            self.lColorCB.addItem(self._colorIcon(
-                Qt.QColor(prop.lColor)), "", Qt.QVariant(Qt.QColor(prop.lColor)))
+            self.lColorCB.addItem(self._colorIcon(Qt.QColor(prop.lColor)),
+                                  "",
+                                  Qt.QColor(prop.lColor)
+                                  )
         self.lColorCB.setCurrentIndex(index)
         # set the Fill Checkbox. The prop.sFill value can be in 3 states: True,
         # False and None

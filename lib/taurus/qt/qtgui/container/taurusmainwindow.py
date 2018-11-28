@@ -666,12 +666,11 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         if group is not None:
             settings.beginGroup(group)
         # main window geometry
-        settings.setValue("MainWindow/State", Qt.QVariant(self.saveState()))
-        settings.setValue("MainWindow/Geometry",
-                          Qt.QVariant(self.saveGeometry()))
+        settings.setValue("MainWindow/State", self.saveState())
+        settings.setValue("MainWindow/Geometry", self.saveGeometry())
 
         # store the config dict
-        settings.setValue("TaurusConfig", Qt.QVariant(self.createQConfig()))
+        settings.setValue("TaurusConfig", self.createQConfig())
         if group is not None:
             settings.endGroup()
         self.info('MainWindow settings saved in "%s"' % settings.fileName())

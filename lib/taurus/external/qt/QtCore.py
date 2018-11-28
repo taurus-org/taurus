@@ -94,7 +94,6 @@ elif PYQT4:
 
     # Deprecated. QVariant is kept for now to facilitate transition of existing
     # code but using QVariant should be avoided (with API 2 it is superfluous)
-    # TODO: Remove all references to QVariant in taurus
     @__deprecation(rel='4.0.1', alt='python objects directly')
     def QVariant(pyobj=None):
         return pyobj

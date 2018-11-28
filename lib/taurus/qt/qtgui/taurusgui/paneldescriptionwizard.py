@@ -485,25 +485,25 @@ class CommTableModel(Qt.QAbstractTableModel):
     def headerData(self, section, orientation, role=Qt.Qt.DisplayRole):
         if role == Qt.Qt.TextAlignmentRole:
             if orientation == Qt.Qt.Horizontal:
-                return Qt.QVariant(int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter))
-            return Qt.QVariant(int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter))
+                return int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter)
+            return int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
         if role != Qt.Qt.DisplayRole:
-            return Qt.QVariant()
+            return None
         # So this is DisplayRole...
         if orientation == Qt.Qt.Horizontal:
             if section == self.UID:
-                return Qt.QVariant("Data UID")
+                return "Data UID"
             elif section == self.R:
-                return Qt.QVariant("Reader (slot)")
+                return "Reader (slot)"
             elif section == self.W:
-                return Qt.QVariant("Writer (signal)")
-            return Qt.QVariant()
+                return "Writer (signal)"
+            return None
         else:
-            return Qt.QVariant(Qt.QString('%i' % (section + 1)))
+            return Qt.QString('%i' % (section + 1))
 
     def data(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < self.rowCount()):
-            return Qt.QVariant()
+            return None
         row = index.row()
         column = index.column()
         # Display Role
@@ -514,8 +514,8 @@ class CommTableModel(Qt.QAbstractTableModel):
                     text = '(enter UID)'
                 else:
                     text = '(not registered)'
-            return Qt.QVariant(Qt.QString(text))
-        return Qt.QVariant()
+            return Qt.QString(text)
+        return None
 
     def flags(self, index):
         return (Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsEditable | Qt.Qt.ItemIsDragEnabled | Qt.Qt.ItemIsDropEnabled | Qt.Qt.ItemIsSelectable)
@@ -589,7 +589,7 @@ class CommItemDelegate(Qt.QStyledItemDelegate):
         editor.setEditText('')
 
     def setModelData(self, editor, model, index):
-        model.setData(index, Qt.QVariant(editor.currentText()))
+        model.setData(index, editor.currentText())
 
 
 class PanelDescriptionWizard(Qt.QWizard, TaurusBaseWidget):

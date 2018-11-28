@@ -103,7 +103,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         else:
             tabledata = self._wtabledata
         if not index.isValid() or not (0 <= index.row() < len(tabledata)):
-            return Qt.QVariant()
+            return None
         elif role == Qt.Qt.DisplayRole:
             value = None
             rc = (index.row(), index.column())
@@ -118,7 +118,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                     value = value.magnitude
             # cast the value to a standard python type
             value = self.typeCastingMap[tabledata.dtype.kind](value)
-            return Qt.QVariant(value)
+            return value
         elif role == Qt.Qt.DecorationRole:
             if ((index.row(), index.column()) in self._modifiedDict
                     and self._writeMode):
@@ -130,7 +130,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                         icon = Qt.QIcon.fromTheme('emblem-important')
                 else:
                     icon = Qt.QIcon.fromTheme('document-save')
-                return Qt.QVariant(icon)
+                return icon
         elif role == Qt.Qt.EditRole:
             value = None
             if ((index.row(), index.column()) in self._modifiedDict
@@ -140,36 +140,36 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                 value = tabledata[index.row(), index.column()]
                 if tabledata.dtype == bool:
                     value = bool(value)
-            return Qt.QVariant(value)
+            return value
         elif role == Qt.Qt.BackgroundRole:
             if self._writeMode:
-                return Qt.QVariant(Qt.QColor(22, 223, 21, 50))
+                return Qt.QColor(22, 223, 21, 50)
             else:
-                return Qt.QVariant(Qt.QColor('white'))
+                return Qt.QColor('white')
         elif role == Qt.Qt.ForegroundRole:
             if ((index.row(), index.column()) in self._modifiedDict
                     and self._writeMode):
                 if self.getAttr().type in [DataType.Integer, DataType.Float]:
                     value = self._modifiedDict[(index.row(), index.column())]
                     if not self.inAlarmRange(value):
-                        return Qt.QVariant(Qt.QColor('blue'))
+                        return Qt.QColor('blue')
                     else:
-                        return Qt.QVariant(Qt.QColor('orange'))
+                        return Qt.QColor('orange')
                 else:
-                    return Qt.QVariant(Qt.QColor('blue'))
-            return Qt.QVariant(Qt.QColor('black'))
+                    return Qt.QColor('blue')
+            return Qt.QColor('black')
         elif role == Qt.Qt.FontRole:
             if ((index.row(), index.column()) in self._modifiedDict
                     and self._writeMode):
-                return Qt.QVariant(Qt.QFont("Arial", 10, Qt.QFont.Bold))
+                return Qt.QFont("Arial", 10, Qt.QFont.Bold)
         elif role == Qt.Qt.ToolTipRole:
             if ((index.row(), index.column()) in self._modifiedDict
                     and self._writeMode):
                 value = str(self._modifiedDict[(index.row(), index.column())])
                 msg = 'Original value: %s.\nNew value that will be saved: %s' %\
                       (str(tabledata[index.row(), index.column()]), value)
-                return Qt.QVariant(msg)
-        return Qt.QVariant()
+                return msg
+        return None
 
     def getAttr(self):
         return self._attr
@@ -518,7 +518,7 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
                 text = editor.text()
             text = str(text)
         if(text != self._initialText) & (text != ""):
-            model.addValue(index, Qt.QVariant(text))
+            model.addValue(index, text)
             hh = self.parent().horizontalHeader()
             if hh.length() > 0:
                 try:

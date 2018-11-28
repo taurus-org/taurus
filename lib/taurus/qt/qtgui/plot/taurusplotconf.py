@@ -130,7 +130,7 @@ class TaurusPlotConfDlg(Qt.QWidget):
         self.model.insertRows(rowcount, nmodels)
         for i, m in enumerate(models):
             self.model.setData(self.model.index(rowcount + i, curveprops.Y),
-                               value=Qt.QVariant(m))
+                               value=m)
 
     def onApply(self):
         print("APPLY!!! (todo)")

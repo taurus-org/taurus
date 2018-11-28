@@ -111,8 +111,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
             group = str(path).split(';', 1)[0]
         itemToMark = self.itemFromIndex(tmpindex.parent())
         while(itemToMark is not None):
-            itemToMark.setData(Qt.QVariant(
-                Qt.QFont("Arial", 10, Qt.QFont.Bold)), Qt.Qt.FontRole)
+            itemToMark.setData(
+                Qt.QFont("Arial", 10, Qt.QFont.Bold), Qt.Qt.FontRole)
             itemToMark = self.itemFromIndex(itemToMark.index().parent())
 
         self.markedItems.append(self._toDeleteIndex.parent())
@@ -180,14 +180,14 @@ class QConfigEditorModel(Qt.QStandardItemModel):
 
         self.itemFromIndex(index.sibling(index.row(), 1)
                            ).setText(str(type(eval(value))))
-        changedItem.setData(Qt.QVariant(
-            'Value has been changed. Old value: ' + str(changedItem.text())),
+        changedItem.setData(
+            'Value has been changed. Old value: ' + str(changedItem.text()),
             Qt.Qt.ToolTipRole)
-        itemToMark.setData(Qt.QVariant(Qt.QIcon.fromTheme('emblem-important')),
+        itemToMark.setData(Qt.QIcon.fromTheme('emblem-important'),
                            Qt.Qt.DecorationRole)
         while(itemToMark is not None):
-            itemToMark.setData(Qt.QVariant(
-                Qt.QFont("Arial", 10, Qt.QFont.Bold)), Qt.Qt.FontRole)
+            itemToMark.setData(
+                Qt.QFont("Arial", 10, Qt.QFont.Bold), Qt.Qt.FontRole)
             itemToMark = self.itemFromIndex(itemToMark.index().parent())
         self.saveSettings(group)
 
@@ -235,7 +235,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         configdict = self.getTaurusConfigFromSettings()
         if configdict is not None:
             mainConfig[None] = configdict
-            item.setData(Qt.QVariant('None'), Qt.Qt.UserRole)
+            item.setData('None', Qt.Qt.UserRole)
             self.fillTaurusConfig(item, configdict)
         self._settings.beginGroup("Perspectives")
         self.perspectives = self._settings.childGroups()
@@ -243,7 +243,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
             item = Qt.QStandardItem(name)
             item.setEditable(False)
             # item.setSelectable(False)
-            path = Qt.QVariant("Perspectives/" + name)
+            path = "Perspectives/" + name
             item.setData(path, Qt.Qt.UserRole)
             root.appendRow(item)
             self._settings.beginGroup(name)
@@ -276,7 +276,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                 item.appendRow(child)
 
                 txt = item.data(Qt.Qt.UserRole)
-                path = Qt.QVariant(txt + ";__itemConfigurations__;" + k)
+                path = txt + ";__itemConfigurations__;" + k
                 child.setData(path, Qt.Qt.UserRole)
                 # recursive call to fill all nodes
                 self.fillTaurusConfig(child, value)
@@ -290,7 +290,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                 item.appendRow([child, typeV, valueV])
 
                 txt = item.data(Qt.Qt.UserRole)
-                path = Qt.QVariant(txt + ";__itemConfigurations__;" + k)
+                path = txt + ";__itemConfigurations__;" + k
                 child.setEditable(False)
                 typeV.setEditable(False)
 
@@ -316,7 +316,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                     child.setEditable(False)
                     item.appendRow(child)
                     txt = item.data(Qt.Qt.UserRole)
-                    path = Qt.QVariant(txt + ";" + k)
+                    path = txt + ";" + k
                     child.setData(path, Qt.Qt.UserRole)
                     # recursive call to fill all nodes
                     self.fillTaurusConfig(child, value)
@@ -327,7 +327,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                     child.setForeground(Qt.QBrush(Qt.QColor('gray')))
                     item.appendRow([child, typeV, valueV])
                     txt = item.data(Qt.Qt.UserRole)
-                    path = Qt.QVariant(txt + ";" + k)
+                    path = txt + ";" + k
 
                     child.setData(path, Qt.Qt.UserRole)
                     child.setEditable(False)
@@ -380,8 +380,10 @@ class QConfigEditorModel(Qt.QStandardItemModel):
             self._settings.beginGroup(group)
 
         # store the config dict
-        self._settings.setValue("TaurusConfig", Qt.QVariant(
-            Qt.QByteArray(pickle.dumps(self._configurationDictionaries[group]))))
+        self._settings.setValue(
+            "TaurusConfig",
+            Qt.QByteArray(pickle.dumps(self._configurationDictionaries[group]))
+        )
         if group is not None:
             self._settings.endGroup()
         #self.info('MainWindow settings saved in "%s"'%self._settings.fileName())
@@ -403,9 +405,9 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         for index in self.markedItems:
             itemToMark = self.itemFromIndex(index)
             while(itemToMark is not None):
-                itemToMark.setData(Qt.QVariant(
-                    Qt.QFont("Arial", 10, Qt.QFont.Normal)), Qt.Qt.FontRole)
-                itemToMark.setData(Qt.QVariant(), Qt.Qt.DecorationRole)
+                itemToMark.setData(Qt.QFont("Arial", 10, Qt.QFont.Normal),
+                                   Qt.Qt.FontRole)
+                itemToMark.setData(None, Qt.Qt.DecorationRole)
                 itemToMark = self.itemFromIndex(itemToMark.index().parent())
 
 
