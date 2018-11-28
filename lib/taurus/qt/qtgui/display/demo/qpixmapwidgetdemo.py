@@ -134,9 +134,7 @@ def demo():
 
         def changeAlignment(self, i):
             halign = self.w_halign.itemData(self.w_halign.currentIndex())
-            halign = Qt.from_qvariant(halign, int)
             valign = self.w_valign.itemData(self.w_valign.currentIndex())
-            valign = Qt.from_qvariant(valign, int)
             self.w.alignment = halign | valign
 
     panel = Qt.QWidget()

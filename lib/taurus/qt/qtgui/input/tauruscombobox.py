@@ -108,7 +108,6 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
             func = bool
         else:
             return None
-        new_value = Qt.from_qvariant(new_value, func)
         return new_value
 
     def setValue(self, value):

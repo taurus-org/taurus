@@ -178,7 +178,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
     def onItemChanged(self, item):
         '''slot used when an item data has changed'''
-        name = Qt.from_qvariant(item.data(self.NAME_ROLE), str)
+        name = item.data(self.NAME_ROLE)
         previousTitle = self.curvePropDict[name].title
         currentTitle = item.text()
         if previousTitle != currentTitle:
@@ -207,7 +207,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
         :return: (string_list) the names of the selected curves
         '''
-        return [Qt.from_qvariant(item.data(self.NAME_ROLE), str) for item in self.curvesLW.selectedItems()]
+        return [item.data(self.NAME_ROLE) for item in self.curvesLW.selectedItems()]
 
     def showProperties(self, prop=None):
         '''Updates the dialog to show the given properties.

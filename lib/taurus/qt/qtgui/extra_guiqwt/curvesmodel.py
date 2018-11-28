@@ -269,7 +269,6 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
             row = index.row()
             curve = self.curves[row]
             column = index.column()
-            value = Qt.from_qvariant(value, str)
             if column == X:
                 curve.taurusparam.xModel = value
                 curve.x.processSrc(value)
@@ -346,9 +345,8 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
     def mimeData(self, indexes):
         mimedata = Qt.QAbstractTableModel.mimeData(self, indexes)
         if len(indexes) == 1:
-            #            data = Qt.from_qvariant(self.data(indexes[0], str)
-            #            mimedata.setData(TAURUS_ATTR_MIME_TYPE, data)
-            data = Qt.from_qvariant(self.data(indexes[0], role=SRC_ROLE), str)
+            data = self.data(indexes[0], role=SRC_ROLE)
+            # mimedata.setData(TAURUS_ATTR_MIME_TYPE, data)
             mimedata.setText(data)
         return mimedata
         # mimedata.setData()

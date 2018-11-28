@@ -247,7 +247,6 @@ class CurvesTableModel(Qt.QAbstractTableModel):
                     row, 0), self.index(row, self.ncolumns - 1))
             else:
                 column = index.column()
-                value = Qt.from_qvariant(value, str)
                 if column == X:
                     curve.x.setSrc(value)
                 elif column == Y:
@@ -321,9 +320,8 @@ class CurvesTableModel(Qt.QAbstractTableModel):
     def mimeData(self, indexes):
         mimedata = Qt.QAbstractTableModel.mimeData(self, indexes)
         if len(indexes) == 1:
-            #            txt = Qt.from_qvariant(self.data(indexes[0], str)
-            #            mimedata.setData(TAURUS_ATTR_MIME_TYPE, txt)
-            txt = Qt.from_qvariant(self.data(indexes[0], role=SRC_ROLE), str)
+            txt = self.data(indexes[0], role=SRC_ROLE)
+            # mimedata.setData(TAURUS_ATTR_MIME_TYPE, txt)
             mimedata.setText(txt)
         return mimedata
         # mimedata.setData()

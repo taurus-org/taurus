@@ -178,7 +178,6 @@ class TaurusModelModel(Qt.QAbstractListModel):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
             row = index.row()
             item = self.items[row]
-            value = Qt.from_qvariant(value, str)
             if role == Qt.Qt.EditRole:
                 item.src = value
             elif role == Qt.Qt.DisplayRole:
@@ -272,9 +271,8 @@ class TaurusModelModel(Qt.QAbstractListModel):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
         mimedata = Qt.QAbstractListModel.mimeData(self, indexes)
         if len(indexes) == 1:
-            # mimedata.setData(TAURUS_ATTR_MIME_TYPE,
-            # Qt.from_qvariant(self.data(indexes[0]), str)))
-            txt = Qt.from_qvariant(self.data(indexes[0], role=SRC_ROLE), str)
+            # mimedata.setData(TAURUS_ATTR_MIME_TYPE, self.data(indexes[0]))
+            txt = self.data(indexes[0], role=SRC_ROLE)
             mimedata.setText(txt)
         return mimedata
         # mimedata.setData()
@@ -337,9 +335,8 @@ class TaurusModelList(Qt.QListView):
             idx = selected[0]
         else:
             return
-        value = Qt.from_qvariant(self._model.data(
-            idx, role=Qt.Qt.DisplayRole), str)
-        src = Qt.from_qvariant(self._model.data(idx, role=SRC_ROLE), str)
+        value = self._model.data(idx, role=Qt.Qt.DisplayRole)
+        src = self._model.data(idx, role=SRC_ROLE)
         value, ok = Qt.QInputDialog.getText(
             self, "Display Value", "Display value for %s?" % src, Qt.QLineEdit.Normal, value)
         if not ok:

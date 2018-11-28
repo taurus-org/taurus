@@ -61,13 +61,12 @@ class QConfigEditorModel(Qt.QStandardItemModel):
     def setData(self, index, value, role=Qt.Qt.DisplayRole):
         '''see :meth:`Qt.QAbstractTableModel.setData`'''
 
-        idx_data_str = Qt.from_qvariant(index.data(), str)
-        value_str = Qt.from_qvariant(value, str)
-        if idx_data_str == value_str:
+        idx_data_str = index.data()
+        if idx_data_str == value:
             return False
         #self.itemFromIndex(index).setData(value, role)
         try:
-            self.valueChanged(value_str, index)
+            self.valueChanged(value, index)
         except:
             self.showError.emit('Wrong value!',
                       'The value you entered is wrong. The old value will be restored.')
@@ -101,7 +100,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         '''
         tmpindex = self._toDeleteIndex
         item = self.itemFromIndex(tmpindex)
-        path = Qt.from_qvariant(item.data(Qt.Qt.UserRole), str)
+        path = item.data(Qt.Qt.UserRole)
         self._delete = False
         self._configurationDictionaries = self.removeBranch(
             self._configurationDictionaries, path)
@@ -169,7 +168,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         :param index: (QModelIndex) index of the model
         '''
         changedItem = self.itemFromIndex(index)
-        path = Qt.from_qvariant(changedItem.data(Qt.Qt.UserRole), str)
+        path = changedItem.data(Qt.Qt.UserRole)
         self._configurationDictionaries = self.changeTreeValue(
             self._configurationDictionaries, path, value)
         try:
@@ -276,7 +275,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                 child.setEditable(False)
                 item.appendRow(child)
 
-                txt = Qt.from_qvariant(item.data(Qt.Qt.UserRole), str)
+                txt = item.data(Qt.Qt.UserRole)
                 path = Qt.QVariant(txt + ";__itemConfigurations__;" + k)
                 child.setData(path, Qt.Qt.UserRole)
                 # recursive call to fill all nodes
@@ -290,7 +289,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
 
                 item.appendRow([child, typeV, valueV])
 
-                txt = Qt.from_qvariant(item.data(Qt.Qt.UserRole), str)
+                txt = item.data(Qt.Qt.UserRole)
                 path = Qt.QVariant(txt + ";__itemConfigurations__;" + k)
                 child.setEditable(False)
                 typeV.setEditable(False)
@@ -316,7 +315,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                 if BaseConfigurableClass.isTaurusConfig(value):
                     child.setEditable(False)
                     item.appendRow(child)
-                    txt = Qt.from_qvariant(item.data(Qt.Qt.UserRole), str)
+                    txt = item.data(Qt.Qt.UserRole)
                     path = Qt.QVariant(txt + ";" + k)
                     child.setData(path, Qt.Qt.UserRole)
                     # recursive call to fill all nodes
@@ -327,7 +326,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                     typeV.setForeground(Qt.QBrush(Qt.QColor('gray')))
                     child.setForeground(Qt.QBrush(Qt.QColor('gray')))
                     item.appendRow([child, typeV, valueV])
-                    txt = Qt.from_qvariant(item.data(Qt.Qt.UserRole), str)
+                    txt = item.data(Qt.Qt.UserRole)
                     path = Qt.QVariant(txt + ";" + k)
 
                     child.setData(path, Qt.Qt.UserRole)
@@ -346,7 +345,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         :returns (dict)
         '''
         result = None
-        qstate = Qt.from_qvariant(self._settings.value(key), 'toByteArray')
+        qstate = self._settings.value(key)
         if qstate is not None and not qstate.isNull():
             try:
                 result = pickle.loads(qstate.data())
@@ -438,7 +437,7 @@ class QConfigEditor(TaurusWidget):
         '''Reimplemented from :meth:`QWidget.contextMenuEvent`'''
 
         self.tree._toDeleteIndex = self.treeview.selectedIndexes()[0]
-        text = Qt.from_qvariant(self.tree._toDeleteIndex.data(), str)
+        text = self.tree._toDeleteIndex.data()
         if self.tree._toDeleteIndex.column() in [1, 2] or text in ['LAST', '[custom]'] or text in self.tree.perspectives:
             return
         menu = Qt.QMenu()

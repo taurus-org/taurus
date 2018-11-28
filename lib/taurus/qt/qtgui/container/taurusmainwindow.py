@@ -624,16 +624,11 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         if group is not None:
             settings.beginGroup(group)
         if not ignoreGeometry:
-            # With API2, from_qvariant is returning None instead
-            ba = Qt.from_qvariant(settings.value(
-                "MainWindow/Geometry"), 'toByteArray') or Qt.QByteArray()
-            # of an empty QByTeArray
-            # and this caused an exception later on. Hence the "or"
+            ba = settings.value("MainWindow/Geometry") or Qt.QByteArray()
             self.restoreGeometry(ba)
         # restore the Taurus config
         try:
-            ba = Qt.from_qvariant(settings.value(
-                "TaurusConfig"), 'toByteArray') or Qt.QByteArray()
+            ba = settings.value("TaurusConfig") or Qt.QByteArray()
             self.applyQConfig(ba)
         except Exception as e:
             msg = 'Problem loading configuration from "%s". Some settings may not be restored.\n Details: %s' % (
@@ -641,8 +636,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             self.error(msg)
             Qt.QMessageBox.warning(
                 self, 'Error Loading settings', msg, Qt.QMessageBox.Ok)
-        ba = Qt.from_qvariant(settings.value(
-            "MainWindow/State"), 'toByteArray') or Qt.QByteArray()
+        ba = settings.value("MainWindow/State") or Qt.QByteArray()
         self.restoreState(ba)
         # hide all dockwidgets (so that they are shown only if they were
         # present in the settings)
@@ -651,8 +645,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         for d in dockwidgets:
             r = self.restoreDockWidget(d)
             d.hide()
-        ba = Qt.from_qvariant(settings.value(
-            "MainWindow/State"), 'toByteArray') or Qt.QByteArray()
+        ba = settings.value("MainWindow/State") or Qt.QByteArray()
         self.restoreState(ba)
 
         if group is not None:

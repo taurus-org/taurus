@@ -270,7 +270,7 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
         if kind in 'SU':
             table = table.tolist()  # we want to allow the strings to be larger than the original ones
             for (r, c), v in self._modifiedDict.items():
-                table[r][c] = Qt.from_qvariant(v, str)
+                table[r][c] = v
             table = numpy.array(table, dtype=str)
         else:
             for k, v in self._modifiedDict.items():
@@ -279,7 +279,6 @@ class TaurusValuesIOTableModel(Qt.QAbstractTableModel):
                     q = _value2Quantity(v, units)
                     table[k] = q
                 elif kind == 'b':
-                    # TODO: This does not work Qt.from_qvariant(v, bool)
                     if str(v) == "true":
                         table[k] = True
                     else:
@@ -489,13 +488,13 @@ class TaurusValuesIOTableDelegate(Qt.QStyledItemDelegate):
         self._initialText = None
         if index.model().getType() == bool:
             editor.addItems(['true', 'false'])
-            a = str(Qt.from_qvariant(index.data(), bool)).lower()
+            a = str(index.data()).lower()
             self._initialText = a
 
             editor.setCurrentIndex(editor.findText(a))
         else:
             data = index.model().data(index, Qt.Qt.EditRole)
-            self._initialText = Qt.from_qvariant(data, str)
+            self._initialText = data
             editor.setText(str(self._initialText))
 
     def setModelData(self, editor, model, index):

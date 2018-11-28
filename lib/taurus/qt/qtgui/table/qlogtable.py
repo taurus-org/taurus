@@ -397,12 +397,12 @@ class LoggingToolBar(FilterToolBar):
 
     def getLogLevel(self):
         combo = self.getLogLevelComboBox()
-        return Qt.from_qvariant(combo.itemData(combo.currentIndex()))
+        return combo.itemData(combo.currentIndex())
 
     def setLogLevel(self, level):
         combo = self.getLogLevelComboBox()
         for i in range(combo.count()):
-            l = Qt.from_qvariant(combo.itemData(i))
+            l = combo.itemData(i)
             if l == level:
                 combo.setCurrentIndex(i)
 

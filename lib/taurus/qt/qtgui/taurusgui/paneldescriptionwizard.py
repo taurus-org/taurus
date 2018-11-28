@@ -308,7 +308,7 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
                 raise ValueError
             # set the name now because it might have changed since the
             # PanelDescription was created
-            paneldesc.name = Qt.from_qvariant(self.field('panelname'), str)
+            paneldesc.name = self.field('panelname')
             # allow the wizard to proceed
             return True
         except Exception as e:
@@ -524,7 +524,6 @@ class CommTableModel(Qt.QAbstractTableModel):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
             row = index.row()
             column = index.column()
-            value = Qt.from_qvariant(value, str)
             self.__table[row][column] = value
             self.dataChanged.emit(index, index)
             return True
