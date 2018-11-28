@@ -447,7 +447,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     model = Qt.pyqtProperty("QString", getModel, setModel)
 
     def setSelectionStyle(self, selectionStyle):
-        if isinstance(selectionStyle,  string_types + (Qt.QString,)):
+        if isinstance(selectionStyle,  string_types):
             selectionStyle = str(selectionStyle).upper()
             try:
                 selectionStyle = SynopticSelectionStyle[selectionStyle]
@@ -495,9 +495,6 @@ def jdraw_view_main():
     # print '%s setModel(%s)'%(time.ctime(),sys.argv[1])
     form.setModel(sys.argv[1])
     form.setWindowTitle(sys.argv[1].rsplit('.', 1)[0])
-    #def kk(*args):print("\tgraphicItemSelected(%s)"%str(args))
-    #form.connect(form,Qt.SIGNAL("graphicItemSelected(QString)"), kk)
-    # form.fitting()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

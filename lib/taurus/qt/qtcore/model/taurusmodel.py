@@ -29,7 +29,7 @@ from builtins import object
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
-from taurus.core.util.log import Logger
+from taurus.core.util.log import Logger, deprecation_decorator
 
 QtQt = Qt.Qt
 
@@ -141,16 +141,9 @@ class TaurusBaseTreeItem(object):
             self._display = self.DisplayFunc(self._itemData)
         return self._display
 
+    @deprecation_decorator(alt='display', rel='4.5')
     def qdisplay(self):
-        """Returns the display QString for this node
-
-        :return: (Qt.QString) the node's display string"""
-        if not hasattr(self, "_qdisplay"):
-            d = self.display()
-            if d is None:
-                return None
-            self._qdisplay = Qt.QString(d)
-        return self._qdisplay
+        return str(self.display())
 
     def mimeData(self, index):
         return self.data(index)

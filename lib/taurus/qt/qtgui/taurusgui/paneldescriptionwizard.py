@@ -499,7 +499,7 @@ class CommTableModel(Qt.QAbstractTableModel):
                 return "Writer (signal)"
             return None
         else:
-            return Qt.QString('%i' % (section + 1))
+            return str('%i' % (section + 1))
 
     def data(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < self.rowCount()):
@@ -514,7 +514,7 @@ class CommTableModel(Qt.QAbstractTableModel):
                     text = '(enter UID)'
                 else:
                     text = '(not registered)'
-            return Qt.QString(text)
+            return str(text)
         return None
 
     def flags(self, index):

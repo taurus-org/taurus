@@ -150,7 +150,7 @@ class QDataExportDialog(Qt.QDialog):
         if preffix is not given, the user is prompted for a directory path"""
         if preffix is None:
             outputdir = Qt.QFileDialog.getExistingDirectory(
-                self, 'Export Directory', Qt.QString())
+                self, 'Export Directory', '')
             if not outputdir:
                 return False
             preffix = os.path.join(str(outputdir), "set")

@@ -160,7 +160,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
                 shortcuts.append(Qt.QKeySequence(e))
             elif isinstance(e, Qt.QEvent.Type):
                 eventTypes.append(e)
-            elif isinstance(e, string_types +(Qt.QString,)):
+            elif isinstance(e, string_types):
                 signals.append(e)
             else:
                 raise TypeError('Unsupported trigger type: %s' % repr(type(e)))

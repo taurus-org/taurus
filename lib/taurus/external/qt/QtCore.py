@@ -20,7 +20,6 @@ from . import PYQT5, PYSIDE2, PYQT4, PYSIDE, PythonQtError
 # Deprecated. QString is kept for now to facilitate transition of existing
 # code but using QString should be avoided since it was deprecated
 QString = __str
-# TODO: remove all occurrences of QString in taurus
 # --------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------

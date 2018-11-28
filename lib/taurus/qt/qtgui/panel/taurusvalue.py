@@ -1147,7 +1147,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
             # calls self.getLabelWidgetClass, self.getReadWidgetClass,...
             classID = getattr(self, 'get%sClass' % key)()
-            if (isinstance(classID, string_types + (Qt.QString,))
+            if (isinstance(classID, string_types)
                     or allowUnpickable):
                 #configdict[key] = classID
                 configdict[key] = {'classid': classID}

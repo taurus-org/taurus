@@ -364,10 +364,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         # Write your own code here before attaching widget to attribute connect
         # the proper signal so that the first event is correctly received by the
         # widget
-        #
-        # Typical code is:
-        # self.connect(self, QtCore.SIGNAL('valueChangedDueToEvent(QString)'),
-        #             self.setTextValue)
 
         ret = TaurusBaseWidget.attach(self)
 
@@ -382,12 +378,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
         # ----------------------------------------------------------------------
         # Write your own code here after detaching the widget from the model
-        #
-        # Typical code is:
-        # self.emit(QtCore.SIGNAL('valueChangedDueToEvent(QString)'),
-        #          QtCore.QString(value_str))
-        # self.disconnect(self, QtCore.SIGNAL('valueChangedDueToEvent(QString)'),
-        #                self.setTextValue)
 
         # by default disable widget when dettached
         self.setEnabled(False)
@@ -435,8 +425,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         if isinstance(model, dict):
             self.load(model)
         else:
-            model = isinstance(model, string_types + (QtCore.QString,)) and [
-                model] or list(model)
+            model = isinstance(model, string_types) and [model] or list(model)
             self.trace('#' * 80)
             self.trace('In TaurusGrid.setModel(%s)' % str(model)[:100])
 

@@ -457,7 +457,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             c._xValues, c._yValues = self._xValues, self._yValues[:, i]
             c._updateMarkers()
 
-        self.dataChanged.emit(Qt.QString(self.getModel()))
+        self.dataChanged.emit(str(self.getModel()))
 
     def _checkDataDimensions(self, value):
         '''
@@ -785,7 +785,7 @@ class ScanTrendsSet(TaurusTrendsSet):
                     curve.setAppearanceProperties(prop)
                     self.addCurve(name, curve)
         self.parent().autoShowYAxes()
-        self.dataChanged.emit(Qt.QString(self.getModel()))
+        self.dataChanged.emit(str(self.getModel()))
 
     def _scanLineReceived(self, recordData):
         '''Receives a recordData dictionary and updates the curves associated to it
@@ -843,7 +843,7 @@ class ScanTrendsSet(TaurusTrendsSet):
                 c._yValues = numpy.append(c._yValues, v)
                 c._updateMarkers()
 
-        self.dataChanged.emit(Qt.QString(self.getModel()))
+        self.dataChanged.emit(str(self.getModel()))
 
     def connectWithQDoor(self, qdoor):
         '''connects this ScanTrendsSet to a QDoor
@@ -1302,7 +1302,7 @@ class TaurusTrend(TaurusPlot):
                                and it will also be used as default for newly
                                created ones)
 
-        :return: (caselessDict<str,QString> or None) The return value will be
+        :return: (caselessDict<str,str> or None) The return value will be
                  `None` if `curveNamesList` is None. Otherwise it will be a
                  dictionary with key=curvename and value=newtitle.
 
@@ -1400,7 +1400,7 @@ class TaurusTrend(TaurusPlot):
                         self.xBottom, currmin + step, currmax + step)
         finally:
             self.curves_lock.release()
-        self.dataChanged.emit(Qt.QString(name))
+        self.dataChanged.emit(str(name))
         if not self.xIsTime:
             self.replot()
         else:

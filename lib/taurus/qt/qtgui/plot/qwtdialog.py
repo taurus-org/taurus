@@ -563,7 +563,7 @@ class TaurusPlotConfigDialog(Qt.QDialog):
         '''slot used when a curve title is edited
 
         :param name: (str) curve name
-        :param name: (QString) new title
+        :param name: (str) new title
         '''
         newTitlesDict = self.parent.setCurvesTitle(newTitle, [name])
         self.curvesAppearanceChooser.updateTitles(newTitlesDict)

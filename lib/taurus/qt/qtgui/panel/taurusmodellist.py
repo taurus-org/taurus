@@ -152,7 +152,7 @@ class TaurusModelModel(Qt.QAbstractListModel):
         row = index.row()
         # Display Role
         if role == Qt.Qt.DisplayRole:
-            return Qt.QString(self.items[row].display)
+            return str(self.items[row].display)
         elif role == Qt.Qt.DecorationRole:
             return self.items[row].icon
         elif role == Qt.Qt.TextColorRole:
@@ -160,11 +160,11 @@ class TaurusModelModel(Qt.QAbstractListModel):
                 return Qt.QColor('gray')
             return Qt.QColor(self.items[row].ok and 'green' or 'red')
         elif role == SRC_ROLE:
-            return Qt.QString(self.items[row].src)
+            return str(self.items[row].src)
         elif role == Qt.Qt.ToolTipRole:
-            return Qt.QString(self.items[row].src)
+            return str(self.items[row].src)
         if role == Qt.Qt.EditRole:
-            return Qt.QString(self.items[row].src)
+            return str(self.items[row].src)
         return None
 
     def flags(self, index):

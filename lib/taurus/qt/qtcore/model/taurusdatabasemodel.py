@@ -736,13 +736,11 @@ class TaurusDbDeviceProxyModel(TaurusDbBaseProxyModel):
     def deviceMatches(self, device, regexp):
         name = device.name()
 
-        # if Qt.QString(name).contains(regexp):
         if regexp.indexIn(name) != -1:
             return True
         name = device.alias()
         if name is None:
             return False
-        # return Qt.QString(name).contains(regexp)
         return regexp.indexIn(name) != -1
 
 
@@ -760,14 +758,13 @@ class TaurusDbServerProxyModel(TaurusDbBaseProxyModel):
             serverName = treeItem.display()
             serverInstances = sourceModel.getServerNameInstances(serverName)
             for serverInstance in serverInstances:
-                # if Qt.QString(serverInstance.name()).contains(regexp):
                 if regexp.indexIn(serverInstance.name()) != -1:
                     return True
             return False
 
         if isinstance(treeItem, TaurusTreeServerItem):
             # return treeItem.qdisplay().contains(regexp)
-            return regexp.indexIn(treeItem.qdisplay()) != -1
+            return regexp.indexIn(treeItem.display()) != -1
 
         return True
 
@@ -786,4 +783,4 @@ class TaurusDbDeviceClassProxyModel(TaurusDbBaseProxyModel):
         regexp = self.filterRegExp()
 
         # return treeItem.qdisplay().contains(regexp)
-        return regexp.indexIn(treeItem.qdisplay()) != -1
+        return regexp.indexIn(treeItem.display()) != -1

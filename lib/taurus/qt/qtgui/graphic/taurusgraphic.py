@@ -697,7 +697,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 else:
                     if isinstance(picture, Qt.QPixmap):
                         pixmap = picture
-                    elif isinstance(picture, string_types + (Qt.QString,)):
+                    elif isinstance(picture, string_types):
                         picture = str(picture)
                         pixmap = Qt.QPixmap(os.path.realpath(picture))
                     SelectionMark = Qt.QGraphicsPixmapItem()

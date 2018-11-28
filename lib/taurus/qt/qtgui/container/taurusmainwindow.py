@@ -62,7 +62,7 @@ class CommandArgsLineEdit(Qt.QLineEdit):
         self.textEdited.connect(self.setCmdText)
 
     def setCmdText(self, cmdargs):
-        if not isinstance(cmdargs, string_types + (Qt.QString,)):
+        if not isinstance(cmdargs, string_types):
             cmdargs = " ".join(cmdargs)
         self.setText(cmdargs)
         self._extapp.setCmdArgs(self.getCmdArgs(), False)

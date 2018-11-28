@@ -145,13 +145,13 @@ class CurvesTableModel(Qt.QAbstractTableModel):
         # Display Role
         if role == Qt.Qt.DisplayRole:
             if column == X:
-                return Qt.QString(self.curves[row].x.display)
+                return str(self.curves[row].x.display)
             elif column == Y:
-                return Qt.QString(self.curves[row].y.display)
+                return str(self.curves[row].y.display)
             elif column == TITLE:
-                return Qt.QString(self.curves[row].title)
+                return str(self.curves[row].title)
             elif column == VIS:
-                return Qt.QString(self.curves[row].vis)
+                return str(self.curves[row].vis)
             else:
                 return None
         elif role == Qt.Qt.DecorationRole:
@@ -172,27 +172,27 @@ class CurvesTableModel(Qt.QAbstractTableModel):
                 return None
         elif role == SRC_ROLE:
             if column == X:
-                return Qt.QString(self.curves[row].x.src)
+                return str(self.curves[row].x.src)
             elif column == Y:
-                return Qt.QString(self.curves[row].y.src)
+                return str(self.curves[row].y.src)
             else:
                 return None
         elif role == PROPS_ROLE:
             return self.curves[row].properties
         elif role == Qt.Qt.ToolTipRole:
             if column == X:
-                return Qt.QString(self.curves[row].x.src)
+                return str(self.curves[row].x.src)
             elif column == Y:
-                return Qt.QString(self.curves[row].y.src)
+                return str(self.curves[row].y.src)
             else:
                 return None
         if role == Qt.Qt.EditRole:
             if column == X:
-                return Qt.QString(self.curves[row].x.src)
+                return str(self.curves[row].x.src)
             elif column == Y:
-                return Qt.QString(self.curves[row].y.src)
+                return str(self.curves[row].y.src)
             elif column == TITLE:
-                return Qt.QString(self.curves[row].title)
+                return str(self.curves[row].title)
             else:
                 return None
         # Alignment
@@ -222,7 +222,7 @@ class CurvesTableModel(Qt.QAbstractTableModel):
                 return "Shown at"
             return None
         else:
-            return Qt.QString.number(section + 1)
+            return str(section + 1)
 
     def flags(self, index):  # use this to set the editable flag when fix is selected
         if not index.isValid():

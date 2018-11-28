@@ -168,9 +168,9 @@ class CurvesAppearanceChooser(Qt.QWidget):
         self.__itemsDict = CaselessDict()
         for name, prop in self.curvePropDict.items():
             # create and insert the item
-            item = Qt.QListWidgetItem(Qt.QString(prop.title), self.curvesLW)
+            item = Qt.QListWidgetItem(str(prop.title), self.curvesLW)
             self.__itemsDict[name] = item
-            item.setData(self.NAME_ROLE, Qt.QString(name))
+            item.setData(self.NAME_ROLE, str(name))
             item.setToolTip("<b>Curve Name:</b> %s" % name)
             item.setFlags(Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsSelectable |
                           Qt.Qt.ItemIsUserCheckable | Qt.Qt.ItemIsDragEnabled | Qt.Qt.ItemIsEditable)
@@ -418,7 +418,7 @@ class CurveAppearanceProperties(object):
             - curvestyle is one of Qwt5.QwtPlotCurve.CurveStyle
             - axis is one of Qwt5.QwtPlot.Axis
             - title is something that Qwt5.QwtText() accepts in its constructor
-              (i.e. a QwtText, QString or any basestring)
+              (i.e. a QwtText or a string type)
         """
         self.sStyle = sStyle
         self.sSize = sSize
