@@ -20,13 +20,15 @@ from . import PYQT5, PYSIDE2, PYQT4, PYSIDE, PythonQtError
 # QString, from_qvariant and to_qvariant are kept for now to
 # facilitate transition of existing code but using them
 # should be avoided (they only make sense with API 1, which is not supported)
-@deprecation_decorator(rel='4.0.1', alt='str')
+@__deprecation(rel='4.0.1', alt='str')
 class QString(__str):
     pass
+
 
 @__deprecation(rel='4.0.1', alt='python objects directly')
 def from_qvariant(qobj=None, convfunc=None):
     return qobj
+
 
 @__deprecation(rel='4.0.1', alt='python objects directly')
 def to_qvariant(pyobj=None):
