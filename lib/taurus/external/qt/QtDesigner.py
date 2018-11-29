@@ -19,4 +19,4 @@ elif PYQT4:
 else:
     raise PythonQtError('No Qt bindings could be found')
 
-del PYQT4, PYQT5, PYSIDE, PYSIDE2, PythonQtError
+del PYQT4, PYQT5, PythonQtError
