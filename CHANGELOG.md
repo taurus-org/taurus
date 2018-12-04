@@ -18,8 +18,9 @@ develop branch) won't be reflected in this file.
 - taurus.qt.qtgui.tree.taurusdevicetree submodule (obsolete, unused)
 
 ### Deprecated
-- `QtColorPalette.qvariant`
+- `QtColorPalette.qvariant()`
 - `TaurusBaseTreeItem.qdisplay()`
+- `taurus.qt.qtdesigner.qtdesigner_prepare_taurus()`
 - The following have been implicitly deprecated since 4.0 (when API1
  support was dropped) but only now we deprecate them explicitly 
     - `taurus.external.qt.QtCore.QString` 
