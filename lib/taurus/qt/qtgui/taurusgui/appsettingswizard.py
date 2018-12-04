@@ -1547,6 +1547,9 @@ class AppSettingsWizard(Qt.QWizard):
         try:
             from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
                 TaurusMacroConfigurationDialog
+            # try to instantiate the dialog (e.g. this fails if using Qt5 with
+            # versions of sardana which do not support it)
+            _ = TaurusMacroConfigurationDialog()
             self.SARDANA_INSTALLED = True
         except:
             self.SARDANA_INSTALLED = False
