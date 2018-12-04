@@ -252,7 +252,7 @@ class QWheelEdit(Qt.QFrame):
 
         l = self.layout()
         l.setSpacing(0)
-        l.setContentsMargin(0, 0, 0, 0)
+        l.setContentsMargins(0, 0, 0, 0)
 
         id = self.getIntDigitCount()
         dd = self.getDecDigitCount()
