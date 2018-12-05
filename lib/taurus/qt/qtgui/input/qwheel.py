@@ -176,11 +176,18 @@ class _DigitLabel(Qt.QLabel):
 
 class _NumericEditor(Qt.QLineEdit):
     """A private editor to be used by QWheelEdit widget"""
+    focusOut = Qt.pyqtSignal()
 
     def __init__(self, parent=None):
         Qt.QLineEdit.__init__(self, parent)
         self.setValidator(Qt.QDoubleValidator(self))
         self.setFrame(False)
+
+    def focusOutEvent(self, event):
+        self.focusOut.emit()
+        print event.reason()
+
+        Qt.QLineEdit.focusOutEvent(self, event)
 
 
 class QWheelEdit(Qt.QFrame):
@@ -321,7 +328,7 @@ class QWheelEdit(Qt.QFrame):
 
         ed = _NumericEditor(self)
         ed.returnPressed.connect(self.editingFinished)
-        ed.editingFinished.connect(ed.hide)
+        ed.focusOut.connect(self.hideEditWidget)
         rect = Qt.QRect(l.cellRect(1, 0).topLeft(),
                         l.cellRect(1, l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
@@ -770,6 +777,7 @@ class QWheelEdit(Qt.QFrame):
         ed.selectAll()
         ed.setFocus()
         ed.setVisible(True)
+        self._editing = True
 
     def hideEditWidget(self):
         """hideEditWidget(self) -> None
@@ -778,6 +786,7 @@ class QWheelEdit(Qt.QFrame):
         """
         ed = self.getEditWidget()
         ed.setVisible(False)
+        self._editing = False
         self.setFocus()
 
     def wheelEvent(self, evt):
@@ -803,7 +812,6 @@ class QWheelEdit(Qt.QFrame):
         widget when this happens
         """
         self.showEditWidget()
-        self._editing = True
 
     def keyPressEvent(self, key_event):
         """keyPressEvent(self, key_event) -> None
@@ -815,20 +823,16 @@ class QWheelEdit(Qt.QFrame):
         if k == Qt.Qt.Key_F2:
             if self._editing:
                 self.hideEditWidget()
-                self._editing = False
             else:
                 self.showEditWidget()
-                self._editing = True
             return
         elif k == Qt.Qt.Key_Escape:
             if self._editing:
                 self.hideEditWidget()
-                self._editing = False
                 return
         elif k in (Qt.Qt.Key_Return, Qt.Qt.Key_Enter):
             if self._editing:
                 self.hideEditWidget()
-                self._editing = False
             else:
                 self.returnPressed.emit()
 
