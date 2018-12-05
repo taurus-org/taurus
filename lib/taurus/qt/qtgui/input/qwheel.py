@@ -219,6 +219,7 @@ class QWheelEdit(Qt.QFrame):
         self._maxValue = numpy.finfo('d').max  # inf
         self._editor = None
         self._editing = False
+        self._hideEditWidget = True
         self._showArrowButtons = True
         self._setDigits(QWheelEdit.DefaultIntDigitCount,
                         QWheelEdit.DefaultDecDigitCount)
@@ -511,7 +512,12 @@ class QWheelEdit(Qt.QFrame):
             return
         self._previous_value = self._value
         self._value = v
-        self._buildValueStr(v)
+
+        str_value = self._buildValueStr(v)
+        ed = self.getEditWidget()
+        if ed is not None:
+            ed.setText(str_value)
+
 
     def setWarning(self, msg):
         """setWarning(self, msg) -> None
@@ -849,6 +855,36 @@ class QWheelEdit(Qt.QFrame):
     def resetShowArrowButtons(self):
         self.setShowArrowButtons(True)
 
+    def getHideEditWidget(self):
+        """getHideEditWidget(self) -> bool
+
+        Gets the info if edition widget should be hidden when 'focusOut' event
+        occurs.
+
+        @return (bool)
+        """
+        return self._hideEditWidget
+
+    def setHideEditWidget(self, focus_out=True):
+        """setFocusOut(self, focus_out=True) -> None
+
+        Sets if edition widget should be hidden when 'focusOut' event occurs.
+        If set to False, edition widget is hidden only when 'F2', 'Esc',
+        'Enter' and arrow button are pressed. Default set to True.
+
+        @param[in] focus_out (bool) whether or not to hide edition widget
+        after 'focusOut' event.
+        """
+        if focus_out and not self._hideEditWidget:
+            ed = self.getEditWidget()
+            ed.focusOut.connect(self.hideEditWidget)
+            self._hideEditWidget = True
+        elif not focus_out and self._hideEditWidget:
+            ed = self.getEditWidget()
+            ed.focusOut.disconnect(self.hideEditWidget)
+            self._hideEditWidget = False
+
+
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -897,6 +933,13 @@ def main():
 
     def setNone():
         arrowWidget.setValue(None)
+
+    def disableHideEditWidget():
+        arrowWidget.setHideEditWidget(False)
+
+    def enableHideEditWidget():
+        arrowWidget.setHideEditWidget(True)
+
     a = Qt.QApplication([])
     panel = Qt.QWidget()
     l = Qt.QFormLayout(panel)
@@ -908,6 +951,10 @@ def main():
     resetbutton.setDefault(True)
     nanbutton = Qt.QPushButton("Set NAN", panel)
     nonebutton = Qt.QPushButton("Set None", panel)
+    disablehideeditwidgetbutton = Qt.QPushButton("Show edit widget on "
+                                                 "FocusOut", panel)
+    enablehideeditwidgetbutton = Qt.QPushButton("Hide edit widget on "
+                                                 "FocusOut", panel)
     showarrowbutton = Qt.QCheckBox("", panel)
 
     l.addRow("Value", arrowWidget)
@@ -920,6 +967,8 @@ def main():
     button_layout.addWidget(nanbutton)
     button_layout.addWidget(nonebutton)
     button_layout.addWidget(resetbutton)
+    button_layout.addWidget(disablehideeditwidgetbutton)
+    button_layout.addWidget(enablehideeditwidgetbutton)
     isb.setValue(arrowWidget.getIntDigitCount())
     dsb.setValue(arrowWidget.getDecDigitCount())
     minv.setRange(numpy.finfo('d').min, numpy.finfo('d').max)
@@ -933,6 +982,8 @@ def main():
     showarrowbutton.stateChanged.connect(arrowWidget.setShowArrowButtons)
     nanbutton.clicked.connect(setNAN)
     nonebutton.clicked.connect(setNone)
+    disablehideeditwidgetbutton.clicked.connect(disableHideEditWidget)
+    enablehideeditwidgetbutton.clicked.connect(enableHideEditWidget)
     resetbutton.clicked.connect(resetAll)
     panel.setVisible(True)
     a.exec_()
