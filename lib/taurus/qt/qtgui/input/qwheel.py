@@ -94,7 +94,7 @@ class _DownArrowButton(_ArrowButton):
         pm = Qt.QPixmapCache.find(_DownArrowButton.ArrowPixmapKey)
         if pm is None:
             pm = Qt.QPixmap(self.ArrowPixmapName)
-            pm = pm.transformed(Qt.QMatrix().rotate(180))
+            pm = pm.transformed(Qt.QTransform().rotate(180))
             Qt.QPixmapCache.insert(_DownArrowButton.ArrowPixmapKey, pm)
         return pm
 
