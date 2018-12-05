@@ -221,6 +221,7 @@ class QWheelEdit(Qt.QFrame):
         self._editing = False
         self._hideEditWidget = True
         self._showArrowButtons = True
+        self._forwardReturn = False
         self._setDigits(QWheelEdit.DefaultIntDigitCount,
                         QWheelEdit.DefaultDecDigitCount)
         self._setValue(0)
@@ -887,6 +888,33 @@ class QWheelEdit(Qt.QFrame):
             ed.focusOut.disconnect(self.hideEditWidget)
             self._hideEditWidget = False
 
+    def getForwardReturn(self):
+        """getForwardReturn(self) -> bool
+
+        Gets the info if returnPressed is forwarded.
+
+        @return (bool)
+        """
+        return self._forwardReturn
+
+    def setForwardReturn(self, forward_rtn=False):
+        """setForwardReturn(self, forward_rtn=False) -> None
+
+        Sets forwarding of returnPressed. If set to True, returnPressed from
+        edition widget emits returnPressed of 'QWheelEdit' widget.
+
+        @param[in] forward_rtn (bool) whether or not to forward returnPressed
+        signal
+        """
+        if forward_rtn and not self._forwardReturn:
+            ed = self.getEditWidget()
+            ed.returnPressed.connect(self.returnPressed)
+            self._forwardReturn = True
+
+        elif not forward_rtn and self._forwardReturn:
+            ed = self.getEditWidget()
+            ed.returnPressed.disconnect(self.returnPressed)
+            self._forwardReturn = False
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties
