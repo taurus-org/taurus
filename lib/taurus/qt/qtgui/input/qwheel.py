@@ -547,8 +547,11 @@ class QWheelEdit(Qt.QFrame):
 
         @param[in] b (_ArrowButton) the button which was pressed
         """
-        self._setValue(self.getValue() + b._inc)
-        self._updateValue()
+        if self._editing:
+            self.hideEditWidget()
+        else:
+            self._setValue(self.getValue() + b._inc)
+            self._updateValue()
 
     def setDigitCount(self, int_nb, dec_nb):
         """setDigitCount(self, int_nb, dec_nb) -> None
