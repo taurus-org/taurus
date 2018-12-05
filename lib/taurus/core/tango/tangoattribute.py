@@ -140,7 +140,16 @@ class TangoAttrValue(TaurusAttrValue):
         self.quality = quality_from_tango(p.quality)
 
     def __getattr__(self, name):
+        """
+        If the member `name` is not defined in this class, try to get it
+        from the TangoAttribute (configuration) or from the PyTango value
+        """
+        # Do not try to delegate special methods
+        if name.startswith('__') and name.endswith('__'):
+            raise AttributeError("'%s' object has no attribute %s"
+                                 % (self.__class__.__name__, name))
         try:
+            # maybe name is defined in the TangoAttribute?
             try:
                 # Use the attr reference if the attr is still valid
                 ret = getattr(self._attrRef, name)
@@ -152,6 +161,7 @@ class TangoAttrValue(TaurusAttrValue):
                 ret = getattr(a, name)
         except AttributeError:
             try:
+                # maybe name is defined in the PyTango value?
                 ret = getattr(self._pytango_dev_attr, name)
             except AttributeError:
                 raise AttributeError("'%s' object has no attribute %s"
