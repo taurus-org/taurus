@@ -185,7 +185,6 @@ class _NumericEditor(Qt.QLineEdit):
 
     def focusOutEvent(self, event):
         self.focusOut.emit()
-        print event.reason()
 
         Qt.QLineEdit.focusOutEvent(self, event)
 
