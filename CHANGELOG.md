@@ -16,6 +16,7 @@ develop branch) won't be reflected in this file.
 
 ### Removed
 - taurus.qt.qtgui.tree.taurusdevicetree submodule (obsolete, unused)
+- Trend dockwidget in TaurusDevPanel
 
 ### Deprecated
 - `QtColorPalette.qvariant()`
