@@ -84,10 +84,15 @@ def getDevStateToolTip(*args, **kwargs):
 class TaurusTreeDbBaseItem(TaurusBaseTreeItem):
     try:
         # TODO: tango-centric
-        from taurus.core.tango.tangodatabase import TangoInfo
-        DisplayFunc = TangoInfo.name
+        import taurus.core.tango
+
+        @staticmethod
+        def DisplayFunc(obj):
+            from taurus.core.tango.tangodatabase import TangoInfo
+            return TangoInfo.name(obj)
     except:
         pass
+
 
 class TaurusTreeDevicePartItem(TaurusTreeDbBaseItem):
     """A node designed to represent a 'part' (or totality) of a device name"""

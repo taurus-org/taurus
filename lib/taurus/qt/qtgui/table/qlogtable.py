@@ -147,7 +147,7 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
     DftColSize = Qt.QSize(80, 20), Qt.QSize(200, 20), \
         Qt.QSize(300, 20), Qt.QSize(180, 20), Qt.QSize(240, 20),
 
-    def __init__(self, capacity=500000, freq=0.25):
+    def __init__(self, parent=None, capacity=500000, freq=0.25):
         super(Qt.QAbstractTableModel, self).__init__()
         logging.Handler.__init__(self)
         self._capacity = capacity
@@ -369,8 +369,7 @@ class LoggingToolBar(FilterToolBar):
         self._logLevelComboBox = logLevelComboBox = Qt.QComboBox()
         levels = "Trace", "Debug", "Info", "Warning", "Error", "Critical"
         for level in levels:
-            logLevelComboBox.addItem(
-                level, Qt.QVariant(getattr(taurus, level)))
+            logLevelComboBox.addItem(level, getattr(taurus, level))
         logLevelComboBox.setCurrentIndex(0)
         logLevelComboBox.currentIndexChanged.connect(self.onLogLevelChanged)
         logLevelComboBox.setToolTip("Filter by log level")
