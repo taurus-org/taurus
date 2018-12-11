@@ -20,6 +20,7 @@ env:
   - DOCKER_IMG=cpascual/taurus-test:debian-stretch
   - DOCKER_IMG=cpascual/taurus-test:debian-buster
   - DOCKER_IMG=cpascual/taurus-test:debian-stretch-py3
+  - DOCKER_IMG=cpascual/taurus-test:debian-stretch-py3qt5
 
 matrix:
     allow_failures:
