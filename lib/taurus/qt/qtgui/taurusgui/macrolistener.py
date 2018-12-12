@@ -197,7 +197,7 @@ class DynamicPlotManager(Qt.QObject, TaurusBaseComponent):
         :returns: (tuple) two lists new,rm:new contains the names of the new
                   panels and rm contains the names of the removed panels
         '''
-        from taurus.qt.qtgui.plot import TaurusTrend
+        from taurus.qt.qtgui.plot import TaurusTrend  # TODO: use tpg instead!
         newpanels = []
         for axes, plotables in trends1d.items():
             if not axes:
