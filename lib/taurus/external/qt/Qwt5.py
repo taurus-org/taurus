@@ -32,6 +32,6 @@ from taurus.core.util import log as __log
 
 if PYQT4:
     __log.deprecated(dep="taurus.external.qt.Qwt5", rel="4.5")
-    from PyQt4.QtNetwork import *
+    from PyQt4.Qwt5 import *
 else:
-    raise RuntimeError('Qwt5 bindings not supported for {}'.format(API_NAME))
+    raise ImportError('Qwt5 bindings not supported for {}'.format(API_NAME))
