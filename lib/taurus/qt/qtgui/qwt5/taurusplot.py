@@ -55,7 +55,7 @@ from taurus.core.util.safeeval import SafeEvaluator
 from taurus.qt.qtcore.util.signal import baseSignal
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
-from taurus.qt.qtgui.plot import TaurusPlotConfigDialog, FancyScaleDraw,\
+from taurus.qt.qtgui.qwt5 import TaurusPlotConfigDialog, FancyScaleDraw,\
     DateTimeScaleEngine, FixedLabelsScaleEngine, FixedLabelsScaleDraw
 from .curvesAppearanceChooserDlg import CurveAppearanceProperties
 
@@ -3103,7 +3103,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         then shows curve statistics on that range.
         '''
         if getattr(self, '_curveStatsDialog', None) is None:
-            from taurus.qt.qtgui.plot import CurveStatsDialog
+            from taurus.qt.qtgui.qwt5 import CurveStatsDialog
             self._curveStatsDialog = CurveStatsDialog(self)
             self._curveStatsDialog.closed.connect(self._onCurveStatsDialogClosed)
             self._curveStatsDialog.finished.connect(self._onCurveStatsDialogClosed)

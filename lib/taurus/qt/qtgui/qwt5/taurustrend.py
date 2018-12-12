@@ -43,7 +43,7 @@ import taurus.core
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.util.containers import CaselessDict, CaselessList, ArrayBuffer
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.qt.qtgui.plot import TaurusPlot
+from taurus.qt.qtgui.qwt5 import TaurusPlot
 
 
 __all__ = ["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]

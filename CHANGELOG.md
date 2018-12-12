@@ -18,7 +18,12 @@ develop branch) won't be reflected in this file.
 - taurus.qt.qtgui.tree.taurusdevicetree submodule (obsolete, unused)
 - Trend dockwidget in TaurusDevPanel
 
+### Changed
+- `taurus.qt.qtgui.plot` is now deprecated, but the same Qwt5-based 
+  API is now available in `taurus.qt.qtgui.qwt5`  
+
 ### Deprecated
+- `taurus.qt.qtgui.plot`
 - `QtColorPalette.qvariant()`
 - `TaurusBaseTreeItem.qdisplay()`
 - `taurus.qt.qtdesigner.qtdesigner_prepare_taurus()`
