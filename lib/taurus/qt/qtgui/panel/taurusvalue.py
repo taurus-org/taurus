@@ -160,13 +160,13 @@ class DefaultLabelWidget(TaurusLabel):
         '''reimplemented to use the taurusValueBuddy model instead of its own model'''
         mimeData = TaurusLabel.getModelMimeData(self)
         mimeData.setData(TAURUS_MODEL_MIME_TYPE,
-                         self.taurusValueBuddy().getModelName())
+                         str(self.taurusValueBuddy().getModelName()))
         if self.taurusValueBuddy().getModelType() == TaurusElementType.Device:
             mimeData.setData(TAURUS_DEV_MIME_TYPE,
-                             self.taurusValueBuddy().getModelName())
+                             str(self.taurusValueBuddy().getModelName()))
         elif self.taurusValueBuddy().getModelType() == TaurusElementType.Attribute:
             mimeData.setData(TAURUS_ATTR_MIME_TYPE,
-                             self.taurusValueBuddy().getModelName())
+                             str(self.taurusValueBuddy().getModelName()))
         return mimeData
 
     @classmethod
