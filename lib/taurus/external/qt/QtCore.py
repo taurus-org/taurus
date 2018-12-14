@@ -67,7 +67,6 @@ elif PYQT4:
                              QItemSelectionRange, QSortFilterProxyModel,
                              QStringListModel)
     from PyQt4.QtCore import QT_VERSION_STR as __version__
-    from PyQt4.QtCore import qInstallMsgHandler as qInstallMessageHandler
 
     # QDesktopServices has has been split into (QDesktopServices and
     # QStandardPaths) in Qt5
@@ -106,7 +105,6 @@ elif PYSIDE:
     from PySide.QtGui import (QItemSelection, QItemSelectionModel,
                               QItemSelectionRange, QSortFilterProxyModel,
                               QStringListModel)
-    from PySide.QtCore import qInstallMsgHandler as qInstallMessageHandler
 
     # QDesktopServices has has been split into (QDesktopServices and
     # QStandardPaths) in Qt5
