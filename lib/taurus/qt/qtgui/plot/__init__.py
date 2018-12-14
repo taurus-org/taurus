@@ -54,14 +54,13 @@ __log.deprecated(dep='taurus.qt.qtgui.plot', rel='4.5',
 try:
     from taurus.qt.qtgui.qwt5 import *
 except:
-    __log.warning('taurus.qt.qtgui.qwt5 cannot be imported')
     try:
         from taurus.qt.qtgui.tpg import TaurusPlot, TaurusTrend
-        __log.info('Using taurus.qt.qtgui.tpg to provide a minimal API '
+        __log.info('plot: Using taurus.qt.qtgui.tpg to provide a minimal API '
                    + 'to facilitate the transition')
     except:
-        __log.info('Cannot import taurus.qt.qtgui.tpg to provide a minimal '
-                   + 'API for transition')
+        __log.info('plot: Cannot import taurus.qt.qtgui.tpg to provide a '
+                   + 'minimal API for transition')
 
 
 
