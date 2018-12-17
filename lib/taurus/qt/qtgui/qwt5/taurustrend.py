@@ -1546,7 +1546,7 @@ class TaurusTrend(TaurusPlot):
 
         :return: (dict) a map with pertinent designer information"""
         return {
-            'module': 'taurus.qt.qtgui.plot',
+            'module': 'taurus.qt.qtgui.qwt5',
             'group': 'Taurus Display',
             'icon': 'designer:qwtplot.png',
             'container': False}
