@@ -74,29 +74,35 @@ INSTRUMENTS_FROM_POOL = False
 
 #=========================================================================
 # Define panels to be shown.
-# To define a panel, instantiate a PanelDescription object (see documentation
-# for the gblgui_utils module)
+# To define a panel, instantiate a PanelDescription object
 #=========================================================================
 
-nxbrowser = PanelDescription('NeXus Browser',
-                             classname='TaurusNeXusBrowser',
-                             area=None)
+nxbrowser = PanelDescription(
+    'NeXus Browser',
+    classname='taurus.qt.qtgui.extra_nexus.TaurusNeXusBrowser'
+)
 
-i0 = PanelDescription('BigInstrument',
-                      classname='TaurusAttrForm',
-                      model='sys/tg_test/1')
+i0 = PanelDescription(
+    'BigInstrument',
+    classname='taurus.qt.qtgui.panel.TaurusAttrForm',
+    model='sys/tg_test/1'
+)
 
-i1 = PanelDescription('instrument1',
-                      classname='TaurusForm',
-                      model=['sys/tg_test/1/double_scalar',
-                             'sys/tg_test/1/short_scalar_ro',
-                             'sys/tg_test/1/float_spectrum_ro',
-                                'sys/tg_test/1/double_spectrum'])
+i1 = PanelDescription(
+    'instrument1',
+    classname='taurus.qt.qtgui.panel.TaurusForm',
+    model=['sys/tg_test/1/double_scalar',
+           'sys/tg_test/1/short_scalar_ro',
+           'sys/tg_test/1/float_spectrum_ro',
+           'sys/tg_test/1/double_spectrum']
+)
 
-i2 = PanelDescription('instrument2',
-                      classname='TaurusForm',
-                      model=['sys/tg_test/1/wave',
-                             'sys/tg_test/1/boolean_scalar'])
+i2 = PanelDescription(
+    'instrument2',
+    classname='taurus.qt.qtgui.panel.TaurusForm',
+    model=['sys/tg_test/1/wave',
+           'sys/tg_test/1/boolean_scalar']
+)
 
 trend = PanelDescription(
     'Trend',
@@ -141,8 +147,8 @@ dummytoolbar = ToolBarDescription(
 # To define an external application, instantiate an ExternalApp object
 # See TaurusMainWindow.addExternalAppLauncher for valid values of ExternalApp
 #=========================================================================
-xterm = ExternalApp(cmdargs=['xterm', 'spock'],
-                    text="Spock", icon='utilities-terminal')
+xterm = ExternalApp(
+    cmdargs=['xterm', 'spock'], text="Spock", icon='utilities-terminal')
 hdfview = ExternalApp(["hdfview"])
 pymca = ExternalApp(['pymca'])
 
@@ -165,7 +171,7 @@ pymca = ExternalApp(['pymca'])
 #=========================================================================
 # Adding other widgets to the catalog of the "new panel" dialog.
 # pass a tuple of (classname,screenshot)
-# -classname may contain the module name.
+# -classname should contain the module name.
 # -screenshot can either be a resource URL, a file name (either relative to
 # the application dir or with an absolute path) or None
 #=========================================================================
