@@ -98,24 +98,28 @@ i2 = PanelDescription('instrument2',
                       model=['sys/tg_test/1/wave',
                              'sys/tg_test/1/boolean_scalar'])
 
-trend = PanelDescription('Trend',
-                         classname='TaurusTrend',
-                         model=['sys/tg_test/1/double_scalar'])
+trend = PanelDescription(
+    'Trend',
+    classname='taurus.qt.qtgui.plot.TaurusTrend',
+    model=['sys/tg_test/1/double_scalar']
+)
 
-connectionDemo = PanelDescription('Selected Instrument',
-                                  classname='PyQt4.Qt.QLineEdit',
-                                  sharedDataRead={
-                                      'SelectedInstrument': 'setText'},
-                                  sharedDataWrite={'SelectedInstrument': 'textEdited'})
+connectionDemo = PanelDescription(
+    'Selected Instrument',
+    classname='taurus.external.qt.Qt.QLineEdit',  # A pure Qt widget!
+    sharedDataRead={'SelectedInstrument': 'setText'},
+    sharedDataWrite={'SelectedInstrument': 'textEdited'}
+)
 
 #=========================================================================
 # Define custom toolbars to be shown. To define a toolbar, instantiate a
 # ToolbarDescription object (see documentation for the gblgui_utils module)
 #=========================================================================
 
-dummytoolbar = ToolBarDescription('Empty Toolbar',
-                                  classname='QToolBar',
-                                  modulename='PyQt4.Qt')
+dummytoolbar = ToolBarDescription(
+    'Empty Toolbar',
+    classname='taurus.external.qt.Qt.QToolBar'
+)
 
 # panictoolbar = ToolBarDescription('Panic Toolbar',
 #                        classname = 'PanicToolbar',
@@ -127,9 +131,9 @@ dummytoolbar = ToolBarDescription('Empty Toolbar',
 # object (see documentation for the gblgui_utils module)
 #=========================================================================
 
-mon2 = AppletDescription('Dummy Monitor',
-                         classname='TaurusMonitorTiny',
-                         model='eval:1000*rand(2)')
+# mon2 = AppletDescription('Dummy Monitor',
+#                          classname='TaurusMonitorTiny',
+#                          model='eval:1000*rand(2)')
 
 
 #=========================================================================
@@ -153,8 +157,8 @@ pymca = ExternalApp(['pymca'])
 # MACROEDITORS_PATH =
 
 #=========================================================================
-# Monitor widget (This is *obsolete* now, you can get the same result defining a
-# custom applet with classname='TaurusMonitorTiny')
+# Monitor widget (This is *obsolete* now, you can get the same result defining
+# a custom applet with classname='TaurusMonitorTiny')
 #=========================================================================
 # MONITOR = ['sys/tg_test/1/double_scalar_rww']
 
@@ -165,10 +169,11 @@ pymca = ExternalApp(['pymca'])
 # -screenshot can either be a resource URL, a file name (either relative to
 # the application dir or with an absolute path) or None
 #=========================================================================
-EXTRA_CATALOG_WIDGETS = [('PyQt4.Qt.QLineEdit', 'logos:taurus.png'),  # a resource
-                         ('PyQt4.Qt.QSpinBox', 'images/syn2.jpg'),  # relative
-                         #('PyQt4.Qt.QTextEdit','/tmp/foo.png'),  # absolute
-                         ('PyQt4.Qt.QLabel', None)]                # none
+EXTRA_CATALOG_WIDGETS = [
+    ('taurus.external.qt.Qt.QLineEdit', 'logos:taurus.png'),  # a resource
+    ('taurus.external.qt.Qt.QSpinBox', 'images/syn2.jpg'),  # relative
+    # ('taurus.external.Qt.QTextEdit','/tmp/foo.png'),  # absolute
+    ('taurus.external.qt.Qt.QLabel', None)]                # none
 
 #=========================================================================
 # Define one or more embedded consoles in the GUI.
