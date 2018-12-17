@@ -39,6 +39,7 @@ from future.utils import string_types
 
 import weakref
 import re
+from builtins import bytes
 from taurus.external.qt import Qt
 import taurus.core
 from taurus.core import DataType, DataFormat, TaurusEventType
@@ -159,14 +160,13 @@ class DefaultLabelWidget(TaurusLabel):
     def getModelMimeData(self):
         '''reimplemented to use the taurusValueBuddy model instead of its own model'''
         mimeData = TaurusLabel.getModelMimeData(self)
-        mimeData.setData(TAURUS_MODEL_MIME_TYPE,
-                         self.taurusValueBuddy().getModelName())
+        modelname = bytes(self.taurusValueBuddy().getModelName(),
+                          encoding='utf8')
+        mimeData.setData(TAURUS_MODEL_MIME_TYPE, modelname)
         if self.taurusValueBuddy().getModelType() == TaurusElementType.Device:
-            mimeData.setData(TAURUS_DEV_MIME_TYPE,
-                             self.taurusValueBuddy().getModelName())
+            mimeData.setData(TAURUS_DEV_MIME_TYPE, modelname)
         elif self.taurusValueBuddy().getModelType() == TaurusElementType.Attribute:
-            mimeData.setData(TAURUS_ATTR_MIME_TYPE,
-                             self.taurusValueBuddy().getModelName())
+            mimeData.setData(TAURUS_ATTR_MIME_TYPE, modelname)
         return mimeData
 
     @classmethod
