@@ -1281,7 +1281,9 @@ class TaurusSplineStateItem(QSpline, TaurusGraphicsStateItem):
 class TaurusRoundRectItem(Qt.QGraphicsPathItem):
 
     def __init__(self, name=None, parent=None, scene=None):
-        Qt.QGraphicsPathItem.__init__(self, parent, scene)
+        Qt.QGraphicsPathItem.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
         self.__rect = None
         self.setCornerWidth(0, 0)
 
