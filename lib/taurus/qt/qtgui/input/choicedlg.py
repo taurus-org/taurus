@@ -25,8 +25,7 @@
 
 """This package provides a dialog for graphically choosing a Taurus class"""
 from __future__ import print_function
-
-from builtins import str
+from future.builtins import str
 
 from taurus.external.qt import Qt
 
@@ -199,7 +198,9 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
 
     def onClick(self):
         '''slot called when a button is clicked'''
-        self._chosen = str(self.sender().text())
+        # TODO: Workaround for removing the shortcut character (&)
+        # added automatically by clicked signal connect when using pyqt5
+        self._chosen = str(self.sender().text().replace('&', ''))
         self.choiceMade.emit(self._chosen)
 
     def getChosen(self):
