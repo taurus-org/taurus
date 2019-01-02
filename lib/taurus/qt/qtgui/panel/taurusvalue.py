@@ -36,10 +36,10 @@ __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox",
 __docformat__ = 'restructuredtext'
 
 from future.utils import string_types
+from future.builtins import str
 
 import weakref
 import re
-from builtins import bytes
 from taurus.external.qt import Qt
 import taurus.core
 from taurus.core import DataType, DataFormat, TaurusEventType
@@ -158,10 +158,13 @@ class DefaultLabelWidget(TaurusLabel):
         event.accept()
 
     def getModelMimeData(self):
-        '''reimplemented to use the taurusValueBuddy model instead of its own model'''
+        """
+        reimplemented to use the taurusValueBuddy model instead of its own
+        model
+        """
         mimeData = TaurusLabel.getModelMimeData(self)
-        modelname = bytes(self.taurusValueBuddy().getModelName(),
-                          encoding='utf8')
+        _modelname = str(self.taurusValueBuddy().getModelName())
+        modelname = _modelname.encode(encoding='utf8')
         mimeData.setData(TAURUS_MODEL_MIME_TYPE, modelname)
         if self.taurusValueBuddy().getModelType() == TaurusElementType.Device:
             mimeData.setData(TAURUS_DEV_MIME_TYPE, modelname)

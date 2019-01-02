@@ -325,17 +325,12 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
             mimeData = Qt.QMimeData()
             if model:
                 taurusType = taurushelper.getValidTypesForName(model, False)
+                model = str(model).encode('utf8')
                 if TaurusElementType.Device in taurusType:
-                    self.debug('getMimeData(): DeviceModel at %s: %s',
-                               self.mousePos, model)
                     mimeData.setData(TAURUS_DEV_MIME_TYPE, model)
                 if TaurusElementType.Attribute in taurusType:
-                    self.debug('getMimeData(): AttributeModel at %s: %s',
-                               self.mousePos, model)
                     mimeData.setData(TAURUS_ATTR_MIME_TYPE, model)
                 else:
-                    self.debug('getMimeData(): UnknownModel at %s: %s',
-                               self.mousePos, model)
                     mimeData.setData(TAURUS_MODEL_MIME_TYPE, model)
         except:
             self.debug(

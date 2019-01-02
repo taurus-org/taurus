@@ -30,7 +30,7 @@ should inherit to be considered valid taurus widgets."""
 import sys
 import threading
 from types import MethodType
-from future.builtins import str, bytes
+from future.builtins import str
 from future.utils import string_types
 
 from taurus.external.qt import Qt
@@ -1748,7 +1748,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         :return: (QMimeData)
         '''
         mimeData = Qt.QMimeData()
-        modelname = bytes(self.getModelName(), encoding='utf8')
+        modelname = str(self.getModelName()).encode(encoding='utf8')
         mimeData.setData(TAURUS_MODEL_MIME_TYPE, modelname)
         try:
             modelclass = self.getModelClass()
