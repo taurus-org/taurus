@@ -102,7 +102,7 @@ class QtTestCase(unittest.TestCase):
         return self.__test_qt_module("QtGui")
 
 
-def  main():
+def main():
     unittest.main(verbosity=2)
 
 
