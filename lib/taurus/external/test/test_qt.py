@@ -101,13 +101,6 @@ class QtTestCase(unittest.TestCase):
         """Check the QtGui shim"""
         return self.__test_qt_module("QtGui")
 
-    def test_icons(self):
-        """check that theme icons work"""
-        from taurus.external.qt import Qt
-        icon = Qt.QIcon.fromTheme("folder-open")
-        msg = ('Theme icons not available')
-        self.assertFalse(icon.isNull(), msg)
-
 
 def  main():
     unittest.main(verbosity=2)
