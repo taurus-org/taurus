@@ -72,7 +72,7 @@ else:
     # if no binding is already loaded, use (in this order):
     #   - QT_API environment variable
     #   - tauruscustomsettings.DEFAULT_QT_API
-    #   - 'pyqt'
+    #   - 'pyqt5'
     API = os.environ.get(QT_API, getattr(__config, 'DEFAULT_QT_API', 'pyqt5'))
     API = API.lower()
 
