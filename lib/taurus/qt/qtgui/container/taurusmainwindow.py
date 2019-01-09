@@ -357,13 +357,23 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             return None
         self.perspectivesMenu.clear()
         for pname in self.getPerspectivesList():
-            self.perspectivesMenu.addAction(
+            a = self.perspectivesMenu.addAction(
                 pname, self.__onPerspectiveSelected)
+            # -------------------------------------------------------
+            # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+            # TODO: make better solution for this
+            a.perspective_name = pname  # <-- ugly monkey-patch!
+            # -------------------------------------------------------
         return self.perspectivesMenu
 
     def __onPerspectiveSelected(self):
         '''slot to be called by the actions in the perspectivesMenu'''
-        pname = self.sender().text()
+        # -------------------------------------------------------
+        # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+        # TODO: make better solution for this
+        # pname = self.sender().text()  # <-- this fails because of added "&"
+        pname = self.sender().perspective_name  # <-- this was monkey-patched
+        # -------------------------------------------------------
         self.loadPerspective(name=pname)
 
     def splashScreen(self):
