@@ -34,7 +34,7 @@ import traceback
 from future.utils import string_types
 
 import taurus
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core import taurushelper
 from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem, SynopticSelectionStyle
@@ -127,8 +127,8 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.emitColors()
 
     def openJDraw(self):
-        ifile = str(Qt.QFileDialog.getOpenFileName(
-            self, 'Load JDraw File', '', 'JDraw File (*.jdw)'))
+        ifile, _ = compat.getOpenFileName(
+            self, 'Load JDraw File', '', 'JDraw File (*.jdw)')
         if not ifile:
             return
         fileName = ifile.split("/")

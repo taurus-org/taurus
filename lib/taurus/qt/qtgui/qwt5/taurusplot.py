@@ -43,7 +43,7 @@ import time
 import numpy
 from future.utils import string_types
 from functools import partial
-from taurus.external.qt import Qt, Qwt5
+from taurus.external.qt import Qt, Qwt5, compat
 
 import taurus
 import taurus.core
@@ -2506,8 +2506,11 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         import pickle
         if ofile is None:
-            ofile = str(Qt.QFileDialog.getSaveFileName(self, 'Save Taurusplot Configuration',
-                                                       'TaurusplotConfig.pck', 'TaurusPlot Curve Properties File (*.pck)'))
+            ofile, _ = compat.getSaveFileName(
+                self, 'Save Taurusplot Configuration',
+                'TaurusplotConfig.pck',
+                'TaurusPlot Curve Properties File (*.pck)'
+            )
             if not ofile:
                 return
         if not isinstance(ofile, file):
@@ -2526,8 +2529,9 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         """
         import pickle
         if ifile is None:
-            ifile = str(Qt.QFileDialog.getOpenFileName(
-                self, 'Load Taurusplot Configuration', '', 'TaurusPlot Curve Properties File (*.pck)'))
+            ifile, _ = compat.getOpenFileName(
+                self, 'Load Taurusplot Configuration', '',
+                'TaurusPlot Curve Properties File (*.pck)')
             if not ifile:
                 return
         if not isinstance(ifile, file):
@@ -2702,7 +2706,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
                          a file name.
         """
         if fileName is None:
-            fileName = Qt.QFileDialog.getSaveFileName(
+            fileName, _ = compat.getSaveFileName(
                 self, 'Export File Name', 'plot.pdf', 'PDF Documents (*.pdf)')
         fileName = str(fileName)
         if fileName:
@@ -2798,7 +2802,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         .. seealso:: :meth:`numpy.loadtxt`
         '''
         if filenames is None:
-            filenames = Qt.QFileDialog.getOpenFileNames(
+            filenames, _ = compat.getOpenFileNames(
                 self, 'Choose input files', '', 'Ascii file (*)')
         if not filenames:
             return False

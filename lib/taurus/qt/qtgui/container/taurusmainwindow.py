@@ -40,7 +40,7 @@ from future.utils import string_types
 
 from taurus import tauruscustomsettings
 from taurus.core.util import deprecation_decorator
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from .taurusbasecontainer import TaurusBaseContainer
 
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
@@ -779,9 +779,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         :param fname: (str) name of output file. If None given, a file dialog will be shown.
         '''
         if fname is None:
-            fname = str(Qt.QFileDialog.getSaveFileName(
+            fname, _ = compat.getSaveFileName(
                 self, 'Choose file where the current settings should be saved',
-                '', "Ini files (*.ini);;All files (*)")
+                '', "Ini files (*.ini);;All files (*)"
             )
             if not fname:
                 return
@@ -803,9 +803,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         :param fname: (str) name of ini file. If None given, a file dialog will be shown.
         '''
         if fname is None:
-            fname = str(Qt.QFileDialog.getOpenFileName(
+            fname, _ = compat.getOpenFileName(
                 self, 'Select a ini-format settings file',
-                '', "Ini files (*.ini);;All files (*)")
+                '', "Ini files (*.ini);;All files (*)"
             )
             if not fname:
                 return

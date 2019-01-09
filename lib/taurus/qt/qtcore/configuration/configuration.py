@@ -436,9 +436,12 @@ class BaseConfigurableClass(object):
         """
         import pickle
         if ofile is None:
-            from taurus.external.qt import Qt
-            ofile = str(Qt.QFileDialog.getSaveFileName(
-                self, 'Save Configuration', '%s.pck' % self.__class__.__name__, 'Configuration File (*.pck)'))
+            from taurus.external.qt import compat
+            ofile, _ = compat.getSaveFileName(
+                self, 'Save Configuration',
+                '%s.pck' % self.__class__.__name__,
+                'Configuration File (*.pck)'
+            )
             if not ofile:
                 return
         if not isinstance(ofile, file):
@@ -457,9 +460,9 @@ class BaseConfigurableClass(object):
         """
         import pickle
         if ifile is None:
-            from taurus.external.qt import Qt
-            ifile = str(Qt.QFileDialog.getOpenFileName(
-                self, 'Load Configuration', '', 'Configuration File (*.pck)'))
+            from taurus.external.qt import compat
+            ifile, _ = compat.getOpenFileName(
+                self, 'Load Configuration', '', 'Configuration File (*.pck)')
             if not ifile:
                 return
         if not isinstance(ifile, file):

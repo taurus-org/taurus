@@ -46,7 +46,7 @@ import glob
 from lxml import etree
 
 from taurus import tauruscustomsettings
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 import taurus.qt.qtgui.panel
 import taurus.qt.qtgui.taurusgui.paneldescriptionwizard
 import taurus.qt.qtgui.input
@@ -471,8 +471,10 @@ class CustomLogoPage(BasePage):
             return None
 
     def _selectImage(self):
-        fileName = Qt.QFileDialog.getOpenFileName(self, self.tr(
-            "Open File"), Qt.QDir.homePath(), self.tr("Images (*.png *.xpm *.jpg *.jpeg *.svg)"))
+        fileName, _ = compat.getOpenFileName(
+            self, self.tr("Open File"), Qt.QDir.homePath(),
+            self.tr("Images (*.png *.xpm *.jpg *.jpeg *.svg)")
+        )
         self._customLogoLineEdit.setText(fileName)
         self._changeImage()
 
@@ -580,8 +582,10 @@ class SynopticPage(BasePage):
 
     def _addSynoptic(self):
         pdir = self.wizard().__getitem__('projectDir')
-        fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr(
-            "Open File"), pdir, self.tr("JDW (*.jdw );; All files (*)"))
+        fileNames, _ = compat.getOpenFileNames(
+            self, self.tr("Open File"), pdir,
+            self.tr("JDW (*.jdw );; All files (*)")
+        )
         for fileName in fileNames:
             fileName = str(fileName)
             if fileName not in self._synoptics:
@@ -1004,8 +1008,10 @@ class ExternalAppEditor(Qt.QDialog):
         self.checkData()
 
     def _selectExecFile(self):
-        filePath = Qt.QFileDialog.getOpenFileName(self, self.tr(
-            "Open File"), Qt.QDir.homePath(), self.tr("All files (*)"))
+        filePath, _ = compat.getOpenFileName(
+            self, self.tr("Open File"),
+            Qt.QDir.homePath(), self.tr("All files (*)")
+        )
         if len(filePath):
             self._execFileLineEdit.setText(filePath)
             self._setDefaultText()

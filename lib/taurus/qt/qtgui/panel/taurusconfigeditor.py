@@ -30,7 +30,7 @@ taurusconfigeditor.py:
 from future import standard_library
 standard_library.install_aliases()
 
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 import pickle
 import os
 import tempfile
@@ -470,7 +470,7 @@ class QConfigEditor(TaurusWidget):
                 path = Qt.QDir.homePath()
             else:
                 path = self.tree.originalFile
-            iniFileName = Qt.QFileDialog.getOpenFileName(
+            iniFileName, _ = compat.getOpenFileName(
                 self, 'Select a settings file', path, 'Ini Files (*.ini)')
             if not iniFileName:
                 return

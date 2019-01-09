@@ -33,7 +33,7 @@ import numpy
 import posixpath
 from functools import partial
 
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from PyMca5.PyMcaGui.io.hdf5 import HDF5Widget, HDF5Info, HDF5DatasetTable
 
 from taurus.qt.qtgui.container import TaurusWidget
@@ -117,8 +117,7 @@ class TaurusNeXusBrowser(TaurusWidget):
     @Qt.pyqtSlot('QString')
     def openFile(self, fname=None):
         if fname is None:
-            fname = str(Qt.QFileDialog.getOpenFileName(
-                self, "Choose NeXus File", "/home/cpascual/local/tmp/scantest.h5"))  # @TODO!!
+            fname, _ = compat.getOpenFileName(self, 'Choose NeXus File', '')
         if fname:
             self.__nexusFile = self.__fileModel.openFile(fname)
 

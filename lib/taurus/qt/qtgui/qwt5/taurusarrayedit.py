@@ -25,7 +25,7 @@
 
 
 from __future__ import absolute_import
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 import taurus
 import numpy
 
@@ -107,7 +107,7 @@ class TaurusArrayEditor(TaurusWidget):
         skiprows=0, usecols=None, unpack=False}
         see help from numpy.loadtxt for more info on the kwargs'''
         if filename is None:
-            filename = Qt.QFileDialog.getOpenFileName(
+            filename, _ = compat.getOpenFileName(
                 self, 'Choose input file', '', 'Ascii file (*)')
         if not filename:
             return False
