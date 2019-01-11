@@ -352,10 +352,19 @@ following tips were found useful when porting applications to taurus 4.5
       This needs to be addressed.
     - Also note that we had to convert some positional args into keyword args in
       our mixin classes (TaurusBaseComponent,...) to make them work with Qt5
+      
+- The `taurus.qt.qtgui.plot` module depends on the Qwt5 module to provide its
+  full API, but Qwt5 is only available in the PyQt4 binding and therefore the
+  `taurus.qt.qtgui.plot` module has been deprecated. For the other bindings,
+  this module attempts to provide a very limited backwards compatibility API
+  if the `taurus_pyqtgraph` module is installed. If an application is intended 
+  to support PyQt4 only, then it can avoid the deprecation warnings by replacing
+  `taurus.qt.qtgui.plot` by `taurus.qt.qtgui.qwt5`. Otherwise, using 
+  `taurus.qt.qtgui.tpg` (provided by the `taurus_pyqtgraph` plugin) is recommended.
 
-- QLayout margin, setMargin were deprecated in Qt 4.8 , Use Use setContentsMargins() and getContentsMargins() instead.
-  http://doc.qt.io/archives/qt-4.8/qlayout-obsolete.html
-
+- `QLayout.margin` and `.setMargin` were [deprecated in Qt 4.8](http://doc.qt.io/archives/qt-4.8/qlayout-obsolete.html)
+  Use `.getContentsMargins()` and `setContentsMargins()` instead.
+  
 - be careful with qInstallMsgHandler (Qt4) vs qInstallMessageHandler (Qt5).
   The following code can be used as a reference:
 
@@ -376,6 +385,7 @@ following tips were found useful when porting applications to taurus 4.5
 
         QtCore.qInstallMsgHandler(taurusMsgHandler)
   ```
+  
 - Be aware of the [renamed methods in QHeaderView](http://doc.qt.io/qt-5/sourcebreaks.html#changes-to-qheaderview) (from Qt4 to Qt5) 
   and the fact that in Qt5, setSectionResizeMode may **crash the GUI** if 
   called on an empty header. The following code snippet takes care of both 
@@ -388,7 +398,20 @@ following tips were found useful when porting applications to taurus 4.5
       except AttributeError:  # PyQt4
           headerView.setResizeMode(headerView.Stretch)
   ```
+  
+- Note that the `getOpenFileName`, `getOpenFileNames` and `getSaveFileName` 
+  static methods from `QFileDialog` only return the name (or names) in PyQt4 
+  but they return a  (name/s, filter) tuple in the other bindings. 
+  In order to facilitate writing binding-agnostic code, we provide the
+  `getOpenFileName`, `getOpenFileNames` and `getSaveFileName` functions in
+  the `taurus.external.qt.compat` module which return the tuple regardless 
+  of the binding.
 
+- Beware of [a bug in KDE](https://bugs.kde.org/show_bug.cgi?id=345023) which
+  modifies the `text` property of buttons and actions by auto-inserting and
+  "&" character in unpredictable positions when running under KDE and using 
+  Qt5. In practice the best is to avoid relying on the return value of the
+  `text` property of buttons or actions in the program logic.  
  
 TODO: complete this section
 
