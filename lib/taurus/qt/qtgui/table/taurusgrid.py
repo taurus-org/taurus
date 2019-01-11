@@ -786,7 +786,13 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         for i in range(len(self.rows)):
             section = self.rows[i]
             checkbox = QtGui.QCheckBox(section)
-            if checkbox.text() == 'Others':
+
+            # -------------------------------------------------------
+            # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+            # TODO: make better solution for this
+            checkbox._id = section  # <-- ugly monkey-patch!
+
+            if section == 'Others':
                 checkbox.setChecked(False)
                 if not self._show_others:
                     checkbox.hide()
@@ -807,7 +813,13 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         for i in range(len(self.columns)):
             column = self.columns[i]
             checkbox = QtGui.QCheckBox(column)
-            if checkbox.text() == 'Others':
+
+            # -------------------------------------------------------
+            # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+            # TODO: make better solution for this
+            checkbox._id = column  # <-- ugly monkey-patch!
+
+            if column == 'Others':
                 checkbox.setChecked(False)
                 if not self._show_others:
                     checkbox.hide()
@@ -831,7 +843,12 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         """
         for checkbox in self.rows_frame.children():
             if isinstance(checkbox, QtGui.QCheckBox):
-                table_row = self.rows.index(checkbox.text())
+                # -------------------------------------------------------
+                # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+                # TODO: make better solution for this
+                # checkbox.text()  <-- fails due to added "&
+                table_row = self.rows.index(checkbox._id)
+                # -------------------------------------------------------
                 if checkbox.isChecked():
                     self.table.showRow(table_row)
                 else:
@@ -843,7 +860,12 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         """
         for checkbox in self.columns_frame.children():
             if isinstance(checkbox, QtGui.QCheckBox):
-                table_col = self.columns.index(checkbox.text())
+                # -------------------------------------------------------
+                # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+                # TODO: make better solution for this
+                # checkbox.text()  <-- fails due to added "&
+                table_col = self.columns.index(checkbox._id)
+                # -------------------------------------------------------
                 if checkbox.isChecked():
                     self.table.showColumn(table_col)
                 else:
@@ -853,16 +875,26 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self._show_others = boolean
         if hasattr(self, 'rows_frame'):
             for checkbox in self.rows_frame.children():
-                if isinstance(checkbox,
-                              QtGui.QCheckBox) and checkbox.text() == 'Others':
+                if (isinstance(checkbox, QtGui.QCheckBox)
+                # -------------------------------------------------------
+                # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+                # TODO: make better solution for this
+                # checkbox.text()  <-- fails due to added "&
+                        and checkbox._id == 'Others'):
+                # -------------------------------------------------------
                     if self._show_others:
                         checkbox.show()
                     else:
                         checkbox.hide()
         if hasattr(self, 'columns_frame'):
             for checkbox in self.columns_frame.children():
-                if isinstance(checkbox,
-                              QtGui.QCheckBox) and checkbox.text() == 'Others':
+                if (isinstance(checkbox, QtGui.QCheckBox)
+                # -------------------------------------------------------
+                # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+                # TODO: make better solution for this
+                # checkbox.text()  <-- fails due to added "&
+                        and checkbox._id == 'Others'):
+                # -------------------------------------------------------
                     if self._show_others:
                         checkbox.show()
                     else:
