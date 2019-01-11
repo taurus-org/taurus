@@ -165,6 +165,10 @@ if API in PYSIDE_API:
 API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyqt4': 'PyQt4',
             'pyside': 'PySide', 'pyside2': 'PySide2'}[API]
 
+# Update the environment so that other libraries that also use the same
+# convention (such as guidata or spyder) do a consistent choice
+os.environ[QT_API] = API
+
 
 def __initializeQtLogging():
     from importlib import import_module
