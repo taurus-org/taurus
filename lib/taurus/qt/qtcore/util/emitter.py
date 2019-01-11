@@ -34,7 +34,6 @@ from builtins import str
 from builtins import object
 from queue import Queue, Empty
 import traceback
-from collections import Iterable
 
 from future.utils import string_types
 
@@ -82,7 +81,7 @@ class MethodModel(object):
 class QEmitter(Qt.QObject):
     """Emitter class providing two signals."""
 
-    doSomething = Qt.pyqtSignal(Iterable)
+    doSomething = Qt.pyqtSignal(list)
     somethingDone = Qt.pyqtSignal()
     newQueue = Qt.pyqtSignal()
 
