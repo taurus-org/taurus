@@ -84,7 +84,7 @@ def get_all_models(expressions, limit=1000):
         ##self.debug( 'expressions as string separated by commas ...')
         expressions = expressions.split(',')
 
-    elif any(isinstance(expressions, klass) for klass in (list, tuple, dict)):
+    elif isinstance(expressions, (list, tuple, dict)):
         # self.debug( 'expressions converted from list ...')
         expressions = list(str(e) for e in expressions)
 
@@ -158,7 +158,7 @@ def get_readwrite_models(expressions, limit=1000):
             # self.trace( 'expressions as string separated by commas ...')
             expressions = expressions.split(',')
 
-    elif any(isinstance(expressions, klass) for klass in (list, tuple, dict)):
+    elif isinstance(expressions, (list, tuple, dict)):
         expressions = list(str(e) for e in expressions)
 
     taurus_db = taurus.Authority()
