@@ -73,10 +73,32 @@ else:
     #   - QT_API environment variable
     #   - tauruscustomsettings.DEFAULT_QT_API
     #   - 'pyqt5'
-    API = os.environ.get(QT_API, getattr(__config, 'DEFAULT_QT_API', 'pyqt5'))
+    API = os.environ.get(QT_API, getattr(__config, 'DEFAULT_QT_API', 'pyqt'))
     API = API.lower()
 
 assert API in (PYQT5_API + PYQT4_API + PYSIDE_API + PYSIDE2_API)
+
+if API in PYQT4_API:
+    try:
+        import sip
+
+        sip.setapi('QString', 2)
+        sip.setapi('QVariant', 2)
+        sip.setapi('QDate', 2)
+        sip.setapi('QDateTime', 2)
+        sip.setapi('QTextStream', 2)
+        sip.setapi('QTime', 2)
+        sip.setapi('QUrl', 2)
+        from PyQt4.QtCore import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
+        from PyQt4.QtCore import QT_VERSION_STR as QT_VERSION  # analysis:ignore
+
+        PYSIDE_VERSION = None
+        PYQT5 = False
+        PYQT4 = True
+        API = os.environ['QT_API'] = 'pyqt'  # in case the original was "pyqt4"
+    except ImportError:
+        __log.debug('Cannot import PyQt4. Trying with PyQt5')
+        API = os.environ['QT_API'] = 'pyqt5'
 
 if API in PYQT5_API:
     try:
@@ -125,29 +147,7 @@ if API in PYSIDE2_API:
 
             del macos_version
     except ImportError:
-        __log.debug('Cannot import PyQt5. Trying with PySide2')
-        API = os.environ['QT_API'] = 'pyqt'
-
-if API in PYQT4_API:
-    try:
-        import sip
-
-        sip.setapi('QString', 2)
-        sip.setapi('QVariant', 2)
-        sip.setapi('QDate', 2)
-        sip.setapi('QDateTime', 2)
-        sip.setapi('QTextStream', 2)
-        sip.setapi('QTime', 2)
-        sip.setapi('QUrl', 2)
-        from PyQt4.QtCore import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
-        from PyQt4.QtCore import QT_VERSION_STR as QT_VERSION  # analysis:ignore
-
-        PYSIDE_VERSION = None
-        PYQT5 = False
-        PYQT4 = True
-        API = os.environ['QT_API'] = 'pyqt'  # in case the original was "pyqt4"
-    except ImportError:
-        __log.debug('Cannot import PyQt4. Trying with PySide')
+        __log.debug('Cannot import PyQt5. Trying with PySide')
         API = os.environ['QT_API'] = 'pyside'
 
 if API in PYSIDE_API:
@@ -167,7 +167,7 @@ API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyqt4': 'PyQt4',
 
 # Update the environment so that other libraries that also use the same
 # convention (such as guidata or spyder) do a consistent choice
-os.environ[QT_API] = API
+os.environ['QT_API'] = API
 
 
 def __initializeQtLogging():
