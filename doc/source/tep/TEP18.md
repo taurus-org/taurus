@@ -340,7 +340,12 @@ following tips were found useful when porting applications to taurus 4.5
   sip.setapi('QUrl', 2)
   ```
   
-- The code should not use deprecated features. See the following for a 
+- [QVariant should not be used at all](http://pyqt.sourceforge.net/Docs/PyQt5/pyqt_qvariant.html):
+  replace `QVariant(foo)`, `from_qvariant(foo)` and `to_qvariant(foo)` 
+  by `foo`. Also replace any occurrence of `QVariant()` (i.e. null `QVariant`) 
+  by `None`.
+  
+- The code should not use Qt deprecated features. See the following for a 
   list of things to keep in mind:
     - https://pyqt.readthedocs.io/en/latest/incompatibilities.html 
     - https://pyqt.readthedocs.io/en/latest/pyqt4_differences.html
