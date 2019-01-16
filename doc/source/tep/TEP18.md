@@ -43,7 +43,7 @@ all compatible with each other:
 3. Keep backwards-compat (do not impose code changes on apps that use`taurus.external.qt`)
 4. Avoid patching the loaded binding (or at most make only "inoquous" patches)
 5. Use existing solution. Avoid reinventing / maintaining our own solution.
-6. Modernice the code style in taurus (use Qt5 code style throughout taurus)
+6. Modernize the code style in taurus (use Qt5 code style throughout taurus)
 7. Minimize the amount of changes needed in the taurus code
 8. Avoid introducing heavy dependencies in the `taurus.qt` submodule
 
@@ -91,7 +91,7 @@ accept patching an existing binding, but only if the result never introduces
 a side-efect in an application that uses valid code (similar to the compromise taken in 
 [qtpy_issue121]).
 
-### Plugin support
+### Bindings support
 
 The priority is on adding PyQt5 (v>=5.6) binding support while maintaining the PyQt4 binding (v>=4.6)
 support. 
@@ -103,7 +103,7 @@ not complete.
 ### Support for multiple Qt styles within taurus.external.qt
 
 A related but not identical decision to the previous one. Independently of which plugins 
-are supported as backends, we need to decide on which programming style(s) will be supported.
+are supported as backends, we need to decide which programming style(s) will be supported.
 For example, qtpy supports all 4 plugins but only one programming style (that of PySide2). 
 
 In our case, the Goal 3 immediately dictates that we must support at least the PyQt4 style.
@@ -122,37 +122,40 @@ PySide2 style support.
 
 ### Reusing existim shims
 
-Another implementation decission revolves around whether importing some of the existing shims 
-*within our own shim* to simplify the implementation and maintenance of our own shim 
-(i.e., to partially comply with Goal 5). 
+The Goal 5 suggests that, even if we end up building our own shim, we should 
+try to do so based on an existing shim (i.e., importing one of the existing 
+implementations from our own shim). 
 
-In this case, importing `silx.gui.qt` or `pyqtgraph.Qt` would go against Goal 8 
-(even if both silx and pyqtgraph are dependencies for some submodules of `taurus.qt.qtgui`, 
-we would like to avoid making them mandatory at the `taurus.qt` level
-since they are relatively heavy). 
+Unfortunately, we see that importing `silx.gui.qt` or `pyqtgraph.Qt` would go 
+against Goal 8 (even if both silx and pyqtgraph are dependencies for some submodules 
+of `taurus.qt.qtgui`, we would like to avoid making them mandatory at the `taurus.qt` 
+level since they are relatively heavy). 
 
-On the other hand, qtpy and Qt.py are probably light enough to consider using them but 
-the fact that Qt.py is not yet packaged for debian and that the version of qtpy packaged
-in debian9 introduces disruptive patching of the PyQt4 binding ([qtpy_issue119]) should 
-also be weighted in the decision. The final decision on this aspect can be left to 
-the implementation phase itself where the various options can be tested in practice.
+On the other hand, `qtpy` and `Qt.py` are probably light enough to consider using them but 
+the fact that `Qt.py` is not yet packaged for debian and that the version of `qtpy` packaged 
+in debian9 introduces disruptive patching of the PyQt4 binding ([qtpy_issue119]) weights
+against it. 
+
+In the proposed implementation we opted for writing our own shim based heavily
+on the qtpy implementation, but with enough changes that Goal 5 cannot be considered 
+as being fulfilled.
 
 ## Importing from taurus.external.qt VS importing directly from a binding
 
-Should I import from `taurus.external.qt` or directly from PyQt5 / PyQt4 / ... ?
+Should one import from `taurus.external.qt` or directly from PyQt5 / PyQt4 / ... ?
 
 Until now, we recommended our users to always import the QtCore, QtGui, etc
-from `taurus.external.qt`. But with the improved support to multiple bindings
+from `taurus.external.qt`. But with the improved support of multiple bindings
 in this TEP, this recommendation can be revised as follows:
 
 - For code that is going to be part of Taurus (and consequently potentially
   used as library by other other people), Qt, QtGui, QtCore, etc. should be
   imported from `taurus.external.qt`. The same applies to plugins to taurus
   that intend to be used as a library (otherwise, the plugins should be capable
-  failing gracefully in case of incompatible bindings).
+  of failing gracefully in case of incompatible bindings).
 
 - For an end-user application based on taurus it is probably better to import
-  directly from the binding (PyQt5 is the best supported) and let taurus to
+  directly from a specific binding (PyQt5 is the best supported) and let taurus to
   adapt to that choice. In this way, one can write idiomatic code that matches 
   better the binding that has been chosen. Using the `taurus.external.qt` shim 
   is also possible if one wants to make the code binding-agnostic, but in that
@@ -164,7 +167,7 @@ in this TEP, this recommendation can be revised as follows:
 
 ## Some examples of code that should work
 
-### code that currently works:
+### code that already works in v4.4:
 
 The following snippets work on taurus 4.4. They should also work after refactoring.
 
@@ -172,6 +175,7 @@ Most common use of `taurus.external.qt` (with implicit selection of PyQt4 bindin
 
 ```python
 # emulate an application that has previously imported PyQt4 (with API 2)
+import sys
 import sip
 API_NAMES = ["QDate", "QDateTime", "QString", "QTextStream", "QTime", "QUrl",
              "QVariant"]
@@ -183,7 +187,7 @@ import PyQt4.QtGui
 from taurus.external.qt import Qt, QtGui, QtCore
 from taurus.qt.qtgui.display import TaurusLabel
 
-a = Qt.QApplication([])
+a = Qt.QApplication(sys.argv)
 o = QtCore.QObject()
 w = QtGui.QLabel()
 l = TaurusLabel()
@@ -192,14 +196,14 @@ l = TaurusLabel()
 Most common use of `taurus.external.qt` (with explicit selection of PyQt4 binding) :
 
 ```python
- 
+import sys
 from taurus import tauruscustomsettings
 tauruscustomsettings.DEFAULT_QT_API = 'pyqt'
 
 from taurus.external.qt import Qt, QtGui, QtCore
 from taurus.qt.qtgui.display import TaurusLabel
 
-a = Qt.QApplication([])
+a = Qt.QApplication(sys.argv)
 o = QtCore.QObject()
 w = QtGui.QLabel()
 l = TaurusLabel()
@@ -209,6 +213,7 @@ Exotic (but allowed) use of `taurus.external.qt` (with implicit selection of PyQ
 
 ```python
 # emulate an application that has previously imported PyQt4 (with API 2)
+import sys
 import sip
 API_NAMES = ["QDate", "QDateTime", "QString", "QTextStream", "QTime", "QUrl",
              "QVariant"]
@@ -222,23 +227,24 @@ import taurus.external.qt.QtCore
 import taurus.external.qt.QtGui
 from taurus.qt.qtgui.display import TaurusLabel
 
-a = taurus.external.qt.Qt.QApplication([])
+a = taurus.external.qt.Qt.QApplication(sys.argv)
 o = taurus.external.qt.QtCore.QObject()
 w = taurus.external.qt.QtGui.QLabel()
 l = TaurusLabel()
 ```
 
-### code that should work after the refactoring:
+### code that works with the proposed implementation of this TEP:
 
 Most common use of `taurus.external.qt` (with implicit selection of PyQt5 binding) :
 
 ```python
+import sys
 import PyQt5.QtWidgets  # force using PyQt5 
 
 from taurus.external.qt import Qt, QtGui, QtCore
 from taurus.qt.qtgui.display import TaurusLabel
 
-a = Qt.QApplication([])
+a = Qt.QApplication(sys.argv)
 o = QtCore.QObject()
 w = QtGui.QLabel()
 l = TaurusLabel()
@@ -249,14 +255,14 @@ assert(QtGui.QLabel is PyQt5.QtWidgets.QLabel)
 Most common use of `taurus.external.qt` (with explicit selection of PyQt5 binding) :
 
 ```python
- 
+import sys 
 from taurus import tauruscustomsettings
 tauruscustomsettings.DEFAULT_QT_API = 'pyqt5'
 
 from taurus.external.qt import Qt, QtGui, QtCore
 from taurus.qt.qtgui.display import TaurusLabel
 
-a = Qt.QApplication([])
+a = Qt.QApplication(sys.argv)
 o = QtCore.QObject()
 w = QtGui.QLabel()
 l = TaurusLabel()
@@ -269,6 +275,7 @@ assert(QtGui.QLabel is PyQt5.QtWidgets.QLabel)
 Exotic (but allowed) use of `taurus.external.qt`:
 
 ```python
+import sys
 import PyQt5.QtWidgets  # force using PyQt5 
 
 import taurus.external.qt.Qt
@@ -276,43 +283,50 @@ import taurus.external.qt.QtCore
 import taurus.external.qt.QtGui
 from taurus.qt.qtgui.display import TaurusLabel
 
-a = taurus.external.qt.Qt.QApplication([])
+a = taurus.external.qt.Qt.QApplication(sys.argv)
 o = taurus.external.qt.QtCore.QObject()
 w = taurus.external.qt.QtGui.QLabel()
 l = TaurusLabel()
 ```
 
-## Code that would be nice if it worked, but which is optional
-
 Using `taurus.external.qt` with PyQt5 style and Pyqt5 binding:
 
 ```python
+import sys
 from taurus import tauruscustomsettings
 tauruscustomsettings.DEFAULT_QT_API = 'pyqt5'
 
 from taurus.external.qt import Qt, QtGui, QtCore, QtWidgets
 from taurus.qt.qtgui.display import TaurusLabel
 
-g = QtGui.QGuiApplication([])
-a = Qt.QApplication([])
+g = QtGui.QGuiApplication(sys.argv)
+a = Qt.QApplication(sys.argv)
 o = QtCore.QObject()
 w = QtWidgets.QLabel()
 l = TaurusLabel()
 ```
 
-Using `taurus.external.qt` with PyQt5 style and Pyqt4 binding:
+## Cases not fully covered in the proposed implementation.
+
+The possibility of using `taurus.external.qt` with Qt5 style but a PyQt4 
+binding would be desirable because it would smooth the transition of 
+taurus and taurus-based applications towards the newer style (Goal 6) but
+out of the scope of the current implementation. 
+The following snippet shows an example of some APIs that work in this 
+scenario while some other APIs are not yet supported. 
 
 ```python
+import sys
 from taurus import tauruscustomsettings
 tauruscustomsettings.DEFAULT_QT_API = 'pyqt'
 
 from taurus.external.qt import Qt, QtGui, QtCore, QtWidgets
 from taurus.qt.qtgui.display import TaurusLabel
 
-g = QtGui.QGuiApplication([])
-a = Qt.QApplication([])
+g = QtGui.QGuiApplication(sys.argv)  # <-- this is Qt5 style and not supported
+a = Qt.QApplication(sys.argv)
 o = QtCore.QObject()
-w = QtWidgets.QLabel()
+w = QtWidgets.QLabel()  # <-- this is Qt5 style but is supported
 l = TaurusLabel()
 ```
 
@@ -417,8 +431,7 @@ following tips were found useful when porting applications to taurus 4.5
   "&" character in unpredictable positions when running under KDE and using 
   Qt5. In practice the best is to avoid relying on the return value of the
   `text` property of buttons or actions in the program logic.  
- 
-TODO: complete this section
+  
 
 ## Links to more details and discussions
 
@@ -460,6 +473,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 - 2018-10-04 [cpascual][]. Initial version
 - 2018-11-27 [cpascual][]. Moving to CANDIDATE. Prototype implementation underway
+- 2019-01-16 [cpascual][]. Update text according to finished proposed implementation.
 
 
 
