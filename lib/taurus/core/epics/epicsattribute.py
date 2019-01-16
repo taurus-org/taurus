@@ -85,7 +85,7 @@ class EpicsAttribute(TaurusAttribute):
     """
     # TODO: support non-numerical PVs
 
-    def __init__(self, name, parent, storeCallback=None):
+    def __init__(self, name='', parent=None, storeCallback=None):
         self.call__init__(TaurusAttribute, name, parent,
                           storeCallback=storeCallback)
 

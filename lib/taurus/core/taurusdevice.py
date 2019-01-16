@@ -41,7 +41,7 @@ class TaurusDevice(TaurusModel):
 
     _description = "A Taurus Device"
 
-    def __init__(self, name, **kw):
+    def __init__(self, name='', **kw):
         """Object initialization."""
         parent = kw.pop('parent', None)
         storeCallback = kw.pop('storeCallback', None)
