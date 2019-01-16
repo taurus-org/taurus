@@ -78,12 +78,12 @@ elif PYQT4:
     # patch_qcombobox(QComboBox)  # We don't do it to avoid changing behaviour
 
     # QHeaderView: renamed methods
-    QHeaderView.sectionsClickable = self.isClickable
-    QHeaderView.sectionsMovable = self.isMovable
-    QHeaderView.sectionResizeMode = self.resizeMode
-    QHeaderView.setSectionsClickable = self.setClickable
-    QHeaderView.setSectionsMovable = self.setMovable
-    QHeaderView.setSectionResizeMode = self.setResizeMode
+    QHeaderView.sectionsClickable = QHeaderView.isClickable
+    QHeaderView.sectionsMovable = QHeaderView.isMovable
+    QHeaderView.sectionResizeMode = QHeaderView.resizeMode
+    QHeaderView.setSectionsClickable = QHeaderView.setClickable
+    QHeaderView.setSectionsMovable = QHeaderView.setMovable
+    QHeaderView.setSectionResizeMode = QHeaderView.setResizeMode
 
 elif PYSIDE:
     from PySide.QtGui import *
@@ -132,12 +132,12 @@ elif PYSIDE:
     # patch_qcombobox(QComboBox)  # We don't do it to avoid changing behaviour
 
     # QHeaderView: renamed methods
-    QHeaderView.sectionsClickable = self.isClickable
-    QHeaderView.sectionsMovable = self.isMovable
-    QHeaderView.sectionResizeMode = self.resizeMode
-    QHeaderView.setSectionsClickable = self.setClickable
-    QHeaderView.setSectionsMovable = self.setMovable
-    QHeaderView.setSectionResizeMode = self.setResizeMode
+    QHeaderView.sectionsClickable = QHeaderView.isClickable
+    QHeaderView.sectionsMovable = QHeaderView.isMovable
+    QHeaderView.sectionResizeMode = QHeaderView.resizeMode
+    QHeaderView.setSectionsClickable = QHeaderView.setClickable
+    QHeaderView.setSectionsMovable = QHeaderView.setMovable
+    QHeaderView.setSectionResizeMode = QHeaderView.setResizeMode
 
 else:
     raise PythonQtError('No Qt bindings could be found')
