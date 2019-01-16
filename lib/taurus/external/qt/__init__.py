@@ -186,7 +186,7 @@ def __initializeQtLogging():
         # Qt5
         def taurusMessageHandler(msg_type, log_ctx, msg):
             f = QT_LEVEL_MATCHER.get(msg_type)
-            return f("Qt%s %s.%s[%s]: %a", log_ctx.category, log_ctx.file,
+            return f("Qt%s %s.%s[%s]: %s", log_ctx.category, log_ctx.file,
                      log_ctx.function, log_ctx.line, msg)
 
         QtCore.qInstallMessageHandler(taurusMessageHandler)
