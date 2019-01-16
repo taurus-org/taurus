@@ -14,8 +14,6 @@ Provides widget classes and functions.
 """
 
 from . import PYQT5, PYSIDE2, PYQT4, PYSIDE, PythonQtError
-
-
 from taurus.core.util import log as __log
 
 if PYQT5:
@@ -23,6 +21,9 @@ if PYQT5:
 elif PYSIDE2:
     from PySide2.QtWidgets import *
 elif PYQT4:
+    __log.warning('Using QtWidgets with PyQt4 is not supported and may fail '
+                  + 'in many cases. Use at your own risk '
+                  + '(or use a Qt5 binding)')
     from PyQt4.QtGui import *
     QStyleOptionViewItem = QStyleOptionViewItemV4
     del QStyleOptionViewItemV4
@@ -86,6 +87,9 @@ elif PYQT4:
     QHeaderView.setSectionResizeMode = QHeaderView.setResizeMode
 
 elif PYSIDE:
+    __log.warning('Using QtWidgets with PySide is not supported and may fail '
+                  + 'in many cases. Use at your own risk
+                  + '(or use a Qt5 binding)')
     from PySide.QtGui import *
     QStyleOptionViewItem = QStyleOptionViewItemV4
     del QStyleOptionViewItemV4
