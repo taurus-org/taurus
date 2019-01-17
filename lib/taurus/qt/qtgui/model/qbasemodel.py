@@ -101,6 +101,13 @@ class EditorToolBar(BaseToolBar):
     """Internal widget to be placed in a _QToolArea providing buttons for
     moving, adding and removing items from a view based widget"""
 
+    addTriggered = Qt.pyqtSignal()
+    removeTriggered = Qt.pyqtSignal()
+    moveTopTriggered = Qt.pyqtSignal()
+    moveDownTriggered = Qt.pyqtSignal()
+    moveUpTriggered = Qt.pyqtSignal()
+    moveBottomTriggered = Qt.pyqtSignal()
+
     def __init__(self, view=None, parent=None, designMode=False):
         BaseToolBar.__init__(self, name="Taurus editor toolbar", view=view,
                              parent=parent, designMode=designMode)
@@ -139,22 +146,22 @@ class EditorToolBar(BaseToolBar):
         #self.setStyleSheet("QWidget {background : red; }")
 
     def onAdd(self):
-        self.emit(Qt.SIGNAL("addTriggered"))
+        self.addTriggered.emit()
 
     def onRemove(self):
-        self.emit(Qt.SIGNAL("removeTriggered"))
+        self.removeTriggered.emit()
 
     def onMoveTop(self):
-        self.emit(Qt.SIGNAL("moveTopTriggered"))
+        self.moveTopTriggered.emit()
 
     def onMoveUp(self):
-        self.emit(Qt.SIGNAL("moveUpTriggered"))
+        self.moveUpTriggered.emit()
 
     def onMoveDown(self):
-        self.emit(Qt.SIGNAL("moveDownTriggered"))
+        self.moveDownTriggered.emit()
 
     def onMoveBottom(self):
-        self.emit(Qt.SIGNAL("moveBottomTriggered"))
+        self.moveBottomTriggered.emit()
 
 
 class SelectionToolBar(BaseToolBar):
