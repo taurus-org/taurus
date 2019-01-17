@@ -302,5 +302,4 @@ intersphinx_mapping = {
     'sardana': ('https://sardana-controls.org', None),
     'pint': ('http://pint.readthedocs.io/en/stable/', None),
     'PyTango': ('http://pytango.readthedocs.io/en/stable/', None),
-    'PyQt4': ('http://pyqt.sourceforge.net/Docs/PyQt4/', None),
 }

@@ -39,7 +39,7 @@ In general, the contributions to taurus should consider following:
   
 - The licensing terms for the contributed code must be compatible 
   with (and preferably the same as) the license chosen for the Taurus 
-  project (at the time of writing this TEP, it is the [LGPL][], 
+  project (at the time of writing this, it is the [LGPL][], 
   version 3 *or later*).
 
    
