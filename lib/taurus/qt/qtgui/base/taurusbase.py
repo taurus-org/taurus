@@ -1627,6 +1627,23 @@ class TaurusBaseWidget(TaurusBaseComponent):
             'container' : False }
 
 
+class baseOldSignal(object):
+    """ Wrapper for new style signal to adapt to old style
+    """
+    def __init__(self, name, emitter):
+        self.name = name
+        self.emitter = emitter
+
+    def connect(self, slot):
+        self.emitter.connect(self.emitter, Qt.SIGNAL(self.name), slot)
+
+    def emit(self, *args):
+        self.emitter.emit(Qt.SIGNAL(self.name), *args)
+
+    def disconnect(self, slot):
+        self.emitter.disconnect(self.emitter, Qt.SIGNAL(self.name), slot)
+
+
 class TaurusBaseWritableWidget(TaurusBaseWidget):
     """The base class for all taurus input widgets
     
@@ -1637,7 +1654,9 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
     
     def __init__(self, name, taurus_parent=None, designMode = False):
         self.call__init__(TaurusBaseWidget, name, parent=taurus_parent, designMode=designMode)
-        
+
+        self.applied = baseOldSignal('applied', self)
+
         self._lastValue = None
         
         # Overwrite not to show quality by default
