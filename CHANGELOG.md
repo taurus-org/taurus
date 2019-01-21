@@ -17,6 +17,8 @@ develop branch) won't be reflected in this file.
 ### Removed
 - taurus.qt.qtgui.tree.taurusdevicetree submodule (obsolete, unused)
 - Trend dockwidget in TaurusDevPanel
+- `taurus.qt.qtgui.taurusgui.macrolistener` (now provided by 
+  `sardana.taurus.qt.qtgui.macrolistener`)
 
 ### Changed
 - `taurus.qt.qtgui.plot` is now deprecated, but the same Qwt5-based 
