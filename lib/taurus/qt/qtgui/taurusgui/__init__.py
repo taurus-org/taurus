@@ -56,7 +56,10 @@ from .paneldescriptionwizard import *
 from .taurusgui import *
 from .appsettingswizard import *
 try:
-    from .macrolistener import *
+    # this import is left here for bck-compat, but will be removed
+    # TODO: remove this
+    from sardana.taurus.qt.qtgui.macrolistener import (MacroBroker,
+                                                       DynamicPlotManager)
 except ImportError:
     pass
 

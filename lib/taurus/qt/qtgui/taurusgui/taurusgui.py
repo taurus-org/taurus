@@ -1102,7 +1102,7 @@ class TaurusGui(TaurusMainWindow):
             xmlroot, "MACRO_PANELS", True))
         # macro infrastructure will only be created if MACROSERVER_NAME is set
         if MACRO_PANELS and MACROSERVER_NAME is not None:
-            from taurus.qt.qtgui.taurusgui import MacroBroker
+            from sardana.taurus.qt.qtgui.macrolistener import MacroBroker
             self.__macroBroker = MacroBroker(self)
         if MACROSERVER_NAME:
             self.macroserverNameChanged.emit(MACROSERVER_NAME)
