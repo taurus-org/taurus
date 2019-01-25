@@ -47,11 +47,7 @@ from taurus.core.taurusbasetypes import (TaurusEventType,
                                          SubscriptionState, TaurusAttrValue,
                                          DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
-from taurus.core.util.event import EventListener
-# -------------------------------------------------------------------------
-# TODO: remove this when PyTango's bug 185 is fixed
-from taurus.core.util.event import _BoundMethodWeakrefWithCall
-# -------------------------------------------------------------------------
+from taurus.core.util.event import EventListener, _BoundMethodWeakrefWithCall
 from taurus.core.util.log import (debug, taurus4_deprecation,
                                   deprecation_decorator)
 
@@ -618,7 +614,8 @@ class TangoAttribute(TaurusAttribute):
                                 rel='4.3.2')
                 self.__fireRegisterEvent((listener,))
             else:
-                Manager().enqueueJob(self.__fireRegisterEvent,
+                job = _BoundMethodWeakrefWithCall(self.__fireRegisterEvent)
+                Manager().enqueueJob(job,
                                      job_args=((listener,),),
                                      serialization_mode=sm)
         return ret
@@ -825,7 +822,8 @@ class TangoAttribute(TaurusAttribute):
                                 rel='4.3.2')
                 self.fireEvent(etype, evalue, listeners=listeners)
             else:
-                manager.enqueueJob(self.fireEvent, job_args=(etype, evalue),
+                job = _BoundMethodWeakrefWithCall(self.fireEvent)
+                manager.enqueueJob(job, job_args=(etype, evalue),
                                    job_kwargs={'listeners': listeners},
                                    serialization_mode=sm)
 
