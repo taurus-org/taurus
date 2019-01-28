@@ -1,9 +1,9 @@
     Title: Implement support for Qt5 in taurus
     TEP: 18
-    State: CANDIDATE
-    Date: 2018-10-04
+    State: ACCEPTED
+    Date: 2019-01-28
     Drivers: Carlos Pascual-Izarra cpascual@cells.es
-    URL: https://github.com/cpascual/taurus/blob/tep18/doc/source/tep/TEP18.md (provisional)
+    URL: http://www.taurus-scada.org/tep/?TEP18.md
     License: http://www.jclark.com/xml/copying.txt
     Abstract: 
      Implement support for Qt5 in taurus. Also define the 
@@ -51,7 +51,7 @@ all compatible with each other:
 
 ## Proposed implementation
 
-This section descibes and justifies the key decisions behind the proposed implementation.
+This section describes and justifies the key decisions behind the proposed implementation.
 
 ### Existing shims used as references
 
@@ -487,6 +487,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 - 2018-10-04 [cpascual][]. Initial version
 - 2018-11-27 [cpascual][]. Moving to CANDIDATE. Prototype implementation underway
 - 2019-01-16 [cpascual][]. Update text to reflect the finished proposed implementation.
+- 2019-01-28 [cpascual][]. Moving to ACCEPTED (merged https://github.com/taurus-org/taurus/pull/814)
 
 
 

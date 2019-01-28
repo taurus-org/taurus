@@ -24,7 +24,7 @@ Proposals list
   [TEP15][] | ACCEPTED  | fragment-based slicing support in URIs
   [TEP16][] | ACCEPTED     | Moving Taurus to Github
   [TEP17][] | DRAFT   | Implement plots with pyqtgraph
-  [TEP18][] | CANDIDATE | Implement support for Qt5 in taurus
+  [TEP18][] | ACCEPTED | Implement support for Qt5 in taurus
 
 [TEP0]: http://www.taurus-scada.org/tep/?TEP0.md
 [TEP3]: http://www.taurus-scada.org/tep/?TEP3.md
@@ -40,4 +40,4 @@ Proposals list
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [TEP16]: http://www.taurus-scada.org/tep/?TEP16.md
 [TEP17]: https://github.com/cpascual/taurus/blob/tep17/doc/source/tep/TEP17.md
-[TEP18]: https://github.com/cpascual/taurus/blob/tep18/doc/source/tep/TEP18.md
+[TEP18]: http://www.taurus-scada.org/tep/?TEP18.md
