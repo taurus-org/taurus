@@ -119,6 +119,20 @@ implementation is likely not expected to be fully functional under PySide/Pyside
 Nevertheless, this situation is subject to change if there is enough interest in the 
 community to dedicate more efforts to test and support taurus with PySide and/or PySide2.
 
+The proposed implementation allows the user to select the QT binding by declaring 
+the `QT_API` environment variable with one of the currently accepted values:
+
+- `pyqt` (or `pyqt4`) for PyQt4
+- `pyqt5` for PyQt5
+- `pyside2` for PySide2
+- `pyside` for PySide
+
+If the `QT_API` environment variable is not declared, Taurus will fall back to the value set in
+`taurus.tauruscustomsettings.DEFAULT_QT_API`.
+
+If the selected binding is not available in the system, Taurus will try the next 
+ones from the list above.
+
 ### Support for multiple Qt styles within taurus.external.qt
 
 Independently of which plugins are supported as backends, we had to decide which programming 
