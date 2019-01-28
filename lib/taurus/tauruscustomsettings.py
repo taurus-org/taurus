@@ -108,7 +108,7 @@ NAMESPACE = 'taurus'
 # Qt configuration
 # ----------------------------------------------------------------------------
 
-#: Set preffered API if not is already loaded
+#: Set preferred API (if one is not already loaded)
 DEFAULT_QT_API = 'pyqt'
 
 #: Auto initialize Qt logging to python logging
@@ -116,6 +116,13 @@ QT_AUTO_INIT_LOG = True
 
 #: Remove input hook (only valid for PyQt4)
 QT_AUTO_REMOVE_INPUTHOOK = True
+
+#: Avoid application abort on unhandled python exceptions
+#: (which happens since PyQt 5.5).
+#: http://pyqt.sf.net/Docs/PyQt5/incompatibilities.html#unhandled-python-exceptions
+#: If True (or commented out) an except hook is added to force the old
+# behaviour (exception is just printed) on pyqt5
+QT_AVOID_ABORT_ON_EXCEPTION = True
 
 #: Select the theme to be used: set the theme dir  and the theme name.
 #: The path can be absolute or relative to the dir of taurus.qt.qtgui.icon

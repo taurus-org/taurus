@@ -114,7 +114,7 @@ class CurveStatsDialog(Qt.QDialog):
         refreshAction = Qt.QAction(Qt.QIcon.fromTheme(
             'view-refresh'), "Refresh available curves", self.ui.statsTW)
         refreshAction.setShortcut(Qt.Qt.Key_F5)
-        refreshAction.triggered[()].connect(self.refreshCurves)
+        refreshAction.triggered.connect(self.refreshCurves)
         self.ui.statsTW.addAction(refreshAction)
 
         # connections

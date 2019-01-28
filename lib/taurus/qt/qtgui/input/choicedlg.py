@@ -25,8 +25,7 @@
 
 """This package provides a dialog for graphically choosing a Taurus class"""
 from __future__ import print_function
-
-from builtins import str
+from future.builtins import str
 
 from taurus.external.qt import Qt
 
@@ -196,10 +195,20 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
         button.setToolTip(tooltip)
         button.clicked.connect(self.onClick)
         self.gridLayout.addWidget(button, row, col, Qt.Qt.AlignCenter)
+        # -------------------------------------------------------
+        # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+        # TODO: make better solution for this
+        button._id = text  # <-- ugly monkey-patch!
+        # -------------------------------------------------------
 
     def onClick(self):
         '''slot called when a button is clicked'''
-        self._chosen = str(self.sender().text())
+        # -------------------------------------------------------
+        # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+        # TODO: make better solution for this
+        # self._chosen = str(self.sender().text())  # <-- fails due to added "&"
+        self._chosen = self.sender()._id  # <-- this was monkey-patched
+        # -------------------------------------------------------
         self.choiceMade.emit(self._chosen)
 
     def getChosen(self):

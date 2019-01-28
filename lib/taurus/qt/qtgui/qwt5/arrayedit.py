@@ -156,11 +156,11 @@ class ArrayEditor(Qt.QWidget):
         # Qt.QTimer.singleShot(0, <method>)
 
         # connections
-        self.addCPointsBT.clicked[()].connect(self._addCPointsDialog.show)
-        self._addCPointsDialog.editBT.clicked[()].connect(self.showEditCPointsDialog)
-        self._addCPointsDialog.cleanBT.clicked[()].connect(self.resetCorrection)
-        self._addCPointsDialog.addSingleCPointBT.clicked[()].connect(self.onAddSingleCPointBT)
-        self._addCPointsDialog.addRegEspCPointsBT.clicked[()].connect(self.onAddRegEspCPointsBT)
+        self.addCPointsBT.clicked.connect(self._addCPointsDialog.show)
+        self._addCPointsDialog.editBT.clicked.connect(self.showEditCPointsDialog)
+        self._addCPointsDialog.cleanBT.clicked.connect(self.resetCorrection)
+        self._addCPointsDialog.addSingleCPointBT.clicked.connect(self.onAddSingleCPointBT)
+        self._addCPointsDialog.addRegEspCPointsBT.clicked.connect(self.onAddRegEspCPointsBT)
 
     def plot1MousePressEvent(self, event):
         self.plotMousePressEvent(event, self.plot1)
@@ -232,10 +232,10 @@ class ArrayEditor(Qt.QWidget):
     def connectToController(self, ctrl):
         ctrl.selected.connect(self.changeCPointSelection)
         ctrl.corrSB.valueChanged.connect(self.onCorrSBChanged)
-        ctrl.lCopyBT.clicked[()].connect(self.onLCopy)
-        ctrl.rCopyBT.clicked[()].connect(self.onRCopy)
-        ctrl.lScaleBT.clicked[()].connect(self.onLScale)
-        ctrl.rScaleBT.clicked[()].connect(self.onRScale)
+        ctrl.lCopyBT.clicked.connect(self.onLCopy)
+        ctrl.rCopyBT.clicked.connect(self.onRCopy)
+        ctrl.lScaleBT.clicked.connect(self.onLScale)
+        ctrl.rScaleBT.clicked.connect(self.onRScale)
 
     def onAddSingleCPointBT(self):
         x = self._addCPointsDialog.singleCPointXSB.value()

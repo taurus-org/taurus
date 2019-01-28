@@ -51,7 +51,7 @@ class _HelpBrowser(Qt.QTextBrowser):
     def loadResource(self, type, url):
         if url.scheme() == "qthelp":
             if self.__help_engine:
-                return Qt.QVariant(self.__help_engine.fileData(url))
+                return self.__help_engine.fileData(url)
         return Qt.QTextBrowser.loadResource(self, type, url)
 
 

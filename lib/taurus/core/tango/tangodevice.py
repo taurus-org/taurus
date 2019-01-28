@@ -62,7 +62,7 @@ class TangoDevice(TaurusDevice):
     _scheme = 'tango'
     _description = "A Tango Device"
 
-    def __init__(self, name, **kw):
+    def __init__(self, name='', **kw):
         """Object initialization."""
         self.call__init__(TaurusDevice, name, **kw)
         self._deviceObj = self._createHWObject()

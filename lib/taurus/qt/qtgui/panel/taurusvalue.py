@@ -36,6 +36,7 @@ __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox",
 __docformat__ = 'restructuredtext'
 
 from future.utils import string_types
+from future.builtins import str
 
 import weakref
 import re
@@ -157,16 +158,18 @@ class DefaultLabelWidget(TaurusLabel):
         event.accept()
 
     def getModelMimeData(self):
-        '''reimplemented to use the taurusValueBuddy model instead of its own model'''
+        """
+        reimplemented to use the taurusValueBuddy model instead of its own
+        model
+        """
         mimeData = TaurusLabel.getModelMimeData(self)
-        mimeData.setData(TAURUS_MODEL_MIME_TYPE,
-                         self.taurusValueBuddy().getModelName())
+        _modelname = str(self.taurusValueBuddy().getModelName())
+        modelname = _modelname.encode(encoding='utf8')
+        mimeData.setData(TAURUS_MODEL_MIME_TYPE, modelname)
         if self.taurusValueBuddy().getModelType() == TaurusElementType.Device:
-            mimeData.setData(TAURUS_DEV_MIME_TYPE,
-                             self.taurusValueBuddy().getModelName())
+            mimeData.setData(TAURUS_DEV_MIME_TYPE, modelname)
         elif self.taurusValueBuddy().getModelType() == TaurusElementType.Attribute:
-            mimeData.setData(TAURUS_ATTR_MIME_TYPE,
-                             self.taurusValueBuddy().getModelName())
+            mimeData.setData(TAURUS_ATTR_MIME_TYPE, modelname)
         return mimeData
 
     @classmethod
@@ -1147,7 +1150,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
             # calls self.getLabelWidgetClass, self.getReadWidgetClass,...
             classID = getattr(self, 'get%sClass' % key)()
-            if (isinstance(classID, string_types + (Qt.QString,))
+            if (isinstance(classID, string_types)
                     or allowUnpickable):
                 #configdict[key] = classID
                 configdict[key] = {'classid': classID}

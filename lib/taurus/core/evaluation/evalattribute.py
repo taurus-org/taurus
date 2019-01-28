@@ -167,7 +167,7 @@ class EvaluationAttribute(TaurusAttribute):
     _factory = None
     _scheme = 'eval'
 
-    def __init__(self, name, parent, **kwargs):
+    def __init__(self, name='', parent=None, **kwargs):
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
         self._value = EvaluationAttrValue(attr=self)
 

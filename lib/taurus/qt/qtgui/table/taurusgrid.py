@@ -84,8 +84,7 @@ def get_all_models(expressions, limit=1000):
         ##self.debug( 'expressions as string separated by commas ...')
         expressions = expressions.split(',')
 
-    elif any(isinstance(expressions, klass) for klass in
-             (QtCore.QStringList, list, tuple, dict)):
+    elif isinstance(expressions, (list, tuple, dict)):
         # self.debug( 'expressions converted from list ...')
         expressions = list(str(e) for e in expressions)
 
@@ -159,8 +158,7 @@ def get_readwrite_models(expressions, limit=1000):
             # self.trace( 'expressions as string separated by commas ...')
             expressions = expressions.split(',')
 
-    elif any(isinstance(expressions, klass) for klass in
-             (QtCore.QStringList, list, tuple, dict)):
+    elif isinstance(expressions, (list, tuple, dict)):
         expressions = list(str(e) for e in expressions)
 
     taurus_db = taurus.Authority()
@@ -364,10 +362,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         # Write your own code here before attaching widget to attribute connect
         # the proper signal so that the first event is correctly received by the
         # widget
-        #
-        # Typical code is:
-        # self.connect(self, QtCore.SIGNAL('valueChangedDueToEvent(QString)'),
-        #             self.setTextValue)
 
         ret = TaurusBaseWidget.attach(self)
 
@@ -382,12 +376,6 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
         # ----------------------------------------------------------------------
         # Write your own code here after detaching the widget from the model
-        #
-        # Typical code is:
-        # self.emit(QtCore.SIGNAL('valueChangedDueToEvent(QString)'),
-        #          QtCore.QString(value_str))
-        # self.disconnect(self, QtCore.SIGNAL('valueChangedDueToEvent(QString)'),
-        #                self.setTextValue)
 
         # by default disable widget when dettached
         self.setEnabled(False)
@@ -435,8 +423,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         if isinstance(model, dict):
             self.load(model)
         else:
-            model = isinstance(model, string_types + (QtCore.QString,)) and [
-                model] or list(model)
+            model = isinstance(model, string_types) and [model] or list(model)
             self.trace('#' * 80)
             self.trace('In TaurusGrid.setModel(%s)' % str(model)[:100])
 
@@ -797,7 +784,14 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         for i in range(len(self.rows)):
             section = self.rows[i]
             checkbox = QtGui.QCheckBox(section)
-            if checkbox.text() == 'Others':
+
+            # -------------------------------------------------------
+            # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+            # TODO: make better solution for this
+            checkbox._id = section  # <-- ugly monkey-patch!
+            # -------------------------------------------------------
+
+            if section == 'Others':
                 checkbox.setChecked(False)
                 if not self._show_others:
                     checkbox.hide()
@@ -818,7 +812,14 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         for i in range(len(self.columns)):
             column = self.columns[i]
             checkbox = QtGui.QCheckBox(column)
-            if checkbox.text() == 'Others':
+
+            # -------------------------------------------------------
+            # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+            # TODO: make better solution for this
+            checkbox._id = column  # <-- ugly monkey-patch!
+            # -------------------------------------------------------
+
+            if column == 'Others':
                 checkbox.setChecked(False)
                 if not self._show_others:
                     checkbox.hide()
@@ -842,7 +843,12 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         """
         for checkbox in self.rows_frame.children():
             if isinstance(checkbox, QtGui.QCheckBox):
-                table_row = self.rows.index(checkbox.text())
+                # -------------------------------------------------------
+                # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+                # TODO: make better solution for this
+                # checkbox.text()  <-- fails due to added "&
+                table_row = self.rows.index(checkbox._id)
+                # -------------------------------------------------------
                 if checkbox.isChecked():
                     self.table.showRow(table_row)
                 else:
@@ -854,7 +860,12 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         """
         for checkbox in self.columns_frame.children():
             if isinstance(checkbox, QtGui.QCheckBox):
-                table_col = self.columns.index(checkbox.text())
+                # -------------------------------------------------------
+                # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+                # TODO: make better solution for this
+                # checkbox.text()  <-- fails due to added "&
+                table_col = self.columns.index(checkbox._id)
+                # -------------------------------------------------------
                 if checkbox.isChecked():
                     self.table.showColumn(table_col)
                 else:
@@ -864,16 +875,26 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         self._show_others = boolean
         if hasattr(self, 'rows_frame'):
             for checkbox in self.rows_frame.children():
-                if isinstance(checkbox,
-                              QtGui.QCheckBox) and checkbox.text() == 'Others':
+                if (isinstance(checkbox, QtGui.QCheckBox)
+                # -------------------------------------------------------
+                # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+                # TODO: make better solution for this
+                # checkbox.text()  <-- fails due to added "&
+                        and checkbox._id == 'Others'):
+                # -------------------------------------------------------
                     if self._show_others:
                         checkbox.show()
                     else:
                         checkbox.hide()
         if hasattr(self, 'columns_frame'):
             for checkbox in self.columns_frame.children():
-                if isinstance(checkbox,
-                              QtGui.QCheckBox) and checkbox.text() == 'Others':
+                if (isinstance(checkbox, QtGui.QCheckBox)
+                # -------------------------------------------------------
+                # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+                # TODO: make better solution for this
+                # checkbox.text()  <-- fails due to added "&
+                        and checkbox._id == 'Others'):
+                # -------------------------------------------------------
                     if self._show_others:
                         checkbox.show()
                     else:
@@ -905,11 +926,20 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
 
         # table.resizeColumnsToContents()
         # table.resizeRowsToContents()
-        table.horizontalHeader().setSectionResizeMode(QtGui.QHeaderView.Stretch)
+        hh = table.horizontalHeader()
+        if hh.length() > 0:
+            try:
+                hh.setSectionResizeMode(hh.Stretch)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(hh.Stretch)
         # table.verticalHeader().setSectionResizeMode(QtGui.QHeaderView.Stretch)
         # table.horizontalHeader().setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
-        table.verticalHeader().setSectionResizeMode(
-            QtGui.QHeaderView.ResizeToContents)
+        vh = table.verticalHeader()
+        if vh.length() > 0:
+            try:
+                vh.setSectionResizeMode(vh.ResizeToContents)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(vh.ResizeToContents)
 
         return table
 

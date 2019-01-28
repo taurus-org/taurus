@@ -272,7 +272,7 @@ class TangoAttribute(TaurusAttribute):
     _scheme = 'tango'
     _description = 'A Tango Attribute'
 
-    def __init__(self, name, parent, **kwargs):
+    def __init__(self, name='', parent=None, **kwargs):
         # the last attribute value
         self.__attr_value = None
 

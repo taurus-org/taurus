@@ -25,8 +25,20 @@
 
 """This module exposes QtWebKit module"""
 
-from taurus.external.qt import _updateQtSubModule
+from . import PYQT5, PYQT4, PYSIDE, PYSIDE2, PythonQtError
 
-_updateQtSubModule(globals(), "QtWebKit")
 
-del _updateQtSubModule
+if PYQT5:
+    from PyQt5.WebKit import *
+    # import * from QtWebkitWidgets for PyQt4 style compat
+    from PyQt5.WebKitWidgets import *
+elif PYSIDE2:
+    from PySide2.WebKit import *
+    # import * from QtWebkitWidgets for PyQt4 style compat
+    from PySide2.WebKitWidgets import *
+elif PYQT4:
+    from PyQt4.WebKit import *
+elif PYSIDE:
+    from PySide.WebKit import *
+else:
+    raise PythonQtError('No Qt bindings could be found')

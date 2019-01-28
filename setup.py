@@ -73,8 +73,7 @@ else:
 
 
 extras_require = {
-    'taurus-qt': ['qtpy >=1.2.1',
-                  # 'PyQt4 >=4.8',
+    'taurus-qt': [# 'PyQt4 >=4.8',
                   # 'PyQt4.Qwt5 >=5.2.0',  # [Taurus-Qt-Plot]
                   'ply >=2.3',  # [Taurus-Qt-Synoptic]
                   'lxml >=2.1',  # [Taurus-Qt-TaurusGUI]
@@ -95,8 +94,8 @@ extras_require = {
 console_scripts = [
     'taurustestsuite = taurus.test.testsuite:main',
     'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main',
-    'taurusplot = taurus.qt.qtgui.plot.taurusplot:main',
-    'taurustrend = taurus.qt.qtgui.plot.taurustrend:main',
+    'taurusplot = taurus.qt.qtgui.qwt5.taurusplot:main',
+    'taurustrend = taurus.qt.qtgui.qwt5.taurustrend:main',
     'taurusform = taurus.qt.qtgui.panel.taurusform:taurusFormMain',
     'tauruspanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusPanelMain',
     'taurusdevicepanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusDevicePanelMain',

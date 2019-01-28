@@ -48,7 +48,7 @@ class TaurusModel(Logger):
     RegularEvent = (TaurusEventType.Change,
                     TaurusEventType.Config, TaurusEventType.Periodic)
 
-    def __init__(self, full_name, parent, serializationMode=None):
+    def __init__(self, full_name='', parent=None, serializationMode=None):
         v = self.getNameValidator()
         self._full_name, self._norm_name, self._simp_name = v.getNames(
             full_name, self.factory())

@@ -39,7 +39,7 @@ class TaurusAuthority(TaurusModel):
 
     _description = "A Taurus Authority"
 
-    def __init__(self, complete_name, parent=None):
+    def __init__(self, complete_name='', parent=None):
         self.call__init__(TaurusModel, complete_name, parent)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-

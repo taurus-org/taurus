@@ -67,7 +67,7 @@ def _build_doc_api():
             ]
     if sys.version_info.major > 2:
         excl += [
-            'taurus\.qt\.qtgui\.plot',  # for now plot fails to import in PY3
+            'taurus\.qt\.qtgui\.qwt5',  # qwt5 not available in PY3
             '.*\.(object|zip|str)',  # avoid warnings from builtins
             ]
 
@@ -302,5 +302,4 @@ intersphinx_mapping = {
     'sardana': ('https://sardana-controls.org', None),
     'pint': ('http://pint.readthedocs.io/en/stable/', None),
     'PyTango': ('http://pytango.readthedocs.io/en/stable/', None),
-    'PyQt4': ('http://pyqt.sourceforge.net/Docs/PyQt4/', None),
 }

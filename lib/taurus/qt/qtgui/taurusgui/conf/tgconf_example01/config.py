@@ -74,48 +74,58 @@ INSTRUMENTS_FROM_POOL = False
 
 #=========================================================================
 # Define panels to be shown.
-# To define a panel, instantiate a PanelDescription object (see documentation
-# for the gblgui_utils module)
+# To define a panel, instantiate a PanelDescription object
 #=========================================================================
 
-nxbrowser = PanelDescription('NeXus Browser',
-                             classname='TaurusNeXusBrowser',
-                             area=None)
+nxbrowser = PanelDescription(
+    'NeXus Browser',
+    classname='taurus.qt.qtgui.extra_nexus.TaurusNeXusBrowser'
+)
 
-i0 = PanelDescription('BigInstrument',
-                      classname='TaurusAttrForm',
-                      model='sys/tg_test/1')
+i0 = PanelDescription(
+    'BigInstrument',
+    classname='taurus.qt.qtgui.panel.TaurusAttrForm',
+    model='sys/tg_test/1'
+)
 
-i1 = PanelDescription('instrument1',
-                      classname='TaurusForm',
-                      model=['sys/tg_test/1/double_scalar',
-                             'sys/tg_test/1/short_scalar_ro',
-                             'sys/tg_test/1/float_spectrum_ro',
-                                'sys/tg_test/1/double_spectrum'])
+i1 = PanelDescription(
+    'instrument1',
+    classname='taurus.qt.qtgui.panel.TaurusForm',
+    model=['sys/tg_test/1/double_scalar',
+           'sys/tg_test/1/short_scalar_ro',
+           'sys/tg_test/1/float_spectrum_ro',
+           'sys/tg_test/1/double_spectrum']
+)
 
-i2 = PanelDescription('instrument2',
-                      classname='TaurusForm',
-                      model=['sys/tg_test/1/wave',
-                             'sys/tg_test/1/boolean_scalar'])
+i2 = PanelDescription(
+    'instrument2',
+    classname='taurus.qt.qtgui.panel.TaurusForm',
+    model=['sys/tg_test/1/wave',
+           'sys/tg_test/1/boolean_scalar']
+)
 
-trend = PanelDescription('Trend',
-                         classname='TaurusTrend',
-                         model=['sys/tg_test/1/double_scalar'])
+trend = PanelDescription(
+    'Trend',
+    classname='taurus.qt.qtgui.plot.TaurusTrend',
+    model=['sys/tg_test/1/double_scalar']
+)
 
-connectionDemo = PanelDescription('Selected Instrument',
-                                  classname='PyQt4.Qt.QLineEdit',
-                                  sharedDataRead={
-                                      'SelectedInstrument': 'setText'},
-                                  sharedDataWrite={'SelectedInstrument': 'textEdited'})
+connectionDemo = PanelDescription(
+    'Selected Instrument',
+    classname='taurus.external.qt.Qt.QLineEdit',  # A pure Qt widget!
+    sharedDataRead={'SelectedInstrument': 'setText'},
+    sharedDataWrite={'SelectedInstrument': 'textEdited'}
+)
 
 #=========================================================================
 # Define custom toolbars to be shown. To define a toolbar, instantiate a
 # ToolbarDescription object (see documentation for the gblgui_utils module)
 #=========================================================================
 
-dummytoolbar = ToolBarDescription('Empty Toolbar',
-                                  classname='QToolBar',
-                                  modulename='PyQt4.Qt')
+dummytoolbar = ToolBarDescription(
+    'Empty Toolbar',
+    classname='taurus.external.qt.Qt.QToolBar'
+)
 
 # panictoolbar = ToolBarDescription('Panic Toolbar',
 #                        classname = 'PanicToolbar',
@@ -127,9 +137,9 @@ dummytoolbar = ToolBarDescription('Empty Toolbar',
 # object (see documentation for the gblgui_utils module)
 #=========================================================================
 
-mon2 = AppletDescription('Dummy Monitor',
-                         classname='TaurusMonitorTiny',
-                         model='eval:1000*rand(2)')
+# mon2 = AppletDescription('Dummy Monitor',
+#                          classname='TaurusMonitorTiny',
+#                          model='eval:1000*rand(2)')
 
 
 #=========================================================================
@@ -137,8 +147,8 @@ mon2 = AppletDescription('Dummy Monitor',
 # To define an external application, instantiate an ExternalApp object
 # See TaurusMainWindow.addExternalAppLauncher for valid values of ExternalApp
 #=========================================================================
-xterm = ExternalApp(cmdargs=['xterm', 'spock'],
-                    text="Spock", icon='utilities-terminal')
+xterm = ExternalApp(
+    cmdargs=['xterm', 'spock'], text="Spock", icon='utilities-terminal')
 hdfview = ExternalApp(["hdfview"])
 pymca = ExternalApp(['pymca'])
 
@@ -153,22 +163,23 @@ pymca = ExternalApp(['pymca'])
 # MACROEDITORS_PATH =
 
 #=========================================================================
-# Monitor widget (This is *obsolete* now, you can get the same result defining a
-# custom applet with classname='TaurusMonitorTiny')
+# Monitor widget (This is *obsolete* now, you can get the same result defining
+# a custom applet with classname='TaurusMonitorTiny')
 #=========================================================================
 # MONITOR = ['sys/tg_test/1/double_scalar_rww']
 
 #=========================================================================
 # Adding other widgets to the catalog of the "new panel" dialog.
 # pass a tuple of (classname,screenshot)
-# -classname may contain the module name.
+# -classname should contain the module name.
 # -screenshot can either be a resource URL, a file name (either relative to
 # the application dir or with an absolute path) or None
 #=========================================================================
-EXTRA_CATALOG_WIDGETS = [('PyQt4.Qt.QLineEdit', 'logos:taurus.png'),  # a resource
-                         ('PyQt4.Qt.QSpinBox', 'images/syn2.jpg'),  # relative
-                         #('PyQt4.Qt.QTextEdit','/tmp/foo.png'),  # absolute
-                         ('PyQt4.Qt.QLabel', None)]                # none
+EXTRA_CATALOG_WIDGETS = [
+    ('taurus.external.qt.Qt.QLineEdit', 'logos:taurus.png'),  # a resource
+    ('taurus.external.qt.Qt.QSpinBox', 'images/syn2.jpg'),  # relative
+    # ('taurus.external.Qt.QTextEdit','/tmp/foo.png'),  # absolute
+    ('taurus.external.qt.Qt.QLabel', None)]                # none
 
 #=========================================================================
 # Define one or more embedded consoles in the GUI.

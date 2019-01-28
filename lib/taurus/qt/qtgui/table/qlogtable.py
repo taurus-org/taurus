@@ -181,74 +181,74 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
 
     def data(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < len(self._records)):
-            return Qt.QVariant()
+            return None
         record = self.getRecord(index)
         column = index.column()
         if role == Qt.Qt.DisplayRole:
             if column == LEVEL:
-                return Qt.QVariant(record.levelname)
+                return record.levelname
             elif column == TIME:
                 dt = datetime.datetime.fromtimestamp(record.created)
-                return Qt.QVariant(str(dt))
-                # return Qt.QVariant(dt.strftime("%Y-%m-%d %H:%m:%S.%f"))
+                return str(dt)
+                # return dt.strftime("%Y-%m-%d %H:%m:%S.%f")
             elif column == MSG:
-                return Qt.QVariant(record.getMessage())
+                return record.getMessage()
             elif column == NAME:
-                return Qt.QVariant(record.name)
+                return record.name
             elif column == ORIGIN:
-                return Qt.QVariant(_get_record_origin_str(record))
+                return _get_record_origin_str(record)
         elif role == Qt.Qt.TextAlignmentRole:
             if column in (LEVEL, MSG):
-                return Qt.QVariant(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter)
-            return Qt.QVariant(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
+                return Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter
+            return Qt.Qt.AlignRight | Qt.Qt.AlignVCenter
         elif role == Qt.Qt.BackgroundRole:
             if column == LEVEL:
-                return Qt.QVariant(getBrushForLevel(record.levelno)[0])
+                return getBrushForLevel(record.levelno)[0]
         elif role == Qt.Qt.ForegroundRole:
             if column == LEVEL:
-                return Qt.QVariant(getBrushForLevel(record.levelno)[1])
+                return getBrushForLevel(record.levelno)[1]
         elif role == Qt.Qt.ToolTipRole:
-            return Qt.QVariant(_get_record_origin_tooltip(record))
+            return _get_record_origin_tooltip(record)
         elif role == Qt.Qt.SizeHintRole:
             return self._getSizeHint(column)
         # elif role == Qt.Qt.StatusTipRole:
         # elif role == Qt.Qt.CheckStateRole:
         elif role == Qt.Qt.FontRole:
-            return Qt.QVariant(self.DftFont)
-        return Qt.QVariant()
+            return self.DftFont
+        return None
 
     def _getSizeHint(self, column):
-        return Qt.QVariant(QLoggingTableModel.DftColSize[column])
+        return QLoggingTableModel.DftColSize[column]
 
     def headerData(self, section, orientation, role=Qt.Qt.DisplayRole):
         if role == Qt.Qt.TextAlignmentRole:
             if orientation == Qt.Qt.Horizontal:
-                return Qt.QVariant(int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter))
-            return Qt.QVariant(int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter))
+                return int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter)
+            return int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
         elif role == Qt.Qt.SizeHintRole:
             if orientation == Qt.Qt.Vertical:
-                return Qt.QVariant(Qt.QSize(50, 20))
+                return Qt.QSize(50, 20)
             else:
                 return self._getSizeHint(section)
         elif role == Qt.Qt.FontRole:
-            return Qt.QVariant(Qt.QFont("Mono", 8))
+            return Qt.QFont("Mono", 8)
         elif role == Qt.Qt.ToolTipRole:
             if section == LEVEL:
-                return Qt.QVariant("log level")
+                return "log level"
             elif section == TIME:
-                return Qt.QVariant("log time stamp")
+                return "log time stamp"
             elif section == MSG:
-                return Qt.QVariant("log message")
+                return "log message"
             elif section == NAME:
-                return Qt.QVariant("object who recorded the log")
+                return "object who recorded the log"
             elif section == ORIGIN:
-                return Qt.QVariant("the host, process and thread where the "
-                                   "log was executed from")
+                return ("the host, process and thread where the"
+                        + " log was executed from")
         if role != Qt.Qt.DisplayRole:
-            return Qt.QVariant()
+            return None
         if orientation == Qt.Qt.Horizontal:
-            return Qt.QVariant(HORIZ_HEADER[section])
-        return Qt.QVariant(int(section + 1))
+            return HORIZ_HEADER[section]
+        return int(section + 1)
 
     def insertRows(self, position, rows=1, index=Qt.QModelIndex()):
         self.beginInsertRows(Qt.QModelIndex(), position, position + rows - 1)
@@ -397,12 +397,12 @@ class LoggingToolBar(FilterToolBar):
 
     def getLogLevel(self):
         combo = self.getLogLevelComboBox()
-        return Qt.from_qvariant(combo.itemData(combo.currentIndex()))
+        return combo.itemData(combo.currentIndex())
 
     def setLogLevel(self, level):
         combo = self.getLogLevelComboBox()
         for i in range(combo.count()):
-            l = Qt.from_qvariant(combo.itemData(i))
+            l = combo.itemData(i)
             if l == level:
                 combo.setCurrentIndex(i)
 
@@ -481,7 +481,11 @@ class QLoggingWidget(QBaseTableWidget):
             klass = QLoggingTable
         view = QBaseTableWidget.createViewWidget(self, klass=klass)
         hh = view.horizontalHeader()
-        hh.setSectionResizeMode(MSG, Qt.QHeaderView.Stretch)
+        if hh.length() > 0:
+            try:
+                hh.setSectionResizeMode(MSG, Qt.QHeaderView.Stretch)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(MSG, Qt.QHeaderView.Stretch)
         view.setShowGrid(False)
         view.sortByColumn(TIME, Qt.Qt.AscendingOrder)
         return view

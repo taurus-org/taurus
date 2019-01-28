@@ -148,24 +148,24 @@ class TaurusModelModel(Qt.QAbstractListModel):
     def data(self, index, role=Qt.Qt.DisplayRole):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
         if not index.isValid() or not (0 <= index.row() < self.rowCount()):
-            return Qt.QVariant()
+            return None
         row = index.row()
         # Display Role
         if role == Qt.Qt.DisplayRole:
-            return Qt.QVariant(Qt.QString(self.items[row].display))
+            return str(self.items[row].display)
         elif role == Qt.Qt.DecorationRole:
-            return Qt.QVariant(self.items[row].icon)
+            return self.items[row].icon
         elif role == Qt.Qt.TextColorRole:
             if not self.items[row].src:
-                return Qt.QVariant(Qt.QColor('gray'))
-            return Qt.QVariant(Qt.QColor(self.items[row].ok and 'green' or 'red'))
+                return Qt.QColor('gray')
+            return Qt.QColor(self.items[row].ok and 'green' or 'red')
         elif role == SRC_ROLE:
-            return Qt.QVariant(Qt.QString(self.items[row].src))
+            return str(self.items[row].src)
         elif role == Qt.Qt.ToolTipRole:
-            return Qt.QVariant(Qt.QString(self.items[row].src))
+            return str(self.items[row].src)
         if role == Qt.Qt.EditRole:
-            return Qt.QVariant(Qt.QString(self.items[row].src))
-        return Qt.QVariant()
+            return str(self.items[row].src)
+        return None
 
     def flags(self, index):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
@@ -178,7 +178,6 @@ class TaurusModelModel(Qt.QAbstractListModel):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
             row = index.row()
             item = self.items[row]
-            value = Qt.from_qvariant(value, str)
             if role == Qt.Qt.EditRole:
                 item.src = value
             elif role == Qt.Qt.DisplayRole:
@@ -208,10 +207,11 @@ class TaurusModelModel(Qt.QAbstractListModel):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
         if parentindex is None:
             parentindex = Qt.QModelIndex()
+        self.beginResetModel()
         self.beginRemoveRows(parentindex, position, position + rows - 1)
         self.items = self.items[:position] + self.items[position + rows:]
         self.endRemoveRows()
-        self.reset()
+        self.endResetModel()
         return True
 
     def clearAll(self):
@@ -271,9 +271,8 @@ class TaurusModelModel(Qt.QAbstractListModel):
         '''reimplemented from :class:`Qt.QAbstractListModel`'''
         mimedata = Qt.QAbstractListModel.mimeData(self, indexes)
         if len(indexes) == 1:
-            # mimedata.setData(TAURUS_ATTR_MIME_TYPE,
-            # Qt.from_qvariant(self.data(indexes[0]), str)))
-            txt = Qt.from_qvariant(self.data(indexes[0], role=SRC_ROLE), str)
+            # mimedata.setData(TAURUS_ATTR_MIME_TYPE, self.data(indexes[0]))
+            txt = self.data(indexes[0], role=SRC_ROLE)
             mimedata.setText(txt)
         return mimedata
         # mimedata.setData()
@@ -336,14 +335,13 @@ class TaurusModelList(Qt.QListView):
             idx = selected[0]
         else:
             return
-        value = Qt.from_qvariant(self._model.data(
-            idx, role=Qt.Qt.DisplayRole), str)
-        src = Qt.from_qvariant(self._model.data(idx, role=SRC_ROLE), str)
+        value = self._model.data(idx, role=Qt.Qt.DisplayRole)
+        src = self._model.data(idx, role=SRC_ROLE)
         value, ok = Qt.QInputDialog.getText(
             self, "Display Value", "Display value for %s?" % src, Qt.QLineEdit.Normal, value)
         if not ok:
             return
-        self._model.setData(idx, Qt.QVariant(value), role=Qt.Qt.DisplayRole)
+        self._model.setData(idx, value, role=Qt.Qt.DisplayRole)
 
     def _onSelectionChanged(self, selected, deselected):
         '''updates the status of the actions that depend on the selection'''

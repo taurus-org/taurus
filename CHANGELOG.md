@@ -11,8 +11,32 @@ develop branch) won't be reflected in this file.
 
 ### Added
 - Support of Python3 (beta stage, not yet production ready) (#703)
+- Support of other Qt bindings: PyQt4, PyQt5, PySide2, PySide 
+  (beta stage, not yet production ready) (TEP18)
 
+### Removed
+- taurus.qt.qtgui.tree.taurusdevicetree submodule (obsolete, unused)
+- Trend dockwidget in TaurusDevPanel
+- `taurus.qt.qtgui.taurusgui.macrolistener` (now provided by 
+  `sardana.taurus.qt.qtgui.macrolistener`)
 
+### Changed
+- `taurus.qt.qtgui.plot` is now deprecated, but the same Qwt5-based 
+  API is now available in `taurus.qt.qtgui.qwt5`
+- `taurus.qt.qtcore.util.emmiter.QEmitter.doSomething` signal signature
+  changes from `collections.Iterable` to `list`
+
+### Deprecated
+- `taurus.qt.qtgui.plot`
+- `QtColorPalette.qvariant()`
+- `TaurusBaseTreeItem.qdisplay()`
+- `taurus.qt.qtdesigner.qtdesigner_prepare_taurus()`
+- The following have been implicitly deprecated since 4.0 (when API1
+ support was dropped) but only now we deprecate them explicitly 
+    - `taurus.external.qt.QtCore.QString` 
+    - `taurus.external.qt.QtCore.QVariant`
+    - `taurus.external.qt.QtCore.from_qvariant` 
+    - `taurus.external.qt.QtCore.to_qvariant` 
 
 ## [4.4.0] - 2018-07-26
 

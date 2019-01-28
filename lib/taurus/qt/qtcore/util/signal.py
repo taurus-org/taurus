@@ -3,7 +3,7 @@ from __future__ import print_function
 
 from builtins import object
 
-from PyQt4 import Qt
+from taurus.external.qt import Qt
 from threading import Lock
 from weakref import WeakKeyDictionary
 

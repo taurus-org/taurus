@@ -30,7 +30,7 @@ monitor.py: Specialized mini-trend widget to monitor some scalar value
 from __future__ import print_function
 
 from taurus.external.qt import Qt
-from taurus.qt.qtgui.plot import TaurusTrend
+from taurus.qt.qtgui.qwt5 import TaurusTrend
 
 
 class TaurusMonitorTiny(TaurusTrend):

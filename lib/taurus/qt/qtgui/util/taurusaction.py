@@ -32,6 +32,7 @@ from builtins import str
 import os
 import xml.dom.minidom
 
+from functools import partial
 from future.utils import string_types
 
 from taurus.external.qt import Qt
@@ -75,7 +76,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         :param icon: (QIcon or any other object that can be passed to QIcon creator) see :class:`Qt.QAction`
         :param parent: (QObject) The parent object
         '''
-        if isinstance(cmdargs, string_types + (Qt.QString,)):
+        if isinstance(cmdargs, string_types):
             import shlex
             cmdargs = shlex.split(str(cmdargs))
         self.path = os.path.realpath(cmdargs and cmdargs[0] or '')
@@ -93,7 +94,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         self.interactive = interactive
         self._process = []
         self.setCmdArgs(cmdargs)
-        self.triggered.connect(self.actionTriggered)
+        self.triggered.connect(partial(self.actionTriggered, args=None))
         self.setToolTip("Launches %s (external application)" % text)
         self.registerConfigProperty(self.cmdArgs, self.setCmdArgs, 'cmdArgs')
 
@@ -107,7 +108,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
                         application. It can also be a string containing a
                         command, which will be automatically converted to a list
         '''
-        if isinstance(cmdargs, string_types + (Qt.QString,)):
+        if isinstance(cmdargs, string_types):
             import shlex
             cmdargs = shlex.split(str(cmdargs))
         self.__cmdargs = cmdargs
@@ -123,7 +124,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         import subprocess
         try:
             if args is not None:
-                if isinstance(args, string_types + (Qt.QString,)):
+                if isinstance(args, string_types):
                     import shlex
                     args = shlex.split(str(args))
                 args = self.cmdArgs() + args

@@ -557,8 +557,6 @@ class TaurusDevPanel(TaurusMainWindow):
             self._ui.attrDW.toggleViewAction())
         self.showCommandsAction = self.viewMenu.addAction(
             self._ui.commandsDW.toggleViewAction())
-        self.showTrendAction = self.viewMenu.addAction(
-            self._ui.trendDW.toggleViewAction())
 
     def setTangoHost(self, host):
         '''extended from :class:setTangoHost'''

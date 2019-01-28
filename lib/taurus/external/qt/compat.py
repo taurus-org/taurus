@@ -23,15 +23,22 @@
 ##
 ##############################################################################
 
-"""This module exposes Qwt5 module"""
+"""
+This module provides utilities to smooth differences between different
+Qt APIs
+"""
 
+# provide substitutes for QFileDialog's getSaveFileName, getOpenFileName
+# and getOpenFileNames that return the selected filter regardless of Qt API
+from taurus.external.qt.Qt import QFileDialog
 
-from . import PYQT4, API_NAME
-from taurus.core.util import log as __log
+getSaveFileName = getattr(QFileDialog, 'getSaveFileNameAndFilter',
+                          QFileDialog.getSaveFileName)
 
+getOpenFileName = getattr(QFileDialog, 'getOpenFileNameAndFilter',
+                          QFileDialog.getOpenFileName)
 
-if PYQT4:
-    __log.deprecated(dep="taurus.external.qt.Qwt5", rel="4.5")
-    from PyQt4.Qwt5 import *
-else:
-    raise ImportError('Qwt5 bindings not supported for {}'.format(API_NAME))
+getOpenFileNames = getattr(QFileDialog, 'getOpenFileNamesAndFilter',
+                          QFileDialog.getOpenFileNames)
+
+del QFileDialog

@@ -440,7 +440,8 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     if k:
                         configDialogAction = menu.addAction(k)
                         if action:
-                            configDialogAction.triggered[()].connect(lambda dev=obj_name, act=action: act(dev))
+                            configDialogAction.triggered.connect(
+                                lambda dev=obj_name, act=action: act(dev))
                         else:
                             configDialogAction.setEnabled(False)
                         last_was_separator = False
@@ -696,7 +697,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 else:
                     if isinstance(picture, Qt.QPixmap):
                         pixmap = picture
-                    elif isinstance(picture, string_types + (Qt.QString,)):
+                    elif isinstance(picture, string_types):
                         picture = str(picture)
                         pixmap = Qt.QPixmap(os.path.realpath(picture))
                     SelectionMark = Qt.QGraphicsPixmapItem()
@@ -1280,7 +1281,9 @@ class TaurusSplineStateItem(QSpline, TaurusGraphicsStateItem):
 class TaurusRoundRectItem(Qt.QGraphicsPathItem):
 
     def __init__(self, name=None, parent=None, scene=None):
-        Qt.QGraphicsPathItem.__init__(self, parent, scene)
+        Qt.QGraphicsPathItem.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
         self.__rect = None
         self.setCornerWidth(0, 0)
 

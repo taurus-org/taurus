@@ -37,7 +37,7 @@ from lxml import etree
 
 import taurus
 from taurus import tauruscustomsettings
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtgui.util import TaurusWidgetFactory
@@ -1102,7 +1102,7 @@ class TaurusGui(TaurusMainWindow):
             xmlroot, "MACRO_PANELS", True))
         # macro infrastructure will only be created if MACROSERVER_NAME is set
         if MACRO_PANELS and MACROSERVER_NAME is not None:
-            from taurus.qt.qtgui.taurusgui import MacroBroker
+            from sardana.taurus.qt.qtgui.macrolistener import MacroBroker
             self.__macroBroker = MacroBroker(self)
         if MACROSERVER_NAME:
             self.macroserverNameChanged.emit(MACROSERVER_NAME)
@@ -1552,8 +1552,10 @@ class TaurusGui(TaurusMainWindow):
         # write to file
         while True:
             if fname is None:
-                fname = Qt.QFileDialog.getSaveFileName(
-                    self, "Open File", fname or self._confDirectory, self.tr("XML files (*.xml)"))
+                fname, _ = compat.getSaveFileName(
+                    self, "Open File", self._confDirectory,
+                    self.tr("XML files (*.xml)")
+                )
                 if not fname:
                     return
             fname = str(fname)

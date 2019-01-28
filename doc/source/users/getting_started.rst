@@ -91,18 +91,23 @@ Then, to work in develop mode, just do::
 Dependencies
 ------------
 
-Strictly speaking, Taurus only depends on numpy, but that will leave
-out most of the features normally expected of Taurus (which are
-considered "extras"). For example:
+Strictly speaking, Taurus only depends on numpy_, pint_ and future_
+but that will leave out most of the features normally
+expected of Taurus (which are considered "extras"). For example:
 
 - Interacting with a Tango controls system requires PyTango_.
 
 - Interacting with an Epics controls system requires pyepics_.
 
-- Using the taurus Qt widgets, requires PyQt_ 4.x (4.8 <= v < 5).
-  (PyQt5 support coming soon).
+- Using the taurus Qt_ widgets, requires either PyQt_ (v4 or v5)
+  or PySide_ (v1 or v2). Note that most development and testing of
+  is done with PyQt4 and PyQt5, so many features may not be
+  regularly tested with PySide and PySide2.
 
-- The :mod:`taurus.qt.qtgui.plot` module requires PyQwt_.
+- The :mod:`taurus.qt.qtgui.plot` module requires PyQwt_, which is
+  only available when using PyQt4 and python2. As an alternative
+  that supports both python2 and python3 and all the Qt bindings,
+  refer to the taurus_pyqtgraph_ plugin.
 
 - The image widgets require the guiqwt_ library.
 
@@ -151,13 +156,17 @@ installation method:
 
 
 .. _numpy: http://numpy.org/
+.. _pint: http://pint.readthedocs.org/
+.. _future: https://python-future.org/
 .. _PLY: http://www.dabeaz.com/ply/
 .. _Python(x,y): http://python-xy.github.io/
 .. _Tango: http://www.tango-controls.org/
 .. _PyTango: http://pytango.readthedocs.io
 .. _Qt: http://qt.nokia.com/products/
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/
+.. _PySide: https://wiki.qt.io/Qt_for_Python
 .. _PyQwt: http://pyqwt.sourceforge.net/
+.. _taurus_pyqtgraph: https://github.com/taurus-org/taurus_pyqtgraph
 .. _guiqwt: https://pypi.python.org/pypi/guiqtw
 .. _IPython: http://ipython.org
 .. _PyMca5: http://pymca.sourceforge.net/

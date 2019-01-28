@@ -186,15 +186,22 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         headerItem1.setText(QtGui.QApplication.translate(
             "PLCTabWidget", "Value", None, QtGui.QApplication.UnicodeUTF8))
         self.setHorizontalHeaderItem(1, headerItem1)
-        self.horizontalHeader().setSectionResizeMode(
-            QtGui.QHeaderView.ResizeToContents)  # .Stretch)
+        hh = self.horizontalHeader()
+        if hh.length() > 0:
+            try:
+                hh.setSectionResizeMode(hh.ResizeToContents)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(hh.ResizeToContents)
 
     def updateStyle(self):
         self.resizeRowsToContents()
-        self.horizontalHeader().setSectionResizeMode(
-            QtGui.QHeaderView.ResizeToContents)  # .Stretch)
-        # self.resizeColumnsToContents()
-        pass
+        hh = self.horizontalHeader()
+        if hh.length() > 0:
+            try:
+                hh.setSectionResizeMode(hh.ResizeToContents)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(hh.ResizeToContents)
+            # self.resizeColumnsToContents()
 
     def contextMenuEvent(self, event):
         ''' This function is called when right clicking on qwt plot area. A pop up menu will be
@@ -202,11 +209,11 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         self.info('TaurusPropTable.contextMenuEvent()')
         menu = Qt.QMenu(self)
         configDialogAction = menu.addAction("Add new property")
-        configDialogAction.triggered[()].connect(self.addProperty)
+        configDialogAction.triggered.connect(self.addProperty)
         configDialogAction = menu.addAction("Delete property")
-        configDialogAction.triggered[()].connect(self.deleteProperty)
+        configDialogAction.triggered.connect(self.deleteProperty)
         configDialogAction = menu.addAction("Edit property")
-        configDialogAction.triggered[()].connect(self.editProperty)
+        configDialogAction.triggered.connect(self.editProperty)
         menu.addSeparator()
         menu.exec_(event.globalPos())
         del menu

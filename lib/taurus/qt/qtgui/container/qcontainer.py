@@ -139,14 +139,14 @@ class QGroupWidget(Qt.QWidget):
     def __init(self):
         panelLayout = Qt.QVBoxLayout()
         panelLayout.setSpacing(0)
-        panelLayout.setMargin(0)
+        panelLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(panelLayout)
 
         self._titleBar = titleBar = Qt.QFrame()
         panelLayout.addWidget(titleBar, 0)
 
         l = Qt.QHBoxLayout()
-        l.setMargin(2)
+        l.setContentsMargins(2, 2, 2, 2)
         l.setSpacing(2)
         self._titleBar.setLayout(l)
 

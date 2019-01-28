@@ -38,7 +38,7 @@ __docformat__ = "restructuredtext"
 class TaurusListener(Logger):
     """ TaurusListener Interface"""
 
-    def __init__(self, name, parent=None):
+    def __init__(self, name='', parent=None):
         self.call__init__(Logger, name, parent)
 
     def eventReceived(self, src, type, evt_value):
