@@ -60,11 +60,11 @@ class EvaluationAttrValue(TaurusAttrValue):
         self.config = self._attrRef
 
     def __getattr__(self, name):
-        if name in ('config', '_attrRef'):
-                raise AttributeError('%s has no attribute %s'
-                                 % (self.__class__.__name__, name))    
+        # Do not try to delegate special methods
+        if name.startswith('__') and name.endswith('__'):
+            raise AttributeError("'%s' object has no attribute %s"
+                                 % (self.__class__.__name__, name))   
         try:
-
             ret = getattr(self._attrRef, name)
         except AttributeError:
             raise AttributeError('%s has no attribute %s'
