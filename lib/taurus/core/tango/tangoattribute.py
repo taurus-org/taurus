@@ -613,9 +613,6 @@ class TangoAttribute(TaurusAttribute):
            ):
             sm = self._serialization_mode
             if sm == TaurusSerializationMode.TangoSerial:
-                self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
-                                alt='TaurusSerializationMode.Serial',
-                                rel='4.3.2')
                 self.__fireRegisterEvent((listener,))
             else:
                 Manager().enqueueJob(self.__fireRegisterEvent,
@@ -820,9 +817,6 @@ class TangoAttribute(TaurusAttribute):
             listeners = tuple(self._listeners)
             sm = self._serialization_mode
             if sm == TaurusSerializationMode.TangoSerial:
-                self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
-                                alt="TaurusSerializationMode.Serial",
-                                rel='4.3.2')
                 self.fireEvent(etype, evalue, listeners=listeners)
             else:
                 manager.enqueueJob(self.fireEvent, job_args=(etype, evalue),
