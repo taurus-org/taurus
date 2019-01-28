@@ -28,7 +28,7 @@
 
 import taurus
 
-from taurus.external.unittest import TestCase
+from taurus.external.unittest import TestCase, expectedFailure
 from taurus.core.tango.test.tgtestds import TangoSchemeTestLauncher
 
 
