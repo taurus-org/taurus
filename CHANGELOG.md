@@ -47,8 +47,8 @@ develop branch) won't be reflected in this file.
 ### Added
 - Support fragment-based slicing of attributes ([TEP15])
 - New serialization mode in which events are serialized by a Taurus
-  internal queue (the former "Serial" mode that was tango-centric is
-  now deprecated and renamed "TangoSerial") (#738)
+  internal queue (the former "Serial" mode that was tango-centric has
+  been renamed to "TangoSerial") (#738)
 
 ### Changed
 - Serialization mode now is explicitly set to Serial in the case
