@@ -29,10 +29,17 @@
 import taurus
 
 from taurus.external.unittest import TestCase
+from taurus.core.tango.test.tgtestds import TangoSchemeTestLauncher
 
 
-class TestFactoryGarbageCollection(TestCase):
+class TestFactoryGarbageCollection(TangoSchemeTestLauncher, TestCase):
 
+    # in order to not interfere with the following tests this device should
+    # not be used in another tests
+    DEV_NAME = 'TangoSchemeTest/unittest/temp-tfgc-1'
+
+    def setUp(self):
+        self.factory = taurus.Factory()
     def test_authority(self):
         def create():
             taurus.Authority()
@@ -43,15 +50,24 @@ class TestFactoryGarbageCollection(TestCase):
         # self.assertEqual(len(taurus.Factory().tango_auths), 0, msg)
 
     def test_device(self):
+        old_len = len(self.factory.tango_devs)
+
         def create():
-            taurus.Device("sys/tg_test/1")
+            taurus.Device(self.DEV_NAME)
+
         create()
         msg = "factory is polluted with device"
-        self.assertEqual(len(taurus.Factory().tango_devs), 0, msg)
+        self.assertEqual(len(self.factory.tango_devs), old_len, msg)
 
     def test_attribute(self):
+        old_len = len(self.factory.tango_attrs)
+
         def create():
-            taurus.Attribute("sys/tg_test/1/state")
+            taurus.Attribute(self.DEV_NAME + "/state")
+
         create()
         msg = "factory is polluted with attribute"
-        self.assertEqual(len(taurus.Factory().tango_attrs), 0, msg)
+        self.assertEqual(len(self.factory.tango_attrs), old_len, msg)
+
+    def tearDown(self):
+        self.factory = None
