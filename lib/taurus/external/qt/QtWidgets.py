@@ -88,7 +88,7 @@ elif PYQT4:
 
 elif PYSIDE:
     __log.warning('Using QtWidgets with PySide is not supported and may fail '
-                  + 'in many cases. Use at your own risk
+                  + 'in many cases. Use at your own risk '
                   + '(or use a Qt5 binding)')
     from PySide.QtGui import *
     QStyleOptionViewItem = QStyleOptionViewItemV4
