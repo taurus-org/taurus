@@ -41,16 +41,16 @@ class TestFactoryGarbageCollection(TangoSchemeTestLauncher, TestCase):
     def setUp(self):
         self.factory = taurus.Factory()
 
-    def test_authority(self):
-        old_len = len(self.factory.tango_db)
-
-        def create():
-            taurus.Authority()
-
-        create()
-        msg = "factory is polluted with authority "
-        # Uncomment this line whenever tango factory recycles authority
-        # self.assertEqual(len(self.factory.tango_db), old_len, msg)
+    # TODO: Uncomment this test when tango factory recycles authority
+    # def test_authority(self):
+    #     old_len = len(self.factory.tango_db)
+    # 
+    #     def create():
+    #         taurus.Authority()
+    # 
+    #     create()
+    #     msg = "factory is polluted with authority "
+    #     self.assertEqual(len(self.factory.tango_db), old_len, msg)
 
     def test_device(self):
         old_len = len(self.factory.tango_devs)
