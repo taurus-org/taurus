@@ -25,6 +25,9 @@ develop branch) won't be reflected in this file.
   API is now available in `taurus.qt.qtgui.qwt5`
 - `taurus.qt.qtcore.util.emmiter.QEmitter.doSomething` signal signature
   changes from `collections.Iterable` to `list`
+  
+### Fixed
+- bug when copying tango or evaluation attribute values (#831, #849)
 
 ### Deprecated
 - `taurus.qt.qtgui.plot`
