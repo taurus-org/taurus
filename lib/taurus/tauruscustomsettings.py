@@ -93,8 +93,8 @@ EXTRA_SCHEME_MODULES = []
 pass
 
 #: Default serialization mode **for the tango scheme**. Possible values are:
-#: 'Serial' (default), 'Concurrent', or 'TangoSerial' (deprecated)
-TANGO_SERIALIZATION_MODE = 'Serial'
+#: 'Serial', 'Concurrent', or 'TangoSerial' (default)
+TANGO_SERIALIZATION_MODE = 'TangoSerial'
 
 #: PLY (lex/yacc) optimization: 1=Active (default) , 0=disabled.
 #: Set PLY_OPTIMIZE = 0 if you are getting yacc exceptions while loading

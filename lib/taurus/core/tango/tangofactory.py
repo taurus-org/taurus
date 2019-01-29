@@ -114,7 +114,7 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
         self.scheme = 'tango'
         self._serialization_mode = TaurusSerializationMode.get(
             getattr(tauruscustomsettings, 'TANGO_SERIALIZATION_MODE',
-                    'Serial'))
+                    'TangoSerial'))
 
     def reInit(self):
         """Reinitialize the singleton"""
