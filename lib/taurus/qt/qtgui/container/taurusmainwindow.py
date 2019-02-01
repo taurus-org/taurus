@@ -641,8 +641,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             ba = settings.value("TaurusConfig") or Qt.QByteArray()
             self.applyQConfig(ba)
         except Exception as e:
-            msg = 'Problem loading configuration from "%s". Some settings may not be restored.\n Details: %s' % (
-                str(settings.fileName()), repr(e))
+            msg = ('Problem loading configuration from "{}". '
+                   + 'Some settings may not be restored.\n'
+                   + ' Reason: {}'
+                   ).format(str(settings.fileName()), e)
             self.error(msg)
             Qt.QMessageBox.warning(
                 self, 'Error Loading settings', msg, Qt.QMessageBox.Ok)
