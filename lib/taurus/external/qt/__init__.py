@@ -45,6 +45,7 @@ __QT_RES_INIT = False
 # Taurus Qt environment variables
 PYQT4 = True
 QT_API = "QT_API"
+API = "pyqt"
 
 def __getPreferedAPIs():
     return [__config.QT_AUTO_API] + \
