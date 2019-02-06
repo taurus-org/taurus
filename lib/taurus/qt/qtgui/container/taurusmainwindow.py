@@ -268,8 +268,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             self.viewToolBar.addAction(self.toggleFullScreenAction)
 
         # Perspectives Toolbar
-        if self._supportUserPerspectives:
-            self.createPerspectivesToolBar()
+        if self._showPerspectivesToolBar:
+            if self._supportUserPerspectives:
+                self.createPerspectivesToolBar()
 
         # disable the configuration action if there is nothing to configure
         self.configurationAction.setEnabled(

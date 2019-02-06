@@ -290,6 +290,10 @@ class TaurusGui(TaurusMainWindow):
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
         TaurusMainWindow._showFullScreenToolBar = \
             self.enableFullScreenToolBar
+        TaurusMainWindow._showPerspectivesToolBar = \
+            self.enablePerspectivesToolBar
+        TaurusMainWindow._supportUserPerspectives =  \
+            self.enablePerspectivesToolBar
         TaurusMainWindow.__init__(self, parent, False, True)
 
         if configRecursionDepth is not None:
