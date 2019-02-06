@@ -281,6 +281,8 @@ class TaurusGui(TaurusMainWindow):
 
     IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
 
+    enableSharedDataConnections = True
+
     # ToolBars
     enableJorgBar = True
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
@@ -316,12 +318,12 @@ class TaurusGui(TaurusMainWindow):
 
         self.__initPanelsMenu()
         self.__initQuickAccessToolBar()
-        self.__initSharedDataConnections()
-        self.__initToolsMenu()
         self.__initViewMenu()
         self.__initPanelsToolBar()
         if self.enableJorgBar:
             self.__initJorgBar()
+        if self.enableSharedDataConnections:
+            self.__initSharedDataConnections()
 
         self.loadConfiguration(confname)
 
