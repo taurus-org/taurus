@@ -281,6 +281,8 @@ class TaurusGui(TaurusMainWindow):
 
     IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
 
+    # ToolBars
+    enableJorgBar = True
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
         TaurusMainWindow.__init__(self, parent, False, True)
 
@@ -314,11 +316,12 @@ class TaurusGui(TaurusMainWindow):
 
         self.__initPanelsMenu()
         self.__initQuickAccessToolBar()
-        self.__initJorgBar()
         self.__initSharedDataConnections()
         self.__initToolsMenu()
         self.__initViewMenu()
         self.__initPanelsToolBar()
+        if self.enableJorgBar:
+            self.__initJorgBar()
 
         self.loadConfiguration(confname)
 
@@ -1072,8 +1075,10 @@ class TaurusGui(TaurusMainWindow):
         self.resetQSettings()
         self.setWindowTitle(APPNAME)
         self.setWindowIcon(customIcon)
-        self.jorgsBar.addAction(organizationIcon, ORGNAME)
-        self.jorgsBar.addAction(customIcon, APPNAME)
+
+        if self.enableJorgBar:
+            self.jorgsBar.addAction(organizationIcon, ORGNAME)
+            self.jorgsBar.addAction(customIcon, APPNAME)
 
         # get custom widget catalog entries
         # @todo: support also loading from xml
