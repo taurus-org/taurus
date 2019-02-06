@@ -285,6 +285,7 @@ class TaurusGui(TaurusMainWindow):
 
     # Menus
     enablePanelsMenu = True
+    enableToolsMenu = True
     enableViewMenu = True
     enableTaurusMenu = True
 
@@ -344,6 +345,8 @@ class TaurusGui(TaurusMainWindow):
             self.__initJorgBar()
         if self.enableSharedDataConnections:
             self.__initSharedDataConnections()
+        if self.enableToolsMenu:
+            self.__initToolsMenu()
         if self.enableViewMenu:
             self.__initViewMenu()
 
