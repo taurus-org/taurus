@@ -287,15 +287,18 @@ class TaurusGui(TaurusMainWindow):
     enablePanelsMenu = True
     enableViewMenu = True
     enableTaurusMenu = True
+
     # ToolBars
     enableJorgBar = True
     enableFullScreenToolBar = True
     enablePerspectivesToolBar = True
     enableQuickAccessToolBar = True
+
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
 
         TaurusMainWindow._showViewMenu = self.enableViewMenu
         TaurusMainWindow._showToolsMenu = self.enableToolsMenu
+        TaurusMainWindow._showTaurusMenu = self.enableTaurusMenu
         TaurusMainWindow._showFullScreenToolBar = \
             self.enableFullScreenToolBar
         TaurusMainWindow._showPerspectivesToolBar = \
