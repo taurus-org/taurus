@@ -285,7 +285,11 @@ class TaurusGui(TaurusMainWindow):
 
     # ToolBars
     enableJorgBar = True
+    enableFullScreenToolBar = True
+    enablePerspectivesToolBar = True
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
+        TaurusMainWindow._showFullScreenToolBar = \
+            self.enableFullScreenToolBar
         TaurusMainWindow.__init__(self, parent, False, True)
 
         if configRecursionDepth is not None:
