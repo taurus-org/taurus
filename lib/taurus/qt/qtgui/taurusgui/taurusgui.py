@@ -283,6 +283,8 @@ class TaurusGui(TaurusMainWindow):
 
     enableSharedDataConnections = True
 
+    # Menus
+    enablePanelsMenu = True
     # ToolBars
     enableJorgBar = True
     enableFullScreenToolBar = True
@@ -325,8 +327,9 @@ class TaurusGui(TaurusMainWindow):
         # Create a global SharedDataManager
         Qt.qApp.SDM = SharedDataManager(self)
 
-        self.__initPanelsMenu()
-        self.__initPanelsToolBar()
+        if self.enablePanelsMenu:
+            self.__initPanelsMenu()
+            self.__initPanelsToolBar()
         if self.enableQuickAccessToolBar:
             self.__initQuickAccessToolBar()
         if self.enableJorgBar:
@@ -1353,14 +1356,18 @@ class TaurusGui(TaurusMainWindow):
         for panel in self.__panels.values():
             panel.toggleViewAction().setEnabled(modifiable)
             panel.setFeatures(dwfeat)
-        for action in (self.newPanelAction, self.showAllPanelsAction,
-                       self.hideAllPanelsAction,
-                       self.addExternalApplicationAction,
-                       self.removeExternalApplicationAction,
-                       ):
-            action.setEnabled(modifiable)
 
-        self._lockviewAction.setChecked(not modifiable)
+        if self.enablePanelsMenu:
+            for action in (self.newPanelAction, self.showAllPanelsAction,
+                           self.hideAllPanelsAction,
+                           self.addExternalApplicationAction,
+                           self.removeExternalApplicationAction,
+                        ):
+                action.setEnabled(modifiable)
+
+        if self.enableViewMenu:
+            self._lockviewAction.setChecked(not modifiable)
+
         TaurusMainWindow.setModifiableByUser(self, modifiable)
 
     def onShortMessage(self, msg):
