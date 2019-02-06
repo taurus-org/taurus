@@ -287,6 +287,7 @@ class TaurusGui(TaurusMainWindow):
     enableJorgBar = True
     enableFullScreenToolBar = True
     enablePerspectivesToolBar = True
+    enableQuickAccessToolBar = True
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
         TaurusMainWindow._showFullScreenToolBar = \
             self.enableFullScreenToolBar
@@ -325,9 +326,9 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.SDM = SharedDataManager(self)
 
         self.__initPanelsMenu()
-        self.__initQuickAccessToolBar()
-        self.__initViewMenu()
         self.__initPanelsToolBar()
+        if self.enableQuickAccessToolBar:
+            self.__initQuickAccessToolBar()
         if self.enableJorgBar:
             self.__initJorgBar()
         if self.enableSharedDataConnections:
