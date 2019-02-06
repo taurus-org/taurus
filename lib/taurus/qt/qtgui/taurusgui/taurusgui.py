@@ -285,12 +285,17 @@ class TaurusGui(TaurusMainWindow):
 
     # Menus
     enablePanelsMenu = True
+    enableViewMenu = True
+    enableTaurusMenu = True
     # ToolBars
     enableJorgBar = True
     enableFullScreenToolBar = True
     enablePerspectivesToolBar = True
     enableQuickAccessToolBar = True
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
+
+        TaurusMainWindow._showViewMenu = self.enableViewMenu
+        TaurusMainWindow._showToolsMenu = self.enableToolsMenu
         TaurusMainWindow._showFullScreenToolBar = \
             self.enableFullScreenToolBar
         TaurusMainWindow._showPerspectivesToolBar = \
@@ -336,6 +341,8 @@ class TaurusGui(TaurusMainWindow):
             self.__initJorgBar()
         if self.enableSharedDataConnections:
             self.__initSharedDataConnections()
+        if self.enableViewMenu:
+            self.__initViewMenu()
 
         self.loadConfiguration(confname)
 
@@ -436,8 +443,9 @@ class TaurusGui(TaurusMainWindow):
         self.quickAccessToolBar.setObjectName("quickAccessToolbar")
         self.quickAccessToolBar.setToolButtonStyle(
             Qt.Qt.ToolButtonTextBesideIcon)
-        self.viewToolBarsMenu.addAction(
-            self.quickAccessToolBar.toggleViewAction())
+        if self.enableViewMenu:
+            self.viewToolBarsMenu.addAction(
+                self.quickAccessToolBar.toggleViewAction())
 
     def __initJorgBar(self):
         # Fancy Stuff ToolBar (aka Jorg's Bar ;) )
