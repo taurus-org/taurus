@@ -204,6 +204,15 @@ class CenteredLed(TaurusLed):
     DefaultAlignment = Qt.Qt.AlignHCenter | Qt.Qt.AlignVCenter
 
 
+class UnitLessLineEdit(TaurusValueLineEdit):
+    """A customised TaurusValueLineEdit that always shows the magnitude"""
+    def setModel(self, model):
+        if model is None or model == '':
+            return TaurusValueLineEdit.setModel(self, None)
+        return TaurusValueLineEdit.setModel(self, model + "#wvalue.magnitude")
+
+
+
 class DefaultUnitsWidget(TaurusLabel):
 
     FORMAT = "{}"
@@ -587,20 +596,20 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         modelobj = self.getModelObj()
         if modelobj is None:
             if returnAll:
-                return [TaurusValueLineEdit]
+                return [UnitLessLineEdit]
             else:
-                return TaurusValueLineEdit
+                return UnitLessLineEdit
         modelType = modelobj.getType()
         if modelobj.data_format == DataFormat._0D:
             if modelType == DataType.Boolean:
                 result = [DefaultTaurusValueCheckBox, TaurusValueLineEdit]
             else:
-                result = [TaurusValueLineEdit,
+                result = [UnitLessLineEdit,
                           TaurusValueSpinBox, TaurusWheelEdit]
         elif modelobj.data_format == DataFormat._1D:
             if modelType in (DataType.Float, DataType.Integer):
                 result = [TaurusArrayEditorButton,
-                          TaurusValuesTableButton_W, TaurusValueLineEdit]
+                          TaurusValuesTableButton_W, UnitLessLineEdit]
             else:
                 result = [TaurusValuesTableButton_W, TaurusValueLineEdit]
         elif modelobj.data_format == DataFormat._2D:
