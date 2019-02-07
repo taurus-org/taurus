@@ -281,31 +281,22 @@ class TaurusGui(TaurusMainWindow):
 
     IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
 
-    enableSharedDataConnections = True
+    ENABLED_SHARE_DATA_CONNECTIONS = True
 
     # Menus
-    enablePanelsMenu = True
-    enableToolsMenu = True
-    enableViewMenu = True
-    enableTaurusMenu = True
+    ENABLE_PANELS_MENU = True
+    ENABLE_TOOLS_MENU = True
+    ENABLE_TAURUS_MENU = True
 
     # ToolBars
-    enableJorgBar = True
-    enableFullScreenToolBar = True
-    enablePerspectivesToolBar = True
-    enableQuickAccessToolBar = True
+    ENABLE_APPLETS_TOOLBAR = True
+    ENABLE_FULLSCREEN_TOOLBAR = True
+    ENABLE_PERSPECTIVE_TOOLBAR = True
+    ENABLE_QUICK_ACCESS_TOOLBAR = True
+
+    ENABLE_USER_PERSPECTIVES = True
 
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
-
-        TaurusMainWindow._showViewMenu = self.enableViewMenu
-        TaurusMainWindow._showToolsMenu = self.enableToolsMenu
-        TaurusMainWindow._showTaurusMenu = self.enableTaurusMenu
-        TaurusMainWindow._showFullScreenToolBar = \
-            self.enableFullScreenToolBar
-        TaurusMainWindow._showPerspectivesToolBar = \
-            self.enablePerspectivesToolBar
-        TaurusMainWindow._supportUserPerspectives =  \
-            self.enablePerspectivesToolBar
         TaurusMainWindow.__init__(self, parent, False, True)
 
         if configRecursionDepth is not None:
@@ -336,19 +327,19 @@ class TaurusGui(TaurusMainWindow):
         # Create a global SharedDataManager
         Qt.qApp.SDM = SharedDataManager(self)
 
-        if self.enablePanelsMenu:
+        if self.ENABLE_PANELS_MENU:
             self.__initPanelsMenu()
             self.__initPanelsToolBar()
-        if self.enableQuickAccessToolBar:
+        if self.ENABLE_QUICK_ACCESS_TOOLBAR:
             self.__initQuickAccessToolBar()
-        if self.enableJorgBar:
+        if self.ENABLE_APPLETS_TOOLBAR:
             self.__initJorgBar()
-        if self.enableSharedDataConnections:
+        if self.ENABLED_SHARE_DATA_CONNECTIONS:
             self.__initSharedDataConnections()
-        if self.enableToolsMenu:
+        if self.ENABLE_TOOLS_MENU:
             self.__initToolsMenu()
-        if self.enableViewMenu:
-            self.__initViewMenu()
+
+        self.__initViewMenu()
 
         self.loadConfiguration(confname)
 
@@ -449,9 +440,8 @@ class TaurusGui(TaurusMainWindow):
         self.quickAccessToolBar.setObjectName("quickAccessToolbar")
         self.quickAccessToolBar.setToolButtonStyle(
             Qt.Qt.ToolButtonTextBesideIcon)
-        if self.enableViewMenu:
-            self.viewToolBarsMenu.addAction(
-                self.quickAccessToolBar.toggleViewAction())
+        self.viewToolBarsMenu.addAction(
+            self.quickAccessToolBar.toggleViewAction())
 
     def __initJorgBar(self):
         # Fancy Stuff ToolBar (aka Jorg's Bar ;) )
@@ -1104,7 +1094,7 @@ class TaurusGui(TaurusMainWindow):
         self.setWindowTitle(APPNAME)
         self.setWindowIcon(customIcon)
 
-        if self.enableJorgBar:
+        if self.ENABLE_APPLETS_TOOLBAR:
             self.jorgsBar.addAction(organizationIcon, ORGNAME)
             self.jorgsBar.addAction(customIcon, APPNAME)
 
@@ -1371,7 +1361,7 @@ class TaurusGui(TaurusMainWindow):
             panel.toggleViewAction().setEnabled(modifiable)
             panel.setFeatures(dwfeat)
 
-        if self.enablePanelsMenu:
+        if self.ENABLE_PANELS_MENU:
             for action in (self.newPanelAction, self.showAllPanelsAction,
                            self.hideAllPanelsAction,
                            self.addExternalApplicationAction,
@@ -1379,8 +1369,7 @@ class TaurusGui(TaurusMainWindow):
                         ):
                 action.setEnabled(modifiable)
 
-        if self.enableViewMenu:
-            self._lockviewAction.setChecked(not modifiable)
+        self._lockviewAction.setChecked(not modifiable)
 
         TaurusMainWindow.setModifiableByUser(self, modifiable)
 
