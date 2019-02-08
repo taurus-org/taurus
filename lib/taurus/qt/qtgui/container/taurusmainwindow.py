@@ -256,7 +256,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.__createActions()
 
         # logger dock widget
-        if self._showLogger:
+        if self.ENABLE_LOGGER:
             self.addLoggerWidget()
 
         # Create Menus
@@ -264,9 +264,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             self.createFileMenu()
         if self._showViewMenu:  # View menu
             self.createViewMenu()
-        if self._showTaurusMenu:  # Taurus Menu
+        if self.ENABLE_TAURUS_MENU:  # Taurus Menu
             self.createTaurusMenu()
-        if self._showToolsMenu:  # Tools Menu
+        if self.ENABLE_TOOLS_MENU:  # Tools Menu
             self.createToolsMenu()
         if self._showHelpMenu:  # Help Menu
             self.createHelpMenu()
@@ -279,7 +279,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 
         # Perspectives Toolbar
         if self.ENABLE_PERSPECTIVE_TOOLBAR:
-            if self._supportUserPerspectives:
+            if self.ENABLE_USER_PERSPECTIVES:
                 self.createPerspectivesToolBar()
 
         # disable the configuration action if there is nothing to configure
