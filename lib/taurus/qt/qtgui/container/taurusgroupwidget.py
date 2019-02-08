@@ -25,13 +25,16 @@
 
 """This module provides a taurus group widget"""
 
+from __future__ import absolute_import
+
+from taurus.external.qt import Qt
+from .qcontainer import QGroupWidget
+from .taurusbasecontainer import TaurusBaseContainer
+
+
 __all__ = ["TaurusGroupWidget"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
-from qcontainer import QGroupWidget
-from taurusbasecontainer import TaurusBaseContainer
 
 
 class TaurusGroupWidget(QGroupWidget, TaurusBaseContainer):

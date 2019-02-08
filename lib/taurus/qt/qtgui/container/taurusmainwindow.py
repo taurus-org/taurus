@@ -27,21 +27,30 @@
 mainwindow.py: a main window implementation with many added features by default
 """
 
-__all__ = ["TaurusMainWindow"]
+from __future__ import absolute_import
 
-__docformat__ = 'restructuredtext'
+from builtins import str
 
 import os
 import sys
 
+from functools import partial
+
+from future.utils import string_types
+
 from taurus import tauruscustomsettings
 from taurus.core.util import deprecation_decorator
-from taurus.external.qt import Qt
-from taurusbasecontainer import TaurusBaseContainer
+from taurus.external.qt import Qt, compat
+from .taurusbasecontainer import TaurusBaseContainer
 
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.dialog import protectTaurusMessageBox
+
+
+__all__ = ["TaurusMainWindow"]
+
+__docformat__ = 'restructuredtext'
 
 
 class CommandArgsLineEdit(Qt.QLineEdit):
@@ -53,7 +62,7 @@ class CommandArgsLineEdit(Qt.QLineEdit):
         self.textEdited.connect(self.setCmdText)
 
     def setCmdText(self, cmdargs):
-        if not isinstance(cmdargs, (basestring, Qt.QString)):
+        if not isinstance(cmdargs, string_types):
             cmdargs = " ".join(cmdargs)
         self.setText(cmdargs)
         self._extapp.setCmdArgs(self.getCmdArgs(), False)
@@ -90,7 +99,7 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
             self.externalAppsPage.setWidgetResizable(True)
             self._tabwidget.addTab(self.externalAppsPage,
                                    "External Application Paths")
-        label = "Command line for %s" % unicode(extapp.text())
+        label = "Command line for %s" % str(extapp.text())
         editWidget = CommandArgsLineEdit(extapp, " ".join(extapp.cmdArgs()))
         #editWidget = Qt.QLineEdit(" ".join(extapp.cmdArgs()))
         self.externalAppsPage.widget().layout().addRow(label, editWidget)
@@ -110,8 +119,7 @@ class ConfigurationDialog(Qt.QDialog, BaseConfigurableClass):
             if widget is not None:
                 text = str(widget.text())  # command1
                 if isinstance(widget, Qt.QLabel):
-                    dialog_text = "Command line for %s" % unicode(
-                        extapp.text())
+                    dialog_text = "Command line for %s" % str(extapp.text())
                     if text == dialog_text:
                         layout.removeWidget(widget)
                         widget.close()
@@ -176,7 +184,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 
     '''
     modelChanged = Qt.pyqtSignal('const QString &')
-    perspectiveChanged = Qt.pyqtSignal(str)
+    perspectiveChanged = Qt.pyqtSignal('QString')
 
     # customization options:
     # blinking semi-period in ms. Set to None for not showing the Heart beat
@@ -349,13 +357,23 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             return None
         self.perspectivesMenu.clear()
         for pname in self.getPerspectivesList():
-            self.perspectivesMenu.addAction(
+            a = self.perspectivesMenu.addAction(
                 pname, self.__onPerspectiveSelected)
+            # -------------------------------------------------------
+            # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+            # TODO: make better solution for this
+            a.perspective_name = pname  # <-- ugly monkey-patch!
+            # -------------------------------------------------------
         return self.perspectivesMenu
 
     def __onPerspectiveSelected(self):
         '''slot to be called by the actions in the perspectivesMenu'''
-        pname = self.sender().text()
+        # -------------------------------------------------------
+        # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+        # TODO: make better solution for this
+        # pname = self.sender().text()  # <-- this fails because of added "&"
+        pname = self.sender().perspective_name  # <-- this was monkey-patched
+        # -------------------------------------------------------
         self.loadPerspective(name=pname)
 
     def splashScreen(self):
@@ -384,39 +402,45 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''initializes the application-wide actions'''
         self.quitApplicationAction = Qt.QAction(
             Qt.QIcon.fromTheme("process-stop"), 'Exit Application', self)
-        self.quitApplicationAction.triggered[()].connect(self.close)
+        self.quitApplicationAction.triggered.connect(self.close)
         self.changeTangoHostAction = Qt.QAction(Qt.QIcon.fromTheme(
             "network-server"), 'Change Tango Host ...', self)
-        self.changeTangoHostAction.triggered[()].connect(self._onChangeTangoHostAction)
+        self.changeTangoHostAction.triggered.connect(self._onChangeTangoHostAction)
         # make this action invisible since it is deprecated
         self.changeTangoHostAction.setVisible(False)
 
         self.loadPerspectiveAction = Qt.QAction(Qt.QIcon.fromTheme(
             "document-open"), 'Load Perspective ...', self)
-        self.loadPerspectiveAction.triggered[()].connect(self.loadPerspective)
+        self.loadPerspectiveAction.triggered.connect(
+            partial(self.loadPerspective, name=None, settings=None))
 
         self.savePerspectiveAction = Qt.QAction(Qt.QIcon.fromTheme(
             "document-save"), 'Save Perspective ...', self)
-        self.savePerspectiveAction.triggered[()].connect(self.savePerspective)
+        self.savePerspectiveAction.triggered.connect(
+            partial(self.savePerspective, name=None))
 
         self.deletePerspectiveAction = Qt.QAction(
             Qt.QIcon("actions:edit-delete.svg"), 'Delete Perspective ...', self)
-        self.deletePerspectiveAction.triggered[()].connect(self.removePerspective)
+        self.deletePerspectiveAction.triggered.connect(
+            partial(self.removePerspective, name=None, settings=None))
 
         self.exportSettingsFileAction = Qt.QAction(
             Qt.QIcon.fromTheme("document-save"), 'Export Settings ...', self)
-        self.exportSettingsFileAction.triggered[()].connect(self.exportSettingsFile)
+        self.exportSettingsFileAction.triggered.connect(
+            partial(self.exportSettingsFile, fname=None))
 
         self.importSettingsFileAction = Qt.QAction(
             Qt.QIcon.fromTheme("document-open"), 'Import Settings ...', self)
-        self.importSettingsFileAction.triggered[()].connect(self.importSettingsFile)
+        self.importSettingsFileAction.triggered.connect(
+            partial(self.importSettingsFile, fname=None))
 
         #self.resetSettingsAction = Qt.QAction(Qt.QIcon.fromTheme("edit-undo"),'Reset Settings', self)
         #self.connect(self.resetSettingsAction, Qt.SIGNAL("triggered()"), self.resetSettings)
 
         self.configurationAction = Qt.QAction(Qt.QIcon.fromTheme(
             "preferences-system"), 'Configurations ...', self)
-        self.configurationAction.triggered[()].connect(self.configurationDialog.show)
+        self.configurationAction.triggered.connect(
+            self.configurationDialog.show)
 
         #self.rpdb2Action = Qt.QAction("Spawn rpdb2", self)
         self.spawnRpdb2Shortcut = Qt.QShortcut(self)
@@ -610,25 +634,19 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         if group is not None:
             settings.beginGroup(group)
         if not ignoreGeometry:
-            # With API2, from_qvariant is returning None instead
-            ba = Qt.from_qvariant(settings.value(
-                "MainWindow/Geometry"), 'toByteArray') or Qt.QByteArray()
-            # of an empty QByTeArray
-            # and this caused an exception later on. Hence the "or"
+            ba = settings.value("MainWindow/Geometry") or Qt.QByteArray()
             self.restoreGeometry(ba)
         # restore the Taurus config
         try:
-            ba = Qt.from_qvariant(settings.value(
-                "TaurusConfig"), 'toByteArray') or Qt.QByteArray()
+            ba = settings.value("TaurusConfig") or Qt.QByteArray()
             self.applyQConfig(ba)
-        except Exception, e:
+        except Exception as e:
             msg = 'Problem loading configuration from "%s". Some settings may not be restored.\n Details: %s' % (
-                unicode(settings.fileName()), repr(e))
+                str(settings.fileName()), repr(e))
             self.error(msg)
             Qt.QMessageBox.warning(
                 self, 'Error Loading settings', msg, Qt.QMessageBox.Ok)
-        ba = Qt.from_qvariant(settings.value(
-            "MainWindow/State"), 'toByteArray') or Qt.QByteArray()
+        ba = settings.value("MainWindow/State") or Qt.QByteArray()
         self.restoreState(ba)
         # hide all dockwidgets (so that they are shown only if they were
         # present in the settings)
@@ -637,8 +655,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         for d in dockwidgets:
             r = self.restoreDockWidget(d)
             d.hide()
-        ba = Qt.from_qvariant(settings.value(
-            "MainWindow/State"), 'toByteArray') or Qt.QByteArray()
+        ba = settings.value("MainWindow/State") or Qt.QByteArray()
         self.restoreState(ba)
 
         if group is not None:
@@ -659,16 +676,17 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         if group is not None:
             settings.beginGroup(group)
         # main window geometry
-        settings.setValue("MainWindow/State", Qt.QVariant(self.saveState()))
-        settings.setValue("MainWindow/Geometry",
-                          Qt.QVariant(self.saveGeometry()))
+        settings.setValue("MainWindow/State", self.saveState())
+        settings.setValue("MainWindow/Geometry", self.saveGeometry())
 
         # store the config dict
-        settings.setValue("TaurusConfig", Qt.QVariant(self.createQConfig()))
+        settings.setValue("TaurusConfig", self.createQConfig())
         if group is not None:
             settings.endGroup()
         self.info('MainWindow settings saved in "%s"' % settings.fileName())
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def savePerspective(self, name=None):
         '''Stores current state of the application as a perspective with the given name
 
@@ -676,18 +694,26 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''
         perspectives = self.getPerspectivesList()
         if name is None:
-            name, ok = Qt.QInputDialog.getItem(self, "Save Perspective", "Store current settings as the following perspective:",
-                                               perspectives, 0, True)
+            name, ok = Qt.QInputDialog.getItem(
+                self, "Save Perspective",
+                "Store current settings as the following perspective:",
+                perspectives, 0, True
+            )
             if not ok:
                 return
         if name in perspectives:
-            ans = Qt.QMessageBox.question(self, "Overwrite perspective?", "overwrite existing perspective %s?" % unicode(name),
-                                          Qt.QMessageBox.Yes, Qt.QMessageBox.No)
+            ans = Qt.QMessageBox.question(
+                self, "Overwrite perspective?",
+                "overwrite existing perspective %s?" % str(name),
+                Qt.QMessageBox.Yes, Qt.QMessageBox.No
+            )
             if ans != Qt.QMessageBox.Yes:
                 return
         self.saveSettings(group="Perspectives/%s" % name)
         self.updatePerspectivesMenu()
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def loadPerspective(self, name=None, settings=None):
         '''Loads the settings saved for the given perspective.
         It emits a 'perspectiveChanged' signal with name as its parameter
@@ -726,6 +752,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         settings.endGroup()
         return names
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def removePerspective(self, name=None, settings=None):
         '''removes the given perspective from the settings
 
@@ -753,24 +781,30 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         settings.endGroup()
         self.updatePerspectivesMenu()
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def exportSettingsFile(self, fname=None):
         '''copies the current settings file into the given file name.
 
         :param fname: (str) name of output file. If None given, a file dialog will be shown.
         '''
         if fname is None:
-            fname = unicode(Qt.QFileDialog.getSaveFileName(self, 'Choose file where the current settings should be saved',
-                                                           '', "Ini files (*.ini);;All files (*)"))
+            fname, _ = compat.getSaveFileName(
+                self, 'Choose file where the current settings should be saved',
+                '', "Ini files (*.ini);;All files (*)"
+            )
             if not fname:
                 return
         self.saveSettings()
         ok = Qt.QFile.copy(self.getQSettings().fileName(), fname)
         if ok:
-            self.info('MainWindow settings saved in "%s"' % unicode(fname))
+            self.info('MainWindow settings saved in "%s"' % str(fname))
         else:
-            msg = 'Settings could not be exported to %s' % unicode(fname)
+            msg = 'Settings could not be exported to %s' % str(fname)
             Qt.QMessageBox.warning(self, 'Export error', msg)
 
+    @Qt.pyqtSlot()
+    @Qt.pyqtSlot('QString')
     def importSettingsFile(self, fname=None):
         '''
         loads settings (including importing all perspectives) from a given ini
@@ -779,8 +813,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         :param fname: (str) name of ini file. If None given, a file dialog will be shown.
         '''
         if fname is None:
-            fname = unicode(Qt.QFileDialog.getOpenFileName(self, 'Select a ini-format settings file',
-                                                           '', "Ini files (*.ini);;All files (*)"))
+            fname, _ = compat.getOpenFileName(
+                self, 'Select a ini-format settings file',
+                '', "Ini files (*.ini);;All files (*)"
+            )
             if not fname:
                 return
         s = Qt.QSettings(fname, Qt.QSettings.IniFormat)
@@ -935,8 +971,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.setHelpManualURI(uri)
 
     def showHelpAbout(self):
-        appname = unicode(Qt.qApp.applicationName())
-        appversion = unicode(Qt.qApp.applicationVersion())
+        appname = str(Qt.qApp.applicationName())
+        appversion = str(Qt.qApp.applicationVersion())
         from taurus.core import release
         abouttext = "%s %s\n\nUsing %s %s" % (
             appname, appversion, release.name, release.version)
@@ -961,7 +997,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         if key is None:
             from taurus.core.util.user import getSystemUserName
             username = getSystemUserName()
-            appname = unicode(Qt.QApplication.applicationName())
+            appname = str(Qt.QApplication.applicationName())
             key = "__socket_%s-%s__" % (username, appname)
         from taurus.external.qt import QtNetwork
         socket = QtNetwork.QLocalSocket(self)

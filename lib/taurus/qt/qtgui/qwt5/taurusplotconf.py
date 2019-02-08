@@ -26,8 +26,8 @@
 """
 TaurusPlotConf: widget for configurating the contents and appearance of a TaurusPlot
 """
-
-__all__ = ['TaurusPlotConfDlg']
+from __future__ import print_function
+from __future__ import absolute_import
 
 raise NotImplementedError('Under Construction!')
 
@@ -35,11 +35,14 @@ import taurus.core
 from taurus.external.qt import Qt, Qwt5
 from taurus.qt.qtgui.util.ui import UILoadable
 
-import curveprops
+from . import curveprops
 try:
     import taurus.qt.qtgui.extra_nexus as extra_nexus
 except:
     extra_nexus = None
+
+
+__all__ = ['TaurusPlotConfDlg']
 
 
 @UILoadable(with_ui='ui')
@@ -121,23 +124,23 @@ class TaurusPlotConfDlg(Qt.QWidget):
         return new
 
     def onModelsAdded(self, models):
-        print models
+        print(models)
         nmodels = len(models)
         rowcount = self.model.rowCount()
         self.model.insertRows(rowcount, nmodels)
         for i, m in enumerate(models):
             self.model.setData(self.model.index(rowcount + i, curveprops.Y),
-                               value=Qt.QVariant(m))
+                               value=m)
 
     def onApply(self):
-        print "APPLY!!! (todo)"
+        print("APPLY!!! (todo)")
         curveConfs = self.model.dumpData()
 
         for c in curveConfs:
-            print repr(c)
+            print(repr(c))
 
     def onReload(self):
-        print "RELOAD!!! (todo)"
+        print("RELOAD!!! (todo)")
 
 
 class demo(Qt.QDialog):
@@ -200,7 +203,7 @@ class demo(Qt.QDialog):
 
     def onData(self):
         cmds = self.model.dumpData()
-        print self.model.curves
+        print(self.model.curves)
 
 
 def main1():

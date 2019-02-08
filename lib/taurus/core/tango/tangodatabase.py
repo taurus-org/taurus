@@ -25,15 +25,16 @@
 
 """This module contains all taurus tango authority"""
 
-__all__ = ["TangoInfo", "TangoAttrInfo", "TangoDevInfo", "TangoServInfo",
-           "TangoDevClassInfo", "TangoDatabaseCache", "TangoDatabase",
-           "TangoAuthority"]
+from __future__ import print_function
 
-__docformat__ = "restructuredtext"
+from builtins import str
+from builtins import map
+from builtins import range
+from builtins import object
+import collections
 
 import os
 import socket
-import operator
 import weakref
 
 from PyTango import (Database, DeviceProxy, DevFailed, ApiUtil)
@@ -43,6 +44,12 @@ from taurus.core.taurusauthority import TaurusAuthority
 from taurus.core.util.containers import CaselessDict
 from taurus.core.util.log import taurus4_deprecation
 
+
+__all__ = ["TangoInfo", "TangoAttrInfo", "TangoDevInfo", "TangoServInfo",
+           "TangoDevClassInfo", "TangoDatabaseCache", "TangoDatabase",
+           "TangoAuthority"]
+
+__docformat__ = "restructuredtext"
 
 InvalidAlias = "nada"
 
@@ -121,8 +128,9 @@ class TangoDevInfo(TangoInfo):
         self._alive = None
         self._state = None
         self._host = host
-        self._domain, self._family, self._member = map(str.upper,
-                                                       name.split("/", 2))
+        name = str(name) # python2 compatibility
+        self._domain, self._family, self._member = list(map(str.upper,
+                                                       name.split("/", 2)))
         self._attributes = None
         self._alivePending = False
 
@@ -243,8 +251,7 @@ class TangoServInfo(TangoInfo):
 
     def getDeviceNames(self):
         if not hasattr(self, "_device_name_list"):
-            self._device_name_list = sorted(map(TangoDevInfo.name,
-                                                self._devices.values()))
+            self._device_name_list = sorted(map(TangoDevInfo.name, self._devices.values()))
         return self._device_name_list
 
     def getClassNames(self):
@@ -289,8 +296,8 @@ class TangoServInfo(TangoInfo):
                     if not alive:
                         break
                 self._alive = alive
-            except Exception, e:
-                print "except", e
+            except Exception as e:
+                print("except", e)
                 self._alive = False
             self._alivePending = False
         return self._alive
@@ -326,7 +333,7 @@ class TangoDatabaseCache(object):
             r = db.command_inout("DbMySqlSelect", query)
             row_nb, column_nb = r[0][-2:]
             data = r[1]
-            assert row_nb == len(data) / column_nb
+            assert row_nb == len(data) // column_nb
         else:
             # fallback using tango commands (slow but works with sqlite DB)
             # see http://sf.net/p/tauruslib/tickets/148/
@@ -348,7 +355,7 @@ class TangoDatabaseCache(object):
         CD = CaselessDict
         dev_dict, serv_dict, klass_dict, alias_dict = CD(), {}, {}, CD()
 
-        for i in xrange(0, len(data), column_nb):
+        for i in range(0, len(data), column_nb):
             name, alias, exported, host, server, klass = data[i:i + column_nb]
             if name.count("/") != 2:
                 continue  # invalid/corrupted entry: just ignore it
@@ -473,13 +480,13 @@ class TangoDatabaseCache(object):
         return self._klasses
 
     def getDeviceDomainNames(self):
-        return self._device_tree.keys()
+        return list(self._device_tree.keys())
 
     def getDeviceFamilyNames(self, domain):
         families = self._device_tree.get(domain)
         if families is None:
             return []
-        return families.keys()
+        return list(families.keys())
 
     def getDeviceMemberNames(self, domain, family):
         families = self._device_tree.get(domain)
@@ -488,7 +495,7 @@ class TangoDatabaseCache(object):
         members = families.get(family)
         if members is None:
             return []
-        return members.keys()
+        return list(members.keys())
 
     def getDomainDevices(self, domain):
         return self.deviceTree().getDomainDevices(domain)
@@ -510,14 +517,14 @@ class TangoDevTree(CaselessDict):
 
     def _update(self, other):
         try:
-            if operator.isMappingType(other):
-                other = other.values()
+            if isinstance(other, collections.Mapping):
+                other = list(other.values())
             for dev in other:
                 try:
                     self.addDevice(dev)
-                except Exception, e:
-                    print e
-        except Exception, e:
+                except Exception as e:
+                    print(e)
+        except Exception as e:
             raise Exception(
                 "Must give dict<obj, TangoDevInfo> or sequence<TangoDevInfo>")
 
@@ -536,7 +543,7 @@ class TangoDevTree(CaselessDict):
     def getDomainDevices(self, domain):
         """Returns all devices under the given domain. Returns empty list if
         the domain doesn't exist or doesn't contain any devices"""
-        return self._devices.get(domain, {}).values()
+        return list(self._devices.get(domain, {}).values())
 
     def getFamilyDevices(self, domain, family):
         """Returns all devices under the given domain/family. Returns empty list if
@@ -544,7 +551,7 @@ class TangoDevTree(CaselessDict):
         families = self.get(domain)
         if families is None:
             return
-        return families.get(family, {}).values()
+        return list(families.get(family, {}).values())
 
 
 class TangoServerTree(dict):
@@ -556,14 +563,14 @@ class TangoServerTree(dict):
 
     def _update(self, other):
         try:
-            if operator.isMappingType(other):
-                other = other.values()
+            if isinstance(other, collections.Mapping):
+                other = list(other.values())
             for serv in other:
                 try:
                     self.addServer(serv)
-                except Exception, e:
-                    print e
-        except Exception, e:
+                except Exception as e:
+                    print(e)
+        except Exception as e:
             raise Exception(
                 "Must give dict<obj, TangoServInfo> or sequence<TangoServInfo>")
 
@@ -577,7 +584,7 @@ class TangoServerTree(dict):
     def getServerNameInstances(self, serverName):
         """Returns all servers under the given serverName. Returns empty list if
         the server name doesn't exist or doesn't contain any instances"""
-        return self.get(serverName, {}).values()
+        return list(self.get(serverName, {}).values())
 
 
 def get_home():
@@ -648,7 +655,7 @@ def get_env_var(env_var_name):
             # illegal line!
             continue
 
-        key, val = map(str.strip, tup)
+        key, val = list(map(str.strip, tup))
         if key == env_var_name:
             return val
 
@@ -662,11 +669,11 @@ class TangoAuthority(TaurusAuthority):
     _description = 'A Tango Authority'
 
     def __init__(self, host=None, port=None, parent=None):
-        pars = ()
         if host is None or port is None:
             try:
-                host, port = TangoAuthority.get_default_tango_host().rsplit(':', 1)
-            except Exception, e:
+                _hp = TangoAuthority.get_default_tango_host()
+                host, port = _hp.rsplit(':', 1)
+            except Exception:
                 from taurus import warning
                 warning("Error getting default Tango host")
 
@@ -700,7 +707,7 @@ class TangoAuthority(TaurusAuthority):
         serv_name = self.command_inout("DbGetDeviceInfo", dev_name)[1][3]
         devs = self.get_device_class_list(serv_name)
         dev_name_lower = dev_name.lower()
-        for i in xrange(len(devs) / 2):
+        for i in range(len(devs) // 2):
             idx = i * 2
             if devs[idx].lower() == dev_name_lower:
                 return devs[idx + 1]

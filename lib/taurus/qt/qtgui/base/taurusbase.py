@@ -27,14 +27,11 @@
 """This module provides the set of base classes from which the Qt taurus widgets
 should inherit to be considered valid taurus widgets."""
 
-__all__ = ["TaurusBaseComponent", "TaurusBaseWidget",
-           "TaurusBaseWritableWidget", "defaultFormatter"]
-
-__docformat__ = 'restructuredtext'
-
 import sys
 import threading
 from types import MethodType
+from future.builtins import str
+from future.utils import string_types
 
 from taurus.external.qt import Qt
 from enum import Enum
@@ -45,18 +42,26 @@ from taurus.core.util.timer import Timer
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusconfiguration import (TaurusConfiguration,
-                                             TaurusConfigurationProxy)
+from taurus.core.taurusconfiguration import TaurusConfigurationProxy
 from taurus.core.tauruslistener import TaurusListener, TaurusExceptionListener
 from taurus.core.taurusoperation import WriteAttrOperation
 from taurus.core.util.eventfilters import filterEvent
 from taurus.core.util.log import deprecation_decorator
 from taurus.qt.qtcore.util.signal import baseSignal
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
-from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_DEV_MIME_TYPE
+from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.util import ActionFactory
 
 from taurus.core.units import Quantity
+
+
+__all__ = ["TaurusBaseComponent", "TaurusBaseWidget",
+           "TaurusBaseWritableWidget", "defaultFormatter"]
+
+__docformat__ = 'restructuredtext'
+
 
 DefaultNoneValue = "-----"
 
@@ -105,7 +110,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     taurusEvent = baseSignal('taurusEvent', object, object, object)
 
-    def __init__(self, name, parent=None, designMode=False):
+    def __init__(self, name='', parent=None, designMode=False):
         """Initialization of TaurusBaseComponent"""
         self.modelObj = None
         self.modelName = ''
@@ -739,7 +744,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         if self._format is None:
             try:
                 self._updateFormat(type(v))
-            except Exception, e:
+            except Exception as e:
                 self.warning(('Cannot update format. Reverting to default.' +
                               ' Reason: %r'), e)
                 self.setFormat(defaultFormatter)
@@ -762,7 +767,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param kwargs: keyword arguments that will be passed to
                        :attribute:`FORMAT` if it is a callable
         """
-        if not isinstance(self.FORMAT, basestring):
+        if not isinstance(self.FORMAT, string_types):
             # unbound method to callable
             if isinstance(self.FORMAT, MethodType):
                 self.FORMAT = self.FORMAT.__func__
@@ -781,7 +786,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
                        "full.module.callable" format)
         """
         # Check if the format is a callable string representation
-        if isinstance(format, basestring):
+        if isinstance(format, string_types):
             try:
                 moduleName, formatterName = format.rsplit('.', 1)
                 __import__(moduleName)
@@ -798,7 +803,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :return: (str) a string of the current format. It could be a python
                  format string or a callable string representation.
         """
-        if isinstance(self.FORMAT, basestring):
+        if isinstance(self.FORMAT, string_types):
             formatter = self.FORMAT
         else:
             formatter = '{0}.{1}'.format(self.FORMAT.__module__,
@@ -1301,7 +1306,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
 
     _dragEnabled = False
 
-    def __init__(self, name, parent=None, designMode=False):
+    def __init__(self, name='', parent=None, designMode=False):
         self._disconnect_on_hide = False
         self._supportedMimeTypes = None
         self._autoTooltip = True
@@ -1722,7 +1727,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         formats = mimeData.formats()
         for mtype in supported:
             if mtype in formats:
-                d = str(mimeData.data(mtype))
+                d = bytes(mimeData.data(mtype))
                 if d is None:
                     return None
                 try:
@@ -1743,7 +1748,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         :return: (QMimeData)
         '''
         mimeData = Qt.QMimeData()
-        modelname = self.getModelName()
+        modelname = str(self.getModelName()).encode(encoding='utf8')
         mimeData.setData(TAURUS_MODEL_MIME_TYPE, modelname)
         try:
             modelclass = self.getModelClass()
@@ -1905,7 +1910,7 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
 
     applied = baseSignal('applied')
 
-    def __init__(self, name, taurus_parent=None, designMode=False):
+    def __init__(self, name='', taurus_parent=None, designMode=False):
         self.call__init__(TaurusBaseWidget, name,
                           parent=taurus_parent, designMode=designMode)
 
@@ -2146,31 +2151,6 @@ class TaurusBaseWritableWidget(TaurusBaseWidget):
                 toolTip += '<hr/>Displayed value (%s) differs from applied value (%s)' % (
                     v_str, model_v_str)
             self.setToolTip(toolTip)
-
-    def _updateValidator(self, evt_value):  # TODO: Remove this method
-        # re-set the validator ranges if applicable
-        if evt_value is None:
-            return
-        v = self.validator()
-        if isinstance(v, Qt.QIntValidator):
-            bottom = evt_value.min_value
-            top = evt_value.max_value
-            bottom = int(
-                bottom) if bottom != TaurusConfiguration.no_min_value else -sys.maxint
-            top = int(
-                top) if top != TaurusConfiguration.no_max_value else sys.maxint
-            v.setRange(bottom, top)
-            self.debug("Validator range set to %i-%i" % (bottom, top))
-        elif isinstance(v, Qt.QDoubleValidator):
-            bottom = evt_value.min_value
-            top = evt_value.max_value
-            bottom = float(
-                bottom) if bottom != TaurusConfiguration.no_min_value else -float("inf")
-            top = float(
-                top) if top != TaurusConfiguration.no_max_value else float("inf")
-            v.setBottom(bottom)
-            v.setTop(top)
-            self.debug("Validator range set to %f-%f" % (bottom, top))
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

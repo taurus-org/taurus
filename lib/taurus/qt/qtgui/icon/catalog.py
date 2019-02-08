@@ -25,6 +25,10 @@
 This module provides an icon catalog widget
 """
 
+from __future__ import print_function
+
+from builtins import str
+
 import os
 import hashlib
 from taurus.qt.qtgui.application import TaurusApplication
@@ -57,7 +61,7 @@ class QIconCatalogPage(GraphicalChoiceWidget):
 
         for path in Qt.QDir.searchPaths(prefix):
             if not os.path.exists(path):
-                print " %s not found. Skipping.!" % path
+                print(" %s not found. Skipping.!" % path)
                 continue
 
             for fname in os.listdir(path):
@@ -108,7 +112,14 @@ class QIconCatalogPage(GraphicalChoiceWidget):
         """Reimplemented :class:`GraphicalChoiceWidget`
         """
         # From all alternatives, extract the one with the shortest name
-        chosen = self.sender().text()
+        # -------------------------------------------------------
+        # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+        # TODO: make better solution for this
+        # self._chosen = str(self.sender().text())
+        # it fails due to added "&"
+        chosen = self.sender()._id  # <-- this was monkey-patched
+        # -------------------------------------------------------
+
         alts = chosen.splitlines()
         alts = sorted(alts, key=lambda s: len(s.split()[0]))
         name, absname = alts[0].split()
@@ -136,7 +147,7 @@ class QIconCatalog(Qt.QTabWidget):
     application.
     """
 
-    iconSelected = Qt.pyqtSignal(str)
+    iconSelected = Qt.pyqtSignal('QString')
 
     def __init__(self, parent=None):
         Qt.QTabWidget.__init__(self)

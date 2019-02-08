@@ -25,10 +25,11 @@
 #############################################################################
 
 """This module provides a taurus QPushButton based widgets"""
+from __future__ import print_function
 
-__all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
-
-__docformat__ = 'restructuredtext'
+from builtins import map
+from builtins import str
+from future.utils import string_types
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
@@ -36,6 +37,11 @@ from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.util import eventfilters
 from taurus.qt.qtgui.dialog import ProtectTaurusMessageBox
+
+
+__all__ = ["TaurusLauncherButton", "TaurusCommandButton", "TaurusLockButton"]
+
+__docformat__ = 'restructuredtext'
 
 
 class _ButtonDialog(Qt.QDialog):
@@ -174,7 +180,7 @@ class TaurusLauncherButton(Qt.QPushButton, TaurusBaseWidget):
         if self._dialog.previousWidgetConfig is not None:
             try:
                 widget.applyConfig(self._dialog.previousWidgetConfig)
-            except Exception, e:
+            except Exception as e:
                 self.warning(
                     'Cannot apply previous configuration to widget. Reason: %s', repr(e))
 
@@ -342,7 +348,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
                 modelobj.set_timeout_millis(int(self._timeout * 1000))
             result = modelobj.command_inout(self._command, self._castParameters(
                 self._parameters, self._command, modelobj))
-        except Exception, e:
+        except Exception as e:
             self.error('Unexpected error when executing command %s of %s: %s' % (
                 self._command, modelobj.getNormalName(), str(e)))
             raise
@@ -376,7 +382,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
 
         try:
             param_type = dev.command_query(command).in_type
-        except Exception, e:
+        except Exception as e:
             self.warning(
                 'Cannot get parameters info for command %s:%s' % (command, str(e)))
             return parameters
@@ -400,7 +406,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
             else:
                 return parameters
         else:
-            return map(cast_type, parameters)
+            return list(map(cast_type, parameters))
 
     def setCommand(self, commandName):
         '''sets the command to be executed when the button is clicked
@@ -439,7 +445,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
                            quotes will be removed and the quoted text will not
                            be splitted.
         '''
-        if isinstance(parameters, (basestring, Qt.QString)):
+        if isinstance(parameters, string_types):
             parameters = str(parameters).strip()
             if parameters[0] in ('"', "'") and parameters[0] == parameters[-1]:
                 parameters = [parameters[1:-1]]
@@ -632,7 +638,7 @@ def lockButtonMain():
     if len(args) == 0:
         w = demo()
     else:
-        models = map(str.lower, args)
+        models = list(map(str.lower, args))
 
         w = Qt.QWidget()
         layout = Qt.QGridLayout()
@@ -661,7 +667,7 @@ def commandButtonMain():
         'Booo scary command!!\n Maybe you should think twice!')
 
     def f(*a):
-        print a
+        print(a)
     form.commandExecuted.connect(f)
     form.show()
     sys.exit(app.exec_())

@@ -25,13 +25,15 @@
 
 """Unit tests for UILoadable decorator"""
 
+from __future__ import absolute_import
+
 import os.path
 
 import unittest
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.test import BaseWidgetTestCase
-from mywidget3 import MyWidget3
+from .mywidget3 import MyWidget3
 
 
 class UILoadableTestCase(unittest.TestCase):

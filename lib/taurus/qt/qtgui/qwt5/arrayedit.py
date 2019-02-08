@@ -26,12 +26,13 @@
 """
 arrayedit.py: Widget for editing a spectrum/array via control points
 """
+from __future__ import absolute_import
 
-
+from builtins import range
 import numpy
 from taurus.external.qt import Qt, Qwt5
 from taurus.qt.qtgui.util.ui import UILoadable
-from curvesAppearanceChooserDlg import CurveAppearanceProperties
+from .curvesAppearanceChooserDlg import CurveAppearanceProperties
 
 
 @UILoadable
@@ -155,11 +156,11 @@ class ArrayEditor(Qt.QWidget):
         # Qt.QTimer.singleShot(0, <method>)
 
         # connections
-        self.addCPointsBT.clicked[()].connect(self._addCPointsDialog.show)
-        self._addCPointsDialog.editBT.clicked[()].connect(self.showEditCPointsDialog)
-        self._addCPointsDialog.cleanBT.clicked[()].connect(self.resetCorrection)
-        self._addCPointsDialog.addSingleCPointBT.clicked[()].connect(self.onAddSingleCPointBT)
-        self._addCPointsDialog.addRegEspCPointsBT.clicked[()].connect(self.onAddRegEspCPointsBT)
+        self.addCPointsBT.clicked.connect(self._addCPointsDialog.show)
+        self._addCPointsDialog.editBT.clicked.connect(self.showEditCPointsDialog)
+        self._addCPointsDialog.cleanBT.clicked.connect(self.resetCorrection)
+        self._addCPointsDialog.addSingleCPointBT.clicked.connect(self.onAddSingleCPointBT)
+        self._addCPointsDialog.addRegEspCPointsBT.clicked.connect(self.onAddRegEspCPointsBT)
 
     def plot1MousePressEvent(self, event):
         self.plotMousePressEvent(event, self.plot1)
@@ -231,10 +232,10 @@ class ArrayEditor(Qt.QWidget):
     def connectToController(self, ctrl):
         ctrl.selected.connect(self.changeCPointSelection)
         ctrl.corrSB.valueChanged.connect(self.onCorrSBChanged)
-        ctrl.lCopyBT.clicked[()].connect(self.onLCopy)
-        ctrl.rCopyBT.clicked[()].connect(self.onRCopy)
-        ctrl.lScaleBT.clicked[()].connect(self.onLScale)
-        ctrl.rScaleBT.clicked[()].connect(self.onRScale)
+        ctrl.lCopyBT.clicked.connect(self.onLCopy)
+        ctrl.rCopyBT.clicked.connect(self.onRCopy)
+        ctrl.lScaleBT.clicked.connect(self.onLScale)
+        ctrl.rScaleBT.clicked.connect(self.onRScale)
 
     def onAddSingleCPointBT(self):
         x = self._addCPointsDialog.singleCPointXSB.value()
@@ -265,7 +266,7 @@ class ArrayEditor(Qt.QWidget):
             new_xp = numpy.zeros(table.rowCount())
             new_corrp = numpy.zeros(table.rowCount())
             try:
-                for i in xrange(table.rowCount()):
+                for i in range(table.rowCount()):
                     new_xp[i] = float(table.item(i, 0).text())
                     new_corrp[i] = float(table.item(i, 1).text())
                 self.setCorrection(new_xp, new_corrp)

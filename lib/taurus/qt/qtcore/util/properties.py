@@ -55,7 +55,8 @@ Not tested yet with the classical declaration:
 
 """
 
-from functools import partial
+from builtins import str
+from builtins import map
 from taurus.external.qt import Qt
 from taurus.core.util.fandango_search import isSequence, isDictionary
 
@@ -141,8 +142,9 @@ def set_property_methods(obj, name, type_="QString", default=None, getter=None, 
     setattr(obj, 'get%s' % mname, getter)
     setattr(obj, 'reset%s' % mname, reset)
     if qt:
-        setattr(klass, lname, Qt.pyqtProperty(
-            "QString", getter, setter, reset))
+        setattr(klass, lname,
+                Qt.pyqtProperty("QString", getter, setter, reset)
+                )
     if config:
         obj.registerConfigProperty(getter, setter, name)
     reset()

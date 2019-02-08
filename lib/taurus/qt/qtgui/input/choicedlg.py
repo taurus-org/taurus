@@ -24,12 +24,15 @@
 ###########################################################################
 
 """This package provides a dialog for graphically choosing a Taurus class"""
+from __future__ import print_function
+from future.builtins import str
+
+from taurus.external.qt import Qt
+
 
 __all__ = ["GraphicalChoiceDlg", "GraphicalChoiceWidget"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
 
 
 class GraphicalChoiceDlg(Qt.QDialog):
@@ -119,7 +122,7 @@ class GraphicalChoiceDlg(Qt.QDialog):
 class GraphicalChoiceWidget(Qt.QScrollArea):
     '''A widget that presents a 2D grid of buttons'''
 
-    choiceMade = Qt.pyqtSignal(str)
+    choiceMade = Qt.pyqtSignal('QString')
 
     def __init__(self, parent=None, designMode=False, choices=None, pixmaps=None, iconSize=128,
                  defaultPixmap=None, horizontalScrollBarPolicy=Qt.Qt.ScrollBarAsNeeded,
@@ -192,10 +195,20 @@ class GraphicalChoiceWidget(Qt.QScrollArea):
         button.setToolTip(tooltip)
         button.clicked.connect(self.onClick)
         self.gridLayout.addWidget(button, row, col, Qt.Qt.AlignCenter)
+        # -------------------------------------------------------
+        # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+        # TODO: make better solution for this
+        button._id = text  # <-- ugly monkey-patch!
+        # -------------------------------------------------------
 
     def onClick(self):
         '''slot called when a button is clicked'''
-        self._chosen = unicode(self.sender().text())
+        # -------------------------------------------------------
+        # Work around for https://bugs.kde.org/show_bug.cgi?id=345023
+        # TODO: make better solution for this
+        # self._chosen = str(self.sender().text())  # <-- fails due to added "&"
+        self._chosen = self.sender()._id  # <-- this was monkey-patched
+        # -------------------------------------------------------
         self.choiceMade.emit(self._chosen)
 
     def getChosen(self):
@@ -255,7 +268,7 @@ def main():
         for k in row:
             pixmaps[k] = getCachedPixmap('snapshot:%s.png' % k)
 
-    print GraphicalChoiceDlg.getChoice(parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=choices, pixmaps=pixmaps)
+    print(GraphicalChoiceDlg.getChoice(parent=None, title='Panel chooser', msg='Choose the type of Panel:', choices=choices, pixmaps=pixmaps))
 
     sys.exit()
 

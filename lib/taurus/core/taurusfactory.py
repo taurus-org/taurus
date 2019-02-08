@@ -55,20 +55,22 @@
   <https://tools.ietf.org/html/rfc3986#section-3.3>)
 
 """
+from __future__ import absolute_import
+from builtins import object
+
+import atexit
+from weakref import WeakValueDictionary
+from .taurusbasetypes import TaurusElementType
+from .taurusauthority import TaurusAuthority
+from .taurusdevice import TaurusDevice
+from .taurusattribute import TaurusAttribute
+from .taurusconfiguration import TaurusConfiguration, TaurusConfigurationProxy
+from .taurusexception import TaurusException
+from taurus.core.tauruspollingtimer import TaurusPollingTimer
 
 __all__ = ["TaurusFactory"]
 
 __docformat__ = "restructuredtext"
-
-import atexit
-from weakref import WeakValueDictionary
-from taurusbasetypes import TaurusElementType
-from taurusauthority import TaurusAuthority
-from taurusdevice import TaurusDevice
-from taurusattribute import TaurusAttribute
-from taurusconfiguration import TaurusConfiguration, TaurusConfigurationProxy
-from taurusexception import TaurusException
-from taurus.core.tauruspollingtimer import TaurusPollingTimer
 
 
 class TaurusFactory(object):
@@ -93,7 +95,7 @@ class TaurusFactory(object):
         self._devs = WeakValueDictionary()
         self._auths = WeakValueDictionary()
 
-        import taurusmanager
+        from . import taurusmanager
         manager = taurusmanager.TaurusManager()
         self._serialization_mode = manager.getSerializationMode()
 
@@ -323,14 +325,14 @@ class TaurusFactory(object):
         if not self.isPollingEnabled():
             return
         self._polling_enabled = False
-        for period, timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.items():
             timer.stop()
 
     def enablePolling(self):
         """Enable the application tango polling"""
         if self.isPollingEnabled():
             return
-        for period, timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.items():
             timer.start()
         self._polling_enabled = True
 
@@ -353,7 +355,7 @@ class TaurusFactory(object):
            :param attribute: (str) attribute name.
         """
         p = None
-        for period, timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.items():
             if timer.containsAttribute(attribute):
                 timer.removeAttribute(attribute)
                 if timer.getAttributeCount() == 0:

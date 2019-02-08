@@ -25,20 +25,25 @@
 #############################################################################
 
 """This module provides a set of basic Taurus widgets based on QLed"""
+from __future__ import absolute_import
 
-__all__ = ["TaurusLed"]
-
-__docformat__ = 'restructuredtext'
+from builtins import str
+from builtins import object
 
 import weakref
-import operator
+import collections
 
 from taurus.external.qt import Qt
 
 from taurus.core import DataFormat, AttrQuality, DataType
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
-from qled import QLed
+from .qled import QLed
+
+
+__all__ = ["TaurusLed"]
+
+__docformat__ = 'restructuredtext'
 
 _QT_PLUGIN_INFO = {
     'module': 'taurus.qt.qtgui.display',
@@ -344,7 +349,7 @@ class TaurusLed(QLed, TaurusBaseWidget):
                 return
             if type(mi_value) == int:
                 mi_value = mi_value,
-            if not operator.isSequenceType(mi_value):
+            if not isinstance(mi_value, collections.Sequence):
                 return
             self._modelIndex = mi_value
         self._modelIndexStr = mi
@@ -448,8 +453,8 @@ class TaurusLed(QLed, TaurusBaseWidget):
 
 def demo():
     "Led"
-    import demo.taurusleddemo
-    return demo.taurusleddemo.main()
+    from .demo import taurusleddemo
+    return taurusleddemo.main()
 
 
 def main():

@@ -37,17 +37,17 @@ import numpy
 
 
 @insertTest(helper_name='encDec', cname='json', data=[1, 2, 3])
-@insertTest(helper_name='encDec', cname='zip', data='foobar')
+@insertTest(helper_name='encDec', cname='zip', data=b'foobar')
 @insertTest(helper_name='encDec', cname='zip_json', data=[1, 2, 3])
 @insertTest(helper_name='encDec', cname='videoimage',
             data=numpy.ones((2, 2), dtype='uint8'))
 @insertTest(helper_name='encDec', cname='zip_null_zip_videoimage',
             data=numpy.ones((2, 2), dtype='uint8'))
 @insertTest(helper_name='dec', cname='videoimage',
-            data='VDEO\x00\x01\x00\x07\x00\x00\x00\x00\x00\x00\x00' +
-            '\x01\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00 ' +
-            '\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x01\x01' +
-            '\x01\x01\x01\x01\x01\x01\x01\x01',
+            data=b'VDEO\x00\x01\x00\x07\x00\x00\x00\x00\x00\x00\x00' +
+            b'\x01\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00 ' +
+            b'\x00\x00\x00\x00\x01\x01\x01\x01\x01\x01\x01\x01' +
+            b'\x01\x01\x01\x01\x01\x01\x01\x01',
             expected=numpy.ones((2, 2, 3), dtype='uint8'))
 class CodecTest(unittest.TestCase):
     '''TestCase for checking codecs'''

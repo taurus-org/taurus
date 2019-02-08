@@ -26,7 +26,15 @@
 """
 curvesmodel Model and view for new CurveItem configuration
 """
+
+from __future__ import print_function
+from builtins import next
+from builtins import str
+from builtins import range
+from builtins import object
+
 __all__ = ['TaurusCurveItemTableModel', 'CurveItemConf', 'CurveItemConfDlg']
+
 #raise UnimplementedError('Under Construction!')
 
 import copy
@@ -42,7 +50,7 @@ from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam
 
 import guiqwt
-__guiqwt_version = map(int, guiqwt.__version__.split('.')[:3])
+__guiqwt_version = list(map(int, guiqwt.__version__.split('.')[:3]))
 if __guiqwt_version <= [2, 3, 1]:
     import taurus.external.qt.Qwt5 as qwt
 else:
@@ -54,7 +62,7 @@ AXIS_ID2NAME = {qwt.QwtPlot.yLeft: 'left', qwt.QwtPlot.yRight: 'right',
 # set some named constants
 # columns:
 NUMCOLS = 3
-X, Y, TITLE = range(NUMCOLS)
+X, Y, TITLE = list(range(NUMCOLS))
 SRC_ROLE = Qt.Qt.UserRole + 1
 
 
@@ -108,7 +116,7 @@ class CurveItemConf(object):
         self.taurusparam = taurusparam
         if curveparam is None:
             curveparam = CurveParam()
-            style = make.style.next()  # cycle through colors and linestyles
+            style = next(make.style)  # cycle through colors and linestyles
             update_style_attr(style, curveparam)
             curveparam.line.width = 2
         self.curveparam = curveparam
@@ -173,78 +181,76 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
 
     def data(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < self.rowCount()):
-            return Qt.QVariant()
+            return None
         row = index.row()
         column = index.column()
         # Display Role
         if role == Qt.Qt.DisplayRole:
             if column == X:
-                return Qt.QVariant(str(self.curves[row].x.display))
+                return str(self.curves[row].x.display)
             elif column == Y:
-                return Qt.QVariant(str(self.curves[row].y.display))
+                return str(self.curves[row].y.display)
             elif column == TITLE:
-                return Qt.QVariant(str(self.curves[row].curveparam.label))
+                return str(self.curves[row].curveparam.label)
             else:
-                return Qt.QVariant()
+                return None
         elif role == Qt.Qt.DecorationRole:
             if column == X:
-                return Qt.QVariant(self.curves[row].x.icon)
+                return self.curves[row].x.icon
             elif column == Y:
-                return Qt.QVariant(self.curves[row].y.icon)
+                return self.curves[row].y.icon
             else:
-                return Qt.QVariant()
+                return None
         elif role == Qt.Qt.TextColorRole:
             if column == X:
-                Qt.QVariant(
-                    Qt.QColor(self.curves[row].x.ok and 'green' or 'red'))
+                Qt.QColor(self.curves[row].x.ok and 'green' or 'red')
             elif column == Y:
-                Qt.QVariant(
-                    Qt.QColor(self.curves[row].y.ok and 'green' or 'red'))
+                Qt.QColor(self.curves[row].y.ok and 'green' or 'red')
             else:
-                return Qt.QVariant()
+                return None
         elif role == SRC_ROLE:
             if column == X:
-                return Qt.QVariant(str(self.curves[row].taurusparam.xModel))
+                return str(self.curves[row].taurusparam.xModel)
             elif column == Y:
-                return Qt.QVariant(str(self.curves[row].taurusparam.yModel))
+                return str(self.curves[row].taurusparam.yModel)
             else:
-                return Qt.QVariant()
+                return None
         elif role == Qt.Qt.ToolTipRole:
             if column == X:
-                return Qt.QVariant(str(self.curves[row].taurusparam.xModel))
+                return str(self.curves[row].taurusparam.xModel)
             elif column == Y:
-                return Qt.QVariant(str(self.curves[row].taurusparam.yModel))
+                return str(self.curves[row].taurusparam.yModel)
             else:
-                return Qt.QVariant()
+                return None
         if role == Qt.Qt.EditRole:
             if column == X:
-                return Qt.QVariant(str(self.curves[row].taurusparam.xModel))
+                return str(self.curves[row].taurusparam.xModel)
             elif column == Y:
-                return Qt.QVariant(str(self.curves[row].taurusparam.yModel))
+                return str(self.curves[row].taurusparam.yModel)
             elif column == TITLE:
-                return Qt.QVariant(str(self.curves[row].curveparam.label))
+                return str(self.curves[row].curveparam.label)
             else:
-                return Qt.QVariant()
-        return Qt.QVariant()
+                return None
+        return None
 
     def headerData(self, section, orientation, role=Qt.Qt.DisplayRole):
         if role == Qt.Qt.TextAlignmentRole:
             if orientation == Qt.Qt.Horizontal:
-                return Qt.QVariant(int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter))
-            return Qt.QVariant(int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter))
+                return int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter)
+            return int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
         if role != Qt.Qt.DisplayRole:
-            return Qt.QVariant()
+            return None
         # So this is DisplayRole...
         if orientation == Qt.Qt.Horizontal:
             if section == X:
-                return Qt.QVariant("X source")
+                return "X source"
             elif section == Y:
-                return Qt.QVariant("Y Source")
+                return "Y Source"
             elif section == TITLE:
-                return Qt.QVariant("Title")
-            return Qt.QVariant()
+                return "Title"
+            return None
         else:
-            return Qt.QVariant(str(section + 1))
+            return str(section + 1)
 
     def flags(self, index):  # use this to set the editable flag when fix is selected
         if not index.isValid():
@@ -261,7 +267,6 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
             row = index.row()
             curve = self.curves[row]
             column = index.column()
-            value = Qt.from_qvariant(value, str)
             if column == X:
                 curve.taurusparam.xModel = value
                 curve.x.processSrc(value)
@@ -288,10 +293,11 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
     def removeRows(self, position, rows=1, parentindex=None):
         if parentindex is None:
             parentindex = Qt.QModelIndex()
+        self.beginResetModel()
         self.beginRemoveRows(parentindex, position, position + rows - 1)
         self.curves = self.curves[:position] + self.curves[position + rows:]
         self.endRemoveRows()
-        self.reset()
+        self.endResetModel()
         return True
 
     def clearAll(self):
@@ -315,31 +321,28 @@ class TaurusCurveItemTableModel(Qt.QAbstractTableModel):
                 column = parent.columnCount()
         if data.hasFormat(TAURUS_ATTR_MIME_TYPE):
             self.setData(self.index(row, column),
-                         value=Qt.QVariant(str(data.data(TAURUS_ATTR_MIME_TYPE))))
+                         value=str(data.data(TAURUS_ATTR_MIME_TYPE)))
             return True
         elif data.hasFormat(TAURUS_MODEL_LIST_MIME_TYPE):
             models = str(data.data(TAURUS_MODEL_LIST_MIME_TYPE)).split()
             if len(models) == 1:
-                self.setData(self.index(row, column),
-                             value=Qt.QVariant(models[0]))
+                self.setData(self.index(row, column), value=models[0])
                 return True
             else:
                 self.insertRows(row, len(models))
                 for i, m in enumerate(models):
-                    self.setData(self.index(row + i, column),
-                                 value=Qt.QVariant(m))
+                    self.setData(self.index(row + i, column), value=m)
                 return True
         elif data.hasText():
-            self.setData(self.index(row, column), Qt.QVariant(data.text()))
+            self.setData(self.index(row, column), data.text())
             return True
         return False
 
     def mimeData(self, indexes):
         mimedata = Qt.QAbstractTableModel.mimeData(self, indexes)
         if len(indexes) == 1:
-            #            data = Qt.from_qvariant(self.data(indexes[0], str)
-            #            mimedata.setData(TAURUS_ATTR_MIME_TYPE, data)
-            data = Qt.from_qvariant(self.data(indexes[0], role=SRC_ROLE), str)
+            data = self.data(indexes[0], role=SRC_ROLE)
+            # mimedata.setData(TAURUS_ATTR_MIME_TYPE, data)
             mimedata.setText(data)
         return mimedata
         # mimedata.setData()
@@ -452,8 +455,7 @@ class CurveItemConfDlg(Qt.QWidget):
         rowcount = self.model.rowCount()
         self.model.insertRows(rowcount, nmodels)
         for i, m in enumerate(models):
-            self.model.setData(self.model.index(
-                rowcount + i, Y), value=Qt.QVariant(m))
+            self.model.setData(self.model.index(rowcount + i, Y), value=m)
             title = self.model.data(self.model.index(
                 rowcount + i, Y))  # the display data
             self.model.setData(self.model.index(
@@ -488,7 +490,7 @@ class CurveItemConfDlg(Qt.QWidget):
         self.applied.emit()
 
     def onReload(self):
-        print "RELOAD!!! (todo)"
+        print("RELOAD!!! (todo)")
 
 
 #

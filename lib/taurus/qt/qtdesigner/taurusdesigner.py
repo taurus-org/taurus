@@ -23,13 +23,14 @@
 ##
 #############################################################################
 
+from builtins import str
 import sys
 import os.path
 import optparse
 
 import taurus
 from taurus.external.qt import Qt
-
+from taurus.core.util.log import deprecation_decorator
 
 def env_index(env, env_name):
     env_name = str(env_name)
@@ -94,8 +95,8 @@ def get_taurus_designer_path():
     return [taurus_qt_designer_path]
 
 
+@deprecation_decorator(alt='get_taurus_designer_env', rel='4.5')
 def qtdesigner_prepare_taurus(env=None, taurus_extra_path=None):
-
     # Tell Qt Designer where it can find the directory containing the plugins
     if env is None:
         env = Qt.QProcess.systemEnvironment()
@@ -115,13 +116,35 @@ def qtdesigner_prepare_taurus(env=None, taurus_extra_path=None):
     return env
 
 
+def get_taurus_designer_env(taurus_extra_path=None):
+
+    env = Qt.QProcessEnvironment.systemEnvironment()
+
+    # Set PYQTDESIGNERPATH to look inside taurus for designer plugins
+    (taurus_designer_path,) = get_taurus_designer_path()
+    env.insert("PYQTDESIGNERPATH", taurus_designer_path)
+
+    # Set TAURUSQTDESIGNERPATH
+    if taurus_extra_path is not None:
+        env.insert("TAURUSQTDESIGNERPATH", taurus_extra_path)
+        env.insert("PYTHONPATH", taurus_extra_path)
+
+    return env
+
+
 def qtdesigner_start(args, env=None):
+
     # Start Designer.
     designer_bin = get_qtdesigner_bin()
 
     designer = Qt.QProcess()
     designer.setProcessChannelMode(Qt.QProcess.ForwardedChannels)
-    designer.setEnvironment(env)
+    if isinstance(env, Qt.QProcessEnvironment):
+        designer.setProcessEnvironment(env)
+    else: # obsolete call, only for bck-compat
+        taurus.deprecated(dep='passing env which is not a QProcessEnvironment',
+                          alt='QProcessEnvironment', rel='4.5')
+        designer.setEnvironment(env)
     designer.start(designer_bin, args)
     designer.waitForFinished(-1)
 
@@ -129,6 +152,9 @@ def qtdesigner_start(args, env=None):
 
 
 def main(env=None):
+    if env is not None:
+        taurus.info('ignoring obsolete env parameter to qtdesigner_start')
+
     version = "taurusdesigner %s" % (taurus.Release.version)
     usage = "Usage: %prog [options] <ui file(s)>"
     description = "The Qt designer application customized for taurus"
@@ -146,8 +172,8 @@ def main(env=None):
     if len(options.tauruspath) > 0:
         taurus_extra_path = options.tauruspath
 
-    env = qtdesigner_prepare_taurus(
-        env=env, taurus_extra_path=taurus_extra_path)
+    if env is None:
+        env = get_taurus_designer_env(taurus_extra_path=taurus_extra_path)
 
     sys.exit(qtdesigner_start(args, env=env))
 

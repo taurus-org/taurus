@@ -23,16 +23,19 @@
 ##
 #############################################################################
 
-"""This module provides base classes from which the compact widgets should inherit
+"""
+This module provides base classes from which the compact widgets should inherit
 """
 
 __all__ = ["TaurusReadWriteSwitcher"]
 
 __docformat__ = 'restructuredtext'
 
+from future.utils import string_types
+
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
-from taurus.qt.qtgui.base import TaurusBaseWritableWidget
+# from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 
 
 class TaurusReadWriteSwitcher(TaurusWidget):
@@ -135,8 +138,8 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         self.exitEditAction.setShortcutContext(
             Qt.Qt.WidgetWithChildrenShortcut)
         self.addAction(self.exitEditAction)
-        self.enterEditAction.triggered[()].connect(self._onEnterEditActionTriggered)
-        self.exitEditAction.triggered[()].connect(self._onExitEditActionTriggered)
+        self.enterEditAction.triggered.connect(self._onEnterEditActionTriggered)
+        self.exitEditAction.triggered.connect(self._onExitEditActionTriggered)
 
         # add read and write widgets
         if self.readWClass is not None:
@@ -157,7 +160,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
                 shortcuts.append(Qt.QKeySequence(e))
             elif isinstance(e, Qt.QEvent.Type):
                 eventTypes.append(e)
-            elif isinstance(e, (basestring, Qt.QString)):
+            elif isinstance(e, string_types):
                 signals.append(e)
             else:
                 raise TypeError('Unsupported trigger type: %s' % repr(type(e)))
@@ -193,7 +196,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         for sig in self.enterEditSignals:
             try:
                 getattr(self.readWidget, sig).connect(self.enterEdit)
-            except Exception, e:
+            except Exception as e:
                 self.debug('Cannot connect signal. Reason: %s', e)
         # update size policy
         self._updateSizePolicy()
@@ -220,7 +223,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         for sig in self.exitEditSignals:
             try:
                 getattr(self.writeWidget, sig).connect(self.exitEdit)
-            except Exception, e:
+            except Exception as e:
                 if isinstance(e, AttributeError) and hasattr(Qt, "SIGNAL"):
                     # Support old-style signal
                     self.connect(self.writeWidget, Qt.SIGNAL(sig),

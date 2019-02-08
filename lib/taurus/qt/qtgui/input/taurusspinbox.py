@@ -27,12 +27,15 @@
 This module provides a set of basic taurus widgets based on QAbstractSpinBox
 """
 
+from __future__ import absolute_import
+
 from taurus.external.qt import Qt
 
-from tauruslineedit import TaurusValueLineEdit
+from .tauruslineedit import TaurusValueLineEdit
 from taurus.qt.qtgui.icon import getStandardIcon
 from taurus.core.units import Quantity
 from taurus.qt.qtgui.util import PintValidator
+
 
 __all__ = ["TaurusValueSpinBox", "TaurusValueSpinBoxEx"]
 
@@ -217,7 +220,6 @@ class TaurusValueSpinBoxEx(Qt.QWidget):
     def __init__(self, qt_parent=None, designMode=False):
         Qt.QWidget.__init__(self, qt_parent)
         layout = Qt.QGridLayout()
-        layout.setMargin(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)

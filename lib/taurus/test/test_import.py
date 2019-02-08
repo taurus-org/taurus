@@ -24,7 +24,9 @@
 
 
 """Taurus import tests"""
+from __future__ import absolute_import
 
+import sys
 import unittest
 
 
@@ -36,7 +38,7 @@ class TaurusImportTestCase(unittest.TestCase):
 
     def setUp(self):
         """Preconditions: moduleexplorer utility has to be available """
-        from moduleexplorer import ModuleExplorer
+        from .moduleexplorer import ModuleExplorer
         self.explore = ModuleExplorer.explore
 
     def testImportSubmodules(self):
@@ -46,7 +48,8 @@ class TaurusImportTestCase(unittest.TestCase):
         Expected Results: It is expected to get no warning message
         on module importing
         """
-        exclude_patterns = [r'taurus\.qt\.qtgui\.extra_.*']
+        exclude_patterns = [r'taurus\.qt\.qtgui\.extra_.*',
+                            r'taurus\.qt\.qtgui\.qwt5']
 
         try:
             import PyTango
@@ -56,7 +59,6 @@ class TaurusImportTestCase(unittest.TestCase):
             import epics
         except ImportError:
             exclude_patterns.append(r'taurus\.core\.epics')
-
 
         moduleinfo, wrn = self.explore('taurus', verbose=False,
                                        exclude_patterns=exclude_patterns)

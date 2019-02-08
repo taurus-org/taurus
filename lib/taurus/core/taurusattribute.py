@@ -43,7 +43,7 @@ class TaurusAttribute(TaurusModel):
     _description = "A Taurus Attribute"
     defaultFragmentName = "rvalue"  # fragment to be used if none is specified
 
-    def __init__(self, name, parent, **kwargs):
+    def __init__(self, name='', parent=None, **kwargs):
         self.call__init__(TaurusModel, name, parent)
 
         # User enabled/disabled polling

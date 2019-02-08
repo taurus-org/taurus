@@ -49,14 +49,19 @@ configuration options (in case of conflict, the options set in `config.py`
 prevail).
 
 """
+from __future__ import absolute_import
+
+from . import utils
+from .paneldescriptionwizard import *
+from .taurusgui import *
+from .appsettingswizard import *
+try:
+    # this import is left here for bck-compat, but will be removed
+    # TODO: remove this
+    from sardana.taurus.qt.qtgui.macrolistener import (MacroBroker,
+                                                       DynamicPlotManager)
+except ImportError:
+    pass
+
 
 __docformat__ = 'restructuredtext'
-
-import utils
-from paneldescriptionwizard import *
-from taurusgui import *
-from appsettingswizard import *
-try:
-    from macrolistener import *
-except ImportError:
-    pass  # allow for sardana not being installed

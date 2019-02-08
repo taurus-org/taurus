@@ -26,40 +26,20 @@
 """This module exposes PyQt4/PyQt5/PySide module"""
 
 __all__ = ["initialize", "API_NAME",
-           "getQtName", "getQt", "_updateQtSubModule", "requires"]
+           "getQtName", "getQt", "requires"]
 
 import os
+import sys
+import platform
+from distutils.version import LooseVersion
 from taurus.core.util import log as __log
 from taurus import tauruscustomsettings as __config
 
-# --------------------------------------------------------------------------
-# Deprecated (in Jul17) pending to be removed later on
 
-def getQtName(name=None, strict=True):
-    __log.deprecated (dep='taurus.external.qt.getQtName',
-                      alt='taurus.external.qt.API_NAME', rel='4.0.4')
-    return API_NAME
+class PythonQtError(RuntimeError):
+    """Error raise if no bindings could be selected."""
+    pass
 
-
-def initialize(name=None, strict=True, logging=True,
-               resources=True, remove_inputhook=True):
-    __log.deprecated (dep='taurus.external.qt.initialize', rel='4.0.4')
-    return getQt()
-
-
-def requires(origin=None, exc_class=ImportError, **kwargs):
-    __log.deprecated (dep='taurus.external.qt.requires', rel='4.0.4')
-    return True
-
-
-# Handle rename of DEFAULT_QT_AUTO_API -->  DEFAULT_QT_API
-if hasattr(__config, 'DEFAULT_QT_AUTO_API'):
-    __log.deprecated(dep='DEFAULT_QT_AUTO_API', alt='DEFAULT_QT_API',
-                     rel='4.0.4')
-    if not hasattr(__config, 'DEFAULT_QT_API'):
-        __config.DEFAULT_QT_API = __config.DEFAULT_QT_AUTO_API
-
-# --------------------------------------------------------------------------
 
 #: Qt API environment variable name
 QT_API = 'QT_API'
@@ -73,126 +53,171 @@ PYQT4_API = [
 #: names of the expected PySide api
 PYSIDE_API = ['pyside']
 
-os.environ.setdefault(QT_API, getattr(__config, 'DEFAULT_QT_API', 'pyqt'))
-API = os.environ[QT_API].lower()
-assert API in (PYQT5_API + PYQT4_API + PYSIDE_API)
+#: names of the expected PySide2 api
+PYSIDE2_API = ['pyside2']
 
-is_old_pyqt = is_pyqt46 = False
+
 PYQT5 = True
-PYQT4 = PYSIDE = False
+PYQT4 = PYSIDE = PYSIDE2 = False
 
+if 'PyQt5' in sys.modules:
+    API = 'pyqt5'
+elif 'PySide2' in sys.modules:
+    API = 'pyside2'
+elif 'PyQt4' in sys.modules:
+    API = 'pyqt4'
+elif 'PySide' in sys.modules:
+    API = 'pyside'
+else:
+    # if no binding is already loaded, use (in this order):
+    #   - QT_API environment variable
+    #   - tauruscustomsettings.DEFAULT_QT_API
+    #   - 'pyqt5'
+    API = os.environ.get(QT_API, getattr(__config, 'DEFAULT_QT_API', 'pyqt'))
+    API = API.lower()
 
-class PythonQtError(Exception):
-    """Error raise if no bindings could be selected"""
-    pass
-
-
-if API in PYQT5_API:
-    try:
-        from PyQt5.Qt import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
-        from PyQt5.Qt import QT_VERSION_STR as QT_VERSION  # analysis:ignore
-        PYSIDE_VERSION = None
-    except ImportError:
-        API = os.environ['QT_API'] = 'pyqt'
+assert API in (PYQT5_API + PYQT4_API + PYSIDE_API + PYSIDE2_API)
 
 if API in PYQT4_API:
     try:
         import sip
-        try:
-            sip.setapi('QString', 2)
-            sip.setapi('QVariant', 2)
-            sip.setapi('QDate', 2)
-            sip.setapi('QDateTime', 2)
-            sip.setapi('QTextStream', 2)
-            sip.setapi('QTime', 2)
-            sip.setapi('QUrl', 2)
-        except AttributeError:
-            # PyQt < v4.6
-            pass
-        from PyQt4.Qt import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
-        from PyQt4.Qt import QT_VERSION_STR as QT_VERSION  # analysis:ignore
+
+        sip.setapi('QString', 2)
+        sip.setapi('QVariant', 2)
+        sip.setapi('QDate', 2)
+        sip.setapi('QDateTime', 2)
+        sip.setapi('QTextStream', 2)
+        sip.setapi('QTime', 2)
+        sip.setapi('QUrl', 2)
+        from PyQt4.QtCore import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
+        from PyQt4.QtCore import QT_VERSION_STR as QT_VERSION  # analysis:ignore
+
         PYSIDE_VERSION = None
         PYQT5 = False
         PYQT4 = True
         API = os.environ['QT_API'] = 'pyqt'  # in case the original was "pyqt4"
     except ImportError:
+        __log.debug('Cannot import PyQt4. Trying with PyQt5')
+        API = os.environ['QT_API'] = 'pyqt5'
+
+if API in PYQT5_API:
+    try:
+        from PyQt5.QtCore import PYQT_VERSION_STR as PYQT_VERSION
+        from PyQt5.QtCore import QT_VERSION_STR as QT_VERSION
+
+        PYSIDE_VERSION = None
+
+        if sys.platform == 'darwin':
+            macos_version = LooseVersion(platform.mac_ver()[0])
+            if macos_version < LooseVersion('10.10'):
+                if LooseVersion(QT_VERSION) >= LooseVersion('5.9'):
+                    raise PythonQtError("Qt 5.9 or higher only works in "
+                                       + "macOS 10.10 or higher. Your "
+                                       + "program will fail in this "
+                                       + "system.")
+            elif macos_version < LooseVersion('10.11'):
+                if LooseVersion(QT_VERSION) >= LooseVersion('5.11'):
+                    raise PythonQtError("Qt 5.11 or higher only works in "
+                                       + "macOS 10.11 or higher. Your "
+                                       + "program will fail in this "
+                                       + "system.")
+
+            del macos_version
+    except ImportError:
+        __log.debug('Cannot import PyQt5. Trying with PySide2')
+        API = os.environ['QT_API'] = 'pyside2'
+
+if API in PYSIDE2_API:
+    try:
+        from PySide2 import __version__ as PYSIDE_VERSION  # analysis:ignore
+        from PySide2.QtCore import __version__ as QT_VERSION  # analysis:ignore
+
+        PYQT_VERSION = None
+        PYQT5 = False
+        PYSIDE2 = True
+
+        if sys.platform == 'darwin':
+            macos_version = LooseVersion(platform.mac_ver()[0])
+            if macos_version < LooseVersion('10.11'):
+                if LooseVersion(QT_VERSION) >= LooseVersion('5.11'):
+                    raise PythonQtError("Qt 5.11 or higher only works in "
+                                       + "macOS 10.11 or higher. Your "
+                                       + "program will fail in this "
+                                       + "system.")
+
+            del macos_version
+    except ImportError:
+        __log.debug('Cannot import PyQt5. Trying with PySide')
         API = os.environ['QT_API'] = 'pyside'
-    else:
-        is_old_pyqt = PYQT_VERSION.startswith(('4.4', '4.5', '4.6', '4.7'))
-        is_pyqt46 = PYQT_VERSION.startswith('4.6')
 
 if API in PYSIDE_API:
     try:
         from PySide import __version__ as PYSIDE_VERSION  # analysis:ignore
         from PySide.QtCore import __version__ as QT_VERSION  # analysis:ignore
+
         PYQT_VERSION = None
         PYQT5 = False
         PYSIDE = True
     except ImportError:
+        __log.debug('Cannot import PySide')
         raise PythonQtError('No Qt bindings could be found')
 
 API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyqt4': 'PyQt4',
-            'pyside': 'PySide'}[API]
+            'pyside': 'PySide', 'pyside2': 'PySide2'}[API]
+
+# Update the environment so that other libraries that also use the same
+# convention (such as guidata or spyder) do a consistent choice
+os.environ['QT_API'] = API
 
 
 def __initializeQtLogging():
-    # from . import QtCore
-    QtCore = __importQt ('QtCore')
+    from importlib import import_module
+    QtCore = import_module(API_NAME + '.QtCore')
 
     QT_LEVEL_MATCHER = {
-        QtCore.QtDebugMsg:     __log.debug,
-        QtCore.QtWarningMsg:   __log.warning,
-        QtCore.QtCriticalMsg:  __log.critical,
-        QtCore.QtFatalMsg:     __log.fatal,
-        QtCore.QtSystemMsg:    __log.critical,
+        QtCore.QtDebugMsg: __log.debug,
+        QtCore.QtWarningMsg: __log.warning,
+        QtCore.QtCriticalMsg: __log.critical,
+        QtCore.QtFatalMsg: __log.fatal,
+        QtCore.QtSystemMsg: __log.critical,
     }
 
     if hasattr(QtCore, "qInstallMessageHandler"):
+        # Qt5
         def taurusMessageHandler(msg_type, log_ctx, msg):
             f = QT_LEVEL_MATCHER.get(msg_type)
-            return f("Qt%s %s.%s[%s]: %a", log_ctx.category, log_ctx.file,
+            return f("Qt%s %s.%s[%s]: %s", log_ctx.category, log_ctx.file,
                      log_ctx.function, log_ctx.line, msg)
+
         QtCore.qInstallMessageHandler(taurusMessageHandler)
     elif hasattr(QtCore, "qInstallMsgHandler"):
+        # Qt4
         def taurusMsgHandler(msg_type, msg):
             f = QT_LEVEL_MATCHER.get(msg_type)
             return f("Qt: " + msg)
+
         QtCore.qInstallMsgHandler(taurusMsgHandler)
 
 
-
 def __removePyQtInputHook():
-    try:
-        from . import QtCore
+    from importlib import import_module
+    QtCore = import_module(API_NAME + '.QtCore')
+    if hasattr(QtCore, "pyqtRemoveInputHook"):
         QtCore.pyqtRemoveInputHook()
-    except AttributeError:
-        pass
 
 
-def _updateQtSubModule(glob_dict, qt_sub_module_name):
-    glob_dict.update(__importQt(qt_sub_module_name).__dict__)
+def __addExceptHook():
+    """
+    Since PyQt 5.5 , unhandled python exceptions cause the application to
+    abort:
 
-def __import(name):
-    import sys
-    __import__(name)
-    return sys.modules[name]
+    http://pyqt.sf.net/Docs/PyQt5/incompatibilities.html#unhandled-python-exceptions
 
-
-def __importQt(name):
-    return __import(API_NAME + "." + name)
-
-
-def getQt(name=None, strict=True):
-    __log.deprecated (dep='taurus.external.qt.getQt', rel='4.0.4')
-    if PYQT5:
-        import PyQt5 as _qt
-    elif PYQT4:
-        import PyQt4 as _qt
-    elif PYSIDE:
-        import PySide as _qt
-    else:
-        raise ImportError("No suitable Qt found")
-    return _qt
+    By calling __addExceptHook, we restore the old behaviour (just print the
+    exception trace).
+    """
+    import traceback
+    sys.excepthook = traceback.print_exception
 
 
 if getattr(__config, 'QT_AUTO_INIT_LOG', True):
@@ -201,5 +226,48 @@ if getattr(__config, 'QT_AUTO_INIT_LOG', True):
 if getattr(__config, 'QT_AUTO_REMOVE_INPUTHOOK', True):
     __removePyQtInputHook()
 
+if PYQT5 and getattr(__config, 'QT_AVOID_ABORT_ON_EXCEPTION', True):
+    # TODO: check if we also want to do this for PySide(2)
+    __addExceptHook()
 
-__log.info('Using "%s" for Qt', API_NAME)
+__log.info('Using %s (v%s , with Qt %s)',
+           API_NAME,
+           PYQT_VERSION or PYSIDE_VERSION,
+           QT_VERSION)
+
+
+# --------------------------------------------------------------------------
+# Deprecated (in Jul17) pending to be removed later on
+
+
+def getQt(name=None, strict=True):
+    __log.deprecated(dep='taurus.external.qt.getQt', rel='4.0.4')
+    from importlib import import_module
+    return import_module(API_NAME)
+
+
+def getQtName(name=None, strict=True):
+    __log.deprecated(dep='taurus.external.qt.getQtName',
+                     alt='taurus.external.qt.API_NAME', rel='4.0.4')
+    return API_NAME
+
+
+def initialize(name=None, strict=True, logging=True,
+               resources=True, remove_inputhook=True):
+    __log.deprecated(dep='taurus.external.qt.initialize', rel='4.0.4')
+    return getQt()
+
+
+def requires(origin=None, exc_class=ImportError, **kwargs):
+    __log.deprecated(dep='taurus.external.qt.requires', rel='4.0.4')
+    return True
+
+
+# Handle rename of DEFAULT_QT_AUTO_API -->  DEFAULT_QT_API
+if hasattr(__config, 'DEFAULT_QT_AUTO_API'):
+    __log.deprecated(dep='DEFAULT_QT_AUTO_API', alt='DEFAULT_QT_API',
+                     rel='4.0.4')
+    if not hasattr(__config, 'DEFAULT_QT_API'):
+        __config.DEFAULT_QT_API = __config.DEFAULT_QT_AUTO_API
+
+# --------------------------------------------------------------------------

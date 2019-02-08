@@ -25,9 +25,10 @@
 
 """This module contains the graphics factory for the jdraw file format"""
 
-__all__ = ["TaurusJDrawGraphicsFactory"]
+from __future__ import absolute_import
 
-__docformat__ = 'restructuredtext'
+from builtins import str
+from builtins import range
 
 import os
 import traceback
@@ -38,6 +39,11 @@ from taurus.core.util.singleton import Singleton
 from taurus.core.util.containers import CaselessDict
 from taurus.qt.qtgui.graphic import (TaurusBaseGraphicsFactory,
                                      TaurusGraphicsScene, TaurusGraphicsItem)
+
+
+__all__ = ["TaurusJDrawGraphicsFactory"]
+
+__docformat__ = 'restructuredtext'
 
 
 LINESTYLE_JDW2QT = {0: Qt.Qt.SolidLine,
@@ -180,7 +186,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
 
         polygon = Qt.QPolygonF()
         p = params.get('summit')
-        for i in xrange(0, len(p), 2):
+        for i in range(0, len(p), 2):
             polygon.append(Qt.QPointF(p[i], p[i + 1]))
         item.setPolygon(polygon)
 
@@ -189,7 +195,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
     def getSplineObj(self, params):
         item = self.getGraphicsItem('Spline', params)
         p = params.get('summit')
-        p = [Qt.QPointF(p[i], p[i + 1]) for i in xrange(0, len(p), 2)]
+        p = [Qt.QPointF(p[i], p[i + 1]) for i in range(0, len(p), 2)]
         item.setControlPoints(p)
         isClosed = params.get('isClosed', True)
         item.setClose(isClosed)
@@ -212,8 +218,8 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         # it is parsed as a float
         vAlignment = int(params.get('vAlignment', 0))
         hAlignment = int(params.get('hAlignment', 0))
-        assert(vAlignment in VALIGNMENT.keys())
-        assert(hAlignment in ALIGNMENT.keys())
+        assert(vAlignment in VALIGNMENT)
+        assert(hAlignment in ALIGNMENT)
         vAlignment = VALIGNMENT[vAlignment]
         hAlignment = ALIGNMENT[hAlignment]
         item.setAlignment(hAlignment | vAlignment)
@@ -241,7 +247,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         if txt:
             if any(isinstance(txt, t) for t in (list, tuple, set)):  # Parsing several lines of text
                 txt = '\n'.join(txt)
-            item.setPlainText(Qt.QString(txt))
+            item.setPlainText(str(txt))
             item._currText = txt
 
     def getGroupObj(self, params):
@@ -371,9 +377,9 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
                 pen.setWidth(lineWidth)
                 pen.setStyle(LINESTYLE_JDW2QT[params.get("lineStyle", 0)])
             item.setPen(pen)
-        except AttributeError, ae:
+        except AttributeError as ae:
             pass
-        except Exception, e:
+        except Exception as e:
             self.warning('jdraw.set_common_params(%s(%s)).(foreground,width,style) failed!: \n\t%s' % (
                 type(item).__name__, name, traceback.format_exc()))
 
@@ -419,5 +425,5 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         return
 
 if __name__ == "__main__":
-    import jdraw_view
+    from . import jdraw_view
     jdraw_view.jdraw_view_main()

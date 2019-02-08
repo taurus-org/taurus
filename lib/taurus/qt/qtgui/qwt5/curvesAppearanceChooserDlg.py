@@ -29,6 +29,9 @@ curvesAppearanceChooserDlg.py:
     for a QwtPlot-derived widget (like Taurusplot)
 """
 
+from __future__ import print_function
+
+from builtins import object
 import copy
 
 from taurus.external.qt import Qt, Qwt5
@@ -45,7 +48,7 @@ NamedLineStyles = {None: "",
                    Qt.Qt.DashDotDotLine: ".._..",
                    }
 ReverseNamedLineStyles = {}
-for k, v in NamedLineStyles.iteritems():
+for k, v in NamedLineStyles.items():
     ReverseNamedLineStyles[v] = k
 
 NamedCurveStyles = {None: "",
@@ -56,7 +59,7 @@ NamedCurveStyles = {None: "",
                     Qwt5.QwtPlotCurve.Dots: "Dots"
                     }
 ReverseNamedCurveStyles = {}
-for k, v in NamedCurveStyles.iteritems():
+for k, v in NamedCurveStyles.items():
     ReverseNamedCurveStyles[v] = k
 
 NamedSymbolStyles = {
@@ -80,7 +83,7 @@ NamedSymbolStyles = {
 }
 
 ReverseNamedSymbolStyles = {}
-for k, v in NamedSymbolStyles.iteritems():
+for k, v in NamedSymbolStyles.items():
     ReverseNamedSymbolStyles[v] = k
 
 NamedColors = ["Black", "Red", "Blue", "Magenta",
@@ -112,8 +115,8 @@ class CurvesAppearanceChooser(Qt.QWidget):
         self.loadUi()
         self.autoApply = autoApply
         self.sStyleCB.insertItems(0, sorted(NamedSymbolStyles.values()))
-        self.lStyleCB.insertItems(0, NamedLineStyles.values())
-        self.cStyleCB.insertItems(0, NamedCurveStyles.values())
+        self.lStyleCB.insertItems(0, list(NamedLineStyles.values()))
+        self.cStyleCB.insertItems(0, list(NamedCurveStyles.values()))
         self.sColorCB.addItem("")
         self.lColorCB.addItem("")
         if not showButtons:
@@ -121,8 +124,8 @@ class CurvesAppearanceChooser(Qt.QWidget):
             self.resetBT.hide()
         for color in NamedColors:
             icon = self._colorIcon(color)
-            self.sColorCB.addItem(icon, "", Qt.QVariant(Qt.QColor(color)))
-            self.lColorCB.addItem(icon, "", Qt.QVariant(Qt.QColor(color)))
+            self.sColorCB.addItem(icon, "", Qt.QColor(color))
+            self.lColorCB.addItem(icon, "", Qt.QColor(color))
         self.__itemsDict = CaselessDict()
         self.setCurves(curvePropDict)
         # set the icon for the background button (stupid designer limitations
@@ -163,11 +166,11 @@ class CurvesAppearanceChooser(Qt.QWidget):
         self._curvePropDictOrig = copy.deepcopy(curvePropDict)
         self.curvesLW.clear()
         self.__itemsDict = CaselessDict()
-        for name, prop in self.curvePropDict.iteritems():
+        for name, prop in self.curvePropDict.items():
             # create and insert the item
-            item = Qt.QListWidgetItem(Qt.QString(prop.title), self.curvesLW)
+            item = Qt.QListWidgetItem(str(prop.title), self.curvesLW)
             self.__itemsDict[name] = item
-            item.setData(self.NAME_ROLE, Qt.QVariant(Qt.QString(name)))
+            item.setData(self.NAME_ROLE, str(name))
             item.setToolTip("<b>Curve Name:</b> %s" % name)
             item.setFlags(Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsSelectable |
                           Qt.Qt.ItemIsUserCheckable | Qt.Qt.ItemIsDragEnabled | Qt.Qt.ItemIsEditable)
@@ -175,7 +178,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
     def onItemChanged(self, item):
         '''slot used when an item data has changed'''
-        name = Qt.from_qvariant(item.data(self.NAME_ROLE), str)
+        name = item.data(self.NAME_ROLE)
         previousTitle = self.curvePropDict[name].title
         currentTitle = item.text()
         if previousTitle != currentTitle:
@@ -191,7 +194,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
         '''
         if newTitlesDict is None:
             return
-        for name, title in newTitlesDict.iteritems():
+        for name, title in newTitlesDict.items():
             self.curvePropDict[name].title = title
             self.__itemsDict[name].setText(title)
 
@@ -204,7 +207,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
 
         :return: (string_list) the names of the selected curves
         '''
-        return [Qt.from_qvariant(item.data(self.NAME_ROLE), str) for item in self.curvesLW.selectedItems()]
+        return [item.data(self.NAME_ROLE) for item in self.curvesLW.selectedItems()]
 
     def showProperties(self, prop=None):
         '''Updates the dialog to show the given properties.
@@ -232,20 +235,24 @@ class CurvesAppearanceChooser(Qt.QWidget):
         if prop.sColor is None:
             index = 0
         else:
-            index = self.sColorCB.findData(Qt.QVariant(Qt.QColor(prop.sColor)))
+            index = self.sColorCB.findData(Qt.QColor(prop.sColor))
         if index == -1:  # if the color is not one of the supported colors, add it to the combobox
             index = self.sColorCB.count()  # set the index to what will be the added one
-            self.sColorCB.addItem(self._colorIcon(
-                Qt.QColor(prop.sColor)), "", Qt.QVariant(Qt.QColor(prop.sColor)))
+            self.sColorCB.addItem(self._colorIcon(Qt.QColor(prop.sColor)),
+                                  "",
+                                  Qt.QColor(prop.sColor)
+                                  )
         self.sColorCB.setCurrentIndex(index)
         if prop.lColor is None:
             index = 0
         else:
-            index = self.lColorCB.findData(Qt.QVariant(Qt.QColor(prop.lColor)))
+            index = self.lColorCB.findData(Qt.QColor(prop.lColor))
         if index == -1:  # if the color is not one of the supported colors, add it to the combobox
             index = self.lColorCB.count()  # set the index to what will be the added one
-            self.lColorCB.addItem(self._colorIcon(
-                Qt.QColor(prop.lColor)), "", Qt.QVariant(Qt.QColor(prop.lColor)))
+            self.lColorCB.addItem(self._colorIcon(Qt.QColor(prop.lColor)),
+                                  "",
+                                  Qt.QColor(prop.lColor)
+                                  )
         self.lColorCB.setCurrentIndex(index)
         # set the Fill Checkbox. The prop.sFill value can be in 3 states: True,
         # False and None
@@ -411,7 +418,7 @@ class CurveAppearanceProperties(object):
             - curvestyle is one of Qwt5.QwtPlotCurve.CurveStyle
             - axis is one of Qwt5.QwtPlot.Axis
             - title is something that Qwt5.QwtText() accepts in its constructor
-              (i.e. a QwtText, QString or any basestring)
+              (i.e. a QwtText or a string type)
         """
         self.sStyle = sStyle
         self.sSize = sSize
@@ -430,10 +437,10 @@ class CurveAppearanceProperties(object):
 
     def _print(self):
         """Just for debug"""
-        print "-" * 77
+        print("-" * 77)
         for k in self.propertyList:
-            print k + "= ", self.__getattribute__(k)
-        print "-" * 77
+            print(k + "= ", self.__getattribute__(k))
+        print("-" * 77)
 
     @staticmethod
     def inConflict_update_a(a, b):

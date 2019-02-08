@@ -26,12 +26,14 @@
 """
 curveprops: Model and view for curve properties
 """
-__all__ = ['CurveConf', 'CurvesTableModel',
-           'ExtendedSelectionModel', 'CurvePropertiesView']
+
 #raise NotImplementedError('Under Construction!')
 
+from __future__ import absolute_import
+from builtins import str
+from builtins import object
+
 import copy
-import re
 
 from taurus.external.qt import Qt, Qwt5
 import taurus
@@ -40,16 +42,19 @@ from taurus.core import TaurusElementType
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.util.ui import UILoadable
 
-from curvesAppearanceChooserDlg import NamedLineStyles, ReverseNamedLineStyles, \
+from .curvesAppearanceChooserDlg import NamedLineStyles, ReverseNamedLineStyles, \
     NamedCurveStyles, ReverseNamedCurveStyles, \
     NamedSymbolStyles, ReverseNamedSymbolStyles, \
     NamedColors, CurveAppearanceProperties
 
 
+__all__ = ['CurveConf', 'CurvesTableModel',
+           'ExtendedSelectionModel', 'CurvePropertiesView']
+
 # set some named constants
 # columns:
 NUMCOLS = 4
-X, Y, TITLE, VIS = range(NUMCOLS)
+X, Y, TITLE, VIS = list(range(NUMCOLS))
 SRC_ROLE = Qt.Qt.UserRole + 1
 PROPS_ROLE = Qt.Qt.UserRole + 2
 
@@ -73,7 +78,7 @@ class Component(object):
 
     def processSrc(self, src):
         '''returns src,display,icon,ok'''
-        src = unicode(src)
+        src = str(src)
         # empty
         if src == '':
             return '', '', Qt.QIcon(), True
@@ -134,93 +139,90 @@ class CurvesTableModel(Qt.QAbstractTableModel):
 
     def data(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < self.rowCount()):
-            return Qt.QVariant()
+            return None
         row = index.row()
         column = index.column()
         # Display Role
         if role == Qt.Qt.DisplayRole:
             if column == X:
-                return Qt.QVariant(Qt.QString(self.curves[row].x.display))
+                return str(self.curves[row].x.display)
             elif column == Y:
-                return Qt.QVariant(Qt.QString(self.curves[row].y.display))
+                return str(self.curves[row].y.display)
             elif column == TITLE:
-                return Qt.QVariant(Qt.QString(self.curves[row].title))
+                return str(self.curves[row].title)
             elif column == VIS:
-                return Qt.QVariant(Qt.QString(self.curves[row].vis))
+                return str(self.curves[row].vis)
             else:
-                return Qt.QVariant()
+                return None
         elif role == Qt.Qt.DecorationRole:
             if column == X:
-                return Qt.QVariant(self.curves[row].x.icon)
+                return self.curves[row].x.icon
             elif column == Y:
-                return Qt.QVariant(self.curves[row].y.icon)
+                return self.curves[row].y.icon
             elif column == TITLE:
-                return Qt.QVariant(Qt.QColor(self.curves[row].properties.lColor or 'black'))
+                return Qt.QColor(self.curves[row].properties.lColor or 'black')
             else:
-                return Qt.QVariant()
+                return None
         elif role == Qt.Qt.TextColorRole:
             if column == X:
-                Qt.QVariant(
-                    Qt.QColor(self.curves[row].x.ok and 'green' or 'red'))
+                Qt.QColor(self.curves[row].x.ok and 'green' or 'red')
             elif column == Y:
-                Qt.QVariant(
-                    Qt.QColor(self.curves[row].y.ok and 'green' or 'red'))
+                Qt.QColor(self.curves[row].y.ok and 'green' or 'red')
             else:
-                return Qt.QVariant()
+                return None
         elif role == SRC_ROLE:
             if column == X:
-                return Qt.QVariant(Qt.QString(self.curves[row].x.src))
+                return str(self.curves[row].x.src)
             elif column == Y:
-                return Qt.QVariant(Qt.QString(self.curves[row].y.src))
+                return str(self.curves[row].y.src)
             else:
-                return Qt.QVariant()
+                return None
         elif role == PROPS_ROLE:
             return self.curves[row].properties
         elif role == Qt.Qt.ToolTipRole:
             if column == X:
-                return Qt.QVariant(Qt.QString(self.curves[row].x.src))
+                return str(self.curves[row].x.src)
             elif column == Y:
-                return Qt.QVariant(Qt.QString(self.curves[row].y.src))
+                return str(self.curves[row].y.src)
             else:
-                return Qt.QVariant()
+                return None
         if role == Qt.Qt.EditRole:
             if column == X:
-                return Qt.QVariant(Qt.QString(self.curves[row].x.src))
+                return str(self.curves[row].x.src)
             elif column == Y:
-                return Qt.QVariant(Qt.QString(self.curves[row].y.src))
+                return str(self.curves[row].y.src)
             elif column == TITLE:
-                return Qt.QVariant(Qt.QString(self.curves[row].title))
+                return str(self.curves[row].title)
             else:
-                return Qt.QVariant()
+                return None
         # Alignment
 #         elif role == Qt.Qt.TextAlignmentRole:
-#             return QVariant(int(Qt.AlignHCenter|Qt.AlignVCenter))
+#             return int(Qt.AlignHCenter|Qt.AlignVCenter)
         # Text Color
 #        elif role == Qt.Qt.TextColorRole:
-# return Qt.QVariant(Qt.QColor(self.curves[row].properties.lColor or
-# 'black'))
-        return Qt.QVariant()
+#            return Qt.QColor(self.curves[row].properties.lColor or 'black')
+        return None
 
     def headerData(self, section, orientation, role=Qt.Qt.DisplayRole):
         if role == Qt.Qt.TextAlignmentRole:
             if orientation == Qt.Qt.Horizontal:
-                return Qt.QVariant(int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter))
-            return Qt.QVariant(int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter))
+                return int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter)
+            return int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
         if role != Qt.Qt.DisplayRole:
-            return Qt.QVariant()
+            return None
         # So this is DisplayRole...
         if orientation == Qt.Qt.Horizontal:
             if section == X:
-                return Qt.QVariant("X source")
+                return "X source"
             elif section == Y:
-                return Qt.QVariant("Y Source")
+                return "Y Source"
             elif section == TITLE:
-                return Qt.QVariant("Title")
+                return "Title"
             elif section == VIS:
-                return Qt.QVariant("Shown at")
-            return Qt.QVariant()
+                return "Shown at"
+            return None
         else:
-            return Qt.QVariant(Qt.QString.number(section + 1))
+            return str(section + 1)
 
     def flags(self, index):  # use this to set the editable flag when fix is selected
         if not index.isValid():
@@ -242,7 +244,6 @@ class CurvesTableModel(Qt.QAbstractTableModel):
                     row, 0), self.index(row, self.ncolumns - 1))
             else:
                 column = index.column()
-                value = Qt.from_qvariant(value, unicode)
                 if column == X:
                     curve.x.setSrc(value)
                 elif column == Y:
@@ -269,10 +270,11 @@ class CurvesTableModel(Qt.QAbstractTableModel):
     def removeRows(self, position, rows=1, parentindex=None):
         if parentindex is None:
             parentindex = Qt.QModelIndex()
+        self.beginResetModel()
         self.beginRemoveRows(parentindex, position, position + rows - 1)
         self.curves = self.curves[:position] + self.curves[position + rows:]
         self.endRemoveRows()
-        self.reset()
+        self.endResetModel()
         return True
 
     def mimeTypes(self):
@@ -293,31 +295,28 @@ class CurvesTableModel(Qt.QAbstractTableModel):
                 column = parent.columnCount()
         if data.hasFormat(TAURUS_ATTR_MIME_TYPE):
             self.setData(self.index(row, column),
-                         value=Qt.QVariant(str(data.data(TAURUS_ATTR_MIME_TYPE))))
+                         value=str(data.data(TAURUS_ATTR_MIME_TYPE)))
             return True
         elif data.hasFormat(TAURUS_MODEL_LIST_MIME_TYPE):
             models = str(data.data(TAURUS_MODEL_LIST_MIME_TYPE)).split()
             if len(models) == 1:
-                self.setData(self.index(row, column),
-                             value=Qt.QVariant(models[0]))
+                self.setData(self.index(row, column), value=models[0])
                 return True
             else:
                 self.insertRows(row, len(models))
                 for i, m in enumerate(models):
-                    self.setData(self.index(row + i, column),
-                                 value=Qt.QVariant(m))
+                    self.setData(self.index(row + i, column), value=m)
                 return True
         elif data.hasText():
-            self.setData(self.index(row, column), Qt.QVariant(data.text()))
+            self.setData(self.index(row, column), data.text())
             return True
         return False
 
     def mimeData(self, indexes):
         mimedata = Qt.QAbstractTableModel.mimeData(self, indexes)
         if len(indexes) == 1:
-            #            txt = Qt.from_qvariant(self.data(indexes[0], str)
-            #            mimedata.setData(TAURUS_ATTR_MIME_TYPE, txt)
-            txt = Qt.from_qvariant(self.data(indexes[0], role=SRC_ROLE), str)
+            txt = self.data(indexes[0], role=SRC_ROLE)
+            # mimedata.setData(TAURUS_ATTR_MIME_TYPE, txt)
             mimedata.setText(txt)
         return mimedata
         # mimedata.setData()
@@ -356,14 +355,14 @@ class CurvePropertiesView(Qt.QAbstractItemView):
         self.loadUi()
 
         self.ui.sStyleCB.insertItems(0, sorted(NamedSymbolStyles.values()))
-        self.ui.lStyleCB.insertItems(0, NamedLineStyles.values())
-        self.ui.cStyleCB.insertItems(0, NamedCurveStyles.values())
+        self.ui.lStyleCB.insertItems(0, list(NamedLineStyles.values()))
+        self.ui.cStyleCB.insertItems(0, list(NamedCurveStyles.values()))
         self.ui.sColorCB.addItem("")
         self.ui.lColorCB.addItem("")
         for color in NamedColors:
             icon = self._colorIcon(color)
-            self.ui.sColorCB.addItem(icon, "", Qt.QVariant(Qt.QColor(color)))
-            self.ui.lColorCB.addItem(icon, "", Qt.QVariant(Qt.QColor(color)))
+            self.ui.sColorCB.addItem(icon, "", Qt.QColor(color))
+            self.ui.lColorCB.addItem(icon, "", Qt.QColor(color))
 
         self._emptyProps = CurveAppearanceProperties()
         self.showProperties(self._emptyProps)
@@ -512,22 +511,24 @@ class CurvePropertiesView(Qt.QAbstractItemView):
         if prop.sColor is None:
             index = 0
         else:
-            index = self.ui.sColorCB.findData(
-                Qt.QVariant(Qt.QColor(prop.sColor)))
+            index = self.ui.sColorCB.findData(Qt.QColor(prop.sColor))
         if index == -1:  # if the color is not one of the supported colors, add it to the combobox
             index = self.ui.sColorCB.count()  # set the index to what will be the added one
-            self.ui.sColorCB.addItem(self._colorIcon(
-                Qt.QColor(prop.sColor)), "", Qt.QVariant(Qt.QColor(prop.sColor)))
+            self.ui.sColorCB.addItem(self._colorIcon(Qt.QColor(prop.sColor)),
+                                     "",
+                                     Qt.QColor(prop.sColor)
+                                     )
         self.ui.sColorCB.setCurrentIndex(index)
         if prop.lColor is None:
             index = 0
         else:
-            index = self.ui.lColorCB.findData(
-                Qt.QVariant(Qt.QColor(prop.lColor)))
+            index = self.ui.lColorCB.findData(Qt.QColor(prop.lColor))
         if index == -1:  # if the color is not one of the supported colors, add it to the combobox
             index = self.ui.lColorCB.count()  # set the index to what will be the added one
-            self.ui.lColorCB.addItem(self._colorIcon(
-                Qt.QColor(prop.lColor)), "", Qt.QVariant(Qt.QColor(prop.lColor)))
+            self.ui.lColorCB.addItem(self._colorIcon(Qt.QColor(prop.lColor)),
+                                     "",
+                                     Qt.QColor(prop.lColor)
+                                     )
         self.ui.lColorCB.setCurrentIndex(index)
         # set the Fill Checkbox. The prop.sFill value can be in 3 states: True,
         # False and None

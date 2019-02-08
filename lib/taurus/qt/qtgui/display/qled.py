@@ -98,7 +98,7 @@ class QLed(QPixmapWidget):
         :type  color: str
         :return: True is the given color name is valid or False otherwise
         :rtype: bool"""
-        return LedColor.has_key(name.upper())
+        return name.upper() in LedColor
 
     def _refresh(self):
         """internal usage only"""
@@ -289,8 +289,8 @@ class QLed(QPixmapWidget):
 class QLedOld(Qt.QLabel):
     ledDirPattern = ":leds/images%(size)d"
 
-    def __init__(self, parent=None, ledsize=LedSize.SMALL, ledcolor=LedColor.GREEN):
-
+    def __init__(self, parent=None, ledsize=LedSize.SMALL,
+                 ledcolor=LedColor.GREEN):
         Qt.QLabel.__init__(self, parent)
 
         self.ledsize = ledsize

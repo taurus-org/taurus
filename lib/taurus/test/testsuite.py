@@ -31,14 +31,27 @@ Usage::
   testsuite.run()
 
 """
-
-__docformat__ = 'restructuredtext'
+from __future__ import print_function
 
 import os
+import sys
 import re
 import unittest
 import taurus
+from taurus.external.qt import PYQT4
 
+__docformat__ = 'restructuredtext'
+
+PY3_EXCLUDED = (
+    'unittest.loader._FailedTest.taurus.qt.qtgui.qwt5',
+    'unittest.loader._FailedTest.taurus.qt.qtgui.extra_sardana',
+    'unittest.loader._FailedTest.taurus.qt.qtgui.extra_pool',
+    'unittest.loader._FailedTest.taurus.qt.qtgui.extra_macroexecutor'
+)
+
+ONLY_PYQT4 = (
+    'unittest.loader._FailedTest.taurus.qt.qtgui.qwt5',
+)
 
 def _filter_suite(suite, exclude_pattern, ret=None):
     """removes TestCases from a suite based on regexp matching on the Test id"""
@@ -46,8 +59,20 @@ def _filter_suite(suite, exclude_pattern, ret=None):
         ret = unittest.TestSuite()
     for e in suite:
         if isinstance(e, unittest.TestCase):
+
+            if e.__module__ == 'unittest.case':
+                continue
+
+            if sys.version_info.major > 2 and e.id() in PY3_EXCLUDED:
+                print("Excluded %s" % e.id())
+                continue
+
+            if not PYQT4 and e.id() in ONLY_PYQT4:
+                print("Excluded %s" % e.id())
+                continue
+            
             if re.match(exclude_pattern, e.id()):
-                print "Excluded %s" % e.id()
+                print("Excluded %s" % e.id())
                 continue
             ret.addTest(e)
         else:
@@ -77,7 +102,6 @@ def run(disableLogger=True, exclude_pattern='(?!)'):
 
 
 def main():
-    import sys
     import taurus.test.skip
     import argparse
     from taurus import Release
@@ -99,7 +123,7 @@ def main():
     args = parser.parse_args()
 
     if args.version:
-        print Release.version
+        print(Release.version)
         sys.exit(0)
 
     if args.skip_gui:

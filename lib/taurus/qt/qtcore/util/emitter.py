@@ -28,17 +28,18 @@ emitter.py: This module provides a task scheduler used by TaurusGrid and
     TaurusDevTree widgets
 """
 
-from Queue import Queue, Empty
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+from queue import Queue, Empty
 import traceback
-from functools import partial
-from collections import Iterable
+
+from future.utils import string_types
 
 import taurus
 from taurus.external.qt import Qt
 from taurus.core.util.log import Logger
-from taurus.core.util.singleton import Singleton
-
-from taurus.core.taurusbasetypes import SubscriptionState
 
 
 ###############################################################################
@@ -46,7 +47,7 @@ from taurus.core.taurusbasetypes import SubscriptionState
 
 
 def isString(seq):
-    if isinstance(seq, basestring):
+    if isinstance(seq, string_types):
         return True  # It matches most python str-like classes
     if any(s in str(type(seq)).lower() for s in ('vector', 'array', 'list',)):
         return False
@@ -80,7 +81,7 @@ class MethodModel(object):
 class QEmitter(Qt.QObject):
     """Emitter class providing two signals."""
 
-    doSomething = Qt.pyqtSignal(Iterable)
+    doSomething = Qt.pyqtSignal(list)
     somethingDone = Qt.pyqtSignal()
     newQueue = Qt.pyqtSignal()
 
@@ -144,7 +145,7 @@ class TaurusEmitterThread(Qt.QThread):
     .. code-block:: python
 
         #Applying TaurusEmitterThread to an existing class:
-        from Queue import Queue
+        from queue import Queue
         from functools import partial
 
         def modelSetter(args):
@@ -279,7 +280,7 @@ class TaurusEmitterThread(Qt.QThread):
                 method(*args)
             except:
                 self.log.error('At TaurusEmitterThread._doSomething(%s): \n%s'
-                               % (map(str, args), traceback.format_exc()))
+                               % (list(map(str, args)), traceback.format_exc()))
         self.emitter.somethingDone.emit()
         self._done += 1
         return
@@ -376,8 +377,7 @@ class DelayedSubscriber(Logger):
         """Check all pending subscriptions in the current factory
         """
         attrs = []
-        items = self._factory.getExistingAttributes().items()
-        for name, attr in items:
+        for name, attr in self._factory.getExistingAttributes().items():
             if attr is None:
                 continue
             elif attr.hasListeners() and not attr.isUsingEvents():
@@ -416,7 +416,7 @@ class DelayedSubscriber(Logger):
         Logger.cleanUp(self)
 
 
-class SingletonWorker():
+class SingletonWorker(object):
     """
     SingletonWorker is used to manage TaurusEmitterThread as Singleton objects
 

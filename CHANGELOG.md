@@ -7,6 +7,52 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
+## [4.5.0] - 2019-01-29
+
+This is a special release for meeting the deadline of debian buster
+freeze (debian 10).
+
+### Added
+- Support of Python3 (beta stage, not yet production ready) (#703, #829, #835)
+- Support of other Qt bindings: PyQt4, PyQt5, PySide2, PySide 
+  (beta stage, not yet production ready) (TEP18)
+- (experimental) Entry point for schemes in TaurusManager (#833)
+
+### Removed
+- taurus.qt.qtgui.tree.taurusdevicetree submodule (obsolete, unused)
+- Trend dockwidget in TaurusDevPanel
+- `taurus.qt.qtgui.taurusgui.macrolistener` (now provided by 
+  `sardana.taurus.qt.qtgui.macrolistener`)
+
+### Changed
+- `taurus.qt.qtgui.plot` is now deprecated, but the same Qwt5-based 
+  API is now available in `taurus.qt.qtgui.qwt5`
+- `taurus.qt.qtcore.util.emmiter.QEmitter.doSomething` signal signature
+  changes from `collections.Iterable` to `list`
+- Updated Pypy's Trove classifiers (we are now officially stable!) (#844)
+- Default serialization mode for Tango reverted to `TangoSerial` (in 4.4.0
+  the defaultfor Tango was changed to `Serial`) (#850)
+  
+### Fixed
+- bug when copying tango or evaluation attribute values (#831, #849)
+- bug when adding listener to non-ready Tango device (#792)
+- Various issues with Taurus Forms (#800, #805)
+- problem when displaying TaurusWheelEdit in vertically-limited space (#788)
+- bug when managing subscription event in Tango (#809)
+- Other (#793, #819)
+
+### Deprecated
+- `taurus.qt.qtgui.plot`
+- `QtColorPalette.qvariant()`
+- `TaurusBaseTreeItem.qdisplay()`
+- `taurus.qt.qtdesigner.qtdesigner_prepare_taurus()`
+- The following have been implicitly deprecated since 4.0 (when API1
+ support was dropped) but only now we deprecate them explicitly 
+    - `taurus.external.qt.QtCore.QString` 
+    - `taurus.external.qt.QtCore.QVariant`
+    - `taurus.external.qt.QtCore.from_qvariant` 
+    - `taurus.external.qt.QtCore.to_qvariant` 
+
 ## [4.4.0] - 2018-07-26
 
 ### Deprecated
@@ -356,6 +402,7 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [Unreleased]: https://github.com/taurus-org/taurus/tree/develop
+[4.5.0]: https://github.com/taurus-org/taurus/tree/release-4.5.0
 [4.4.0]: https://github.com/taurus-org/taurus/tree/4.4.0
 [4.3.1]: https://github.com/taurus-org/taurus/tree/4.3.1
 [4.3.0]: https://github.com/taurus-org/taurus/tree/4.3.0

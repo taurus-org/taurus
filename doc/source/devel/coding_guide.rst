@@ -50,9 +50,8 @@ Coding conventions
   - use ``lower_case`` for method names, except in the context of taurus.qt
     where the prevailing convention is ``mixedCase`` due to influence from PyQt
 
-- Code must be python 2.7 compatible, and, if possible, new contributions
-  should also consider being compatible with python3.5 (to prepare for
-  python3 support)
+- Code must be simultaneously compatible with python 2.7 and >=3.5. If required,
+  the future_ module can be used for helping in writing python 2+3 compatible code.
 - Every python module file should contain license information (see template below).
   The preferred license is the LGPL_. If you need/want to use a different one,
   it should be compatible with the LGPL v3+.
@@ -131,9 +130,8 @@ PyQt4, PyQt5 and PySide versions.
        from taurus.external.qt import QtWebKit
        from taurus.external.qt import Qwt5
 
-2. Since Taurus v>=4.0, Qt-based code in Taurus may assume
-   that `PyQt API v2`_ is used. PyQt API 1 code, which was supported by Taurus 3,
-   is no longer guaranteed to work.
+2. Since Taurus v>=4.0, Qt-based code in Taurus assumes
+   that `PyQt API v2`_ is used. PyQt API 1 code is not accepted in taurus.
 
    - Use standard python strings (e.g., use :class:`str` for Qt strings instead of
      :class:`QString`). Code like::
@@ -147,8 +145,7 @@ PyQt4, PyQt5 and PySide versions.
          my_string2 = my_string.strip()
 
 
-   - Do not use :class:`QVariant`. QVariant objects don't exist in
-     PySide or in the new PyQt4 API 2. Code like::
+   - Do not use :class:`QVariant`. Code like::
 
           def setData(self, index, qvalue, role=Qt.Qt.EditRole):
               value = qvalue.toString()  # this assumes qvalue to be a :class:`QVariant`
@@ -175,9 +172,9 @@ PyQt4, PyQt5 and PySide versions.
               else:
                   return None
 
-     For compatibility reasons, :func:`~taurus.external.qt.Qt` defines `QVariant` and
-     `from_qvariant` which is internally used used to write code that supports both
-     API v1 and v2 for QVariant. But new code in Taurus v>=4 may assume v2 only.
+     For backwards-compatibility reasons, `taurus.external.qt.QtCore` defines `QVariant`,
+     `from_qvariant()` and `to_qvariant()`, but they are deprecated and should not be used
+     anymore.
 
 3. Use `new-style signals`_.
    Old-style code like the following::
@@ -198,7 +195,10 @@ PyQt4, PyQt5 and PySide versions.
                self.mySignal.connect(self.bar)
                self.mySignal.emit(123)
 
-4. Use of :class:`taurus.qt.qtgui.application.TaurusApplication` instead of
+4. The `taurus.external.qt.compat` module defines some convenience utilities
+   that help in writing Qt-binding agnostic code
+
+5. Use of :class:`taurus.qt.qtgui.application.TaurusApplication` instead of
    :class:`QApplication` is recommended (it takes care of various
    initialization and exit tasks that are convenient).
 
@@ -208,3 +208,4 @@ PyQt4, PyQt5 and PySide versions.
 .. _LGPL: http://www.gnu.org/licenses/lgpl.html
 .. _`PyQt API v2`: http://pyqt.sourceforge.net/Docs/PyQt4/incompatible_apis.html
 .. _`new-style signals`: http://pyqt.sourceforge.net/Docs/PyQt4/new_style_signals_slots.html
+.. _future: https://python-future.org/

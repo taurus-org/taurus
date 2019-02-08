@@ -23,10 +23,11 @@
 ##
 ###########################################################################
 
-__all__ = ["PanelDescriptionWizard"]
 """
 paneldescriptionwizard.py:
 """
+
+from __future__ import print_function
 
 from taurus.external.qt import Qt
 import sys
@@ -42,6 +43,9 @@ from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.core.util.log import Logger
 import inspect
 import copy
+
+
+__all__ = ["PanelDescriptionWizard"]
 
 
 class ExpertWidgetChooserDlg(Qt.QDialog):
@@ -99,7 +103,7 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
             # We use this because __import__('x.y') returns x instead of y !!
             self.module = sys.modules[modulename]
             self.moduleNameLE.setStyleSheet('QLineEdit {color: green}')
-        except Exception, e:
+        except Exception as e:
             Logger().debug(repr(e))
             self.moduleNameLE.setStyleSheet('QLineEdit {color: red}')
             return
@@ -129,7 +133,7 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
             membername = str(self.membersCB.currentText())
             member = getattr(self.module, membername, None)
             result = {'modulename': self.module.__name__}
-        except Exception, e:
+        except Exception as e:
             Logger().debug('Cannot get member description: %s', repr(e))
             return None
         if inspect.isclass(member):
@@ -221,7 +225,7 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
         Qt.QWizardPage.__init__(self, parent)
         TaurusBaseWidget.__init__(self, 'WidgetPage')
         if extraWidgets:
-            customWidgets, customWidgetScreenshots = zip(*extraWidgets)
+            customWidgets, customWidgetScreenshots = list(zip(*extraWidgets))
             pixmaps = {}
             for k, s in extraWidgets:
                 if s is None:
@@ -304,10 +308,10 @@ class WidgetPage(Qt.QWizardPage, TaurusBaseWidget):
                 raise ValueError
             # set the name now because it might have changed since the
             # PanelDescription was created
-            paneldesc.name = Qt.from_qvariant(self.field('panelname'), str)
+            paneldesc.name = self.field('panelname')
             # allow the wizard to proceed
             return True
-        except Exception, e:
+        except Exception as e:
             Qt.QMessageBox.warning(
                 self, 'Invalid panel', 'The requested panel cannot be created. \nReason:\n%s' % repr(e))
             return False
@@ -406,7 +410,7 @@ class AdvSettingsPage(Qt.QWizardPage):
     def initializePage(self):
         try:
             widget = self.wizard().getPanelDescription().getWidget()
-        except Exception, e:
+        except Exception as e:
             Logger().debug(repr(e))
             widget = None
         # prevent the user from changing the model if it was already set
@@ -417,7 +421,7 @@ class AdvSettingsPage(Qt.QWizardPage):
         try:
             if isinstance(Qt.qApp.SDM, SharedDataManager):
                 sdm = Qt.qApp.SDM
-        except Exception, e:
+        except Exception as e:
             Logger().debug(repr(e))
             sdm = None
         #@todo set selection filter in modelChooser based on the widget's modelclass
@@ -461,7 +465,7 @@ class AdvSettingsPage(Qt.QWizardPage):
 
 class CommTableModel(Qt.QAbstractTableModel):
     NUMCOLS = 3
-    UID, R, W = range(NUMCOLS)
+    UID, R, W = list(range(NUMCOLS))
 
     dataChanged = Qt.pyqtSignal(int, int)
 
@@ -481,25 +485,25 @@ class CommTableModel(Qt.QAbstractTableModel):
     def headerData(self, section, orientation, role=Qt.Qt.DisplayRole):
         if role == Qt.Qt.TextAlignmentRole:
             if orientation == Qt.Qt.Horizontal:
-                return Qt.QVariant(int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter))
-            return Qt.QVariant(int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter))
+                return int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter)
+            return int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
         if role != Qt.Qt.DisplayRole:
-            return Qt.QVariant()
+            return None
         # So this is DisplayRole...
         if orientation == Qt.Qt.Horizontal:
             if section == self.UID:
-                return Qt.QVariant("Data UID")
+                return "Data UID"
             elif section == self.R:
-                return Qt.QVariant("Reader (slot)")
+                return "Reader (slot)"
             elif section == self.W:
-                return Qt.QVariant("Writer (signal)")
-            return Qt.QVariant()
+                return "Writer (signal)"
+            return None
         else:
-            return Qt.QVariant(Qt.QString('%i' % (section + 1)))
+            return str('%i' % (section + 1))
 
     def data(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < self.rowCount()):
-            return Qt.QVariant()
+            return None
         row = index.row()
         column = index.column()
         # Display Role
@@ -510,8 +514,8 @@ class CommTableModel(Qt.QAbstractTableModel):
                     text = '(enter UID)'
                 else:
                     text = '(not registered)'
-            return Qt.QVariant(Qt.QString(text))
-        return Qt.QVariant()
+            return str(text)
+        return None
 
     def flags(self, index):
         return (Qt.Qt.ItemIsEnabled | Qt.Qt.ItemIsEditable | Qt.Qt.ItemIsDragEnabled | Qt.Qt.ItemIsDropEnabled | Qt.Qt.ItemIsSelectable)
@@ -520,7 +524,6 @@ class CommTableModel(Qt.QAbstractTableModel):
         if index.isValid() and (0 <= index.row() < self.rowCount()):
             row = index.row()
             column = index.column()
-            value = Qt.from_qvariant(value, str)
             self.__table[row][column] = value
             self.dataChanged.emit(index, index)
             return True
@@ -541,10 +544,11 @@ class CommTableModel(Qt.QAbstractTableModel):
     def removeRows(self, position, rows=1, parentindex=None):
         if parentindex is None:
             parentindex = Qt.QModelIndex()
+        self.beginResetModel()
         self.beginRemoveRows(parentindex, position, position + rows - 1)
         self.__table = self.__table[:position] + self.__table[position + rows:]
         self.endRemoveRows()
-        self.reset()
+        self.endResetModel()
         return True
 
     @staticmethod
@@ -554,7 +558,7 @@ class CommTableModel(Qt.QAbstractTableModel):
 
 class CommItemDelegate(Qt.QStyledItemDelegate):
     NUMCOLS = 3
-    UID, R, W = range(NUMCOLS)
+    UID, R, W = list(range(NUMCOLS))
 
     def __init__(self, parent=None, widget=None, sdm=None):
         super(CommItemDelegate, self).__init__(parent)
@@ -585,7 +589,7 @@ class CommItemDelegate(Qt.QStyledItemDelegate):
         editor.setEditText('')
 
     def setModelData(self, editor, model, index):
-        model.setData(index, Qt.QVariant(editor.currentText()))
+        model.setData(index, editor.currentText())
 
 
 class PanelDescriptionWizard(Qt.QWizard, TaurusBaseWidget):
@@ -652,7 +656,7 @@ def test():
     form = PanelDescriptionWizard()
 
     def kk(d):
-        print d
+        print(d)
     Qt.qApp.SDM = SharedDataManager(form)
     Qt.qApp.SDM.connectReader('111111', kk)
     Qt.qApp.SDM.connectWriter('222222', form, 'thisisasignalname')
@@ -664,7 +668,7 @@ def test():
 def test2():
     from taurus.qt.qtgui.application import TaurusApplication
     app = TaurusApplication(sys.argv)
-    print ExpertWidgetChooserDlg.getDialog()
+    print(ExpertWidgetChooserDlg.getDialog())
     sys.exit()
 
 
@@ -675,7 +679,7 @@ def main():
     form = Qt.QMainWindow()
 
     def kk(d):
-        print d
+        print(d)
     Qt.qApp.SDM = SharedDataManager(form)
     Qt.qApp.SDM.connectReader('someUID', kk)
     Qt.qApp.SDM.connectWriter('anotherUID', form, 'thisisasignalname')
@@ -688,12 +692,11 @@ def main():
         w = paneldesc.getWidget(sdm=Qt.qApp.SDM)
         form.setCentralWidget(w)
         form.setWindowTitle(paneldesc.name)
-    print Qt.qApp.SDM.info()
+    print(Qt.qApp.SDM.info())
 
     sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
-    import sys
     # test2()
     main()

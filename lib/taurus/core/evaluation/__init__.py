@@ -173,8 +173,9 @@ Some examples of valid evaluation models are:
           This syntax is now deprecated and should not be used. Taurus will
           issue warnings if detected.
 """
+from __future__ import absolute_import
 
-from evalfactory import EvaluationFactory
-from evalattribute import EvaluationAttribute
-from evalauthority import EvaluationAuthority
-from evaldevice import EvaluationDevice
+from .evalfactory import EvaluationFactory
+from .evalattribute import EvaluationAttribute
+from .evalauthority import EvaluationAuthority
+from .evaldevice import EvaluationDevice

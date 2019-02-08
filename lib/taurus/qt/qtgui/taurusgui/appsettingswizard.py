@@ -32,8 +32,9 @@ contents of the GUI. While the user may add/remove more elements at run
 time and those customizations will also be stored, this file defines what a
 user will find when launching the GUI for the first time.
 """
+from __future__ import print_function
 
-__all__ = ["AppSettingsWizard", "ExternalAppEditor"]
+from builtins import str
 
 import os
 import re
@@ -45,13 +46,16 @@ import glob
 from lxml import etree
 
 from taurus import tauruscustomsettings
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 import taurus.qt.qtgui.panel
 import taurus.qt.qtgui.taurusgui.paneldescriptionwizard
 import taurus.qt.qtgui.input
 from taurus.core.tango.tangovalidator import TangoDeviceNameValidator
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.util import ExternalAppAction
+
+
+__all__ = ["AppSettingsWizard", "ExternalAppEditor"]
 
 
 class BooleanWidget(Qt.QWidget):
@@ -230,19 +234,19 @@ class ProjectPage(BasePage):
         self._projectDirBT.clicked.connect(self.onSelectDir)
 
     def onSelectDir(self):
-        dirname = unicode(Qt.QFileDialog.getExistingDirectory(
+        dirname = str(Qt.QFileDialog.getExistingDirectory(
             self, 'Choose the project directory', self._projectDirLE.text()))
         if not dirname:
             return
         self._projectDirLE.setText(dirname)
 
     def validatePage(self):
-        dirname = unicode(self._projectDirLE.text())
+        dirname = str(self._projectDirLE.text())
 
         if not os.path.exists(dirname):
             try:
                 os.makedirs(dirname)
-            except Exception, e:
+            except Exception as e:
                 Qt.QMessageBox.warning(self, 'Error creating project directory',
                                        'Could not create the project directory.\nReason:%s' % repr(
                                            e),
@@ -261,7 +265,7 @@ class ProjectPage(BasePage):
             if option == Qt.QMessageBox.Yes:
                 try:
                     self.wizard().loadXml(fname)
-                except Exception, e:
+                except Exception as e:
                     Qt.QMessageBox.warning(self, 'Error loading project configuration',
                                            'Could not load the existing configuration.\nReason:%s' % repr(
                                                e),
@@ -280,7 +284,7 @@ class ProjectPage(BasePage):
         return True
 
     def _getProjectDir(self):
-        return unicode(self._projectDirLE.text())
+        return str(self._projectDirLE.text())
 
 
 class GeneralSettings(BasePage):
@@ -467,8 +471,10 @@ class CustomLogoPage(BasePage):
             return None
 
     def _selectImage(self):
-        fileName = Qt.QFileDialog.getOpenFileName(self, self.tr(
-            "Open File"), Qt.QDir.homePath(), self.tr("Images (*.png *.xpm *.jpg *.jpeg *.svg)"))
+        fileName, _ = compat.getOpenFileName(
+            self, self.tr("Open File"), Qt.QDir.homePath(),
+            self.tr("Images (*.png *.xpm *.jpg *.jpeg *.svg)")
+        )
         self._customLogoLineEdit.setText(fileName)
         self._changeImage()
 
@@ -576,10 +582,12 @@ class SynopticPage(BasePage):
 
     def _addSynoptic(self):
         pdir = self.wizard().__getitem__('projectDir')
-        fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr(
-            "Open File"), pdir, self.tr("JDW (*.jdw );; All files (*)"))
+        fileNames, _ = compat.getOpenFileNames(
+            self, self.tr("Open File"), pdir,
+            self.tr("JDW (*.jdw );; All files (*)")
+        )
         for fileName in fileNames:
-            fileName = unicode(fileName)
+            fileName = str(fileName)
             if fileName not in self._synoptics:
                 self._synoptics.append(fileName)
         self._refreshSynopticList()
@@ -1000,8 +1008,10 @@ class ExternalAppEditor(Qt.QDialog):
         self.checkData()
 
     def _selectExecFile(self):
-        filePath = Qt.QFileDialog.getOpenFileName(self, self.tr(
-            "Open File"), Qt.QDir.homePath(), self.tr("All files (*)"))
+        filePath, _ = compat.getOpenFileName(
+            self, self.tr("Open File"),
+            Qt.QDir.homePath(), self.tr("All files (*)")
+        )
         if len(filePath):
             self._execFileLineEdit.setText(filePath)
             self._setDefaultText()
@@ -1310,7 +1320,7 @@ class OutroPage(BasePage):
     def validatePage(self):
         try:
             self.createProject()
-        except Exception, e:
+        except Exception as e:
             Qt.QMessageBox.warning(self, 'Error creating project',
                                    'Could not create project files. \nReason:%s' % repr(
                                        e),
@@ -1333,8 +1343,8 @@ class OutroPage(BasePage):
                       datetime.datetime.now().isoformat())
         # copy files
         for i in range(self._substTable.rowCount()):
-            src = unicode(self._substTable.item(i, 0).text())
-            dst = os.path.join(install_dir, unicode(
+            src = str(self._substTable.item(i, 0).text())
+            dst = os.path.join(install_dir, str(
                 self._substTable.item(i, 1).text()))
             if os.path.normpath(src) != os.path.normpath(dst):
                 shutil.copy(src, dst)
@@ -1343,7 +1353,7 @@ class OutroPage(BasePage):
         xmlcfgfilename = os.path.join(install_dir,
                                       self.wizard().getXmlConfigFileName())
         f = open(xmlcfgfilename, 'w')
-        f.write(unicode(self._xml.toPlainText()))
+        f.write(str(self._xml.toPlainText()))
         f.close()
         logfile.write('XML Config file created: "%s"\n' % xmlcfgfilename)
         # write python config file
@@ -1396,17 +1406,17 @@ class OutroPage(BasePage):
         warnings = self.wizard().getProjectWarnings()
         if warnings:
             msg += '\n\nHowever, some fine-tuning may be needed. Please check the details:\n'
-            for short, long in warnings:
-                details += '- %s: %s\n\n' % (short, long)
+            for _short, _long in warnings:
+                details += '- %s: %s\n\n' % (_short, _long)
         logfile.write(msg + details)
         logfile.close()
         dlg = Qt.QMessageBox(Qt.QMessageBox.Information,
                              'Application project created', msg, Qt.QMessageBox.Ok, self)
         dlg.setDetailedText(details)
         dlg.exec_()
-        print 
-        print msg + details
-        print
+        print() 
+        print(msg + details)
+        print()
 
 
 class AppSettingsWizard(Qt.QWizard):
@@ -1487,13 +1497,13 @@ class AppSettingsWizard(Qt.QWizard):
         root = etree.fromstring(xml)
 
         # print self.Pages
-        for pageNumber in range(len(self.Pages.keys())):
+        for pageNumber in range(len(self.Pages)):
             self.page(pageNumber).fromXml(root)
 
     def getXml(self):
         try:
             return self.__getitem__("xml")
-        except Exception, e:
+        except Exception as e:
             return None
 
     def __setitem__(self, name, value):
@@ -1505,7 +1515,7 @@ class AppSettingsWizard(Qt.QWizard):
             if isinstance(p, BasePage):
                 try:
                     return p[name]()
-                except Exception, e:
+                except Exception as e:
                     pass
         return self._item_funcs[name]()
 
@@ -1543,6 +1553,9 @@ class AppSettingsWizard(Qt.QWizard):
         try:
             from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
                 TaurusMacroConfigurationDialog
+            # try to instantiate the dialog (e.g. this fails if using Qt5 with
+            # versions of sardana which do not support it)
+            _ = TaurusMacroConfigurationDialog()
             self.SARDANA_INSTALLED = True
         except:
             self.SARDANA_INSTALLED = False
@@ -1626,11 +1639,11 @@ class AppSettingsWizard(Qt.QWizard):
                     refsrc = os.path.join(os.path.dirname(src), ref)
                     refdst = self.substitutionName(refsrc, mod_dir)
                     if ref != refdst:
-                        short = 'Manual editing needed in "%s"' % dst
-                        long = ('The synoptic file "%s" references a file that '
+                        _short = 'Manual editing needed in "%s"' % dst
+                        _long = ('The synoptic file "%s" references a file that '
                                 'has been copied to the project dir in order to make the project portable. '
                                 'Please edit "%s" and replace "%s" by "%s"') % (dst, dst, ref, refdst)
-                        self._projectWarnings.append((short, long))
+                        self._projectWarnings.append((_short, _long))
 
         # macroserver page
         if self.SARDANA_INSTALLED and self.__getitem__("macroServerName"):

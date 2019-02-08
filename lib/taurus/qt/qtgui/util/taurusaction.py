@@ -25,6 +25,21 @@
 
 """This module is designed to provide a library of taurus Qt actions"""
 
+from __future__ import absolute_import
+
+from builtins import str
+
+import os
+import xml.dom.minidom
+
+from functools import partial
+from future.utils import string_types
+
+from taurus.external.qt import Qt
+from taurus.core.taurushelper import getSchemeFromName
+from taurus.qt.qtcore.configuration import BaseConfigurableClass
+
+
 __all__ = ["ExternalAppAction",
            "TaurusMenu",
            "TaurusAction",
@@ -38,13 +53,6 @@ __all__ = ["ExternalAppAction",
            ]
 
 __docformat__ = 'restructuredtext'
-
-import os
-import xml.dom.minidom
-
-from taurus.external.qt import Qt
-from taurus.core.taurushelper import getSchemeFromName
-from taurus.qt.qtcore.configuration import BaseConfigurableClass
 
 
 class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
@@ -68,7 +76,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         :param icon: (QIcon or any other object that can be passed to QIcon creator) see :class:`Qt.QAction`
         :param parent: (QObject) The parent object
         '''
-        if isinstance(cmdargs, (basestring, Qt.QString)):
+        if isinstance(cmdargs, string_types):
             import shlex
             cmdargs = shlex.split(str(cmdargs))
         self.path = os.path.realpath(cmdargs and cmdargs[0] or '')
@@ -76,7 +84,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
             text = os.path.basename(cmdargs and cmdargs[0] or '')
         if icon is None:
             icon = Qt.QIcon.fromTheme(self.DEFAULT_ICON_NAME)
-        elif isinstance(icon, basestring):
+        elif isinstance(icon, string_types):
             tmp = Qt.QIcon.fromTheme(icon)
             if not tmp.isNull():
                 icon = tmp
@@ -86,7 +94,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         self.interactive = interactive
         self._process = []
         self.setCmdArgs(cmdargs)
-        self.triggered.connect(self.actionTriggered)
+        self.triggered.connect(partial(self.actionTriggered, args=None))
         self.setToolTip("Launches %s (external application)" % text)
         self.registerConfigProperty(self.cmdArgs, self.setCmdArgs, 'cmdArgs')
 
@@ -100,7 +108,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
                         application. It can also be a string containing a
                         command, which will be automatically converted to a list
         '''
-        if isinstance(cmdargs, (basestring, Qt.QString)):
+        if isinstance(cmdargs, string_types):
             import shlex
             cmdargs = shlex.split(str(cmdargs))
         self.__cmdargs = cmdargs
@@ -116,7 +124,7 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
         import subprocess
         try:
             if args is not None:
-                if isinstance(args, (basestring, Qt.QString)):
+                if isinstance(args, string_types):
                     import shlex
                     args = shlex.split(str(args))
                 args = self.cmdArgs() + args
@@ -130,10 +138,10 @@ class ExternalAppAction(Qt.QAction, BaseConfigurableClass):
             else:
                 return False
         except OSError:
-            err = "Error launching %s" % unicode(self.text())
+            err = "Error launching %s" % str(self.text())
             msg = "Cannot launch application:\n" + \
                   " ".join(self.__cmdargs) + \
-                  "\nHint: Check that %s is installed and in the path" % unicode(
+                  "\nHint: Check that %s is installed and in the path" % str(
                       self.text())
             if self.interactive:
                 Qt.QMessageBox.warning(self.parentWidget(), err, msg)
@@ -171,7 +179,7 @@ class TaurusMenu(Qt.QMenu):
         self.buildFromXML(m_node)
 
     def getActionFactory(self):
-        import taurusactionfactory
+        from . import taurusactionfactory
         return taurusactionfactory.ActionFactory()
 
     def buildFromXML(self, m_node):

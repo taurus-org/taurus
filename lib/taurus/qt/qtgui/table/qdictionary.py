@@ -24,25 +24,27 @@
 #############################################################################
 
 """This module provides basic python dictionary/list editor widgets"""
-
-__all__ = ["QDictionaryEditor", "QListEditor"]
-
-__docformat__ = 'restructuredtext'
+from __future__ import print_function
 
 import sys
-import taurus
-import numpy
+from future.utils import string_types
+
 from taurus.core.util.containers import SortedDict
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusBaseContainer, TaurusWidget
 from taurus.qt.qtcore.util.properties import join, djoin
+
+
+__all__ = ["QDictionaryEditor", "QListEditor"]
+
+__docformat__ = 'restructuredtext'
 
 ###############################################################################
 # Methods borrowed from fandango modules
 
 
 def isString(seq):
-    if isinstance(seq, basestring):
+    if isinstance(seq, string_types):
         return True  # It matches most python str-like classes
     if any(s in str(type(seq)).lower() for s in ('vector', 'array', 'list',)):
         return False
@@ -86,8 +88,8 @@ def dict2array(dct):
 
     def expand(d, level):  # ,nrows=nrows,ncols=ncols):
         # self.debug('\texpand(%s(%s),%s)'%(type(d),d,level))
-        items = d.items() if isinstance(d, SortedDict) else sorted(
-            d.items() if hasattr(d, 'items') else d)
+        items = list(d.items()) if isinstance(d, SortedDict) else sorted(
+            list(d.items()) if hasattr(d, 'items') else d)
         for k, v in items:
             zero = data['nrows']
             data[(data['nrows'], level)] = k

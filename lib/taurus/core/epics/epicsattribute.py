@@ -22,23 +22,27 @@
 ##
 #############################################################################
 
-'''
+"""
 Epics module. See __init__.py for more detailed documentation
-'''
-__all__ = ['EpicsAttribute']
+"""
 
+from __future__ import print_function
+from __future__ import absolute_import
 
 import numpy
 from taurus.core.units import Quantity
-
 from taurus.core.taurusbasetypes import (TaurusEventType, TaurusAttrValue,
                                          TaurusTimeVal, AttrQuality, DataType,
                                          DataFormat)
 from taurus.core.taurusattribute import TaurusAttribute
-
 import epics
 from epics.ca import ChannelAccessException
 from epics import dbr
+
+
+__all__ = ['EpicsAttribute']
+
+
 
 # map for epics DBR types to Taurus Types.
 Dbr2TaurusType = {dbr.STRING: DataType.String,
@@ -81,7 +85,7 @@ class EpicsAttribute(TaurusAttribute):
     """
     # TODO: support non-numerical PVs
 
-    def __init__(self, name, parent, storeCallback=None):
+    def __init__(self, name='', parent=None, storeCallback=None):
         self.call__init__(TaurusAttribute, name, parent,
                           storeCallback=storeCallback)
 
@@ -233,12 +237,12 @@ class EpicsAttribute(TaurusAttribute):
 # ------------------------------------------------------------------------------
 
     def factory(self):
-        from epicsfactory import EpicsFactory
+        from .epicsfactory import EpicsFactory
         return EpicsFactory()
 
     @classmethod
     def getNameValidator(cls):
-        from epicsvalidator import EpicsAttributeNameValidator
+        from .epicsvalidator import EpicsAttributeNameValidator
         return EpicsAttributeNameValidator()
 
 
@@ -251,6 +255,6 @@ if __name__ == '__main__':
     b.write(4.)
     s.read()
 
-    print "!$!", s.read(cache=False)
-    print "a,b,s", a.read().rvalue, b.read().rvalue, s.read().rvalue
-    print "DF=", a.getDataFormat(), DataFormat.whatis(a.getDataFormat())
+    print("!$!", s.read(cache=False))
+    print("a,b,s", a.read().rvalue, b.read().rvalue, s.read().rvalue)
+    print("DF=", a.getDataFormat(), DataFormat.whatis(a.getDataFormat()))

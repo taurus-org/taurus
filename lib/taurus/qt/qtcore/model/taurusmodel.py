@@ -25,15 +25,17 @@
 
 """This module provides base taurus tree item and a base tree model"""
 
-__all__ = ["TaurusBaseTreeItem", "TaurusBaseModel", "TaurusBaseProxyModel"]
-
-__docformat__ = 'restructuredtext'
+from builtins import object
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
-from taurus.core.util.log import Logger
+from taurus.core.util.log import Logger, deprecation_decorator
 
 QtQt = Qt.Qt
+
+__all__ = ["TaurusBaseTreeItem", "TaurusBaseModel", "TaurusBaseProxyModel"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusBaseTreeItem(object):
@@ -139,16 +141,9 @@ class TaurusBaseTreeItem(object):
             self._display = self.DisplayFunc(self._itemData)
         return self._display
 
+    @deprecation_decorator(alt='display', rel='4.5')
     def qdisplay(self):
-        """Returns the display QString for this node
-
-        :return: (Qt.QString) the node's display string"""
-        if not hasattr(self, "_qdisplay"):
-            d = self.display()
-            if d is None:
-                return None
-            self._qdisplay = Qt.QString(d)
-        return self._qdisplay
+        return str(self.display())
 
     def mimeData(self, index):
         return self.data(index)
@@ -178,12 +173,6 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
     def __init__(self, parent=None, data=None):
         Qt.QAbstractItemModel.__init__(self, parent)
         Logger.__init__(self)
-        # if qt < 4.6, beginResetModel and endResetModel don't exist. In this
-        # case we set beginResetModel to be an empty function and endResetModel
-        # to be reset.
-        if not hasattr(Qt.QAbstractItemModel, "beginResetModel"):
-            self.beginResetModel = lambda: None
-            self.endResetModel = self.reset
         self._data_src = None
         self._rootItem = None
         self._filters = []
@@ -276,24 +265,16 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
         elif role == QtQt.FontRole:
             ret = self.DftFont
         elif role == QtQt.UserRole:
-            ret = Qt.QVariant(item)
+            ret = item
         return ret
 
     def data(self, index, role=QtQt.DisplayRole):
         ret = self.pyData(index, role)
-        if ret is None:
-            ret = Qt.QVariant()
-        else:
-            ret = Qt.QVariant(ret)
         return ret
 
     def _setData(self, index, qvalue, role=QtQt.EditRole):
         item = index.internalPointer()
-        pyobj = Qt.from_qvariant(qvalue)
-        if pyobj is NotImplemented:
-            self.warning(
-                "Failed attempt to convert a QValue. Maybe it is due to Qt<4.6")
-        item.setData(index, pyobj)
+        item.setData(index, qvalue)
         return True
 
     def flags(self, index):
@@ -325,7 +306,7 @@ class TaurusBaseModel(Qt.QAbstractItemModel, Logger):
             elif role == QtQt.DecorationRole:
                 ret = self.columnIcon(section)
 
-        return Qt.QVariant(ret)
+        return ret
 
     def index(self, row, column, parent=Qt.QModelIndex()):
         if not self.hasIndex(row, column, parent):

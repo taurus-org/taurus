@@ -22,16 +22,42 @@
 # along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
 ##
 #############################################################################
-import numpy
-from time import (time, sleep)
 
+from __future__ import print_function
+from future.utils import with_metaclass
+
+from distutils.version import LooseVersion
+from time import (time, sleep)
+import numpy
+
+import PyTango
 from PyTango import DeviceProxy, AttrWriteType, DevState, AttrQuality
-from PyTango.server import Device, DeviceMeta, attribute, run, command
+from PyTango.server import Device, DeviceMeta, LatestDeviceImpl, attribute, run, command
 
 from threading import Thread
 
 
-class TangoSchemeTest(Device):
+"""
+We should check PyTango version 
+If it lower than 9.2.0 then DeviceMeta is a function and we can not use directly. 
+"""
+
+if LooseVersion(PyTango.__version__)<LooseVersion('9.2.1'):
+
+    class __DeviceMeta(type(LatestDeviceImpl)):
+        __call__ = type.__call__
+        __init__ = type.__init__
+        def __new__(cls, name, this_bases, d):
+            if this_bases is None:
+                this_bases = ()
+            return DeviceMeta(name, this_bases, d)
+    
+    
+else:    
+    __DeviceMeta = DeviceMeta
+
+
+class TangoSchemeTest(with_metaclass(__DeviceMeta, Device)):
     """
     This device server emulates the TangoTest device server for taurus test
     purposes (Tango schema). Only works with PyTango8.
@@ -66,7 +92,6 @@ class TangoSchemeTest(Device):
         alarm = default_ranges["int"]
         warning = default_warnings["int"]
     """
-    __metaclass__ = DeviceMeta
 
     doc = __doc__
 
@@ -495,7 +520,7 @@ class TangoSchemeTest(Device):
                                        AttrQuality.ATTR_VALID)
                 sleep(self.sleeptime)
             except Exception as e:
-                print 'Exception in update loop', e
+                print('Exception in update loop', e)
                 sleep(1)
 
     def init_device(self):

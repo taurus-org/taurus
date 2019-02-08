@@ -25,13 +25,20 @@
 
 """This module provides the set of base classes designed to provide
 configuration features to the classes that inherit from them"""
+from __future__ import print_function
+
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+from future.utils import string_types
 
 __all__ = ["configurableProperty", "BaseConfigurableClass"]
 
 __docformat__ = 'restructuredtext'
 
 
-class configurableProperty:
+class configurableProperty(object):
     '''A dummy class used to handle properties with the configuration API
 
     .. warning:: this class is intended for internal use by the configuration
@@ -47,7 +54,7 @@ class configurableProperty:
 
     def createConfig(self, allowUnpickable=False):
         '''returns value returned by the fget function of this property. the allowUnpickable parameter is ignored'''
-        if isinstance(self.fget, basestring):  # fget is not a method but a method name...
+        if isinstance(self.fget, string_types):  # fget is not a method but a method name...
             result = getattr(self._obj, self.fget)()
         else:
             result = self.fget()
@@ -55,7 +62,7 @@ class configurableProperty:
 
     def applyConfig(self, value, depth=-1):
         '''calls the fset function for this property with the given value. The depth parameter is ignored'''
-        if isinstance(self.fget, basestring):  # fget is not a method but a method name...
+        if isinstance(self.fget, string_types):  # fget is not a method but a method name...
             getattr(self._obj, self.fset)(value)
         else:
             self.fset(value)
@@ -65,7 +72,7 @@ class configurableProperty:
         return self.name
 
 
-class BaseConfigurableClass:
+class BaseConfigurableClass(object):
     '''
     A base class defining the API for configurable objects.
 
@@ -149,7 +156,7 @@ class BaseConfigurableClass:
 
         for k in x['__orderedConfigNames__']:
             if k not in x['__itemConfigurations__']:
-                print 'missing configuration for "%s" in %s' % (k, repr(x))
+                print('missing configuration for "%s" in %s' % (k, repr(x)))
         return True
 
     def createConfig(self, allowUnpickable=False):
@@ -190,7 +197,7 @@ class BaseConfigurableClass:
         # store the configurations for all registered configurable items as
         # well
         itemcfgs = {}
-        for k, v in self.__configurableItems.iteritems():
+        for k, v in self.__configurableItems.items():
             itemcfgs[k] = v.createConfig(allowUnpickable=allowUnpickable)
         configdict["__itemConfigurations__"] = itemcfgs
         configdict["__orderedConfigNames__"] = self.__configurableItemNames
@@ -250,7 +257,7 @@ class BaseConfigurableClass:
         self.__configurableItems = {}
 
     def registerConfigurableItem(self, item, name=None):
-        print "Deprecation WARNING: %s.registerConfigurableItem() has been deprecated. Use registerConfigDelegate() instead" % repr(self)
+        print("Deprecation WARNING: %s.registerConfigurableItem() has been deprecated. Use registerConfigDelegate() instead" % repr(self))
         self._registerConfigurableItem(item, name=name)
 
     def registerConfigDelegate(self, delegate, name=None):
@@ -291,7 +298,7 @@ class BaseConfigurableClass:
 
         .. seealso:: :meth:`unregisterConfigurableItem`, :meth:`registerConfigDelegate`, :meth:`createConfig`
         '''
-        if isinstance(fget, str) or isinstance(fset, str):
+        if isinstance(fget, string_types) or isinstance(fset, string_types):
             import weakref
             obj = weakref.proxy(self)
         else:
@@ -347,7 +354,7 @@ class BaseConfigurableClass:
 
         .. seealso:: :meth:`registerConfigProperty`, :meth:`registerConfigDelegate`
         '''
-        if isinstance(item, basestring):
+        if isinstance(item, string_types):
             name = str(item)
         else:
             name = str(item.objectName())
@@ -402,7 +409,7 @@ class BaseConfigurableClass:
         .. seealso:: :meth:`restoreQConfig`
         '''
         from taurus.external.qt import Qt
-        import cPickle as pickle
+        import pickle
         configdict = self.createConfig(allowUnpickable=False)
         return Qt.QByteArray(pickle.dumps(configdict))
 
@@ -416,7 +423,7 @@ class BaseConfigurableClass:
         '''
         if qstate.isNull():
             return
-        import cPickle as pickle
+        import pickle
         configdict = pickle.loads(qstate.data())
         self.applyConfig(configdict)
 
@@ -427,11 +434,14 @@ class BaseConfigurableClass:
 
         :return: (str) file name used
         """
-        import cPickle as pickle
+        import pickle
         if ofile is None:
-            from taurus.external.qt import Qt
-            ofile = unicode(Qt.QFileDialog.getSaveFileName(
-                self, 'Save Configuration', '%s.pck' % self.__class__.__name__, 'Configuration File (*.pck)'))
+            from taurus.external.qt import compat
+            ofile, _ = compat.getSaveFileName(
+                self, 'Save Configuration',
+                '%s.pck' % self.__class__.__name__,
+                'Configuration File (*.pck)'
+            )
             if not ofile:
                 return
         if not isinstance(ofile, file):
@@ -448,15 +458,16 @@ class BaseConfigurableClass:
 
         :return: (str) file name used
         """
-        import cPickle as pickle
+        import pickle
         if ifile is None:
-            from taurus.external.qt import Qt
-            ifile = unicode(Qt.QFileDialog.getOpenFileName(
-                self, 'Load Configuration', '', 'Configuration File (*.pck)'))
+            from taurus.external.qt import compat
+            ifile, _ = compat.getOpenFileName(
+                self, 'Load Configuration', '', 'Configuration File (*.pck)')
             if not ifile:
                 return
         if not isinstance(ifile, file):
             ifile = open(ifile, 'r')
+
         configdict = pickle.load(ifile)
         self.applyConfig(configdict)
         return ifile.name

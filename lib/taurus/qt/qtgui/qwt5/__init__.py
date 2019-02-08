@@ -23,16 +23,25 @@
 ##
 #############################################################################
 
-print "*" * 77
-print \
-    """
-If you are seeing this, it is because you tried to access qwtplot.py directly.
-All funcionality has been moved to taurusplot.py, taurustrend.py and scales.py
-
-The recommended way of accessing the classes that were in qwtplot.py is by
-importing them from taurus.qt.qtgui.plot
-
-If you were trying to launch a stand-alone Taurusplot or TaurusTrend from a script,
-you should update such script.
 """
-print "*" * 77
+Taurus Widget qwt5 (former `plot`) module
+==========================================
+
+
+This module provides the Qwt5-based widgets previously provided by
+`taurus.qt.qtgui.plot`.
+Note that `PyQwt5 module <http://pyqwt.sourceforge.net/>`_
+only works with Python2 and PyQt4 and is no longer supported,
+so taurus is moving to other modules for plotting (pyqtgraph, silx, ...)
+"""
+
+from .qwtdialog import TaurusPlotConfigDialog
+from .scales import *
+from .taurusplot import *
+from .taurustrend import *
+from .arrayedit import ArrayEditor
+from .taurusarrayedit import TaurusArrayEditor
+from .curvesAppearanceChooserDlg import CurveAppearanceProperties, CurvesAppearanceChooser
+from .curveprops import CurvePropertiesView
+from .monitor import TaurusMonitorTiny
+from .curveStatsDlg import CurveStatsDialog

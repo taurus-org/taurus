@@ -88,12 +88,12 @@ def demo():
             aspect_ratio_widget.addItems(
                 ["Ignore", "Keep", "Keep by expanding"])
             transformation_widget.addItems(["Fast", "Smooth"])
-            halign_widget.addItem("Left", Qt.QVariant(Qt.Qt.AlignLeft))
-            halign_widget.addItem("Center", Qt.QVariant(Qt.Qt.AlignHCenter))
-            halign_widget.addItem("Right", Qt.QVariant(Qt.Qt.AlignRight))
-            valign_widget.addItem("Top", Qt.QVariant(Qt.Qt.AlignTop))
-            valign_widget.addItem("Center", Qt.QVariant(Qt.Qt.AlignVCenter))
-            valign_widget.addItem("Bottom", Qt.QVariant(Qt.Qt.AlignBottom))
+            halign_widget.addItem("Left", Qt.Qt.AlignLeft)
+            halign_widget.addItem("Center", Qt.Qt.AlignHCenter)
+            halign_widget.addItem("Right", Qt.Qt.AlignRight)
+            valign_widget.addItem("Top", Qt.Qt.AlignTop)
+            valign_widget.addItem("Center", Qt.Qt.AlignVCenter)
+            valign_widget.addItem("Bottom", Qt.Qt.AlignBottom)
 
             pixmap_widget.textChanged.connect(self.changePixmap)
             aspect_ratio_widget.currentIndexChanged.connect(self.changeAspectRatio)
@@ -134,9 +134,7 @@ def demo():
 
         def changeAlignment(self, i):
             halign = self.w_halign.itemData(self.w_halign.currentIndex())
-            halign = Qt.from_qvariant(halign, int)
             valign = self.w_valign.itemData(self.w_valign.currentIndex())
-            valign = Qt.from_qvariant(valign, int)
             self.w.alignment = halign | valign
 
     panel = Qt.QWidget()

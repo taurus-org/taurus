@@ -29,11 +29,16 @@ taurusdevicepropertytable.py:
 
 # todo: tango-centric
 
-__all__ = ["TaurusPropTable"]
+from __future__ import print_function
+from future.utils import string_types
+from builtins import str
 
 from taurus.external.qt import Qt, QtCore, QtGui
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.core.taurusdevice import TaurusDevice
+
+
+__all__ = ["TaurusPropTable"]
 
 
 class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
@@ -54,7 +59,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
             self.defineStyle()
             self.db = None
 
-        except Exception, e:
+        except Exception as e:
             self.traceback()
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -147,7 +152,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
             if USE_TABLES:
                 self.setPropertyValue(value, i, 1)
             else:
-                if not isinstance(value, str):  # not something like an string
+                if not isinstance(value, string_types):  # not something like an string
                     # adding new lines in between elements in the list
                     value = '\n'.join(str(v) for v in value)
                 self.setText(str(value), i, 1)
@@ -181,15 +186,22 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         headerItem1.setText(QtGui.QApplication.translate(
             "PLCTabWidget", "Value", None, QtGui.QApplication.UnicodeUTF8))
         self.setHorizontalHeaderItem(1, headerItem1)
-        self.horizontalHeader().setSectionResizeMode(
-            QtGui.QHeaderView.ResizeToContents)  # .Stretch)
+        hh = self.horizontalHeader()
+        if hh.length() > 0:
+            try:
+                hh.setSectionResizeMode(hh.ResizeToContents)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(hh.ResizeToContents)
 
     def updateStyle(self):
         self.resizeRowsToContents()
-        self.horizontalHeader().setSectionResizeMode(
-            QtGui.QHeaderView.ResizeToContents)  # .Stretch)
-        # self.resizeColumnsToContents()
-        pass
+        hh = self.horizontalHeader()
+        if hh.length() > 0:
+            try:
+                hh.setSectionResizeMode(hh.ResizeToContents)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(hh.ResizeToContents)
+            # self.resizeColumnsToContents()
 
     def contextMenuEvent(self, event):
         ''' This function is called when right clicking on qwt plot area. A pop up menu will be
@@ -197,11 +209,11 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         self.info('TaurusPropTable.contextMenuEvent()')
         menu = Qt.QMenu(self)
         configDialogAction = menu.addAction("Add new property")
-        configDialogAction.triggered[()].connect(self.addProperty)
+        configDialogAction.triggered.connect(self.addProperty)
         configDialogAction = menu.addAction("Delete property")
-        configDialogAction.triggered[()].connect(self.deleteProperty)
+        configDialogAction.triggered.connect(self.deleteProperty)
         configDialogAction = menu.addAction("Edit property")
-        configDialogAction.triggered[()].connect(self.editProperty)
+        configDialogAction.triggered.connect(self.editProperty)
         menu.addSeparator()
         menu.exec_(event.globalPos())
         del menu
@@ -229,7 +241,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         text, ok = QtGui.QInputDialog.getText(
             self, 'New Property', 'Property name:')
         if ok:
-            text1 = unicode(text)
+            text1 = str(text)
             new_prop_name = str(text1)
             new_prop_value = '0'
             dict1 = {new_prop_name: [new_prop_value]}
@@ -268,7 +280,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
             new_text, ok = QtGui.QInputDialog.getText(
                 self, 'Rename', 'Write new name of property:')
             if ok:
-                new_text = unicode(new_text)
+                new_text = str(new_text)
                 new_text = str(new_text)
                 list = [prop_name]
                 dict = {new_text: [prop_value]}
@@ -288,7 +300,7 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
                 self.setNewPropertyValue(new_text)
 
     def setNewPropertyValue(self, new_text):
-        new_text = unicode(new_text)
+        new_text = str(new_text)
         new_text = str(new_text)
         values = {self.prop_name2: new_text.replace('\r', '').split('\n')}
         self.db.put_device_property(self.dev_name, values)
@@ -331,9 +343,9 @@ class TaurusPropTable(QtGui.QTableWidget, TaurusBaseWidget):
         ''' This method inserts a new table widget inside the cell
         @deprecated ... use setText() and editProperty() event call instead!!!
         '''
-        if len(value) == 1 and isinstance(value[0], str):
+        if len(value) == 1 and isinstance(value[0], string_types):
             value = value[0]
-        if isinstance(value, str):  # and '\n' in value:
+        if isinstance(value, string_types):  # and '\n' in value:
             value = value.split('\n')
         if False:  # isinstance(value,str):
             item = QtGui.QTableWidgetItem()

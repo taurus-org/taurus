@@ -34,15 +34,16 @@ Created - Anand B Pillai <abpillai@gmail.com>
 Modified - Tiago Coutinho
 """
 
-__all__ = ["Properties"]
-
-__docformat__ = "restructuredtext"
+from builtins import next
+from builtins import object
 
 import sys
-import os
 import re
 import time
 
+__all__ = ["Properties"]
+
+__docformat__ = "restructuredtext"
 
 class Properties(object):
     """ A Python replacement for java.util.Properties """
@@ -170,7 +171,7 @@ class Properties(object):
             # same property
             while line[-1] == '\\':
                 # Read next line
-                nextline = i.next()
+                nextline = next(i)
                 nextline = nextline.strip()
                 lineno += 1
                 # This line will become part of the value
@@ -216,7 +217,7 @@ class Properties(object):
         self._props[key] = value.strip()
 
         # Check if an entry exists in pristine keys
-        if self._keymap.has_key(key):
+        if key in self._keymap:
             oldkey = self._keymap.get(key)
             self._origprops[oldkey] = oldvalue.strip()
         else:
@@ -247,15 +248,15 @@ class Properties(object):
 
         # For the time being only accept file input streams
         if type(stream) is not file:
-            raise TypeError, 'Argument should be a file object!'
+            raise TypeError('Argument should be a file object!')
         # Check for the opened mode
         if stream.mode != 'r':
-            raise ValueError, 'Stream should be opened in read-only mode!'
+            raise ValueError('Stream should be opened in read-only mode!')
 
         try:
             lines = stream.readlines()
             self.__parse(lines)
-        except IOError, e:
+        except IOError as e:
             raise
 
     def getProperty(self, key):
@@ -269,20 +270,20 @@ class Properties(object):
         if type(key) is str and type(value) is str:
             self.processPair(key, value)
         else:
-            raise TypeError, 'both key and value should be strings!'
+            raise TypeError('both key and value should be strings!')
 
     def propertyNames(self):
         """ Return an iterator over all the keys of the property
         dictionary, i.e the names of the properties """
 
-        return self._props.keys()
+        return list(self._props.keys())
 
     def list(self, out=sys.stdout):
         """ Prints a listing of the properties to the
         stream 'out' which defaults to the standard output """
 
         out.write('-- listing properties --\n')
-        for key, value in self._props.items():
+        for key, value in list(self._props.items()):
             out.write(''.join((key, '=', value, '\n')))
 
     def store(self, out, header=""):
@@ -290,7 +291,7 @@ class Properties(object):
         with the optional 'header' """
 
         if out.mode[0] != 'w':
-            raise ValueError, 'Steam should be opened in write mode!'
+            raise ValueError('Steam should be opened in write mode!')
 
         try:
             out.write(''.join(('#', header, '\n')))
@@ -298,11 +299,11 @@ class Properties(object):
             tstamp = time.strftime('%a %b %d %H:%M:%S %Z %Y', time.localtime())
             out.write(''.join(('#', tstamp, '\n')))
             # Write properties from the pristine dictionary
-            for prop, val in self._origprops.items():
+            for prop, val in list(self._origprops.items()):
                 out.write(''.join((prop, '=', self.escape(val), '\n')))
 
             out.close()
-        except IOError, e:
+        except IOError as e:
             raise
 
     def getPropertyDict(self):

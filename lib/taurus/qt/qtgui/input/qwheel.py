@@ -25,9 +25,8 @@
 
 """This module provides an arrow based widget."""
 
-__all__ = ["QWheelEdit"]
-
-__docformat__ = 'restructuredtext'
+from builtins import map
+from builtins import range
 
 import os
 import math
@@ -35,6 +34,12 @@ import numpy
 
 from taurus.external.qt import Qt
 from taurus.core.units import Q_
+
+
+__all__ = ["QWheelEdit"]
+
+__docformat__ = 'restructuredtext'
+
 
 class _ArrowButton(Qt.QPushButton):
     """Private class to be used by QWheelEdit for an arrow button"""
@@ -89,14 +94,14 @@ class _DownArrowButton(_ArrowButton):
         pm = Qt.QPixmapCache.find(_DownArrowButton.ArrowPixmapKey)
         if pm is None:
             pm = Qt.QPixmap(self.ArrowPixmapName)
-            pm = pm.transformed(Qt.QMatrix().rotate(180))
+            pm = pm.transformed(Qt.QTransform().rotate(180))
             Qt.QPixmapCache.insert(_DownArrowButton.ArrowPixmapKey, pm)
         return pm
 
 class _DigitLabel(Qt.QLabel):
     """A private single digit label to be used by QWheelEdit widget"""
 
-    PixmapKeys = map(str, xrange(10)) + ['blank', 'minus', 'point']
+    PixmapKeys = list(map(str, range(10))) + ['blank', 'minus', 'point']
 
     def __init__(self, lbl, parent=None):
         Qt.QLabel.__init__(self, parent)
@@ -223,7 +228,7 @@ class QWheelEdit(Qt.QFrame):
         @return (float) the minimum possible value
         """
         decmax = 0
-        for i in xrange(self.getDecDigitCount()):
+        for i in range(self.getDecDigitCount()):
             decmax += 9 * math.pow(10, -(i + 1))
         return -math.pow(10.0, self.getIntDigitCount()) + 1 - decmax
 
@@ -236,7 +241,7 @@ class QWheelEdit(Qt.QFrame):
         @return (float) the maximum possible value
         """
         decmax = 0
-        for i in xrange(self.getDecDigitCount()):
+        for i in range(self.getDecDigitCount()):
             decmax += 9 * math.pow(10, -(i + 1))
         return math.pow(10.0, self.getIntDigitCount()) - 1 + decmax
 
@@ -247,7 +252,7 @@ class QWheelEdit(Qt.QFrame):
 
         l = self.layout()
         l.setSpacing(0)
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
 
         id = self.getIntDigitCount()
         dd = self.getDecDigitCount()
@@ -270,7 +275,7 @@ class QWheelEdit(Qt.QFrame):
         l.setColumnMinimumWidth(0, _ArrowButton.ButtonSize)
         l.setColumnStretch(0, 1)
 
-        for i in xrange(id):
+        for i in range(id):
             col = i + 1
             d = _DigitLabel('0')
             up = _UpArrowButton(id - i - 1)
@@ -293,7 +298,7 @@ class QWheelEdit(Qt.QFrame):
             self._digitLabels.append(dotLabel)
             l.addWidget(dotLabel, 1, id + 1)
 
-        for i in xrange(id, digits):
+        for i in range(id, digits):
             col = i + 1
             if showDot:
                 col += 1
@@ -325,6 +330,15 @@ class QWheelEdit(Qt.QFrame):
                                 self.getDecDigitCount())
         ed.setVisible(False)
         self._editor = ed
+
+        # set the minimum height for the widget
+        # (otherwise the hints seem to be ignored by the layouts)
+        min_height = max(ed.minimumSizeHint().height(),
+                         signLabel.minimumSizeHint().height())
+        if self.getShowArrowButtons():
+            min_height += 2 * _ArrowButton.ButtonSize
+        self.setMinimumHeight(min_height)
+
         self.clearWarning()
 
     def _clear(self):
@@ -442,7 +456,7 @@ class QWheelEdit(Qt.QFrame):
         if len(v_str) > len(self._digitLabels):
             # do auto adjust
             if '.' in v_str:
-                dc = map(len, v_str.split('.'))
+                dc = list(map(len, v_str.split('.')))
             else:
                 dc = len(v_str), 0
             self._setDigits(*dc)
@@ -767,8 +781,8 @@ class QWheelEdit(Qt.QFrame):
         self.setFocus()
 
     def wheelEvent(self, evt):
-        numDegrees = evt.delta() / 8
-        numSteps = numDegrees / 15
+        numDegrees = evt.delta() // 8
+        numSteps = numDegrees // 15
         #w = Qt.QApplication.focusWidget()
         w = self.focusWidget()
         if not isinstance(w, _DigitLabel):
@@ -864,6 +878,7 @@ class QWheelEdit(Qt.QFrame):
 
 
 def main():
+    import taurus.qt.qtgui.icon  # otherwise the arrows don't show in the demo
     global arrowWidget
 
     def resetAll():

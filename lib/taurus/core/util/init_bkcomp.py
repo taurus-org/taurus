@@ -33,8 +33,8 @@ The json implementation follows the rule:
     #. if python >= 2.6 use standard json from python distribution
     #. otherwise use private implementation distributed with taurus
 """
+from __future__ import absolute_import
 
-__docformat__ = "restructuredtext"
 
 # taurus cannot work properly without the following modules so
 # they are promptly imported here has a facility (also for backward
@@ -61,13 +61,14 @@ from .prop import *
 from .threadpool import *
 from .user import *
 
-import eventfilters
+from . import eventfilters
 
 try:
     from lxml import etree
 except:
     etree = None
 
+__docformat__ = "restructuredtext"
 
 def dictFromSequence(seq):
     """Translates a sequence into a dictionary by converting each to elements of
@@ -77,7 +78,17 @@ def dictFromSequence(seq):
     :return: (dict) dictionary built from the given sequence"""
     def _pairwise(iterable):
         """Utility method used by dictFromSequence"""
-        itnext = iter(iterable).next
+        itnext = iter(iterable).__next__
         while True:
             yield itnext(), itnext()
     return dict(_pairwise(seq))
+
+
+
+
+
+
+
+
+
+

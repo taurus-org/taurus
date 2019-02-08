@@ -29,6 +29,7 @@ curvesAppearanceChooserDlg.py:
     for a QwtPlot-derived widget (like Taurusplot)
 """
 
+from builtins import range
 from taurus.external.qt import Qt, Qwt5
 from datetime import datetime
 from taurus.qt.qtgui.util.ui import UILoadable
@@ -68,7 +69,7 @@ class CurveStatsDialog(Qt.QDialog):
 
         cbs = (self.ui.npointsStatCB, self.ui.minStatCB, self.ui.maxStatCB,
                self.ui.meanStatCB, self.ui.stdStatCB, self.ui.rmsStatCB)
-        self._checkboxToColMap = dict(zip(cbs, xrange(len(self.statColumns))))
+        self._checkboxToColMap = dict(zip(cbs, range(len(self.statColumns))))
 
         self.minPicker = Qwt5.QwtPlotPicker(Qwt5.QwtPlot.xBottom,
                                             Qwt5.QwtPlot.yLeft,
@@ -113,7 +114,7 @@ class CurveStatsDialog(Qt.QDialog):
         refreshAction = Qt.QAction(Qt.QIcon.fromTheme(
             'view-refresh'), "Refresh available curves", self.ui.statsTW)
         refreshAction.setShortcut(Qt.Qt.Key_F5)
-        refreshAction.triggered[()].connect(self.refreshCurves)
+        refreshAction.triggered.connect(self.refreshCurves)
         self.ui.statsTW.addAction(refreshAction)
 
         # connections
@@ -133,7 +134,8 @@ class CurveStatsDialog(Qt.QDialog):
 
     def _timestamptToQDateTime(self, ts):
         dt = datetime.fromtimestamp(ts)
-        return Qt.QDateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond / 1000)
+        return Qt.QDateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute,
+                            dt.second, dt.microsecond // 1000)
 
     def _QDateTimeToTimestamp(self, qdt):
         return qdt.toTime_t() + qdt.time().msec() / 1000.
@@ -233,7 +235,7 @@ class CurveStatsDialog(Qt.QDialog):
         '''returns a list of row numbers corresponding to the selected rows of the table'''
         selected = []
         for rg in self.ui.statsTW.selectedRanges():
-            for row in xrange(rg.topRow(), rg.topRow() + rg.rowCount()):
+            for row in range(rg.topRow(), rg.topRow() + rg.rowCount()):
                 selected.append(row)
         return selected
 
@@ -249,21 +251,21 @@ class CurveStatsDialog(Qt.QDialog):
         xmin, xmax = None, None
         if self.ui.minCB.isChecked():
             if plot.getXIsTime():
-                xmin = self.ui.minDTE.dateTime().toTime_t() + self.ui.minDTE.time().msec() / \
-                    1000.
+                xmin = (self.ui.minDTE.dateTime().toTime_t()
+                        + self.ui.minDTE.time().msec() / 1000.)
             else:
                 xmin = self.ui.minSB.value()
         if self.ui.maxCB.isChecked():
             if plot.getXIsTime():
-                xmax = self.ui.maxDTE.dateTime().toTime_t() + self.ui.maxDTE.time().msec() / \
-                    1000.
+                xmax = (self.ui.maxDTE.dateTime().toTime_t()
+                        + self.ui.maxDTE.time().msec() / 1000.)
             else:
                 xmax = self.ui.maxSB.value()
         limits = xmin, xmax
 
         selectedRows = self.getSelectedRows()
         if len(selectedRows) == 0:
-            selectedRows = range(len(self.curveNames))
+            selectedRows = list(range(len(self.curveNames)))
         selectedCurves = [self.curveNames[i] for i in selectedRows]
         statsdict = plot.getCurveStats(
             limits=limits, curveNames=selectedCurves)

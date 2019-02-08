@@ -29,12 +29,18 @@ qdoublelist.py: Provides a generic dialog containing two list which can move
 items from one to the other
 """
 
-__all__ = ["QDoubleListDlg"]
+from __future__ import print_function
 
-__docformat__ = 'restructuredtext'
+from builtins import str
+from builtins import range
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
+
+
+__all__ = ["QDoubleListDlg"]
+
+__docformat__ = 'restructuredtext'
 
 
 @UILoadable(with_ui='ui')
@@ -101,14 +107,14 @@ class QDoubleListDlg(Qt.QDialog):
 
         :return: (list<str>)
         '''
-        return [unicode(self.ui.list1.item(row).text()) for row in xrange(self.ui.list1.count())]
+        return [str(self.ui.list1.item(row).text()) for row in range(self.ui.list1.count())]
 
     def getAll2(self):
         '''returns a copy the items in the second list
 
         :return: (list<str>)
         '''
-        return [unicode(self.ui.list2.item(row).text()) for row in xrange(self.ui.list2.count())]
+        return [str(self.ui.list2.item(row).text()) for row in range(self.ui.list2.count())]
 
     # note, for the moment we do not make it available in designer because it does not
     # behave well as a widget (only as a dialog) (e.g., it closes if ESC is pressed
@@ -132,9 +138,9 @@ def main():
                          list1=['11', '22'], list2=['123', '33'])
     result = dlg.exec_()
 
-    print "Result", result
-    print "list1", dlg.getAll1()
-    print "list2", dlg.getAll2()
+    print("Result", result)
+    print("list1", dlg.getAll1())
+    print("list2", dlg.getAll2())
 
 
 if __name__ == "__main__":

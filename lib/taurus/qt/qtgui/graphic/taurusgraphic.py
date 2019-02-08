@@ -25,8 +25,37 @@
 """
 taurusgraphic.py:
 """
+from __future__ import print_function
 
 # TODO: Tango-centric
+
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
+
+import re
+import os
+import subprocess
+import traceback
+import collections
+
+from future.utils import string_types
+from queue import Queue
+
+from taurus import Manager
+from taurus.core import AttrQuality, DataType
+from taurus.core.util.containers import CaselessDefaultDict
+from taurus.core.util.log import Logger, deprecation_decorator
+from taurus.core.taurusdevice import TaurusDevice
+from taurus.core.taurusattribute import TaurusAttribute
+from taurus.core.util.enumeration import Enumeration
+from taurus.external.qt import Qt
+from taurus.qt.qtgui.base import TaurusBaseComponent
+from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
+                                  ExternalAppAction, TaurusWidgetFactory)
+
 
 __all__ = ['SynopticSelectionStyle',
            'parseTangoUri',
@@ -54,27 +83,6 @@ __all__ = ['SynopticSelectionStyle',
            ]
 
 __docformat__ = 'restructuredtext'
-
-import re
-import os
-import subprocess
-import traceback
-import operator
-import types
-
-import Queue
-
-from taurus import Manager
-from taurus.core import AttrQuality, DataType
-from taurus.core.util.containers import CaselessDefaultDict
-from taurus.core.util.log import Logger, deprecation_decorator
-from taurus.core.taurusdevice import TaurusDevice
-from taurus.core.taurusattribute import TaurusAttribute
-from taurus.core.util.enumeration import Enumeration
-from taurus.external.qt import Qt
-from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
-                                  ExternalAppAction, TaurusWidgetFactory)
 
 
 SynopticSelectionStyle = Enumeration("SynopticSelectionStyle", [
@@ -140,12 +148,12 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
         p = self.parent()
         while True:
             item = p.getQueue().get(True)
-            if type(item) in types.StringTypes:
+            if type(item) in (str,):
                 if item == "exit":
                     break
                 else:
                     continue
-            if not operator.isSequenceType(item):
+            if not isinstance(item, collections.Sequence):
                 item = (item,)
             # @todo: Unless the call to boundingRect() has a side effect, this line is useless..  probably related to todo in _updateView()
             item_rects = [i.boundingRect() for i in item]
@@ -214,12 +222,12 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 self.debug = self.info = self.warning = self.error = lambda l: self.logger.warning(
                     l)
         except:
-            print 'Unable to initialize TaurusGraphicsSceneLogger: %s' % traceback.format_exc()
+            print('Unable to initialize TaurusGraphicsSceneLogger: %s' % traceback.format_exc())
 
         try:
             if parent and parent.panelClass() is not None:
                 defaultClass = parent.panelClass()
-                if defaultClass and isinstance(defaultClass, str):
+                if defaultClass and isinstance(defaultClass, string_types):
                     self.panel_launcher = self.getClass(defaultClass)
                     if self.panel_launcher is None:
                         self.panel_launcher = ExternalAppAction(
@@ -260,7 +268,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 clName.actionTriggered(clParam if isinstance(
                     clParam, (list, tuple)) else [clParam])
             else:
-                if isinstance(clName, str):
+                if isinstance(clName, string_types):
                     klass = self.getClass(clName)
                     if klass is None:
                         self.warning("%s Class not found!" % clName)
@@ -371,7 +379,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
         if not target.endswith('$'):
             target += '$'
         result = []
-        for k in self._itemnames.keys():
+        for k in list(self._itemnames.keys()):
             if re.match(target.lower(), k.lower()):
                 #self.debug('getItemByName(%s): _itemnames[%s]: %s'%(target,k,self._itemnames[k]))
                 result.extend(self._itemnames[k])
@@ -432,14 +440,15 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     if k:
                         configDialogAction = menu.addAction(k)
                         if action:
-                            configDialogAction.triggered[()].connect(lambda dev=obj_name, act=action: act(dev))
+                            configDialogAction.triggered.connect(
+                                lambda dev=obj_name, act=action: act(dev))
                         else:
                             configDialogAction.setEnabled(False)
                         last_was_separator = False
                     elif not last_was_separator:
                         menu.addSeparator()
                         last_was_separator = True
-                except Exception, e:
+                except Exception as e:
                     self.warning('Unable to add Menu Action: %s:%s' % (k, e))
                 return last_was_separator
             if (mouseEvent.button() == Qt.Qt.RightButton):
@@ -575,7 +584,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                 if item not in self._selectedItems:
                     self._selectedItems.append(item)
                 retval = True
-            except Exception, e:
+            except Exception as e:
                 self.warning('selectGraphicsItem(%s) failed! %s' %
                              (getattr(item, '_name', item), str(e)))
                 self.warning(traceback.format_exc())
@@ -683,12 +692,12 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
                     SelectionMark = picture
                     SelectionMark.setRect(0, 0, w, h)
                     SelectionMark.hide()
-                elif operator.isCallable(picture):
+                elif hasattr(picture, '__call__'):
                     SelectionMark = picture()
                 else:
                     if isinstance(picture, Qt.QPixmap):
                         pixmap = picture
-                    elif isinstance(picture, basestring) or isinstance(picture, Qt.QString):
+                    elif isinstance(picture, string_types):
                         picture = str(picture)
                         pixmap = Qt.QPixmap(os.path.realpath(picture))
                     SelectionMark = Qt.QGraphicsPixmapItem()
@@ -829,7 +838,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
     def start(self):
         if self.updateThread:
             return
-        self.updateQueue = Queue.Queue()
+        self.updateQueue = Queue()
         self.updateThread = TaurusGraphicsUpdateThread(self)
         self.updateThread.start()  # Qt.QThread.HighPriority)
 
@@ -983,7 +992,7 @@ class QSpline(Qt.QGraphicsPathItem):
             path.lineTo(cp[1])
         else:
             path.moveTo(cp[0])
-            for i in xrange(1, nb_points - 1, 3):
+            for i in range(1, nb_points - 1, 3):
                 p1 = cp[i + 0]
                 p2 = cp[i + 1]
                 end = cp[i + 2]
@@ -1272,7 +1281,9 @@ class TaurusSplineStateItem(QSpline, TaurusGraphicsStateItem):
 class TaurusRoundRectItem(Qt.QGraphicsPathItem):
 
     def __init__(self, name=None, parent=None, scene=None):
-        Qt.QGraphicsPathItem.__init__(self, parent, scene)
+        Qt.QGraphicsPathItem.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
         self.__rect = None
         self.setCornerWidth(0, 0)
 
@@ -1436,7 +1447,7 @@ TYPE_TO_GRAPHICS = {
 }
 
 
-class TaurusBaseGraphicsFactory:
+class TaurusBaseGraphicsFactory(object):
 
     def __init__(self):
         pass

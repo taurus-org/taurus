@@ -25,9 +25,7 @@
 
 """This module defines the TangoDevice object"""
 
-__all__ = ["TangoDevice"]
-
-__docformat__ = "restructuredtext"
+from builtins import object
 
 import time
 from PyTango import (DeviceProxy, DevFailed, LockerInfo, DevState)
@@ -38,14 +36,20 @@ from taurus.core.taurusbasetypes import (TaurusDevState, TaurusLockInfo,
 from taurus.core.util.log import taurus4_deprecation
 
 
-class _TangoInfo(object):
+__all__ = ["TangoDevice"]
 
-    def __init__(self):
-        self.dev_class = self.dev_type = 'TangoDevice'
-        self.doc_url = 'http://www.esrf.fr/computing/cs/tango/tango_doc/ds_doc/'
-        self.server_host = 'Unknown'
-        self.server_id = 'Unknown'
-        self.server_version = 1
+__docformat__ = "restructuredtext"
+
+
+class _TangoInfo(object):
+    pass
+
+def __init__(self):
+    self.dev_class = self.dev_type = 'TangoDevice'
+    self.doc_url = 'http://www.esrf.fr/computing/cs/tango/tango_doc/ds_doc/'
+    self.server_host = 'Unknown'
+    self.server_id = 'Unknown'
+    self.server_version = 1
 
 
 class TangoDevice(TaurusDevice):
@@ -58,7 +62,7 @@ class TangoDevice(TaurusDevice):
     _scheme = 'tango'
     _description = "A Tango Device"
 
-    def __init__(self, name, **kw):
+    def __init__(self, name='', **kw):
         """Object initialization."""
         self.call__init__(TaurusDevice, name, **kw)
         self._deviceObj = self._createHWObject()
@@ -168,9 +172,11 @@ class TangoDevice(TaurusDevice):
             rvalue of the returned TangoAttributeValue is now a member of
             TaurusDevState instead of TaurusSWDevState
         """
+        if not cache:
+            self.warning('Ignoring argument `cache=False`to getValueObj()')
         from taurus.core.tango.tangoattribute import TangoAttrValue
         ret = TangoAttrValue()
-        ret.rvalue = self.state(cache)
+        ret.rvalue = self.state
         return ret
 
     def getDisplayDescrObj(self, cache=True):
@@ -201,8 +207,8 @@ class TangoDevice(TaurusDevice):
     def _createHWObject(self):
         try:
             return DeviceProxy(self.getFullName())
-        except DevFailed, e:
-            self.warning('Could not create HW object: %s' % (e[0].desc))
+        except DevFailed as e:
+            self.warning('Could not create HW object: %s' % (e.args[0].desc))
             self.traceback()
 
     @taurus4_deprecation(alt="getDeviceProxy()")
@@ -281,7 +287,12 @@ class TangoDevice(TaurusDevice):
         if weWereListening:
             # We were listening already, so we must fake an event to the new
             # subscribed listener with the current value
-            evt_value = self.__decode(self.stateObj.read())
+            try:
+                evt_value = self.__decode(self.stateObj.read())
+            except:
+                # the value may not be available (e.g. if device is not ready)
+                self.debug('Cannot read state')
+                return ret
             listeners = hasattr(listener, '__iter__') and listener or [
                 listener]
             self.fireEvent(TaurusEventType.Change, evt_value, listeners)
@@ -335,7 +346,7 @@ class TangoDevice(TaurusDevice):
     def __pollAsynch(self, attrs):
         ts = time.time()
         try:
-            req_id = self.read_attributes_asynch(attrs.keys())
+            req_id = self.read_attributes_asynch(list(attrs.keys()))
         except DevFailed as e:
             return False, e, ts
         return True, req_id, ts
@@ -363,7 +374,7 @@ class TangoDevice(TaurusDevice):
         error = False
         ts = time.time()
         try:
-            result = self.read_attributes(attrs.keys())
+            result = self.read_attributes(list(attrs.keys()))
         except DevFailed as e:
             error = True
             result = e

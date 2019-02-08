@@ -26,10 +26,12 @@
 """
 Extension of :mod:`guiqwt.plot`
 """
-__all__ = ["TaurusCurveDialog", "TaurusTrendDialog", "TaurusImageDialog"]
+from builtins import next
+from builtins import str
 
 import copy
 
+from future.utils import string_types
 from guiqwt.plot import ImageDialog, CurveDialog
 
 import taurus.core
@@ -42,6 +44,9 @@ from taurus.qt.qtgui.extra_guiqwt.builder import make
 from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendParam, TaurusTrendItem
 
 
+__all__ = ["TaurusCurveDialog", "TaurusTrendDialog", "TaurusImageDialog"]
+
+
 class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
     '''A taurus dialog for showing 1D data.
     It behaves as a regular :class:`guiqwt.plot.CurveDialog` but it also offers
@@ -51,7 +56,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
     .. seealso:: :class:`TaurusCurveWidget`
     '''
     _modifiableByUser = True
-    modelChanged = Qt.pyqtSignal([], ['QStringList'], [str])
+    modelChanged = Qt.pyqtSignal([], ['QStringList'], ['QString'])
 
     def __init__(self, parent=None, designMode=False, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
@@ -82,7 +87,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
 
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
-        if isinstance(modelNames, (basestring, Qt.QString)):
+        if isinstance(modelNames, string_types):
             modelNames = str(modelNames).replace(',', ' ')
             modelNames = modelNames.split()
         return modelNames
@@ -152,7 +157,7 @@ class TaurusCurveDialog(CurveDialog, TaurusBaseWidget):
             else:
                 self.warning('Invalid model "%s" (Skipping)' % mx_my)
             # cycle styles
-            style = self.style.next()
+            style = next(self.style)
             color = style[0]
             linestyle = style[1:]
             # add the item
@@ -198,7 +203,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
     '''
     _modifiableByUser = True
 
-    modelChanged = Qt.pyqtSignal([], ['QStringList'], [str])
+    modelChanged = Qt.pyqtSignal([], ['QStringList'], ['QString'])
 
     def __init__(self, parent=None, designMode=False, taurusparam=None, toolbar=True, **kwargs):
         '''see :class:`guiqwt.plot.CurveDialog` for other valid initialization parameters'''
@@ -237,7 +242,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
 
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
-        if isinstance(modelNames, (basestring, Qt.QString)):
+        if isinstance(modelNames, string_types):
             modelNames = str(modelNames).replace(',', ' ')
             modelNames = modelNames.split()
         return modelNames
@@ -289,7 +294,7 @@ class TaurusTrendDialog(CurveDialog, TaurusBaseWidget):
         # create and attach new TaurusCurveItems
         for m in modelNames:
             # cycle styles
-            style = self.style.next()
+            style = next(self.style)
             # add the item
             item = make.ttrend(m, color=style[0], linestyle=style[
                                1:], linewidth=2, taurusparam=copy.deepcopy(self.defaultTaurusparam))

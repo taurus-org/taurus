@@ -46,10 +46,12 @@ Usage::
   consttype.__del__()     # Remove all attributes
 """
 
+from builtins import object
+
 __docformat__ = "restructuredtext"
 
 
-class _consttype:
+class _consttype(object):
 
     class _ConstTypeError(TypeError):
         pass
@@ -60,8 +62,8 @@ class _consttype:
     def __setattr__(self, name, value):
         v = self.__dict__.get(name, value)
         if type(v) is not type(value):
-            raise self._ConstTypeError, "Can't rebind %s to %s" % (
-                type(v), type(value))
+            raise self._ConstTypeError("Can't rebind %s to %s" % (
+                type(v), type(value)))
         self.__dict__[name] = value
 
     def __del__(self):

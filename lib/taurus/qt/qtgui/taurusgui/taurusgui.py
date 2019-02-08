@@ -25,22 +25,19 @@
 
 """This package provides the TaurusGui class"""
 
-__all__ = ["DockWidgetPanel", "TaurusGui"]
-
-__docformat__ = 'restructuredtext'
-
-
+from builtins import str
 import os
 import sys
 import copy
 import weakref
 import inspect
 
+from future.utils import string_types
 from lxml import etree
 
 import taurus
 from taurus import tauruscustomsettings
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtgui.util import TaurusWidgetFactory
@@ -53,6 +50,11 @@ from taurus.qt.qtgui.taurusgui.appsettingswizard import ExternalAppEditor
 from taurus.qt.qtgui.panel import QDoubleListDlg
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.taurusgui.utils import ExternalAppAction
+
+
+__all__ = ["DockWidgetPanel", "TaurusGui"]
+
+__docformat__ = 'restructuredtext'
 
 
 @UILoadable(with_ui='ui')
@@ -91,7 +93,7 @@ class AssociationDialog(Qt.QDialog):
         self.onInstrumentChanged(self.ui.instrumentCB.currentText())
 
     def onInstrumentChanged(self, instrumentname):
-        instrumentname = unicode(instrumentname)
+        instrumentname = str(instrumentname)
         panelname = self.associations.get(instrumentname)
         if panelname is None:
             self.ui.panelCB.setCurrentIndex(0)
@@ -104,10 +106,10 @@ class AssociationDialog(Qt.QDialog):
         role = self.ui.buttonBox.buttonRole(button)
         if role in (Qt.QDialogButtonBox.AcceptRole, Qt.QDialogButtonBox.ApplyRole):
             if self.ui.panelCB.currentIndex() > 0:
-                panelname = unicode(self.ui.panelCB.currentText())
+                panelname = str(self.ui.panelCB.currentText())
             else:
                 panelname = None
-            instrumentname = unicode(self.ui.instrumentCB.currentText())
+            instrumentname = str(self.ui.instrumentCB.currentText())
             self.associations[instrumentname] = panelname
             self.parent().setInstrumentAssociation(instrumentname, panelname)
 
@@ -128,7 +130,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
         self.setWidget(widget)
         # self._widget = self.widget()  #keep a pointer that may change if the
         # widget changes
-        name = unicode(name)
+        name = str(name)
         self.setWindowTitle(name)
         self.setObjectName(name)
         self._custom = False
@@ -162,7 +164,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
                     module = __import__(modulename, fromlist=[''])
                     klass = getattr(module, classname)
                     w = klass()
-                except Exception, e:
+                except Exception as e:
                     raise RuntimeError(
                         'Cannot create widget from classname "%s". Reason: %s' % (classname, repr(e)))
             # set customwidgetmap if necessary
@@ -191,7 +193,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
                 'widgetClassName'), modulename=configdict.get('widgetModuleName', None))
             if isinstance(self.widget(), BaseConfigurableClass):
                 self.widget().applyConfig(configdict['widget'])
-        except Exception, e:
+        except Exception as e:
             self.info(
                 'Failed to set the widget for this panel. Reason: %s' % repr(e))
             self.traceback(self.Debug)
@@ -272,10 +274,10 @@ class TaurusGui(TaurusMainWindow):
 
     '''
 
-    SelectedInstrument = Qt.pyqtSignal(str)
-    doorNameChanged = Qt.pyqtSignal(str)
-    macroserverNameChanged = Qt.pyqtSignal(str)
-    newShortMessage = Qt.pyqtSignal(str)
+    SelectedInstrument = Qt.pyqtSignal('QString')
+    doorNameChanged = Qt.pyqtSignal('QString')
+    macroserverNameChanged = Qt.pyqtSignal('QString')
+    newShortMessage = Qt.pyqtSignal('QString')
 
     IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
 
@@ -500,7 +502,7 @@ class TaurusGui(TaurusMainWindow):
                      removed
                      If None given, the user will be prompted
         '''
-        apps = self.__external_app.keys() + self.__permanent_ext_apps
+        apps = list(self.__external_app.keys()) + self.__permanent_ext_apps
         if name is None:
             items = sorted(apps)
             msg1 = "Remove External application"
@@ -510,13 +512,13 @@ class TaurusGui(TaurusMainWindow):
                                                False)
             if not ok:
                 return
-        name = unicode(name)
+        name = str(name)
         if name not in apps:
             msg = ('Cannot remove the external application "%s"'
                    ' (not found)' % name)
             self.debug(msg)
             return
-        if name in self.__external_app.keys():
+        if name in list(self.__external_app.keys()):
             self.__external_app.pop(name)
         else:
             self.__permanent_ext_apps.remove(name)
@@ -570,12 +572,12 @@ class TaurusGui(TaurusMainWindow):
         '''
         if name is None:
             items = sorted(
-                [n for n, p in self.__panels.iteritems() if p.isCustom()])
+                [n for n, p in self.__panels.items() if p.isCustom()])
             name, ok = Qt.QInputDialog.getItem(self, "Remove Panel",
                                                "Panel to be removed (only custom panels can be removed).\n Important: you may want to save the perspective afterwards,\n and maybe remove the panel from other perspectives as well", items, 0, False)
             if not ok:
                 return
-        name = unicode(name)
+        name = str(name)
         if name not in self.__panels:
             self.debug('Cannot remove panel "%s" (not found)' % name)
             return
@@ -626,7 +628,7 @@ class TaurusGui(TaurusMainWindow):
                 'Deprecation warning: please note that the "area" argument is deprecated. See TaurusGui.createPanel doc')
             floating = not(floating)
 
-        name = unicode(name)
+        name = str(name)
         if name in self.__panels:
             self.info('Panel with name "%s" already exists. Reusing.' % name)
             return self.__panels[name]
@@ -636,7 +638,7 @@ class TaurusGui(TaurusMainWindow):
         # we will only place panels in this area
         self.addDockWidget(Qt.Qt.TopDockWidgetArea, panel)
         if len(self.__panels) != 0:
-            self.tabifyDockWidget(self.__panels.values()[-1], panel)
+            self.tabifyDockWidget(list(self.__panels.values())[-1], panel)
 
         panel.setFloating(floating)
 
@@ -674,14 +676,14 @@ class TaurusGui(TaurusMainWindow):
 
         :return: (DockWidgetPanel)
         '''
-        return self.__panels[unicode(name)]
+        return self.__panels[str(name)]
 
     def getPanelNames(self):
         '''returns the names of existing panels
 
         :return: (list<str>)
         '''
-        return copy.deepcopy(self.__panels.keys())
+        return copy.deepcopy(list(self.__panels.keys()))
 
     def _setPermanentExternalApps(self, permExternalApps):
         '''creates empty panels for restoring custom panels.
@@ -717,7 +719,7 @@ class TaurusGui(TaurusMainWindow):
 
         :return: (list<str>)
         '''
-        return [n for n, p in self.__panels.iteritems() if (p.isCustom() and p.isPermanent())]
+        return [n for n, p in self.__panels.items() if (p.isCustom() and p.isPermanent())]
 
     def updatePermanentCustomPanels(self, showAlways=True):
         '''
@@ -729,7 +731,7 @@ class TaurusGui(TaurusMainWindow):
         # check if there are some newly created panels that may be made
         # permanent
         perm = self._getPermanentCustomPanels()
-        temp = [n for n, p in self.__panels.iteritems() if (
+        temp = [n for n, p in self.__panels.items() if (
             p.isCustom() and not p.isPermanent())]
         if len(temp) > 0 or showAlways:
             dlg = QDoubleListDlg(winTitle='Stored panels',
@@ -765,7 +767,7 @@ class TaurusGui(TaurusMainWindow):
                                  mainLabel=msg,
                                  label1='Temporary (to be discarded)',
                                  label2='Permanent (to be stored)',
-                                 list1=self.__external_app.keys(),
+                                 list1=list(self.__external_app.keys()),
                                  list2=self.__permanent_ext_apps)
             result = dlg.exec_()
             if result == Qt.QDialog.Accepted:
@@ -820,7 +822,7 @@ class TaurusGui(TaurusMainWindow):
             synoptic = TaurusJDrawSynopticsView()
             synoptic.setModel(jdwFileName)
             self.__synoptics.append(synoptic)
-        except Exception, e:
+        except Exception as e:
             # print repr(e)
             msg = 'Error loading synoptic file "%s".\nSynoptic won\'t be available' % jdwFileName
             self.error(msg)
@@ -879,8 +881,8 @@ class TaurusGui(TaurusMainWindow):
             ms = taurus.Device(macroservername)
             instruments = ms.getElementsOfType('Instrument')
             if instruments is None:
-                raise
-        except Exception, e:
+                raise Exception()
+        except Exception as e:
             msg = 'Could not fetch Instrument list from "%s"' % macroservername
             self.error(msg)
             result = Qt.QMessageBox.critical(self, 'Initialization error', '%s\n\n%s' % (
@@ -990,7 +992,7 @@ class TaurusGui(TaurusMainWindow):
             else:  # if confname is not a dir name, we assume it is a module name in the python path
                 conf = self._importConfiguration(confname)
                 self._confDirectory = os.path.dirname(conf.__file__)
-        except Exception, e:
+        except Exception:
             import traceback
             msg = 'Error loading configuration: %s' % traceback.format_exc()  # repr(e)
             self.error(msg)
@@ -1016,7 +1018,7 @@ class TaurusGui(TaurusMainWindow):
                 xmlstring = xmlFile.read()
                 xmlFile.close()
                 xmlroot = etree.fromstring(xmlstring)
-            except Exception, e:
+            except Exception as e:
                 msg = 'Error reading the XML file: "%s"' % xmlfname
                 self.error(msg)
                 self.traceback(level=taurus.Info)
@@ -1100,7 +1102,7 @@ class TaurusGui(TaurusMainWindow):
             xmlroot, "MACRO_PANELS", True))
         # macro infrastructure will only be created if MACROSERVER_NAME is set
         if MACRO_PANELS and MACROSERVER_NAME is not None:
-            from taurus.qt.qtgui.taurusgui import MacroBroker
+            from sardana.taurus.qt.qtgui.macrolistener import MacroBroker
             self.__macroBroker = MacroBroker(self)
         if MACROSERVER_NAME:
             self.macroserverNameChanged.emit(MACROSERVER_NAME)
@@ -1119,7 +1121,7 @@ class TaurusGui(TaurusMainWindow):
 
         # Synoptics
         SYNOPTIC = getattr(conf, 'SYNOPTIC', None)
-        if isinstance(SYNOPTIC, basestring):  # old config file style
+        if isinstance(SYNOPTIC, string_types):  # old config file style
             self.warning(
                 'Deprecated usage of SYNOPTIC keyword (now it expects a list of paths). Please update your configuration file to: "SYNOPTIC=[\'%s\']".' % SYNOPTIC)
             SYNOPTIC = [SYNOPTIC]
@@ -1191,7 +1193,7 @@ class TaurusGui(TaurusMainWindow):
                 # create a panel
                 self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
                                  instrumentkey=instrumentkey, permanent=True)
-            except Exception, e:
+            except Exception as e:
                 msg = 'Cannot create panel %s' % getattr(
                     p, 'name', '__Unknown__')
                 self.error(msg)
@@ -1233,7 +1235,7 @@ class TaurusGui(TaurusMainWindow):
                 if isinstance(w, BaseConfigurableClass):
                     self.registerConfigDelegate(w, d.name)
 
-            except Exception, e:
+            except Exception as e:
                 msg = 'Cannot add toolbar %s' % getattr(
                     d, 'name', '__Unknown__')
                 self.error(msg)
@@ -1279,7 +1281,7 @@ class TaurusGui(TaurusMainWindow):
                 # register the toolbar as delegate if it supports it
                 if isinstance(w, BaseConfigurableClass):
                     self.registerConfigDelegate(w, d.name)
-            except Exception, e:
+            except Exception as e:
                 msg = 'Cannot add applet %s' % getattr(
                     d, 'name', '__Unknown__')
                 self.error(msg)
@@ -1355,12 +1357,12 @@ class TaurusGui(TaurusMainWindow):
 
     def hideAllPanels(self):
         '''hides all current panels'''
-        for panel in self.__panels.itervalues():
+        for panel in self.__panels.values():
             panel.hide()
 
     def showAllPanels(self):
         '''shows all current panels'''
-        for panel in self.__panels.itervalues():
+        for panel in self.__panels.values():
             panel.show()
 
     def onShowAssociationDialog(self):
@@ -1391,7 +1393,7 @@ class TaurusGui(TaurusMainWindow):
                           panel or None to remove the association
                           for this instrument.
         '''
-        instrumentname = unicode(instrumentname)
+        instrumentname = str(instrumentname)
         # remove a previous association if it exists
         oldpanelname = self.__instrumentToPanelMap.get(instrumentname, None)
         self.__panelToInstrumentMap.pop(oldpanelname, None)
@@ -1426,12 +1428,12 @@ class TaurusGui(TaurusMainWindow):
         else:
             self.__instrumentToPanelMap.update(copy.deepcopy(associationsdict))
         self.__panelToInstrumentMap = {}
-        for k, v in self.__instrumentToPanelMap.iteritems():
+        for k, v in self.__instrumentToPanelMap.items():
             self.__panelToInstrumentMap[v] = k
 
     def _onPanelVisibilityChanged(self, visible):
         if visible:
-            panelname = unicode(self.sender().objectName())
+            panelname = str(self.sender().objectName())
             instrumentname = self.__panelToInstrumentMap.get(panelname)
             if instrumentname is not None:
                 self.SelectedInstrument.emit(instrumentname)
@@ -1442,7 +1444,7 @@ class TaurusGui(TaurusMainWindow):
 
         :param instrumentname: (str) The name that identifies the instrument.
         '''
-        instrumentname = unicode(instrumentname)
+        instrumentname = str(instrumentname)
         panelname = self.getInstrumentAssociation(instrumentname)
         self.setFocusToPanel(panelname)
 
@@ -1452,7 +1454,7 @@ class TaurusGui(TaurusMainWindow):
         :param panelname: (str) The name that identifies the panel.
                                This name must be unique within the panels in the GUI.
         '''
-        panelname = unicode(panelname)
+        panelname = str(panelname)
         try:
             panel = self.__panels[panelname]
             panel.show()
@@ -1515,7 +1517,7 @@ class TaurusGui(TaurusMainWindow):
                 f = open(self._xmlConfigFileName, 'r')
                 xmlroot = etree.fromstring(f.read())
                 f.close()
-            except Exception, e:
+            except Exception as e:
                 self.error('Cannot parse file "%s": %s',
                            self._xmlConfigFileName, str(e))
                 return
@@ -1530,7 +1532,7 @@ class TaurusGui(TaurusMainWindow):
         dlg = QDoubleListDlg(winTitle='Export Panels to XML',
                              mainLabel='Select which of the custom panels you want to export as xml configuration',
                              label1='Not Exported', label2='Exported',
-                             list1=[n for n, p in self.__panels.iteritems() if p.isCustom()], list2=[])
+                             list1=[n for n, p in self.__panels.items() if p.isCustom()], list2=[])
         result = dlg.exec_()
         if result != Qt.QDialog.Accepted:
             return
@@ -1550,8 +1552,10 @@ class TaurusGui(TaurusMainWindow):
         # write to file
         while True:
             if fname is None:
-                fname = Qt.QFileDialog.getSaveFileName(
-                    self, "Open File", fname or self._confDirectory, self.tr("XML files (*.xml)"))
+                fname, _ = compat.getSaveFileName(
+                    self, "Open File", self._confDirectory,
+                    self.tr("XML files (*.xml)")
+                )
                 if not fname:
                     return
             fname = str(fname)
@@ -1570,7 +1574,7 @@ class TaurusGui(TaurusMainWindow):
                 f.write(xml)
                 f.close()
                 break
-            except Exception, e:
+            except Exception as e:
                 msg = 'Cannot write to %s: %s' % (fname, str(e))
                 self.error(msg)
                 Qt.QMessageBox.warning(

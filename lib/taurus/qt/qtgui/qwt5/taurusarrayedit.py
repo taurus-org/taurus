@@ -24,13 +24,14 @@
 #############################################################################
 
 
-from taurus.external.qt import Qt
+from __future__ import absolute_import
+from taurus.external.qt import Qt, compat
 import taurus
 import numpy
 
 from taurus.qt.qtgui.container import TaurusWidget
-from arrayedit import ArrayEditor
-
+from .arrayedit import ArrayEditor
+from functools import partial
 
 class TaurusArrayEditor(TaurusWidget):
 
@@ -56,10 +57,10 @@ class TaurusArrayEditor(TaurusWidget):
         layout.addWidget(self.fromAttrBT, 1, 2)
         layout.addWidget(self.toAttrBT, 1, 3)
 
-        self.fromFileBT.clicked[()].connect(self.onFromFile)
-        self.toFileBT.clicked[()].connect(self.onToFile)
-        self.fromAttrBT.clicked[()].connect(self.onFromAttr)
-        self.toAttrBT.clicked[()].connect(self.onToAttr)
+        self.fromFileBT.clicked.connect(self._onFromFile)
+        self.toFileBT.clicked.connect(self.onToFile)
+        self.fromAttrBT.clicked.connect(partial(self.onFromAttr, quiet=False))
+        self.toAttrBT.clicked.connect(partial(self.onToAttr, quiet=False))
 
     def arrayEditor(self):
         return self._arrayEditor
@@ -92,6 +93,10 @@ class TaurusArrayEditor(TaurusWidget):
 
         return ok
 
+    def _onFromFile(self):
+        """dummy, just to be used as an unambiguous slot"""
+        self.onFromFile()
+
     def onFromFile(self, filename=None, **kwargs):
         '''imports Master curve from a two-column ASCII file.
         The first colum will be interpreted to be the abcissas.
@@ -102,7 +107,7 @@ class TaurusArrayEditor(TaurusWidget):
         skiprows=0, usecols=None, unpack=False}
         see help from numpy.loadtxt for more info on the kwargs'''
         if filename is None:
-            filename = Qt.QFileDialog.getOpenFileName(
+            filename, _ = compat.getOpenFileName(
                 self, 'Choose input file', '', 'Ascii file (*)')
         if not filename:
             return False
@@ -137,7 +142,7 @@ class TaurusArrayEditor(TaurusWidget):
                 x = numpy.arange(y.size)
             else:
                 x = numpy.array(self._xAttr.read().rvalue)
-        except Exception, e:
+        except Exception as e:
             self.error('Error reading from attribute(s): %s' % (str(e)))
             if not quiet:
                 Qt.QMessageBox.warning(
@@ -182,7 +187,7 @@ class TaurusArrayEditor(TaurusWidget):
             if self._xAttr is not None and numpy.any(self._xAttr.read(cache=False).wvalue != x):
                 raise IOError('Unexpected Write error: %s' %
                               self._xAttr.getFullName())
-        except Exception, e:
+        except Exception as e:
             self.error('Error writing to attribute(s): %s' % (str(e)))
             if not quiet:
                 Qt.QMessageBox.warning(
@@ -200,7 +205,7 @@ class TaurusArrayEditor(TaurusWidget):
 
         :return: (dict) a map with pertinent designer information"""
         ret = TaurusWidget.getQtDesignerPluginInfo()
-        ret['module'] = 'taurus.qt.qtgui.plot'
+        ret['module'] = 'taurus.qt.qtgui.qwt5'
         ret['group'] = 'Taurus Input'
         ret['icon'] = 'designer:arrayedit.png'
         ret['container'] = False

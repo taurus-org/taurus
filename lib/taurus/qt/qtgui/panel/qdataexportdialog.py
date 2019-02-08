@@ -26,13 +26,16 @@
 """DataExportDlg.py: A Qt dialog for showing and exporting x-y Ascii data from
 one or more curves"""
 
-__all__ = ["QDataExportDialog"]
+from __future__ import print_function
 
 import os.path
 from datetime import datetime
 
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from taurus.qt.qtgui.util.ui import UILoadable
+
+
+__all__ = ["QDataExportDialog"]
 
 
 @UILoadable
@@ -59,7 +62,7 @@ class QDataExportDialog(Qt.QDialog):
 
         # connections
         self.exportBT.clicked.connect(self.exportData)
-        self.dataSetCB.currentIndexChanged[str].connect(self.onDataSetCBChange)
+        self.dataSetCB.currentIndexChanged['QString'].connect(self.onDataSetCBChange)
 
         self.setDataSets(datadict, sortedNames)
 
@@ -75,7 +78,7 @@ class QDataExportDialog(Qt.QDialog):
         self.datadict = datadict
         self.dataSetCB.clear()
         self.dataSetCB.insertItems(0, sortedNames)
-        if len(self.datadict.keys()) > 1:
+        if len(self.datadict) > 1:
             self.dataSetCB.insertItems(
                 0, [self.allInSingleFile, self.allInMultipleFiles])
 
@@ -104,8 +107,8 @@ class QDataExportDialog(Qt.QDialog):
                 #**lazy** sanitising of the set to *suggest* it as a filename
                 name = set.replace('*', '').replace('/', '_').replace('\\', '_')
                 name += ".dat"
-            ofile = Qt.QFileDialog.getSaveFileName( self, 'Export File Name',
-                                                    name, 'All Files (*)')
+            ofile, _ = compat.getSaveFileName(self, 'Export File Name', name,
+                                              'All Files (*)')
             if not ofile:
                 return False
         try:
@@ -123,9 +126,9 @@ class QDataExportDialog(Qt.QDialog):
                 else:
                     for x,y in zip(xdata, ydata):
                         text+="%r\t%r\n" % (x, y)
-                print >> ofile, str(text)
+                print(str(text), file=ofile)
             else:
-                print >> ofile, str(self.dataTE.toPlainText())
+                print(str(self.dataTE.toPlainText()), file=ofile)
         except:
             Qt.QMessageBox.warning(self,
                                    "File saving failed",
@@ -147,7 +150,7 @@ class QDataExportDialog(Qt.QDialog):
         if preffix is not given, the user is prompted for a directory path"""
         if preffix is None:
             outputdir = Qt.QFileDialog.getExistingDirectory(
-                self, 'Export Directory', Qt.QString())
+                self, 'Export Directory', '')
             if not outputdir:
                 return False
             preffix = os.path.join(str(outputdir), "set")

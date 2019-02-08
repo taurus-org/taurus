@@ -27,11 +27,14 @@
 qsevensegmentdisplay.py
 """
 
+from __future__ import print_function
+
+from taurus.external.qt import Qt
+
+
 __all__ = ['Q7SegDigit']
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
 
 POLY = Qt.QPolygonF
 P = Qt.QPointF
@@ -133,7 +136,7 @@ class Q7SegDigit(Qt.QWidget):
 
     DftWidth = 300
     DftHeight = 300
-    DftAspectRatio = DftWidth / DftHeight
+    DftAspectRatio = DftWidth // DftHeight
     DftUseFrame = True
 
     def __init__(self, parent=None, **kwargs):
@@ -247,7 +250,7 @@ class Q7SegDigit(Qt.QWidget):
 
         pens, brushes = self._pens[idx], self._brushes[idx]
 
-        for i in xrange(7):
+        for i in range(7):
             seg = Qt.QPainterPath()
             seg.addPolygon(geom[i])
             painter.setPen(pens[i])
@@ -501,11 +504,11 @@ class Q7SegDisplay(Qt.QWidget):
     def __init(self):
         l = Qt.QHBoxLayout()
         l.setSpacing(10)
-        l.setMargin(5)
+        l.setContentsMargins(5, 5, 5, 5)
         self.setLayout(l)
 
         self._digits = []
-        for i in xrange(5):
+        for i in range(5):
             d = Q7SegDigit()
             d.setUseFrame(False)
             d.setValue(i)
@@ -574,7 +577,7 @@ def main2():
     dw = Q7SegDigit()
     dw.setValue(int(sys.argv[1]))
     dw.setVisible(True)
-    print dw
+    print(dw)
     a.exec_()
 
 

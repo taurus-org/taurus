@@ -26,7 +26,9 @@
 """
 taurustrend.py: Generic trend widget for Taurus
 """
-__all__ = ["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]
+
+from __future__ import print_function
+from builtins import str
 
 from datetime import datetime
 import time
@@ -34,13 +36,17 @@ import numpy
 import re
 import gc
 import weakref
+from functools import partial
 from taurus.external.qt import Qt, Qwt5
 
 import taurus.core
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.util.containers import CaselessDict, CaselessList, ArrayBuffer
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.qt.qtgui.plot import TaurusPlot
+from taurus.qt.qtgui.qwt5 import TaurusPlot
+
+
+__all__ = ["ScanTrendsSet", "TaurusTrend", "TaurusTrendsSet"]
 
 
 def getArchivedTrendValues(*args, **kwargs):
@@ -112,7 +118,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             self._orderedCurveNames = []
         else:
             self._curves = curves
-            self._orderedCurveNames = curves.keys()
+            self._orderedCurveNames = list(curves)
         self._titleText = None
         self.setModel(name)
 
@@ -183,7 +189,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         ntrends = len(self._curves)
         if '<trend_index>' in basetitle:
             ret = [basetitle.replace('<trend_index>', "%i" % i)
-                   for i in xrange(ntrends)]
+                   for i in range(ntrends)]
         else:
             ret = [basetitle] * ntrends
         return ret
@@ -338,7 +344,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                 v = value.rvalue
             try:
                 self._yBuffer.append(v)
-            except Exception, e:
+            except Exception as e:
                 self.warning('Problem updating history (%s=%s):%s',
                              model, v, e)
                 value = None
@@ -354,7 +360,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
                 if self.parent().getXDynScale() or not self.parent().axisAutoScale(Qwt5.QwtPlot.xBottom):
                     try:
                         getArchivedTrendValues(self, model, insert=True)
-                    except Exception, e:
+                    except Exception as e:
                         import traceback
                         self.warning('%s: reading from archiving failed: %s' % (
                             datetime.now().isoformat('_'), traceback.format_exc()))
@@ -438,7 +444,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
         try:
             self._xValues, self._yValues = self._updateHistory(
                 model=model or self.getModel(), value=value)
-        except Exception, e:
+        except Exception as e:
             self._onDroppedEvent(reason=str(e))
             raise
 
@@ -451,7 +457,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             c._xValues, c._yValues = self._xValues, self._yValues[:, i]
             c._updateMarkers()
 
-        self.dataChanged.emit(Qt.QString(self.getModel()))
+        self.dataChanged.emit(str(self.getModel()))
 
     def _checkDataDimensions(self, value):
         '''
@@ -471,7 +477,7 @@ class TaurusTrendsSet(Qt.QObject, TaurusBaseComponent):
             # them to the TrendSet
             name = self.getModelName()
             rawdata = {'x': numpy.zeros(0), 'y': numpy.zeros(0)}
-            for i in xrange(ntrends):
+            for i in range(ntrends):
                 subname = "%s[%i]" % (name, i)
                 self.parent().attachRawData(rawdata, id=subname)
                 self.addCurve(subname, self.parent().curves[subname])
@@ -779,7 +785,7 @@ class ScanTrendsSet(TaurusTrendsSet):
                     curve.setAppearanceProperties(prop)
                     self.addCurve(name, curve)
         self.parent().autoShowYAxes()
-        self.dataChanged.emit(Qt.QString(self.getModel()))
+        self.dataChanged.emit(str(self.getModel()))
 
     def _scanLineReceived(self, recordData):
         '''Receives a recordData dictionary and updates the curves associated to it
@@ -837,7 +843,7 @@ class ScanTrendsSet(TaurusTrendsSet):
                 c._yValues = numpy.append(c._yValues, v)
                 c._updateMarkers()
 
-        self.dataChanged.emit(Qt.QString(self.getModel()))
+        self.dataChanged.emit(str(self.getModel()))
 
     def connectWithQDoor(self, qdoor):
         '''connects this ScanTrendsSet to a QDoor
@@ -941,12 +947,14 @@ class TaurusTrend(TaurusPlot):
         self._usePollingBufferAction.toggled.connect(self.setUsePollingBuffer)
         self._setForcedReadingPeriodAction = Qt.QAction(
             "Set forced reading period...", None)
-        self._setForcedReadingPeriodAction.triggered[()].connect(self.setForcedReadingPeriod)
+        self._setForcedReadingPeriodAction.triggered.connect(
+            partial(self.setForcedReadingPeriod, msec=None, tsetnames=None))
         self._clearBuffersAction = Qt.QAction("Clear Buffers", None)
-        self._clearBuffersAction.triggered[()].connect(self.clearBuffers)
+        self._clearBuffersAction.triggered.connect(self.clearBuffers)
         self._setMaxBufferSizeAction = Qt.QAction(
             "Change buffers size...", None)
-        self._setMaxBufferSizeAction.triggered[()].connect(self.setMaxDataBufferSize)
+        self._setMaxBufferSizeAction.triggered.connect(
+            partial(self.setMaxDataBufferSize, maxSize=None))
         self._autoClearOnScanAction = Qt.QAction(
             "Auto-clear on new scans", None)
         self._autoClearOnScanAction.setCheckable(True)
@@ -1125,7 +1133,7 @@ class TaurusTrend(TaurusPlot):
         not remove the models, it simply removes all stored data)'''
         self.curves_lock.acquire()
         try:
-            for ts in self.trendSets.itervalues():
+            for ts in self.trendSets.values():
                 ts.clearTrends(replot=False)
         finally:
             self.curves_lock.release()
@@ -1175,7 +1183,7 @@ class TaurusTrend(TaurusPlot):
                     raise ValueError(
                         'composed ("X|Y") models are not supported by TaurusTrend')
                 # create a new TrendSet if not already there
-                if not self.trendSets.has_key(name):
+                if name not in self.trendSets:
                     # check if the model name is of scan type and provides a
                     # door
                     matchScan = re.search(r"scan:\/\/(.*)", name)
@@ -1279,7 +1287,7 @@ class TaurusTrend(TaurusPlot):
                     index = 0
                 else:
                     return tset.compiledTitle
-            title = unicode(tset[index].title().text())
+            title = str(tset[index].title().text())
         finally:
             self.curves_lock.release()
         return title
@@ -1294,7 +1302,7 @@ class TaurusTrend(TaurusPlot):
                                and it will also be used as default for newly
                                created ones)
 
-        :return: (caselessDict<str,QString> or None) The return value will be
+        :return: (caselessDict<str,str> or None) The return value will be
                  `None` if `curveNamesList` is None. Otherwise it will be a
                  dictionary with key=curvename and value=newtitle.
 
@@ -1328,7 +1336,7 @@ class TaurusTrend(TaurusPlot):
                     newTitlesDict = CaselessDict()
                     for curveName in curveNamesList:
                         curvetitle = titletext
-                        for ts in self.trendSets.itervalues():
+                        for ts in self.trendSets.values():
                             if curveName in ts:
                                 curvetitle = ts.compileBaseTitle(curvetitle)
                                 curvetitle = curvetitle.replace(
@@ -1392,7 +1400,7 @@ class TaurusTrend(TaurusPlot):
                         self.xBottom, currmin + step, currmax + step)
         finally:
             self.curves_lock.release()
-        self.dataChanged.emit(Qt.QString(name))
+        self.dataChanged.emit(str(name))
         if not self.xIsTime:
             self.replot()
         else:
@@ -1440,7 +1448,7 @@ class TaurusTrend(TaurusPlot):
 
         .. seealso:: :meth:`TaurusBaseComponent.setPaused`
         '''
-        for ts in self.trendSets.itervalues():
+        for ts in self.trendSets.values():
             ts.setPaused(paused)
         self._isPaused = paused
 
@@ -1478,7 +1486,7 @@ class TaurusTrend(TaurusPlot):
         miscdict["MaxBufferSize"] = self.getMaxDataBufferSize()
         self.curves_lock.acquire()
         try:
-            for tsname, ts in self.trendSets.iteritems():
+            for tsname, ts in self.trendSets.items():
                 if tsname in tsnames:
                     # store a dict containing just model names (key and value
                     # are the same)
@@ -1513,7 +1521,7 @@ class TaurusTrend(TaurusPlot):
             self.attachRawData(rd)
         # for backwards compatibility, if the ordered list of models is not
         # stored, it uses the unsorted dict values
-        models = configdict.get("model", configdict["TrendSets"].values())
+        models = configdict.get("model", list(configdict["TrendSets"].values()))
         self.addModels(models)
         for m in models:
             tset = self.trendSets[m]
@@ -1538,7 +1546,7 @@ class TaurusTrend(TaurusPlot):
 
         :return: (dict) a map with pertinent designer information"""
         return {
-            'module': 'taurus.qt.qtgui.plot',
+            'module': 'taurus.qt.qtgui.qwt5',
             'group': 'Taurus Display',
             'icon': 'designer:qwtplot.png',
             'container': False}
@@ -1689,7 +1697,7 @@ class TaurusTrend(TaurusPlot):
 
         self.curves_lock.acquire()
         try:
-            for n, ts in self.trendSets.iteritems():
+            for n, ts in self.trendSets.items():
                 try:
                     ts.setMaxDataBufferSize(maxSize)
                 except ValueError:
@@ -1926,16 +1934,16 @@ def main():
         w.setModel(models)
     # export option
     if options.export_file is not None:
-        curves = dict.fromkeys(w.trendSets.keys(), 0)
+        curves = dict.fromkeys(w.trendSets, 0)
 
         def exportIfAllCurves(curve, trend=w, counters=curves):
             curve = str(curve)
-            print '*' * 10 + ' %s: Event received for %s  ' % (datetime.now().isoformat(), curve) + '*' * 10
+            print('*' * 10 + ' %s: Event received for %s  ' % (datetime.now().isoformat(), curve) + '*' * 10)
             if curve in counters:
                 counters[curve] += 1
                 if all(counters.values()):
                     trend.exportPdf(options.export_file)
-                    print '*' * 10 + ' %s: Exported to : %s  ' % (datetime.now().isoformat(), options.export_file) + '*' * 10
+                    print('*' * 10 + ' %s: Exported to : %s  ' % (datetime.now().isoformat(), options.export_file) + '*' * 10)
                     trend.close()
             return
         if not curves:

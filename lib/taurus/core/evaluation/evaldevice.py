@@ -47,7 +47,7 @@ class EvaluationDevice(TaurusDevice, SafeEvaluator):
     _factory = None
     _scheme = 'eval'
 
-    def __init__(self, name, **kw):
+    def __init__(self, name='', **kw):
         """Object initialization."""
         self.call__init__(TaurusDevice, name, **kw)
         safedict = {}

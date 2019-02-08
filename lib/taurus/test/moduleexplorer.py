@@ -25,8 +25,9 @@
 ###########################################################################
 
 '''Utility code for returning info about a module'''
+from __future__ import print_function
 
-import sys
+from builtins import object
 import os
 import inspect
 import glob
@@ -50,7 +51,7 @@ class ModuleExplorer(object):
         for p in paterns:
             if re.match(p, name) is not None:
                 if self.verbose:
-                    print 'excluding "%s" (matches %s)' % (name, p.pattern)
+                    print('excluding "%s" (matches %s)' % (name, p.pattern))
                 return True
         return False
 
@@ -90,7 +91,7 @@ class ModuleExplorer(object):
                  externalmembernames, submodules, warnings
         '''
         if self.verbose:
-            print "Exploring %s..." % modulename
+            print("Exploring %s..." % modulename)
         warnings = []
         try:
             module = __import__(modulename, fromlist=[''])
@@ -99,7 +100,7 @@ class ModuleExplorer(object):
                 modulename, repr(e))
             warnings.append(msg)
             if self.verbose:
-                print msg
+                print(msg)
             return dict(modulename=modulename,
                         basemodulename=modulename.split('.')[-1],
                         modulepath=None,
@@ -174,7 +175,7 @@ class ModuleExplorer(object):
                 ret = [(mname, el) for el in info[key]]
         except KeyError:
             return []
-        for sminfo in info['submodules'].itervalues():
+        for sminfo in info['submodules'].values():
             ret += ModuleExplorer.getAll(sminfo, key)
         return ret
 
@@ -213,12 +214,13 @@ def main(modulename='taurus', exclude_patterns=(
          ):
     moduleinfo, allw = ModuleExplorer.explore(
         modulename, exclude_patterns=exclude_patterns, verbose=True)
-    print '\n\n' + '*' * 50
-    print "Exploration finished with %i warnings:" % (len(allw))
+    print('\n\n' + '*' * 50)
+    print("Exploration finished with %i warnings:" % (len(allw)))
     for m, w in allw:
-        print w
-    print '*' * 50 + '\n'
-    print
+        print(w)
+    print('*' * 50 + '\n')
+    print()
+    print(len(allw))
     assert len(allw) == 0
 
     # import pprint

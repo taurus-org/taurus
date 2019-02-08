@@ -26,10 +26,7 @@
 import sys
 
 import taurus
-from taurus import tauruscustomsettings
 import unittest
-
-_QtAPIs = ["PyQt4", "PySide", "PyQt5"]
 
 
 def _import(name):
@@ -39,17 +36,10 @@ def _import(name):
 
 class QtTestCase(unittest.TestCase):
 
-    QtAPI = None
+    _api_name = None
 
     def setUp(self):
         taurus.setLogLevel(taurus.Critical)
-
-        for qt in _QtAPIs:
-            if qt in sys.modules:
-                self.QtAPI = qt
-                break
-        else:
-            self.QtAPI = "PyQt4"
 
         self.opt_mods = ("QtDesigner", "QtNetwork", "Qt", "QtSvg",
                          "QtUiTools", "QtWebKit", "Qwt5", "uic")
@@ -58,57 +48,61 @@ class QtTestCase(unittest.TestCase):
         self._orig_mods = set(sys.modules.keys())
 
         # this import initializes Qt in case it is not loaded
-        from taurus.external.qt import Qt
+        from taurus.external.qt import Qt, API_NAME
+
+        self._api_name = API_NAME
         self.__qt = Qt
 
     def test_qt_base_import(self):
         mods = set(sys.modules.keys())
 
-        other_apis = set(_QtAPIs)
-        other_apis.remove(self.QtAPI)
+        other_apis = set(('PyQt5', 'PySide2', 'PyQt4', 'PySide'))
+        other_apis.remove(self._api_name)
 
-        from taurus.external.qt import API_NAME
+        # the selected API and the QtCore should be loaded
+        self.assertTrue(self._api_name in mods, self._api_name + " not loaded")
+        self.assertTrue(self._api_name + ".QtCore" in mods,
+                        "QtCore not loaded")
 
-        self.assertEquals(API_NAME, self.QtAPI)
-
+        # the other APIs should *not* be loaded
         for other_api in other_apis:
-            self.assertFalse(other_api in mods, other_api + " loaded in " + self.QtAPI + " test")
+            self.assertFalse(
+                other_api in mods,
+                other_api + " loaded in " + self._api_name + " test")
 
-        self.assertTrue(self.QtAPI in mods, self.QtAPI + " not loaded")
-        self.assertTrue(self.QtAPI + ".QtCore" in mods, "QtCore not loaded")
-
+        # the other Qt submodules should *not* be loaded
         for opt_mod in self.opt_mods:
-            mod = "{0}.{1}".format(self.QtAPI, opt_mod)
-            self.assertFalse(mod in mods-self._orig_mods, mod + " is loaded")
+            mod = "{0}.{1}".format(self._api_name, opt_mod)
+            self.assertFalse(mod in mods - self._orig_mods, mod + " is loaded")
 
     def __test_qt_module(self, qt_mod_name):
+        """Checks that the given shim is complete"""
         taurus_qt_mod_name = "taurus.external.qt.{0}".format(qt_mod_name)
-        orig_qt_mod_name = "{0}.{1}".format(self.QtAPI, qt_mod_name)
+        orig_qt_mod_name = "{0}.{1}".format(self._api_name, qt_mod_name)
         TaurusQtMod = _import(taurus_qt_mod_name)
         OrigQtMod = _import(orig_qt_mod_name)
-        taurus_qt_mod_members = [ m for m in dir(TaurusQtMod) if not m.startswith("_") ]
-        orig_qt_mod_members = [ m for m in dir(OrigQtMod) if not m.startswith("_") ]
+        taurus_qt_mod_members = [m for m in dir(TaurusQtMod)
+                                 if not m.startswith("_")]
+        orig_qt_mod_members = [m for m in dir(OrigQtMod)
+                               if not m.startswith("_")]
 
         for orig_member_name in orig_qt_mod_members:
-            self.assertTrue(orig_member_name in taurus_qt_mod_members,
-                            "Taurus {0} does not contain {1}".format(qt_mod_name, orig_member_name))
+            self.assertTrue(
+                orig_member_name in taurus_qt_mod_members,
+                "Taurus {0} does not contain {1}".format(qt_mod_name,
+                                                         orig_member_name)
+            )
 
     def test_qt_core(self):
+        """Check the QtCore shim"""
         return self.__test_qt_module("QtCore")
 
     def test_qt_gui(self):
+        """Check the QtGui shim"""
         return self.__test_qt_module("QtGui")
 
-    def test_icons(self):
-        '''check that theme icons work'''
-        from taurus.external.qt import Qt
-        icon = Qt.QIcon.fromTheme("folder-open")
-        msg = ('Theme icons not available ' + 
-               '(if PyQt<4.6, make sure to build resources first!)')
-        self.assertFalse(icon.isNull(), msg)
 
-
-def  main():
+def main():
     unittest.main(verbosity=2)
 
 

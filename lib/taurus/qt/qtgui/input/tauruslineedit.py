@@ -27,6 +27,8 @@
 This module provides a set of basic taurus widgets based on QLineEdit
 """
 
+from builtins import bytes
+from builtins import str
 import sys
 import numpy
 from taurus.external.qt import Qt
@@ -65,6 +67,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     """
 
+    _bytesEncoding = sys.stdin.encoding
 
     def __init__(self, qt_parent=None, designMode=False):
         name = self.__class__.__name__
@@ -85,6 +88,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def _updateValidator(self, value):
         """This method sets a validator depending on the data type"""
+        val = None
         if isinstance(value.wvalue, Quantity):
             val = self.validator()
             if not isinstance(val, PintValidator):
@@ -105,6 +109,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         else:
             self.setValidator(None)
             self.debug("Validator disabled")
+        return val
 
     def __decimalDigits(self, fmt):
         """returns the number of decimal digits from a format string
@@ -200,8 +205,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return Qt.QLineEdit.wheelEvent(self, evt)
 
         evt.accept()
-        numDegrees = evt.delta() / 8
-        numSteps = numDegrees / 15
+        numDegrees = evt.delta() // 8
+        numSteps = numDegrees // 15
         self._stepBy(numSteps)
 
     def keyPressEvent(self, evt):
@@ -244,7 +249,11 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         # Other fragments are ignored by setValue
         if self.modelFragmentName == "wvalue.magnitude":
             try:
-                units = self.validator().units
+                validator = self.validator()
+                if validator is None:
+                    value = self.getModelValueObj()
+                    validator = self._updateValidator(value)
+                units = validator.units
                 v = v.to(units).magnitude
             except Exception as e:
                 self.debug('Cannot enforce fragment. Reason: %r', e)
@@ -284,7 +293,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 else:
                     return numpy.array(eval(text), dtype=str).tolist()
             elif model_type == DataType.Bytes:
-                return bytes(text)
+                return bytes(text, self._bytesEncoding)
             else:
                 raise TypeError('Unsupported model type "%s"' % model_type)
         except Exception as e:

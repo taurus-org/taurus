@@ -25,10 +25,9 @@
 
 """This module provides a panel to display taurus messages"""
 
-__all__ = ["TaurusMessagePanel", "TaurusMessageErrorHandler",
-           "TangoMessageErrorHandler", "MacroServerMessageErrorHandler"]
-
-__docformat__ = 'restructuredtext'
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 
 import sys
 import traceback
@@ -45,6 +44,12 @@ except:
 from taurus.core.util.report import TaurusMessageReportHandler
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.util.ui import UILoadable
+
+
+__all__ = ["TaurusMessagePanel", "TaurusMessageErrorHandler",
+           "TangoMessageErrorHandler", "MacroServerMessageErrorHandler"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusMessageErrorHandler(object):
@@ -107,7 +112,7 @@ class TangoMessageErrorHandler(TaurusMessageErrorHandler):
             formatter = HtmlFormatter()
             style = formatter.get_style_defs()
         html = html_orig.format(style=style)
-        for de in err_value:
+        for de in err_value.args:
             e_html = """<pre>{reason}: {desc}</pre>{origin}<hr>"""
             origin, reason, desc = de.origin, de.reason, de.desc
             if reason.startswith("PyDs_") and pygments is not None:
@@ -116,7 +121,7 @@ class TangoMessageErrorHandler(TaurusMessageErrorHandler):
                 origin = "<pre>%s</pre>" % origin
             html += e_html.format(desc=desc, origin=origin, reason=reason)
         html += "</body></html>"
-        msgbox.setText(err_value[0].desc)
+        msgbox.setText(err_value.args[0].desc)
         msgbox.setDetailedHtml(html)
 
         exc_info = "".join(traceback.format_exception(err_type, err_value,
@@ -204,7 +209,7 @@ def get_report_handlers():
             elem, _ = os.path.splitext(elem)
             _is_report_handler = functools.partial(
                 is_report_handler, abs_file=full_elem)
-            report_lib = __import__(elem, globals(), locals(), [], -1)
+            report_lib = __import__(elem, globals(), locals(), [], 0)
             for name, obj in inspect.getmembers(report_lib, _is_report_handler):
                 _REPORT_HANDLERS[name] = obj
     finally:
@@ -279,13 +284,12 @@ class TaurusMessagePanel(Qt.QWidget):
         report_handlers = get_report_handlers()
         combo = self.reportComboBox()
         for name, report_handler in report_handlers.items():
-            name = Qt.QVariant(name)
             combo.addItem(report_handler.Label, name)
 
     def _onReportTriggered(self, index):
         report_handlers = get_report_handlers()
         combo = self.reportComboBox()
-        name = Qt.from_qvariant(combo.itemData(index), str)
+        name = combo.itemData(index)
         report_handler = report_handlers[name]
         report = report_handler(self)
         app = Qt.QApplication.instance()
@@ -586,11 +590,18 @@ def py_tg_serv_exc():
     try:
         PyTango.Except.throw_exception(
             'TangoException', 'A simple tango exception', 'right here')
-    except PyTango.DevFailed, df1:
+    except PyTango.DevFailed as df1:
         try:
             import traceback
-            import StringIO
-            origin = StringIO.StringIO()
+            # ---------------------------------------------------------------
+            # workaround for unicode issues on py2 when using io instead of
+            # StringIO
+            try:
+                import StringIO as io  # py2
+            except ImportError:
+                import io  # py3
+            # ----------------------------------------------------------------
+            origin = io.StringIO()
             traceback.print_stack(file=origin)
             origin.seek(0)
             origin = origin.read()
