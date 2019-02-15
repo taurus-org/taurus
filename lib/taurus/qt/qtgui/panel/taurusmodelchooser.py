@@ -43,8 +43,7 @@ from taurus.core.util.containers import CaselessList
 from .taurusmodellist import TaurusModelList
 
 __all__ = ["TaurusModelSelectorTree", "TaurusModelChooser",
-           "TaurusModelSelector", "TaurusModelSelectorItem",
-           "TangoModelSelectorItem"]
+           "TaurusModelSelector", "TaurusModelSelectorItem"]
 
 
 class TaurusModelSelector(Qt.QTabWidget):
@@ -79,11 +78,15 @@ class TaurusModelSelector(Qt.QTabWidget):
 
     def __setTabItemModel(self):
         w = self.currentWidget()
-        if w.model == "":
-            self.setCursor(QtCore.Qt.WaitCursor)
-            print(w)
-            w.setModel(w.default_model)
-            self.setCursor(QtCore.Qt.ArrowCursor)
+        c = self.cursor()
+        try:
+            if not w.model:
+                self.setCursor(QtCore.Qt.WaitCursor)
+                w.setModel(w.default_model)
+        except Exception as e:
+            taurus.warning('Problem setting up selector: %r', e)
+        finally:
+            w.setCursor(c)
 
     def __addItem(self, widget, name, model=None):
         if model is not None:
