@@ -7,14 +7,15 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## [Unreleased] - ?
+## [4.5.1] - 2019-02-15
 
-### Added
-### Removed
-### Changed
+Together with [4.5.0], they cover the [Jan19 milestone](https://github.com/taurus-org/taurus/milestone/12)
+
 ### Fixed
-### Deprecated
-
+- redundant units shown in TaurusForm write widget (#860)
+- deprecation warning in tauruspanel
+- infinite recursion issue in TangoDevice
+- Other (#855)
 
 ## [4.5.0] - 2019-01-29
 
@@ -63,6 +64,7 @@ freeze (debian 10).
     - `taurus.external.qt.QtCore.to_qvariant` 
 
 ## [4.4.0] - 2018-07-26
+[Jul18 milestone](https://github.com/taurus-org/taurus/milestone/11)
 
 ### Deprecated
 - pint, enum, unittest and argparse submodules of taurus.external (#723)
@@ -411,6 +413,7 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [Unreleased]: https://github.com/taurus-org/taurus/tree/develop
+[4.5.1]: https://github.com/taurus-org/taurus/tree/release-4.5.1
 [4.5.0]: https://github.com/taurus-org/taurus/tree/release-4.5.0
 [4.4.0]: https://github.com/taurus-org/taurus/tree/4.4.0
 [4.3.1]: https://github.com/taurus-org/taurus/tree/4.3.1
