@@ -7,7 +7,7 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## [4.5.1] - 2019-02-??
+## [4.5.1] - 2019-02-15
 
 Together with [4.5.0], they cover the [Jan19 milestone](https://github.com/taurus-org/taurus/milestone/12)
 
