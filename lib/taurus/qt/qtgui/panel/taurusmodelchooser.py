@@ -43,7 +43,9 @@ from taurus.core.util.containers import CaselessList
 from .taurusmodellist import TaurusModelList
 
 __all__ = ["TaurusModelSelectorTree", "TaurusModelChooser",
-           "TaurusModelSelector", "TaurusModelSelectorItem"]
+           "TaurusModelSelector", "TaurusModelSelectorItem",
+           "TangoModelSelectorItem"]
+
 
 class TaurusModelSelector(Qt.QTabWidget):
     """TaurusModelSelector is a QTabWidget container for
@@ -134,10 +136,13 @@ class TaurusModelSelectorItem(TaurusWidget):
     # Reimplement this property
     default_model = property(fget=_get_default_model, fset=_set_default_model)
 
+
+class TaurusModelSelectorTree(TaurusModelSelectorItem):
+
     addModels = Qt.pyqtSignal('QStringList')
 
     def __init__(self, parent=None, selectables=None, buttonsPos=None, designMode=None):
-        TaurusWidget.__init__(self, parent)
+        TaurusModelSelectorItem.__init__(self, parent)
         if selectables is None:
             selectables = [taurus.core.taurusbasetypes.TaurusElementType.Attribute, taurus.core.taurusbasetypes.TaurusElementType.Member,
                            taurus.core.taurusbasetypes.TaurusElementType.Device]
@@ -227,6 +232,34 @@ class TaurusModelSelectorItem(TaurusWidget):
         ret['container'] = False
         ret['group'] = 'Taurus Views'
         return ret
+
+
+class TangoModelSelectorItem(TaurusModelSelectorTree):
+    """A taurus model selector item for Tango models
+    """
+    # TODO: Tango-centric (move to Taurus-Tango plugin)
+    def __init__(self, parent=None, selectables=None,
+                 buttonsPos=Qt.Qt.RightToolBarArea, designMode=None):
+        TaurusModelSelectorTree.__init__(
+            self, parent=parent, selectables=selectables,
+            buttonsPos=buttonsPos, designMode=designMode)
+
+    def onAddSelected(self):
+        """
+        Reimplemented from TaurusModelSelectorTree to emit modelsAdded
+        signal instead of addModels
+        """
+        self.modelsAdded.emit(self.getSelectedModels())
+
+    def _get_default_model(self):
+        """Reimplemented from TaurusModelSelectorItem"""
+        if self._default_model is None:
+            f = taurus.Factory('tango')
+            self._default_model = f.getAuthority().getFullName()
+        return self._default_model
+
+    default_model = property(fget=_get_default_model,
+                             fset=TaurusModelSelectorTree._set_default_model)
 
 
 class TaurusModelChooser(TaurusWidget):

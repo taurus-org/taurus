@@ -111,6 +111,8 @@ console_scripts = [
 ]
 
 entry_points = {'console_scripts': console_scripts,
+                'taurus.qt.qtgui.panel.TaurusModelSelector.items':
+                    ['Tango = taurus.qt.qtgui.panel:TangoModelSelectorItem',]
 }
 
 classifiers = [
