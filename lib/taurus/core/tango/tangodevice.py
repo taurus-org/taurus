@@ -75,7 +75,7 @@ class TangoDevice(TaurusDevice):
     # This way we can call for example read_attribute on an object of this
     # class
     def __getattr__(self, name):
-        if self._deviceObj is not None:
+        if name != "_deviceObj" and self._deviceObj is not None:
             return getattr(self._deviceObj, name)
         cls_name = self.__class__.__name__
         raise AttributeError("'%s' has no attribute '%s'" % (cls_name, name))

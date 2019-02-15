@@ -505,12 +505,12 @@ def filterNonExported(obj):
 
 @UILoadable(with_ui='_ui')
 class TaurusDevPanel(TaurusMainWindow):
-    '''
+    """
     TaurusDevPanel is a Taurus Application inspired in Jive and Atk Panel.
 
     It Provides a Device selector and several dockWidgets for interacting and
     displaying information from the selected device.
-    '''
+    """
 
     def __init__(self, parent=None, designMode=False):
         TaurusMainWindow.__init__(self, parent, designMode=designMode)
@@ -527,12 +527,6 @@ class TaurusDevPanel(TaurusMainWindow):
             [TaurusElementType.Member])  # TODO: Tango-centric
         # self.deviceTree.insertFilter(filterNonExported)
         self.setCentralWidget(self.deviceTree)
-
-        # needed because of a limitation in when using the useParentModel
-        # property from designer and taurus parents are not the same as Qt
-        # Parents
-        self._ui.taurusAttrForm.recheckTaurusParent()
-        self._ui.taurusCommandsForm.recheckTaurusParent()
 
         # register subwidgets for configuration purposes
         # self.registerConfigDelegate(self.taurusAttrForm)
@@ -551,7 +545,7 @@ class TaurusDevPanel(TaurusMainWindow):
             self.splashScreen().finish(self)
 
     def createActions(self):
-        '''create actions '''
+        """create actions"""
         # View Menu
         self.showAttrAction = self.viewMenu.addAction(
             self._ui.attrDW.toggleViewAction())
@@ -559,7 +553,7 @@ class TaurusDevPanel(TaurusMainWindow):
             self._ui.commandsDW.toggleViewAction())
 
     def setTangoHost(self, host):
-        '''extended from :class:setTangoHost'''
+        """extended from :class:setTangoHost"""
         TaurusMainWindow.setTangoHost(self, host)
         self.deviceTree.setModel(host)
         # self.deviceTree.insertFilter(filterNonExported)
@@ -586,6 +580,7 @@ class TaurusDevPanel(TaurusMainWindow):
         self.setDevice(devname)
 
     def setDevice(self, devname):
+        """set the device to be shown by the commands and attr forms"""
         # try to connect with the device
         self.setModel(devname)
         dev = self.getModelObj()
@@ -604,6 +599,12 @@ class TaurusDevPanel(TaurusMainWindow):
             self.info(msg)
             Qt.QMessageBox.warning(self, "Device unreachable", msg)
             self.setModel('')
+
+    def setModel(self, name):
+        """Reimplemented to delegate model to the commands and attrs forms"""
+        TaurusMainWindow.setModel(self, name)
+        self._ui.taurusAttrForm.setModel(name)
+        self._ui.taurusCommandsForm.setModel(name)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

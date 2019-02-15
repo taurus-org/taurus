@@ -32,7 +32,7 @@
      <item>
       <widget class="TaurusAttrForm" name="taurusAttrForm" native="true">
        <property name="useParentModel" stdset="0">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -54,7 +54,7 @@
      <item>
       <widget class="TaurusCommandsForm" name="taurusCommandsForm" native="true">
        <property name="useParentModel" stdset="0">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
