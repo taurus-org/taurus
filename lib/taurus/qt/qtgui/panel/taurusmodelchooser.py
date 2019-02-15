@@ -29,19 +29,110 @@ AttributeChooser.py: widget for choosing (a list of) attributes from a tango DB
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import bytes, str
+
 import sys
-from taurus.external.qt import Qt
+import pkg_resources
+
+import taurus
+from taurus.external.qt import Qt, QtCore
 import taurus.core
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.tree import TaurusDbTreeWidget
 from taurus.core.util.containers import CaselessList
 from .taurusmodellist import TaurusModelList
 
+__all__ = ["TaurusModelSelectorTree", "TaurusModelChooser",
+           "TaurusModelSelector", "TaurusModelSelectorItem"]
 
-__all__ = ["TaurusModelSelectorTree", "TaurusModelChooser"]
+class TaurusModelSelector(Qt.QTabWidget):
+    """TaurusModelSelector is a QTabWidget container for
+    TaurusModelSelectorItem.
+    """
+    # TODO add action to add new TaurusModelSelectorItem
+    # TODO add mechanism to allow manual plugin activation
+    #      (instead of relying on installation)
+    modelsAdded = Qt.pyqtSignal('QStringList')
+
+    def __init__(self, parent=None):
+        Qt.QTabWidget.__init__(self, parent=parent)
+
+        self.currentChanged.connect(self.__setTabItemModel)
+        # ---------------------------------------------------------------------
+        # Note: this is an experimental feature
+        # It may be removed or changed in future releases
+        # Discover the taurus.modelselector plugins
+        ep_name = 'taurus.qt.qtgui.panel.TaurusModelSelector.items'
+        for ep in pkg_resources.iter_entry_points(ep_name):
+            try:
+                ms_class = ep.load()
+                ms_item = ms_class(parent=self)
+                self.__addItem(ms_item, ep.name)
+
+            except Exception as e:
+                err = 'Invalid TaurusModelSelectorItem plugin: {}\n{}'.format(
+                    ep.module_name, e)
+                taurus.warning(err)
+        # ---------------------------------------------------------------------
+
+    def __setTabItemModel(self):
+        w = self.currentWidget()
+        if w.model == "":
+            self.setCursor(QtCore.Qt.WaitCursor)
+            print(w)
+            w.setModel(w.default_model)
+            self.setCursor(QtCore.Qt.ArrowCursor)
+
+    def __addItem(self, widget, name, model=None):
+        if model is not None:
+            widget.default_model = model
+
+        widget.modelsAdded.connect(self.modelsAdded)
+        self.addTab(widget, name)
 
 
-class TaurusModelSelectorTree(TaurusWidget):
+class TaurusModelSelectorItem(TaurusWidget):
+    """Base class for ModelSelectorItem.
+    It defines the minimal API to be defined in the specialization
+    """
+    modelsAdded = Qt.pyqtSignal('QStringList')
+    _dragEnabled = True
+    # TODO add action for setModel
+
+    def __init__(self, parent=None, **kwargs):
+        TaurusWidget.__init__(self, parent)
+        self._default_model = None
+
+    def getSelectedModels(self):
+        raise NotImplementedError(('getSelectedModels must be implemented'
+                                   + ' in TaurusModelSelectorItem subclass'))
+
+    def getModelMimeData(self):
+        """ Reimplemented from TaurusBaseComponent
+        """
+        models = self.getSelectedModels()
+        md = Qt.QMimeData()
+        md.setText(", ".join(models))
+        models_bytes = [bytes(m, encoding='utf-8') for m in models]
+        md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE,
+                   b"\r\n".join(models_bytes))
+        return md
+
+    def _get_default_model(self):
+        """
+        Reimplement to return a default model to initialize the widget
+        """
+        raise NotImplementedError(('default_model must be implemented'
+                                   + ' in TaurusModelSelectorItem subclass'))
+
+    def _set_default_model(self, model):
+        """
+        Set default model to initialize the widget
+        """
+        self._default_model = model
+
+    # Reimplement this property
+    default_model = property(fget=_get_default_model, fset=_set_default_model)
 
     addModels = Qt.pyqtSignal('QStringList')
 
