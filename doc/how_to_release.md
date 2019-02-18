@@ -32,7 +32,16 @@ of stuff that should be manually tested.
    python setup.py sdist bdist_wheel
    twine upload dist/*
    ```
-   
+10. Complete GitHub release (upload artifacts, edit text)
+11. Create news in www.tango-controls.org
+    1. On the News page click on Submit a news and fill up the form (if it doesn't work, try opening in new tab):
+       * Title: New Release Of Taurus X.X.X (Jan|JulXX)
+       * Ilustration: Taurus official logo (use png)
+       * Summary: short summary of the news (do not include the whole changelog here..)
+       * Categories: Release
+    2. After submitting click on Modify this content text of the area \<\<Content\>\> and provide detailes of the release e.g. changelog.
+12. Notify mailing lists (taurus-users@lists.sourceforge.net, taurus-devel@lists.sourceforge.net, info@tango-controls.org)
+
 
 
 ## Manual test checklist
