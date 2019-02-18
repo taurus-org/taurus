@@ -1,4 +1,4 @@
-# How to release (draft)
+# How to release
 
 This is a guide for taurus release managers: it details the
 steps for making an official release, including a checklist
