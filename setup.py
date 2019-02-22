@@ -110,7 +110,13 @@ console_scripts = [
     # TODO: taurusdoc,
 ]
 
-entry_points = {'console_scripts': console_scripts,
+model_selectors = [
+    'Tango = taurus.qt.qtgui.panel.taurusmodelchooser:TangoModelSelectorItem',
+]
+
+entry_points = {
+    'console_scripts': console_scripts,
+    'taurus.qt.qtgui.panel.TaurusModelSelector.items': model_selectors,
 }
 
 classifiers = [
