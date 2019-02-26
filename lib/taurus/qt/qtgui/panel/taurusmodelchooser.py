@@ -86,7 +86,7 @@ class TaurusModelSelector(Qt.QTabWidget):
         except Exception as e:
             taurus.warning('Problem setting up selector: %r', e)
         finally:
-            w.setCursor(c)
+            self.setCursor(c)
 
     def __addItem(self, widget, name, model=None):
         if model is not None:
