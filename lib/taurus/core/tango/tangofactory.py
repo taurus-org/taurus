@@ -306,6 +306,10 @@ class TangoFactory(Singleton, TaurusFactory, Logger):
            :return: (taurus.core.tango.TangoDevice) a device object 
            :raise: (taurus.core.taurusexception.TaurusException) if the given dev_name is invalid.
         """
+        # Sardana passes model names with signals declared as Qt.pyqtSignal("QString)
+        # and this makes the slot values to be unicode on py2. Cast any of dev_name
+        # to str to avoid problems with PyTango which does not understand unicode
+        dev_name = str(dev_name) 
         d = self.tango_devs.get(dev_name)
         if d is None:
             d = self.tango_alias_devs.get(dev_name)
