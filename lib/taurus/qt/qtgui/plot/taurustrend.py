@@ -774,9 +774,8 @@ class ScanTrendsSet(TaurusTrendsSet):
         '''
         from sardana.taurus.qt.qtcore.tango.sardana.macroserver import QDoor
         if not isinstance(qdoor, QDoor): qdoor = taurus.Device(qdoor)
-        self.connect(qdoor, Qt.SIGNAL("recordDataUpdated"), self.scanDataReceived)
-        
-            
+        qdoor.recordDataUpdated.connect(self.scanDataReceived)
+
     def disconnectQDoor(self, qdoor):
         '''connects this ScanTrendsSet to a QDoor
         
@@ -784,7 +783,7 @@ class ScanTrendsSet(TaurusTrendsSet):
         '''
         from sardana.taurus.qt.qtcore.tango.sardana.macroserver import QDoor
         if not isinstance(qdoor, QDoor): qdoor = taurus.Device(qdoor)
-        self.disconnect(qdoor, Qt.SIGNAL("recordDataUpdated"), self.scanDataReceived)
+        qdoor.recordDataUpdated.disconnect(self.scanDataReceived)
     
     def getModel(self):
         return self.__model 
