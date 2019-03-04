@@ -324,6 +324,7 @@ class TangoAttribute(TaurusAttribute):
     def cleanUp(self):
         self.trace("[TangoAttribute] cleanUp")
         self._unsubscribeConfEvents()
+        self._unsubscribeChangeEvents()
         TaurusAttribute.cleanUp(self)
         self.__dev_hw_obj = None
         self._pytango_attrinfoex = None
@@ -600,7 +601,7 @@ class TangoAttribute(TaurusAttribute):
         assert len(listeners) >= 1
 
         if self.__subscription_state == SubscriptionState.Unsubscribed and len(listeners) == 1:
-            self._subscribeEvents()
+            self._subscribeChangeEvents()
 
         # if initial_subscription_state == SubscriptionState.Subscribed:
         if (len(listeners) > 1
@@ -630,7 +631,7 @@ class TangoAttribute(TaurusAttribute):
             return ret
 
         if self.__subscription_state != SubscriptionState.Unsubscribed:
-            self._unsubscribeEvents()
+            self._unsubscribeChangeEvents()
 
         return ret
 
@@ -654,7 +655,7 @@ class TangoAttribute(TaurusAttribute):
     def _process_event_exception(self, ex):
         pass
 
-    def _subscribeEvents(self):
+    def _subscribeChangeEvents(self):
         """ Enable subscription to the attribute events. If change events are
             not supported polling is activated """
             
@@ -705,7 +706,7 @@ class TangoAttribute(TaurusAttribute):
         
         return self.__chg_evt_id
                 
-    def _unsubscribeEvents(self):
+    def _unsubscribeChangeEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object

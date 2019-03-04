@@ -445,12 +445,6 @@ class EvaluationAttribute(TaurusAttribute):
         v = self.read(cache=False)
         self.fireEvent(TaurusEventType.Periodic, v)
 
-    def _subscribeEvents(self):
-        pass
-
-    def _unsubscribeEvents(self):
-        pass
-
     def isUsingEvents(self):
         # if this attributes depends from others, then we consider it uses
         # events
