@@ -226,14 +226,6 @@ class EpicsAttribute(TaurusAttribute):
 
     def isUsingEvents(self):
         return True  # TODO: implement this
-
-    def _subscribeEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute._subscribeEvents")
-
-    def _unsubscribeEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute._unsubscribeEvents")
 # ------------------------------------------------------------------------------
 
     def factory(self):

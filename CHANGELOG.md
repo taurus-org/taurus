@@ -13,6 +13,8 @@ develop branch) won't be reflected in this file.
 - `TaurusModelSelector` and `TaurusModelSelectorItem` classes and the
   (experimental) `"taurus.qt.qtgui.panel.TaurusModelSelector.items"` entry point (#869)
 
+### Deprecated
+- `TaurusAttribute._(un)subscribeEvents` API
 
 ## [4.5.1] - 2019-02-15
 
