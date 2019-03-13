@@ -425,5 +425,5 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         return
 
 if __name__ == "__main__":
-    from . import jdraw_view
+    from taurus.qt.qtgui.graphic.jdraw import jdraw_view
     jdraw_view.jdraw_view_main()
