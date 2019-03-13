@@ -867,12 +867,18 @@ class QGraphicsTextBoxing(Qt.QGraphicsItemGroup):
     _TEXT_RATIO = 0.8
 
     def __init__(self, parent=None, scene=None):
-        Qt.QGraphicsItemGroup.__init__(self, parent, scene)
-        self._rect = Qt.QGraphicsRectItem(self, scene)
+        Qt.QGraphicsItemGroup.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
+        self._rect = Qt.QGraphicsRectItem(self)
+        if scene is not None:
+            scene.addItem(self._rect)
         self._rect.setBrush(Qt.QBrush(Qt.Qt.NoBrush))
         self._rect.setPen(Qt.QPen(Qt.Qt.NoPen))
-        self._text = Qt.QGraphicsTextItem(self, scene)
-        self._text.scale(self._TEXT_RATIO, self._TEXT_RATIO)
+        self._text = Qt.QGraphicsTextItem(self)
+        if scene is not None:
+            scene.addItem(self._text)
+        # self._text.scale(self._TEXT_RATIO, self._TEXT_RATIO)
         self._validBackground = None
         # using that like the previous code create a worst result
         self.__layoutValide = True
@@ -1164,7 +1170,7 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
             else:
                 _frName = 'rvalue.magnitude'
             text = self._currText = self.getDisplayValue(fragmentName=_frName)
-        self._currText = text.decode('unicode-escape')
+        self._currText = text
         self._currHtmlText = None
 
         TaurusGraphicsItem.updateStyle(self)
