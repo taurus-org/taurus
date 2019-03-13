@@ -41,8 +41,7 @@ from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsI
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 
-from . import jdraw_parser
-
+from taurus.qt.qtgui.graphic.jdraw.jdraw_parser import parse
 
 __all__ = ["TaurusJDrawSynopticsView"]
 
@@ -389,7 +388,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.debug("Starting to parse %s" % filename)
                 self.path = os.path.dirname(filename)
                 factory = self.getGraphicsFactory(delayed=delayed)
-                scene = jdraw_parser.parse(filename, factory)
+                scene = parse(filename, factory)
                 scene.setSelectionStyle(self._selectionStyle)
                 self.debug("Obtained %s(%s)", type(scene).__name__, filename)
                 if not scene:
