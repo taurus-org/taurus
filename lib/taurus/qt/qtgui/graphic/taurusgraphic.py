@@ -878,7 +878,7 @@ class QGraphicsTextBoxing(Qt.QGraphicsItemGroup):
         self._text = Qt.QGraphicsTextItem(self)
         if scene is not None:
             scene.addItem(self._text)
-        # self._text.scale(self._TEXT_RATIO, self._TEXT_RATIO)
+        self._text.scale(self._TEXT_RATIO, self._TEXT_RATIO)
         self._validBackground = None
         # using that like the previous code create a worst result
         self.__layoutValide = True
