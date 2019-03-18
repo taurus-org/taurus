@@ -27,6 +27,7 @@
 itemsmodel Model and view for new CurveItem configuration
 """
 from builtins import object
+from builtins import bytes
 #raise UnimplementedError('Under Construction!')
 
 import copy
@@ -236,11 +237,12 @@ class TaurusModelModel(Qt.QAbstractListModel):
         if row == -1 and parent.isValid():
             row = parent.row()
         if data.hasFormat(TAURUS_ATTR_MIME_TYPE):
-            items = [str(data.data(TAURUS_ATTR_MIME_TYPE))]
+            items = [bytes(data.data(TAURUS_ATTR_MIME_TYPE)).decode("utf-8")]
         elif data.hasFormat(TAURUS_MODEL_MIME_TYPE):
-            items = [str(data.data(TAURUS_MODEL_MIME_TYPE))]
+            items = [bytes(data.data(TAURUS_MODEL_MIME_TYPE)).decode("utf-8")]
         elif data.hasFormat(TAURUS_MODEL_LIST_MIME_TYPE):
-            items = str(data.data(TAURUS_MODEL_LIST_MIME_TYPE)).split()
+            items = bytes(
+                data.data(TAURUS_MODEL_LIST_MIME_TYPE)).decode("utf-8").split()
         elif data.hasText():
             items = [str(data.text())]
         else:
