@@ -51,7 +51,7 @@ from taurus.core.util.log import Logger, deprecation_decorator
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.util.enumeration import Enumeration
-from taurus.external.qt import Qt, QtGui
+from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
                                   ExternalAppAction, TaurusWidgetFactory)
@@ -879,7 +879,7 @@ class QGraphicsTextBoxing(Qt.QGraphicsItemGroup):
         if scene is not None:
             scene.addItem(self._text)
         self._text.setTransform(
-            QtGui.QTransform.fromScale(self._TEXT_RATIO, self._TEXT_RATIO),
+            Qt.QTransform.fromScale(self._TEXT_RATIO, self._TEXT_RATIO),
             True)
 
         self._validBackground = None
@@ -1172,7 +1172,7 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
                 _frName = None
             else:
                 _frName = 'rvalue.magnitude'
-            text = self._currText = self.getDisplayValue(fragmentName=_frName)
+            text = self.getDisplayValue(fragmentName=_frName)
 
         self._currText = text
         self._currHtmlText = None
