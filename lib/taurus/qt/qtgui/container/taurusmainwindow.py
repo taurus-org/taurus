@@ -192,12 +192,24 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
     _heartbeat = 1500
     _showFileMenu = True
     _showViewMenu = True
+    _showLogger = True
+    ENABLE_LOGGER = _showLogger
+    
     _showTaurusMenu = True
+    ENABLE_TAURUS_MENU = _showTaurusMenu
+
     _showToolsMenu = True
+    ENABLE_TOOLS_MENU = _showToolsMenu
+
     _showHelpMenu = True
+
     # Allows the user to change/create/delete perspectives
     _supportUserPerspectives = True
-    _showLogger = True
+    ENABLE_USER_PERSPECTIVES = _supportUserPerspectives
+
+    ENABLE_FULLSCREEN_TOOLBAR = True
+    ENABLE_PERSPECTIVE_TOOLBAR = True
+
     #
     # set to None for disabling splash screen
     _splashLogo = "large:TaurusSplash.png"
@@ -244,7 +256,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.__createActions()
 
         # logger dock widget
-        if self._showLogger:
+        if self.ENABLE_LOGGER:
             self.addLoggerWidget()
 
         # Create Menus
@@ -252,21 +264,23 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             self.createFileMenu()
         if self._showViewMenu:  # View menu
             self.createViewMenu()
-        if self._showTaurusMenu:  # Taurus Menu
+        if self.ENABLE_TAURUS_MENU:  # Taurus Menu
             self.createTaurusMenu()
-        if self._showToolsMenu:  # Tools Menu
+        if self.ENABLE_TOOLS_MENU:  # Tools Menu
             self.createToolsMenu()
         if self._showHelpMenu:  # Help Menu
             self.createHelpMenu()
 
-        # View Toolbar
-        self.viewToolBar = self.addToolBar("View")
-        self.viewToolBar.setObjectName("viewToolBar")
-        self.viewToolBar.addAction(self.toggleFullScreenAction)
+        if self.ENABLE_FULLSCREEN_TOOLBAR:
+            # View Toolbar
+            self.viewToolBar = self.addToolBar("View")
+            self.viewToolBar.setObjectName("viewToolBar")
+            self.viewToolBar.addAction(self.toggleFullScreenAction)
 
         # Perspectives Toolbar
-        if self._supportUserPerspectives:
-            self.createPerspectivesToolBar()
+        if self.ENABLE_PERSPECTIVE_TOOLBAR:
+            if self.ENABLE_USER_PERSPECTIVES:
+                self.createPerspectivesToolBar()
 
         # disable the configuration action if there is nothing to configure
         self.configurationAction.setEnabled(

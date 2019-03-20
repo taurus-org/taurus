@@ -281,6 +281,21 @@ class TaurusGui(TaurusMainWindow):
 
     IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
 
+    ENABLED_SHARE_DATA_CONNECTIONS = True
+
+    # Menus
+    ENABLE_PANELS_MENU = True
+    ENABLE_TOOLS_MENU = True
+    ENABLE_TAURUS_MENU = True
+
+    # ToolBars
+    ENABLE_APPLETS_TOOLBAR = True
+    ENABLE_FULLSCREEN_TOOLBAR = True
+    ENABLE_PERSPECTIVE_TOOLBAR = True
+    ENABLE_QUICK_ACCESS_TOOLBAR = True
+
+    ENABLE_USER_PERSPECTIVES = True
+
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
         TaurusMainWindow.__init__(self, parent, False, True)
 
@@ -312,13 +327,19 @@ class TaurusGui(TaurusMainWindow):
         # Create a global SharedDataManager
         Qt.qApp.SDM = SharedDataManager(self)
 
-        self.__initPanelsMenu()
-        self.__initQuickAccessToolBar()
-        self.__initJorgBar()
-        self.__initSharedDataConnections()
-        self.__initToolsMenu()
+        if self.ENABLE_PANELS_MENU:
+            self.__initPanelsMenu()
+            self.__initPanelsToolBar()
+        if self.ENABLE_QUICK_ACCESS_TOOLBAR:
+            self.__initQuickAccessToolBar()
+        if self.ENABLE_APPLETS_TOOLBAR:
+            self.__initJorgBar()
+        if self.ENABLED_SHARE_DATA_CONNECTIONS:
+            self.__initSharedDataConnections()
+        if self.ENABLE_TOOLS_MENU:
+            self.__initToolsMenu()
+
         self.__initViewMenu()
-        self.__initPanelsToolBar()
 
         self.loadConfiguration(confname)
 
@@ -1072,8 +1093,10 @@ class TaurusGui(TaurusMainWindow):
         self.resetQSettings()
         self.setWindowTitle(APPNAME)
         self.setWindowIcon(customIcon)
-        self.jorgsBar.addAction(organizationIcon, ORGNAME)
-        self.jorgsBar.addAction(customIcon, APPNAME)
+
+        if self.ENABLE_APPLETS_TOOLBAR:
+            self.jorgsBar.addAction(organizationIcon, ORGNAME)
+            self.jorgsBar.addAction(customIcon, APPNAME)
 
         # get custom widget catalog entries
         # @todo: support also loading from xml
@@ -1337,14 +1360,17 @@ class TaurusGui(TaurusMainWindow):
         for panel in self.__panels.values():
             panel.toggleViewAction().setEnabled(modifiable)
             panel.setFeatures(dwfeat)
-        for action in (self.newPanelAction, self.showAllPanelsAction,
-                       self.hideAllPanelsAction,
-                       self.addExternalApplicationAction,
-                       self.removeExternalApplicationAction,
-                       ):
-            action.setEnabled(modifiable)
+
+        if self.ENABLE_PANELS_MENU:
+            for action in (self.newPanelAction, self.showAllPanelsAction,
+                           self.hideAllPanelsAction,
+                           self.addExternalApplicationAction,
+                           self.removeExternalApplicationAction,
+                        ):
+                action.setEnabled(modifiable)
 
         self._lockviewAction.setChecked(not modifiable)
+
         TaurusMainWindow.setModifiableByUser(self, modifiable)
 
     def onShortMessage(self, msg):
