@@ -41,4 +41,12 @@ getOpenFileName = getattr(QFileDialog, 'getOpenFileNameAndFilter',
 getOpenFileNames = getattr(QFileDialog, 'getOpenFileNamesAndFilter',
                           QFileDialog.getOpenFileNames)
 
-del QFileDialog
+# Provide a common constant for the PyObject name (to be used in signal
+# signatures)
+from taurus.external.qt import PYQT5, PYQT4
+if PYQT5 or PYQT4:
+    PY_OBJECT = 'PyQt_PyObject'
+else:
+    PY_OBJECT = 'PyObject'
+
+del QFileDialog, PYQT5, PYQT4

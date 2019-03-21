@@ -51,7 +51,7 @@ from taurus.core.util.log import Logger, deprecation_decorator
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.util.enumeration import Enumeration
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
                                   ExternalAppAction, TaurusWidgetFactory)
@@ -110,7 +110,7 @@ def parseTangoUri(name):
 
 
 class QEmitter(Qt.QObject):
-    updateView = Qt.pyqtSignal(object)
+    updateView = Qt.pyqtSignal(compat.PY_OBJECT)
 
 
 class TaurusGraphicsUpdateThread(Qt.QThread):

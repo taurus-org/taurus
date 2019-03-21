@@ -32,7 +32,7 @@ __all__ = ["QBaseModelWidget", "TaurusBaseModelWidget",
 
 __docformat__ = 'restructuredtext'
 
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 
 from taurus.qt.qtgui.util import ActionFactory
 from taurus.qt.qtgui.base import TaurusBaseWidget
@@ -275,10 +275,10 @@ class QBaseModelWidget(Qt.QMainWindow):
     KnownPerspectives = {}
     DftPerspective = None
 
-    itemClicked = Qt.pyqtSignal(object, int)
-    itemDoubleClicked = Qt.pyqtSignal(object, int)
+    itemClicked = Qt.pyqtSignal(compat.PY_OBJECT, int)
+    itemDoubleClicked = Qt.pyqtSignal(compat.PY_OBJECT, int)
     itemSelectionChanged = Qt.pyqtSignal()
-    currentItemChanged = Qt.pyqtSignal(object, object)
+    currentItemChanged = Qt.pyqtSignal(compat.PY_OBJECT, compat.PY_OBJECT)
 
     def __init__(self, parent=None, designMode=False, with_filter_widget=True,
                  with_selection_widget=True, with_refresh_widget=True,
