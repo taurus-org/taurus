@@ -36,7 +36,8 @@ import sys
 import glob
 import pkg_resources
 from taurus import tauruscustomsettings as __S
-from taurus import debug as __debug
+from taurus import info as __info
+from taurus import warning as __warning
 
 
 __docformat__ = 'restructuredtext'
@@ -63,11 +64,12 @@ for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui'):
         setattr(sys.modules[__name__], __p.name, __mod)
         # Add it to sys.modules
         sys.modules[__modname] = __mod
-        __debug('Plugin "%s" loaded as "%s"', __p.module_name, __modname)
+        __info('Plugin "%s" loaded as "%s"', __p.module_name, __modname)
     except Exception as e:
-        __debug('Could not load plugin "%s". Reason: %s', __p.module_name, e)
+        __warning('Could not load plugin "%s". Reason: %s', __p.module_name, e)
 
 # ------------------------------------------------------------------------
     
-del os, glob, __icon, icon_dir, pkg_resources, sys, __mod, __modname, __debug
+del (os, glob, __icon, icon_dir, pkg_resources, sys, __mod, __modname, __info,
+     __warning)
 
