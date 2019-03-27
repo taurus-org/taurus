@@ -137,7 +137,7 @@ PyQt4, PyQt5 and PySide versions.
    *For an end-user application based on taurus* it is probably better to import
    directly from a specific binding (PyQt5 is the best supported) and let taurus to
    adapt to that choice. In this way, one can write idiomatic code that better
-   matches the chosen binding. Using the `taurus.external.qt` shim
+   matches the chosen binding. Using the ``taurus.external.qt`` shim
    is also possible if one wants to make the code binding-agnostic, but in that
    case one must keep in mind that the resulting code will be less idiomatic
    and that the shim's API may be eventually altered to better fit with taurus
