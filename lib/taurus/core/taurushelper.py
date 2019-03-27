@@ -42,7 +42,8 @@ __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'resetLogLevel', 'resetLogFormat',
            'enableLogOutput', 'disableLogOutput',
            'log', 'trace', 'debug', 'info', 'warning', 'error', 'fatal',
-           'critical', 'deprecated', 'changeDefaultPollingPeriod']
+           'critical', 'deprecated', 'changeDefaultPollingPeriod',
+           'getValidatorFromName']
 
 __docformat__ = "restructuredtext"
 
@@ -132,6 +133,14 @@ def getSchemeFromName(name, implicit=True):
         return getattr(tauruscustomsettings, 'DEFAULT_SCHEME', "tango")
     else:
         return None
+
+
+def getValidatorFromName(name):
+    """Helper for obtaining the validator object corresponding to the
+    given name"""
+    factory = Factory(scheme=getSchemeFromName(name))
+    return factory.getValidatorFromName(name)
+
 
 
 def makeSchemeExplicit(name, default=None):
