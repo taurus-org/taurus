@@ -132,7 +132,7 @@ PyQt4, PyQt5 and PySide versions.
 
 .. note:: this guideline applies to code which is part of the taurus module or its
  plugins. For end-user applications that use taurus, this rule may not apply,
- as mentioned in the `TEP18`_:
+ as mentioned in `TEP18`_:
 
    *For an end-user application based on taurus* it is probably better to import
    directly from a specific binding (PyQt5 is the best supported) and let taurus to
@@ -223,4 +223,4 @@ PyQt4, PyQt5 and PySide versions.
 .. _`PyQt API v2`: http://pyqt.sourceforge.net/Docs/PyQt4/incompatible_apis.html
 .. _`new-style signals`: http://pyqt.sourceforge.net/Docs/PyQt4/new_style_signals_slots.html
 .. _future: https://python-future.org/
-.. _TEP18: http://taurus-scada.org/tep/TEP18.md#how-to-import-qt-modules-when-writing-taurus-code
+.. _TEP18: http://taurus-scada.org/tep/?TEP18.md
