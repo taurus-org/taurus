@@ -12,6 +12,8 @@ develop branch) won't be reflected in this file.
 ### Added
 - `TaurusModelSelector` and `TaurusModelSelectorItem` classes and the
   (experimental) `"taurus.qt.qtgui.panel.TaurusModelSelector.items"` entry point (#869)
+- `TaurusFactory.getValidatorFromName` method
+- `getValidatorFromName` helper
 
 ### Deprecated
 - `TaurusAttribute._(un)subscribeEvents` API
