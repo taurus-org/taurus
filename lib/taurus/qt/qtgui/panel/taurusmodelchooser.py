@@ -53,7 +53,7 @@ class TaurusModelSelector(Qt.QTabWidget):
     # TODO add action to add new TaurusModelSelectorItem
     # TODO add mechanism to allow manual plugin activation
     #      (instead of relying on installation)
-    modelsAdded = Qt.pyqtSignal('QStringList')
+    modelsAdded = Qt.pyqtSignal(list)
 
     def __init__(self, parent=None):
         Qt.QTabWidget.__init__(self, parent=parent)
@@ -100,7 +100,7 @@ class TaurusModelSelectorItem(TaurusWidget):
     """Base class for ModelSelectorItem.
     It defines the minimal API to be defined in the specialization
     """
-    modelsAdded = Qt.pyqtSignal('QStringList')
+    modelsAdded = Qt.pyqtSignal(list)
     _dragEnabled = True
     # TODO add action for setModel
 
