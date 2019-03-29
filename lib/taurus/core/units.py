@@ -27,6 +27,7 @@ This module provides a pint unit registry instance (`UR`) to be used by all
 taurus objects. It also provides the `Quantity` factory from that registry
 (also aliased as `Q_`).
 """
+__all__ = ['UR', 'Quantity', 'Q_']
 
 from pint import UnitRegistry
 

@@ -42,6 +42,7 @@ from .taurusmanager import *
 from .taurusoperation import *
 from .tauruspollingtimer import *
 from .taurusvalidator import *
+from .units import *
 
 # enable compatibility code with tau V1 if tauv1 package is present
 try:
