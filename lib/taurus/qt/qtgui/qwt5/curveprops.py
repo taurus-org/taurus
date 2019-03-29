@@ -31,6 +31,7 @@ curveprops: Model and view for curve properties
 
 from __future__ import absolute_import
 from builtins import str
+from builtins import bytes
 from builtins import object
 
 import copy
@@ -294,11 +295,12 @@ class CurvesTableModel(Qt.QAbstractTableModel):
             else:
                 column = parent.columnCount()
         if data.hasFormat(TAURUS_ATTR_MIME_TYPE):
-            self.setData(self.index(row, column),
-                         value=str(data.data(TAURUS_ATTR_MIME_TYPE)))
+            model = bytes(data.data(TAURUS_ATTR_MIME_TYPE)).decode('utf-8')
+            self.setData(self.index(row, column), value=model)
             return True
         elif data.hasFormat(TAURUS_MODEL_LIST_MIME_TYPE):
-            models = str(data.data(TAURUS_MODEL_LIST_MIME_TYPE)).split()
+            d = bytes(data.data(TAURUS_MODEL_LIST_MIME_TYPE))
+            models = d.decode('utf-8').split()
             if len(models) == 1:
                 self.setData(self.index(row, column), value=models[0])
                 return True
