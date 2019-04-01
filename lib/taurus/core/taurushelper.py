@@ -200,7 +200,7 @@ def isValidName(name, etypes=None, strict=None):
     for e in etypes:
         if e in validtypes:
             return True
-        return False
+    return False
 
 
 def Manager():
