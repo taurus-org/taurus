@@ -5,7 +5,7 @@ Taurus 3.x to 4.x migration guide
 ==================================
 
 Taurus 4 was released in July 2016 with the main goal of making Taurus scheme-agnostic
-(i.e. not relying on Tango for its core funtionalities).
+(i.e. not relying on Tango for its core functionalities).
 
 Being a major version change,
 it is not fully backwards-compatible with the previous taurus 3.x versions.
@@ -35,7 +35,7 @@ Most changes will be related to one of the following:
       - TEP3_
       - TEP14_
 
-      These changes are also treated in the `Taurus 4 slides`_
+    These changes are also treated in the `Taurus 4 slides`_
 
 
 API Changes
@@ -186,7 +186,7 @@ of numeric attributes.
 
 In Taurus 4 all the values of numeric (float or integer) attributes and their associated
 properties (such as limits, warning levels, etc.) are :class:`pint.Quantity` objects provided
-by the :module:`pint` python module. A Quantity is essentially the combination of a `magnitude`
+by the :mod:`pint` python module. A Quantity is essentially the combination of a `magnitude`
 and a `unit`. In taurus 3.x all values were just "magnitudes", and their units were either
 implicit or loosely described as a free string property, but not enforced in any way.
 
