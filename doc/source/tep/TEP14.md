@@ -230,6 +230,6 @@ Changes
 [mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
 
 2019-04-03
-[mrosanes](https://github.com/cpascual/) Update outdated sf.net links
+[cpascual](https://github.com/cpascual/) Update outdated sf.net links
 
 [TEP3]: http://www.taurus-scada.org/tep?TEP3.md
