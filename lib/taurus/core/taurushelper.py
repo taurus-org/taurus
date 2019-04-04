@@ -137,8 +137,15 @@ def getSchemeFromName(name, implicit=True):
 
 def getValidatorFromName(name):
     """Helper for obtaining the validator object corresponding to the
-    given name"""
-    factory = Factory(scheme=getSchemeFromName(name))
+    given name.
+
+    :return: model name validator or None if name is not a supported model name
+    """
+
+    try:
+        factory = Factory(scheme=getSchemeFromName(name))
+    except:
+        return None
     return factory.getValidatorFromName(name)
 
 
