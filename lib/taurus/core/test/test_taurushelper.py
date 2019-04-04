@@ -466,5 +466,19 @@ class AttributeTestCase(unittest.TestCase):
                 self.assertTrue(chk, msg)
 
 
+class ValidatorFromName(unittest.TestCase):
+    """TestCase for the taurus.getValidatorFromName helper"""
+
+    def test_getValidatorFromName(self):
+        """check that getValidatorFromName returns the expected values"""
+
+        self.assertIsInstance(
+            taurus.getValidatorFromName('eval:@foo'),
+            taurus.core.evaluation.evalvalidator.EvaluationDeviceNameValidator
+        )
+        self.assertIsNone(taurus.getValidatorFromName('eval:@/'))
+        self.assertIsNone(taurus.getValidatorFromName('unsupported:scheme'))
+
+
 if __name__ == '__main__':
     pass
