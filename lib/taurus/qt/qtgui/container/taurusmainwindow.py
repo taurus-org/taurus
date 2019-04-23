@@ -272,6 +272,13 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.configurationAction.setEnabled(
             self.configurationDialog._tabwidget.count())
 
+    def contextMenuEvent(self, event):
+        """Reimplemented to avoid deprecation warning related to:
+        https://github.com/taurus-org/taurus/issues/905
+        """
+        # TODO: Remove this once the deprecation of the Popup menu is enforced
+        event.ignore()
+
     def addLoggerWidget(self, hidden=True):
         '''adds a QLoggingWidget as a dockwidget of the main window (and hides it by default)'''
         from taurus.qt.qtgui.table import QLoggingWidget
