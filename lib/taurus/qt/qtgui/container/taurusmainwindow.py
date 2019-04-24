@@ -253,7 +253,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.helpManualBrowser = None
 
         if self.HELP_MENU_ENABLED:
-        self.resetHelpManualURI()
+            self.resetHelpManualURI()
 
         # Heartbeat
         if self.HEARTBEAT is not None:
@@ -290,9 +290,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 
         # View Toolbar
         if self.FULLSCREEN_TOOLBAR_ENABLED:
-        self.viewToolBar = self.addToolBar("View")
-        self.viewToolBar.setObjectName("viewToolBar")
-        self.viewToolBar.addAction(self.toggleFullScreenAction)
+            self.viewToolBar = self.addToolBar("View")
+            self.viewToolBar.setObjectName("viewToolBar")
+            self.viewToolBar.addAction(self.toggleFullScreenAction)
 
         # Perspectives Toolbar
         if self.USER_PERSPECTIVES_ENABLED:
