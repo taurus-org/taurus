@@ -214,7 +214,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
 
 
 class TaurusGui(TaurusMainWindow):
-    '''
+    """
     This is main class for constructing the dynamic GUIs. TaurusGui is a
     specialised TaurusMainWindow which is able to handle "panels" and load
     configuration files.
@@ -272,7 +272,7 @@ class TaurusGui(TaurusMainWindow):
             gui.show()
             app.exec_()
 
-    '''
+    """
 
     SelectedInstrument = Qt.pyqtSignal('QString')
     doorNameChanged = Qt.pyqtSignal('QString')
@@ -280,6 +280,13 @@ class TaurusGui(TaurusMainWindow):
     newShortMessage = Qt.pyqtSignal('QString')
 
     IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
+
+    #: Whether to show user actions related to shared data connections
+    PANELS_MENU_ENABLED = True
+    #: Whether to show the applets toolbar
+    APPLETS_TOOLBAR_ENABLED = True
+    #: wether to add the Quick access Toolbar (empty by default)
+    QUICK_ACCESS_TOOLBAR_ENABLED = True
 
     def __init__(self, parent=None, confname=None, configRecursionDepth=None):
         TaurusMainWindow.__init__(self, parent, False, True)
@@ -312,13 +319,29 @@ class TaurusGui(TaurusMainWindow):
         # Create a global SharedDataManager
         Qt.qApp.SDM = SharedDataManager(self)
 
-        self.__initPanelsMenu()
-        self.__initQuickAccessToolBar()
-        self.__initJorgBar()
+        # Initialize menus & toolbars
+        if self.PANELS_MENU_ENABLED:
+            self.__initPanelsMenu()
+            self.__initPanelsToolBar()
+        if self.QUICK_ACCESS_TOOLBAR_ENABLED:
+            self.__initQuickAccessToolBar()
+        if self.APPLETS_TOOLBAR_ENABLED:
+            self.__initJorgBar()
+
         self.__initSharedDataConnections()
-        self.__initToolsMenu()
-        self.__initViewMenu()
-        self.__initPanelsToolBar()
+
+        if self.TOOLS_MENU_ENABLED:
+            self.__initToolsMenu()
+
+        # Create lockview actions
+        self._lockviewAction = Qt.QAction(Qt.QIcon.fromTheme(
+            "system-lock-screen"), "Lock View", self)
+        self._lockviewAction.setCheckable(True)
+        self._lockviewAction.toggled.connect(self.setLockView)
+        self._lockviewAction.setChecked(not self.isModifiableByUser())
+
+        if self.VIEW_MENU_ENABLED:
+            self.__initViewMenu()
 
         self.loadConfiguration(confname)
 
@@ -370,7 +393,11 @@ class TaurusGui(TaurusMainWindow):
     def __initPanelsMenu(self):
         # Panels menu
         self.__panelsMenu = Qt.QMenu('Panels', self)
-        self.menuBar().insertMenu(self.helpMenu.menuAction(), self.__panelsMenu)
+        try:  # insert the panels menu before the help menu
+            self.menuBar().insertMenu(self.helpMenu.menuAction(),
+                                      self.__panelsMenu)
+        except AttributeError:  # Or just add it if help menu is not shown
+            self.menuBar().addMenu(self.__panelsMenu)
         self.hideAllPanelsAction = self.__panelsMenu.addAction(
             Qt.QIcon('actions:hide.svg'), "Hide all panels", self.hideAllPanels)
         self.showAllPanelsAction = self.__panelsMenu.addAction(
@@ -400,11 +427,6 @@ class TaurusGui(TaurusMainWindow):
         self.viewMenu.addSeparator()
         # view locking
         self.viewMenu.addSeparator()
-        self._lockviewAction = Qt.QAction(Qt.QIcon.fromTheme(
-            "system-lock-screen"), "Lock View", self)
-        self._lockviewAction.setCheckable(True)
-        self._lockviewAction.toggled.connect(self.setLockView)
-        self._lockviewAction.setChecked(not self.isModifiableByUser())
         self.viewMenu.addAction(self._lockviewAction)
 
     def __initPanelsToolBar(self):
@@ -412,15 +434,18 @@ class TaurusGui(TaurusMainWindow):
         self.panelsToolBar = self.addToolBar("Panels")
         self.panelsToolBar.setObjectName("PanelsToolbar")
         self.panelsToolBar.addAction(self.newPanelAction)
-        self.viewToolBarsMenu.addAction(self.panelsToolBar.toggleViewAction())
+        if self.VIEW_MENU_ENABLED:
+            self.viewToolBarsMenu.addAction(self.panelsToolBar.toggleViewAction())
 
     def __initQuickAccessToolBar(self):
         self.quickAccessToolBar = self.addToolBar("Quick Access")
         self.quickAccessToolBar.setObjectName("quickAccessToolbar")
         self.quickAccessToolBar.setToolButtonStyle(
             Qt.Qt.ToolButtonTextBesideIcon)
-        self.viewToolBarsMenu.addAction(
-            self.quickAccessToolBar.toggleViewAction())
+        if self.VIEW_MENU_ENABLED:
+            self.viewToolBarsMenu.addAction(
+                self.quickAccessToolBar.toggleViewAction()
+            )
 
     def __initJorgBar(self):
         # Fancy Stuff ToolBar (aka Jorg's Bar ;) )
@@ -850,8 +875,10 @@ class TaurusGui(TaurusMainWindow):
         synopticpanel = self.createPanel(synoptic, name, permanent=True,
                                          icon=Qt.QIcon.fromTheme(
                                              'image-x-generic'))
-        toggleSynopticAction = synopticpanel.toggleViewAction()
-        self.quickAccessToolBar.addAction(toggleSynopticAction)
+
+        if self.QUICK_ACCESS_TOOLBAR_ENABLED:
+            toggleSynopticAction = synopticpanel.toggleViewAction()
+            self.quickAccessToolBar.addAction(toggleSynopticAction)
 
     def createConsole(self, kernels):
         msg = ('createConsole() and the "CONSOLE" configuration key are ' +
@@ -1072,8 +1099,10 @@ class TaurusGui(TaurusMainWindow):
         self.resetQSettings()
         self.setWindowTitle(APPNAME)
         self.setWindowIcon(customIcon)
-        self.jorgsBar.addAction(organizationIcon, ORGNAME)
-        self.jorgsBar.addAction(customIcon, APPNAME)
+
+        if self.APPLETS_TOOLBAR_ENABLED:
+            self.jorgsBar.addAction(organizationIcon, ORGNAME)
+            self.jorgsBar.addAction(customIcon, APPNAME)
 
         # get custom widget catalog entries
         # @todo: support also loading from xml
@@ -1092,8 +1121,9 @@ class TaurusGui(TaurusMainWindow):
                                                   taurus.Release.url))
         self.setHelpManualURI(MANUAL_URI)
 
-        self.createPanel(self.helpManualBrowser, 'Manual', permanent=True,
-                         icon=Qt.QIcon.fromTheme('help-browser'))
+        if self.HELP_MENU_ENABLED:
+            self.createPanel(self.helpManualBrowser, 'Manual', permanent=True,
+                             icon=Qt.QIcon.fromTheme('help-browser'))
 
         # configure the macro infrastructure
         MACROSERVER_NAME = getattr(conf, 'MACROSERVER_NAME', self.__getVarFromXML(
@@ -1337,14 +1367,21 @@ class TaurusGui(TaurusMainWindow):
         for panel in self.__panels.values():
             panel.toggleViewAction().setEnabled(modifiable)
             panel.setFeatures(dwfeat)
-        for action in (self.newPanelAction, self.showAllPanelsAction,
-                       self.hideAllPanelsAction,
-                       self.addExternalApplicationAction,
-                       self.removeExternalApplicationAction,
-                       ):
-            action.setEnabled(modifiable)
+
+        if self.PANELS_MENU_ENABLED:
+            for action in (self.newPanelAction, self.showAllPanelsAction,
+                           self.hideAllPanelsAction,
+                        ):
+                action.setEnabled(modifiable)
+
+        if self.TOOLS_MENU_ENABLED:
+            for action in (self.addExternalApplicationAction,
+                           self.removeExternalApplicationAction,
+                        ):
+                action.setEnabled(modifiable)
 
         self._lockviewAction.setChecked(not modifiable)
+
         TaurusMainWindow.setModifiableByUser(self, modifiable)
 
     def onShortMessage(self, msg):
@@ -1662,4 +1699,3 @@ def main(confname=None):
 
 if __name__ == "__main__":
     main()
-    # xmlTest()
