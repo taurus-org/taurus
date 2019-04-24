@@ -14,11 +14,14 @@ develop branch) won't be reflected in this file.
   (experimental) `"taurus.qt.qtgui.panel.TaurusModelSelector.items"` entry point (#869)
 - `TaurusFactory.getValidatorFromName` method
 - `getValidatorFromName` helper
+- New options API for TaurusMainWindow and TaurusGui (#858)
 
 ### Deprecated
 - `TaurusAttribute._(un)subscribeEvents` API
 - `TaurusBaseComponent` "taurus popup menu" API (#906)
-
+- `TaurusMainWindow` old option names (`_heartbeat`, `_show*Menu`, `_showLogger`, `_supportUserPerspectives`, 
+  `_splashLogo`, `_splashMessage`) 
+  
 ## [4.5.1] - 2019-02-15
 
 Together with [4.5.0], they cover the [Jan19 milestone](https://github.com/taurus-org/taurus/milestone/12)
