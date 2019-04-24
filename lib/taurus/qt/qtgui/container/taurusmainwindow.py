@@ -253,7 +253,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         self.helpManualBrowser = None
 
         if self.HELP_MENU_ENABLED:
-            self.resetHelpManualURI()
+        self.resetHelpManualURI()
 
         # Heartbeat
         if self.HEARTBEAT is not None:
@@ -290,9 +290,9 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 
         # View Toolbar
         if self.FULLSCREEN_TOOLBAR_ENABLED:
-            self.viewToolBar = self.addToolBar("View")
-            self.viewToolBar.setObjectName("viewToolBar")
-            self.viewToolBar.addAction(self.toggleFullScreenAction)
+        self.viewToolBar = self.addToolBar("View")
+        self.viewToolBar.setObjectName("viewToolBar")
+        self.viewToolBar.addAction(self.toggleFullScreenAction)
 
         # Perspectives Toolbar
         if self.USER_PERSPECTIVES_ENABLED:
@@ -308,6 +308,13 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
             new = self._old_options_api[key]
             setattr(self, new, value)
             self.deprecated(dep=key, alt=new, rel='4.5.3a')
+
+    def contextMenuEvent(self, event):
+        """Reimplemented to avoid deprecation warning related to:
+        https://github.com/taurus-org/taurus/issues/905
+        """
+        # TODO: Remove this once the deprecation of the Popup menu is enforced
+        event.ignore()
 
     def addLoggerWidget(self, hidden=True):
         '''adds a QLoggingWidget as a dockwidget of the main window (and hides it by default)'''
@@ -428,8 +435,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         '''
         tb = Qt.QToolBar('Taurus Toolbar')
         tb.setObjectName('Taurus Toolbar')
-        #        tb.addAction(self.changeTangoHostAction)
-        #        tb.addWidget(self.taurusLogo)
+#        tb.addAction(self.changeTangoHostAction)
+#        tb.addWidget(self.taurusLogo)
         logo = getattr(tauruscustomsettings, 'ORGANIZATION_LOGO',
                        "logos:taurus.png")
         tb.addAction(Qt.QIcon(logo), Qt.qApp.organizationName())
@@ -867,10 +874,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         # finally load the settings
         self.loadSettings(settings=s)
 
-    #    def resetSettings(self):
-    #        '''deletes current settings file and clears all settings'''
-    #        self.__settings = self.newQSettings()
-    #        self.saveSettings()
+#    def resetSettings(self):
+#        '''deletes current settings file and clears all settings'''
+#        self.__settings = self.newQSettings()
+#        self.saveSettings()
 
     def showEvent(self, event):
         '''This event handler receives widget show events'''

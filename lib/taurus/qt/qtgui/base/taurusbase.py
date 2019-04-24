@@ -121,8 +121,12 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
         BaseConfigurableClass.__init__(self)
 
-        self.taurusMenu = None
-        self.taurusMenuData = ''
+        # --------------------------------------------------------------
+        # Deprecated API for context menu
+        self.taurusMenu = None  # deprecated since 4.5.3a. Do not use
+        self.taurusMenuData = ''  # deprecated since 4.5.3a. Do not use
+        self.__explicitPopupMenu = False
+        # --------------------------------------------------------------
 
         # attributes storing property values
         self._format = None
@@ -213,18 +217,39 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         return taurus.Factory(scheme)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
-    # Popup menu behavior
+    # Context menu behavior
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def contextMenuEvent(self, event):
-        """Handle the popup menu event
+        """
+        DEPRECATED:
+        Until v4.5.3a, the default implementation of contextMenuEvent showed
+        the content of taurusMenu as a context menu. But this resulted in
+        unwanted behaviour when the widget already implemented its own context
+        menu (see https://github.com/taurus-org/taurus/issues/905 )
 
-        :param event: the popup menu event
+        Therefore this feature was disabled in 4.5.3a.
+
+        If you still want to show the contents of taurusMenu as a context menu,
+        you can explicitly reimplement the contextMenuEvent method as::
+
+            def contextMenuEvent(self, event):
+                self.taurusMenu.exec_(event.globalPos())
         """
         if self.taurusMenu is not None:
-            self.taurusMenu.exec_(event.globalPos())
-        else:
-            event.ignore()
+            if self.__explicitPopupMenu:
+                # bck-compat: show taurusMenu as a contextMenu if it was
+                # explicitly created via the (deprecated) "setTaurusPopupMenu"
+                # API
+                self.taurusMenu.exec_(event.globalPos())
+                return
+            else:
+                self.deprecated(
+                    dep='taurusMenu context Menu API',
+                    alt='custom contextMenuEvent to show taurusMenu',
+                    rel='4.5.3a'
+                 )
+        event.ignore()
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # Mandatory methods to be implemented in subclass implementation
@@ -1238,14 +1263,18 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         """Resets the showing of the display value to True"""
         self.setShowText(True)
 
+    @deprecation_decorator(rel='4.5.3a')
     def setTaurusPopupMenu(self, menuData):
         """Sets/unsets the taurus popup menu
 
         :param menuData: (str) an xml representing the popup menu"""
         self.taurusMenuData = str(menuData)
+        self.__explicitPopupMenu = True
         factory = ActionFactory()
         self.taurusMenu = factory.getNewMenu(self, self.taurusMenuData)
 
+
+    @deprecation_decorator(rel='4.5.3a')
     def getTaurusPopupMenu(self):
         """Returns an xml string representing the current taurus popup menu
 
@@ -1253,9 +1282,11 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         """
         return self.taurusMenuData
 
+    @deprecation_decorator(rel='4.5.3a')
     def resetTaurusPopupMenu(self):
         """Resets the taurus popup menu to empty"""
         self.taurusMenuData = ''
+        self.__explicitPopupMenu = False
 
     def isModifiableByUser(self):
         '''whether the user can change the contents of the widget
