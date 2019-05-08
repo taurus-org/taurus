@@ -45,7 +45,7 @@ import datetime
 import glob
 from lxml import etree
 
-from taurus import tauruscustomsettings
+from taurus import tauruscustomsettings, warning
 from taurus.external.qt import Qt, compat
 import taurus.qt.qtgui.panel
 import taurus.qt.qtgui.taurusgui.paneldescriptionwizard
@@ -725,8 +725,12 @@ class MacroServerInfoPage(BasePage):
 
     def _getMacroServerName(self):
         if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
-            from taurus.core.tango.tangovalidator import (
-                TangoDeviceNameValidator)
+            try: # TODO: tango-centric
+                from taurus.core.tango.tangovalidator import (
+                    TangoDeviceNameValidator)
+            except ImportError:
+                warning('Cannot import tango (needed for sardana integration)')
+                return None
             ms_name = str(self._confWidget.macroServerComboBox.currentText())
             complete_name, _, _ = TangoDeviceNameValidator().getNames(ms_name)
             return complete_name
@@ -736,8 +740,12 @@ class MacroServerInfoPage(BasePage):
     def _getDoorName(self):
         if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
             door_name = str(self._confWidget.doorComboBox.currentText())
-            from taurus.core.tango.tangovalidator import (
-                TangoDeviceNameValidator)
+            try: # TODO: tango-centric
+                from taurus.core.tango.tangovalidator import (
+                    TangoDeviceNameValidator)
+            except ImportError:
+                warning('Cannot import tango (needed for sardana integration)')
+                return None
             complete_name, _, _ = TangoDeviceNameValidator().getNames(
                 door_name)
             return complete_name
