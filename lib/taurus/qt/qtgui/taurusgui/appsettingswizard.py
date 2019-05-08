@@ -50,7 +50,6 @@ from taurus.external.qt import Qt, compat
 import taurus.qt.qtgui.panel
 import taurus.qt.qtgui.taurusgui.paneldescriptionwizard
 import taurus.qt.qtgui.input
-from taurus.core.tango.tangovalidator import TangoDeviceNameValidator
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.util import ExternalAppAction
 
@@ -726,6 +725,8 @@ class MacroServerInfoPage(BasePage):
 
     def _getMacroServerName(self):
         if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
+            from taurus.core.tango.tangovalidator import (
+                TangoDeviceNameValidator)
             ms_name = str(self._confWidget.macroServerComboBox.currentText())
             complete_name, _, _ = TangoDeviceNameValidator().getNames(ms_name)
             return complete_name
@@ -735,6 +736,8 @@ class MacroServerInfoPage(BasePage):
     def _getDoorName(self):
         if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
             door_name = str(self._confWidget.doorComboBox.currentText())
+            from taurus.core.tango.tangovalidator import (
+                TangoDeviceNameValidator)
             complete_name, _, _ = TangoDeviceNameValidator().getNames(
                 door_name)
             return complete_name
