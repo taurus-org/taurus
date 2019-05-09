@@ -22,6 +22,9 @@ develop branch) won't be reflected in this file.
 - `TaurusMainWindow` old option names (`_heartbeat`, `_show*Menu`, `_showLogger`, `_supportUserPerspectives`, 
   `_splashLogo`, `_splashMessage`) 
   
+### Fixed
+- taurusgui does not run if tango not installed (#912)
+  
 ## [4.5.1] - 2019-02-15
 
 Together with [4.5.0], they cover the [Jan19 milestone](https://github.com/taurus-org/taurus/milestone/12)
