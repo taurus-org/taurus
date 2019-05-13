@@ -926,7 +926,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     def preAttach(self):
         """Called inside self.attach() before actual attach is performed.
-        Default implementation does not do anything..
+        Default implementation does not do anything.
 
         Override when necessary.
         """
@@ -942,15 +942,11 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     def preDetach(self):
         """Called inside self.detach() before actual deattach is performed.
-        Default implementation just disconnects a signal.
+        Default implementation does not do anything.
 
         Override when necessary.
         """
-        try:
-            self.taurusEvent.disconnect(self.filterEvent)
-        except:
-            # self.error("In %s.preDetach() ... failed!" % str(type(self)))
-            pass
+        pass
 
     def postDetach(self):
         """Called inside self.detach() after actual deattach is performed.
