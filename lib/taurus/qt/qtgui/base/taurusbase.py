@@ -169,6 +169,12 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
                                     'formatter')
         self.resetModelInConfig()
 
+        # connect taurusEvent signal to filterEvent
+        try:
+            self.taurusEvent.connect(self.filterEvent)
+        except Exception as e:
+            self.warning('Could not connect taurusEvent signal: %r', e)
+
     @deprecation_decorator(rel='4.0')
     def getSignaller(self):
         return self
@@ -920,15 +926,11 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     def preAttach(self):
         """Called inside self.attach() before actual attach is performed.
-        Default implementation just emits a signal.
+        Default implementation does nothing.
 
         Override when necessary.
         """
-        try:
-            self.taurusEvent.connect(self.filterEvent)
-        except:
-            # self.error("In %s.preAttach() ... failed!" % str(type(self)))
-            pass
+        pass
 
     def postAttach(self):
         """Called inside self.attach() after actual attach is performed.
@@ -940,15 +942,11 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     def preDetach(self):
         """Called inside self.detach() before actual deattach is performed.
-        Default implementation just disconnects a signal.
+        Default implementation does nothing.
 
         Override when necessary.
         """
-        try:
-            self.taurusEvent.disconnect(self.filterEvent)
-        except:
-            # self.error("In %s.preDetach() ... failed!" % str(type(self)))
-            pass
+        pass
 
     def postDetach(self):
         """Called inside self.detach() after actual deattach is performed.
