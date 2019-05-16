@@ -172,8 +172,8 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         # connect taurusEvent signal to filterEvent
         try:
             self.taurusEvent.connect(self.filterEvent)
-        except:
-            pass
+        except Exception as e:
+            self.warning('Could not connect taurusEvent signal: %r', e)
 
     @deprecation_decorator(rel='4.0')
     def getSignaller(self):
@@ -926,7 +926,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     def preAttach(self):
         """Called inside self.attach() before actual attach is performed.
-        Default implementation does not do anything.
+        Default implementation does nothing.
 
         Override when necessary.
         """
@@ -942,7 +942,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
 
     def preDetach(self):
         """Called inside self.detach() before actual deattach is performed.
-        Default implementation does not do anything.
+        Default implementation does nothing.
 
         Override when necessary.
         """
