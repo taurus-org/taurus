@@ -1334,7 +1334,6 @@ class TaurusBaseWidget(TaurusBaseComponent):
     valueChangedSignal = baseSignal('valueChanged')
 
     _dragEnabled = False
-    _drop_mimedata_encoding = 'utf-8'
 
     def __init__(self, name='', parent=None, designMode=False):
         self._disconnect_on_hide = False
@@ -1757,9 +1756,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         formats = mimeData.formats()
         for mtype in supported:
             if mtype in formats:
-                d = bytes(mimeData.data(mtype))
-                if self._drop_mimedata_encoding is not None:
-                    d = d.decode(self._drop_mimedata_encoding)
+                d = bytes(mimeData.data(mtype)).decode('utf-8')
                 if d is None:
                     return None
                 try:
