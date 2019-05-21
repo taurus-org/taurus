@@ -417,10 +417,8 @@ class TangoAttribute(TaurusAttribute):
                 attrvalue = str(magnitude)
         elif fmt in (DataFormat._1D, DataFormat._2D):
             if PyTango.is_int_type(tgtype):
-                if not isinstance(magnitude, numpy.ndarray):
-                    magnitude = numpy.array(magnitude)
                 # cast to integer because the magnitude conversion gives floats
-                attrvalue = magnitude.astype('int64')
+                attrvalue = numpy.array(magnitude, copy=False, dtype='int64')
             elif tgtype == PyTango.CmdArgType.DevUChar:
                 attrvalue = magnitude.view('uint8')
             else:
