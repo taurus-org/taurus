@@ -1756,7 +1756,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         formats = mimeData.formats()
         for mtype in supported:
             if mtype in formats:
-                d = bytes(mimeData.data(mtype))
+                d = bytes(mimeData.data(mtype)).decode('utf-8')
                 if d is None:
                     return None
                 try:
