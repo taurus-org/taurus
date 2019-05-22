@@ -12,18 +12,22 @@ develop branch) won't be reflected in this file.
 ### Added
 - `TaurusModelSelector` and `TaurusModelSelectorItem` classes and the
   (experimental) `"taurus.qt.qtgui.panel.TaurusModelSelector.items"` entry point (#869)
-- `TaurusFactory.getValidatorFromName` method
-- `getValidatorFromName` helper
+- `TaurusFactory.getValidatorFromName` method and `getValidatorFromName` helper (#893)
 - New options API for TaurusMainWindow and TaurusGui (#858)
+- New optional set of color-blind friendly LED icons for Tango states (#902)
 
 ### Deprecated
-- `TaurusAttribute._(un)subscribeEvents` API
+- `TaurusAttribute._(un)subscribeEvents` API (#876)
 - `TaurusBaseComponent` "taurus popup menu" API (#906)
-- `TaurusMainWindow` old option names (`_heartbeat`, `_show*Menu`, `_showLogger`, `_supportUserPerspectives`, 
-  `_splashLogo`, `_splashMessage`) 
+- `TaurusMainWindow` old option names (`_heartbeat`, `_show*Menu`, `_showLogger`, 
+  `_supportUserPerspectives`, `_splashLogo`, `_splashMessage`) (#858)
   
 ### Fixed
 - taurusgui does not run if tango not installed (#912)
+- wrong return value of `isValidName` in some cases (#897)
+- exception when calling TangoAtribute.write with a list of integers (#915)
+- several issues related to py2+p3 simultaneous support (#878, #879, #881, #885, #886, #894)
+- several issues related to multiple Qt bindings support (#875, #890, #895)
   
 ## [4.5.1] - 2019-02-15
 
