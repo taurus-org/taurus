@@ -119,8 +119,10 @@ class TangoAttrValue(TaurusAttrValue):
                     for _ in range(len(shape) - 1):
                         p.value = [p.value]
 
-        rvalue = p.value
-        wvalue = p.w_value
+        # Protect against DeviceAttribute not providing .value in some cases,
+        # seen e.g. in PyTango 9.3.0
+        rvalue = getattr(p, 'value', None)
+        wvalue = getattr(p, 'w_value', None)
         if numerical:
             units = self._attrRef._units
             if rvalue is not None:
