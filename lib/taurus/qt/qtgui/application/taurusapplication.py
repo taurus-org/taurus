@@ -123,20 +123,25 @@ class STD(Logger):
 
 
 class TaurusApplication(Qt.QApplication, Logger):
-    """A QApplication that additionally parses the command line looking
-    for taurus options. This is done using the
-    :mod:`taurus.core.util.argparse`.
-    To create a TaurusApplication object you should use the same parameters
-    as in QApplication.
+    """A QApplication that performs some taurus-specific initializations
+    and optionally also parses the command line for taurus options.
+    The parsing is done using the :mod:`taurus.core.util.argparse`.
 
     The optional keyword parameters:
         - app_name: (str) application name
         - app_version: (str) application version
         - org_name: (str) organization name
         - org_domain: (str) organization domain
+        - cmd_line_parser  (:class:`optparse.OptionParser` or None)
 
-    ...And at last the 'cmd_line_parser' which should be an instance of
-    :class:`optparse.OptionParser`. Simple example::
+    If a  :class:`optparse.OptionParser` instance is passed as cmd_line_parser,
+    it will be used for parsing the command line arguments. If it is not
+    explicitly passed, a default parser will be assumed with the default taurus
+    options. If cmd_line_parser is explicitly set to None, no parsing will be
+    done at all (useful e.g. if you use `click` to parse the command line
+    options).
+
+    Simple example::
 
         import sys
         import taurus.qt.qtgui.application
@@ -179,8 +184,10 @@ class TaurusApplication(Qt.QApplication, Logger):
 
     def __init__(self, *args, **kwargs):
         """The constructor. Parameters are the same as QApplication plus a
-        keyword parameter: 'cmd_line_parser' which should be an instance of
-        :class:`optparse.OptionParser`"""
+        keyword parameter: 'cmd_line_parser' which should be None or an
+        instance of :class:`optparse.OptionParser`. If cmd_line_parser is None
+        no command line parsing will be done ()
+        """
 
         # lock to safely get singleton elements (like IPython taurus
         # console app)
@@ -189,18 +196,11 @@ class TaurusApplication(Qt.QApplication, Logger):
         if len(args) == 0:
             args = getattr(sys, 'argv', []),
 
-        parser = None
-        app_name, app_version, org_name, org_domain = None, None, None, None
-        if 'app_name' in kwargs:
-            app_name = kwargs.pop('app_name')
-        if 'app_version' in kwargs:
-            app_version = kwargs.pop('app_version')
-        if 'org_name' in kwargs:
-            org_name = kwargs.pop('org_name')
-        if 'org_domain' in kwargs:
-            org_domain = kwargs.pop('org_domain')
-        if 'cmd_line_parser' in kwargs:
-            parser = kwargs.pop('cmd_line_parser')
+        app_name = kwargs.pop('app_name', None)
+        app_version = kwargs.pop('app_version', None)
+        org_name = kwargs.pop('org_name', None)
+        org_domain = kwargs.pop('org_domain', None)
+        parser = kwargs.pop('cmd_line_parser', optparse.OptionParser())
 
         #######################################################################
         # Workaround for XInitThreads-related crash.
@@ -235,21 +235,20 @@ class TaurusApplication(Qt.QApplication, Logger):
         if org_domain is not None:
             self.setOrganizationDomain(org_domain)
 
-        # if the constructor was called without a parser or with a parser that
-        # doesn't contain version information and with an application
-        # name and/or version, then add the --version capability
-        if (parser is None or parser.version is None) and app_version:
-            v = app_version
-            if app_name:
-                v = app_name + " " + app_version
-            if parser is None:
-                parser = optparse.OptionParser(version=v)
-            elif parser.version is None:
+        if parser is None:
+            p, opt, args = None, None, None
+        else:
+            if parser.version is None and app_version:
+                # if the parser does not contain version information
+                # but we have an application version, add the
+                # --version capability
+                v = app_version
+                if app_name:
+                    v = app_name + " " + app_version
                 parser.version = v
                 parser._add_version_option()
 
-        p, opt, args = \
-            taurus.core.util.argparse.init_taurus_args(
+            p, opt, args = taurus.core.util.argparse.init_taurus_args(
                 parser=parser, args=args[0][1:])
 
         self._cmd_line_parser = p
@@ -306,6 +305,7 @@ class TaurusApplication(Qt.QApplication, Logger):
 
         :return: the parser used in the command line
         :rtype: :class:`optparse.OptionParser`"""
+        # TODO: issue a warning if this is uninitialized (cmd_line_parser=None)
         return self._cmd_line_parser
 
     def get_command_line_options(self):
@@ -314,6 +314,7 @@ class TaurusApplication(Qt.QApplication, Logger):
 
         :return: the command line options
         :rtype: :class:`optparse.Option`"""
+        # TODO: issue a warning if this is uninitialized (cmd_line_parser=None)
         return self._cmd_line_options
 
     def get_command_line_args(self):
@@ -322,6 +323,7 @@ class TaurusApplication(Qt.QApplication, Logger):
 
         :return: the command line arguments
         :rtype: list of strings"""
+        # TODO: issue a warning if this is uninitialized (cmd_line_parser=None)
         return self._cmd_line_args
 
     def setTaurusStyle(self, styleName):
