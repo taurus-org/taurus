@@ -21,20 +21,25 @@
 ##
 #############################################################################
 
-"""
-This module provides the taurus Command Line Interface
-
-It is based on the click module to provide CLI utilities.
-
-It defines a `taurus` command which can accept subcommands defined in
-other taurus submodules or even in plugins.
-
-To define a subcommand for taurus, you need to register it using the
-`taurus_subcommands` entry point via setuptools.
-
-.. todo:: add click link , add code snippet for plugins, etc.
+import pkg_resources
+import click
 
 
-"""
+@click.group('taurus')
+def taurus_cmd():
+    """The main taurus command"""
+    pass
 
-from .cli import main
+
+def main():
+    # Add subcommands from the taurus_subcommands entry point
+    for ep in pkg_resources.iter_entry_points('taurus.cli.subcommands'):
+        subcommand = ep.load()
+        taurus_cmd.add_command(subcommand)
+
+    # launch the taurus command
+    taurus_cmd()
+
+
+if __name__ == '__main__':
+    main()

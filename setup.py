@@ -61,6 +61,7 @@ install_requires = [
     'numpy>=1.1',
     'pint>=0.8',
     'future',
+    'click',
 ]
 
 #Workaround for old setuptools
@@ -107,8 +108,11 @@ console_scripts = [
     'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
     'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main',
     'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main',
+    'taurus = taurus.cli:main'
     # TODO: taurusdoc,
 ]
+
+taurus_subcommands = []
 
 model_selectors = [
     'Tango = taurus.qt.qtgui.panel.taurusmodelchooser:TangoModelSelectorItem',
@@ -116,6 +120,7 @@ model_selectors = [
 
 entry_points = {
     'console_scripts': console_scripts,
+    'taurus.cli.subcommands': taurus_subcommands,
     'taurus.qt.qtgui.panel.TaurusModelSelector.items': model_selectors,
 }
 
