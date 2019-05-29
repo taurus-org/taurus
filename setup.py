@@ -93,7 +93,7 @@ extras_require = {
 }
 
 console_scripts = [
-    'taurustestsuite = taurus.test.testsuite:main',
+    'taurustestsuite = taurus.test.testsuite:testsuite_cmd',
     'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main',
     'taurusplot = taurus.qt.qtgui.qwt5.taurusplot:main',
     'taurustrend = taurus.qt.qtgui.qwt5.taurustrend:main',
@@ -113,6 +113,7 @@ console_scripts = [
 ]
 
 taurus_subcommands = [
+    'testsuite = taurus.test.testsuite:testsuite_cmd',
     'form = taurus.qt.qtgui.panel.taurusform:form_cmd',
     'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
 ]
