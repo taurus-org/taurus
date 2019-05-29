@@ -887,8 +887,8 @@ class QWheelEdit(Qt.QFrame):
             ed.focusOut.disconnect(self.hideEditWidget)
             self._hideEditWidget = False
 
-    def getForwardReturn(self):
-        """getForwardReturn(self) -> bool
+    def isReturnForwarded(self):
+        """isReturnForwarded(self) -> bool
 
         Gets the info if returnPressed is forwarded.
 
@@ -896,8 +896,8 @@ class QWheelEdit(Qt.QFrame):
         """
         return self._forwardReturn
 
-    def setForwardReturn(self, forward_rtn=False):
-        """setForwardReturn(self, forward_rtn=False) -> None
+    def setReturnForwarded(self, forward_rtn=False):
+        """setReturnForwarded(self, forward_rtn=False) -> None
 
         Sets forwarding of returnPressed. If set to True, returnPressed from
         edition widget emits returnPressed of 'QWheelEdit' widget.
