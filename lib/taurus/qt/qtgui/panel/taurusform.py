@@ -28,6 +28,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+import click
 from datetime import datetime
 from functools import partial
 
@@ -1112,12 +1113,68 @@ def taurusFormMain():
     sys.exit(app.exec_())
 
 
+@click.command('form')
+@click.option('--window-name', 'window_name',
+              default='Taurus Form',
+              help='Name of the window')
+@click.option('--config', 'config_file', type=click.File(),
+              help='configuration file for initialization')
+@click.argument('models', nargs=-1)
+def form_cmd(window_name, config_file, models):
+    """Shows a Taurus form populated with the given model names"""
+    from taurus.qt.qtgui.application import TaurusApplication
+    import sys
+    app = TaurusApplication(cmd_line_parser=None)
+    dialog = TaurusForm()
+    dialog.setModifiableByUser(True)
+    dialog.setModelInConfig(True)
+
+    dialog.setWindowTitle(window_name)
+
+    # Make sure the window size and position are restored
+    dialog.registerConfigProperty(dialog.saveGeometry, dialog.restoreGeometry,
+                                  'MainWindowGeometry')
+
+    quitApplicationAction = Qt.QAction(
+        Qt.QIcon.fromTheme("process-stop"), 'Close Form', dialog)
+    quitApplicationAction.triggered.connect(dialog.close)
+
+    saveConfigAction = Qt.QAction("Save current settings...", dialog)
+    saveConfigAction.setShortcut(Qt.QKeySequence.Save)
+    saveConfigAction.triggered.connect(
+        partial(dialog.saveConfigFile, ofile=None))
+    loadConfigAction = Qt.QAction("&Retrieve saved settings...", dialog)
+    loadConfigAction.setShortcut(Qt.QKeySequence.Open)
+    loadConfigAction.triggered.connect(
+        partial(dialog.loadConfigFile, ifile=None))
+
+    dialog.addActions(
+        (saveConfigAction, loadConfigAction, quitApplicationAction))
+
+    # set the default map for this installation
+    from taurus import tauruscustomsettings
+    dialog.setCustomWidgetMap(
+        getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {}))
+
+    # set a model list from the command line or launch the chooser
+    if config_file is not None:
+        dialog.loadConfigFile(config_file)
+    elif len(models) > 0:
+        dialog.setModel(models)
+    else:
+        dialog.chooseModels()
+
+    dialog.show()
+    sys.exit(app.exec_())
+
+
 def main():
     # test1()
     # test2()
     # test3()
     # test4()
-    taurusFormMain()
+    # taurusFormMain()
+    form_cmd()
 
 if __name__ == "__main__":
     main()

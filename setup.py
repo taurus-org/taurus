@@ -112,7 +112,10 @@ console_scripts = [
     # TODO: taurusdoc,
 ]
 
-taurus_subcommands = []
+taurus_subcommands = [
+    'form = taurus.qt.qtgui.panel.taurusform:form_cmd',
+    'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
+]
 
 model_selectors = [
     'Tango = taurus.qt.qtgui.panel.taurusmodelchooser:TangoModelSelectorItem',

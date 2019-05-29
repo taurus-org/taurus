@@ -25,6 +25,7 @@
 
 from __future__ import print_function
 import sys
+import click
 
 import taurus.core.util
 import taurus.qt.qtgui.util
@@ -133,6 +134,17 @@ def main():
                                                         org_name="Tango community")
     gui = TaurusDemoPanel()
     gui.setWindowTitle(app.applicationName())
+    gui.show()
+    sys.exit(app.exec_())
+
+
+@click.command('demo')
+def demo_cmd():
+    """A demo application for taurus"""
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(cmd_line_parser=None)
+    gui = TaurusDemoPanel()
+    gui.setWindowTitle('Taurus demo')
     gui.show()
     sys.exit(app.exec_())
 
