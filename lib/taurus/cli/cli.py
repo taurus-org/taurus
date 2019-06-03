@@ -23,9 +23,10 @@
 
 import pkg_resources
 import click
-
+from taurus import Release
 
 @click.group('taurus')
+@click.version_option(version=Release.version)
 def taurus_cmd():
     """The main taurus command"""
     pass

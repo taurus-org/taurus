@@ -115,7 +115,6 @@ def run(disableLogger=True, exclude_pattern='(?!)'):
     (e.g. 'taurus\.core\..*' would exclude taurus.core tests)
     """
 )
-#TODO: Add version option
 def testsuite_cmd(gui_tests, exclude_pattern):
     """Launch the main test suite for Taurus'"""
     import taurus.test.skip
