@@ -29,6 +29,7 @@ from builtins import str
 import os
 import sys
 import copy
+import click
 import weakref
 import inspect
 
@@ -1695,6 +1696,65 @@ def main(confname=None):
 
     taurus.info('Finished execution of TaurusGui')
     sys.exit(ret)
+
+
+@click.command('gui')
+@click.argument('confname', nargs=1, required=True)
+@click.option('--safe-mode', 'safe_mode', is_flag=True, default=False,
+              help=('launch in safe mode (it prevents potentially problematic '
+                    'configs from being loaded)')
+              )
+def gui_cmd(confname, safe_mode):
+    """Launch a TaurusGUI using the given CONF"""
+    import sys
+    import taurus
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    taurus.info('Starting execution of TaurusGui')
+
+    app = TaurusApplication(cmd_line_parser=None, app_name="taurusgui")
+
+    # if options.new_gui:  # launch app settings wizard instead of taurusgui
+    #     from taurus.qt.qtgui.taurusgui import AppSettingsWizard
+    #     wizard = AppSettingsWizard()
+    #     wizard.show()
+    #     sys.exit(app.exec_())
+
+    if safe_mode:
+        configRecursionDepth = 0
+    else:
+        configRecursionDepth = None
+
+    gui = TaurusGui(None, confname=confname,
+                    configRecursionDepth=configRecursionDepth)
+
+    gui.show()
+    ret = app.exec_()
+
+    taurus.info('Finished execution of TaurusGui')
+    sys.exit(ret)
+
+
+@click.command('newgui')
+# @click.option('--stub', 'stub_name',
+#               metavar="NAME",
+#               default=None,
+#               help='Create an empty stub of gui with the given NAME'
+#               )
+def newgui_cmd(stub_name):
+    """Create a new TaurusGui"""
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(cmd_line_parser=None, app_name="newgui")
+
+    # if stub_name is not None:
+    #     pass # TODO
+
+    from taurus.qt.qtgui.taurusgui import AppSettingsWizard
+    wizard = AppSettingsWizard()
+    wizard.show()
+    sys.exit(app.exec_())
 
 
 if __name__ == "__main__":

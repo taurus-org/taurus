@@ -118,6 +118,8 @@ taurus_subcommands = [
     'qwt5 = taurus.qt.qtgui.qwt5.cli:qwt5',
     'dev = taurus.qt.qtgui.panel.taurusdevicepanel:dev_cmd',
     'panel = taurus.qt.qtgui.panel.taurusdevicepanel:panel_cmd',
+    'gui = taurus.qt.qtgui.taurusgui.taurusgui:gui_cmd',
+    'newgui = taurus.qt.qtgui.taurusgui.taurusgui:newgui_cmd',
     'form = taurus.qt.qtgui.panel.taurusform:form_cmd',
     'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
 ]
