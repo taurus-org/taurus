@@ -23,7 +23,7 @@
 
 import pkg_resources
 import click
-from taurus import Release
+from taurus import Release, info
 
 @click.group('taurus')
 @click.version_option(version=Release.version)
@@ -35,8 +35,13 @@ def taurus_cmd():
 def main():
     # Add subcommands from the taurus_subcommands entry point
     for ep in pkg_resources.iter_entry_points('taurus.cli.subcommands'):
-        subcommand = ep.load()
-        taurus_cmd.add_command(subcommand)
+        try:
+            subcommand = ep.load()
+            taurus_cmd.add_command(subcommand)
+        except Exception as e:
+            info('Cannot load "%s" subcommand for taurus. Reason: %r',
+                 ep.name, e)
+
 
     # launch the taurus command
     taurus_cmd()
