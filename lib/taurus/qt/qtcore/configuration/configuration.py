@@ -444,7 +444,7 @@ class BaseConfigurableClass(object):
             )
             if not ofile:
                 return
-        if not isinstance(ofile, file):
+        if isinstance(ofile, string_types):
             ofile = open(ofile, 'w')
         configdict = self.createConfig(allowUnpickable=False)
         self.info("Saving current settings in '%s'" % ofile.name)
@@ -465,7 +465,7 @@ class BaseConfigurableClass(object):
                 self, 'Load Configuration', '', 'Configuration File (*.pck)')
             if not ifile:
                 return
-        if not isinstance(ifile, file):
+        if isinstance(ifile, string_types):
             ifile = open(ifile, 'r')
 
         configdict = pickle.load(ifile)

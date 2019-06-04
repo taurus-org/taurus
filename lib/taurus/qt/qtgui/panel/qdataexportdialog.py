@@ -28,6 +28,8 @@ one or more curves"""
 
 from __future__ import print_function
 
+from future.utils import string_types
+
 import os.path
 from datetime import datetime
 
@@ -112,7 +114,7 @@ class QDataExportDialog(Qt.QDialog):
             if not ofile:
                 return False
         try:
-            if not isinstance(ofile, file):
+            if isinstance(ofile, string_types):
                 ofile = open(str(ofile), "w")
             if self.dataSetCB.currentText() == self.allInMultipleFiles:
                 # 1  file per curve
