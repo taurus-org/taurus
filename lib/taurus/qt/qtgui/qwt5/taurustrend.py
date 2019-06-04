@@ -1020,7 +1020,12 @@ class TaurusTrend(TaurusPlot):
                               self._startingTime)  # Set a range of 1 min
         else:
             self.setAxisScale(axis, 0, 10)  # Set a range of 10 events
-            self.axisWidget(axis).scaleDivChanged.disconnect(self.rescheduleReplot)  # disconnects the previous axis
+            w = self.axisWidget(axis)
+            try:
+                # disconnect the previous axis
+                w.scaleDivChanged.disconnect(self.rescheduleReplot)
+            except TypeError:
+                pass  # ignore exception if signal was not previously connected
         # enable/disable the archiving action
         self._useArchivingAction.setEnabled(enable)
         # call the parent class method
