@@ -667,7 +667,7 @@ def TaurusDevicePanelMain():
                     + '(it can be passed more than once)'),
               multiple=True,
               )
-@click.option('--config', 'config_file', type=click.File(),
+@click.option('--config', 'config_file', type=click.File('rb'),
               help='configuration file for initialization')
 def dev_cmd(dev, filter, config_file):
     """Show a Device Panel"""

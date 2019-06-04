@@ -299,7 +299,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             'labels': self._show_attr_labels,
             'units': self._show_attr_units, 'others': self._show_others
         }
-        f = open(filename, 'w')
+        f = open(filename, 'wb')
         pickle.dump(d, f)
         f.close()
 
@@ -308,7 +308,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         if not isinstance(filename, dict):
             manual = False
             import pickle
-            f = open(filename)
+            f = open(filename, 'rb')
             d = pickle.load(f)
             f.close()
         else:

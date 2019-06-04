@@ -33,7 +33,7 @@ def qwt5():
 
 @qwt5.command('plot')
 @click.argument('models', nargs=-1)
-@click.option('--config', 'config_file', type=click.File(),
+@click.option('--config', 'config_file', type=click.File('rb'),
               help='configuration file for initialization')
 @click.option("-x", "--x-axis-mode", "x_axis_mode",
               default='n',
@@ -78,7 +78,7 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
               default=-1,
               metavar="MILLISECONDS",
               help="force re-reading of the attributes every MILLISECONDS ms")
-@click.option('--config', 'config_file', type=click.File(),
+@click.option('--config', 'config_file', type=click.File('rb'),
               help='configuration file for initialization')
 @click.option("--demo", is_flag=True, help="show a demo of the widget")
 @click.option('--window-name', 'window_name',

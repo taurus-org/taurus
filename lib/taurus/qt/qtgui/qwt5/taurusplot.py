@@ -2514,7 +2514,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             if not ofile:
                 return
         if isinstance(ofile, string_types):
-            ofile = open(ofile, 'w')
+            ofile = open(ofile, 'wb')
         configdict = self.createConfig(curvenames=curvenames)
         self.info("Saving current settings in '%s'" % ofile.name)
         pickle.dump(configdict, ofile)
@@ -2535,7 +2535,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
             if not ifile:
                 return
         if isinstance(ifile, string_types):
-            ifile = open(ifile, 'r')
+            ifile = open(ifile, 'rb')
         configdict = pickle.load(ifile)
         self.applyConfig(configdict)
         return ifile.name

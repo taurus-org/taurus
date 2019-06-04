@@ -1117,7 +1117,7 @@ def taurusFormMain():
 @click.option('--window-name', 'window_name',
               default='Taurus Form',
               help='Name of the window')
-@click.option('--config', 'config_file', type=click.File(),
+@click.option('--config', 'config_file', type=click.File('rb'),
               help='configuration file for initialization')
 @click.argument('models', nargs=-1)
 def form_cmd(window_name, config_file, models):
