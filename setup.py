@@ -115,6 +115,7 @@ console_scripts = [
 taurus_subcommands = [
     'testsuite = taurus.test.testsuite:testsuite_cmd',
     'config = taurus.qt.qtgui.panel.taurusconfigeditor:config_cmd',
+    'qwt5 = taurus.qt.qtgui.qwt5.cli:qwt5',
     'form = taurus.qt.qtgui.panel.taurusform:form_cmd',
     'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
 ]

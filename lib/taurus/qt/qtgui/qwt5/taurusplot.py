@@ -3783,5 +3783,36 @@ def main():
     sys.exit(app.exec_())
 
 
+def plot_main(models=(), config_file=None, x_axis_mode='n', demo=False,
+              window_name='TaurusPlot (qwt)'):
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(cmd_line_parser=None, app_name="taurusplot(qwt)")
+
+    w = TaurusPlot()
+
+    w.setWindowTitle(window_name)
+
+    w.setXIsTime(x_axis_mode.lower() == 't')
+
+    if demo:
+        models = list(models)
+        models.extend(['eval:rand(100)', 'eval:0.5*sqrt(arange(100))'])
+
+    if config_file is not None:
+        w.loadConfigFile(config_file)
+
+    if models:
+        w.setModel(list(models))
+
+    w.show()
+
+    # if no models are passed, show the data import dialog
+    if not models and config_file is None:
+        w.showDataImportDlg()
+
+    sys.exit(app.exec_())
+
 if __name__ == "__main__":
     main()

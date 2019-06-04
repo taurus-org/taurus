@@ -1974,5 +1974,57 @@ def main():
 
     sys.exit(app.exec_())
 
+
+def trend_main(models=(), config_file=None, x_axis_mode='n',
+               use_archiving=False,
+               max_buffer_size=None,
+               forced_read_period=-1,
+               demo=False,
+               window_name='TaurusTrend (qwt5)'):
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(cmd_line_parser=None, app_name="taurustrend(qwt5)")
+
+    w = TaurusTrend()
+
+    w.setWindowTitle(window_name)
+
+    # demo option
+    if demo:
+        models = list(models)
+        models.extend(['eval:rand()', 'eval:1+rand(2)'])
+
+    # xistime option
+    w.setXIsTime(x_axis_mode.lower() == 't')
+
+    # max buffer size option
+    if max_buffer_size is not None:
+        w.setMaxDataBufferSize(max_buffer_size)
+
+    # configuration file option
+    if config_file is not None:
+        w.loadConfig(config_file)
+
+    # set models
+    if models:
+        w.setModel(list(models))
+
+    # period option
+    if forced_read_period > 0:
+        w.setForcedReadingPeriod(forced_read_period)
+
+    # archiving option
+    w.setUseArchiving(use_archiving)
+
+    # show the widget
+    w.show()
+
+    # if no models are passed, show the data import dialog
+    if not models and config_file is None:
+        w.showDataImportDlg()
+
+    sys.exit(app.exec_())
+
 if __name__ == "__main__":
     main()
