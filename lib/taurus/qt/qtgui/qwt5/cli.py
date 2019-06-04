@@ -36,9 +36,9 @@ def qwt5():
 @click.option('--config', 'config_file', type=click.File('rb'),
               help='configuration file for initialization')
 @click.option("-x", "--x-axis-mode", "x_axis_mode",
+              type=click.Choice(['t', 'n']),
               default='n',
               show_default=True,
-              metavar="t|n",
               help=('X axis mode. "t" implies using a Date axis'
                     + '"n" uses the regular axis')
               )
@@ -60,9 +60,9 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
 @qwt5.command('trend')
 @click.argument('models', nargs=-1)
 @click.option("-x", "--x-axis-mode", "x_axis_mode",
+              type=click.Choice(['t', 'n']),
               default='n',
               show_default=True,
-              metavar="t|n",
               help=('X axis mode. "t" implies using a Date axis'
                     + '"n" uses the regular axis')
               )
