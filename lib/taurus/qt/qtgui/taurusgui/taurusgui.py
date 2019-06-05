@@ -1054,48 +1054,7 @@ class TaurusGui(TaurusMainWindow):
         # TODO: remove this when deprecation grace time is due
         self._loadConsole(conf, xmlroot)
 
-        # get custom panel descriptions from the python config file
-        CUSTOM_PANELS = [obj for name, obj in inspect.getmembers(
-            conf) if isinstance(obj, PanelDescription)]
-
-        # add custom panel descriptions from xml config
-        panelDescriptions = xmlroot.find("PanelDescriptions")
-        if (panelDescriptions is not None):
-            for child in panelDescriptions:
-                if (child.tag == "PanelDescription"):
-                    pd = PanelDescription.fromXml(etree.tostring(child))
-                    if pd is not None:
-                        CUSTOM_PANELS.append(pd)
-
-        # create panels based on the panel descriptions gathered before
-        for p in CUSTOM_PANELS + POOLINSTRUMENTS:
-            try:
-                try:
-                    self.splashScreen().showMessage("Creating panel %s" % p.name)
-                except AttributeError:
-                    pass
-                w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-                if hasattr(w, 'setCustomWidgetMap'):
-                    w.setCustomWidgetMap(self.getCustomWidgetMap())
-                if p.model is not None:
-                    w.setModel(p.model)
-                if p.instrumentkey is None:
-                    instrumentkey = self.IMPLICIT_ASSOCIATION
-                # the pool instruments may change when the pool config changes,
-                # so we do not store their config
-                registerconfig = p not in POOLINSTRUMENTS
-                # create a panel
-                self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
-                                 instrumentkey=instrumentkey, permanent=True)
-            except Exception as e:
-                msg = 'Cannot create panel %s' % getattr(
-                    p, 'name', '__Unknown__')
-                self.error(msg)
-                self.traceback(level=taurus.Info)
-                result = Qt.QMessageBox.critical(self, 'Initialization error', '%s\n\n%s' % (
-                    msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
-                if result == Qt.QMessageBox.Abort:
-                    sys.exit()
+        self._loadCustomPanels(conf, xmlroot, POOLINSTRUMENTS)
 
         # get custom toolbars descriptions from the python config file
         CUSTOM_TOOLBARS = [obj for name, obj in inspect.getmembers(
@@ -1419,6 +1378,51 @@ class TaurusGui(TaurusMainWindow):
             xmlroot, "CONSOLE", []))
         if console:
             self.createConsole([])
+
+    def _loadCustomPanels(self, conf, xmlroot, poolinstruments=None):
+        """
+        get custom panel descriptions from the python config file, xml config and
+        create panels based on the panel descriptions
+        """
+        custom_panels = [obj for name, obj in inspect.getmembers(
+            conf) if isinstance(obj, PanelDescription)]
+
+        panelDescriptions = xmlroot.find("PanelDescriptions")
+        if panelDescriptions is not None:
+            for child in panelDescriptions:
+                if child.tag == "PanelDescription":
+                    pd = PanelDescription.fromXml(etree.tostring(child))
+                    if pd is not None:
+                        custom_panels.append(pd)
+
+        for p in custom_panels + poolinstruments:
+            try:
+                try:
+                    self.splashScreen().showMessage("Creating panel %s" % p.name)
+                except AttributeError:
+                    pass
+                w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
+                if hasattr(w, "setCustomWidgetMap"):
+                    w.setCustomWidgetMap(self.getCustomWidgetMap())
+                if p.model is not None:
+                    w.setModel(p.model)
+                if p.instrumentkey is None:
+                    instrumentkey = self.IMPLICIT_ASSOCIATION
+                # the pool instruments may change when the pool config changes,
+                # so we do not store their config
+                registerconfig = p not in poolinstruments
+                # create a panel
+                self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
+                                 instrumentkey=instrumentkey, permanent=True)
+            except Exception as e:
+                msg = "Cannot create panel %s" % getattr(
+                    p, "name", "__Unknown__")
+                self.error(msg)
+                self.traceback(level=taurus.Info)
+                result = Qt.QMessageBox.critical(self, "Initialization error", "%s\n\n%s" % (
+                    msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
+                if result == Qt.QMessageBox.Abort:
+                    sys.exit()
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
