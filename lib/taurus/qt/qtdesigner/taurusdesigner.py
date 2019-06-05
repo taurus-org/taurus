@@ -25,6 +25,7 @@
 
 from builtins import str
 import sys
+import click
 import os.path
 import optparse
 
@@ -80,6 +81,8 @@ def get_qtdesigner_bin():
         designer_bin = os.path.join(
             designer_bin, "Designer.app", "Contents", "MacOS")
     elif plat in ("win32", "nt"):
+        # TODO: refactor this to make it Qt-binding agnostic
+        # TODO: check if this works for conda installations on windows
         import PyQt4
         designer_bin = os.path.abspath(os.path.dirname(PyQt4.__file__))
 
@@ -176,6 +179,17 @@ def main(env=None):
         env = get_taurus_designer_env(taurus_extra_path=taurus_extra_path)
 
     sys.exit(qtdesigner_start(args, env=env))
+
+
+@click.command('designer')
+@click.argument('ui_files', nargs=-1)
+@click.option("--taurus-path", "tauruspath", default=None,
+              help="additional directories to look for taurus widgets")
+def designer_cmd(ui_files, tauruspath):
+    """Launch a Taurus-customized Qt Designer application"""
+
+    env = get_taurus_designer_env(taurus_extra_path=tauruspath)
+    sys.exit(qtdesigner_start(ui_files, env=env))
 
 if __name__ == "__main__":
     main()

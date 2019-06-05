@@ -120,6 +120,7 @@ taurus_subcommands = [
     'panel = taurus.qt.qtgui.panel.taurusdevicepanel:panel_cmd',
     'gui = taurus.qt.qtgui.taurusgui.taurusgui:gui_cmd',
     'newgui = taurus.qt.qtgui.taurusgui.taurusgui:newgui_cmd',
+    'designer = taurus.qt.qtdesigner.taurusdesigner:designer_cmd',
     'form = taurus.qt.qtgui.panel.taurusform:form_cmd',
     'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
 ]
