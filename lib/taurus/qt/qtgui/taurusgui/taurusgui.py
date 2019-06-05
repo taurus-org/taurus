@@ -1057,23 +1057,7 @@ class TaurusGui(TaurusMainWindow):
         self._loadCustomPanels(conf, xmlroot, POOLINSTRUMENTS)
         self._loadCustomToolBars(conf, xmlroot)
         self._loadCustomApplets(conf, xmlroot)
-
-        # add external applications from both the python and the xml config
-        # files
-        EXTERNAL_APPS = [obj for name, obj in inspect.getmembers(
-            conf) if isinstance(obj, ExternalApp)]
-
-        externalAppsNode = xmlroot.find("ExternalApps")
-        if (externalAppsNode is not None):
-            for child in externalAppsNode:
-                if (child.tag == "ExternalApp"):
-                    ea = ExternalApp.fromXml(etree.tostring(child))
-                    if ea is not None:
-                        EXTERNAL_APPS.append(ea)
-
-        for a in EXTERNAL_APPS:
-            self._external_app_names.append(str(a.getAction().text()))
-            self.addExternalAppLauncher(a.getAction())
+        self._loadExternalApps(conf, xmlroot)
 
         # get the "factory settings" filename. By default, it is called
         # "default.ini" and resides in the configuration dir
@@ -1429,6 +1413,25 @@ class TaurusGui(TaurusMainWindow):
                     msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
                     sys.exit()
+
+    def _loadExternalApps(self, conf, xmlroot):
+        """
+        add external applications from both the python and the xml config files
+        """
+        external_apps = [obj for name, obj in inspect.getmembers(
+            conf) if isinstance(obj, ExternalApp)]
+
+        externalAppsNode = xmlroot.find("ExternalApps")
+        if externalAppsNode is not None:
+            for child in externalAppsNode:
+                if child.tag == "ExternalApp":
+                    ea = ExternalApp.fromXml(etree.tostring(child))
+                    if ea is not None:
+                        external_apps.append(ea)
+
+        for a in external_apps:
+            self._external_app_names.append(str(a.getAction().text()))
+            self.addExternalAppLauncher(a.getAction())
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
