@@ -1051,16 +1051,8 @@ class TaurusGui(TaurusMainWindow):
         self._loadManualUri(conf, xmlroot)
         POOLINSTRUMENTS = self._loadSardanaOptions(conf, xmlroot)
         self._loadSynoptic(conf, xmlroot)
-
-        #######################################################################
-        # Deprecated CONSOLE command (if you need a IPython Console, just add a
-        # Panel with a `silx.gui.console.IPythonWidget`
-        # TODO: remove this block when deprecation grace time is due
-        CONSOLE = getattr(conf, 'CONSOLE', self.__getVarFromXML(
-            xmlroot, "CONSOLE", []))
-        if CONSOLE:
-            self.createConsole([])
-        #######################################################################
+        # TODO: remove this when deprecation grace time is due
+        self._loadConsole(conf, xmlroot)
 
         # get custom panel descriptions from the python config file
         CUSTOM_PANELS = [obj for name, obj in inspect.getmembers(
@@ -1417,6 +1409,16 @@ class TaurusGui(TaurusMainWindow):
                         synoptic.append(s)
         for s in synoptic:
             self.createMainSynoptic(s)
+
+    def _loadConsole(self, conf, xmlroot):
+        """
+        Deprecated CONSOLE command (if you need a IPython Console, just add a
+        Panel with a `silx.gui.console.IPythonWidget`
+        """
+        console = getattr(conf, 'CONSOLE', self.__getVarFromXML(
+            xmlroot, "CONSOLE", []))
+        if console:
+            self.createConsole([])
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
