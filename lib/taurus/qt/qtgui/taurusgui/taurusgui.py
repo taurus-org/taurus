@@ -1038,7 +1038,7 @@ class TaurusGui(TaurusMainWindow):
 
         organizationIcon = self._loadOrgLogo(conf, xmlroot)
 
-        self._loadSingleInstance(conf, xmlroot, APPNAME)
+        self._loadSingleInstance(conf, xmlroot)
 
         # some initialization
         self.resetQSettings()
@@ -1132,14 +1132,16 @@ class TaurusGui(TaurusMainWindow):
                 self._confDirectory, orglogo))
         return orgIcon
 
-    def _loadSingleInstance(self, conf, xmlroot, appname):
-        # if required, enforce that only one instance of this GUI can be run
+    def _loadSingleInstance(self, conf, xmlroot):
+        """
+        if required, enforce that only one instance of this GUI can be run
+        """
         single_inst = getattr(conf, 'SINGLE_INSTANCE', (self.__getVarFromXML(
             xmlroot, "SINGLE_INSTANCE", 'True').lower() == 'true'))
         if single_inst:
             if not self.checkSingleInstance():
                 msg = 'Only one istance of %s is allowed to run the same time' % (
-                    appname)
+                    Qt.qApp.applicationName())
                 self.error(msg)
                 Qt.QMessageBox.critical(
                     self, 'Multiple copies', msg, Qt.QMessageBox.Abort)
