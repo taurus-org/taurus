@@ -1029,23 +1029,20 @@ class TaurusGui(TaurusMainWindow):
 
         xmlroot = self._loadXmlConfig(conf)
 
+        self._loadGeneralQtSettings(conf, xmlroot, confname)
+
         # General Qt application settings and jorgs bar logos
-        APPNAME = self._loadAppName(conf, confname, xmlroot)
-        ORGNAME = self._loadOrgName(conf, xmlroot)
-        customIcon = self._loadCustomLogo(conf, xmlroot)
-
+        self._loadAppName(conf, confname, xmlroot)
+        self._loadOrgName(conf, xmlroot)
+        custom_icon = self._loadCustomLogo(conf, xmlroot)
         Qt.QApplication.instance().basicConfig()
-
-        organizationIcon = self._loadOrgLogo(conf, xmlroot)
-
+        org_icon = self._loadOrgLogo(conf, xmlroot)
         self._loadSingleInstance(conf, xmlroot)
-
         # some initialization
         self.resetQSettings()
-
         if self.APPLETS_TOOLBAR_ENABLED:
-            self.jorgsBar.addAction(organizationIcon, ORGNAME)
-            self.jorgsBar.addAction(customIcon, APPNAME)
+            self.jorgsBar.addAction(org_icon, Qt.qApp.organizationName())
+            self.jorgsBar.addAction(custom_icon, Qt.qApp.applicationName())
 
         self._loadExtraCatalogWidgets(conf, xmlroot)
         self._loadManualUri(conf, xmlroot)
@@ -1097,13 +1094,11 @@ class TaurusGui(TaurusMainWindow):
             xmlroot, "GUI_NAME", confname))
         Qt.qApp.setApplicationName(appname)
         self.setWindowTitle(appname)
-        return appname
 
     def _loadOrgName(self, conf, xmlroot):
         orgname = getattr(conf, 'ORGANIZATION', self.__getVarFromXML(
             xmlroot, "ORGANIZATION", str(Qt.qApp.organizationName()) or 'Taurus'))
         Qt.qApp.setOrganizationName(orgname)
-        return orgname
 
     def _loadCustomLogo(self, conf, xmlroot):
         customlogo = getattr(conf, 'CUSTOM_LOGO', getattr(
