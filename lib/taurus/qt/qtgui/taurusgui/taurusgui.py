@@ -1031,9 +1031,8 @@ class TaurusGui(TaurusMainWindow):
 
         # General Qt application settings and jorgs bar logos
         appname = self._loadAppName(conf, confname, xmlroot)
+        self._loadOrgName(conf, xmlroot)
 
-        ORGNAME = getattr(conf, 'ORGANIZATION', self.__getVarFromXML(
-            xmlroot, "ORGANIZATION", str(Qt.qApp.organizationName()) or 'Taurus'))
         CUSTOMLOGO = getattr(conf, 'CUSTOM_LOGO', getattr(
             conf, 'LOGO', self.__getVarFromXML(xmlroot, "CUSTOM_LOGO", 'logos:taurus.png')))
         if Qt.QFile.exists(CUSTOMLOGO):
@@ -1042,7 +1041,6 @@ class TaurusGui(TaurusMainWindow):
             customIcon = Qt.QIcon(os.path.join(
                 self._confDirectory, CUSTOMLOGO))
 
-        Qt.qApp.setOrganizationName(ORGNAME)
         Qt.QApplication.instance().basicConfig()
 
         logo = getattr(tauruscustomsettings, 'ORGANIZATION_LOGO',
@@ -1369,6 +1367,11 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.setApplicationName(appname)
         self.setWindowTitle(appname)
         return appname
+
+    def _loadOrgName(self, conf, xmlroot):
+        orgname = getattr(conf, 'ORGANIZATION', self.__getVarFromXML(
+            xmlroot, "ORGANIZATION", str(Qt.qApp.organizationName()) or 'Taurus'))
+        Qt.qApp.setOrganizationName(orgname)
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
