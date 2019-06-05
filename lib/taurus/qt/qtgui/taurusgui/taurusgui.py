@@ -1047,16 +1047,7 @@ class TaurusGui(TaurusMainWindow):
             self.jorgsBar.addAction(organizationIcon, ORGNAME)
             self.jorgsBar.addAction(customIcon, APPNAME)
 
-        # get custom widget catalog entries
-        # @todo: support also loading from xml
-        EXTRA_CATALOG_WIDGETS = getattr(conf, 'EXTRA_CATALOG_WIDGETS', [])
-        self._extraCatalogWidgets = []
-        for classname, pixmapname in EXTRA_CATALOG_WIDGETS:
-            # If a relative file name is given, the conf directory will be used
-            # as base path
-            if pixmapname and not Qt.QFile.exists(pixmapname):
-                pixmapname = os.path.join(self._confDirectory, pixmapname)
-            self._extraCatalogWidgets.append((classname, pixmapname))
+        self._loadExtraCatalogWidgets(conf, xmlroot)
 
         # manual panel
         MANUAL_URI = getattr(conf, 'MANUAL_URI',
@@ -1383,6 +1374,20 @@ class TaurusGui(TaurusMainWindow):
                 Qt.QMessageBox.critical(
                     self, 'Multiple copies', msg, Qt.QMessageBox.Abort)
                 sys.exit(1)
+
+    def _loadExtraCatalogWidgets(self, conf, xmlroot):
+        """
+        get custom widget catalog entries
+        """
+        # @todo: support also loading from xml
+        extra_catalog_widgets = getattr(conf, 'EXTRA_CATALOG_WIDGETS', [])
+        self._extraCatalogWidgets = []
+        for classname, pixmapname in extra_catalog_widgets:
+            # If a relative file name is given, the conf directory will be used
+            # as base path
+            if pixmapname and not Qt.QFile.exists(pixmapname):
+                pixmapname = os.path.join(self._confDirectory, pixmapname)
+            self._extraCatalogWidgets.append((classname, pixmapname))
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
