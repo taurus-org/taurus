@@ -106,7 +106,7 @@ console_scripts = [
     'taurustrend1d = taurus.qt.qtgui.extra_guiqwt.plot:taurusTrendDlgMain',
     'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain',
     'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
-    'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main',
+    'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:icons_cmd',
     'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main',
     'taurus = taurus.cli:main'
     # TODO: taurusdoc,
@@ -122,6 +122,7 @@ taurus_subcommands = [
     'newgui = taurus.qt.qtgui.taurusgui.taurusgui:newgui_cmd',
     'designer = taurus.qt.qtdesigner.taurusdesigner:designer_cmd',
     'guiqwt = taurus.qt.qtgui.extra_guiqwt.cli:guiqwt',
+    'icons = taurus.qt.qtgui.icon.catalog:icons_cmd',
     'form = taurus.qt.qtgui.panel.taurusform:form_cmd',
     'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
 ]
