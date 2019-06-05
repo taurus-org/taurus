@@ -1049,21 +1049,8 @@ class TaurusGui(TaurusMainWindow):
 
         self._loadExtraCatalogWidgets(conf, xmlroot)
         self._loadManualUri(conf, xmlroot)
-        self._loadSardanaOptions(conf, xmlroot)
+        POOLINSTRUMENTS = self._loadSardanaOptions(conf, xmlroot)
         self._loadSynoptic(conf, xmlroot)
-
-        # Get panel descriptions from pool if required
-        INSTRUMENTS_FROM_POOL = getattr(conf, 'INSTRUMENTS_FROM_POOL', (self.__getVarFromXML(
-            xmlroot, "INSTRUMENTS_FROM_POOL", 'False').lower() == 'true'))
-        if INSTRUMENTS_FROM_POOL:
-            try:
-                self.splashScreen().showMessage("Gathering Instrument info from Pool")
-            except AttributeError:
-                pass
-            POOLINSTRUMENTS = self.createInstrumentsFromPool(
-                MACROSERVER_NAME)  # auto create instruments from pool
-        else:
-            POOLINSTRUMENTS = []
 
         #######################################################################
         # Deprecated CONSOLE command (if you need a IPython Console, just add a
@@ -1364,6 +1351,8 @@ class TaurusGui(TaurusMainWindow):
             self.__macroBroker = MacroBroker(self)
         self._loadDoorName(conf, xmlroot)
         self._laodMacroEditorsPath(conf, xmlroot)
+        pool_instruments = self._loadInstrumentsFromPool(conf, xmlroot, ms)
+        return pool_instruments
 
     def _loadMacroServerName(self, conf, xmlroot):
         macro_server_name = getattr(conf, "MACROSERVER_NAME", self.__getVarFromXML(
@@ -1391,6 +1380,23 @@ class TaurusGui(TaurusMainWindow):
                 ParamEditorManager
             ParamEditorManager().parsePaths(macro_editors_path)
             ParamEditorManager().browsePaths()
+
+    def _loadInstrumentsFromPool(self, conf, xmlroot, macro_server_name):
+        """
+        Get panel descriptions from pool if required
+        """
+        instruments_from_pool = getattr(conf, "INSTRUMENTS_FROM_POOL", (self.__getVarFromXML(
+            xmlroot, "INSTRUMENTS_FROM_POOL", "False").lower() == "true"))
+        if instruments_from_pool:
+            try:
+                self.splashScreen().showMessage("Gathering Instrument info from Pool")
+            except AttributeError:
+                pass
+            pool_instruments = self.createInstrumentsFromPool(
+                macro_server_name)  # auto create instruments from pool
+        else:
+            pool_instruments = []
+        return pool_instruments
     ### SARDANA MACRO STUFF OFF
     
     def _loadSynoptic(self, conf, xmlroot):
