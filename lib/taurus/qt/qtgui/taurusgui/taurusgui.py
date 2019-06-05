@@ -1056,54 +1056,7 @@ class TaurusGui(TaurusMainWindow):
 
         self._loadCustomPanels(conf, xmlroot, POOLINSTRUMENTS)
         self._loadCustomToolBars(conf, xmlroot)
-
-
-
-        CUSTOM_APPLETS = []
-        # for backwards compatibility
-        MONITOR = getattr(
-            conf, 'MONITOR', self.__getVarFromXML(xmlroot, "MONITOR", []))
-        if MONITOR:
-            CUSTOM_APPLETS.append(AppletDescription(
-                'monitor', classname='TaurusMonitorTiny', model=MONITOR))
-
-        # get custom applet descriptions from the python config file
-        CUSTOM_APPLETS += [obj for name, obj in inspect.getmembers(
-            conf) if isinstance(obj, AppletDescription)]
-
-        # add applet descriptions from xml config
-        appletDescriptions = xmlroot.find("AppletDescriptions")
-        if (appletDescriptions is not None):
-            for child in appletDescriptions:
-                if (child.tag == "AppletDescription"):
-                    d = AppletDescription.fromXml(etree.tostring(child))
-                    if d is not None:
-                        CUSTOM_APPLETS.append(d)
-
-        # create applet based on the descriptions gathered before
-        for d in CUSTOM_APPLETS:
-            try:
-                try:
-                    self.splashScreen().showMessage("Creating applet %s" % d.name)
-                except AttributeError:
-                    pass
-                w = d.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-                if d.model is not None:
-                    w.setModel(d.model)
-                # add the widget to the applets toolbar
-                self.jorgsBar.addWidget(w)
-                # register the toolbar as delegate if it supports it
-                if isinstance(w, BaseConfigurableClass):
-                    self.registerConfigDelegate(w, d.name)
-            except Exception as e:
-                msg = 'Cannot add applet %s' % getattr(
-                    d, 'name', '__Unknown__')
-                self.error(msg)
-                self.traceback(level=taurus.Info)
-                result = Qt.QMessageBox.critical(self, 'Initialization error', '%s\n\n%s' % (
-                    msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
-                if result == Qt.QMessageBox.Abort:
-                    sys.exit()
+        self._loadCustomApplets(conf, xmlroot)
 
         # add external applications from both the python and the xml config
         # files
@@ -1421,6 +1374,54 @@ class TaurusGui(TaurusMainWindow):
 
             except Exception as e:
                 msg = "Cannot add toolbar %s" % getattr(
+                    d, "name", "__Unknown__")
+                self.error(msg)
+                self.traceback(level=taurus.Info)
+                result = Qt.QMessageBox.critical(self, "Initialization error", "%s\n\n%s" % (
+                    msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
+                if result == Qt.QMessageBox.Abort:
+                    sys.exit()
+
+    def _loadCustomApplets(self, conf, xmlroot):
+        """
+        get custom applet descriptions from the python config file, xml config and
+        create applet based on the descriptions
+        """
+        custom_applets = []
+        # for backwards compatibility
+        MONITOR = getattr(
+            conf, "MONITOR", self.__getVarFromXML(xmlroot, "MONITOR", []))
+        if MONITOR:
+            custom_applets.append(AppletDescription(
+                "monitor", classname="TaurusMonitorTiny", model=MONITOR))
+
+        custom_applets += [obj for name, obj in inspect.getmembers(
+            conf) if isinstance(obj, AppletDescription)]
+
+        appletDescriptions = xmlroot.find("AppletDescriptions")
+        if appletDescriptions is not None:
+            for child in appletDescriptions:
+                if child.tag == "AppletDescription":
+                    d = AppletDescription.fromXml(etree.tostring(child))
+                    if d is not None:
+                        custom_applets.append(d)
+
+        for d in custom_applets:
+            try:
+                try:
+                    self.splashScreen().showMessage("Creating applet %s" % d.name)
+                except AttributeError:
+                    pass
+                w = d.getWidget(sdm=Qt.qApp.SDM, setModel=False)
+                if d.model is not None:
+                    w.setModel(d.model)
+                # add the widget to the applets toolbar
+                self.jorgsBar.addWidget(w)
+                # register the toolbar as delegate if it supports it
+                if isinstance(w, BaseConfigurableClass):
+                    self.registerConfigDelegate(w, d.name)
+            except Exception as e:
+                msg = "Cannot add applet %s" % getattr(
                     d, "name", "__Unknown__")
                 self.error(msg)
                 self.traceback(level=taurus.Info)
