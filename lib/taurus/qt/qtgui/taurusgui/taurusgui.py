@@ -1027,32 +1027,7 @@ class TaurusGui(TaurusMainWindow):
                 self, 'Initialization error', msg, Qt.QMessageBox.Abort)
             sys.exit()
 
-        # Get the xml root node from the xml configuration file
-        XML_CONFIG = getattr(conf, 'XML_CONFIG', None)
-        if XML_CONFIG is None:
-            self._xmlConfigFileName = None
-        else:
-            self._xmlConfigFileName = os.path.join(
-                self._confDirectory, XML_CONFIG)
-        # default fallback (in case of I/O or parse errors)
-        xmlroot = etree.fromstring('<root></root>')
-        if XML_CONFIG is not None:
-            try:
-                # If a relative name was given, the conf directory will be used
-                # as base path
-                xmlfname = os.path.join(self._confDirectory, XML_CONFIG)
-                xmlFile = open(xmlfname, 'r')
-                xmlstring = xmlFile.read()
-                xmlFile.close()
-                xmlroot = etree.fromstring(xmlstring)
-            except Exception as e:
-                msg = 'Error reading the XML file: "%s"' % xmlfname
-                self.error(msg)
-                self.traceback(level=taurus.Info)
-                result = Qt.QMessageBox.critical(self, 'Initialization error', '%s\nReason:"%s"' % (
-                    msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
-                if result == Qt.QMessageBox.Abort:
-                    sys.exit()
+        xmlroot = self._loadXmlConfig(conf)
 
         # General Qt application settings and jorgs bar logos
         APPNAME = getattr(conf, 'GUI_NAME', self.__getVarFromXML(
@@ -1355,6 +1330,38 @@ class TaurusGui(TaurusMainWindow):
         except AttributeError:
             pass
         self.loadSettings(factorySettingsFileName=iniFileName)
+
+    def _loadXmlConfig(self, conf):
+        """
+        Get the xml root node from the xml configuration file
+        """
+
+        XML_CONFIG = getattr(conf, 'XML_CONFIG', None)
+        if XML_CONFIG is None:
+            self._xmlConfigFileName = None
+        else:
+            self._xmlConfigFileName = os.path.join(
+                self._confDirectory, XML_CONFIG)
+        # default fallback (in case of I/O or parse errors)
+        xmlroot = etree.fromstring('<root></root>')
+        if XML_CONFIG is not None:
+            try:
+                # If a relative name was given, the conf directory will be used
+                # as base path
+                xmlfname = os.path.join(self._confDirectory, XML_CONFIG)
+                xmlFile = open(xmlfname, 'r')
+                xmlstring = xmlFile.read()
+                xmlFile.close()
+                xmlroot = etree.fromstring(xmlstring)
+            except Exception as e:
+                msg = 'Error reading the XML file: "%s"' % xmlfname
+                self.error(msg)
+                self.traceback(level=taurus.Info)
+                result = Qt.QMessageBox.critical(self, 'Initialization error', '%s\nReason:"%s"' % (
+                    msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
+                if result == Qt.QMessageBox.Abort:
+                    sys.exit()
+        return xmlroot
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
