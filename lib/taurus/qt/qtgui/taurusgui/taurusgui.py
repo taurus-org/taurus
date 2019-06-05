@@ -1062,19 +1062,19 @@ class TaurusGui(TaurusMainWindow):
         Get the xml root node from the xml configuration file
         """
 
-        XML_CONFIG = getattr(conf, 'XML_CONFIG', None)
-        if XML_CONFIG is None:
+        xml_config = getattr(conf, 'XML_CONFIG', None)
+        if xml_config is None:
             self._xmlConfigFileName = None
         else:
             self._xmlConfigFileName = os.path.join(
-                self._confDirectory, XML_CONFIG)
+                self._confDirectory, xml_config)
         # default fallback (in case of I/O or parse errors)
         xmlroot = etree.fromstring('<root></root>')
-        if XML_CONFIG is not None:
+        if xml_config is not None:
             try:
                 # If a relative name was given, the conf directory will be used
                 # as base path
-                xmlfname = os.path.join(self._confDirectory, XML_CONFIG)
+                xmlfname = os.path.join(self._confDirectory, xml_config)
                 xmlFile = open(xmlfname, 'r')
                 xmlstring = xmlFile.read()
                 xmlFile.close()
@@ -1101,31 +1101,31 @@ class TaurusGui(TaurusMainWindow):
         Qt.qApp.setOrganizationName(orgname)
 
     def _loadCustomLogo(self, conf, xmlroot):
-        customlogo = getattr(conf, 'CUSTOM_LOGO', getattr(
+        custom_logo = getattr(conf, 'CUSTOM_LOGO', getattr(
             conf, 'LOGO', self.__getVarFromXML(xmlroot, "CUSTOM_LOGO", 'logos:taurus.png')))
-        if Qt.QFile.exists(customlogo):
-            customIcon = Qt.QIcon(customlogo)
+        if Qt.QFile.exists(custom_logo):
+            custom_icon = Qt.QIcon(custom_logo)
         else:
-            customIcon = Qt.QIcon(os.path.join(
-                self._confDirectory, customlogo))
-        self.setWindowIcon(customIcon)
-        return customIcon
+            custom_icon = Qt.QIcon(os.path.join(
+                self._confDirectory, custom_logo))
+        self.setWindowIcon(custom_icon)
+        return custom_icon
 
     def _loadOrgLogo(self, conf, xmlroot):
         logo = getattr(tauruscustomsettings,
                        "ORGANIZATION_LOGO",
                        "logos:taurus.png")
-        orglogo = getattr(conf,
+        org_logo = getattr(conf,
                           "ORGANIZATION_LOGO",
                           self.__getVarFromXML(xmlroot,
                                                "ORGANIZATION_LOGO",
                                                logo))
-        if Qt.QFile.exists(orglogo):
-            orgIcon = Qt.QIcon(orglogo)
+        if Qt.QFile.exists(org_logo):
+            org_icon = Qt.QIcon(org_logo)
         else:
-            orgIcon = Qt.QIcon(os.path.join(
-                self._confDirectory, orglogo))
-        return orgIcon
+            org_icon = Qt.QIcon(os.path.join(
+                self._confDirectory, org_logo))
+        return org_icon
 
     def _loadSingleInstance(self, conf, xmlroot):
         """
@@ -1149,12 +1149,12 @@ class TaurusGui(TaurusMainWindow):
         # @todo: support also loading from xml
         extra_catalog_widgets = getattr(conf, 'EXTRA_CATALOG_WIDGETS', [])
         self._extraCatalogWidgets = []
-        for classname, pixmapname in extra_catalog_widgets:
+        for class_name, pix_map_name in extra_catalog_widgets:
             # If a relative file name is given, the conf directory will be used
             # as base path
-            if pixmapname and not Qt.QFile.exists(pixmapname):
-                pixmapname = os.path.join(self._confDirectory, pixmapname)
-            self._extraCatalogWidgets.append((classname, pixmapname))
+            if pix_map_name and not Qt.QFile.exists(pix_map_name):
+                pix_map_name = os.path.join(self._confDirectory, pix_map_name)
+            self._extraCatalogWidgets.append((class_name, pix_map_name))
 
     def _loadManualUri(self, conf, xmlroot):
         """
@@ -1265,9 +1265,9 @@ class TaurusGui(TaurusMainWindow):
         custom_panels = [obj for name, obj in inspect.getmembers(
             conf) if isinstance(obj, PanelDescription)]
 
-        panelDescriptions = xmlroot.find("PanelDescriptions")
-        if panelDescriptions is not None:
-            for child in panelDescriptions:
+        panel_descriptions = xmlroot.find("PanelDescriptions")
+        if panel_descriptions is not None:
+            for child in panel_descriptions:
                 if child.tag == "PanelDescription":
                     pd = PanelDescription.fromXml(etree.tostring(child))
                     if pd is not None:
@@ -1310,9 +1310,9 @@ class TaurusGui(TaurusMainWindow):
         custom_toolbars = [obj for name, obj in inspect.getmembers(
             conf) if isinstance(obj, ToolBarDescription)]
 
-        toolBarDescriptions = xmlroot.find("ToolBarDescriptions")
-        if toolBarDescriptions is not None:
-            for child in toolBarDescriptions:
+        tool_bar_descriptions = xmlroot.find("ToolBarDescriptions")
+        if tool_bar_descriptions is not None:
+            for child in tool_bar_descriptions:
                 if child.tag == "ToolBarDescription":
                     d = ToolBarDescription.fromXml(etree.tostring(child))
                     if d is not None:
@@ -1362,9 +1362,9 @@ class TaurusGui(TaurusMainWindow):
         custom_applets += [obj for name, obj in inspect.getmembers(
             conf) if isinstance(obj, AppletDescription)]
 
-        appletDescriptions = xmlroot.find("AppletDescriptions")
-        if appletDescriptions is not None:
-            for child in appletDescriptions:
+        applet_descriptions = xmlroot.find("AppletDescriptions")
+        if applet_descriptions is not None:
+            for child in applet_descriptions:
                 if child.tag == "AppletDescription":
                     d = AppletDescription.fromXml(etree.tostring(child))
                     if d is not None:
@@ -1401,9 +1401,9 @@ class TaurusGui(TaurusMainWindow):
         external_apps = [obj for name, obj in inspect.getmembers(
             conf) if isinstance(obj, ExternalApp)]
 
-        externalAppsNode = xmlroot.find("ExternalApps")
-        if externalAppsNode is not None:
-            for child in externalAppsNode:
+        ext_apps_node = xmlroot.find("ExternalApps")
+        if ext_apps_node is not None:
+            for child in ext_apps_node:
                 if child.tag == "ExternalApp":
                     ea = ExternalApp.fromXml(etree.tostring(child))
                     if ea is not None:
@@ -1421,7 +1421,7 @@ class TaurusGui(TaurusMainWindow):
         ini_file = getattr(conf, 'INIFILE', self.__getVarFromXML(
             xmlroot, "INIFILE", "default.ini"))
         # if a relative name is given, the conf dir is used as the root path
-        iniFileName = os.path.join(self._confDirectory, ini_file)
+        ini_file_name = os.path.join(self._confDirectory, ini_file)
 
         # read the settings (or the factory settings if the regular file is not
         # found)
@@ -1432,7 +1432,7 @@ class TaurusGui(TaurusMainWindow):
             self.splashScreen().showMessage(msg)
         except AttributeError:
             pass
-        self.loadSettings(factorySettingsFileName=iniFileName)
+        self.loadSettings(factorySettingsFileName=ini_file_name)
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
