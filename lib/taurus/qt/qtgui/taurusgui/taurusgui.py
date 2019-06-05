@@ -1048,32 +1048,8 @@ class TaurusGui(TaurusMainWindow):
             self.jorgsBar.addAction(customIcon, APPNAME)
 
         self._loadExtraCatalogWidgets(conf, xmlroot)
-
         self._loadManualUri(conf, xmlroot)
-
-        # configure the macro infrastructure
-        MACROSERVER_NAME = getattr(conf, 'MACROSERVER_NAME', self.__getVarFromXML(
-            xmlroot, "MACROSERVER_NAME", None))
-        MACRO_PANELS = getattr(conf, 'MACRO_PANELS', self.__getVarFromXML(
-            xmlroot, "MACRO_PANELS", True))
-        # macro infrastructure will only be created if MACROSERVER_NAME is set
-        if MACRO_PANELS and MACROSERVER_NAME is not None:
-            from sardana.taurus.qt.qtgui.macrolistener import MacroBroker
-            self.__macroBroker = MacroBroker(self)
-        if MACROSERVER_NAME:
-            self.macroserverNameChanged.emit(MACROSERVER_NAME)
-
-        DOOR_NAME = getattr(conf, 'DOOR_NAME',
-                            self.__getVarFromXML(xmlroot, "DOOR_NAME", ''))
-        if DOOR_NAME:
-            self.doorNameChanged.emit(DOOR_NAME)
-
-        MACROEDITORS_PATH = getattr(conf, 'MACROEDITORS_PATH', self.__getVarFromXML(
-            xmlroot, "MACROEDITORS_PATH", ''))
-        if MACROEDITORS_PATH:
-            from sardana.taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import ParamEditorManager
-            ParamEditorManager().parsePaths(MACROEDITORS_PATH)
-            ParamEditorManager().browsePaths()
+        self._loadSardanaOptions(conf, xmlroot)
 
         # Synoptics
         SYNOPTIC = getattr(conf, 'SYNOPTIC', None)
@@ -1393,6 +1369,46 @@ class TaurusGui(TaurusMainWindow):
         if self.HELP_MENU_ENABLED:
             self.createPanel(self.helpManualBrowser, 'Manual', permanent=True,
                              icon=Qt.QIcon.fromTheme('help-browser'))
+
+    ### SARDANA MACRO STUFF ON
+    def _loadSardanaOptions(self, conf, xmlroot):
+        """configure macro infrastructure"""
+        ms = self._loadMacroServerName(conf, xmlroot)
+        mp = self._loadMacroPanels(conf, xmlroot)
+        # macro infrastructure will only be created if MACROSERVER_NAME is set
+        if ms is not None and mp is True:
+            from sardana.taurus.qt.qtgui.macrolistener import MacroBroker
+            self.__macroBroker = MacroBroker(self)
+        self._loadDoorName(conf, xmlroot)
+        self._laodMacroEditorsPath(conf, xmlroot)
+
+    def _loadMacroServerName(self, conf, xmlroot):
+        macro_server_name = getattr(conf, "MACROSERVER_NAME", self.__getVarFromXML(
+            xmlroot, "MACROSERVER_NAME", None))
+        if macro_server_name:
+            self.macroserverNameChanged.emit(macro_server_name)
+        return macro_server_name
+
+    def _loadMacroPanels(self, conf, xmlroot):
+        macro_panels = getattr(conf, "MACRO_PANELS", self.__getVarFromXML(
+            xmlroot, "MACRO_PANELS", True))
+        return macro_panels
+
+    def _loadDoorName(self, conf, xmlroot):
+        door_name = getattr(conf, "DOOR_NAME",
+                            self.__getVarFromXML(xmlroot, "DOOR_NAME", ''))
+        if door_name:
+            self.doorNameChanged.emit(door_name)
+
+    def _loadMacroEditorsPath(self, conf, xmlroot):
+        macro_editors_path = getattr(conf, "MACROEDITORS_PATH", self.__getVarFromXML(
+            xmlroot, "MACROEDITORS_PATH", ""))
+        if macro_editors_path:
+            from sardana.taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import \
+                ParamEditorManager
+            ParamEditorManager().parsePaths(macro_editors_path)
+            ParamEditorManager().browsePaths()
+    ### SARDANA MACRO STUFF OFF
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
