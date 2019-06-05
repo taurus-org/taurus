@@ -1050,24 +1050,7 @@ class TaurusGui(TaurusMainWindow):
         self._loadExtraCatalogWidgets(conf, xmlroot)
         self._loadManualUri(conf, xmlroot)
         self._loadSardanaOptions(conf, xmlroot)
-
-        # Synoptics
-        SYNOPTIC = getattr(conf, 'SYNOPTIC', None)
-        if isinstance(SYNOPTIC, string_types):  # old config file style
-            self.warning(
-                'Deprecated usage of SYNOPTIC keyword (now it expects a list of paths). Please update your configuration file to: "SYNOPTIC=[\'%s\']".' % SYNOPTIC)
-            SYNOPTIC = [SYNOPTIC]
-        if SYNOPTIC is None:  # we look in the xml config file if not present in the python config
-            SYNOPTIC = []
-            node = xmlroot.find("SYNOPTIC")
-            if (node is not None) and (node.text is not None):
-                for child in node:
-                    s = child.get("str")
-                    # we do not append empty strings
-                    if s is not None and len(s):
-                        SYNOPTIC.append(s)
-        for s in SYNOPTIC:
-            self.createMainSynoptic(s)
+        self._loadSynoptic(conf, xmlroot)
 
         # Get panel descriptions from pool if required
         INSTRUMENTS_FROM_POOL = getattr(conf, 'INSTRUMENTS_FROM_POOL', (self.__getVarFromXML(
@@ -1409,6 +1392,25 @@ class TaurusGui(TaurusMainWindow):
             ParamEditorManager().parsePaths(macro_editors_path)
             ParamEditorManager().browsePaths()
     ### SARDANA MACRO STUFF OFF
+    
+    def _loadSynoptic(self, conf, xmlroot):
+        # Synoptics
+        synoptic = getattr(conf, 'synoptic', None)
+        if isinstance(synoptic, string_types):  # old config file style
+            self.warning(
+                'Deprecated usage of synoptic keyword (now it expects a list of paths). Please update your configuration file to: "synoptic=[\'%s\']".' % synoptic)
+            synoptic = [synoptic]
+        if synoptic is None:  # we look in the xml config file if not present in the python config
+            synoptic = []
+            node = xmlroot.find("synoptic")
+            if (node is not None) and (node.text is not None):
+                for child in node:
+                    s = child.get("str")
+                    # we do not append empty strings
+                    if s is not None and len(s):
+                        synoptic.append(s)
+        for s in synoptic:
+            self.createMainSynoptic(s)
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
