@@ -1049,15 +1049,7 @@ class TaurusGui(TaurusMainWindow):
 
         self._loadExtraCatalogWidgets(conf, xmlroot)
 
-        # manual panel
-        MANUAL_URI = getattr(conf, 'MANUAL_URI',
-                             self.__getVarFromXML(xmlroot, "MANUAL_URI",
-                                                  taurus.Release.url))
-        self.setHelpManualURI(MANUAL_URI)
-
-        if self.HELP_MENU_ENABLED:
-            self.createPanel(self.helpManualBrowser, 'Manual', permanent=True,
-                             icon=Qt.QIcon.fromTheme('help-browser'))
+        self._loadManualUri(conf, xmlroot)
 
         # configure the macro infrastructure
         MACROSERVER_NAME = getattr(conf, 'MACROSERVER_NAME', self.__getVarFromXML(
@@ -1388,6 +1380,19 @@ class TaurusGui(TaurusMainWindow):
             if pixmapname and not Qt.QFile.exists(pixmapname):
                 pixmapname = os.path.join(self._confDirectory, pixmapname)
             self._extraCatalogWidgets.append((classname, pixmapname))
+
+    def _loadManualUri(self, conf, xmlroot):
+        """
+        manual panel
+        """
+        manual_uri = getattr(conf, 'MANUAL_URI',
+                             self.__getVarFromXML(xmlroot, "MANUAL_URI",
+                                                  taurus.Release.url))
+        self.setHelpManualURI(manual_uri)
+
+        if self.HELP_MENU_ENABLED:
+            self.createPanel(self.helpManualBrowser, 'Manual', permanent=True,
+                             icon=Qt.QIcon.fromTheme('help-browser'))
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
