@@ -1030,8 +1030,8 @@ class TaurusGui(TaurusMainWindow):
         xmlroot = self._loadXmlConfig(conf)
 
         # General Qt application settings and jorgs bar logos
-        APPNAME = getattr(conf, 'GUI_NAME', self.__getVarFromXML(
-            xmlroot, "GUI_NAME", confname))
+        appname = self._loadAppName(conf, confname, xmlroot)
+
         ORGNAME = getattr(conf, 'ORGANIZATION', self.__getVarFromXML(
             xmlroot, "ORGANIZATION", str(Qt.qApp.organizationName()) or 'Taurus'))
         CUSTOMLOGO = getattr(conf, 'CUSTOM_LOGO', getattr(
@@ -1041,7 +1041,7 @@ class TaurusGui(TaurusMainWindow):
         else:
             customIcon = Qt.QIcon(os.path.join(
                 self._confDirectory, CUSTOMLOGO))
-        Qt.qApp.setApplicationName(APPNAME)
+
         Qt.qApp.setOrganizationName(ORGNAME)
         Qt.QApplication.instance().basicConfig()
 
@@ -1064,7 +1064,7 @@ class TaurusGui(TaurusMainWindow):
         if SINGLEINSTANCE:
             if not self.checkSingleInstance():
                 msg = 'Only one istance of %s is allowed to run the same time' % (
-                    APPNAME)
+                    appname)
                 self.error(msg)
                 Qt.QMessageBox.critical(
                     self, 'Multiple copies', msg, Qt.QMessageBox.Abort)
@@ -1072,12 +1072,12 @@ class TaurusGui(TaurusMainWindow):
 
         # some initialization
         self.resetQSettings()
-        self.setWindowTitle(APPNAME)
+
         self.setWindowIcon(customIcon)
 
         if self.APPLETS_TOOLBAR_ENABLED:
             self.jorgsBar.addAction(organizationIcon, ORGNAME)
-            self.jorgsBar.addAction(customIcon, APPNAME)
+            self.jorgsBar.addAction(customIcon, appname)
 
         # get custom widget catalog entries
         # @todo: support also loading from xml
@@ -1362,6 +1362,13 @@ class TaurusGui(TaurusMainWindow):
                 if result == Qt.QMessageBox.Abort:
                     sys.exit()
         return xmlroot
+
+    def _loadAppName(self, conf, confname, xmlroot):
+        appname = getattr(conf, 'GUI_NAME', self.__getVarFromXML(
+            xmlroot, "GUI_NAME", confname))
+        Qt.qApp.setApplicationName(appname)
+        self.setWindowTitle(appname)
+        return appname
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
