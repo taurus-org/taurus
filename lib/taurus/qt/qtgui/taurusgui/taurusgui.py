@@ -1034,15 +1034,11 @@ class TaurusGui(TaurusMainWindow):
         # General Qt application settings and jorgs bar logos
         self._loadAppName(conf, confname, xmlroot)
         self._loadOrgName(conf, xmlroot)
-        custom_icon = self._loadCustomLogo(conf, xmlroot)
+        self._loadCustomLogo(conf, xmlroot)
         Qt.QApplication.instance().basicConfig()
-        org_icon = self._loadOrgLogo(conf, xmlroot)
+        self._loadOrgLogo(conf, xmlroot)
+
         self._loadSingleInstance(conf, xmlroot)
-        # some initialization
-        self.resetQSettings()
-        if self.APPLETS_TOOLBAR_ENABLED:
-            self.jorgsBar.addAction(org_icon, Qt.qApp.organizationName())
-            self.jorgsBar.addAction(custom_icon, Qt.qApp.applicationName())
 
         self._loadExtraCatalogWidgets(conf, xmlroot)
         self._loadManualUri(conf, xmlroot)
@@ -1109,23 +1105,27 @@ class TaurusGui(TaurusMainWindow):
             custom_icon = Qt.QIcon(os.path.join(
                 self._confDirectory, custom_logo))
         self.setWindowIcon(custom_icon)
-        return custom_icon
+        self.resetQSettings()  # is it really needed?
+        if self.APPLETS_TOOLBAR_ENABLED:
+            self.jorgsBar.addAction(custom_icon, Qt.qApp.applicationName())
 
     def _loadOrgLogo(self, conf, xmlroot):
         logo = getattr(tauruscustomsettings,
                        "ORGANIZATION_LOGO",
                        "logos:taurus.png")
         org_logo = getattr(conf,
-                          "ORGANIZATION_LOGO",
-                          self.__getVarFromXML(xmlroot,
-                                               "ORGANIZATION_LOGO",
-                                               logo))
+                           "ORGANIZATION_LOGO",
+                           self.__getVarFromXML(xmlroot,
+                                                "ORGANIZATION_LOGO",
+                                                logo))
         if Qt.QFile.exists(org_logo):
             org_icon = Qt.QIcon(org_logo)
         else:
             org_icon = Qt.QIcon(os.path.join(
                 self._confDirectory, org_logo))
-        return org_icon
+        self.resetQSettings()  # is it really needed
+        if self.APPLETS_TOOLBAR_ENABLED:
+            self.jorgsBar.addAction(org_icon, Qt.qApp.organizationName())
 
     def _loadSingleInstance(self, conf, xmlroot):
         """
