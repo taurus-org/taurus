@@ -1030,16 +1030,9 @@ class TaurusGui(TaurusMainWindow):
         xmlroot = self._loadXmlConfig(conf)
 
         # General Qt application settings and jorgs bar logos
-        appname = self._loadAppName(conf, confname, xmlroot)
-        self._loadOrgName(conf, xmlroot)
-
-        CUSTOMLOGO = getattr(conf, 'CUSTOM_LOGO', getattr(
-            conf, 'LOGO', self.__getVarFromXML(xmlroot, "CUSTOM_LOGO", 'logos:taurus.png')))
-        if Qt.QFile.exists(CUSTOMLOGO):
-            customIcon = Qt.QIcon(CUSTOMLOGO)
-        else:
-            customIcon = Qt.QIcon(os.path.join(
-                self._confDirectory, CUSTOMLOGO))
+        APPNAME = self._loadAppName(conf, confname, xmlroot)
+        ORGNAME = self._loadOrgName(conf, xmlroot)
+        customIcon = self._loadCustomLogo(conf, xmlroot)
 
         Qt.QApplication.instance().basicConfig()
 
@@ -1062,7 +1055,7 @@ class TaurusGui(TaurusMainWindow):
         if SINGLEINSTANCE:
             if not self.checkSingleInstance():
                 msg = 'Only one istance of %s is allowed to run the same time' % (
-                    appname)
+                    APPNAME)
                 self.error(msg)
                 Qt.QMessageBox.critical(
                     self, 'Multiple copies', msg, Qt.QMessageBox.Abort)
@@ -1071,11 +1064,9 @@ class TaurusGui(TaurusMainWindow):
         # some initialization
         self.resetQSettings()
 
-        self.setWindowIcon(customIcon)
-
         if self.APPLETS_TOOLBAR_ENABLED:
             self.jorgsBar.addAction(organizationIcon, ORGNAME)
-            self.jorgsBar.addAction(customIcon, appname)
+            self.jorgsBar.addAction(customIcon, APPNAME)
 
         # get custom widget catalog entries
         # @todo: support also loading from xml
@@ -1372,6 +1363,18 @@ class TaurusGui(TaurusMainWindow):
         orgname = getattr(conf, 'ORGANIZATION', self.__getVarFromXML(
             xmlroot, "ORGANIZATION", str(Qt.qApp.organizationName()) or 'Taurus'))
         Qt.qApp.setOrganizationName(orgname)
+        return orgname
+
+    def _loadCustomLogo(self, conf, xmlroot):
+        customlogo = getattr(conf, 'CUSTOM_LOGO', getattr(
+            conf, 'LOGO', self.__getVarFromXML(xmlroot, "CUSTOM_LOGO", 'logos:taurus.png')))
+        if Qt.QFile.exists(customlogo):
+            customIcon = Qt.QIcon(customlogo)
+        else:
+            customIcon = Qt.QIcon(os.path.join(
+                self._confDirectory, customlogo))
+        self.setWindowIcon(customIcon)
+        return customIcon
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
