@@ -1058,24 +1058,7 @@ class TaurusGui(TaurusMainWindow):
         self._loadCustomToolBars(conf, xmlroot)
         self._loadCustomApplets(conf, xmlroot)
         self._loadExternalApps(conf, xmlroot)
-
-        # get the "factory settings" filename. By default, it is called
-        # "default.ini" and resides in the configuration dir
-        INIFILE = getattr(conf, 'INIFILE', self.__getVarFromXML(
-            xmlroot, "INIFILE", "default.ini"))
-        # if a relative name is given, the conf dir is used as the root path
-        iniFileName = os.path.join(self._confDirectory, INIFILE)
-
-        # read the settings (or the factory settings if the regular file is not
-        # found)
-        msg = "Loading previous state"
-        if self.defaultConfigRecursionDepth >= 0:
-            msg += " in Fail Proof mode"
-        try:
-            self.splashScreen().showMessage(msg)
-        except AttributeError:
-            pass
-        self.loadSettings(factorySettingsFileName=iniFileName)
+        self._loadIniFile(conf, xmlroot)
 
     def _loadXmlConfig(self, conf):
         """
@@ -1432,6 +1415,27 @@ class TaurusGui(TaurusMainWindow):
         for a in external_apps:
             self._external_app_names.append(str(a.getAction().text()))
             self.addExternalAppLauncher(a.getAction())
+
+    def _loadIniFile(self, conf, xmlroot):
+        """
+        get the "factory settings" filename. By default, it is called
+        "default.ini" and resides in the configuration dir
+        """
+        ini_file = getattr(conf, 'INIFILE', self.__getVarFromXML(
+            xmlroot, "INIFILE", "default.ini"))
+        # if a relative name is given, the conf dir is used as the root path
+        iniFileName = os.path.join(self._confDirectory, ini_file)
+
+        # read the settings (or the factory settings if the regular file is not
+        # found)
+        msg = "Loading previous state"
+        if self.defaultConfigRecursionDepth >= 0:
+            msg += " in Fail Proof mode"
+        try:
+            self.splashScreen().showMessage(msg)
+        except AttributeError:
+            pass
+        self.loadSettings(factorySettingsFileName=iniFileName)
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
