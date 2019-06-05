@@ -1036,30 +1036,9 @@ class TaurusGui(TaurusMainWindow):
 
         Qt.QApplication.instance().basicConfig()
 
-        logo = getattr(tauruscustomsettings, 'ORGANIZATION_LOGO',
-                       "logos:taurus.png")
-        ORGANIZATIONLOGO = getattr(conf, 'ORGANIZATION_LOGO',
-                                   self.__getVarFromXML(xmlroot,
-                                                        "ORGANIZATION_LOGO",
-                                                        logo))
-        ##
-        if Qt.QFile.exists(ORGANIZATIONLOGO):
-            organizationIcon = Qt.QIcon(ORGANIZATIONLOGO)
-        else:
-            organizationIcon = Qt.QIcon(os.path.join(
-                self._confDirectory, ORGANIZATIONLOGO))
+        organizationIcon = self._loadOrgLogo(conf, xmlroot)
 
-        # if required, enforce that only one instance of this GUI can be run
-        SINGLEINSTANCE = getattr(conf, 'SINGLE_INSTANCE', (self.__getVarFromXML(
-            xmlroot, "SINGLE_INSTANCE", 'True').lower() == 'true'))
-        if SINGLEINSTANCE:
-            if not self.checkSingleInstance():
-                msg = 'Only one istance of %s is allowed to run the same time' % (
-                    APPNAME)
-                self.error(msg)
-                Qt.QMessageBox.critical(
-                    self, 'Multiple copies', msg, Qt.QMessageBox.Abort)
-                sys.exit(1)
+        self._loadSingleInstance(conf, xmlroot, APPNAME)
 
         # some initialization
         self.resetQSettings()
@@ -1375,6 +1354,35 @@ class TaurusGui(TaurusMainWindow):
                 self._confDirectory, customlogo))
         self.setWindowIcon(customIcon)
         return customIcon
+
+    def _loadOrgLogo(self, conf, xmlroot):
+        logo = getattr(tauruscustomsettings,
+                       "ORGANIZATION_LOGO",
+                       "logos:taurus.png")
+        orglogo = getattr(conf,
+                          "ORGANIZATION_LOGO",
+                          self.__getVarFromXML(xmlroot,
+                                               "ORGANIZATION_LOGO",
+                                               logo))
+        if Qt.QFile.exists(orglogo):
+            orgIcon = Qt.QIcon(orglogo)
+        else:
+            orgIcon = Qt.QIcon(os.path.join(
+                self._confDirectory, orglogo))
+        return orgIcon
+
+    def _loadSingleInstance(self, conf, xmlroot, appname):
+        # if required, enforce that only one instance of this GUI can be run
+        single_inst = getattr(conf, 'SINGLE_INSTANCE', (self.__getVarFromXML(
+            xmlroot, "SINGLE_INSTANCE", 'True').lower() == 'true'))
+        if single_inst:
+            if not self.checkSingleInstance():
+                msg = 'Only one istance of %s is allowed to run the same time' % (
+                    appname)
+                self.error(msg)
+                Qt.QMessageBox.critical(
+                    self, 'Multiple copies', msg, Qt.QMessageBox.Abort)
+                sys.exit(1)
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
