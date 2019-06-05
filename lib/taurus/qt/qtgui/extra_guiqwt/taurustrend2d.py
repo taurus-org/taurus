@@ -28,6 +28,8 @@ taurustrend.py: Generic trend widget for Taurus
 """
 __all__ = ["TaurusTrend2DDialog"]
 
+import click
+
 from guiqwt.plot import ImageDialog
 from taurus.external.qt import Qt
 import taurus.core
@@ -369,5 +371,46 @@ def taurusTrend2DMain():
     sys.exit(app.exec_())
 
 
+@click.command('trend2d')
+@click.argument('model', nargs=1, required=False)
+@click.option("-x", "--x-axis-mode", "x_axis_mode",
+              type=click.Choice(['t', 'd', 'e']),
+              default='d',
+              show_default=True,
+              help=("interpret X values as timestamps (t), "
+                    + "time deltas (d) or event numbers (e). ")
+              )
+@click.option('-b', '--buffer', 'max_buffer_size', type=int,
+              default=512,
+              show_default=True,
+              help=("maximum number of values to be stacked "
+                    + "(when reached, the oldest values will be "
+                    + "discarded)")
+              )
+@click.option("--demo", is_flag=True, help="show a demo of the widget")
+@click.option('--window-name', 'window_name',
+              default='TaurusPlot (qwt5)',
+              help='Name of the window')
+def trend2d_cmd(model, x_axis_mode, max_buffer_size,
+                demo, window_name):
+    from taurus.qt.qtgui.application import TaurusApplication
+    import sys
+
+    if demo:
+        model = 'eval:x=linspace(0,3,40);t=rand();sin(x+t)'
+
+    app = TaurusApplication(cmd_line_parser=None, app_name="Taurus Trend 2D")
+
+    stackMode = dict(t='datetime', d='deltatime', e='event')[x_axis_mode]
+
+    w = TaurusTrend2DDialog(stackMode=stackMode, wintitle=window_name,
+                            buffersize=max_buffer_size)
+    if model:
+        w.setModel(model)
+
+    w.show()
+    sys.exit(app.exec_())
+
+
 if __name__ == "__main__":
-    taurusTrend2DMain()
+    trend2d_cmd()

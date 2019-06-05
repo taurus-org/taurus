@@ -121,6 +121,7 @@ taurus_subcommands = [
     'gui = taurus.qt.qtgui.taurusgui.taurusgui:gui_cmd',
     'newgui = taurus.qt.qtgui.taurusgui.taurusgui:newgui_cmd',
     'designer = taurus.qt.qtdesigner.taurusdesigner:designer_cmd',
+    'guiqwt = taurus.qt.qtgui.extra_guiqwt.cli:guiqwt',
     'form = taurus.qt.qtgui.panel.taurusform:form_cmd',
     'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
 ]
