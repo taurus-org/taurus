@@ -37,7 +37,6 @@ import threading
 from taurus.external.qt import Qt
 
 from taurus.core.util.log import LogExceptHook, Logger
-import taurus.core.util.argparse
 
 
 __all__ = ["TaurusApplication"]
@@ -248,6 +247,7 @@ class TaurusApplication(Qt.QApplication, Logger):
                 parser.version = v
                 parser._add_version_option()
 
+            import taurus.core.util.argparse
             p, opt, args = taurus.core.util.argparse.init_taurus_args(
                 parser=parser, args=args[0][1:])
 
