@@ -1643,61 +1643,6 @@ class TaurusGui(TaurusMainWindow):
         self.info(nfo)
 
 
-#------------------------------------------------------------------------------
-def main(confname=None):
-    import sys
-    import taurus
-    from taurus.core.util import argparse
-    from taurus.qt.qtgui.application import TaurusApplication
-
-    taurus.info('Starting execution of TaurusGui')
-
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] confname")
-    parser.set_description("The taurus GUI application")
-    parser.add_option("", "--config-dir", dest="config_dir", default=None,
-                      help="use the given configuration directory for initialization")
-    parser.add_option("", "--new-gui", action="store_true", dest="new_gui", default=None,
-                      help="launch a wizard for creating a new TaurusGUI application")
-    parser.add_option("", "--fail-proof", action="store_true", dest="fail_proof", default=None,
-                      help="launch in fail proof mode (it prevents potentially problematic configs from being loaded)")
-
-    app = TaurusApplication(cmd_line_parser=parser, app_name="taurusgui",
-                            app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
-
-    if options.new_gui:  # launch app settings wizard instead of taurusgui
-        from taurus.qt.qtgui.taurusgui import AppSettingsWizard
-        wizard = AppSettingsWizard()
-        wizard.show()
-        sys.exit(app.exec_())
-
-    if confname is None:
-        confname = options.config_dir
-
-    if confname is None:
-        if len(args) == 1:  # for backwards compat, we allow to specify the confname without the "--config-dir" parameter
-            confname = args[0]
-        else:
-            parser.print_help(sys.stderr)
-            sys.exit(1)
-
-    if options.fail_proof:
-        configRecursionDepth = 0
-    else:
-        configRecursionDepth = None
-
-    gui = TaurusGui(None, confname=confname,
-                    configRecursionDepth=configRecursionDepth)
-
-    gui.show()
-    ret = app.exec_()
-
-    taurus.info('Finished execution of TaurusGui')
-    sys.exit(ret)
-
-
 @click.command('gui')
 @click.argument('confname', nargs=1, required=True)
 @click.option('--safe-mode', 'safe_mode', is_flag=True, default=False,
@@ -1758,4 +1703,4 @@ def newgui_cmd(stub_name):
 
 
 if __name__ == "__main__":
-    main()
+    gui_cmd()

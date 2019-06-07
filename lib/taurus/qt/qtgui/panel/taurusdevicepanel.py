@@ -618,48 +618,6 @@ class TaurusDevPanel(TaurusMainWindow):
 #=========================================================================
 
 
-def TaurusDevicePanelMain():
-    """A launcher for TaurusDevicePanel."""
-    import sys
-    from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.core.util import argparse
-
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [devname [attrs]]")
-    parser.set_description("Taurus Application inspired in Jive and Atk Panel")
-    parser.add_option("", "--config-file", dest="config_file", default=None,
-                      help="load a config file (TODO: document this option)")
-
-    app = TaurusApplication(cmd_line_parser=parser, app_name="TaurusDevicePanel",
-                            app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
-
-    w = TaurusDevicePanel()
-    w.show()
-
-    if len(args) == 0:
-        from taurus.qt.qtgui.panel import TaurusModelChooser
-        models, ok = TaurusModelChooser.modelChooserDlg(w,
-                                                        selectables=[
-                                                            TaurusElementType.Member],
-                                                        singleModel=True)
-        model = models[0] if ok and models else None
-        filters = ''
-    else:
-        model = args[0]
-        filters = args[1:]
-
-    if options.config_file is not None:
-        w.loadConfigFile(options.config_file)
-    elif model and filters:
-        w.setAttributeFilters({model: filters})
-
-    w.setModel(model)
-
-    sys.exit(app.exec_())
-
-
 @click.command('dev')
 @click.argument('dev', nargs=1, default=None, required=False)
 @click.option('-f', '--filter',
@@ -696,36 +654,6 @@ def dev_cmd(dev, filter, config_file):
 
     sys.exit(app.exec_())
 
-
-def TaurusPanelMain():
-    '''A launcher for TaurusPanel.'''
-    # NOTE: DON'T PUT TEST CODE HERE.
-    # THIS IS CALLED FROM THE LAUNCHER SCRIPT (<taurus>/scripts/tauruspanel)
-    from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.core.util import argparse
-    import sys
-
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [devname]")
-    parser.set_description("Taurus Application inspired in Jive and Atk Panel")
-
-    app = TaurusApplication(cmd_line_parser=parser, app_name="tauruspanel",
-                            app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
-
-    w = TaurusDevPanel()
-
-    if options.tango_host is None:
-        options.tango_host = taurus.Authority().getNormalName()
-    w.setTangoHost(options.tango_host)
-
-    if len(args) == 1:
-        w.setDevice(args[0])
-
-    w.show()
-
-    sys.exit(app.exec_())
 
 @click.command('panel')
 @click.option('--tango-host', 'tango_host',

@@ -3709,80 +3709,6 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         "bool", isOptimizationEnabled, setOptimizationEnabled, resetOptimizationEnabled)
 
 
-def main():
-    import sys
-    import taurus.qt.qtgui.application
-    import taurus.core.util.argparse
-
-    parser = taurus.core.util.argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
-    parser.set_description("a taurus application for plotting 1D data sets")
-    parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='e', metavar="t|n",
-                      help="interprete X values as either timestamps (t) or numbers (n). Accepted values: t|n (e is also accepted as a synonim of n)")
-    parser.add_option("--config", "--config-file", dest="config_file", default=None,
-                      help="use the given config file for initialization")
-    parser.add_option("--import-ascii", dest="import_ascii", default=None,
-                      help="import the given ascii file into the plot")
-    parser.add_option("--export", "--export-file", dest="export_file", default=None,
-                      help="use the given file to as output instead of showing the plot")
-    parser.add_option("--window-name", dest="window_name",
-                      default="TaurusPlot", help="Name of the window")
-
-    app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
-                                                        app_name="taurusplot",
-                                                        app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
-    if options.x_axis_mode.lower() not in ['t', 'e', 'n']:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
-    models = args
-    w = TaurusPlot()
-    w.setWindowTitle(options.window_name)
-
-    w.setXIsTime(options.x_axis_mode.lower() == 't')
-    if options.config_file is not None:
-        w.loadConfig(options.config_file)
-
-    if options.import_ascii is not None:
-        w.importAscii([options.import_ascii], xcol=0)
-
-    if models:
-        w.setModel(models)
-        
-    if options.export_file is not None:
-        curves = dict.fromkeys(w.trendSets, 0)
-
-        def exportIfAllCurves(curve, trend=w, counters=curves):
-            curve = str(curve)
-            print('*' * 10 + ' %s: Event received for %s  ' % (datetime.now().isoformat(), curve) + '*' * 10)
-            if curve in counters:
-                counters[curve] += 1
-                if all(counters.values()):
-                    trend.exportPdf(options.export_file)
-                    print('*' * 10 + ' %s: Exported to : %s  ' % (datetime.now().isoformat(), options.export_file) + '*' * 10)
-                    trend.close()
-            return
-        if not curves:
-            w.close()
-        else:
-            for ts in w.trendSets.values():
-                ts.dataChanged.connect(exportIfAllCurves)
-        sys.exit(app.exec_())  # exit without showing the widget
-
-    # show the widget
-    w.show()
-    # if no models are passed, show the data import dialog
-    if (len(models) == 0
-            and options.config_file is None
-            and options.import_ascii is None
-        ):
-        w.showDataImportDlg()
-
-    sys.exit(app.exec_())
-
-
 def plot_main(models=(), config_file=None, x_axis_mode='n', demo=False,
               window_name='TaurusPlot (qwt)'):
     import sys
@@ -3814,5 +3740,6 @@ def plot_main(models=(), config_file=None, x_axis_mode='n', demo=False,
 
     sys.exit(app.exec_())
 
+
 if __name__ == "__main__":
-    main()
+    plot_main()

@@ -27,7 +27,6 @@ from builtins import str
 import sys
 import click
 import os.path
-import optparse
 
 import taurus
 from taurus.external.qt import Qt
@@ -152,33 +151,6 @@ def qtdesigner_start(args, env=None):
     designer.waitForFinished(-1)
 
     return designer.exitCode()
-
-
-def main(env=None):
-    if env is not None:
-        taurus.info('ignoring obsolete env parameter to qtdesigner_start')
-
-    version = "taurusdesigner %s" % (taurus.Release.version)
-    usage = "Usage: %prog [options] <ui file(s)>"
-    description = "The Qt designer application customized for taurus"
-    parser = optparse.OptionParser(
-        version=version, usage=usage, description=description)
-    parser.add_option("--taurus-path", dest="tauruspath", default="",
-                      help="additional directories to look for taurus widgets")
-    parser.add_option("--qt-designer-path", dest="pyqtdesignerpath", default="",
-                      help="additional directories to look for python qt widgets")
-
-    options, args = parser.parse_args()
-
-    taurus_extra_path = None
-    # Set TAURUSQTDESIGNERPATH
-    if len(options.tauruspath) > 0:
-        taurus_extra_path = options.tauruspath
-
-    if env is None:
-        env = get_taurus_designer_env(taurus_extra_path=taurus_extra_path)
-
-    sys.exit(qtdesigner_start(args, env=env))
 
 
 @click.command('designer')

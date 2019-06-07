@@ -1046,73 +1046,6 @@ def test4():
     sys.exit(app.exec_())
 
 
-def taurusFormMain():
-    '''A launcher for TaurusForm.'''
-    # NOTE: DON'T PUT TEST CODE HERE.
-    # THIS IS CALLED FROM THE LAUNCHER SCRIPT (<taurus>/scripts/taurusform)
-    # USE test1() instead.
-    from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.core.util import argparse
-    import sys
-    import os
-
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [model1 [model2 ...]]")
-    parser.set_description("the taurus form panel application")
-    parser.add_option("--window-name", dest="window_name",
-                      default="TaurusForm", help="Name of the window")
-    parser.add_option("--config", "--config-file", dest="config_file", default=None,
-                      help="use the given config file for initialization")
-    app = TaurusApplication(cmd_line_parser=parser,
-                            app_name="taurusform",
-                            app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
-
-    dialog = TaurusForm()
-    dialog.setModifiableByUser(True)
-    dialog.setModelInConfig(True)
-    dialog.setWindowTitle(options.window_name)
-
-    # Make sure the window size and position are restored
-    dialog.registerConfigProperty(dialog.saveGeometry, dialog.restoreGeometry,
-                                  'MainWindowGeometry')
-
-    quitApplicationAction = Qt.QAction(
-        Qt.QIcon.fromTheme("process-stop"), 'Close Form', dialog)
-    quitApplicationAction.triggered.connect(dialog.close)
-
-    saveConfigAction = Qt.QAction("Save current settings...", dialog)
-    saveConfigAction.setShortcut(Qt.QKeySequence.Save)
-    saveConfigAction.triggered.connect(
-        partial(dialog.saveConfigFile, ofile=None))
-    loadConfigAction = Qt.QAction("&Retrieve saved settings...", dialog)
-    loadConfigAction.setShortcut(Qt.QKeySequence.Open)
-    loadConfigAction.triggered.connect(
-        partial(dialog.loadConfigFile, ifile=None))
-
-    dialog.addActions(
-        (saveConfigAction, loadConfigAction, quitApplicationAction))
-
-    # set the default map for this installation
-    from taurus import tauruscustomsettings
-    dialog.setCustomWidgetMap(
-        getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {}))
-
-    # set a model list from the command line or launch the chooser
-    if options.config_file is not None:
-        dialog.loadConfigFile(options.config_file)
-    elif len(args) > 0:
-        models = args
-        dialog.setModel(models)
-    else:
-        dialog.chooseModels()
-
-    dialog.show()
-
-    sys.exit(app.exec_())
-
-
 @click.command('form')
 @click.option('--window-name', 'window_name',
               default='Taurus Form',
@@ -1173,7 +1106,6 @@ def main():
     # test2()
     # test3()
     # test4()
-    # taurusFormMain()
     form_cmd()
 
 if __name__ == "__main__":

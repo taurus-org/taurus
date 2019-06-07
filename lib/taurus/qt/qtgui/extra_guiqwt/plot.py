@@ -628,49 +628,6 @@ def taurusTrendDlgMain():
     sys.exit(app.exec_())
 
 
-def taurusImageDlgMain():
-    from taurus.qt.qtgui.application import TaurusApplication
-    import taurus.core
-    import sys
-
-    # prepare options
-    parser = taurus.core.util.argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] <model>")
-    parser.set_description(
-        'a Taurus application for plotting Image Attributes')
-    parser.add_option("--demo", action="store_true", dest="demo",
-                      default=False, help="show a demo of the widget")
-    parser.add_option("--rgb", action="store_true", dest="rgb_mode",
-                      default=False, help="assume image is RGB")
-    parser.add_option("--window-name", dest="window_name",
-                      default="Taurus Image", help="Name of the window")
-    app = TaurusApplication(
-        cmd_line_parser=parser, app_name="Taurus Image Dialog", app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
-
-    # TODO:  is "--rgb --demo" doing the right thing?? Check it.
-    # check & process options
-    if options.demo:
-        if options.rgb_mode:
-            args.append('eval:randint(0,256,(10,20,3))')
-        else:
-            args.append('eval:rand(256,128)')
-    w = TaurusImageDialog(wintitle=options.window_name)
-
-    w.setRGBmode(options.rgb_mode)
-
-    # set model
-    if len(args) == 1:
-        w.setModel(args[0])
-    else:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
-    w.show()
-    sys.exit(app.exec_())
-
-
 @click.command('image')
 @click.argument('model', nargs=1, required=False)
 @click.option('-c', '--color-mode', 'color_mode',

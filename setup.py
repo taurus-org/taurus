@@ -93,23 +93,7 @@ extras_require = {
 }
 
 console_scripts = [
-    'taurustestsuite = taurus.test.testsuite:testsuite_cmd',
-    'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main',
-    'taurusplot = taurus.qt.qtgui.qwt5.taurusplot:main',
-    'taurustrend = taurus.qt.qtgui.qwt5.taurustrend:main',
-    'taurusform = taurus.qt.qtgui.panel.taurusform:taurusFormMain',
-    'tauruspanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusPanelMain',
-    'taurusdevicepanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusDevicePanelMain',
-    'taurusgui = taurus.qt.qtgui.taurusgui.taurusgui:main',
-    'taurusdesigner = taurus.qt.qtdesigner.taurusdesigner:main',
-    'tauruscurve = taurus.qt.qtgui.extra_guiqwt.plot:taurusCurveDlgMain',
-    'taurustrend1d = taurus.qt.qtgui.extra_guiqwt.plot:taurusTrendDlgMain',
-    'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain',
-    'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
-    'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:icons_cmd',
-    'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main',
-    'taurus = taurus.cli:main'
-    # TODO: taurusdoc,
+    'taurus = taurus.cli:main',
 ]
 
 taurus_subcommands = [

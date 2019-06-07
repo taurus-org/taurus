@@ -494,27 +494,6 @@ class QConfigEditor(TaurusWidget):
         self.tree.restoreOriginal()
 
 
-def main():
-    from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.core.util import argparse
-    from taurus import Release
-    import sys
-
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [INIFILENAME]")
-    parser.set_description("taurus configuration editor")
-    app = TaurusApplication(cmd_line_parser=parser,
-                            app_name="taurusconfigeditor",
-                            app_version=Release.version)
-    args = app.get_command_line_args()
-    w = QConfigEditor()
-    w.setMinimumSize(500, 500)
-    w.show()
-    if len(args) == 1:
-        w.loadFile(args[0])
-
-    sys.exit(app.exec_())
-
 @click.command('config')
 @click.argument('config_file', type=click.Path(exists=True), required=False)
 def config_cmd(config_file):
@@ -532,5 +511,6 @@ def config_cmd(config_file):
 
     sys.exit(app.exec_())
 
+
 if __name__ == '__main__':
-    main()
+    config_cmd()

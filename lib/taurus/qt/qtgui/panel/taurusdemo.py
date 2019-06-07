@@ -123,21 +123,6 @@ class TaurusDemoPanel(Qt.QWidget):
             d.showMessage(str(e))
 
 
-def main():
-    import taurus.core.util.argparse
-    parser = taurus.core.util.argparse.get_taurus_parser()
-    parser.set_description("A demo application for taurus")
-    app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
-                                                        app_name="taurusdemo",
-                                                        app_version="1.0",
-                                                        org_domain="Taurus",
-                                                        org_name="Tango community")
-    gui = TaurusDemoPanel()
-    gui.setWindowTitle(app.applicationName())
-    gui.show()
-    sys.exit(app.exec_())
-
-
 @click.command('demo')
 def demo_cmd():
     """A demo application for taurus"""
