@@ -599,10 +599,7 @@ def main():
     w.stop_logging()
 
 
-@click.command('logmonitor')
-@click.option('-m', '--mode', 'mode', type=click.Choice(['gui', 'cli']),
-              default='gui', show_default=True,
-              help='interface mode')
+@click.command('qlogmon')
 @click.option('--port', 'port', type=int,
               default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
               show_default=True,
@@ -614,35 +611,29 @@ def main():
                                  'debug', 'trace']),
               default='debug', show_default=True,
               help='filter specific log level')
-def logmonitor_cmd(mode, port, log_name, log_level):
+def qlogmon_cmd(port, log_name, log_level):
     """Show the Taurus Remote Log Monitor"""
     import taurus
     host = socket.gethostname()
     level = getattr(taurus, log_level.capitalize(), taurus.Trace)
 
-    if mode == 'gui':
-        from taurus.qt.qtgui.application import TaurusApplication
-        app = TaurusApplication(cmd_line_parser=None,
-                                app_name="Taurus remote logger")
-        w = QLoggingWidget(perspective="Remote")
-        w.setMinimumSize(1024, 600)
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(cmd_line_parser=None,
+                            app_name="Taurus remote logger")
+    w = QLoggingWidget(perspective="Remote")
+    w.setMinimumSize(1024, 600)
 
-        filterbar = w.getFilterBar()
-        filterbar.setLogLevel(level)
-        if log_name is not None:
-            filterbar.setFilterText(log_name)
-        w.getPerspectiveBar().setEnabled(False)
-        w.getQModel().connect_logging(host, port)
-        w.show()
-        app.exec_()
-        w.getQModel().disconnect_logging()
-    else:
-        import taurus.core.util.remotelogmonitor
-        taurus.core.util.remotelogmonitor.log(host=host, port=port,
-                                              name=log_name,
-                                              level=level)
+    filterbar = w.getFilterBar()
+    filterbar.setLogLevel(level)
+    if log_name is not None:
+        filterbar.setFilterText(log_name)
+    w.getPerspectiveBar().setEnabled(False)
+    w.getQModel().connect_logging(host, port)
+    w.show()
+    app.exec_()
+    w.getQModel().disconnect_logging()
 
 
 if __name__ == '__main__':
     main()
-    # logmonitor_cmd
+    # qlogmon_cmd

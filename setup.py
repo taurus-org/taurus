@@ -109,7 +109,8 @@ taurus_subcommands = [
     'icons = taurus.qt.qtgui.icon.catalog:icons_cmd',
     'form = taurus.qt.qtgui.panel.taurusform:form_cmd',
     'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
-    'logmonitor = taurus.qt.qtgui.table.qlogtable:logmonitor_cmd'
+    'logmon = taurus.core.util.remotelogmonitor:logmon_cmd',
+    'qlogmon = taurus.qt.qtgui.table.qlogtable:qlogmon_cmd',
 ]
 
 model_selectors = [

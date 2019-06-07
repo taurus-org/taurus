@@ -38,6 +38,7 @@ import logging
 import logging.handlers
 import struct
 import weakref
+import click
 
 import socketserver
 
@@ -181,47 +182,26 @@ def log(host, port, name=None, level=None):
         print("\nCancelled", msg)
 
 
-def main(argv=None):
-    import optparse
-    import socket
-
-    import taurus.core.util.log
-
-    taurus.setLogLevel(taurus.Trace)
-
-    dft_port = logging.handlers.DEFAULT_TCP_LOGGING_PORT
-
+@click.command('logmon')
+@click.option('--port', 'port', type=int,
+              default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
+              show_default=True,
+              help='port where log server is running')
+@click.option('--log-name', 'log_name', default=None,
+              help='filter specific log object')
+@click.option('--log-level', 'log_level',
+              type=click.Choice(['critical', 'error', 'warning', 'info',
+                                 'debug', 'trace']),
+              default='debug', show_default=True,
+              help='filter specific log level')
+def logmon_cmd(port, log_name, log_level):
+    """Show the console-based Taurus Remote Log Monitor"""
+    import taurus
     host = socket.gethostname()
+    level = getattr(taurus, log_level.capitalize(), taurus.Trace)
 
-    help_port = "port where log server is running [default: %d]" % dft_port
-    help_name = "filter specific log object [default: None, meaning don't " \
-                "filter]"
-    help_level = "filter specific log level." \
-                 "Allowed values are (case insensitive): critical, "\
-                 "error, warning/warn, info, debug, trace [default: debug]."
+    log(host=host, port=port, name=log_name, level=level)
 
-    parser = optparse.OptionParser()
-    parser.add_option("--log-port", dest="log_port", default=dft_port,
-                      type="int", help=help_port)
-    parser.add_option("--log-name", dest="log_name", default=None,
-                      type="string", help=help_name)
-    parser.add_option("--log-level", dest="log_level", default="debug",
-                      type="string", help=help_level)
-
-    if argv is None:
-        import sys
-        argv = sys.argv
-
-    options, args = parser.parse_args(args=argv)
-
-    port, name = options.log_port, options.log_name
-    level_str = options.log_level.capitalize()
-
-    level = None
-    if hasattr(taurus, level_str):
-        level = getattr(taurus, level_str)
-
-    log(host, port, name=name, level=level)
 
 if __name__ == '__main__':
-    main()
+    logmon_cmd()
