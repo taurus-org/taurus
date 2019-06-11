@@ -123,22 +123,21 @@ class STD(Logger):
 
 class TaurusApplication(Qt.QApplication, Logger):
     """A QApplication that performs some taurus-specific initializations
-    and optionally also parses the command line for taurus options.
-    The parsing is done using the :mod:`taurus.core.util.argparse`.
+    and (optionally but deprecated) also parses the command line for taurus
+    options.
 
     The optional keyword parameters:
         - app_name: (str) application name
         - app_version: (str) application version
         - org_name: (str) organization name
         - org_domain: (str) organization domain
-        - cmd_line_parser  (:class:`optparse.OptionParser` or None)
+        - cmd_line_parser (None [or DEPRECATED :class:`optparse.OptionParser`])
 
-    If a  :class:`optparse.OptionParser` instance is passed as cmd_line_parser,
-    it will be used for parsing the command line arguments. If it is not
-    explicitly passed, a default parser will be assumed with the default taurus
-    options. If cmd_line_parser is explicitly set to None, no parsing will be
-    done at all (useful e.g. if you use `click` to parse the command line
-    options).
+    If cmd_line_parser is explicitly set to None (recommended), no parsing will
+    be done at all. If a  :class:`optparse.OptionParser` instance is passed as
+    cmd_line_parser (deprecated), it will be used for parsing the command line
+    arguments. If it is not explicitly passed (not recommended), a default
+    parser will be assumed with the default taurus options.
 
     Simple example::
 
@@ -154,31 +153,6 @@ class TaurusApplication(Qt.QApplication, Logger):
 
         sys.exit(app.exec_())
 
-    A more complex example showing how to add options and a usage help::
-
-        import sys
-        import taurus.core.util.argparse
-        import taurus.qt.qtgui.application
-        import taurus.qt.qtgui.display
-
-        parser = taurus.core.util.argparse.get_taurus_parser()
-        parser.usage = "%prog [options] <model>"
-        parser.add_option("--hello")
-
-        app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser)
-        args = app.get_command_line_args()
-        if len(args) < 1:
-            sys.stderr.write("Need to supply model attribute")
-            sys.exit(1)
-
-        w = taurus.qt.qtgui.display.TaurusLabel()
-        w.model = args[1]
-        w.show()
-
-        sys.exit(app.exec_())
-
-    For more details on taurus command line parsing check
-    :mod:`taurus.core.util.argparse`.
     """
 
     def __init__(self, *args, **kwargs):
