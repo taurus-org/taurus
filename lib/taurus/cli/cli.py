@@ -26,10 +26,63 @@ import click
 from taurus import Release, info
 
 @click.group('taurus')
+@click.option('--log-level', 'log_level',
+              type=click.Choice(['Critical', 'Error', 'Warning', 'Info',
+                                 'Debug', 'Trace']),
+              default='Info', show_default=True,
+              help='Show only logs with priority LEVEL or above')
+@click.option("--polling-period", "polling_period",
+              type=click.INT, metavar="MILLISEC", default=None,
+              help='Change the Default Taurus polling period')
+@click.option("--serialization-mode", "serialization_mode",
+              type=click.Choice(['Serial', 'Concurrent', 'TangoSerial']),
+              default=None, show_default=True,
+              help=("Set the default Taurus serialization mode for those "
+                    + "models that do not explicitly define it)"))
+@click.option("--rconsole", "rconsole_port", type=click.INT,
+              metavar="PORT", default=None,
+              help="Enable remote debugging with rfoo on the given PORT")
+@click.option("--default-formatter", "default_formatter",
+              type=click.STRING, metavar="FORMATTER", default=None,
+              help="Override the default formatter (use with caution!)")
 @click.version_option(version=Release.version)
-def taurus_cmd():
+def taurus_cmd(log_level, polling_period, serialization_mode, rconsole_port,
+               default_formatter):
     """The main taurus command"""
-    pass
+
+    import taurus
+
+    # set log level
+    taurus.setLogLevel(getattr(taurus, log_level))
+
+    # set polling period
+    if polling_period is not None:
+        taurus.changeDefaultPollingPeriod(polling_period)
+
+    # set serialization mode
+    if serialization_mode is not None:
+        from taurus.core.taurusbasetypes import TaurusSerializationMode
+        m = getattr(TaurusSerializationMode, serialization_mode)
+        taurus.Manager().setSerializationMode(m)
+
+    # enable the remote console port
+    if rconsole_port is not None:
+        try:
+            import rfoo.utils.rconsole
+            rfoo.utils.rconsole.spawn_server(port=rconsole_port)
+            taurus.info(("rconsole started. "
+                         + "You can connect to it by typing: rconsole -p %d"),
+                        rconsole_port
+                        )
+        except Exception as e:
+            taurus.warning("Cannot spawn debugger. Reason: %s", e)
+
+    # set the default formatter
+    if default_formatter is not None:
+        from taurus import tauruscustomsettings
+        setattr(tauruscustomsettings, 'DEFAULT_FORMATTER', default_formatter)
+
+
 
 
 def main():
@@ -41,7 +94,6 @@ def main():
         except Exception as e:
             info('Cannot load "%s" subcommand for taurus. Reason: %r',
                  ep.name, e)
-
 
     # launch the taurus command
     taurus_cmd()
