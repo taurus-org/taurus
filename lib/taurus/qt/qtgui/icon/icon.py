@@ -327,7 +327,7 @@ def getDevStatePixmap(state, size=None):
 if __name__ == '__main__':
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     icons = [
         # null because of non-existent path

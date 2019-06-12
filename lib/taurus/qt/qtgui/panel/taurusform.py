@@ -949,7 +949,7 @@ def test1():
         models = None
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     if models is None:
         models = ['sys/tg_test/1/state',
                   'sys/tg_test/1/float_scalar',
@@ -981,7 +981,7 @@ def test2():
         model = 'bl97/pc/dummy-01'
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     dialog = TaurusAttrForm()
     dialog.setModel(model)
     dialog.show()
@@ -1000,7 +1000,7 @@ def test3():
         model = 'bl97/pc/dummy-01'
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     dialog = TaurusCommandsForm()
     dialog.setModel(model)
     dialog.show()
@@ -1015,7 +1015,7 @@ def test4():
     from taurus.qt.qtgui.display import TaurusLabel
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
 
     from taurus.qt.qtgui.panel import TaurusValue
 

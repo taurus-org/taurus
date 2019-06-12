@@ -172,7 +172,7 @@ class QIconCatalog(Qt.QTabWidget):
 def icons_cmd():
     """Show the Taurus icon catalog"""
     import sys
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
     w = QIconCatalog()
     w.setWindowTitle('Taurus Icon Catalog')
     w.show()

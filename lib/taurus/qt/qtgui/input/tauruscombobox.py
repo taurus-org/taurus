@@ -366,7 +366,7 @@ class TaurusAttrListComboBox(Qt.QComboBox, TaurusBaseWidget):
 def _taurusAttrListTest():
     """tests taurusAttrList. Model: an attribute containing a list of strings"""
     from taurus.qt.qtgui.application import TaurusApplication
-    a = TaurusApplication()
+    a = TaurusApplication(cmd_line_parser=None)
     # model = sys.argv[1]
     # model = "eval:['foo','bar']"
     model = "sys/tg_test/1/string_spectrum"
@@ -387,7 +387,7 @@ def _taurusValueComboboxTest():
         ('name2', 2),
         ('name3', 3)
     ]
-    a = TaurusApplication()
+    a = TaurusApplication(cmd_line_parser=None)
     w = Qt.QWidget()
     w.setLayout(Qt.QVBoxLayout())
 

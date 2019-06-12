@@ -659,7 +659,7 @@ def commandButtonMain():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
     form = TaurusCommandButton(parent=None, designMode=False, command='DevBoolean', parameters=[
                                123], icon='logos:taurus.png', text='launch: DevBoolean 123')
     form.setModel('sys/tg_test/1')
@@ -677,7 +677,7 @@ def launcherButtonMain():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     # Creating button giving the widget
     # from taurus.qt.qtgui.plot import TaurusPlot

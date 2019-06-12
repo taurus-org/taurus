@@ -1874,8 +1874,8 @@ class TaurusTrend(TaurusPlot):
 
 def test():
     import sys
-    import taurus.qt.qtgui.application
-    app = taurus.qt.qtgui.application.TaurusApplication()
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(cmd_line_parser=None)
     w = Qt.QWidget()
     w.setLayout(Qt.QVBoxLayout())
     s = Qt.QSplitter()

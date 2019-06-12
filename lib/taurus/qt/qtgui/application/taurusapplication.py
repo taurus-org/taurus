@@ -142,10 +142,10 @@ class TaurusApplication(Qt.QApplication, Logger):
     Simple example::
 
         import sys
-        import taurus.qt.qtgui.application
+        from taurus.qt.qtgui.application import TaurusApplication
         import taurus.qt.qtgui.display
 
-        app = taurus.qt.qtgui.application.TaurusApplication()
+        app = TaurusApplication(cmd_line_parser=None)
 
         w = taurus.qt.qtgui.display.TaurusLabel()
         w.model = 'sys/tg_test/1/double_scalar'

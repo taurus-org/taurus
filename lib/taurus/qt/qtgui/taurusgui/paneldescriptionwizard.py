@@ -652,7 +652,7 @@ class PanelDescriptionWizard(Qt.QWizard, TaurusBaseWidget):
 
 def test():
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     form = PanelDescriptionWizard()
 
     def kk(d):
@@ -667,14 +667,14 @@ def test():
 
 def test2():
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     print(ExpertWidgetChooserDlg.getDialog())
     sys.exit()
 
 
 def main():
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     from taurus.qt.qtgui.container import TaurusMainWindow
     form = Qt.QMainWindow()
 

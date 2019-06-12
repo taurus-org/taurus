@@ -59,7 +59,7 @@ def _demo():
     from taurus.qt.qtgui.panel import TaurusForm
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     f = TaurusForm()
     f.model = ['sys/tg_test/1/long_scalar', 'sys/tg_test/1/long_scalar',

@@ -1153,8 +1153,8 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
 
 if __name__ == "__main__":
 
-    import taurus.qt.qtgui.application
-    app = taurus.qt.qtgui.application.TaurusApplication()
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(cmd_line_parser=None)
     app.setApplicationName('TaurusMainWindow-test')
     app.setOrganizationName('ALBA')
     app.basicConfig()

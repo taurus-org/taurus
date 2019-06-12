@@ -355,7 +355,7 @@ def testTool(tool):
     from taurus.qt.qtgui.application import TaurusApplication
     from guiqwt.plot import CurveDialog
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
     win = CurveDialog(edit=False, toolbar=True)
     win.add_tool(tool)
     win.show()

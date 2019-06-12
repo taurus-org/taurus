@@ -247,7 +247,7 @@ class TaurusGui(TaurusMainWindow):
             from taurus.qt.qtgui.application import TaurusApplication
             from taurus.qt.qtgui.taurusgui import TaurusGui
             from taurus.external.qt import Qt
-            app = TaurusApplication(app_name='MyGui')
+            app = TaurusApplication(cmd_line_parser=None, app_name='MyGui')
             gui = TaurusGui()
             panel = Qt.QWidget()
             gui.createPanel(panel, 'Foo')
@@ -266,7 +266,7 @@ class TaurusGui(TaurusMainWindow):
             from taurus.qt.qtgui.application import TaurusApplication
             from taurus.qt.qtgui.taurusgui import TaurusGui
             from taurus.external.qt import Qt
-            app = TaurusApplication()
+            app = TaurusApplication(cmd_line_parser=None)
             gui = TaurusGui(confname=__file__)
             panel = Qt.QWidget()
             gui.createPanel(panel, 'Foo')  # <-- programmatic!

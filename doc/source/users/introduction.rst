@@ -47,7 +47,7 @@ four attributes (state, position, velocity, acceleration) of a Tango device
     from taurus.qt.qtgui.panel import TaurusForm
     from taurus.qt.qtgui.application import TaurusApplication
     
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     
     attrs = [ 'state', 'position', 'velocity', 'acceleration' ]
     model = [ 'motor/icepap/01/%s' % attr for attr in attrs ]
