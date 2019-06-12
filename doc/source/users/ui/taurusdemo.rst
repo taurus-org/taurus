@@ -15,15 +15,15 @@ demonstration purposes.
 Taurus Demo Application
 -----------------------
 
-taurusdemo is an application that gives an overview of some of the
+Taurus demo is an application that gives an overview of some of the
 widgets available in Taurus. taurusdemo can be launched with the following
 command::
 
-    taurusdemo
+    taurus demo
 
 Run the following command for more details::
 
-    taurusdemo --help
+    taurus demo --help
 
 .. figure:: /_static/taurusdemo.png
   :align: center

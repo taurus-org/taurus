@@ -66,7 +66,7 @@ four attributes (state, position, velocity, acceleration) of a Tango device
 The above example can even be achieved even without typing any code::
 
     % cd taurus/qt/qtgui/panel
-    % taurusform motor/icepap/01/state motor/icepap/01/position motor/icepap/01/velocity
+    % taurus form motor/icepap/01/state motor/icepap/01/position motor/icepap/01/velocity
   
 For many more examples, See the :ref:`examples` page.
 

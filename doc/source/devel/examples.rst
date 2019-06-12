@@ -369,7 +369,7 @@ feature-rich and very configurable GUIs by using existing widgets as "panels".
 TaurusGuis can be created via a wizard application (no programming at all!) with
 a few clicks. You can try it out by running::
 
-	taurusgui --new-gui
+	taurus newgui
 	
 For more details and tricks regarding TaurusGui, check :ref:`this <taurusgui_newgui>`.
 
