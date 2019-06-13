@@ -1132,7 +1132,7 @@ class TaurusGui(TaurusMainWindow):
             xmlroot, "SINGLE_INSTANCE", 'True').lower() == 'true'))
         if single_inst:
             if not self.checkSingleInstance():
-                msg = 'Only one istance of %s is allowed to run the same time' % (
+                msg = 'Only one instance of %s is allowed to run the same time' % (
                     Qt.qApp.applicationName())
                 self.error(msg)
                 Qt.QMessageBox.critical(
