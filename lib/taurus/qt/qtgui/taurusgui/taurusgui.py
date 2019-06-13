@@ -1029,9 +1029,6 @@ class TaurusGui(TaurusMainWindow):
 
         xmlroot = self._loadXmlConfig(conf)
 
-        self._loadGeneralQtSettings(conf, xmlroot, confname)
-
-        # General Qt application settings and jorgs bar logos
         self._loadAppName(conf, confname, xmlroot)
         self._loadOrgName(conf, xmlroot)
         self._loadCustomLogo(conf, xmlroot)
