@@ -618,7 +618,7 @@ class TaurusDevPanel(TaurusMainWindow):
 #=========================================================================
 
 
-@click.command('dev')
+@click.command('device')
 @click.argument('dev', nargs=1, default=None, required=False)
 @click.option('-f', '--filter',
               help=('regexp to filter for attributes to show '
@@ -627,7 +627,7 @@ class TaurusDevPanel(TaurusMainWindow):
               )
 @click.option('--config', 'config_file', type=click.File('rb'),
               help='configuration file for initialization')
-def dev_cmd(dev, filter, config_file):
+def device_cmd(dev, filter, config_file):
     """Show a Device Panel"""
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
