@@ -1176,7 +1176,7 @@ class TaurusGui(TaurusMainWindow):
             from sardana.taurus.qt.qtgui.macrolistener import MacroBroker
             self.__macroBroker = MacroBroker(self)
         self._loadDoorName(conf, xmlroot)
-        self._laodMacroEditorsPath(conf, xmlroot)
+        self._loadMacroEditorsPath(conf, xmlroot)
         pool_instruments = self._loadInstrumentsFromPool(conf, xmlroot, ms)
         return pool_instruments
 
