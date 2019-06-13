@@ -23,7 +23,7 @@
 
 import pkg_resources
 import click
-from taurus import Release, info
+import taurus
 
 @click.group('taurus')
 @click.option('--log-level', 'log_level',
@@ -45,12 +45,10 @@ from taurus import Release, info
 @click.option("--default-formatter", "default_formatter",
               type=click.STRING, metavar="FORMATTER", default=None,
               help="Override the default formatter (use with caution!)")
-@click.version_option(version=Release.version)
+@click.version_option(version=taurus.Release.version)
 def taurus_cmd(log_level, polling_period, serialization_mode, rconsole_port,
                default_formatter):
     """The main taurus command"""
-
-    import taurus
 
     # set log level
     taurus.setLogLevel(getattr(taurus, log_level))
@@ -83,16 +81,31 @@ def taurus_cmd(log_level, polling_period, serialization_mode, rconsole_port,
         setattr(tauruscustomsettings, 'DEFAULT_FORMATTER', default_formatter)
 
 
-
-
 def main():
+    # set the log level to WARNING avoid spamming the CLI while loading
+    # subcommands
+    # it will be restored to the desired one first thing in taurus_cmd()
+    taurus.setLogLevel(taurus.Warning)
+
     # Add subcommands from the taurus_subcommands entry point
     for ep in pkg_resources.iter_entry_points('taurus.cli.subcommands'):
         try:
             subcommand = ep.load()
             taurus_cmd.add_command(subcommand)
         except Exception as e:
-            info('Cannot load "%s" subcommand for taurus. Reason: %r',
+            # -----------------------------------------------------------
+            # Use info instead of warning in case of nonimportable Qwt5
+            # (e.g. when using py3 or Qt5) to avoid spam
+            # This special case can be removed when taurus.qt.qtgui.qwt5
+            # is moved to a separate plugin, since the entry point will
+            # be registered only if the plugin is installed
+            if ep.name == 'qwt5':
+                taurus.info(
+                    'Cannot add "%s" subcommand to taurus. Reason: %r',
+                    ep.name, e)
+                continue
+            # -----------------------------------------------------------
+            taurus.warning('Cannot add "%s" subcommand to taurus. Reason: %r',
                  ep.name, e)
 
     # launch the taurus command
