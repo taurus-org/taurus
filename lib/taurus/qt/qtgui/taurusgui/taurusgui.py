@@ -1686,7 +1686,7 @@ def gui_cmd(confname, safe_mode):
 #               default=None,
 #               help='Create an empty stub of gui with the given NAME'
 #               )
-def newgui_cmd(stub_name):
+def newgui_cmd():
     """Create a new TaurusGui"""
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
