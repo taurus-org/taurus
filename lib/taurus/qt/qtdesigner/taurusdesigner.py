@@ -155,7 +155,9 @@ def qtdesigner_start(args, env=None):
 
 @click.command('designer')
 @click.argument('ui_files', nargs=-1)
-@click.option("--taurus-path", "tauruspath", default=None,
+@click.option("--taurus-path", "tauruspath",
+              metavar='TAURUSPATH',
+              default=None,
               help="additional directories to look for taurus widgets")
 def designer_cmd(ui_files, tauruspath):
     """Launch a Taurus-customized Qt Designer application"""
