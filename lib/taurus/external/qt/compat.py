@@ -41,4 +41,8 @@ getOpenFileName = getattr(QFileDialog, 'getOpenFileNameAndFilter',
 getOpenFileNames = getattr(QFileDialog, 'getOpenFileNamesAndFilter',
                           QFileDialog.getOpenFileNames)
 
+# Backport PY_OBJECT (to be used in signal signatures) from taurus 4.5 
+# (in this case only support PyQt -not PySide-)
+PY_OBJECT = 'PyQt_PyObject'
+
 del QFileDialog
