@@ -32,6 +32,7 @@ from future.utils import string_types
 
 import re
 import traceback
+import click
 
 from future.utils import string_types
 
@@ -276,10 +277,8 @@ class TaurusDevicePanel(TaurusWidget):
             self.setModel(model)
 
     def loadConfigFile(self, ifile=None):
-        self.info('In TaurusDevicePanel.loadConfigFile(%s)' % ifile)
-        if isinstance(ifile, file) or isinstance(ifile, string_types) and not ifile.endswith('.py'):
-            TaurusWidget.loadConfigFile(self, ifile)
-        else:
+        self.debug('In TaurusDevicePanel.loadConfigFile(%s)' % ifile)
+        if isinstance(ifile, string_types) and ifile.endswith('.py'):
             from imp import load_source
             config_file = load_source('config_file', ifile)
             af, cf, im = [getattr(config_file, x, None) for x in (
@@ -290,6 +289,8 @@ class TaurusDevicePanel(TaurusWidget):
                 self.setCommandFilters(cf)
             if im is not None:
                 self.setIconMap(im)
+        else:
+            TaurusWidget.loadConfigFile(self, ifile)
         self.debug('AttributeFilters are:\n%s' % self.getAttributeFilters())
 
     def duplicate(self):
@@ -617,73 +618,67 @@ class TaurusDevPanel(TaurusMainWindow):
 #=========================================================================
 
 
-def TaurusDevicePanelMain():
-    '''A launcher for TaurusDevicePanel.'''
+@click.command('device')
+@click.argument('dev', nargs=1, default=None, required=False)
+@click.option('-f', '--filter',
+              help=('regexp to filter for attributes to show '
+                    + '(it can be passed more than once)'),
+              multiple=True,
+              )
+@click.option('--config', 'config_file', type=click.File('rb'),
+              help='configuration file for initialization')
+def device_cmd(dev, filter, config_file):
+    """Show a Device Panel"""
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.core.util import argparse
 
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [devname [attrs]]")
-    parser.set_description("Taurus Application inspired in Jive and Atk Panel")
-    parser.add_option("", "--config-file", dest="config_file", default=None,
-                      help="load a config file (TODO: document this option)")
 
-    app = TaurusApplication(cmd_line_parser=parser, app_name="TaurusDevicePanel",
-                            app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
+    app = TaurusApplication(cmd_line_parser=None, app_name="TaurusDevicePanel")
 
     w = TaurusDevicePanel()
     w.show()
 
-    if len(args) == 0:
+    if dev is None:
         from taurus.qt.qtgui.panel import TaurusModelChooser
-        models, ok = TaurusModelChooser.modelChooserDlg(w,
-                                                        selectables=[
-                                                            TaurusElementType.Member],
-                                                        singleModel=True)
-        model = models[0] if ok and models else None
-        filters = ''
-    else:
-        model = args[0]
-        filters = args[1:]
+        models, ok = TaurusModelChooser.modelChooserDlg(
+            w, selectables=[TaurusElementType.Member], singleModel=True
+        )
+        dev = models[0] if ok and models else None
 
-    if options.config_file is not None:
-        w.loadConfigFile(options.config_file)
-    elif model and filters:
-        w.setAttributeFilters({model: filters})
+    if config_file is not None:
+        w.loadConfigFile(config_file)
+    elif dev and filter:
+        w.setAttributeFilters({dev: list(filter)})
 
-    w.setModel(model)
+    w.setModel(dev)
 
     sys.exit(app.exec_())
 
 
-def TaurusPanelMain():
-    '''A launcher for TaurusPanel.'''
-    # NOTE: DON'T PUT TEST CODE HERE.
-    # THIS IS CALLED FROM THE LAUNCHER SCRIPT (<taurus>/scripts/tauruspanel)
+@click.command('panel')
+@click.option('--tango-host', 'tango_host',
+              default=None,
+              help="Tango Host name (the system's default if not given)")
+@click.option('-d', '--dev', default=None,
+              help='pre-selected device')
+def panel_cmd(tango_host, dev):
+    """
+    Show a TaurusPanel (a Taurus application inspired in Jive and Atk Panel)
+    """
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.core.util import argparse
     import sys
 
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [devname]")
-    parser.set_description("Taurus Application inspired in Jive and Atk Panel")
-
-    app = TaurusApplication(cmd_line_parser=parser, app_name="tauruspanel",
-                            app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
+    app = TaurusApplication(cmd_line_parser=None, app_name="tauruspanel")
 
     w = TaurusDevPanel()
 
-    if options.tango_host is None:
-        options.tango_host = taurus.Authority().getNormalName()
-    w.setTangoHost(options.tango_host)
+    if tango_host is None:
+        from taurus import Factory
+        tango_host = Factory('tango').getAuthority().getFullName()
+    w.setTangoHost(tango_host)
 
-    if len(args) == 1:
-        w.setDevice(args[0])
+    if dev is not None:
+        w.setDevice(dev)
 
     w.show()
 

@@ -81,7 +81,7 @@ def test2():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.panel import TaurusForm
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     w = TaurusForm()
     attrname = 'eval:@taurus.core.evaluation.test.res.dev_example.FreeSpaceDevice/getFreeSpace("/")'

@@ -29,6 +29,7 @@ from builtins import str
 import os
 import sys
 import copy
+import click
 import weakref
 import inspect
 
@@ -246,7 +247,7 @@ class TaurusGui(TaurusMainWindow):
             from taurus.qt.qtgui.application import TaurusApplication
             from taurus.qt.qtgui.taurusgui import TaurusGui
             from taurus.external.qt import Qt
-            app = TaurusApplication(app_name='MyGui')
+            app = TaurusApplication(cmd_line_parser=None, app_name='MyGui')
             gui = TaurusGui()
             panel = Qt.QWidget()
             gui.createPanel(panel, 'Foo')
@@ -265,7 +266,7 @@ class TaurusGui(TaurusMainWindow):
             from taurus.qt.qtgui.application import TaurusApplication
             from taurus.qt.qtgui.taurusgui import TaurusGui
             from taurus.external.qt import Qt
-            app = TaurusApplication()
+            app = TaurusApplication(cmd_line_parser=None)
             gui = TaurusGui(confname=__file__)
             panel = Qt.QWidget()
             gui.createPanel(panel, 'Foo')  # <-- programmatic!
@@ -1642,47 +1643,29 @@ class TaurusGui(TaurusMainWindow):
         self.info(nfo)
 
 
-#------------------------------------------------------------------------------
-def main(confname=None):
+@click.command('gui')
+@click.argument('confname', nargs=1, required=True)
+@click.option('--safe-mode', 'safe_mode', is_flag=True, default=False,
+              help=('launch in safe mode (it prevents potentially problematic '
+                    'configs from being loaded)')
+              )
+def gui_cmd(confname, safe_mode):
+    """Launch a TaurusGUI using the given CONF"""
     import sys
     import taurus
-    from taurus.core.util import argparse
     from taurus.qt.qtgui.application import TaurusApplication
 
     taurus.info('Starting execution of TaurusGui')
 
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] confname")
-    parser.set_description("The taurus GUI application")
-    parser.add_option("", "--config-dir", dest="config_dir", default=None,
-                      help="use the given configuration directory for initialization")
-    parser.add_option("", "--new-gui", action="store_true", dest="new_gui", default=None,
-                      help="launch a wizard for creating a new TaurusGUI application")
-    parser.add_option("", "--fail-proof", action="store_true", dest="fail_proof", default=None,
-                      help="launch in fail proof mode (it prevents potentially problematic configs from being loaded)")
+    app = TaurusApplication(cmd_line_parser=None, app_name="taurusgui")
 
-    app = TaurusApplication(cmd_line_parser=parser, app_name="taurusgui",
-                            app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
+    # if options.new_gui:  # launch app settings wizard instead of taurusgui
+    #     from taurus.qt.qtgui.taurusgui import AppSettingsWizard
+    #     wizard = AppSettingsWizard()
+    #     wizard.show()
+    #     sys.exit(app.exec_())
 
-    if options.new_gui:  # launch app settings wizard instead of taurusgui
-        from taurus.qt.qtgui.taurusgui import AppSettingsWizard
-        wizard = AppSettingsWizard()
-        wizard.show()
-        sys.exit(app.exec_())
-
-    if confname is None:
-        confname = options.config_dir
-
-    if confname is None:
-        if len(args) == 1:  # for backwards compat, we allow to specify the confname without the "--config-dir" parameter
-            confname = args[0]
-        else:
-            parser.print_help(sys.stderr)
-            sys.exit(1)
-
-    if options.fail_proof:
+    if safe_mode:
         configRecursionDepth = 0
     else:
         configRecursionDepth = None
@@ -1697,5 +1680,27 @@ def main(confname=None):
     sys.exit(ret)
 
 
+@click.command('newgui')
+# @click.option('--stub', 'stub_name',
+#               metavar="NAME",
+#               default=None,
+#               help='Create an empty stub of gui with the given NAME'
+#               )
+def newgui_cmd():
+    """Create a new TaurusGui"""
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(cmd_line_parser=None, app_name="newgui")
+
+    # if stub_name is not None:
+    #     pass # TODO
+
+    from taurus.qt.qtgui.taurusgui import AppSettingsWizard
+    wizard = AppSettingsWizard()
+    wizard.show()
+    sys.exit(app.exec_())
+
+
 if __name__ == "__main__":
-    main()
+    gui_cmd()

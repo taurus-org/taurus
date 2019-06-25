@@ -85,7 +85,7 @@ if __name__ == "__main__":
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     form = QRawDataWidget()
     form.show()
     sys.exit(app.exec_())

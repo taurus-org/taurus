@@ -454,7 +454,7 @@ class TaurusModelList(Qt.QListView):
 if __name__ == "__main__":
     from taurus.qt.qtgui.application import TaurusApplication
     import sys
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
     w = TaurusModelList()
     w.addModels(["item%i" % i for i in range(3)] +
                 [TaurusModelItem(src='src1', display='d1')] + [('src2', 'd2')])

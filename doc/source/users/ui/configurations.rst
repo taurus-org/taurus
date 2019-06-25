@@ -18,14 +18,14 @@ Taurus Configuration Browser Application
 ----------------------------------------
 
 You may browse the configuration of a TaurusMainWindow-based application
-(e.g. any TaurusGUI) by launching the taurusconfigbrowser application 
+(e.g. any TaurusGUI) by launching the taurus config application
 with the following command::
 
-	taurusconfigbrowser [<configuration.ini>]
+	taurus config [<configuration.ini>]
 
 Run the following command for more details::
 
-    taurusconfigbrowser --help
+    taurus config --help
 
 In the figure below the taurusconfigbrowser application shows a taurus
 configuration .ini file containing three perspectives: 'LAST',

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #############################################################################
 ##
 # This file is part of Taurus
@@ -22,37 +21,22 @@
 ##
 #############################################################################
 
-"""
-Examples on using the evaluation scheme for exposing icepap driver values
-as taurus attributes
-"""
-
-from __future__ import print_function
+import click
 
 
-ATTR_IPAP_POS = ( 'eval:@ipap=pyIcePAP.EthIcePAP("icepap06", port=5000)' +
-                  '/float(ipap.readParameter(1,"POS"))')
+from .plot import image_cmd
+from .taurustrend2d import trend2d_cmd
 
 
-def _test1():
-    import taurus.core
-    a = taurus.Attribute(ATTR_IPAP_POS)
-    print("axis pos:", a.read().rvalue)
+@click.group('guiqwt')
+def guiqwt():
+    """guiqwt related commands (image, trend2d)"""
+    pass
 
 
-def _test2():
-    import sys
-    from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.display import TaurusLabel
-    app = TaurusApplication(cmd_line_parser=None)
+guiqwt.add_command(image_cmd)
+guiqwt.add_command(trend2d_cmd)
 
-    tl = TaurusLabel()
-    tl.setModel(ATTR_IPAP_POS)
-    tl.show()
+if __name__ == '__main__':
+    guiqwt()
 
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    _test1()
-    _test2()

@@ -176,7 +176,7 @@ def UILoadable(klass=None, with_ui=None):
 def main():
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication([])
+    app = TaurusApplication([], cmd_line_parser=None)
 
     @UILoadable(with_ui="ui")
     class A(Qt.QWidget):

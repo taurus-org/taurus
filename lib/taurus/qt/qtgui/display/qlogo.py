@@ -82,7 +82,7 @@ def main():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     w = QLogo()
     w.show()
     sys.exit(app.exec_())

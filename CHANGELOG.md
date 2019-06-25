@@ -10,13 +10,24 @@ develop branch) won't be reflected in this file.
 ## [Unreleased]
 
 ### Added
+- New CLI API based on click and `taurus` command supporting plugabble subcommands (#856)
 - `TaurusModelSelector` and `TaurusModelSelectorItem` classes and the
   (experimental) `"taurus.qt.qtgui.panel.TaurusModelSelector.items"` entry point (#869)
 - `TaurusFactory.getValidatorFromName` method and `getValidatorFromName` helper (#893)
 - New options API for TaurusMainWindow and TaurusGui (#858)
 - New optional set of color-blind friendly LED icons for Tango states (#902)
 
+### Removed
+- Functions implementing the old CLI scripts (#856).
+  Note: these functions and the corresponding console scripts are still provided 
+  by the "taurus_legacy_cli" plugin. (#856)
+
+### Changed
+- Old CLI scripts (taurusform, taurusdemo, etc.) are replaced by equivalent
+  subcommands to the `taurus` command.  (#856)
+  
 ### Deprecated
+- `taurus.core.util.argparse` (#856)
 - `TaurusAttribute._(un)subscribeEvents` API (#876)
 - `TaurusBaseComponent` "taurus popup menu" API (#906)
 - `TaurusMainWindow` old option names (`_heartbeat`, `_show*Menu`, `_showLogger`, 

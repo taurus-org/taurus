@@ -299,7 +299,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
             'labels': self._show_attr_labels,
             'units': self._show_attr_units, 'others': self._show_others
         }
-        f = open(filename, 'w')
+        f = open(filename, 'wb')
         pickle.dump(d, f)
         f.close()
 
@@ -308,7 +308,7 @@ class TaurusGrid(QtGui.QFrame, TaurusBaseWidget):
         if not isinstance(filename, dict):
             manual = False
             import pickle
-            f = open(filename)
+            f = open(filename, 'rb')
             d = pickle.load(f)
             f.close()
         else:
@@ -1060,7 +1060,7 @@ if __name__ == '__main__':
         print('\t/usr/bin/python taurusgrid.py "model=lt.*/VC.*/.*/((C*)|(P*)|(I*))" cols=IP,CCG,PNV rows=LT01,LT02 others=False rowframe=True colframe=False')
         exit()
 
-    app = TaurusApplication(sys.argv[0:1])
+    app = TaurusApplication(sys.argv[0:1], cmd_line_parser=None)
     gui = TaurusGrid()
 
     try:  # first try if argument is a file to be opened

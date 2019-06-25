@@ -291,7 +291,7 @@ if __name__ == "__main__":
     main()
 #     import sys
 #     from taurus.qt.qtgui.application import TaurusApplication
-#     app = TaurusApplication()
+#     app = TaurusApplication(cmd_line_parser=None)
 
 #     w = TaurusValueSpinBox()
 #     w.setModel('sys/tg_test/1/double_scalar')
