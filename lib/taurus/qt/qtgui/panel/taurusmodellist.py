@@ -318,6 +318,7 @@ class TaurusModelList(Qt.QListView):
     def _onDataChanged(self, *args):
         '''emits a signal containing the current data as a list of strings'''
         self.emit(Qt.SIGNAL("dataChanged"), self.getModelItems())
+        self.dataChangedSignal.emit(self.getModelItems())
         
     def contextMenuEvent(self, event):
         '''see :meth:`QWidget.contextMenuEvent`'''
