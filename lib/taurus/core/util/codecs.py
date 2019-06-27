@@ -550,7 +550,19 @@ class VideoImageCodec(Codec):
 
         imgBuffer = data[1][struct.calcsize(self.VIDEO_HEADER_FORMAT):]
         dtype = self.__getDtypeId(header['imageMode'])
-        if header['imageMode'] == 7:
+
+        if header['imageMode'] == 6:
+            # RGB24, 3 bytes per pixel
+            rgba = numpy.fromstring(imgBuffer, dtype)
+            bbuf = rgba[0::3]
+            gbuf = rgba[1::3]
+            rbuf = rgba[2::3]
+            r = rbuf.reshape(header['height'], header['width'])
+            g = gbuf.reshape(header['height'], header['width'])
+            b = bbuf.reshape(header['height'], header['width'])
+            img2D = numpy.dstack((r, g, b))
+
+        elif header['imageMode'] == 7:
             # RGBA 4 bytes per pixel
             rgba = numpy.fromstring(imgBuffer, dtype)
             bbuf = rgba[0::4]
@@ -698,7 +710,7 @@ class VideoImageCodec(Codec):
             # TODO: other modes
             #'RGB555'     : 4,#Core.RGB555,
             #'RGB565'     : 5,#Core.RGB565,
-            #'RGB24'      : 6,#Core.RGB24,
+            'RGB24': 6,  # Core.RGB24,
             'RGB32': 7,  # Core.RGB32,
             #'BGR24'      : 8,#Core.BGR24,
             #'BGR32'      : 9,#Core.BGR32,
@@ -719,7 +731,7 @@ class VideoImageCodec(Codec):
                 3: 'L',
                 #'RGB555'     : Core.RGB555,
                 #'RGB565'     : Core.RGB565,
-                #'RGB24'      : Core.RGB24,
+                6: 'RGB24',  # Core.RGB24,
                 7: 'RGB32',  # Core.RGB32,
                 # 8     : 'BGR24',#Core.BGR24,
                 #'BGR32'      : Core.BGR32,
@@ -740,7 +752,7 @@ class VideoImageCodec(Codec):
                 3: 'uint64',
                 #'RGB555'     : Core.RGB555,
                 #'RGB565'     : Core.RGB565,
-                # 6      : 'uint8', # Core.RGB24,
+                6: 'uint8',  # Core.RGB24,
                 7: 'uint8',  # Core.RGB32,
                 #'BGR24'      : Core.BGR24,
                 #'BGR32'      : Core.BGR32,
