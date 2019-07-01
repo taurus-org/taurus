@@ -203,7 +203,7 @@ if __name__ == "__main__":
     else:
         fname = None
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     w = TaurusNeXusBrowser()
     w.openFile(fname)
     w.show()

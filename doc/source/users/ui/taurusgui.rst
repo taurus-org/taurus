@@ -36,44 +36,13 @@ opposed to launching TaurusGUI directly), so you should refer to the specific
 instructions for launching that GUI. 
 
 Still, you may want to launch TaurusGui directly for debugging an specific
-application or for creating a new GUI from scratch. For this, use the following
-command::
+application. For this, use the following command::
 
-    taurusgui [options]
-    
-Options::
+    taurus gui [options]
 
-  -h, --help            show this help message and exit
-  --config-dir=CONFIG_DIR
-                        use the given configuration directory for
-                        initialization
-  --new-gui             launch a wizard for creating a new TaurusGUI
-                        application
-  --version             show program's version number and exit
+For creating a new taurusgui from scratch, use::
 
-  Taurus Options:
-    Basic options present in any taurus application
-
-    --taurus-log-level=LEVEL
-                        taurus log level. Allowed values are (case
-                        insensitive): critical, error, warning/warn, info,
-                        debug, trace
-    --taurus-polling-period=MILLISEC
-                        taurus global polling period in milliseconds
-    --taurus-serialization-mode=SERIAL
-                        taurus serialization mode. Allowed values are (case
-                        insensitive): serial, concurrent (default)
-    --tango-host=TANGO_HOST
-                        Tango host name
-   
-   
-                        
-.. note::
-  for backwards compatibility:
-    taurusgui CONFIG_DIR
-    
-  is equivalent to:
-    taurusgui --config-dir=CONFIG_DIR
+    taurus newgui
 
 
 General structure of a TaurusGUI application
@@ -305,7 +274,7 @@ Also, some other temporary panels may be dynamically created depending on the ex
 
 - `1D Scans`, :ref:`a trend <trend_ui>` that plots the values of scalar attributes during some scan macro executions.
  
-.. note:: You can run `taurusgui macrogui` for seeing an example of a TaurusGUI-
+.. note:: You can run `taurus gui macrogui` for seeing an example of a TaurusGUI-
           based application that provides the aforementioned panels
 
 .. figure:: /_static/macrogui01.png
@@ -313,7 +282,7 @@ Also, some other temporary panels may be dynamically created depending on the ex
   :width: 80%
   
   Macro-related panels (taken from the macrogui example that can be launched
-  with `taurusgui macrogui`)
+  with `taurus gui macrogui`)
   
 In most specific GUIs the macroserver and door name to use are pre-configured and
 the user does not need to change them. Sometimes though, you may want to alter it.
@@ -344,10 +313,10 @@ Taurus includes examples of TaurusGUI-based applications for demonstration purpo
      - launch command
      - Comment
    * - example01
-     - taurusgui example01
+     - taurus gui example01
      - Included in Taurus (<taurus>/qt/qtgui/taurusgui/conf/tgconf_example01)
    * - Macrogui
-     - taurusgui macrogui
+     - taurus gui macrogui
      - Included in Taurus (<taurus>/qt/qtgui/taurusgui/conf/tgconf_macrogui)
    * - Alba's beam lines control GUIs
      - ctblxx (xx is the beamline number)

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #############################################################################
 ##
 # This file is part of Taurus
@@ -23,36 +22,19 @@
 #############################################################################
 
 """
-Examples on using the evaluation scheme for exposing icepap driver values
-as taurus attributes
+This module provides the taurus Command Line Interface
+
+It is based on the click module to provide CLI utilities.
+
+It defines a `taurus` command which can accept subcommands defined in
+other taurus submodules or even in plugins.
+
+To define a subcommand for taurus, you need to register it using the
+`taurus_subcommands` entry point via setuptools.
+
+.. todo:: add click link , add code snippet for plugins, etc.
+
+
 """
 
-from __future__ import print_function
-
-
-ATTR_IPAP_POS = ( 'eval:@ipap=pyIcePAP.EthIcePAP("icepap06", port=5000)' +
-                  '/float(ipap.readParameter(1,"POS"))')
-
-
-def _test1():
-    import taurus.core
-    a = taurus.Attribute(ATTR_IPAP_POS)
-    print("axis pos:", a.read().rvalue)
-
-
-def _test2():
-    import sys
-    from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.qt.qtgui.display import TaurusLabel
-    app = TaurusApplication(cmd_line_parser=None)
-
-    tl = TaurusLabel()
-    tl.setModel(ATTR_IPAP_POS)
-    tl.show()
-
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    _test1()
-    _test2()
+from .cli import main

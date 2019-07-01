@@ -28,6 +28,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+import click
 from datetime import datetime
 from functools import partial
 
@@ -948,7 +949,7 @@ def test1():
         models = None
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     if models is None:
         models = ['sys/tg_test/1/state',
                   'sys/tg_test/1/float_scalar',
@@ -980,7 +981,7 @@ def test2():
         model = 'bl97/pc/dummy-01'
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     dialog = TaurusAttrForm()
     dialog.setModel(model)
     dialog.show()
@@ -999,7 +1000,7 @@ def test3():
         model = 'bl97/pc/dummy-01'
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     dialog = TaurusCommandsForm()
     dialog.setModel(model)
     dialog.show()
@@ -1014,7 +1015,7 @@ def test4():
     from taurus.qt.qtgui.display import TaurusLabel
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
 
     from taurus.qt.qtgui.panel import TaurusValue
 
@@ -1045,33 +1046,23 @@ def test4():
     sys.exit(app.exec_())
 
 
-def taurusFormMain():
-    '''A launcher for TaurusForm.'''
-    # NOTE: DON'T PUT TEST CODE HERE.
-    # THIS IS CALLED FROM THE LAUNCHER SCRIPT (<taurus>/scripts/taurusform)
-    # USE test1() instead.
+@click.command('form')
+@click.option('--window-name', 'window_name',
+              default='Taurus Form',
+              help='Name of the window')
+@click.option('--config', 'config_file', type=click.File('rb'),
+              help='configuration file for initialization')
+@click.argument('models', nargs=-1)
+def form_cmd(window_name, config_file, models):
+    """Shows a Taurus form populated with the given model names"""
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.core.util import argparse
     import sys
-    import os
-
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [model1 [model2 ...]]")
-    parser.set_description("the taurus form panel application")
-    parser.add_option("--window-name", dest="window_name",
-                      default="TaurusForm", help="Name of the window")
-    parser.add_option("--config", "--config-file", dest="config_file", default=None,
-                      help="use the given config file for initialization")
-    app = TaurusApplication(cmd_line_parser=parser,
-                            app_name="taurusform",
-                            app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
-
+    app = TaurusApplication(cmd_line_parser=None)
     dialog = TaurusForm()
     dialog.setModifiableByUser(True)
     dialog.setModelInConfig(True)
-    dialog.setWindowTitle(options.window_name)
+
+    dialog.setWindowTitle(window_name)
 
     # Make sure the window size and position are restored
     dialog.registerConfigProperty(dialog.saveGeometry, dialog.restoreGeometry,
@@ -1099,16 +1090,14 @@ def taurusFormMain():
         getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {}))
 
     # set a model list from the command line or launch the chooser
-    if options.config_file is not None:
-        dialog.loadConfigFile(options.config_file)
-    elif len(args) > 0:
-        models = args
+    if config_file is not None:
+        dialog.loadConfigFile(config_file)
+    elif len(models) > 0:
         dialog.setModel(models)
     else:
         dialog.chooseModels()
 
     dialog.show()
-
     sys.exit(app.exec_())
 
 
@@ -1117,7 +1106,7 @@ def main():
     # test2()
     # test3()
     # test4()
-    taurusFormMain()
+    form_cmd()
 
 if __name__ == "__main__":
     main()

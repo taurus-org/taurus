@@ -25,6 +25,7 @@
 
 from __future__ import print_function
 import sys
+import click
 
 import taurus.core.util
 import taurus.qt.qtgui.util
@@ -122,17 +123,13 @@ class TaurusDemoPanel(Qt.QWidget):
             d.showMessage(str(e))
 
 
-def main():
-    import taurus.core.util.argparse
-    parser = taurus.core.util.argparse.get_taurus_parser()
-    parser.set_description("A demo application for taurus")
-    app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
-                                                        app_name="taurusdemo",
-                                                        app_version="1.0",
-                                                        org_domain="Taurus",
-                                                        org_name="Tango community")
+@click.command('demo')
+def demo_cmd():
+    """A demo application for taurus"""
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(cmd_line_parser=None)
     gui = TaurusDemoPanel()
-    gui.setWindowTitle(app.applicationName())
+    gui.setWindowTitle('Taurus demo')
     gui.show()
     sys.exit(app.exec_())
 

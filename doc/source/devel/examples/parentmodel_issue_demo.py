@@ -15,7 +15,7 @@ from taurus.qt.qtgui.display import TaurusLabel
 import sys
 from taurus.qt.qtgui.application import TaurusApplication
 
-app = TaurusApplication(sys.argv)
+app = TaurusApplication(sys.argv, cmd_line_parser=None)
 
 # The problem arises in some situations when the Taurus parenting is not the same
 # as the Qt parenting. For demonstration we use 3 widgets:

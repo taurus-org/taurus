@@ -872,7 +872,8 @@ class PanelsPage(BasePage):
             name = AppSettingsWizard.getValueFromNode(
                 child, "name", default=None)
             if name:
-                self._panels.append((name, etree.tostring(child)))
+                self._panels.append(
+                    (name, etree.tostring(child, encoding='unicode')))
 
     def _addPanel(self):
         paneldesc, ok = taurus.qt.qtgui.taurusgui.paneldescriptionwizard.PanelDescriptionWizard.getDialog(
@@ -1068,7 +1069,7 @@ class ExternalAppEditor(Qt.QDialog):
         icon = etree.SubElement(root, "icon")
         icon.text = self._getIcon()
 
-        return etree.tostring(root)
+        return etree.tostring(root, encoding='unicode')
 
     @staticmethod
     def getDialog():
@@ -1142,7 +1143,9 @@ class ExternalAppPage(BasePage):
             name = AppSettingsWizard.getValueFromNode(
                 child, "command", default=None)
             if name:
-                self._externalApps.append((name, etree.tostring(child)))
+                self._externalApps.append(
+                    (name, etree.tostring(child, encoding='unicode'))
+                )
 
     def _addApplication(self):
         name, xml, ok = ExternalAppEditor.getDialog()
@@ -1684,7 +1687,8 @@ class AppSettingsWizard(Qt.QWizard):
         monitor = etree.SubElement(root, "MONITOR")
         monitor.text = self.__getitem__("monitor")
 
-        return etree.tostring(root, pretty_print=True), copy.copy(self._substitutions)
+        return (etree.tostring(root, pretty_print=True, encoding='unicode'),
+                copy.copy(self._substitutions))
 
     def substitutionName(self, src, mod_dir):
         name = os.path.basename(src)

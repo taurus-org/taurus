@@ -34,6 +34,7 @@ from taurus.external.qt import Qt, compat
 import pickle
 import os
 import tempfile
+import click
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.container import TaurusWidget
 import shutil
@@ -493,26 +494,23 @@ class QConfigEditor(TaurusWidget):
         self.tree.restoreOriginal()
 
 
-def main():
+@click.command('config')
+@click.argument('config_file', type=click.Path(exists=True), required=False)
+def config_cmd(config_file):
+    """Open the taurus configuration editor"""
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.core.util import argparse
-    from taurus import Release
     import sys
 
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [INIFILENAME]")
-    parser.set_description("taurus configuration editor")
-    app = TaurusApplication(cmd_line_parser=parser,
-                            app_name="taurusconfigeditor",
-                            app_version=Release.version)
-    args = app.get_command_line_args()
+    app = TaurusApplication(cmd_line_parser=None)
+
     w = QConfigEditor()
     w.setMinimumSize(500, 500)
     w.show()
-    if len(args) == 1:
-        w.loadFile(args[0])
+    if config_file:
+        w.loadFile(config_file)
 
     sys.exit(app.exec_())
 
+
 if __name__ == '__main__':
-    main()
+    config_cmd()

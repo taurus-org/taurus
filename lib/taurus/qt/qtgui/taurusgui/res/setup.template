@@ -13,7 +13,8 @@ classifiers = [
     'Intended Audience :: End Users/Desktop',
     'Topic :: Scientific/Engineering',
     'Environment :: X11 Applications :: Qt',
-    'Programming Language :: Python :: 2.7'
+    'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3.5'
 ]
 
 _entry_points = {{

@@ -19,11 +19,11 @@ TaurusDevicePanel as a stand-alone application
 The :class:`TaurusDevicePanel` can be launched as a stand-alone application with
 the following command::
 
-    taurusdevicepanel [options] [<device_name>]
+    taurus dev [options] [<device_name>]
 
 Run the following command for more details::
 
-    taurusdevicepanel --help
+    taurus dev --help
 
 .. _tauruspanel:
 
@@ -33,10 +33,10 @@ TaurusPanel as a stand-alone application
 The :class:`TaurusDevPanel` can be launched as a stand-alone application with
 the following command::
 
-    tauruspanel [options] [<device_name>]
+    taurus panel [options] [<device_name>]
 
 Run the following command for more details::
 
-    tauruspanel --help
+    taurus panel --help
 
 

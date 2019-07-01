@@ -84,7 +84,7 @@ EXTRA_SCHEME_MODULES = []
 #: Consider using the API for modifying this on a per-widget or per-class
 #: basis at runtime, or using the related `--default-formatter` parameter 
 #: from TaurusApplication, e.g.:
-#:     $ taurusform MODEL --default-formatter='{:2.3f}'
+#:     $ taurus form MODEL --default-formatter='{:2.3f}'
 #: The formatter can be a python format string or the name of a formatter
 #: callable, e.g.
 #: DEFAULT_FORMATTER = '{0}'

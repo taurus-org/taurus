@@ -28,6 +28,8 @@ taurustrend.py: Generic trend widget for Taurus
 """
 __all__ = ["TaurusTrend2DDialog"]
 
+import click
+
 from guiqwt.plot import ImageDialog
 from taurus.external.qt import Qt
 import taurus.core
@@ -306,68 +308,46 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
                                        TaurusBaseWidget.resetModifiableByUser)
 
 
-def taurusTrend2DMain():
+@click.command('trend2d')
+@click.argument('model', nargs=1, required=False)
+@click.option("-x", "--x-axis-mode", "x_axis_mode",
+              type=click.Choice(['t', 'd', 'e']),
+              default='d',
+              show_default=True,
+              help=("interpret X values as timestamps (t), "
+                    + "time deltas (d) or event numbers (e). ")
+              )
+@click.option('-b', '--buffer', 'max_buffer_size', type=int,
+              default=512,
+              show_default=True,
+              help=("maximum number of values to be stacked "
+                    + "(when reached, the oldest values will be "
+                    + "discarded)")
+              )
+@click.option("--demo", is_flag=True, help="show a demo of the widget")
+@click.option('--window-name', 'window_name',
+              default='TaurusPlot (qwt5)',
+              help='Name of the window')
+def trend2d_cmd(model, x_axis_mode, max_buffer_size,
+                demo, window_name):
     from taurus.qt.qtgui.application import TaurusApplication
-    import taurus.core
     import sys
 
-    # prepare options
-    parser = taurus.core.util.argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] <model>")
-    parser.set_description('a Taurus application for plotting trends of ' +
-                           'arrays (aka "spectrograms")')
-    parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='d',
-                      metavar="t|d|e",
-                      help=("interpret X values as timestamps (t), " +
-                            "time deltas (d) or event numbers (e). " +
-                            "Accepted values: t|d|e")
-                      )
-    parser.add_option("-b", "--buffer", dest="max_buffer_size", default='512',
-                      help=("maximum number of values to be stacked " +
-                            "(when reached, the oldest values will be " +
-                            "discarded)")
-                      )
-    parser.add_option("-a", "--use-archiving",
-                      action="store_true", dest="use_archiving", default=False)
-    parser.add_option("--demo", action="store_true", dest="demo",
-                      default=False, help="show a demo of the widget")
-    parser.add_option("--window-name", dest="window_name",
-                      default="Taurus Trend 2D", help="Name of the window")
+    if demo:
+        model = 'eval:x=linspace(0,3,40);t=rand();sin(x+t)'
 
-    app = TaurusApplication(cmd_line_parser=parser, app_name="Taurus Trend 2D",
-                            app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
+    app = TaurusApplication(cmd_line_parser=None, app_name="Taurus Trend 2D")
 
-    # check & process options
-    stackModeMap = dict(t='datetime', d='deltatime', e='event')
-    if options.x_axis_mode.lower() not in stackModeMap:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
+    stackMode = dict(t='datetime', d='deltatime', e='event')[x_axis_mode]
 
-    stackMode = stackModeMap[options.x_axis_mode.lower()]
-
-    if options.demo:
-        args.append('eval:x=linspace(0,3,40);t=rand();sin(x+t)')
-
-    w = TaurusTrend2DDialog(stackMode=stackMode, wintitle=options.window_name,
-                            buffersize=int(options.max_buffer_size))
-
-    # set archiving
-    if options.use_archiving:
-        raise NotImplementedError('Archiving support is not yet implemented')
-        w.setUseArchiving(True)
-
-    # set model
-    if len(args) == 1:
-        w.setModel(args[0])
-    else:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
+    w = TaurusTrend2DDialog(stackMode=stackMode, wintitle=window_name,
+                            buffersize=max_buffer_size)
+    if model:
+        w.setModel(model)
 
     w.show()
     sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
-    taurusTrend2DMain()
+    trend2d_cmd()
