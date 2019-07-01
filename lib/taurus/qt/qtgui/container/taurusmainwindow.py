@@ -720,6 +720,10 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
                        saved (no prefix by default)
         '''
         settings = self.getQSettings()
+        if not settings.isWritable():
+            self.info('Settings cannot be saved in "%s"', settings.fileName())
+            return
+
         if group is not None:
             settings.beginGroup(group)
         # main window geometry
@@ -730,7 +734,7 @@ class TaurusMainWindow(Qt.QMainWindow, TaurusBaseContainer):
         settings.setValue("TaurusConfig", self.createQConfig())
         if group is not None:
             settings.endGroup()
-        self.info('MainWindow settings saved in "%s"' % settings.fileName())
+        self.info('Settings saved in "%s"' % settings.fileName())
 
     @Qt.pyqtSlot()
     @Qt.pyqtSlot('QString')
