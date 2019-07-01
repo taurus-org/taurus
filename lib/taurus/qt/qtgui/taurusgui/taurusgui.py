@@ -289,7 +289,8 @@ class TaurusGui(TaurusMainWindow):
     #: wether to add the Quick access Toolbar (empty by default)
     QUICK_ACCESS_TOOLBAR_ENABLED = True
 
-    def __init__(self, parent=None, confname=None, configRecursionDepth=None):
+    def __init__(self, parent=None, confname=None, configRecursionDepth=None,
+                 settingsname=None):
         TaurusMainWindow.__init__(self, parent, False, True)
 
         if configRecursionDepth is not None:
@@ -343,6 +344,11 @@ class TaurusGui(TaurusMainWindow):
 
         if self.VIEW_MENU_ENABLED:
             self.__initViewMenu()
+
+        if settingsname:
+            self.resetQSettings()
+            _s = Qt.QSettings(settingsname, Qt.QSettings.IniFormat)
+            self.setQSettings(_s)
 
         self.loadConfiguration(confname)
 
@@ -1042,7 +1048,7 @@ class TaurusGui(TaurusMainWindow):
         self._loadManualUri(conf, xmlroot)
         POOLINSTRUMENTS = self._loadSardanaOptions(conf, xmlroot)
         self._loadSynoptic(conf, xmlroot)
-        # TODO: remove this when deprecation grace time is due
+        # TODO: remove deprecated _loadConsole
         self._loadConsole(conf, xmlroot)
 
         self._loadCustomPanels(conf, xmlroot, POOLINSTRUMENTS)
@@ -1103,7 +1109,6 @@ class TaurusGui(TaurusMainWindow):
             custom_icon = Qt.QIcon(os.path.join(
                 self._confDirectory, custom_logo))
         self.setWindowIcon(custom_icon)
-        self.resetQSettings()  # is it really needed?
         if self.APPLETS_TOOLBAR_ENABLED:
             self.jorgsBar.addAction(custom_icon, Qt.qApp.applicationName())
 
@@ -1121,7 +1126,6 @@ class TaurusGui(TaurusMainWindow):
         else:
             org_icon = Qt.QIcon(os.path.join(
                 self._confDirectory, org_logo))
-        self.resetQSettings()  # is it really needed
         if self.APPLETS_TOOLBAR_ENABLED:
             self.jorgsBar.addAction(org_icon, Qt.qApp.organizationName())
 
@@ -1250,6 +1254,7 @@ class TaurusGui(TaurusMainWindow):
         Deprecated CONSOLE command (if you need a IPython Console, just add a
         Panel with a `silx.gui.console.IPythonWidget`
         """
+        # TODO: remove this method when making deprecation efective
         console = getattr(conf, 'CONSOLE', self.__getVarFromXML(
             xmlroot, "CONSOLE", []))
         if console:
@@ -1416,6 +1421,7 @@ class TaurusGui(TaurusMainWindow):
         get the "factory settings" filename. By default, it is called
         "default.ini" and resides in the configuration dir
         """
+
         ini_file = getattr(conf, 'INIFILE', self.__getVarFromXML(
             xmlroot, "INIFILE", "default.ini"))
         # if a relative name is given, the conf dir is used as the root path
@@ -1722,9 +1728,15 @@ class TaurusGui(TaurusMainWindow):
 @click.argument('confname', nargs=1, required=True)
 @click.option('--safe-mode', 'safe_mode', is_flag=True, default=False,
               help=('launch in safe mode (it prevents potentially problematic '
-                    'configs from being loaded)')
+                    + 'configs from being loaded)')
               )
-def gui_cmd(confname, safe_mode):
+@click.option('--ini', type=click.Path(exists=True),
+              metavar="INIFILE",
+              help=('settings file (.ini) to be loaded (defaults to '
+                    + '<user_config_dir>/<appname>.ini)'),
+              default=None
+              )
+def gui_cmd(confname, safe_mode, ini):
     """Launch a TaurusGUI using the given CONF"""
     import sys
     import taurus
@@ -1734,18 +1746,12 @@ def gui_cmd(confname, safe_mode):
 
     app = TaurusApplication(cmd_line_parser=None, app_name="taurusgui")
 
-    # if options.new_gui:  # launch app settings wizard instead of taurusgui
-    #     from taurus.qt.qtgui.taurusgui import AppSettingsWizard
-    #     wizard = AppSettingsWizard()
-    #     wizard.show()
-    #     sys.exit(app.exec_())
-
     if safe_mode:
         configRecursionDepth = 0
     else:
         configRecursionDepth = None
 
-    gui = TaurusGui(None, confname=confname,
+    gui = TaurusGui(None, confname=confname, settingsname=ini,
                     configRecursionDepth=configRecursionDepth)
 
     gui.show()
