@@ -11,6 +11,8 @@ develop branch) won't be reflected in this file.
 
 ### Added
 - New CLI API based on click and `taurus` command supporting plugabble subcommands (#856)
+- TaurusGui now accepts a `settingsname` argument to specify the settings file to 
+  be loaded. Also accessible from the CLI as `taurus gui --ini NAME` (#570) 
 - `TaurusModelSelector` and `TaurusModelSelectorItem` classes and the
   (experimental) `"taurus.qt.qtgui.panel.TaurusModelSelector.items"` entry point (#869)
 - `TaurusFactory.getValidatorFromName` method and `getValidatorFromName` helper (#893)
