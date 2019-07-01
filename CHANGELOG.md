@@ -39,6 +39,7 @@ develop branch) won't be reflected in this file.
 - exception when calling TangoAtribute.write with a list of integers (#915)
 - several issues related to py2+p3 simultaneous support (#878, #879, #881, #885, #886, #894)
 - several issues related to multiple Qt bindings support (#875, #890, #895)
+- TaurusGuis do not show output in console on Windows (#868)
   
 ## [4.5.1] - 2019-02-15
 
