@@ -137,7 +137,7 @@ class BaseConfigurableClass(object):
     # the latest element of this list is considered the current version
     _supportedConfigVersions = ("__UNVERSIONED__",)
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.resetConfigurableItems()
 
     @staticmethod
