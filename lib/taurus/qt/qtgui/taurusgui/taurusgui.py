@@ -642,6 +642,9 @@ class TaurusGui(TaurusMainWindow):
         :param permanent: (bool) set this to True for panels that need to be recreated when restoring the app
         :param icon: (QIcon) icon for the panel
         :param instrumentkey: (str) name of an instrument to which this panel is to be associated
+        :param modelinconfig: (bool) whether to store model in settings file or not
+        :param modifiablebyuser: (bool) whether user can modify widget or not
+        :param formatter: (str) formatter for widget
 
         :return: (DockWidgetPanel) the created panel
 

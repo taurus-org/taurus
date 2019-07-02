@@ -365,6 +365,14 @@ class PanelDescription(TaurusGuiComponentDescription):
     '''
 
     def __init__(self, *args, **kwargs):
+        """
+
+        :param args:
+        :param instrumentkey: (str)
+        :param modelinconfig: (bool) whther to store model in settigns file or not
+        :param modifiablebyuser: (bool) whether user can edit widget or not
+        :param formatter: (str) formatter used by this widget
+        """
         self.instrumentkey = kwargs.pop('instrumentkey', None)
         self.icon = kwargs.pop("icon", None)
         self.model_in_config = kwargs.pop("modelinconfig", False)
