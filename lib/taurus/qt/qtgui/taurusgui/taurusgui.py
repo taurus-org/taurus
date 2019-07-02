@@ -669,6 +669,11 @@ class TaurusGui(TaurusMainWindow):
             self.info('Panel with name "%s" already exists. Reusing.' % name)
             return self.__panels[name]
 
+        if isinstance(widget, TaurusBaseComponent):
+            widget.setModifiableByUser(modifiablebyuser)
+            widget.setModelInConfig(modelinconfig)
+            widget.setFormat(formatter)
+
         # create a panel
         panel = DockWidgetPanel(None, widget, name, self)
         # we will only place panels in this area
@@ -701,11 +706,6 @@ class TaurusGui(TaurusMainWindow):
         if registerconfig:
             self.registerConfigDelegate(panel, name=name)
         self.__panels[name] = panel
-
-        if isinstance(widget, TaurusBaseComponent):
-            widget.setModifiableByUser(modifiablebyuser)
-            widget.setModelInConfig(modelinconfig)
-            widget.setFormat(formatter)
 
         # connect the panel visibility changes
         panel.visibilityChanged.connect(self._onPanelVisibilityChanged)
