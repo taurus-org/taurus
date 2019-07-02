@@ -630,7 +630,7 @@ class TaurusGui(TaurusMainWindow):
 
     def createPanel(self, widget, name, floating=False, registerconfig=True, custom=False,
                     permanent=False, icon=None, instrumentkey=None, modelinconfig=False,
-                    modifiablebyuser=False):
+                    modifiablebyuser=False, formatter='taurus.qt.qtgui.base.taurusbase.defaultFormatter'):
         '''
         Creates a panel containing the given widget.
 
@@ -702,6 +702,7 @@ class TaurusGui(TaurusMainWindow):
         if isinstance(widget, TaurusBaseComponent):
             widget.setModifiableByUser(modifiablebyuser)
             widget.setModelInConfig(modelinconfig)
+            widget.setFormat(formatter)
 
         # connect the panel visibility changes
         panel.visibilityChanged.connect(self._onPanelVisibilityChanged)
@@ -1294,13 +1295,15 @@ class TaurusGui(TaurusMainWindow):
                 icon = p.icon
                 model_in_config = p.model_in_config
                 modifiable_by_user = p.modifiable_by_user
+                formatter = p.formatter
                 # the pool instruments may change when the pool config changes,
                 # so we do not store their config
                 registerconfig = p not in poolinstruments
                 # create a panel
                 self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
                                  instrumentkey=instrumentkey, permanent=True, icon=icon,
-                                 modelinconfig=model_in_config, modifiablebyuser=modifiable_by_user)
+                                 modelinconfig=model_in_config, modifiablebyuser=modifiable_by_user,
+                                 formatter=formatter)
             except Exception as e:
                 msg = "Cannot create panel %s" % getattr(
                     p, "name", "__Unknown__")
