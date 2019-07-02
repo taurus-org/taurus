@@ -372,12 +372,16 @@ class PanelDescription(TaurusGuiComponentDescription):
         :param modelinconfig: (bool) whther to store model in settigns file or not
         :param modifiablebyuser: (bool) whether user can edit widget or not
         :param formatter: (str) formatter used by this widget
+
+        Additionally, extra configuration options can be passed in constructor as key word arguments.
+        Proper widget attributes will be set to corresponding values
         """
         self.instrumentkey = kwargs.pop('instrumentkey', None)
         self.icon = kwargs.pop("icon", None)
         self.model_in_config = kwargs.pop("modelinconfig", False)
         self.modifiable_by_user = kwargs.pop("modifiablebyuser", False)
         self.formatter = kwargs.pop("formatter", 'taurus.qt.qtgui.base.taurusbase.defaultFormatter')
+        self.extra_config = kwargs
         TaurusGuiComponentDescription.__init__(self, *args, **kwargs)
 
     @staticmethod
@@ -413,6 +417,7 @@ class PanelDescription(TaurusGuiComponentDescription):
         model_in_config = panel.model_in_config
         modifiable_by_user = panel.modifiablebyuser
         formatter = panel.formatter
+        extra_config = panel.extra_config
         return PanelDescription(name, classname=classname,
                                 modulename=modulename, widgetname=widgetname,
                                 floating=floating,
@@ -420,7 +425,7 @@ class PanelDescription(TaurusGuiComponentDescription):
                                 sharedDataRead=sharedDataRead, model=model,
                                 icon=icon, modelinconfig=model_in_config,
                                 modifiablebyuser=modifiable_by_user,
-                                formatter=formatter)
+                                formatter=formatter, **extra_config)
 
 
 class ToolBarDescription(TaurusGuiComponentDescription):

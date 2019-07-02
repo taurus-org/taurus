@@ -1289,6 +1289,23 @@ class TaurusGui(TaurusMainWindow):
                 except AttributeError:
                     pass
                 w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
+                extra_config = p.extra_config
+                if extra_config:
+                    for key in extra_config:
+                        if hasattr(w, key):
+                            try:
+                                value = extra_config[key]
+                                setattr(w, key, value)
+                            except Exception as e:
+                                msg = "Cannot set attribute '%s' of widget '%s' " \
+                                      "to value '%s'" % (key, p.classname, str(value))
+                                self.error(msg)
+                                self.traceback(level=taurus.Info)
+                                result = Qt.QMessageBox.critical(self, "Initialization error", "%s\n\n%s" % (
+                                    msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
+                                if result == Qt.QMessageBox.Abort:
+                                    sys.exit()
+
                 if hasattr(w, "setCustomWidgetMap"):
                     w.setCustomWidgetMap(self.getCustomWidgetMap())
                 if p.model is not None:
