@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 _entry_points = {{
-    "gui_scripts": ["{name}=tgconf_{name}:run"]
+    "console_scripts": ["{name}=tgconf_{name}:run"]
 }}
 
 setup(
