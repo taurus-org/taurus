@@ -44,6 +44,7 @@ from taurus.core.taurusbasetypes import TaurusDevState, TaurusElementType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
+from taurus.qt.qtgui.taurusgui import TaurusGui
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.panel.taurusform import TaurusForm
 from taurus.qt.qtgui.panel.taurusform import TaurusCommandsForm
@@ -505,16 +506,17 @@ def filterNonExported(obj):
 
 
 @UILoadable(with_ui='_ui')
-class TaurusDevPanel(TaurusMainWindow):
+class TaurusDevPanel(TaurusGui):
     """
     TaurusDevPanel is a Taurus Application inspired in Jive and Atk Panel.
 
     It Provides a Device selector and several dockWidgets for interacting and
     displaying information from the selected device.
     """
+    HELP_MENU_ENABLED = False
 
     def __init__(self, parent=None, designMode=False):
-        TaurusMainWindow.__init__(self, parent, designMode=designMode)
+        TaurusGui.__init__(self, parent)
         self.loadUi()
 
         # setting up the device Tree.
@@ -527,7 +529,7 @@ class TaurusDevPanel(TaurusMainWindow):
         self.deviceTree.getQModel().setSelectables(
             [TaurusElementType.Member])  # TODO: Tango-centric
         # self.deviceTree.insertFilter(filterNonExported)
-        self.setCentralWidget(self.deviceTree)
+        self.createPanel(self.deviceTree, 'TaurusDbTreeWidget', permanent=True)
 
         # register subwidgets for configuration purposes
         # self.registerConfigDelegate(self.taurusAttrForm)
@@ -661,7 +663,9 @@ def device_cmd(dev, filter, config_file):
               help="Tango Host name (the system's default if not given)")
 @click.option('-d', '--dev', default=None,
               help='pre-selected device')
-def panel_cmd(tango_host, dev):
+@click.option('-t', '--trend', is_flag=True,
+              help='Create a temporal trend widget')
+def panel_cmd(tango_host, dev, trend):
     """
     Show a TaurusPanel (a Taurus application inspired in Jive and Atk Panel)
     """
@@ -680,12 +684,14 @@ def panel_cmd(tango_host, dev):
     if dev is not None:
         w.setDevice(dev)
 
+    if trend is True:
+        # TODO: Allow to select TaurusTrend back-end
+        from taurus.qt.qtgui.plot import TaurusTrend
+        plot = TaurusTrend()
+        w.createPanel(plot, 'TaurusTrend', permanent=False)
+
     w.show()
 
     sys.exit(app.exec_())
 
 
-###############################################################################
-
-if __name__ == "__main__":
-    TaurusDevicePanelMain()
