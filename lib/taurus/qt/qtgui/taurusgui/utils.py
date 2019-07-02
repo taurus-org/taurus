@@ -367,6 +367,8 @@ class PanelDescription(TaurusGuiComponentDescription):
     def __init__(self, *args, **kwargs):
         self.instrumentkey = kwargs.pop('instrumentkey', None)
         self.icon = kwargs.pop("icon", None)
+        self.model_in_config = kwargs.pop("modelinconfig", False)
+        self.modifiable_by_user = kwargs.pop("modifiablebyuser", False)
         TaurusGuiComponentDescription.__init__(self, *args, **kwargs)
 
     @staticmethod
@@ -399,12 +401,15 @@ class PanelDescription(TaurusGuiComponentDescription):
             # ignore other "model" attributes (they are not from Taurus)
             model = None
         icon = panel.icon
+        model_in_config = panel.model_in_config
+        modifiable_by_user = panel.modifiablebyuser
         return PanelDescription(name, classname=classname,
                                 modulename=modulename, widgetname=widgetname,
                                 floating=floating,
                                 sharedDataWrite=sharedDataWrite,
                                 sharedDataRead=sharedDataRead, model=model,
-                                icon=icon)
+                                icon=icon, modelinconfig=model_in_config,
+                                modifiablebyuser=modifiable_by_user)
 
 
 class ToolBarDescription(TaurusGuiComponentDescription):

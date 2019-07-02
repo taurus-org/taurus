@@ -629,7 +629,8 @@ class TaurusGui(TaurusMainWindow):
         self.debug('Panel "%s" removed' % name)
 
     def createPanel(self, widget, name, floating=False, registerconfig=True, custom=False,
-                    permanent=False, icon=None, instrumentkey=None):
+                    permanent=False, icon=None, instrumentkey=None, modelinconfig=False,
+                    modifiablebyuser=False):
         '''
         Creates a panel containing the given widget.
 
@@ -697,6 +698,10 @@ class TaurusGui(TaurusMainWindow):
         if registerconfig:
             self.registerConfigDelegate(panel, name=name)
         self.__panels[name] = panel
+
+        if isinstance(widget, TaurusBaseComponent):
+            widget.setModifiableByUser(modifiablebyuser)
+            widget.setModelInConfig(modelinconfig)
 
         # connect the panel visibility changes
         panel.visibilityChanged.connect(self._onPanelVisibilityChanged)
@@ -833,13 +838,10 @@ class TaurusGui(TaurusMainWindow):
             w.setCustomWidgetMap(self.getCustomWidgetMap())
         if paneldesc.model is not None:
             w.setModel(paneldesc.model)
-        if isinstance(w, TaurusBaseComponent):
-            w.setModifiableByUser(True)
-            w.setModelInConfig(True)
 
         self.createPanel(w, paneldesc.name, floating=paneldesc.floating, custom=True,
                          registerconfig=False, instrumentkey=paneldesc.instrumentkey,
-                         permanent=False)
+                         permanent=False, modelinconfig=True, modifiablebyuser=True)
         msg = 'Panel %s created. Drag items to it or use the context menu to customize it' % w.name
         self.newShortMessage.emit(msg)
 
@@ -1290,12 +1292,15 @@ class TaurusGui(TaurusMainWindow):
                 if p.instrumentkey is None:
                     instrumentkey = self.IMPLICIT_ASSOCIATION
                 icon = p.icon
+                model_in_config = p.model_in_config
+                modifiable_by_user = p.modifiable_by_user
                 # the pool instruments may change when the pool config changes,
                 # so we do not store their config
                 registerconfig = p not in poolinstruments
                 # create a panel
                 self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
-                                 instrumentkey=instrumentkey, permanent=True, icon=icon)
+                                 instrumentkey=instrumentkey, permanent=True, icon=icon,
+                                 modelinconfig=model_in_config, modifiablebyuser=modifiable_by_user)
             except Exception as e:
                 msg = "Cannot create panel %s" % getattr(
                     p, "name", "__Unknown__")
