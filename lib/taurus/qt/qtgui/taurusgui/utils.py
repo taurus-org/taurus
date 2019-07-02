@@ -366,6 +366,7 @@ class PanelDescription(TaurusGuiComponentDescription):
 
     def __init__(self, *args, **kwargs):
         self.instrumentkey = kwargs.pop('instrumentkey', None)
+        self.icon = kwargs.pop("icon", None)
         TaurusGuiComponentDescription.__init__(self, *args, **kwargs)
 
     @staticmethod
@@ -397,11 +398,13 @@ class PanelDescription(TaurusGuiComponentDescription):
         else:
             # ignore other "model" attributes (they are not from Taurus)
             model = None
+        icon = panel.icon
         return PanelDescription(name, classname=classname,
                                 modulename=modulename, widgetname=widgetname,
                                 floating=floating,
                                 sharedDataWrite=sharedDataWrite,
-                                sharedDataRead=sharedDataRead, model=model)
+                                sharedDataRead=sharedDataRead, model=model,
+                                icon=icon)
 
 
 class ToolBarDescription(TaurusGuiComponentDescription):

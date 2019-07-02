@@ -1289,12 +1289,13 @@ class TaurusGui(TaurusMainWindow):
                     w.setModel(p.model)
                 if p.instrumentkey is None:
                     instrumentkey = self.IMPLICIT_ASSOCIATION
+                icon = p.icon
                 # the pool instruments may change when the pool config changes,
                 # so we do not store their config
                 registerconfig = p not in poolinstruments
                 # create a panel
                 self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
-                                 instrumentkey=instrumentkey, permanent=True)
+                                 instrumentkey=instrumentkey, permanent=True, icon=icon)
             except Exception as e:
                 msg = "Cannot create panel %s" % getattr(
                     p, "name", "__Unknown__")
