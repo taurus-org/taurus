@@ -43,7 +43,7 @@ from taurus import tauruscustomsettings
 from taurus.core.taurusbasetypes import TaurusDevState, TaurusElementType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
+from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.taurusgui import TaurusGui
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.panel.taurusform import TaurusForm
@@ -557,7 +557,7 @@ class TaurusDevPanel(TaurusGui):
 
     def setTangoHost(self, host):
         """extended from :class:setTangoHost"""
-        TaurusMainWindow.setTangoHost(self, host)
+        TaurusGui.setTangoHost(self, host)
         self.deviceTree.setModel(host)
         # self.deviceTree.insertFilter(filterNonExported)
 
@@ -605,13 +605,13 @@ class TaurusDevPanel(TaurusGui):
 
     def setModel(self, name):
         """Reimplemented to delegate model to the commands and attrs forms"""
-        TaurusMainWindow.setModel(self, name)
+        TaurusGui.setModel(self, name)
         self._ui.taurusAttrForm.setModel(name)
         self._ui.taurusCommandsForm.setModel(name)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusMainWindow.getQtDesignerPluginInfo()
+        ret = TaurusGui.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.panel'
         return ret
 
