@@ -686,9 +686,20 @@ def panel_cmd(tango_host, dev, trend):
 
     if trend is True:
         # TODO: Allow to select TaurusTrend back-end
-        from taurus.qt.qtgui.plot import TaurusTrend
-        plot = TaurusTrend()
-        w.createPanel(plot, 'TaurusTrend', permanent=False)
+        try:
+            from taurus.qt.qtgui.qwt5 import TaurusTrend
+            w.info('Using qwt5 back-end')
+        except:
+            try:
+                from taurus.qt.qtgui.tpg import TaurusTrend
+                w.info('Using tpg back-end')
+            except:
+                TaurusTrend = None
+                w.warning('TaurusTrend widget is not available')
+
+        if TaurusTrend is not None:
+            plot = TaurusTrend()
+            w.createPanel(plot, 'TaurusTrend', permanent=False)
 
     w.show()
 
