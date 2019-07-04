@@ -57,12 +57,12 @@ class ModuleExplorer(object):
 
     def _getlocalmembernames(self, module, predicate=None):
         ret = []
-        modulepath, tail = os.path.split(inspect.getabsfile(module))
+        modulepath, _ = os.path.split(inspect.getabsfile(module))
         for n, v in inspect.getmembers(module, predicate):
             if inspect.isbuiltin(v):
                 continue  # ignore builtin functions
             try:
-                memberpath, tail = os.path.split(inspect.getabsfile(v))
+                memberpath, _ = os.path.split(inspect.getabsfile(v))
             except TypeError:
                 continue  # ignore builtin modules
             if memberpath == modulepath:
@@ -111,7 +111,7 @@ class ModuleExplorer(object):
                         externalmembernames=[],
                         submodules={},
                         warnings=warnings)
-        modulepath, tail = os.path.split(inspect.getabsfile(module))
+        modulepath, _ = os.path.split(inspect.getabsfile(module))
 
         submodulenames = sorted(self._getSubmodulesFromPath(modulepath))
         localclassnames = sorted(
