@@ -529,7 +529,7 @@ class TaurusDevPanel(TaurusGui):
         self.deviceTree.getQModel().setSelectables(
             [TaurusElementType.Member])  # TODO: Tango-centric
         # self.deviceTree.insertFilter(filterNonExported)
-        self.createPanel(self.deviceTree, 'TaurusDbTreeWidget', permanent=True)
+        self.setCentralWidget(self.deviceTree)
 
         # register subwidgets for configuration purposes
         # self.registerConfigDelegate(self.taurusAttrForm)
