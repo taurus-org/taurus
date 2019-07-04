@@ -69,9 +69,18 @@ class ModuleExplorer(object):
                 ret.append(n)
         return ret
 
-    def _getSubmodulesFromPath(self, modulepath):
+    def _getSubpackagesFromPath(self, modulepath):
         g = glob.glob(os.path.join(modulepath, '*', '__init__.py'))
         ret = [re.findall(r".+\/(.*)\/__init__.py", s)[0] for s in g]
+        return ret
+
+    def _getSubmodulesFromPath(self, modulepath, module):
+        _imp = [n for n, m in inspect.getmembers(module, inspect.ismodule)]
+        ret = []
+        for s in glob.glob(os.path.join(modulepath, '*.py')):
+            f = os.path.split(s)[1][:-3]
+            if not f.startswith('_') and f not in _imp:
+                ret.append(f)
         return ret
 
     def _isclass_with_init(self, obj):
@@ -111,9 +120,14 @@ class ModuleExplorer(object):
                         externalmembernames=[],
                         submodules={},
                         warnings=warnings)
-        modulepath, _ = os.path.split(inspect.getabsfile(module))
 
-        submodulenames = sorted(self._getSubmodulesFromPath(modulepath))
+        if module.__name__ == module.__package__:
+            modulepath, _ = os.path.split(inspect.getabsfile(module))
+        else:
+            modulepath = inspect.getabsfile(module)
+
+        submodulenames = sorted(self._getSubpackagesFromPath(modulepath)
+                                + self._getSubmodulesFromPath(modulepath, module))
         localclassnames = sorted(
              [n for n, _ in inspect.getmembers(module, self._isclass_with_init)]
         )
