@@ -101,7 +101,7 @@ def t_STRING(t):
 
 
 def t_KEY(t):
-    r'[a-zA-Z0-9_\.\/]+'
+    r'[a-zA-Z0-9/_\.\/]+'
     t.type = reserved.get(t.value, 'KEY')    # Check for reserved words
     return t
 
