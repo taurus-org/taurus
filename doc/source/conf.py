@@ -64,6 +64,7 @@ def _build_doc_api():
             'taurus\.qt\.qtgui\.extra_macroexecutor',
             'taurus\.qt\.qtgui\.resource',
             'taurus\.qt\.qtgui\.taurusgui\.conf',
+            'taurus\.qt\.qtgui\.qwt5\.taurusplotconf',  # Under Construction
             ]
     if sys.version_info.major > 2:
         excl += [
