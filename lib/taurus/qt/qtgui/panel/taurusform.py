@@ -867,7 +867,7 @@ class TaurusAttrForm(TaurusWidget):
         '''Populates the form with an item for each of the attributes shown
         '''
         dev = self.getModelObj()
-        if dev is None or dev.state != TaurusDevState.Ready:
+        if dev is None or dev.state == TaurusDevState.Undefined:
             self.debug('Cannot connect to device')
             self._form.setModel([])
             return

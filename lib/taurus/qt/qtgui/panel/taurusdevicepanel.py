@@ -589,7 +589,7 @@ class TaurusDevPanel(TaurusGui):
         dev = self.getModelObj()
         state = dev.state
         # test the connection
-        if state == TaurusDevState.Ready:
+        if state != TaurusDevState.Undefined:
             msg = 'Connected to "%s"' % devname
             self.statusBar().showMessage(msg)
             self._ui.attrDW.setWindowTitle('Attributes - %s' % devname)
