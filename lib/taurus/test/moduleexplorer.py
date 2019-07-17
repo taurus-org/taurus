@@ -126,13 +126,15 @@ class ModuleExplorer(object):
         else:
             modulepath = inspect.getabsfile(module)
 
-        submodulenames = sorted(self._getSubpackagesFromPath(modulepath)
-                                + self._getSubmodulesFromPath(modulepath, module))
+        submodulenames = sorted(
+            self._getSubpackagesFromPath(modulepath)
+            + self._getSubmodulesFromPath(modulepath, module)
+        )
         localclassnames = sorted(
-             [n for n, _ in inspect.getmembers(module, self._isclass_with_init)]
+            self._getlocalmembernames(module, self._isclass_with_init)
         )
         localfunctionnames = sorted(
-             [n for n, _ in inspect.getmembers(module, inspect.isfunction)]
+            self._getlocalmembernames(module, inspect.isfunction)
         )
         localenumerationnames = sorted([])  # @todo
         externalmembernames = sorted([])  # @todo
