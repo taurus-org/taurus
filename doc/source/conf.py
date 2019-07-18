@@ -299,7 +299,7 @@ inheritance_graph_attrs = dict(rankdir="UD", ratio='compress')
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/dev', None),
-    'numpy': ('http://numpy.org', None),
+    'numpy': ('https://numpy.org', 'numpy.inv'),  # work around err 403
     'sardana': ('https://sardana-controls.org', None),
     'pint': ('https://pint.readthedocs.io/en/stable/', None),
     'PyTango': ('https://pytango.readthedocs.io/en/stable/', None),
