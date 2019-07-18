@@ -103,8 +103,7 @@ class QGroupWidgetExtensionFactory(QtDesigner.QExtensionFactory):
 
 
 def create_plugin():
-    #from .taurusplugin.taurusplugin import TaurusWidgetPlugin # - after futurize stage1
-    from taurusplugin.taurusplugin import TaurusWidgetPlugin # + after futurize stage1
+    from .taurusplugin.taurusplugin import TaurusWidgetPlugin
 
     class QGroupWidgetPlugin(TaurusWidgetPlugin):
 
