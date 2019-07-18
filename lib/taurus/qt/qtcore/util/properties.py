@@ -117,17 +117,21 @@ COMMON_PROPERTIES = (
 )
 
 
-def set_property_methods(obj, name, type_="QString", default=None, getter=None, setter=None, reset=None, get_callback=None, set_callback=None, reset_callback=None, qt=False, config=False):
+def set_property_methods(obj, name, type_="QString", default=None, getter=None,
+                         setter=None, reset=None, get_callback=None,
+                         set_callback=None, reset_callback=None, qt=False,
+                         config=False):
     """
-    This method allows to add QProperties dynamically with calls like:
-    <pre>
+    This method allows to add QProperties dynamically with calls like::
+
         set_property_methods(self,'Filters','QString',default='',
             set_callback=lambda s=self:s.loadTree(s.getFilters(),clear=True),
             reset_callback=lambda s=self:s.loadTree('',clear=True)
             )
-    </pre>
 
-    @TODO: This method should be refactored using python descriptors/properties and types.MethodType
+
+    .. todo: This method should be refactored using python
+             descriptors/properties and types.MethodType
     """
     klass = obj.__class__
     mname = '%s%s' % (name[0].upper(), name[1:])
