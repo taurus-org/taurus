@@ -64,7 +64,7 @@ class TaurusImportTestCase(unittest.TestCase):
                                        exclude_patterns=exclude_patterns)
         msg = None
         if wrn:
-            msg = '\n%s' % '\n'.join(zip(*wrn)[1])
+            msg = '\n%s' % '\n'.join(list(zip(*wrn))[1])
         self.assertEqual(len(wrn), 0, msg=msg)
 
 
