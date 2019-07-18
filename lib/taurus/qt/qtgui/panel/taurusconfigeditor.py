@@ -85,7 +85,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         self._file = tempfile.NamedTemporaryFile()
         self._temporaryFile = str(self._file.name)
 
-        shutil.copyfile(self.originalFile, self._temporaryFile)
+        with open(self.originalFile, 'rb') as fo:
+            self._file.write(fo.read())
 
         self._settings = Qt.QSettings(
             self._temporaryFile, Qt.QSettings.IniFormat)
