@@ -49,7 +49,10 @@ class TaurusImportTestCase(unittest.TestCase):
         on module importing
         """
         exclude_patterns = [r'taurus\.qt\.qtgui\.extra_.*',
-                            r'taurus\.qt\.qtgui\.qwt5']
+                            r'taurus\.qt\.qtgui\.qwt5',
+                            r'taurus\.external\.qt\.QtUiTools',
+                            r'taurus\.external\.qt\.Qwt5',
+                            ]
 
         try:
             import PyTango
