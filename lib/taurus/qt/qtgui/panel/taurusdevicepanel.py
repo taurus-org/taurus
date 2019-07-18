@@ -583,24 +583,9 @@ class TaurusDevPanel(TaurusGui):
 
     def setDevice(self, devname):
         """set the device to be shown by the commands and attr forms"""
-        # try to connect with the device
         self.setModel(devname)
-        dev = self.getModelObj()
-        state = dev.state
-        # test the connection
-        if state == TaurusDevState.Ready:
-            msg = 'Connected to "%s"' % devname
-            self.statusBar().showMessage(msg)
-            self._ui.attrDW.setWindowTitle('Attributes - %s' % devname)
-            self._ui.commandsDW.setWindowTitle('Commands - %s' % devname)
-        else:
-            # reset the model if the connection failed
-            msg = 'Connection to "%s" failed (state = %s)' % (devname,
-                                                              state.name)
-            self.statusBar().showMessage(msg)
-            self.info(msg)
-            Qt.QMessageBox.warning(self, "Device unreachable", msg)
-            self.setModel('')
+        self._ui.attrDW.setWindowTitle('Attributes - %s' % devname)
+        self._ui.commandsDW.setWindowTitle('Commands - %s' % devname)
 
     def setModel(self, name):
         """Reimplemented to delegate model to the commands and attrs forms"""
