@@ -300,8 +300,8 @@ inheritance_graph_attrs = dict(rankdir="UD", ratio='compress')
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/dev', None),
-    'numpy': ('http://www.numpy.org', None),
+    'numpy': ('http://numpy.org', None),
     'sardana': ('https://sardana-controls.org', None),
-    'pint': ('http://pint.readthedocs.io/en/stable/', None),
-    'PyTango': ('http://pytango.readthedocs.io/en/stable/', None),
+    'pint': ('https://pint.readthedocs.io/en/stable/', None),
+    'PyTango': ('https://pytango.readthedocs.io/en/stable/', None),
 }
