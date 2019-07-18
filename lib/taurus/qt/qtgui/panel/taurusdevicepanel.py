@@ -28,7 +28,6 @@ TaurusDevicePanel.py:
 """
 
 from builtins import str
-from future.utils import string_types
 
 import re
 import traceback
