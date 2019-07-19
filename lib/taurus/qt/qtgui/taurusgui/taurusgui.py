@@ -1272,7 +1272,8 @@ class TaurusGui(TaurusMainWindow):
         if panel_descriptions is not None:
             for child in panel_descriptions:
                 if child.tag == "PanelDescription":
-                    pd = PanelDescription.fromXml(etree.tostring(child))
+                    child_str = etree.tostring(child, encoding='unicode')
+                    pd = PanelDescription.fromXml(child_str)
                     if pd is not None:
                         custom_panels.append(pd)
 
@@ -1317,7 +1318,8 @@ class TaurusGui(TaurusMainWindow):
         if tool_bar_descriptions is not None:
             for child in tool_bar_descriptions:
                 if child.tag == "ToolBarDescription":
-                    d = ToolBarDescription.fromXml(etree.tostring(child))
+                    child_str = etree.tostring(child, encoding='unicode')
+                    d = ToolBarDescription.fromXml(child_str)
                     if d is not None:
                         custom_toolbars.append(d)
 
@@ -1369,7 +1371,8 @@ class TaurusGui(TaurusMainWindow):
         if applet_descriptions is not None:
             for child in applet_descriptions:
                 if child.tag == "AppletDescription":
-                    d = AppletDescription.fromXml(etree.tostring(child))
+                    child_str = etree.tostring(child, encoding='unicode')
+                    d = AppletDescription.fromXml(child_str)
                     if d is not None:
                         custom_applets.append(d)
 
@@ -1408,7 +1411,8 @@ class TaurusGui(TaurusMainWindow):
         if ext_apps_node is not None:
             for child in ext_apps_node:
                 if child.tag == "ExternalApp":
-                    ea = ExternalApp.fromXml(etree.tostring(child))
+                    child_str = etree.tostring(child, encoding='unicode')
+                    ea = ExternalApp.fromXml(child_str)
                     if ea is not None:
                         external_apps.append(ea)
 
@@ -1666,7 +1670,7 @@ class TaurusGui(TaurusMainWindow):
                 self.registerConfigDelegate(panel, name)
             panelxml = PanelDescription.fromPanel(panel).toXml()
             panelDescriptionsNode.append(etree.fromstring(panelxml))
-        xml = etree.tostring(xmlroot, pretty_print=True)
+        xml = etree.tostring(xmlroot, pretty_print=True, encoding='unicode')
 
         # write to file
         while True:
