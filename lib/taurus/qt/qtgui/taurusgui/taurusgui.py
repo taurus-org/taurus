@@ -25,6 +25,8 @@
 
 """This package provides the TaurusGui class"""
 
+from __future__ import absolute_import
+
 from builtins import str
 import os
 import sys
@@ -54,16 +56,6 @@ from taurus.qt.qtgui.taurusgui.utils import ExternalAppAction
 __all__ = ["DockWidgetPanel", "TaurusGui"]
 
 __docformat__ = 'restructuredtext'
-
-
-def QDoubleListDlg(*args, **kwargs):
-    from taurus.qt.qtgui.panel import QDoubleListDlg
-    return QDoubleListDlg(*args, **kwargs)
-
-
-def ExternalAppEditor(*args, **kwargs):
-    from taurus.qt.qtgui.taurusgui.appsettingswizard import ExternalAppEditor
-    return ExternalAppEditor(*args, **kwargs)
 
 
 @UILoadable(with_ui='ui')
@@ -513,6 +505,7 @@ class TaurusGui(TaurusMainWindow):
 
     def createExternalApp(self):
         '''Add a new external application on execution time'''
+        from .appsettingswizard import ExternalAppEditor
         app_editor = ExternalAppEditor(self)
         name, xml, ok = app_editor.getDialog()
         if name in self._external_app_names:
@@ -774,6 +767,7 @@ class TaurusGui(TaurusMainWindow):
         temp = [n for n, p in self.__panels.items() if (
             p.isCustom() and not p.isPermanent())]
         if len(temp) > 0 or showAlways:
+            from taurus.qt.qtgui.panel import QDoubleListDlg
             dlg = QDoubleListDlg(winTitle='Stored panels',
                                  mainLabel='Select which of the panels should be stored',
                                  label1='Temporary (to be discarded)', label2='Permanent (to be stored)',
@@ -802,6 +796,7 @@ class TaurusGui(TaurusMainWindow):
         # be made permanent
         #permanet_ext_app = list(self._external_app_names)
         if len(self.__external_app) > 0 or showAlways:
+            from taurus.qt.qtgui.panel import QDoubleListDlg
             msg = 'Select which of the external applications should be stored'
             dlg = QDoubleListDlg(winTitle='Stored external applications',
                                  mainLabel=msg,
@@ -1656,6 +1651,7 @@ class TaurusGui(TaurusMainWindow):
                 xmlroot, "PanelDescriptions")
 
         # Get all custom panels
+        from taurus.qt.qtgui.panel import QDoubleListDlg
         dlg = QDoubleListDlg(winTitle='Export Panels to XML',
                              mainLabel='Select which of the custom panels you want to export as xml configuration',
                              label1='Not Exported', label2='Exported',

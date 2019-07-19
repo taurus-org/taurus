@@ -47,11 +47,6 @@ import copy
 __all__ = ["PanelDescriptionWizard"]
 
 
-def modelChooserDlg(*args, **kwargs):
-    from taurus.qt.qtgui.panel import TaurusModelChooser
-    return TaurusModelChooser.modelChooserDlg(*args, **kwargs)
-
-
 class ExpertWidgetChooserDlg(Qt.QDialog):
     CHOOSE_TYPE_TXT = '(choose type)'
 
@@ -433,7 +428,9 @@ class AdvSettingsPage(Qt.QWizardPage):
         self.commLV.setItemDelegate(self.itemDelegate)
 
     def showModelChooser(self):
-        models, ok = modelChooserDlg(parent=self, asMimeData=True)
+        from taurus.qt.qtgui.panel import TaurusModelChooser
+        models, ok = TaurusModelChooser.modelChooserDlg(
+            parent=self, asMimeData=True)
         if not ok:
             return
         self.models = str(models.data(TAURUS_MODEL_LIST_MIME_TYPE))
