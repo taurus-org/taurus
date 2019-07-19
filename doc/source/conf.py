@@ -56,7 +56,8 @@ def _build_doc_api():
     auto_rst4api = imp.load_module(name, *data)
     API_Creator = auto_rst4api.Auto_rst4API_Creator
     # prepare api creator
-    excl = ['_[^\.]*[^_]',
+    excl = ['.*\._[^\.]+[^_]',  # exclude private objects
+            '.*\.(object|zip|str)',  # avoid warnings from builtins
             '.*\.test',
             'taurus\.external',
             'taurus\.qt\.qtgui\.extra_sardana',
@@ -64,11 +65,11 @@ def _build_doc_api():
             'taurus\.qt\.qtgui\.extra_macroexecutor',
             'taurus\.qt\.qtgui\.resource',
             'taurus\.qt\.qtgui\.taurusgui\.conf',
+            'taurus\.qt\.qtgui\.qwt5\.taurusplotconf',  # Under Construction
             ]
     if sys.version_info.major > 2:
         excl += [
             'taurus\.qt\.qtgui\.qwt5',  # qwt5 not available in PY3
-            '.*\.(object|zip|str)',  # avoid warnings from builtins
             ]
 
     rstCreator = API_Creator(exclude_patterns=excl,
@@ -298,8 +299,8 @@ inheritance_graph_attrs = dict(rankdir="UD", ratio='compress')
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/dev', None),
-    'numpy': ('http://www.numpy.org', None),
+    'numpy': ('https://numpy.org', 'numpy.inv'),  # work around err 403
     'sardana': ('https://sardana-controls.org', None),
-    'pint': ('http://pint.readthedocs.io/en/stable/', None),
-    'PyTango': ('http://pytango.readthedocs.io/en/stable/', None),
+    'pint': ('https://pint.readthedocs.io/en/stable/', None),
+    'PyTango': ('https://pytango.readthedocs.io/en/stable/', None),
 }

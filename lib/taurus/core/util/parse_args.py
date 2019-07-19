@@ -33,10 +33,10 @@ def parse_args(s, strip_pars=False):
     corresponding args and kwargs.
 
     :param s: string representing arguments to a method
-    :type strip_pars: (bool) If True, expect s to include surrounding
-    parenthesis
+    :param strip_pars: (bool) If True, expect s to include surrounding
+          parenthesis
     :return: args, kwargs (a list of positional arguments and a dict of keyword
-    arguments)
+             arguments)
     """
     s = s.strip()
     if strip_pars:
