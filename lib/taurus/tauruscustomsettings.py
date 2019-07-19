@@ -136,6 +136,13 @@ QT_THEME_NAME = 'Tango'
 #: setting QT_THEME_FORCE_ON_LINUX=True overrides this.
 QT_THEME_FORCE_ON_LINUX = True
 
+#: Full Qt designer path (including filename. Default is None, meaning:
+#: - linux: look for the system designer following Qt.QLibraryInfo.BinariesPath
+#: - windows: look for the system designer following
+#: Qt.QLibraryInfo.BinariesPath. If this fails, taurus tries to locate binary
+#: manually
+QT_DESIGNER_PATH = None
+
 #: Custom organization logo. Set the absolute path to an image file to be used as your
 #: organization logo. Qt registered paths can also be used. 
 #: If not set, it defaults to 'logos:taurus.png" 
