@@ -28,7 +28,6 @@ TaurusDevicePanel.py:
 """
 
 from builtins import str
-from future.utils import string_types
 
 import re
 import traceback
@@ -43,7 +42,8 @@ from taurus import tauruscustomsettings
 from taurus.core.taurusbasetypes import TaurusDevState, TaurusElementType
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusdevice import TaurusDevice
-from taurus.qt.qtgui.container import TaurusWidget, TaurusMainWindow
+from taurus.qt.qtgui.container import TaurusWidget
+from taurus.qt.qtgui.taurusgui import TaurusGui
 from taurus.qt.qtgui.display import TaurusLabel
 from taurus.qt.qtgui.panel.taurusform import TaurusForm
 from taurus.qt.qtgui.panel.taurusform import TaurusCommandsForm
@@ -505,16 +505,17 @@ def filterNonExported(obj):
 
 
 @UILoadable(with_ui='_ui')
-class TaurusDevPanel(TaurusMainWindow):
+class TaurusDevPanel(TaurusGui):
     """
     TaurusDevPanel is a Taurus Application inspired in Jive and Atk Panel.
 
     It Provides a Device selector and several dockWidgets for interacting and
     displaying information from the selected device.
     """
+    HELP_MENU_ENABLED = False
 
     def __init__(self, parent=None, designMode=False):
-        TaurusMainWindow.__init__(self, parent, designMode=designMode)
+        TaurusGui.__init__(self, parent)
         self.loadUi()
 
         # setting up the device Tree.
@@ -555,7 +556,7 @@ class TaurusDevPanel(TaurusMainWindow):
 
     def setTangoHost(self, host):
         """extended from :class:setTangoHost"""
-        TaurusMainWindow.setTangoHost(self, host)
+        TaurusGui.setTangoHost(self, host)
         self.deviceTree.setModel(host)
         # self.deviceTree.insertFilter(filterNonExported)
 
@@ -582,34 +583,19 @@ class TaurusDevPanel(TaurusMainWindow):
 
     def setDevice(self, devname):
         """set the device to be shown by the commands and attr forms"""
-        # try to connect with the device
         self.setModel(devname)
-        dev = self.getModelObj()
-        state = dev.state
-        # test the connection
-        if state == TaurusDevState.Ready:
-            msg = 'Connected to "%s"' % devname
-            self.statusBar().showMessage(msg)
-            self._ui.attrDW.setWindowTitle('Attributes - %s' % devname)
-            self._ui.commandsDW.setWindowTitle('Commands - %s' % devname)
-        else:
-            # reset the model if the connection failed
-            msg = 'Connection to "%s" failed (state = %s)' % (devname,
-                                                              state.name)
-            self.statusBar().showMessage(msg)
-            self.info(msg)
-            Qt.QMessageBox.warning(self, "Device unreachable", msg)
-            self.setModel('')
+        self._ui.attrDW.setWindowTitle('Attributes - %s' % devname)
+        self._ui.commandsDW.setWindowTitle('Commands - %s' % devname)
 
     def setModel(self, name):
         """Reimplemented to delegate model to the commands and attrs forms"""
-        TaurusMainWindow.setModel(self, name)
+        TaurusGui.setModel(self, name)
         self._ui.taurusAttrForm.setModel(name)
         self._ui.taurusCommandsForm.setModel(name)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):
-        ret = TaurusMainWindow.getQtDesignerPluginInfo()
+        ret = TaurusGui.getQtDesignerPluginInfo()
         ret['module'] = 'taurus.qt.qtgui.panel'
         return ret
 
@@ -661,7 +647,9 @@ def device_cmd(dev, filter, config_file):
               help="Tango Host name (the system's default if not given)")
 @click.option('-d', '--dev', default=None,
               help='pre-selected device')
-def panel_cmd(tango_host, dev):
+@click.option('-t', '--trend', is_flag=True,
+              help='Create a temporal trend widget')
+def panel_cmd(tango_host, dev, trend):
     """
     Show a TaurusPanel (a Taurus application inspired in Jive and Atk Panel)
     """
@@ -680,12 +668,25 @@ def panel_cmd(tango_host, dev):
     if dev is not None:
         w.setDevice(dev)
 
+    if trend is True:
+        # TODO: Allow to select TaurusTrend back-end
+        try:
+            from taurus.qt.qtgui.qwt5 import TaurusTrend
+            w.info('Using qwt5 back-end')
+        except:
+            try:
+                from taurus.qt.qtgui.tpg import TaurusTrend
+                w.info('Using tpg back-end')
+            except:
+                TaurusTrend = None
+                w.warning('TaurusTrend widget is not available')
+
+        if TaurusTrend is not None:
+            plot = TaurusTrend()
+            w.createPanel(plot, 'TaurusTrend', permanent=False)
+
     w.show()
 
     sys.exit(app.exec_())
 
 
-###############################################################################
-
-if __name__ == "__main__":
-    TaurusDevicePanelMain()

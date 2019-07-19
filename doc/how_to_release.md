@@ -68,41 +68,6 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 - [ ] For LCD: Test the foreground roles and the background role
 - [ ] For Led: Test the colors, ON color, Off color. (hint: you can use `eval:False` as a model for testing)
 
-### taurusplot
-(basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
-
-- [ ] Execute: `taurus qwt5 plot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`
-- [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
-- [ ] Check mouse wheel Zoom
-- [ ] Test panning (dragging with CTRL pressed)
-- [ ] Test inspector mode
-- [ ] Test pause mode
-- [ ] Move curves between axes by clicking on legend (and test zoom on Y2)
-- [ ] Test plot configuration dialog
-- [ ] Test changing curve titles
-- [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
-- [ ] Open the "Input data selection" dialog and add/remove/reorder /edit models
-- [ ] export one curve data to ASCII and then load it using "Input data selection"  -> raw data -> open file
-- [ ] ... other features from [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
-
-### taurustrend
-(basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
-
-- [ ] Execute: `taurus qwt5 trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
-- [ ] Execute: `taurus qwt5 trend -xe "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
-- [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
-- [ ] Check mouse wheel Zoom
-- [ ] Test panning (dragging with CTRL pressed)
-- [ ] Test inspector mode
-- [ ] Test pause mode
-- [ ] Move curves between axes by clicking on legend (and test zoom on Y2)
-- [ ] Test plot configuration dialog
-- [ ] Test Forced reading mode
-- [ ] Test autopanning mode
-- [ ] Test autoscale x mode
-- [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
-- [ ] ... other features from [user's guide](http://taurus-scada.org/users/ui/index.html)
-
 ### Test taurus image
 
 - [ ] Execute `taurus guiqwt image --demo`
@@ -125,7 +90,7 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 - [ ] Check that it opens correctly and that the attrs and commands are populated
 - [ ] Execute SwitchStates command (see that the state label changes to FAULT and its color to red)
       and then execute the Init command and the label returns to RUNNING (blue)
-
+      
 ### tauruspanel
 - [ ] Execute: `taurus panel`
 - [ ] Navigate in the tree and select the TangoTest device (the attr an command panels should be populated)
@@ -175,4 +140,69 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 - [ ] Launch `taurus icons`. Several tabs with an array of icons [should be displayed](http://taurus-scada.org/en/latest/devel/icon_guide.html#taurus-icon-catalog)
 - [ ] Check that tooltips give info on each icon
 - [ ] Click on some icons and check that they give a bigger view of the icon and more info.
+
+### taurus tpg plot (make sure to install taurus_pyqtgraph)
+
+- [ ] Execute: `taurus tpg plot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`
+- [ ] Check zoom / panning (drag with right / left button), and Use (A) button to auto-range
+- [ ] Test inspector tool
+- [ ] Move curves between axes by using the plot configuration option in context menu
+- [ ] With curves in Y1 and Y2, test zooms and panning on separate axes (drag with right/left on the axis)
+- [ ] Test plot configuration dialog
+- [ ] Test changing curve titles
+- [ ] Open the "Input data selection" dialog and add/remove/reorder/edit models. Try adding models both for X and Y
+- [ ] NOT YET READY <s>Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)</s>
+
+### taurus tpg trend  (make sure to install taurus_pyqtgraph)
+
+- [ ] Execute: `taurus tpg trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Execute: `taurus tpg trend -xe "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Check zoom / panning (drag with right / left button), and Use (A) button to auto-range
+- [ ] Test inspector tool
+- [ ] Move curves between axes by using the plot configuration option in context menu
+- [ ] With curves in Y1 and Y2, test zooms and panning on separate axes (drag with right/left on the axis)
+- [ ] Test plot configuration dialog
+- [ ] Test Forced reading tool
+- [ ] Test autopanning tool
+- [ ] Test autoscale x mode
+- [ ] NOT YET READY <s> Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)</s>
+
+
+### taurusplot (Qwt5) _Only if using py2 qt4_
+(basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
+
+- [ ] Execute: `taurus qwt5 plot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`
+- [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
+- [ ] Check mouse wheel Zoom
+- [ ] Test panning (dragging with CTRL pressed)
+- [ ] Test inspector mode
+- [ ] Test pause mode
+- [ ] Move curves between axes by clicking on legend (and test zoom on Y2)
+- [ ] Test plot configuration dialog
+- [ ] Test changing curve titles
+- [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
+- [ ] Open the "Input data selection" dialog and add/remove/reorder /edit models
+- [ ] export one curve data to ASCII and then load it using "Input data selection"  -> raw data -> open file
+- [ ] ... other features from [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
+
+### taurustrend _Only if using py2 qt4_
+(basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
+
+- [ ] Execute: `taurus qwt5 trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Execute: `taurus qwt5 trend -xe "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
+- [ ] Check mouse wheel Zoom
+- [ ] Test panning (dragging with CTRL pressed)
+- [ ] Test inspector mode
+- [ ] Test pause mode
+- [ ] Move curves between axes by clicking on legend (and test zoom on Y2)
+- [ ] Test plot configuration dialog
+- [ ] Test Forced reading mode
+- [ ] Test autopanning mode
+- [ ] Test autoscale x mode
+- [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
+- [ ] ... other features from [user's guide](http://taurus-scada.org/users/ui/index.html)
+
+
+
 ```
