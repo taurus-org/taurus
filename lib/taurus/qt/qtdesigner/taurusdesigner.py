@@ -86,10 +86,11 @@ def get_qtdesigner_bin():
             designer_bin, "Designer.app", "Contents", "MacOS", "designer")
     elif plat in ("win32", "nt"):
         designer_bin = os.path.join(designer_bin, "designer.exe")
-        if os.path.exists(designer_bin):
-            designer_bin = os.path.join(designer_bin, "designer")
-        else:
-            designer_bin = subprocess.check_output('where designer').decode().strip()
+        if not os.path.exists(designer_bin):
+            # some installations don't properly install designer
+            # in QLibraryInfo.BinariesPath. We do a best effort to find it
+            designer_bin = subprocess.check_output('where designer')
+            designer_bin = designer_bin.decode().strip()
     else:
         designer_bin = os.path.join(designer_bin, "designer")
     return designer_bin
