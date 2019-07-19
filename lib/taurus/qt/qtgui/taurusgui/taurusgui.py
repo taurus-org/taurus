@@ -47,8 +47,6 @@ from taurus.qt.qtgui.container import TaurusMainWindow
 from taurus.qt.qtgui.taurusgui.utils import (ExternalApp, PanelDescription,
                                              ToolBarDescription,
                                              AppletDescription)
-from taurus.qt.qtgui.taurusgui.appsettingswizard import ExternalAppEditor
-from taurus.qt.qtgui.panel import QDoubleListDlg
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.taurusgui.utils import ExternalAppAction
 
@@ -56,6 +54,16 @@ from taurus.qt.qtgui.taurusgui.utils import ExternalAppAction
 __all__ = ["DockWidgetPanel", "TaurusGui"]
 
 __docformat__ = 'restructuredtext'
+
+
+def QDoubleListDlg(*args, **kwargs):
+    from taurus.qt.qtgui.panel import QDoubleListDlg
+    return QDoubleListDlg(*args, **kwargs)
+
+
+def ExternalAppEditor(*args, **kwargs):
+    from taurus.qt.qtgui.taurusgui.appsettingswizard import ExternalAppEditor
+    return ExternalAppEditor(*args, **kwargs)
 
 
 @UILoadable(with_ui='ui')
