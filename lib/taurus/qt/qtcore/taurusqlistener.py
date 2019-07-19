@@ -31,7 +31,7 @@ __all__ = ["QTaurusBaseListener", "QObjectTaurusListener"]
 
 __docformat__ = 'restructuredtext'
 
-from taurus.qt.qtcore.util.signal import baseSignal
+from taurus.qt.qtcore.util import baseSignal
 from taurus.core.util.log import deprecation_decorator
 from taurus.core.tauruslistener import TaurusListener
 from taurus.external.qt import Qt

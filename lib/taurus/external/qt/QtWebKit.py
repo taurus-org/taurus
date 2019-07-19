@@ -29,16 +29,16 @@ from . import PYQT5, PYQT4, PYSIDE, PYSIDE2, PythonQtError
 
 
 if PYQT5:
-    from PyQt5.WebKit import *
+    from PyQt5.QtWebKit import *
     # import * from QtWebkitWidgets for PyQt4 style compat
-    from PyQt5.WebKitWidgets import *
+    from PyQt5.QtWebKitWidgets import *
 elif PYSIDE2:
-    from PySide2.WebKit import *
+    from PySide2.QtWebKit import *
     # import * from QtWebkitWidgets for PyQt4 style compat
-    from PySide2.WebKitWidgets import *
+    from PySide2.QtWebKitWidgets import *
 elif PYQT4:
-    from PyQt4.WebKit import *
+    from PyQt4.QtWebKit import *
 elif PYSIDE:
-    from PySide.WebKit import *
+    from PySide.QtWebKit import *
 else:
     raise PythonQtError('No Qt bindings could be found')

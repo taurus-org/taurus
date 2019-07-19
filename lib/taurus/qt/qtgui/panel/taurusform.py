@@ -866,21 +866,22 @@ class TaurusAttrForm(TaurusWidget):
     def _updateAttrWidgets(self):
         '''Populates the form with an item for each of the attributes shown
         '''
-        dev = self.getModelObj()
-        if dev is None or dev.state != TaurusDevState.Ready:
+        try:
+            dev = self.getModelObj()
+            attrlist = sorted(dev.attribute_list_query(), key=self._sortKey)
+            for f in self.getViewFilters():
+                attrlist = list(filter(f, attrlist))
+            attrnames = []
+            devname = self.getModelName()
+            for a in attrlist:
+                # ugly hack . But setUseParentModel does not work well
+                attrnames.append("%s/%s" % (devname, a.name))
+            self.debug('Filling with attribute list: %s'
+                       % ("; ".join(attrnames)))
+            self._form.setModel(attrnames)
+        except:
             self.debug('Cannot connect to device')
             self._form.setModel([])
-            return
-        attrlist = sorted(dev.attribute_list_query(), key=self._sortKey)
-        for f in self.getViewFilters():
-            attrlist = list(filter(f, attrlist))
-        attrnames = []
-        devname = self.getModelName()
-        for a in attrlist:
-            # ugly hack . But setUseParentModel does not work well
-            attrnames.append("%s/%s" % (devname, a.name))
-        self.debug('Filling with attribute list: %s' % ("; ".join(attrnames)))
-        self._form.setModel(attrnames)
 
     def setViewFilters(self, filterlist):
         '''sets the filters to be applied when displaying the attributes

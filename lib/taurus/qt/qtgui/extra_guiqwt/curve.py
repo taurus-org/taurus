@@ -30,7 +30,7 @@ from builtins import next
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.qt.qtcore.util.signal import baseSignal
+from taurus.qt.qtcore.util import baseSignal
 import taurus
 from guiqwt.curve import CurveItem
 from taurus.qt.qtgui.extra_guiqwt.styles import TaurusCurveParam, TaurusTrendParam

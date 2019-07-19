@@ -52,7 +52,7 @@ from taurus.core.taurusbasetypes import DataFormat
 # TODO: Tango-centric
 from taurus.core.util.containers import LoopList, CaselessDict, CaselessList
 from taurus.core.util.safeeval import SafeEvaluator
-from taurus.qt.qtcore.util.signal import baseSignal
+from taurus.qt.qtcore.util import baseSignal
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtgui.qwt5 import TaurusPlotConfigDialog, FancyScaleDraw,\

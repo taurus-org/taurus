@@ -27,5 +27,6 @@
 from __future__ import absolute_import
 
 from .tauruslog import *
+from .signal import baseSignal
 
 __docformat__ = 'restructuredtext'
