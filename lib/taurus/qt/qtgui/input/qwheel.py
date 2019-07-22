@@ -958,12 +958,6 @@ def main():
     def setNone():
         arrowWidget.setValue(None)
 
-    def disableHideEditWidget():
-        arrowWidget.setHideEditWidget(False)
-
-    def enableHideEditWidget():
-        arrowWidget.setHideEditWidget(True)
-
     a = Qt.QApplication([])
     panel = Qt.QWidget()
     l = Qt.QFormLayout(panel)
@@ -975,10 +969,8 @@ def main():
     resetbutton.setDefault(True)
     nanbutton = Qt.QPushButton("Set NAN", panel)
     nonebutton = Qt.QPushButton("Set None", panel)
-    disablehideeditwidgetbutton = Qt.QPushButton("Show edit widget on "
-                                                 "FocusOut", panel)
-    enablehideeditwidgetbutton = Qt.QPushButton("Hide edit widget on "
-                                                 "FocusOut", panel)
+    hideEditCB = Qt.QCheckBox()
+    hideEditCB.setChecked(True)
     showarrowbutton = Qt.QCheckBox("", panel)
 
     l.addRow("Value", arrowWidget)
@@ -987,12 +979,11 @@ def main():
     l.addRow("Minimum value:", minv)
     l.addRow("Maximum value:", maxv)
     l.addRow("Show arrows:", showarrowbutton)
+    l.addRow("hideEditCB", hideEditCB)
     l.addRow(button_layout)
     button_layout.addWidget(nanbutton)
     button_layout.addWidget(nonebutton)
     button_layout.addWidget(resetbutton)
-    button_layout.addWidget(disablehideeditwidgetbutton)
-    button_layout.addWidget(enablehideeditwidgetbutton)
     isb.setValue(arrowWidget.getIntDigitCount())
     dsb.setValue(arrowWidget.getDecDigitCount())
     minv.setRange(numpy.finfo('d').min, numpy.finfo('d').max)
@@ -1006,8 +997,7 @@ def main():
     showarrowbutton.stateChanged.connect(arrowWidget.setShowArrowButtons)
     nanbutton.clicked.connect(setNAN)
     nonebutton.clicked.connect(setNone)
-    disablehideeditwidgetbutton.clicked.connect(disableHideEditWidget)
-    enablehideeditwidgetbutton.clicked.connect(enableHideEditWidget)
+    hideEditCB.toggled.connect(arrowWidget.setHideEditWidget)
     resetbutton.clicked.connect(resetAll)
     panel.setVisible(True)
     a.exec_()
