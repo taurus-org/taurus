@@ -212,7 +212,9 @@ class QWheelEdit(Qt.QFrame):
         self._maxValue = numpy.finfo('d').max  # inf
         self._editor = None
         self._editing = False
+        self._hideEditWidget = True
         self._showArrowButtons = True
+        self._forwardReturn = False
         self._setDigits(QWheelEdit.DefaultIntDigitCount,
                         QWheelEdit.DefaultDecDigitCount)
         self._setValue(0)
@@ -321,7 +323,7 @@ class QWheelEdit(Qt.QFrame):
 
         ed = _NumericEditor(self)
         ed.returnPressed.connect(self.editingFinished)
-        ed.editingFinished.connect(ed.hide)
+        ed.editingFinished.connect(self.hideEditWidget)
         rect = Qt.QRect(l.cellRect(1, 0).topLeft(),
                         l.cellRect(1, l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
@@ -504,7 +506,12 @@ class QWheelEdit(Qt.QFrame):
             return
         self._previous_value = self._value
         self._value = v
-        self._buildValueStr(v)
+
+        str_value = self._buildValueStr(v)
+        ed = self.getEditWidget()
+        if ed is not None:
+            ed.setText(str_value)
+
 
     def setWarning(self, msg):
         """setWarning(self, msg) -> None
@@ -534,8 +541,11 @@ class QWheelEdit(Qt.QFrame):
 
         @param[in] b (_ArrowButton) the button which was pressed
         """
-        self._setValue(self.getValue() + b._inc)
-        self._updateValue()
+        if self._editing:
+            self.hideEditWidget()
+        else:
+            self._setValue(self.getValue() + b._inc)
+            self._updateValue()
 
     def setDigitCount(self, int_nb, dec_nb):
         """setDigitCount(self, int_nb, dec_nb) -> None
@@ -770,6 +780,7 @@ class QWheelEdit(Qt.QFrame):
         ed.selectAll()
         ed.setFocus()
         ed.setVisible(True)
+        self._editing = True
 
     def hideEditWidget(self):
         """hideEditWidget(self) -> None
@@ -778,6 +789,7 @@ class QWheelEdit(Qt.QFrame):
         """
         ed = self.getEditWidget()
         ed.setVisible(False)
+        self._editing = False
         self.setFocus()
 
     def wheelEvent(self, evt):
@@ -803,7 +815,6 @@ class QWheelEdit(Qt.QFrame):
         widget when this happens
         """
         self.showEditWidget()
-        self._editing = True
 
     def keyPressEvent(self, key_event):
         """keyPressEvent(self, key_event) -> None
@@ -815,20 +826,16 @@ class QWheelEdit(Qt.QFrame):
         if k == Qt.Qt.Key_F2:
             if self._editing:
                 self.hideEditWidget()
-                self._editing = False
             else:
                 self.showEditWidget()
-                self._editing = True
             return
         elif k == Qt.Qt.Key_Escape:
             if self._editing:
                 self.hideEditWidget()
-                self._editing = False
                 return
         elif k in (Qt.Qt.Key_Return, Qt.Qt.Key_Enter):
             if self._editing:
                 self.hideEditWidget()
-                self._editing = False
             else:
                 self.returnPressed.emit()
 
@@ -844,6 +851,63 @@ class QWheelEdit(Qt.QFrame):
 
     def resetShowArrowButtons(self):
         self.setShowArrowButtons(True)
+
+    def getHideEditWidget(self):
+        """getHideEditWidget(self) -> bool
+
+        Gets the info if edition widget should be hidden when 'focusOut' event
+        occurs.
+
+        @return (bool)
+        """
+        return self._hideEditWidget
+
+    def setHideEditWidget(self, focus_out=True):
+        """setFocusOut(self, focus_out=True) -> None
+
+        Sets if edition widget should be hidden when 'focusOut' event occurs.
+        If set to False, edition widget is hidden only when 'F2', 'Esc',
+        'Enter' and arrow button are pressed. Default set to True.
+
+        @param[in] focus_out (bool) whether or not to hide edition widget
+        after 'focusOut' event.
+        """
+        if focus_out and not self._hideEditWidget:
+            ed = self.getEditWidget()
+            ed.editingFinished.connect(self.hideEditWidget)
+            self._hideEditWidget = True
+        elif not focus_out and self._hideEditWidget:
+            ed = self.getEditWidget()
+            ed.editingFinished.disconnect(self.hideEditWidget)
+            self._hideEditWidget = False
+
+    def isReturnForwarded(self):
+        """isReturnForwarded(self) -> bool
+
+        Gets the info if returnPressed is forwarded.
+
+        @return (bool)
+        """
+        return self._forwardReturn
+
+    def setReturnForwarded(self, forward_rtn=False):
+        """setReturnForwarded(self, forward_rtn=False) -> None
+
+        Sets forwarding of returnPressed. If set to True, returnPressed from
+        edition widget emits returnPressed of 'QWheelEdit' widget.
+
+        @param[in] forward_rtn (bool) whether or not to forward returnPressed
+        signal
+        """
+        if forward_rtn and not self._forwardReturn:
+            ed = self.getEditWidget()
+            ed.returnPressed.connect(self.returnPressed)
+            self._forwardReturn = True
+
+        elif not forward_rtn and self._forwardReturn:
+            ed = self.getEditWidget()
+            ed.returnPressed.disconnect(self.returnPressed)
+            self._forwardReturn = False
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties
@@ -893,6 +957,7 @@ def main():
 
     def setNone():
         arrowWidget.setValue(None)
+
     a = Qt.QApplication([])
     panel = Qt.QWidget()
     l = Qt.QFormLayout(panel)
@@ -904,6 +969,8 @@ def main():
     resetbutton.setDefault(True)
     nanbutton = Qt.QPushButton("Set NAN", panel)
     nonebutton = Qt.QPushButton("Set None", panel)
+    hideEditCB = Qt.QCheckBox()
+    hideEditCB.setChecked(True)
     showarrowbutton = Qt.QCheckBox("", panel)
 
     l.addRow("Value", arrowWidget)
@@ -912,6 +979,7 @@ def main():
     l.addRow("Minimum value:", minv)
     l.addRow("Maximum value:", maxv)
     l.addRow("Show arrows:", showarrowbutton)
+    l.addRow("hideEditCB", hideEditCB)
     l.addRow(button_layout)
     button_layout.addWidget(nanbutton)
     button_layout.addWidget(nonebutton)
@@ -929,6 +997,7 @@ def main():
     showarrowbutton.stateChanged.connect(arrowWidget.setShowArrowButtons)
     nanbutton.clicked.connect(setNAN)
     nonebutton.clicked.connect(setNone)
+    hideEditCB.toggled.connect(arrowWidget.setHideEditWidget)
     resetbutton.clicked.connect(resetAll)
     panel.setVisible(True)
     a.exec_()
