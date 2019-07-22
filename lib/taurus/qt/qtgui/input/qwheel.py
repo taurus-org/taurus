@@ -176,17 +176,11 @@ class _DigitLabel(Qt.QLabel):
 
 class _NumericEditor(Qt.QLineEdit):
     """A private editor to be used by QWheelEdit widget"""
-    focusOut = Qt.pyqtSignal()
 
     def __init__(self, parent=None):
         Qt.QLineEdit.__init__(self, parent)
         self.setValidator(Qt.QDoubleValidator(self))
         self.setFrame(False)
-
-    def focusOutEvent(self, event):
-        self.focusOut.emit()
-
-        Qt.QLineEdit.focusOutEvent(self, event)
 
 
 class QWheelEdit(Qt.QFrame):
@@ -329,7 +323,7 @@ class QWheelEdit(Qt.QFrame):
 
         ed = _NumericEditor(self)
         ed.returnPressed.connect(self.editingFinished)
-        ed.focusOut.connect(self.hideEditWidget)
+        ed.editingFinished.connect(self.hideEditWidget)
         rect = Qt.QRect(l.cellRect(1, 0).topLeft(),
                         l.cellRect(1, l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
@@ -880,11 +874,11 @@ class QWheelEdit(Qt.QFrame):
         """
         if focus_out and not self._hideEditWidget:
             ed = self.getEditWidget()
-            ed.focusOut.connect(self.hideEditWidget)
+            ed.editingFinished.connect(self.hideEditWidget)
             self._hideEditWidget = True
         elif not focus_out and self._hideEditWidget:
             ed = self.getEditWidget()
-            ed.focusOut.disconnect(self.hideEditWidget)
+            ed.editingFinished.disconnect(self.hideEditWidget)
             self._hideEditWidget = False
 
     def isReturnForwarded(self):
