@@ -504,7 +504,7 @@ class Q7SegDisplay(Qt.QWidget):
     def __init(self):
         l = Qt.QHBoxLayout()
         l.setSpacing(10)
-        l.setMargin(5)
+        l.setContentsMargins(5, 5, 5, 5)
         self.setLayout(l)
 
         self._digits = []

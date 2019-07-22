@@ -88,7 +88,7 @@ class PintValidator(Qt.QValidator):
         """
         self._bottom = Quantity(bottom)
 
-    def _validate(self, input, pos):
+    def validate(self, input, pos):
         """Reimplemented from :class:`QValidator` to validate if the input
         string is a representation of a quantity within the set bottom and top
         limits
@@ -112,12 +112,3 @@ class PintValidator(Qt.QValidator):
         except DimensionalityError:
             return Qt.QValidator.Intermediate, input, pos
         return Qt.QValidator.Acceptable, input, pos
-
-    def _validate_oldQt(self, input, pos):
-        """Old Qt (v4.4.) -compatible implementation of validate"""
-        state, _, pos = self._validate(input, pos)
-        return state, pos
-
-    # select the appropriate implementation of validate. See:
-    # https://www.mail-archive.com/pyqt@riverbankcomputing.com/msg26344.html
-    validate = Qt.PYQT_QSTRING_API_1 and _validate_oldQt or _validate

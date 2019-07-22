@@ -42,7 +42,8 @@ __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'resetLogLevel', 'resetLogFormat',
            'enableLogOutput', 'disableLogOutput',
            'log', 'trace', 'debug', 'info', 'warning', 'error', 'fatal',
-           'critical', 'deprecated', 'changeDefaultPollingPeriod']
+           'critical', 'deprecated', 'changeDefaultPollingPeriod',
+           'getValidatorFromName']
 
 __docformat__ = "restructuredtext"
 
@@ -134,6 +135,21 @@ def getSchemeFromName(name, implicit=True):
         return None
 
 
+def getValidatorFromName(name):
+    """Helper for obtaining the validator object corresponding to the
+    given name.
+
+    :return: model name validator or None if name is not a supported model name
+    """
+
+    try:
+        factory = Factory(scheme=getSchemeFromName(name))
+    except:
+        return None
+    return factory.getValidatorFromName(name)
+
+
+
 def makeSchemeExplicit(name, default=None):
     """return the name guaranteeing that the scheme is present. If name already
     contains the scheme, it is returned unchanged.
@@ -200,7 +216,7 @@ def isValidName(name, etypes=None, strict=None):
     for e in etypes:
         if e in validtypes:
             return True
-        return False
+    return False
 
 
 def Manager():

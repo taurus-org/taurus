@@ -284,13 +284,12 @@ class TaurusMessagePanel(Qt.QWidget):
         report_handlers = get_report_handlers()
         combo = self.reportComboBox()
         for name, report_handler in report_handlers.items():
-            name = Qt.QVariant(name)
             combo.addItem(report_handler.Label, name)
 
     def _onReportTriggered(self, index):
         report_handlers = get_report_handlers()
         combo = self.reportComboBox()
-        name = Qt.from_qvariant(combo.itemData(index), str)
+        name = combo.itemData(index)
         report_handler = report_handlers[name]
         report = report_handler(self)
         app = Qt.QApplication.instance()

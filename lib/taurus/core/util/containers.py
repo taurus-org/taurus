@@ -498,6 +498,8 @@ class LoopList(object):
         self._index += 1
         return self.current()
 
+    next = __next__
+
     def previous(self):
         '''goes one item back in the list and returns it'''
         self._index -= 1

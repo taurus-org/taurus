@@ -97,7 +97,7 @@ def isSequence(obj):
 
 def split_model_list(modelNames):
     '''convert str to list if needed (commas and whitespace are considered as separators)'''
-    if isString(modelNames):  # isinstance(modelNames,(basestring,Qt.QString)):
+    if isString(modelNames):
         modelNames = str(modelNames).replace(',', ' ')
         modelNames = modelNames.split()
     if isSequence(modelNames):  # isinstance(modelNames,(list.Qt.QStringList)):

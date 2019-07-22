@@ -7,14 +7,100 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## Unreleased
+## [Unreleased]
 
 ### Added
-- Support of Python3 (beta stage, not yet production ready) (#703)
+- New CLI API based on click and `taurus` command supporting plugabble subcommands (#856)
+- TaurusGui now accepts a `settingsname` argument to specify the settings file to 
+  be loaded. Also accessible from the CLI as `taurus gui --ini NAME` (#570) 
+- `TaurusModelSelector` and `TaurusModelSelectorItem` classes and the
+  (experimental) `"taurus.qt.qtgui.panel.TaurusModelSelector.items"` entry point (#869)
+- `TaurusFactory.getValidatorFromName` method and `getValidatorFromName` helper (#893)
+- New options API for TaurusMainWindow and TaurusGui (#858)
+- New optional set of color-blind friendly LED icons for Tango states (#902)
 
+### Removed
+- Functions implementing the old CLI scripts (#856).
+  Note: these functions and the corresponding console scripts are still provided 
+  by the "taurus_legacy_cli" plugin. (#856)
 
+### Changed
+- Old CLI scripts (taurusform, taurusdemo, etc.) are replaced by equivalent
+  subcommands to the `taurus` command.  (#856)
+  
+### Deprecated
+- `taurus.core.util.argparse` (#856)
+- `TaurusAttribute._(un)subscribeEvents` API (#876)
+- `TaurusBaseComponent` "taurus popup menu" API (#906)
+- `TaurusMainWindow` old option names (`_heartbeat`, `_show*Menu`, `_showLogger`, 
+  `_supportUserPerspectives`, `_splashLogo`, `_splashMessage`) (#858)
+  
+### Fixed
+- taurusgui does not run if tango not installed (#912)
+- wrong return value of `isValidName` in some cases (#897)
+- exception when calling TangoAtribute.write with a list of integers (#915)
+- several issues related to py2+p3 simultaneous support (#878, #879, #881, #885, #886, #894)
+- several issues related to multiple Qt bindings support (#875, #890, #895)
+- TaurusGuis do not show output in console on Windows (#868)
+  
+## [4.5.1] - 2019-02-15
+
+Together with [4.5.0], they cover the [Jan19 milestone](https://github.com/taurus-org/taurus/milestone/12)
+
+### Fixed
+- redundant units shown in TaurusForm write widget (#860)
+- deprecation warning in tauruspanel
+- infinite recursion issue in TangoDevice
+- Other (#855)
+
+## [4.5.0] - 2019-01-29
+
+This is a special release for meeting the deadline of debian buster
+freeze (debian 10).
+
+### Added
+- Support of Python3 (beta stage, not yet production ready) (#703, #829, #835)
+- Support of other Qt bindings: PyQt4, PyQt5, PySide2, PySide 
+  (beta stage, not yet production ready) (TEP18)
+- (experimental) Entry point for schemes in TaurusManager (#833)
+
+### Removed
+- taurus.qt.qtgui.tree.taurusdevicetree submodule (obsolete, unused)
+- Trend dockwidget in TaurusDevPanel
+- `taurus.qt.qtgui.taurusgui.macrolistener` (now provided by 
+  `sardana.taurus.qt.qtgui.macrolistener`)
+
+### Changed
+- `taurus.qt.qtgui.plot` is now deprecated, but the same Qwt5-based 
+  API is now available in `taurus.qt.qtgui.qwt5`
+- `taurus.qt.qtcore.util.emmiter.QEmitter.doSomething` signal signature
+  changes from `collections.Iterable` to `list`
+- Updated Pypy's Trove classifiers (we are now officially stable!) (#844)
+- Default serialization mode for Tango reverted to `TangoSerial` (in 4.4.0
+  the defaultfor Tango was changed to `Serial`) (#850)
+  
+### Fixed
+- bug when copying tango or evaluation attribute values (#831, #849)
+- bug when adding listener to non-ready Tango device (#792)
+- Various issues with Taurus Forms (#800, #805)
+- problem when displaying TaurusWheelEdit in vertically-limited space (#788)
+- bug when managing subscription event in Tango (#809)
+- Other (#793, #819)
+
+### Deprecated
+- `taurus.qt.qtgui.plot`
+- `QtColorPalette.qvariant()`
+- `TaurusBaseTreeItem.qdisplay()`
+- `taurus.qt.qtdesigner.qtdesigner_prepare_taurus()`
+- The following have been implicitly deprecated since 4.0 (when API1
+ support was dropped) but only now we deprecate them explicitly 
+    - `taurus.external.qt.QtCore.QString` 
+    - `taurus.external.qt.QtCore.QVariant`
+    - `taurus.external.qt.QtCore.from_qvariant` 
+    - `taurus.external.qt.QtCore.to_qvariant` 
 
 ## [4.4.0] - 2018-07-26
+[Jul18 milestone](https://github.com/taurus-org/taurus/milestone/11)
 
 ### Deprecated
 - pint, enum, unittest and argparse submodules of taurus.external (#723)
@@ -363,6 +449,8 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [Unreleased]: https://github.com/taurus-org/taurus/tree/develop
+[4.5.1]: https://github.com/taurus-org/taurus/tree/release-4.5.1
+[4.5.0]: https://github.com/taurus-org/taurus/tree/release-4.5.0
 [4.4.0]: https://github.com/taurus-org/taurus/tree/4.4.0
 [4.3.1]: https://github.com/taurus-org/taurus/tree/4.3.1
 [4.3.0]: https://github.com/taurus-org/taurus/tree/4.3.0

@@ -29,24 +29,124 @@ AttributeChooser.py: widget for choosing (a list of) attributes from a tango DB
 from __future__ import print_function
 from __future__ import absolute_import
 
+from builtins import bytes, str
+
 import sys
-from taurus.external.qt import Qt
+import pkg_resources
+
+import taurus
+from taurus.external.qt import Qt, QtCore
+from taurus.external.qt.compat import PY_OBJECT
 import taurus.core
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.tree import TaurusDbTreeWidget
 from taurus.core.util.containers import CaselessList
 from .taurusmodellist import TaurusModelList
 
+__all__ = ["TaurusModelSelectorTree", "TaurusModelChooser",
+           "TaurusModelSelector", "TaurusModelSelectorItem"]
 
-__all__ = ["TaurusModelSelectorTree", "TaurusModelChooser"]
+
+class TaurusModelSelector(Qt.QTabWidget):
+    """TaurusModelSelector is a QTabWidget container for
+    TaurusModelSelectorItem.
+    """
+    # TODO add action to add new TaurusModelSelectorItem
+    # TODO add mechanism to allow manual plugin activation
+    #      (instead of relying on installation)
+    modelsAdded = Qt.pyqtSignal(PY_OBJECT)
+
+    def __init__(self, parent=None):
+        Qt.QTabWidget.__init__(self, parent=parent)
+
+        self.currentChanged.connect(self.__setTabItemModel)
+        # ---------------------------------------------------------------------
+        # Note: this is an experimental feature
+        # It may be removed or changed in future releases
+        # Discover the taurus.modelselector plugins
+        ep_name = 'taurus.qt.qtgui.panel.TaurusModelSelector.items'
+        for ep in pkg_resources.iter_entry_points(ep_name):
+            try:
+                ms_class = ep.load()
+                ms_item = ms_class(parent=self)
+                self.__addItem(ms_item, ep.name)
+
+            except Exception as e:
+                err = 'Invalid TaurusModelSelectorItem plugin: {}\n{}'.format(
+                    ep.module_name, e)
+                taurus.warning(err)
+        # ---------------------------------------------------------------------
+
+    def __setTabItemModel(self):
+        w = self.currentWidget()
+        c = self.cursor()
+        try:
+            if not w.model:
+                self.setCursor(QtCore.Qt.WaitCursor)
+                w.setModel(w.default_model)
+        except Exception as e:
+            taurus.warning('Problem setting up selector: %r', e)
+        finally:
+            self.setCursor(c)
+
+    def __addItem(self, widget, name, model=None):
+        if model is not None:
+            widget.default_model = model
+
+        widget.modelsAdded.connect(self.modelsAdded)
+        self.addTab(widget, name)
 
 
-class TaurusModelSelectorTree(TaurusWidget):
+class TaurusModelSelectorItem(TaurusWidget):
+    """Base class for ModelSelectorItem.
+    It defines the minimal API to be defined in the specialization
+    """
+    modelsAdded = Qt.pyqtSignal(PY_OBJECT)
+    _dragEnabled = True
+    # TODO add action for setModel
+
+    def __init__(self, parent=None, **kwargs):
+        TaurusWidget.__init__(self, parent)
+        self._default_model = None
+
+    def getSelectedModels(self):
+        raise NotImplementedError(('getSelectedModels must be implemented'
+                                   + ' in TaurusModelSelectorItem subclass'))
+
+    def getModelMimeData(self):
+        """ Reimplemented from TaurusBaseComponent
+        """
+        models = self.getSelectedModels()
+        md = Qt.QMimeData()
+        md.setText(", ".join(models))
+        models_bytes = [bytes(m, encoding='utf-8') for m in models]
+        md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE,
+                   b"\r\n".join(models_bytes))
+        return md
+
+    def _get_default_model(self):
+        """
+        Reimplement to return a default model to initialize the widget
+        """
+        raise NotImplementedError(('default_model must be implemented'
+                                   + ' in TaurusModelSelectorItem subclass'))
+
+    def _set_default_model(self, model):
+        """
+        Set default model to initialize the widget
+        """
+        self._default_model = model
+
+    # Reimplement this property
+    default_model = property(fget=_get_default_model, fset=_set_default_model)
+
+
+class TaurusModelSelectorTree(TaurusModelSelectorItem):
 
     addModels = Qt.pyqtSignal('QStringList')
 
     def __init__(self, parent=None, selectables=None, buttonsPos=None, designMode=None):
-        TaurusWidget.__init__(self, parent)
+        TaurusModelSelectorItem.__init__(self, parent)
         if selectables is None:
             selectables = [taurus.core.taurusbasetypes.TaurusElementType.Attribute, taurus.core.taurusbasetypes.TaurusElementType.Member,
                            taurus.core.taurusbasetypes.TaurusElementType.Device]
@@ -136,6 +236,34 @@ class TaurusModelSelectorTree(TaurusWidget):
         ret['container'] = False
         ret['group'] = 'Taurus Views'
         return ret
+
+
+class TangoModelSelectorItem(TaurusModelSelectorTree):
+    """A taurus model selector item for Tango models
+    """
+    # TODO: Tango-centric (move to Taurus-Tango plugin)
+    def __init__(self, parent=None, selectables=None,
+                 buttonsPos=Qt.Qt.RightToolBarArea, designMode=None):
+        TaurusModelSelectorTree.__init__(
+            self, parent=parent, selectables=selectables,
+            buttonsPos=buttonsPos, designMode=designMode)
+
+    def onAddSelected(self):
+        """
+        Reimplemented from TaurusModelSelectorTree to emit modelsAdded
+        signal instead of addModels
+        """
+        self.modelsAdded.emit(self.getSelectedModels())
+
+    def _get_default_model(self):
+        """Reimplemented from TaurusModelSelectorItem"""
+        if self._default_model is None:
+            f = taurus.Factory('tango')
+            self._default_model = f.getAuthority().getFullName()
+        return self._default_model
+
+    default_model = property(fget=_get_default_model,
+                             fset=TaurusModelSelectorTree._set_default_model)
 
 
 class TaurusModelChooser(TaurusWidget):

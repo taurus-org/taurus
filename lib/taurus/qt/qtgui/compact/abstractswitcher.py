@@ -138,8 +138,8 @@ class TaurusReadWriteSwitcher(TaurusWidget):
         self.exitEditAction.setShortcutContext(
             Qt.Qt.WidgetWithChildrenShortcut)
         self.addAction(self.exitEditAction)
-        self.enterEditAction.triggered[()].connect(self._onEnterEditActionTriggered)
-        self.exitEditAction.triggered[()].connect(self._onExitEditActionTriggered)
+        self.enterEditAction.triggered.connect(self._onEnterEditActionTriggered)
+        self.exitEditAction.triggered.connect(self._onExitEditActionTriggered)
 
         # add read and write widgets
         if self.readWClass is not None:
@@ -160,7 +160,7 @@ class TaurusReadWriteSwitcher(TaurusWidget):
                 shortcuts.append(Qt.QKeySequence(e))
             elif isinstance(e, Qt.QEvent.Type):
                 eventTypes.append(e)
-            elif isinstance(e, string_types +(Qt.QString,)):
+            elif isinstance(e, string_types):
                 signals.append(e)
             else:
                 raise TypeError('Unsupported trigger type: %s' % repr(type(e)))
@@ -336,7 +336,7 @@ def demo1():
     from taurus.qt.qtgui.display import TaurusLabel
     from taurus.qt.qtgui.input import TaurusValueLineEdit
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     w = TaurusReadWriteSwitcher(readWClass=TaurusLabel,
                                 writeWClass=TaurusValueLineEdit)
@@ -359,7 +359,7 @@ def demo2():
         writeWClass = TaurusValueLineEdit
         exitEditTriggers = ('editingFinished()', Qt.Qt.Key_Escape)
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     f = TaurusForm()
     f.model = ['sys/tg_test/1/long_scalar', 'sys/tg_test/1/long_scalar']
@@ -379,7 +379,7 @@ def demo3():
     from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
     from taurus.qt.qtgui.input import TaurusValueLineEdit, TaurusValueCheckBox
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     w1 = TaurusReadWriteSwitcher(readWClass=TaurusLabel,
                                  writeWClass=TaurusValueLineEdit)

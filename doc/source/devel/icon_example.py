@@ -23,7 +23,7 @@ class MyGUI(Qt.QMainWindow):
 
 if __name__ == "__main__":
     import sys
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
     gui = MyGUI()
     gui.show()
     sys.exit(app.exec_())

@@ -33,11 +33,11 @@ You may also use :class:`TaurusPlot` as a stand-alone application for displaying
 attributes from the control system or for plotting a function. You can launch the
 stand-alone :class:`TaurusPlot` with the following command::
 
-    taurusplot [options] [<model_list>]
+    taurus qwt5 plot [options] [<model_list>]
 	
 Run the following command for more details::
 
-    taurusplot --help
+    taurus qwt5 plot --help
 
 The <model_list> is a space-separated list of models for :class:`TaurusPlot`. Valid models are:
 SPECTRUM attribute names or alias, and `Xattrname|Yattrname` constructions for indicating X-Y scatter plots.
@@ -283,24 +283,7 @@ Here are some tips for entering valid date/time values:
       the units are case-sensitive (e.g., "-1D" is not valid)
     - also, the keyword "now" (case-insensitive) can be used as a synonym of
       "+0s".
-      
-.. _tauruscurve:
 
-TaurusCurveDialog
-=================
-
-Taurus also offers an alternative widget for plotting one-dimensional data: 
-:class:`TaurusCurveDialog`. This widget is based on the guiqwt_ library and 
-is currently less developed and tested than :class`TaurusPlot`.
-
-The :class:`TaurusCurveDialog` widget can be launched as a stand-alone 
-application with the following command::
-
-    tauruscurve [options] [<model_list>]
-
-Run the following command for more details::
-
-    tauruscurve --help
 
 .. references
 .. _numpy: http://numpy.scipy.org/

@@ -85,7 +85,7 @@ class EpicsAttribute(TaurusAttribute):
     """
     # TODO: support non-numerical PVs
 
-    def __init__(self, name, parent, storeCallback=None):
+    def __init__(self, name='', parent=None, storeCallback=None):
         self.call__init__(TaurusAttribute, name, parent,
                           storeCallback=storeCallback)
 
@@ -226,14 +226,6 @@ class EpicsAttribute(TaurusAttribute):
 
     def isUsingEvents(self):
         return True  # TODO: implement this
-
-    def _subscribeEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute._subscribeEvents")
-
-    def _unsubscribeEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute._unsubscribeEvents")
 # ------------------------------------------------------------------------------
 
     def factory(self):

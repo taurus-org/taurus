@@ -44,7 +44,7 @@ def _test2():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.display import TaurusLabel
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     tl = TaurusLabel()
     tl.setModel(ATTR_IPAP_POS)

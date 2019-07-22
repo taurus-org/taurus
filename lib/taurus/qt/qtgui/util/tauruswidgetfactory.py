@@ -27,6 +27,7 @@
 tauruswidgetfactory.py:
 """
 
+
 __all__ = ["TaurusWidgetFactory", "getWidgetsOfType"]
 
 __docformat__ = 'restructuredtext'
@@ -66,6 +67,8 @@ def getWidgetsOfType(widget, class_or_type_or_tuple):
     _getWidgetsOfType(widget, widgets, class_or_type_or_tuple)
     return widgets
 
+
+# TODO: TaurusWidgetFactory should be deprecated in favor of using importlib
 
 class TaurusWidgetFactory(Singleton, Logger):
     """The TaurusWidgetFactory is a utility class that provides information

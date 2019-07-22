@@ -26,7 +26,7 @@
 """This module provides widgets that display the database in a tree format"""
 # TODO: tango-centric
 
-from builtins import str
+from builtins import str, bytes
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusDevState
@@ -84,10 +84,15 @@ def getDevStateToolTip(*args, **kwargs):
 class TaurusTreeDbBaseItem(TaurusBaseTreeItem):
     try:
         # TODO: tango-centric
-        from taurus.core.tango.tangodatabase import TangoInfo
-        DisplayFunc = TangoInfo.name
+        import taurus.core.tango
+
+        @staticmethod
+        def DisplayFunc(obj):
+            from taurus.core.tango.tangodatabase import TangoInfo
+            return TangoInfo.name(obj)
     except:
         pass
+
 
 class TaurusTreeDevicePartItem(TaurusTreeDbBaseItem):
     """A node designed to represent a 'part' (or totality) of a device name"""
@@ -419,13 +424,15 @@ class TaurusDbBaseModel(TaurusBaseModel):
             mime_data_item = tree_item.mimeData(index)
             if mime_data_item is None:
                 continue
-            data.append(mime_data_item)
+            data.append(bytes(mime_data_item, encoding='utf8'))
         ret.setData(
-            taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, "\r\n".join(data))
-        ret.setText(", ".join(data))
+            taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE,
+            b"\r\n".join(data)
+        )
+        ret.setText(", ".join(map(str, data)))
         if len(data) == 1:
             ret.setData(
-                taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(data[0]))
+                taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, data[0])
         return ret
 
     def pyData(self, index, role):
@@ -729,13 +736,11 @@ class TaurusDbDeviceProxyModel(TaurusDbBaseProxyModel):
     def deviceMatches(self, device, regexp):
         name = device.name()
 
-        # if Qt.QString(name).contains(regexp):
         if regexp.indexIn(name) != -1:
             return True
         name = device.alias()
         if name is None:
             return False
-        # return Qt.QString(name).contains(regexp)
         return regexp.indexIn(name) != -1
 
 
@@ -753,14 +758,13 @@ class TaurusDbServerProxyModel(TaurusDbBaseProxyModel):
             serverName = treeItem.display()
             serverInstances = sourceModel.getServerNameInstances(serverName)
             for serverInstance in serverInstances:
-                # if Qt.QString(serverInstance.name()).contains(regexp):
                 if regexp.indexIn(serverInstance.name()) != -1:
                     return True
             return False
 
         if isinstance(treeItem, TaurusTreeServerItem):
             # return treeItem.qdisplay().contains(regexp)
-            return regexp.indexIn(treeItem.qdisplay()) != -1
+            return regexp.indexIn(treeItem.display()) != -1
 
         return True
 
@@ -779,4 +783,4 @@ class TaurusDbDeviceClassProxyModel(TaurusDbBaseProxyModel):
         regexp = self.filterRegExp()
 
         # return treeItem.qdisplay().contains(regexp)
-        return regexp.indexIn(treeItem.qdisplay()) != -1
+        return regexp.indexIn(treeItem.display()) != -1

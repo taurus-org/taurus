@@ -48,7 +48,11 @@ class TaurusImportTestCase(unittest.TestCase):
         Expected Results: It is expected to get no warning message
         on module importing
         """
-        exclude_patterns = [r'taurus\.qt\.qtgui\.extra_.*']
+        exclude_patterns = [r'taurus\.qt\.qtgui\.extra_.*',
+                            r'taurus\.qt\.qtgui\.qwt5',
+                            r'taurus\.external\.qt\.QtUiTools',
+                            r'taurus\.external\.qt\.Qwt5',
+                            ]
 
         try:
             import PyTango
@@ -59,16 +63,11 @@ class TaurusImportTestCase(unittest.TestCase):
         except ImportError:
             exclude_patterns.append(r'taurus\.core\.epics')
 
-        if sys.version_info.major > 2:
-            # PyQwt4.Qwt5 not available for PY3
-            exclude_patterns.append(r'taurus\.qt\.qtgui\.plot')
-
-
         moduleinfo, wrn = self.explore('taurus', verbose=False,
                                        exclude_patterns=exclude_patterns)
         msg = None
         if wrn:
-            msg = '\n%s' % '\n'.join(zip(*wrn)[1])
+            msg = '\n%s' % '\n'.join(list(zip(*wrn))[1])
         self.assertEqual(len(wrn), 0, msg=msg)
 
 

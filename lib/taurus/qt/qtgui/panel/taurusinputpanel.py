@@ -178,7 +178,7 @@ class TaurusInputPanel(Qt.QWidget):
 
     def _get_combobox_value(self):
         combo = self._ui.inputWidget
-        return Qt.from_qvariant(combo.itemData(combo.currentIndex()))
+        return combo.itemData(combo.currentIndex())
 
     def _create_radiobutton_panel(self, input_data):
         panel = self._create_group_panel(input_data)
@@ -231,7 +231,7 @@ class TaurusInputPanel(Qt.QWidget):
             else:
                 text, userData = str(item), item
             item_widget = Qt.QListWidgetItem(text, listwidget)
-            item_widget.setData(Qt.Qt.UserRole, Qt.to_qvariant(userData))
+            item_widget.setData(Qt.Qt.UserRole, userData)
             if userData in default_value:
                 item_widget.setSelected(True)
         layout.addWidget(listwidget)
@@ -239,7 +239,7 @@ class TaurusInputPanel(Qt.QWidget):
 
     def _get_multi_selection_value(self):
         listwidget = self._ui.inputWidget
-        return [Qt.from_qvariant(item.data(Qt.Qt.UserRole)) for item in listwidget.selectedItems()]
+        return [item.data(Qt.Qt.UserRole) for item in listwidget.selectedItems()]
 
     def _create_group_panel(self, input_data):
         title = input_data.get('key', '')

@@ -30,6 +30,7 @@ from builtins import range
 
 import os
 import atexit
+import pkg_resources
 
 from .util.singleton import Singleton
 from .util.log import Logger, taurus4_deprecation
@@ -42,7 +43,9 @@ from .taurusattribute import TaurusAttribute
 from .taurusexception import TaurusException
 from .taurusfactory import TaurusFactory
 from .taurushelper import getSchemeFromName
+import taurus
 from taurus import tauruscustomsettings
+
 
 __all__ = ["TaurusManager"]
 
@@ -368,6 +371,18 @@ class TaurusManager(Singleton, Logger):
         from taurus import tauruscustomsettings
         full_module_names.extend(
             getattr(tauruscustomsettings, 'EXTRA_SCHEME_MODULES', []))
+
+        full_module_names.extend(
+            getattr(taurus.core, 'PLUGIN_SCHEME_MODULES', []))
+
+        # ---------------------------------------------------------------------
+        # Note: this is an experimental feature introduced in v 4.5.0a
+        # It may be removed or changed in future releases
+
+        # Discover the taurus.core.schemes plugins
+        schemes_ep = pkg_resources.iter_entry_points('taurus.core.schemes')
+        full_module_names.extend([p.name for p in schemes_ep])
+        # ---------------------------------------------------------------------
 
         for full_module_name in full_module_names:
             try:

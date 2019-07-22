@@ -29,7 +29,8 @@ comunications.py:
 
 from __future__ import print_function
 
-from taurus.external.qt import QtCore
+from taurus.external.qt import QtCore, compat
+
 import weakref
 
 _DEBUG = False
@@ -56,7 +57,7 @@ class DataModel(QtCore.QObject):
     DataModels are singletons.
     '''
 
-    dataChanged = QtCore.pyqtSignal(object)
+    dataChanged = QtCore.pyqtSignal(compat.PY_OBJECT)
 
     def __init__(self, parent, dataUID, defaultData=None):
         '''

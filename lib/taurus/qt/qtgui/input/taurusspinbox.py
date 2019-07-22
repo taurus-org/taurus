@@ -220,7 +220,6 @@ class TaurusValueSpinBoxEx(Qt.QWidget):
     def __init__(self, qt_parent=None, designMode=False):
         Qt.QWidget.__init__(self, qt_parent)
         layout = Qt.QGridLayout()
-        layout.setMargin(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
@@ -292,7 +291,7 @@ if __name__ == "__main__":
     main()
 #     import sys
 #     from taurus.qt.qtgui.application import TaurusApplication
-#     app = TaurusApplication()
+#     app = TaurusApplication(cmd_line_parser=None)
 
 #     w = TaurusValueSpinBox()
 #     w.setModel('sys/tg_test/1/double_scalar')

@@ -45,12 +45,11 @@ import datetime
 import glob
 from lxml import etree
 
-from taurus import tauruscustomsettings
-from taurus.external.qt import Qt
+from taurus import tauruscustomsettings, warning
+from taurus.external.qt import Qt, compat
 import taurus.qt.qtgui.panel
 import taurus.qt.qtgui.taurusgui.paneldescriptionwizard
 import taurus.qt.qtgui.input
-from taurus.core.tango.tangovalidator import TangoDeviceNameValidator
 from taurus.core.util.enumeration import Enumeration
 from taurus.qt.qtgui.util import ExternalAppAction
 
@@ -471,8 +470,10 @@ class CustomLogoPage(BasePage):
             return None
 
     def _selectImage(self):
-        fileName = Qt.QFileDialog.getOpenFileName(self, self.tr(
-            "Open File"), Qt.QDir.homePath(), self.tr("Images (*.png *.xpm *.jpg *.jpeg *.svg)"))
+        fileName, _ = compat.getOpenFileName(
+            self, self.tr("Open File"), Qt.QDir.homePath(),
+            self.tr("Images (*.png *.xpm *.jpg *.jpeg *.svg)")
+        )
         self._customLogoLineEdit.setText(fileName)
         self._changeImage()
 
@@ -580,8 +581,10 @@ class SynopticPage(BasePage):
 
     def _addSynoptic(self):
         pdir = self.wizard().__getitem__('projectDir')
-        fileNames = Qt.QFileDialog.getOpenFileNames(self, self.tr(
-            "Open File"), pdir, self.tr("JDW (*.jdw );; All files (*)"))
+        fileNames, _ = compat.getOpenFileNames(
+            self, self.tr("Open File"), pdir,
+            self.tr("JDW (*.jdw );; All files (*)")
+        )
         for fileName in fileNames:
             fileName = str(fileName)
             if fileName not in self._synoptics:
@@ -722,6 +725,12 @@ class MacroServerInfoPage(BasePage):
 
     def _getMacroServerName(self):
         if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
+            try: # TODO: tango-centric
+                from taurus.core.tango.tangovalidator import (
+                    TangoDeviceNameValidator)
+            except ImportError:
+                warning('Cannot import tango (needed for sardana integration)')
+                return None
             ms_name = str(self._confWidget.macroServerComboBox.currentText())
             complete_name, _, _ = TangoDeviceNameValidator().getNames(ms_name)
             return complete_name
@@ -731,6 +740,12 @@ class MacroServerInfoPage(BasePage):
     def _getDoorName(self):
         if (self._macroGroupBox.isChecked()) and len(self._confWidget.macroServerComboBox.currentText()):
             door_name = str(self._confWidget.doorComboBox.currentText())
+            try: # TODO: tango-centric
+                from taurus.core.tango.tangovalidator import (
+                    TangoDeviceNameValidator)
+            except ImportError:
+                warning('Cannot import tango (needed for sardana integration)')
+                return None
             complete_name, _, _ = TangoDeviceNameValidator().getNames(
                 door_name)
             return complete_name
@@ -857,7 +872,8 @@ class PanelsPage(BasePage):
             name = AppSettingsWizard.getValueFromNode(
                 child, "name", default=None)
             if name:
-                self._panels.append((name, etree.tostring(child)))
+                self._panels.append(
+                    (name, etree.tostring(child, encoding='unicode')))
 
     def _addPanel(self):
         paneldesc, ok = taurus.qt.qtgui.taurusgui.paneldescriptionwizard.PanelDescriptionWizard.getDialog(
@@ -1004,8 +1020,10 @@ class ExternalAppEditor(Qt.QDialog):
         self.checkData()
 
     def _selectExecFile(self):
-        filePath = Qt.QFileDialog.getOpenFileName(self, self.tr(
-            "Open File"), Qt.QDir.homePath(), self.tr("All files (*)"))
+        filePath, _ = compat.getOpenFileName(
+            self, self.tr("Open File"),
+            Qt.QDir.homePath(), self.tr("All files (*)")
+        )
         if len(filePath):
             self._execFileLineEdit.setText(filePath)
             self._setDefaultText()
@@ -1051,7 +1069,7 @@ class ExternalAppEditor(Qt.QDialog):
         icon = etree.SubElement(root, "icon")
         icon.text = self._getIcon()
 
-        return etree.tostring(root)
+        return etree.tostring(root, encoding='unicode')
 
     @staticmethod
     def getDialog():
@@ -1125,7 +1143,9 @@ class ExternalAppPage(BasePage):
             name = AppSettingsWizard.getValueFromNode(
                 child, "command", default=None)
             if name:
-                self._externalApps.append((name, etree.tostring(child)))
+                self._externalApps.append(
+                    (name, etree.tostring(child, encoding='unicode'))
+                )
 
     def _addApplication(self):
         name, xml, ok = ExternalAppEditor.getDialog()
@@ -1547,6 +1567,9 @@ class AppSettingsWizard(Qt.QWizard):
         try:
             from sardana.taurus.qt.qtgui.extra_macroexecutor.common import \
                 TaurusMacroConfigurationDialog
+            # try to instantiate the dialog (e.g. this fails if using Qt5 with
+            # versions of sardana which do not support it)
+            _ = TaurusMacroConfigurationDialog()
             self.SARDANA_INSTALLED = True
         except:
             self.SARDANA_INSTALLED = False
@@ -1664,7 +1687,8 @@ class AppSettingsWizard(Qt.QWizard):
         monitor = etree.SubElement(root, "MONITOR")
         monitor.text = self.__getitem__("monitor")
 
-        return etree.tostring(root, pretty_print=True), copy.copy(self._substitutions)
+        return (etree.tostring(root, pretty_print=True, encoding='unicode'),
+                copy.copy(self._substitutions))
 
     def substitutionName(self, src, mod_dir):
         name = os.path.basename(src)

@@ -94,7 +94,7 @@ class _DownArrowButton(_ArrowButton):
         pm = Qt.QPixmapCache.find(_DownArrowButton.ArrowPixmapKey)
         if pm is None:
             pm = Qt.QPixmap(self.ArrowPixmapName)
-            pm = pm.transformed(Qt.QMatrix().rotate(180))
+            pm = pm.transformed(Qt.QTransform().rotate(180))
             Qt.QPixmapCache.insert(_DownArrowButton.ArrowPixmapKey, pm)
         return pm
 
@@ -260,7 +260,7 @@ class QWheelEdit(Qt.QFrame):
 
         l = self.layout()
         l.setSpacing(0)
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
 
         id = self.getIntDigitCount()
         dd = self.getDecDigitCount()

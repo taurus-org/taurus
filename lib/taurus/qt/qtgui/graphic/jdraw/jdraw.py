@@ -247,7 +247,7 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         if txt:
             if any(isinstance(txt, t) for t in (list, tuple, set)):  # Parsing several lines of text
                 txt = '\n'.join(txt)
-            item.setPlainText(Qt.QString(txt))
+            item.setPlainText(str(txt))
             item._currText = txt
 
     def getGroupObj(self, params):
@@ -425,5 +425,5 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
         return
 
 if __name__ == "__main__":
-    from . import jdraw_view
+    from taurus.qt.qtgui.graphic.jdraw import jdraw_view
     jdraw_view.jdraw_view_main()

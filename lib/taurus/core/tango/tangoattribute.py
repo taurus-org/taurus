@@ -47,11 +47,7 @@ from taurus.core.taurusbasetypes import (TaurusEventType,
                                          SubscriptionState, TaurusAttrValue,
                                          DataFormat, DataType)
 from taurus.core.taurusoperation import WriteAttrOperation
-from taurus.core.util.event import EventListener
-# -------------------------------------------------------------------------
-# TODO: remove this when PyTango's bug 185 is fixed
-from taurus.core.util.event import _BoundMethodWeakrefWithCall
-# -------------------------------------------------------------------------
+from taurus.core.util.event import EventListener, _BoundMethodWeakrefWithCall
 from taurus.core.util.log import (debug, taurus4_deprecation,
                                   deprecation_decorator)
 
@@ -123,8 +119,10 @@ class TangoAttrValue(TaurusAttrValue):
                     for _ in range(len(shape) - 1):
                         p.value = [p.value]
 
-        rvalue = p.value
-        wvalue = p.w_value
+        # Protect against DeviceAttribute not providing .value in some cases,
+        # seen e.g. in PyTango 9.3.0
+        rvalue = getattr(p, 'value', None)
+        wvalue = getattr(p, 'w_value', None)
         if numerical:
             units = self._attrRef._units
             if rvalue is not None:
@@ -140,7 +138,16 @@ class TangoAttrValue(TaurusAttrValue):
         self.quality = quality_from_tango(p.quality)
 
     def __getattr__(self, name):
+        """
+        If the member `name` is not defined in this class, try to get it
+        from the TangoAttribute (configuration) or from the PyTango value
+        """
+        # Do not try to delegate special methods
+        if name.startswith('__') and name.endswith('__'):
+            raise AttributeError("'%s' object has no attribute %s"
+                                 % (self.__class__.__name__, name))
         try:
+            # maybe name is defined in the TangoAttribute?
             try:
                 # Use the attr reference if the attr is still valid
                 ret = getattr(self._attrRef, name)
@@ -152,6 +159,7 @@ class TangoAttrValue(TaurusAttrValue):
                 ret = getattr(a, name)
         except AttributeError:
             try:
+                # maybe name is defined in the PyTango value?
                 ret = getattr(self._pytango_dev_attr, name)
             except AttributeError:
                 raise AttributeError("'%s' object has no attribute %s"
@@ -262,7 +270,7 @@ class TangoAttribute(TaurusAttribute):
     _scheme = 'tango'
     _description = 'A Tango Attribute'
 
-    def __init__(self, name, parent, **kwargs):
+    def __init__(self, name='', parent=None, **kwargs):
         # the last attribute value
         self.__attr_value = None
 
@@ -318,6 +326,7 @@ class TangoAttribute(TaurusAttribute):
     def cleanUp(self):
         self.trace("[TangoAttribute] cleanUp")
         self._unsubscribeConfEvents()
+        self._unsubscribeChangeEvents()
         TaurusAttribute.cleanUp(self)
         self.__dev_hw_obj = None
         self._pytango_attrinfoex = None
@@ -411,7 +420,7 @@ class TangoAttribute(TaurusAttribute):
         elif fmt in (DataFormat._1D, DataFormat._2D):
             if PyTango.is_int_type(tgtype):
                 # cast to integer because the magnitude conversion gives floats
-                attrvalue = magnitude.astype('int64')
+                attrvalue = numpy.array(magnitude, copy=False, dtype='int64')
             elif tgtype == PyTango.CmdArgType.DevUChar:
                 attrvalue = magnitude.view('uint8')
             else:
@@ -594,7 +603,7 @@ class TangoAttribute(TaurusAttribute):
         assert len(listeners) >= 1
 
         if self.__subscription_state == SubscriptionState.Unsubscribed and len(listeners) == 1:
-            self._subscribeEvents()
+            self._subscribeChangeEvents()
 
         # if initial_subscription_state == SubscriptionState.Subscribed:
         if (len(listeners) > 1
@@ -603,12 +612,10 @@ class TangoAttribute(TaurusAttribute):
            ):
             sm = self._serialization_mode
             if sm == TaurusSerializationMode.TangoSerial:
-                self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
-                                alt='TaurusSerializationMode.Serial',
-                                rel='4.3.2')
                 self.__fireRegisterEvent((listener,))
             else:
-                Manager().enqueueJob(self.__fireRegisterEvent,
+                job = _BoundMethodWeakrefWithCall(self.__fireRegisterEvent)
+                Manager().enqueueJob(job,
                                      job_args=((listener,),),
                                      serialization_mode=sm)
         return ret
@@ -626,7 +633,7 @@ class TangoAttribute(TaurusAttribute):
             return ret
 
         if self.__subscription_state != SubscriptionState.Unsubscribed:
-            self._unsubscribeEvents()
+            self._unsubscribeChangeEvents()
 
         return ret
 
@@ -650,7 +657,7 @@ class TangoAttribute(TaurusAttribute):
     def _process_event_exception(self, ex):
         pass
 
-    def _subscribeEvents(self):
+    def _subscribeChangeEvents(self):
         """ Enable subscription to the attribute events. If change events are
             not supported polling is activated """
             
@@ -701,7 +708,7 @@ class TangoAttribute(TaurusAttribute):
         
         return self.__chg_evt_id
                 
-    def _unsubscribeEvents(self):
+    def _unsubscribeChangeEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object
@@ -810,12 +817,10 @@ class TangoAttribute(TaurusAttribute):
             listeners = tuple(self._listeners)
             sm = self._serialization_mode
             if sm == TaurusSerializationMode.TangoSerial:
-                self.deprecated(dep='TaurusSerializationMode.TangoSerial mode',
-                                alt="TaurusSerializationMode.Serial",
-                                rel='4.3.2')
                 self.fireEvent(etype, evalue, listeners=listeners)
             else:
-                manager.enqueueJob(self.fireEvent, job_args=(etype, evalue),
+                job = _BoundMethodWeakrefWithCall(self.fireEvent)
+                manager.enqueueJob(job, job_args=(etype, evalue),
                                    job_kwargs={'listeners': listeners},
                                    serialization_mode=sm)
 

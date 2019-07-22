@@ -34,7 +34,7 @@ if __name__ == '__main__':
     from taurus.qt.qtgui.application import TaurusApplication
     from taurus.qt.qtgui.taurusgui import TaurusGui
     from taurus.external.qt import Qt
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
     gui = TaurusGui(confname=__file__)
     panel = Qt.QWidget()
     gui.createPanel(panel, 'Foo')

@@ -61,6 +61,7 @@ install_requires = [
     'numpy>=1.1',
     'pint>=0.8',
     'future',
+    'click',
 ]
 
 #Workaround for old setuptools
@@ -73,8 +74,7 @@ else:
 
 
 extras_require = {
-    'taurus-qt': ['qtpy >=1.2.1',
-                  # 'PyQt4 >=4.8',
+    'taurus-qt': [# 'PyQt4 >=4.8',
                   # 'PyQt4.Qwt5 >=5.2.0',  # [Taurus-Qt-Plot]
                   'ply >=2.3',  # [Taurus-Qt-Synoptic]
                   'lxml >=2.1',  # [Taurus-Qt-TaurusGUI]
@@ -93,35 +93,45 @@ extras_require = {
 }
 
 console_scripts = [
-    'taurustestsuite = taurus.test.testsuite:main',
-    'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main',
-    'taurusplot = taurus.qt.qtgui.plot.taurusplot:main',
-    'taurustrend = taurus.qt.qtgui.plot.taurustrend:main',
-    'taurusform = taurus.qt.qtgui.panel.taurusform:taurusFormMain',
-    'tauruspanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusPanelMain',
-    'taurusdevicepanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusDevicePanelMain',
-    'taurusgui = taurus.qt.qtgui.taurusgui.taurusgui:main',
-    'taurusdesigner = taurus.qt.qtdesigner.taurusdesigner:main',
-    'tauruscurve = taurus.qt.qtgui.extra_guiqwt.plot:taurusCurveDlgMain',
-    'taurustrend1d = taurus.qt.qtgui.extra_guiqwt.plot:taurusTrendDlgMain',
-    'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain',
-    'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
-    'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main',
-    'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main',
-    # TODO: taurusdoc,
+    'taurus = taurus.cli:main',
 ]
 
-entry_points = {'console_scripts': console_scripts,
+taurus_subcommands = [
+    'testsuite = taurus.test.testsuite:testsuite_cmd',
+    'config = taurus.qt.qtgui.panel.taurusconfigeditor:config_cmd',
+    'qwt5 = taurus.qt.qtgui.qwt5.cli:qwt5',
+    'device = taurus.qt.qtgui.panel.taurusdevicepanel:device_cmd',
+    'panel = taurus.qt.qtgui.panel.taurusdevicepanel:panel_cmd',
+    'gui = taurus.qt.qtgui.taurusgui.taurusgui:gui_cmd',
+    'newgui = taurus.qt.qtgui.taurusgui.taurusgui:newgui_cmd',
+    'designer = taurus.qt.qtdesigner.taurusdesigner:designer_cmd',
+    'guiqwt = taurus.qt.qtgui.extra_guiqwt.cli:guiqwt',
+    'icons = taurus.qt.qtgui.icon.catalog:icons_cmd',
+    'form = taurus.qt.qtgui.panel.taurusform:form_cmd',
+    'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
+    'logmon = taurus.core.util.remotelogmonitor:logmon_cmd',
+    'qlogmon = taurus.qt.qtgui.table.qlogtable:qlogmon_cmd',
+]
+
+model_selectors = [
+    'Tango = taurus.qt.qtgui.panel.taurusmodelchooser:TangoModelSelectorItem',
+]
+
+entry_points = {
+    'console_scripts': console_scripts,
+    'taurus.cli.subcommands': taurus_subcommands,
+    'taurus.qt.qtgui.panel.TaurusModelSelector.items': model_selectors,
 }
 
 classifiers = [
-    'Development Status :: 3 - Alpha',
+    'Development Status :: 5 - Production/Stable',
     'Environment :: Console',
     'Environment :: X11 Applications :: Qt',
     'Environment :: Win32 (MS Windows)',
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
+    'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
+    'Natural Language :: English',
     'Operating System :: Microsoft :: Windows',
     'Operating System :: POSIX',
     'Operating System :: POSIX :: Linux',
@@ -129,6 +139,7 @@ classifiers = [
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3.5',
     'Topic :: Scientific/Engineering',
     'Topic :: Software Development :: Libraries',
     'Topic :: Software Development :: User Interfaces',

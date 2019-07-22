@@ -42,7 +42,7 @@ def whichfile(filename, exts=None):
     Example::
 
       # on a debian machine with taurus installed in the default path:
-      whichfile('taurusform') --> '/usr/bin/taurusform'
+      whichfile('taurus') --> '/usr/bin/taurus'
 
       # or, on a winXP machine:
       whichfile('command') --> 'C:\\WINDOWS\\system32\\command.COM'

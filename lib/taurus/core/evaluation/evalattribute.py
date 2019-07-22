@@ -60,6 +60,10 @@ class EvaluationAttrValue(TaurusAttrValue):
         self.config = self._attrRef
 
     def __getattr__(self, name):
+        # Do not try to delegate special methods
+        if name.startswith('__') and name.endswith('__'):
+            raise AttributeError("'%s' object has no attribute %s"
+                                 % (self.__class__.__name__, name))   
         try:
             ret = getattr(self._attrRef, name)
         except AttributeError:
@@ -167,7 +171,7 @@ class EvaluationAttribute(TaurusAttribute):
     _factory = None
     _scheme = 'eval'
 
-    def __init__(self, name, parent, **kwargs):
+    def __init__(self, name='', parent=None, **kwargs):
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
         self._value = EvaluationAttrValue(attr=self)
 
@@ -440,12 +444,6 @@ class EvaluationAttribute(TaurusAttribute):
     def poll(self):
         v = self.read(cache=False)
         self.fireEvent(TaurusEventType.Periodic, v)
-
-    def _subscribeEvents(self):
-        pass
-
-    def _unsubscribeEvents(self):
-        pass
 
     def isUsingEvents(self):
         # if this attributes depends from others, then we consider it uses

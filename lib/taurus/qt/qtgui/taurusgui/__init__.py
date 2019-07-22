@@ -35,7 +35,7 @@ The "new GUI wizard" and XML configuration files
 ------------------------------------------------
 
 Note that the configuration files can either be written by hand or by
-launching the "new GUI" wizard with `taurusgui --new-gui`, which will create
+launching the "new GUI" wizard with `taurus newgui`, which will create
 a new directory containing configuration, resource and launcher files.
 
 The new GUI wizard stores all the options in xml format in a file called
@@ -51,12 +51,14 @@ prevail).
 """
 from __future__ import absolute_import
 
-from . import utils
 from .paneldescriptionwizard import *
 from .taurusgui import *
 from .appsettingswizard import *
 try:
-    from .macrolistener import *
+    # this import is left here for bck-compat, but will be removed
+    # TODO: remove this
+    from sardana.taurus.qt.qtgui.macrolistener import (MacroBroker,
+                                                       DynamicPlotManager)
 except ImportError:
     pass
 

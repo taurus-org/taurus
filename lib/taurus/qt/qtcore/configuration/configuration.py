@@ -137,7 +137,7 @@ class BaseConfigurableClass(object):
     # the latest element of this list is considered the current version
     _supportedConfigVersions = ("__UNVERSIONED__",)
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.resetConfigurableItems()
 
     @staticmethod
@@ -436,13 +436,16 @@ class BaseConfigurableClass(object):
         """
         import pickle
         if ofile is None:
-            from taurus.external.qt import Qt
-            ofile = str(Qt.QFileDialog.getSaveFileName(
-                self, 'Save Configuration', '%s.pck' % self.__class__.__name__, 'Configuration File (*.pck)'))
+            from taurus.external.qt import compat
+            ofile, _ = compat.getSaveFileName(
+                self, 'Save Configuration',
+                '%s.pck' % self.__class__.__name__,
+                'Configuration File (*.pck)'
+            )
             if not ofile:
                 return
-        if not isinstance(ofile, file):
-            ofile = open(ofile, 'w')
+        if isinstance(ofile, string_types):
+            ofile = open(ofile, 'wb')
         configdict = self.createConfig(allowUnpickable=False)
         self.info("Saving current settings in '%s'" % ofile.name)
         pickle.dump(configdict, ofile)
@@ -457,13 +460,13 @@ class BaseConfigurableClass(object):
         """
         import pickle
         if ifile is None:
-            from taurus.external.qt import Qt
-            ifile = str(Qt.QFileDialog.getOpenFileName(
-                self, 'Load Configuration', '', 'Configuration File (*.pck)'))
+            from taurus.external.qt import compat
+            ifile, _ = compat.getOpenFileName(
+                self, 'Load Configuration', '', 'Configuration File (*.pck)')
             if not ifile:
                 return
-        if not isinstance(ifile, file):
-            ifile = open(ifile, 'r')
+        if isinstance(ifile, string_types):
+            ifile = open(ifile, 'rb')
 
         configdict = pickle.load(ifile)
         self.applyConfig(configdict)

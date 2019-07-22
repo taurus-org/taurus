@@ -84,7 +84,7 @@ EXTRA_SCHEME_MODULES = []
 #: Consider using the API for modifying this on a per-widget or per-class
 #: basis at runtime, or using the related `--default-formatter` parameter 
 #: from TaurusApplication, e.g.:
-#:     $ taurusform MODEL --default-formatter='{:2.3f}'
+#:     $ taurus form MODEL --default-formatter='{:2.3f}'
 #: The formatter can be a python format string or the name of a formatter
 #: callable, e.g.
 #: DEFAULT_FORMATTER = '{0}'
@@ -93,8 +93,8 @@ EXTRA_SCHEME_MODULES = []
 pass
 
 #: Default serialization mode **for the tango scheme**. Possible values are:
-#: 'Serial' (default), 'Concurrent', or 'TangoSerial' (deprecated)
-TANGO_SERIALIZATION_MODE = 'Serial'
+#: 'Serial', 'Concurrent', or 'TangoSerial' (default)
+TANGO_SERIALIZATION_MODE = 'TangoSerial'
 
 #: PLY (lex/yacc) optimization: 1=Active (default) , 0=disabled.
 #: Set PLY_OPTIMIZE = 0 if you are getting yacc exceptions while loading
@@ -108,7 +108,7 @@ NAMESPACE = 'taurus'
 # Qt configuration
 # ----------------------------------------------------------------------------
 
-#: Set preffered API if not is already loaded
+#: Set preferred API (if one is not already loaded)
 DEFAULT_QT_API = 'pyqt'
 
 #: Auto initialize Qt logging to python logging
@@ -116,6 +116,13 @@ QT_AUTO_INIT_LOG = True
 
 #: Remove input hook (only valid for PyQt4)
 QT_AUTO_REMOVE_INPUTHOOK = True
+
+#: Avoid application abort on unhandled python exceptions
+#: (which happens since PyQt 5.5).
+#: http://pyqt.sf.net/Docs/PyQt5/incompatibilities.html#unhandled-python-exceptions
+#: If True (or commented out) an except hook is added to force the old
+# behaviour (exception is just printed) on pyqt5
+QT_AVOID_ABORT_ON_EXCEPTION = True
 
 #: Select the theme to be used: set the theme dir  and the theme name.
 #: The path can be absolute or relative to the dir of taurus.qt.qtgui.icon
@@ -128,6 +135,13 @@ QT_THEME_NAME = 'Tango'
 #: In Linux the QT_THEME_NAME is not applied (to respect the system theme)
 #: setting QT_THEME_FORCE_ON_LINUX=True overrides this.
 QT_THEME_FORCE_ON_LINUX = True
+
+#: Full Qt designer path (including filename. Default is None, meaning:
+#: - linux: look for the system designer following Qt.QLibraryInfo.BinariesPath
+#: - windows: look for the system designer following
+#: Qt.QLibraryInfo.BinariesPath. If this fails, taurus tries to locate binary
+#: manually
+QT_DESIGNER_PATH = None
 
 #: Custom organization logo. Set the absolute path to an image file to be used as your
 #: organization logo. Qt registered paths can also be used. 

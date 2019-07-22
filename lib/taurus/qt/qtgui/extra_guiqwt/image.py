@@ -33,7 +33,7 @@ __all__ = ["TaurusImageItem", "TaurusRGBImageItem", "TaurusTrend2DItem",
 from taurus.core.units import Quantity
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.qt.qtcore.util.signal import baseSignal
+from taurus.qt.qtcore.util import baseSignal
 import taurus.core
 from taurus.core.util.containers import ArrayBuffer
 
@@ -601,7 +601,7 @@ def test1():
     from guiqwt.plot import ImageDialog
     from taurus.qt.qtgui.extra_guiqwt.builder import make
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     # define a taurus image
     #model1 = 'sys/tg_test/1/short_image_ro'

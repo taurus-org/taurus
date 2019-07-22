@@ -28,10 +28,12 @@ one or more curves"""
 
 from __future__ import print_function
 
+from future.utils import string_types
+
 import os.path
 from datetime import datetime
 
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from taurus.qt.qtgui.util.ui import UILoadable
 
 
@@ -62,7 +64,7 @@ class QDataExportDialog(Qt.QDialog):
 
         # connections
         self.exportBT.clicked.connect(self.exportData)
-        self.dataSetCB.currentIndexChanged[str].connect(self.onDataSetCBChange)
+        self.dataSetCB.currentIndexChanged['QString'].connect(self.onDataSetCBChange)
 
         self.setDataSets(datadict, sortedNames)
 
@@ -107,12 +109,12 @@ class QDataExportDialog(Qt.QDialog):
                 #**lazy** sanitising of the set to *suggest* it as a filename
                 name = set.replace('*', '').replace('/', '_').replace('\\', '_')
                 name += ".dat"
-            ofile = Qt.QFileDialog.getSaveFileName( self, 'Export File Name',
-                                                    name, 'All Files (*)')
+            ofile, _ = compat.getSaveFileName(self, 'Export File Name', name,
+                                              'All Files (*)')
             if not ofile:
                 return False
         try:
-            if not isinstance(ofile, file):
+            if isinstance(ofile, string_types):
                 ofile = open(str(ofile), "w")
             if self.dataSetCB.currentText() == self.allInMultipleFiles:
                 # 1  file per curve
@@ -150,7 +152,7 @@ class QDataExportDialog(Qt.QDialog):
         if preffix is not given, the user is prompted for a directory path"""
         if preffix is None:
             outputdir = Qt.QFileDialog.getExistingDirectory(
-                self, 'Export Directory', Qt.QString())
+                self, 'Export Directory', '')
             if not outputdir:
                 return False
             preffix = os.path.join(str(outputdir), "set")
@@ -257,7 +259,7 @@ if __name__ == "__main__":
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     form = QDataExportDialog()
     form.show()
     sys.exit(app.exec_())

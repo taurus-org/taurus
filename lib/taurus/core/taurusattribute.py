@@ -43,7 +43,7 @@ class TaurusAttribute(TaurusModel):
     _description = "A Taurus Attribute"
     defaultFragmentName = "rvalue"  # fragment to be used if none is specified
 
-    def __init__(self, name, parent, **kwargs):
+    def __init__(self, name='', parent=None, **kwargs):
         self.call__init__(TaurusModel, name, parent)
 
         # User enabled/disabled polling
@@ -79,7 +79,11 @@ class TaurusAttribute(TaurusModel):
 
     def cleanUp(self):
         self.trace("[TaurusAttribute] cleanUp")
-        self._unsubscribeEvents()
+        if hasattr(self, '_unsuscribeEvents'):
+            self.deprecated(
+                dep='TaurusAttribute._unsuscribeEvents API',
+                alt='If you need it called in cleanUp, re-implement cleanUp')
+            self._unsuscribeEvents()
         TaurusModel.cleanUp(self)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -145,14 +149,6 @@ class TaurusAttribute(TaurusModel):
     def poll(self):
         raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.poll")
-
-    def _subscribeEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute._subscribeEvents")
-
-    def _unsubscribeEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute._unsubscribeEvents")
 
     def isUsingEvents(self):
         raise NotImplementedError("Not allowed to call AbstractClass" +
