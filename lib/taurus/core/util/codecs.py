@@ -63,7 +63,7 @@ A Taurus related example::
     >>> f, d = codec.decode((v.format, v.value))
 """
 from __future__ import absolute_import
-from builtins import str
+from builtins import str, bytes
 
 import copy
 
