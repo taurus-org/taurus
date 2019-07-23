@@ -331,7 +331,7 @@ class JSONCodec(Codec):
             format += '_%s' % data[0]
         # make it compact by default
         kwargs['separators'] = kwargs.get('separators', (',', ':'))
-        return format, json.dumps(data[1], *args, **kwargs).encode('utf-8')
+        return format, json.dumps(data[1], *args, **kwargs)
 
     def decode(self, data, *args, **kwargs):
         """decodes the given data from a json string.
@@ -350,8 +350,6 @@ class JSONCodec(Codec):
 
         if isinstance(data[1], buffer_types):
             data = data[0], str(data[1])
-        elif isinstance(data[1], bytes):
-            data = data[0], data[1].decode('utf-8')
         
         data = json.loads(data[1])
         if ensure_ascii:
