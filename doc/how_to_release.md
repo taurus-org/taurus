@@ -131,7 +131,8 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Create a new panel (a TaurusForm) and drag and drop several models from other forms
 - [ ] Move panels around (with view unlocked!) and hide ("close") and re-show them
 - [ ] Test saving and restoring perspectives
-- [ ] Test drag&drop from a form to a trend
+- [ ] Test drag&drop from a form to a trend (won't work if using the tpg.TaurusTrend, until [this](https://github.com/taurus-org/taurus_pyqtgraph/issues/25)) is fixed
+- [ ] Test drag&drop from a form to a plot
 - [ ] Test clicking on "example01 synoptic" elements and check that the panels raised
 - [ ] Test that selecting a panel changes the selection on "example01 synoptic"
 - [ ] Test the actions in the menus
