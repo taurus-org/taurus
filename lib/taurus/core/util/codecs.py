@@ -172,7 +172,7 @@ class ZIPCodec(Codec):
         'Hello world\\nHello wo'"""
 
     def encode(self, data, *args, **kwargs):
-        """encodes the given data to a gzip string. The given data **must** be a string
+        """encodes the given data to gzip bytes. The given data **must** be bytes
 
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
 
@@ -184,7 +184,7 @@ class ZIPCodec(Codec):
         return format, zlib.compress(data[1])
 
     def decode(self, data, *args, **kwargs):
-        """decodes the given data from a gzip string.
+        """decodes the given data from a gzip bytes.
 
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
 
@@ -215,7 +215,7 @@ class BZ2Codec(Codec):
         'Hello world\\nHello wo'"""
 
     def encode(self, data, *args, **kwargs):
-        """encodes the given data to a bz2 string. The given data **must** be a string
+        """encodes the given data to bz2 bytes. The given data **must** be bytes
 
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
 
@@ -227,7 +227,7 @@ class BZ2Codec(Codec):
         return format, bz2.compress(data[1])
 
     def decode(self, data, *args, **kwargs):
-        """decodes the given data from a bz2 string.
+        """decodes the given data from bz2 bytes.
 
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
 
@@ -260,7 +260,7 @@ class PickleCodec(Codec):
         {'hello': 'world', 'goodbye': 1000}"""
 
     def encode(self, data, *args, **kwargs):
-        """encodes the given data to a pickle string. The given data **must** be
+        """encodes the given data to pickle bytes. The given data **must** be
         a python object that :mod:`pickle` is able to convert.
 
         :param data: (sequence[str, obj]) a sequence of two elements where the
@@ -380,8 +380,35 @@ class JSONCodec(Codec):
 
 
 class Utf8Codec(Codec):
+    """A codec able to encode/decode utf8 strings to/from bytes.
+    Useful to adapt i/o encodings in a codec pipe.
+
+    Example::
+
+        >>> from taurus.core.util.codecs import CodecFactory
+
+        >>> cf = CodecFactory()
+        >>> codec = cf.getCodec('zip_utf8_json')
+        >>>
+        >>> # first encode something
+        >>> data = { 'hello' : 'world', 'goodbye' : 1000 }
+        >>> format, encoded_data = codec.encode(("", data))
+        >>>
+        >>> # now decode it
+        >>> _, decoded_data = codec.decode((format, encoded_data))
+        >>> print decoded_data
+    """
 
     def encode(self, data, *args, **kwargs):
+        """
+        Encodes the given utf8 string to bytes.
+
+        :param data: (sequence[str, obj]) a sequence of two elements where the
+                     first item is the encoding format of the second item object
+
+        :return: (sequence[str, obj]) a sequence of two elements where the
+                 first item is the encoding format of the second item object
+        """
         format = 'utf8'
         fmt, data = data
         if len(fmt):
@@ -389,6 +416,14 @@ class Utf8Codec(Codec):
         return format, str.encode(data)
 
     def decode(self, data, *args, **kwargs):
+        """decodes the given data from a bytes.
+
+        :param data: (sequence[str, obj]) a sequence of two elements where the
+                     first item is the encoding format of the second item object
+
+        :return: (sequence[str, obj]) a sequence of two elements where the
+                 first item is the encoding format of the second item object
+        """
         fmt, data = data
         fmt = fmt.partition('_')[2]
         return fmt, bytes.decode(data)
