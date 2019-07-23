@@ -58,7 +58,9 @@ Hint: this list can be used as a template to be copy-pasted on an issue linked f
 ```
 ### Installation
 
-For tips on how to prepare an environment for installation, see
+For tips on how to prepare an environment for installation, see 
+http://taurus-scada.org/users/getting_started.html
+
 
 - [ ] Install Taurus from the an artifact of Appveyor (tgz or msi): `pip install <tarball_artifact_URL>`
 - [ ] Install taurus-pyqtgraph from the master branch of its repo: 
