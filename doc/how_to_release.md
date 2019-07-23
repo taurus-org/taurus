@@ -78,7 +78,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] For LCD: Test the foreground roles and the background role
 - [ ] For Led: Test the colors, ON color, Off color. (hint: you can use `eval:False` as a model for testing)
 
-### taurus image
+### taurus guiqwt image
 
 - [ ] Execute `taurus guiqwt image --demo`
 - [ ] try to resize the image and pan it using the mouse.
