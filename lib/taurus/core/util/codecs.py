@@ -413,7 +413,7 @@ class Utf8Codec(Codec):
         fmt, data = data
         if len(fmt):
             format += '_%s' % fmt
-        return format, str.encode(data)
+        return format, str(data).encode()
 
     def decode(self, data, *args, **kwargs):
         """decodes the given data from a bytes.
@@ -426,7 +426,7 @@ class Utf8Codec(Codec):
         """
         fmt, data = data
         fmt = fmt.partition('_')[2]
-        return fmt, bytes.decode(data)
+        return fmt, bytes(data).decode()
 
 
 class BSONCodec(Codec):
