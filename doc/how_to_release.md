@@ -12,14 +12,7 @@ of stuff that should be manually tested.
 4. Create the release branch if it was not done already in the previous step and:
     1. Review and update the CHANGELOG.md if necessary. See [this](http://keepachangelog.com)
     2. Bump version using `bumpversion <major|minor|patch>`  (use [semver](http://semver.org/) criteria to choose amongst `major`, `minor` or `patch`
-    3. Update man pages:
-         ```
-         cd <taurus>/doc
-         ./makeman
-         git add man
-         git commit -m "Update man pages"
-         ```
-    4. Create a PR to merge the `release-XXX` against the **`master`** branch of the taurus-org repo
+    3. Create a PR to merge the `release-XXX` against the **`master`** branch of the taurus-org repo
 5. Request reviews in the PR from at least one integrator from each participating institute. The master branch is protected, so the reviews need to be cleared (or dismissed with an explanation) before the release can be merged.
 6. Perform manual tests (see checklist below). You may use the CI artifacts (e.g., from appveyor). To avoid spamming the PR comments with the manual test results, a new issue can be created to report the tests results on each platform (and just use a single check for each platform in the PR).
 7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, run `bumpversion release`, push and merge the PR and tag in master
