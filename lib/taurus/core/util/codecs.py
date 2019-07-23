@@ -79,7 +79,8 @@ from .log import Logger
 from .containers import CaselessDict
 
 __all__ = ["Codec", "NullCodec", "ZIPCodec", "BZ2Codec", "JSONCodec",
-           "FunctionCodec", "PlotCodec", "CodecPipeline", "CodecFactory"]
+           "Utf8Codec", "FunctionCodec", "PlotCodec", "CodecPipeline",
+           "CodecFactory"]
 
 __docformat__ = "restructuredtext"
 
@@ -376,6 +377,21 @@ class JSONCodec(Codec):
         for k, v in dct.items():
             newdict[self._transform_ascii(k)] = self._transform_ascii(v)
         return newdict
+
+
+class Utf8Codec(Codec):
+
+    def encode(self, data, *args, **kwargs):
+        format = 'utf8'
+        fmt, data = data
+        if len(fmt):
+            format += '_%s' % fmt
+        return format, str.encode(data)
+
+    def decode(self, data, *args, **kwargs):
+        fmt, data = data
+        fmt = fmt.partition('_')[2]
+        return fmt, bytes.decode(data)
 
 
 class BSONCodec(Codec):
@@ -864,6 +880,7 @@ class CodecFactory(Singleton, Logger):
     #: Default minimum map of registered codecs
     CODEC_MAP = CaselessDict({
         'json': JSONCodec,
+        'utf8': Utf8Codec,
         'bson': BSONCodec,
         'bz2': BZ2Codec,
         'zip': ZIPCodec,
