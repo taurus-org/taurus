@@ -27,6 +27,7 @@ develop branch) won't be reflected in this file.
 - Functions implementing the old CLI scripts (#856).
   Note: these functions and the corresponding console scripts are still provided 
   by the "[taurus_legacy_cli]" plugin. (#856)
+- Unused ini file `<taurus>/qt/qtgui/taurusgui/conf/tgconf_macrogui/tgconf_macrogui.ini`
 
 ### Changed
 - Old CLI scripts (taurusform, taurusdemo, etc.) are replaced by equivalent
