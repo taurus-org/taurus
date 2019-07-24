@@ -84,7 +84,6 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Execute: `taurus --polling-period 333 guiqwt trend2d -xt --demo`  **(known to fail in 4.1.0)**
 - [ ] Execute: `taurus --polling-period 333 guiqwt trend2d -xe --demo`
 - [ ] Test auto-scroll and auto-scale tools (from context menu)
-- [ ] Test Save & restore config (change axes range, zoom, tool status colormap etc & check that everything is restored)
 
 ### taurus designer
 - [ ] Execute `taurus designer`. Check that the taurus widgets are present in the catalog
