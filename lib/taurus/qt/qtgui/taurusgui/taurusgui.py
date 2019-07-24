@@ -1235,14 +1235,14 @@ class TaurusGui(TaurusMainWindow):
     
     def _loadSynoptic(self, conf, xmlroot):
         # Synoptics
-        synoptic = getattr(conf, 'synoptic', None)
+        synoptic = getattr(conf, 'SYNOPTIC', None)
         if isinstance(synoptic, string_types):  # old config file style
             self.warning(
                 'Deprecated usage of synoptic keyword (now it expects a list of paths). Please update your configuration file to: "synoptic=[\'%s\']".' % synoptic)
             synoptic = [synoptic]
         if synoptic is None:  # we look in the xml config file if not present in the python config
             synoptic = []
-            node = xmlroot.find("synoptic")
+            node = xmlroot.find("SYNOPTIC")
             if (node is not None) and (node.text is not None):
                 for child in node:
                     s = child.get("str")
