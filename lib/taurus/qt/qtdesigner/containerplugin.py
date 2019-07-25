@@ -107,7 +107,8 @@ class QGroupWidgetExtensionFactory(QtDesigner.QExtensionFactory):
 
 
 def create_plugin():
-    from .taurusplugin.taurusplugin import TaurusWidgetPlugin
+    from taurus.qt.qtdesigner.taurusplugin.taurusplugin import (
+        TaurusWidgetPlugin)
 
     class QGroupWidgetPlugin(TaurusWidgetPlugin):
 

@@ -55,7 +55,7 @@ develop branch) won't be reflected in this file.
 - Some modules not being autodocumented (#941)
 - TaurusGuis do not show output in console on Windows (#868)
 - TaurusConfigEditor not working on Windows (#950, #957)
-- TaurusDesigner not working on Windows (#955)
+- TaurusDesigner not working on Windows (#955, #968)
 - Other (#956, #954, #948, #925)
   
 ## [4.5.1] - 2019-02-15
