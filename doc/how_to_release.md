@@ -151,7 +151,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Open an ini file with taurus config and check that it is loaded correctly.
 
 ### taurus icons catalog
-- [ ] Launch `taurus icons`. Several tabs with an array of icons [should be displayed](http://taurus-scada.org/en/latest/devel/icon_guide.html#taurus-icon-catalog)
+- [ ] Launch `taurus icons`. Several tabs with an array of icons [should be displayed](http://taurus-scada.org/devel/icon_guide.html#taurus-icon-catalog)
 - [ ] Check that tooltips give info on each icon
 - [ ] Click on some icons and check that they give a bigger view of the icon and more info.
 
