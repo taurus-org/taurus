@@ -51,7 +51,7 @@ develop branch) won't be reflected in this file.
 - wrong return value of `isValidName` in some cases (#897)
 - exception when calling TangoAtribute.write with a list of integers (#915)
 - several issues related to py2+p3 simultaneous support (#878, #879, #881, #885, #886, #894, #947)
-- several issues related to multiple Qt bindings support (#875, #890, #895)
+- several issues related to multiple Qt bindings support (#875, #890, #895, #962)
 - Some modules not being autodocumented (#941)
 - TaurusGuis do not show output in console on Windows (#868)
 - TaurusConfigEditor not working on Windows (#950, #957)
