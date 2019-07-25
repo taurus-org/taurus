@@ -209,7 +209,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Move curves between axes by clicking on legend (and test zoom on Y2)
 - [ ] Test plot configuration dialog
 - [ ] Test Forced reading mode
-- [ ] Test autopanning mode
+- [ ] Test X Axis 'fixed range scale' mode
 - [ ] Test autoscale x mode
 - [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
 - [ ] ... other features from [user's guide](http://taurus-scada.org/users/ui/index.html)
