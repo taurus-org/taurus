@@ -53,6 +53,7 @@ develop branch) won't be reflected in this file.
 - several issues related to py2+p3 simultaneous support (#878, #879, #881, #885, #886, #894, #947)
 - several issues related to multiple Qt bindings support (#875, #890, #895, #962)
 - Some modules not being autodocumented (#941)
+- TaurusArrayEditorButton used in forms even if Qwt5 is not available (#973)
 - TaurusGuis do not show output in console on Windows (#868)
 - TaurusConfigEditor not working on Windows (#950, #957)
 - TaurusDesigner not working on Windows (#955, #968)
