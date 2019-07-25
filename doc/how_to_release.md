@@ -168,7 +168,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] With curves in Y1 and Y2, test zooms and panning on separate axes (drag with right/left on the axis)
 - [ ] Test plot configuration dialog
 - [ ] Test Forced reading tool
-- [ ] Test autopanning tool
+- [ ] Test Fixed Range Scale tool
 - [ ] Test autoscale x mode
 - [ ] NOT YET READY <s> Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)</s>
 
