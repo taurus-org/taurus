@@ -186,14 +186,15 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Test changing curve titles
 - [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
 - [ ] Open the "Input data selection" dialog and add/remove/reorder /edit models
-- [ ] export one curve data to ASCII and then load it using "Input data selection"  -> raw data -> open file
+- [ ] export one curve data to ASCII and then load it using "Input data selection"  -> raw data -> open file 
+      (Note: make sure to select the X colum as 0)
 - [ ] ... other features from [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
 ### taurus qwt5 trend _Only if using py2 qt4_
 (basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
 - [ ] Execute: `taurus qwt5 trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
-- [ ] Execute: `taurus qwt5 trend -xe "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Execute: `taurus qwt5 trend -xn "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
 - [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
 - [ ] Check mouse wheel Zoom
 - [ ] Test panning (dragging with CTRL pressed)
