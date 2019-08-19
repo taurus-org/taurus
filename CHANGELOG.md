@@ -7,11 +7,11 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## [4.6.0] - 2019-07-30
+## [4.6.0] - 2019-08-19
 [Jul19 milestone](https://github.com/taurus-org/taurus/milestone/13)
 
 ### Added
-- New CLI API based on click and `taurus` command supporting plugabble subcommands (#856)
+- New CLI API based on click and `taurus` command supporting pluggable subcommands (#856)
 - TaurusGui now accepts a `settingsname` argument to specify the settings file to 
   be loaded. Also accessible from the CLI as `taurus gui --ini NAME` (#570) 
 - `TaurusModelSelector` and `TaurusModelSelectorItem` classes and the
