@@ -32,7 +32,7 @@ from taurus.external.qt import QtDesigner
 
 
 def build_qtdesigner_widget_plugin(klass):
-    from .taurusplugin import taurusplugin
+    from taurus.qt.qtdesigner.taurusplugin import taurusplugin
 
     class Plugin(taurusplugin.TaurusWidgetPlugin):
         WidgetClass = klass

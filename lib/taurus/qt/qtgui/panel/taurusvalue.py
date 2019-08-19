@@ -607,11 +607,13 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 result = [UnitLessLineEdit,
                           TaurusValueSpinBox, TaurusWheelEdit]
         elif modelobj.data_format == DataFormat._1D:
+            result = [TaurusValuesTableButton_W, TaurusValueLineEdit]
             if modelType in (DataType.Float, DataType.Integer):
-                result = [TaurusArrayEditorButton,
-                          TaurusValuesTableButton_W, UnitLessLineEdit]
-            else:
-                result = [TaurusValuesTableButton_W, TaurusValueLineEdit]
+                try:
+                    import taurus.qt.qtgui.qwt5
+                    result.insert(0, TaurusArrayEditorButton)
+                except:
+                    pass
         elif modelobj.data_format == DataFormat._2D:
             result = [TaurusValuesTableButton_W]
         else:

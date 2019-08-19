@@ -7,10 +7,11 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## [Unreleased]
+## [4.6.0] - 2019-08-19
+[Jul19 milestone](https://github.com/taurus-org/taurus/milestone/13)
 
 ### Added
-- New CLI API based on click and `taurus` command supporting plugabble subcommands (#856)
+- New CLI API based on click and `taurus` command supporting pluggable subcommands (#856)
 - TaurusGui now accepts a `settingsname` argument to specify the settings file to 
   be loaded. Also accessible from the CLI as `taurus gui --ini NAME` (#570) 
 - `TaurusModelSelector` and `TaurusModelSelectorItem` classes and the
@@ -18,15 +19,24 @@ develop branch) won't be reflected in this file.
 - `TaurusFactory.getValidatorFromName` method and `getValidatorFromName` helper (#893)
 - New options API for TaurusMainWindow and TaurusGui (#858)
 - New optional set of color-blind friendly LED icons for Tango states (#902)
+- New configuration options in QWheelEdit to customize its internal editor (#832)
+- New `Utf8Codec` (#960)
+- Support for RGB24 in VideoImageCodec (#832)
 
 ### Removed
 - Functions implementing the old CLI scripts (#856).
   Note: these functions and the corresponding console scripts are still provided 
-  by the "taurus_legacy_cli" plugin. (#856)
+  by the "[taurus_legacy_cli]" plugin. (#856)
+- Unused ini file `<taurus>/qt/qtgui/taurusgui/conf/tgconf_macrogui/tgconf_macrogui.ini`
 
 ### Changed
 - Old CLI scripts (taurusform, taurusdemo, etc.) are replaced by equivalent
   subcommands to the `taurus` command.  (#856)
+- TaurusDevPanel now is able to show the attributes independently of the 
+  state of the device (#946)
+- `JsonCodec.encode` now outputs strings (in v4.5, it was inconsistently returning bytes when in py3) (#960)
+- TaurusDevPanel is now a TaurusGui (new panels can be added by the user) (#939)
+- Taurus mixin classes (e.g. `TaurusBaseComponent`) are now `super()`-friendly (#934)
   
 ### Deprecated
 - `taurus.core.util.argparse` (#856)
@@ -36,12 +46,18 @@ develop branch) won't be reflected in this file.
   `_supportUserPerspectives`, `_splashLogo`, `_splashMessage`) (#858)
   
 ### Fixed
-- taurusgui does not run if tango not installed (#912)
+- taurusgui not running if tango not installed (#912)
+- Outdated template for new guis created with `taurus newgui` (#933)
 - wrong return value of `isValidName` in some cases (#897)
 - exception when calling TangoAtribute.write with a list of integers (#915)
-- several issues related to py2+p3 simultaneous support (#878, #879, #881, #885, #886, #894)
-- several issues related to multiple Qt bindings support (#875, #890, #895)
+- several issues related to py2+p3 simultaneous support (#878, #879, #881, #885, #886, #894, #947)
+- several issues related to multiple Qt bindings support (#875, #890, #895, #962)
+- Some modules not being autodocumented (#941)
+- TaurusArrayEditorButton used in forms even if Qwt5 is not available (#973)
 - TaurusGuis do not show output in console on Windows (#868)
+- TaurusConfigEditor not working on Windows (#950, #957)
+- TaurusDesigner not working on Windows (#955, #968)
+- Other (#956, #954, #948, #925)
   
 ## [4.5.1] - 2019-02-15
 
@@ -449,6 +465,7 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [Unreleased]: https://github.com/taurus-org/taurus/tree/develop
+[4.6.0]: https://github.com/taurus-org/taurus/tree/release-4.6.0
 [4.5.1]: https://github.com/taurus-org/taurus/tree/release-4.5.1
 [4.5.0]: https://github.com/taurus-org/taurus/tree/release-4.5.0
 [4.4.0]: https://github.com/taurus-org/taurus/tree/4.4.0
@@ -462,6 +479,7 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [3.7.0]: https://github.com/taurus-org/taurus/tree/3.7.0
 [3.6.0]: https://github.com/taurus-org/taurus/tree/3.6.0
 [support-3.x]: https://github.com/taurus-org/taurus/tree/support-3.x
+[taurus_legacy_cli] https://github.com/taurus-org/taurus_legacy_cli
 
 
 
