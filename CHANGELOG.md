@@ -7,6 +7,12 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
+## [4.6.1] - 2019-08-19
+Hotfix for auto-deployment in PyPI with Travis. No other difference from 4.6.0.
+
+### Fixed
+- Travis not deploying tar.gz (#990)
+
 ## [4.6.0] - 2019-08-19
 [Jul19 milestone](https://github.com/taurus-org/taurus/milestone/13)
 
@@ -465,6 +471,7 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [Unreleased]: https://github.com/taurus-org/taurus/tree/develop
+[4.6.1]: https://github.com/taurus-org/taurus/tree/release-4.6.1
 [4.6.0]: https://github.com/taurus-org/taurus/tree/release-4.6.0
 [4.5.1]: https://github.com/taurus-org/taurus/tree/release-4.5.1
 [4.5.0]: https://github.com/taurus-org/taurus/tree/release-4.5.0

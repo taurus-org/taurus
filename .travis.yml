@@ -53,10 +53,14 @@ doctr:
   sync: true
   built-docs: build/sphinx/html/
 
+before_deploy: 
+  - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py sdist"
+
 deploy:
   # deploy to pypi when a version tag is pushed to the official repo
   - provider: pypi
     user: taurus_bot
+    skip_existing: true
     password:
       secure: "QjqutDroKg1ZcSXUAEGtaut9kwxHifSQKkisE+Pvd8UXElr6+inJqUbtLGkBRDDJsjVrSZi4TeLu/NfZyey/9kTQvwqrSHio80KgQ7HzuktgdmnFKfU4TWFEt4wd8LzYF4O5ljtYj4/k6txQ0zMVsLN5/SAQl44E0KSRBZBifrbeEXL3k9YI6nhw7cBiV+9XVFJBuBP5IVGhk4mOAFDT0UGyuCpMBKacfmtgDtZnYqb1SnRkFb9vT2kSPy8j3ZfZ3YPfZECwVWZtvG98/ujz1S6+mZKyErGNZc5RocBNdQFAG6AP8Epl05k+UmHO0mtHkSC+Mmh3J2grZXCKmojqcsrgJ/oP82WOQQtzZvLjYylIBC6tJ8GI0AJxUa7yukXS+x7ihkK3Xd9SoUuQri6dRlbE7iEJr7z6ZqwoiossY0feqN/v03fyJgze3KOsZ/sR1jQ2A8jdN62NzzM674w+UGhK7Q7hRRsiaODNzNrwcOrhYh4mjIXk9T8Iij223AjTixSJ29l2GUMyFgFU3KsgEUhgx8ZcL4G0olirokoMAn3wnqCbocQt7nWwUFGvQE384Br27iW598mka2njvAuww05xGCW6+/n3/aPXZYoE+DgMtYQLF8yHy7Ucvc+8mVfkrlNSkPzCF5W05JgkvVpNYznIMvnzjRcO5yoXdVUDcRM="
     on:
