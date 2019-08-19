@@ -32,6 +32,7 @@ from future.utils import string_types
 import re
 from taurus import tauruscustomsettings
 from .util.log import taurus4_deprecation
+import click
 
 __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'getValidTypesForName', 'isValidName', 'makeSchemeExplicit',
@@ -408,6 +409,15 @@ def Object(*args):
     if klass is None:
         klass = factory.findObjectClass(name)
     return factory.getObject(klass, name)
+
+
+@click.command('check-deps')
+def check_dependencies_cmd():
+    """
+    Shows the taurus dependencies and checks if they are available
+    """
+    check_dependencies()
+
 
 from taurus.core.util import log as __log_mod
 

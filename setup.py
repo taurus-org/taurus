@@ -111,6 +111,7 @@ taurus_subcommands = [
     'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
     'logmon = taurus.core.util.remotelogmonitor:logmon_cmd',
     'qlogmon = taurus.qt.qtgui.table.qlogtable:qlogmon_cmd',
+    'check-deps = taurus.core.taurushelper:check_dependencies_cmd'
 ]
 
 model_selectors = [

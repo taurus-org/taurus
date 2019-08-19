@@ -10,6 +10,8 @@ develop branch) won't be reflected in this file.
 ## Unreleased 
 
 ### Added
+- check-deps subcommand (#988)
+
 ### Removed
 ### Changed
 ### Deprecated
