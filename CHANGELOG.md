@@ -7,6 +7,14 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
+## Unreleased 
+
+### Added
+### Removed
+### Changed
+### Deprecated
+### Fixed
+
 ## [4.6.0] - 2019-08-19
 [Jul19 milestone](https://github.com/taurus-org/taurus/milestone/13)
 
