@@ -414,7 +414,7 @@ def Object(*args):
 @click.command('check-deps')
 def check_dependencies_cmd():
     """
-    Check-list of requirements and marks those that are fulfilled
+    Shows the taurus dependencies and checks if they are available
     """
     check_dependencies()
 
