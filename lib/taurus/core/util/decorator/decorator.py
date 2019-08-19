@@ -23,36 +23,10 @@
 ##
 #############################################################################
 
-"""\
-Allow to use decorator either with arguments or not. Example::
-
-    @decorator
-    def apply(func, *args, **kw):
-        return func(*args, **kw)
-
-    @decorator
-    class apply:
-        def __init__(self, *args, **kw):
-            self.args = args
-            self.kw   = kw
-
-        def __call__(self, func):
-            return func(*self.args, **self.kw)
-
-    #
-    # Usage in both cases:
-    #
-    @apply
-    def test():
-        return 'test'
-
-    assert test == 'test'
-
-    @apply(2, 3)
-    def test(a, b):
-        return a + b
-
-    assert test == 5"""
+"""
+Provides a decorator to decorate decorators so that they can be used both
+with and without args
+"""
 
 __all__ = ["decorator"]
 
@@ -63,7 +37,8 @@ import inspect
 
 
 def decorator(func):
-    """Allow to use decorator either with arguments or not. Example::
+    """
+    Allow to use decorator either with arguments or not. Example::
 
         @decorator
         def apply(func, *args, **kw):
@@ -92,6 +67,7 @@ def decorator(func):
             return a + b
 
         assert test == 5
+
     """
 
     def isFuncArg(*args, **kw):

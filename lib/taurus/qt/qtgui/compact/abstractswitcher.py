@@ -336,7 +336,7 @@ def demo1():
     from taurus.qt.qtgui.display import TaurusLabel
     from taurus.qt.qtgui.input import TaurusValueLineEdit
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     w = TaurusReadWriteSwitcher(readWClass=TaurusLabel,
                                 writeWClass=TaurusValueLineEdit)
@@ -359,7 +359,7 @@ def demo2():
         writeWClass = TaurusValueLineEdit
         exitEditTriggers = ('editingFinished()', Qt.Qt.Key_Escape)
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     f = TaurusForm()
     f.model = ['sys/tg_test/1/long_scalar', 'sys/tg_test/1/long_scalar']
@@ -379,7 +379,7 @@ def demo3():
     from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
     from taurus.qt.qtgui.input import TaurusValueLineEdit, TaurusValueCheckBox
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     w1 = TaurusReadWriteSwitcher(readWClass=TaurusLabel,
                                  writeWClass=TaurusValueLineEdit)

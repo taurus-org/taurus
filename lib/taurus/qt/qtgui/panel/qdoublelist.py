@@ -132,7 +132,7 @@ class QDoubleListDlg(Qt.QDialog):
 def main():
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
 
     dlg = QDoubleListDlg(winTitle='foo', mainLabel='bla, bla', label1='1', label2='2',
                          list1=['11', '22'], list2=['123', '33'])

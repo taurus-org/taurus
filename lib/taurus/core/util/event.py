@@ -106,7 +106,8 @@ def CallableRef(object, del_cb=None):
     :type del_cb: callable object or None
 
     :return: a weak reference for the given callable
-    :rtype: BoundMethodWeakref or weakref.ref"""
+    :rtype: taurus.core.util.BoundMethodWeakref or weakref.ref
+    """
     im_self = None
     if hasattr(object, '__self__'):
         im_self = object.__self__

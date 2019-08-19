@@ -25,10 +25,13 @@
 
 """This package provides the TaurusGui class"""
 
+from __future__ import absolute_import
+
 from builtins import str
 import os
 import sys
 import copy
+import click
 import weakref
 import inspect
 
@@ -46,8 +49,6 @@ from taurus.qt.qtgui.container import TaurusMainWindow
 from taurus.qt.qtgui.taurusgui.utils import (ExternalApp, PanelDescription,
                                              ToolBarDescription,
                                              AppletDescription)
-from taurus.qt.qtgui.taurusgui.appsettingswizard import ExternalAppEditor
-from taurus.qt.qtgui.panel import QDoubleListDlg
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.taurusgui.utils import ExternalAppAction
 
@@ -214,7 +215,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
 
 
 class TaurusGui(TaurusMainWindow):
-    '''
+    """
     This is main class for constructing the dynamic GUIs. TaurusGui is a
     specialised TaurusMainWindow which is able to handle "panels" and load
     configuration files.
@@ -246,7 +247,7 @@ class TaurusGui(TaurusMainWindow):
             from taurus.qt.qtgui.application import TaurusApplication
             from taurus.qt.qtgui.taurusgui import TaurusGui
             from taurus.external.qt import Qt
-            app = TaurusApplication(app_name='MyGui')
+            app = TaurusApplication(cmd_line_parser=None, app_name='MyGui')
             gui = TaurusGui()
             panel = Qt.QWidget()
             gui.createPanel(panel, 'Foo')
@@ -265,14 +266,14 @@ class TaurusGui(TaurusMainWindow):
             from taurus.qt.qtgui.application import TaurusApplication
             from taurus.qt.qtgui.taurusgui import TaurusGui
             from taurus.external.qt import Qt
-            app = TaurusApplication()
+            app = TaurusApplication(cmd_line_parser=None)
             gui = TaurusGui(confname=__file__)
             panel = Qt.QWidget()
             gui.createPanel(panel, 'Foo')  # <-- programmatic!
             gui.show()
             app.exec_()
 
-    '''
+    """
 
     SelectedInstrument = Qt.pyqtSignal('QString')
     doorNameChanged = Qt.pyqtSignal('QString')
@@ -281,7 +282,15 @@ class TaurusGui(TaurusMainWindow):
 
     IMPLICIT_ASSOCIATION = '__[IMPLICIT]__'
 
-    def __init__(self, parent=None, confname=None, configRecursionDepth=None):
+    #: Whether to show user actions related to shared data connections
+    PANELS_MENU_ENABLED = True
+    #: Whether to show the applets toolbar
+    APPLETS_TOOLBAR_ENABLED = True
+    #: wether to add the Quick access Toolbar (empty by default)
+    QUICK_ACCESS_TOOLBAR_ENABLED = True
+
+    def __init__(self, parent=None, confname=None, configRecursionDepth=None,
+                 settingsname=None):
         TaurusMainWindow.__init__(self, parent, False, True)
 
         if configRecursionDepth is not None:
@@ -312,13 +321,34 @@ class TaurusGui(TaurusMainWindow):
         # Create a global SharedDataManager
         Qt.qApp.SDM = SharedDataManager(self)
 
-        self.__initPanelsMenu()
-        self.__initQuickAccessToolBar()
-        self.__initJorgBar()
+        # Initialize menus & toolbars
+        if self.PANELS_MENU_ENABLED:
+            self.__initPanelsMenu()
+            self.__initPanelsToolBar()
+        if self.QUICK_ACCESS_TOOLBAR_ENABLED:
+            self.__initQuickAccessToolBar()
+        if self.APPLETS_TOOLBAR_ENABLED:
+            self.__initJorgBar()
+
         self.__initSharedDataConnections()
-        self.__initToolsMenu()
-        self.__initViewMenu()
-        self.__initPanelsToolBar()
+
+        if self.TOOLS_MENU_ENABLED:
+            self.__initToolsMenu()
+
+        # Create lockview actions
+        self._lockviewAction = Qt.QAction(Qt.QIcon.fromTheme(
+            "system-lock-screen"), "Lock View", self)
+        self._lockviewAction.setCheckable(True)
+        self._lockviewAction.toggled.connect(self.setLockView)
+        self._lockviewAction.setChecked(not self.isModifiableByUser())
+
+        if self.VIEW_MENU_ENABLED:
+            self.__initViewMenu()
+
+        if settingsname:
+            self.resetQSettings()
+            _s = Qt.QSettings(settingsname, Qt.QSettings.IniFormat)
+            self.setQSettings(_s)
 
         self.loadConfiguration(confname)
 
@@ -370,7 +400,11 @@ class TaurusGui(TaurusMainWindow):
     def __initPanelsMenu(self):
         # Panels menu
         self.__panelsMenu = Qt.QMenu('Panels', self)
-        self.menuBar().insertMenu(self.helpMenu.menuAction(), self.__panelsMenu)
+        try:  # insert the panels menu before the help menu
+            self.menuBar().insertMenu(self.helpMenu.menuAction(),
+                                      self.__panelsMenu)
+        except AttributeError:  # Or just add it if help menu is not shown
+            self.menuBar().addMenu(self.__panelsMenu)
         self.hideAllPanelsAction = self.__panelsMenu.addAction(
             Qt.QIcon('actions:hide.svg'), "Hide all panels", self.hideAllPanels)
         self.showAllPanelsAction = self.__panelsMenu.addAction(
@@ -400,11 +434,6 @@ class TaurusGui(TaurusMainWindow):
         self.viewMenu.addSeparator()
         # view locking
         self.viewMenu.addSeparator()
-        self._lockviewAction = Qt.QAction(Qt.QIcon.fromTheme(
-            "system-lock-screen"), "Lock View", self)
-        self._lockviewAction.setCheckable(True)
-        self._lockviewAction.toggled.connect(self.setLockView)
-        self._lockviewAction.setChecked(not self.isModifiableByUser())
         self.viewMenu.addAction(self._lockviewAction)
 
     def __initPanelsToolBar(self):
@@ -412,15 +441,18 @@ class TaurusGui(TaurusMainWindow):
         self.panelsToolBar = self.addToolBar("Panels")
         self.panelsToolBar.setObjectName("PanelsToolbar")
         self.panelsToolBar.addAction(self.newPanelAction)
-        self.viewToolBarsMenu.addAction(self.panelsToolBar.toggleViewAction())
+        if self.VIEW_MENU_ENABLED:
+            self.viewToolBarsMenu.addAction(self.panelsToolBar.toggleViewAction())
 
     def __initQuickAccessToolBar(self):
         self.quickAccessToolBar = self.addToolBar("Quick Access")
         self.quickAccessToolBar.setObjectName("quickAccessToolbar")
         self.quickAccessToolBar.setToolButtonStyle(
             Qt.Qt.ToolButtonTextBesideIcon)
-        self.viewToolBarsMenu.addAction(
-            self.quickAccessToolBar.toggleViewAction())
+        if self.VIEW_MENU_ENABLED:
+            self.viewToolBarsMenu.addAction(
+                self.quickAccessToolBar.toggleViewAction()
+            )
 
     def __initJorgBar(self):
         # Fancy Stuff ToolBar (aka Jorg's Bar ;) )
@@ -473,6 +505,7 @@ class TaurusGui(TaurusMainWindow):
 
     def createExternalApp(self):
         '''Add a new external application on execution time'''
+        from .appsettingswizard import ExternalAppEditor
         app_editor = ExternalAppEditor(self)
         name, xml, ok = app_editor.getDialog()
         if name in self._external_app_names:
@@ -734,6 +767,7 @@ class TaurusGui(TaurusMainWindow):
         temp = [n for n, p in self.__panels.items() if (
             p.isCustom() and not p.isPermanent())]
         if len(temp) > 0 or showAlways:
+            from taurus.qt.qtgui.panel import QDoubleListDlg
             dlg = QDoubleListDlg(winTitle='Stored panels',
                                  mainLabel='Select which of the panels should be stored',
                                  label1='Temporary (to be discarded)', label2='Permanent (to be stored)',
@@ -762,6 +796,7 @@ class TaurusGui(TaurusMainWindow):
         # be made permanent
         #permanet_ext_app = list(self._external_app_names)
         if len(self.__external_app) > 0 or showAlways:
+            from taurus.qt.qtgui.panel import QDoubleListDlg
             msg = 'Select which of the external applications should be stored'
             dlg = QDoubleListDlg(winTitle='Stored external applications',
                                  mainLabel=msg,
@@ -850,8 +885,10 @@ class TaurusGui(TaurusMainWindow):
         synopticpanel = self.createPanel(synoptic, name, permanent=True,
                                          icon=Qt.QIcon.fromTheme(
                                              'image-x-generic'))
-        toggleSynopticAction = synopticpanel.toggleViewAction()
-        self.quickAccessToolBar.addAction(toggleSynopticAction)
+
+        if self.QUICK_ACCESS_TOOLBAR_ENABLED:
+            toggleSynopticAction = synopticpanel.toggleViewAction()
+            self.quickAccessToolBar.addAction(toggleSynopticAction)
 
     def createConsole(self, kernels):
         msg = ('createConsole() and the "CONSOLE" configuration key are ' +
@@ -1000,20 +1037,47 @@ class TaurusGui(TaurusMainWindow):
                 self, 'Initialization error', msg, Qt.QMessageBox.Abort)
             sys.exit()
 
-        # Get the xml root node from the xml configuration file
-        XML_CONFIG = getattr(conf, 'XML_CONFIG', None)
-        if XML_CONFIG is None:
+        xmlroot = self._loadXmlConfig(conf)
+
+        self._loadAppName(conf, confname, xmlroot)
+        self._loadOrgName(conf, xmlroot)
+        self._loadCustomLogo(conf, xmlroot)
+        Qt.QApplication.instance().basicConfig()
+        self._loadOrgLogo(conf, xmlroot)
+
+        self._loadSingleInstance(conf, xmlroot)
+
+        self._loadExtraCatalogWidgets(conf, xmlroot)
+        self._loadManualUri(conf, xmlroot)
+        POOLINSTRUMENTS = self._loadSardanaOptions(conf, xmlroot)
+        self._loadSynoptic(conf, xmlroot)
+        # TODO: remove deprecated _loadConsole
+        self._loadConsole(conf, xmlroot)
+
+        self._loadCustomPanels(conf, xmlroot, POOLINSTRUMENTS)
+        self._loadCustomToolBars(conf, xmlroot)
+        self._loadCustomApplets(conf, xmlroot)
+        self._loadExternalApps(conf, xmlroot)
+        self._loadIniFile(conf, xmlroot)
+
+    def _loadXmlConfig(self, conf):
+        """
+        Get the xml root node from the xml configuration file
+        """
+
+        xml_config = getattr(conf, 'XML_CONFIG', None)
+        if xml_config is None:
             self._xmlConfigFileName = None
         else:
             self._xmlConfigFileName = os.path.join(
-                self._confDirectory, XML_CONFIG)
+                self._confDirectory, xml_config)
         # default fallback (in case of I/O or parse errors)
         xmlroot = etree.fromstring('<root></root>')
-        if XML_CONFIG is not None:
+        if xml_config is not None:
             try:
                 # If a relative name was given, the conf directory will be used
                 # as base path
-                xmlfname = os.path.join(self._confDirectory, XML_CONFIG)
+                xmlfname = os.path.join(self._confDirectory, xml_config)
                 xmlFile = open(xmlfname, 'r')
                 xmlstring = xmlFile.read()
                 xmlFile.close()
@@ -1026,162 +1090,204 @@ class TaurusGui(TaurusMainWindow):
                     msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
                     sys.exit()
+        return xmlroot
 
-        # General Qt application settings and jorgs bar logos
-        APPNAME = getattr(conf, 'GUI_NAME', self.__getVarFromXML(
+    def _loadAppName(self, conf, confname, xmlroot):
+        appname = getattr(conf, 'GUI_NAME', self.__getVarFromXML(
             xmlroot, "GUI_NAME", confname))
-        ORGNAME = getattr(conf, 'ORGANIZATION', self.__getVarFromXML(
+        Qt.qApp.setApplicationName(appname)
+        self.setWindowTitle(appname)
+
+    def _loadOrgName(self, conf, xmlroot):
+        orgname = getattr(conf, 'ORGANIZATION', self.__getVarFromXML(
             xmlroot, "ORGANIZATION", str(Qt.qApp.organizationName()) or 'Taurus'))
-        CUSTOMLOGO = getattr(conf, 'CUSTOM_LOGO', getattr(
+        Qt.qApp.setOrganizationName(orgname)
+
+    def _loadCustomLogo(self, conf, xmlroot):
+        custom_logo = getattr(conf, 'CUSTOM_LOGO', getattr(
             conf, 'LOGO', self.__getVarFromXML(xmlroot, "CUSTOM_LOGO", 'logos:taurus.png')))
-        if Qt.QFile.exists(CUSTOMLOGO):
-            customIcon = Qt.QIcon(CUSTOMLOGO)
+        if Qt.QFile.exists(custom_logo):
+            custom_icon = Qt.QIcon(custom_logo)
         else:
-            customIcon = Qt.QIcon(os.path.join(
-                self._confDirectory, CUSTOMLOGO))
-        Qt.qApp.setApplicationName(APPNAME)
-        Qt.qApp.setOrganizationName(ORGNAME)
-        Qt.QApplication.instance().basicConfig()
+            custom_icon = Qt.QIcon(os.path.join(
+                self._confDirectory, custom_logo))
+        self.setWindowIcon(custom_icon)
+        if self.APPLETS_TOOLBAR_ENABLED:
+            self.jorgsBar.addAction(custom_icon, Qt.qApp.applicationName())
 
-        logo = getattr(tauruscustomsettings, 'ORGANIZATION_LOGO',
+    def _loadOrgLogo(self, conf, xmlroot):
+        logo = getattr(tauruscustomsettings,
+                       "ORGANIZATION_LOGO",
                        "logos:taurus.png")
-        ORGANIZATIONLOGO = getattr(conf, 'ORGANIZATION_LOGO',
-                                   self.__getVarFromXML(xmlroot,
-                                                        "ORGANIZATION_LOGO",
-                                                        logo))
-        ##
-        if Qt.QFile.exists(ORGANIZATIONLOGO):
-            organizationIcon = Qt.QIcon(ORGANIZATIONLOGO)
+        org_logo = getattr(conf,
+                           "ORGANIZATION_LOGO",
+                           self.__getVarFromXML(xmlroot,
+                                                "ORGANIZATION_LOGO",
+                                                logo))
+        if Qt.QFile.exists(org_logo):
+            org_icon = Qt.QIcon(org_logo)
         else:
-            organizationIcon = Qt.QIcon(os.path.join(
-                self._confDirectory, ORGANIZATIONLOGO))
+            org_icon = Qt.QIcon(os.path.join(
+                self._confDirectory, org_logo))
+        if self.APPLETS_TOOLBAR_ENABLED:
+            self.jorgsBar.addAction(org_icon, Qt.qApp.organizationName())
 
-        # if required, enforce that only one instance of this GUI can be run
-        SINGLEINSTANCE = getattr(conf, 'SINGLE_INSTANCE', (self.__getVarFromXML(
+    def _loadSingleInstance(self, conf, xmlroot):
+        """
+        if required, enforce that only one instance of this GUI can be run
+        """
+        single_inst = getattr(conf, 'SINGLE_INSTANCE', (self.__getVarFromXML(
             xmlroot, "SINGLE_INSTANCE", 'True').lower() == 'true'))
-        if SINGLEINSTANCE:
+        if single_inst:
             if not self.checkSingleInstance():
-                msg = 'Only one istance of %s is allowed to run the same time' % (
-                    APPNAME)
+                msg = 'Only one instance of %s is allowed to run the same time' % (
+                    Qt.qApp.applicationName())
                 self.error(msg)
                 Qt.QMessageBox.critical(
                     self, 'Multiple copies', msg, Qt.QMessageBox.Abort)
                 sys.exit(1)
 
-        # some initialization
-        self.resetQSettings()
-        self.setWindowTitle(APPNAME)
-        self.setWindowIcon(customIcon)
-        self.jorgsBar.addAction(organizationIcon, ORGNAME)
-        self.jorgsBar.addAction(customIcon, APPNAME)
-
-        # get custom widget catalog entries
+    def _loadExtraCatalogWidgets(self, conf, xmlroot):
+        """
+        get custom widget catalog entries
+        """
         # @todo: support also loading from xml
-        EXTRA_CATALOG_WIDGETS = getattr(conf, 'EXTRA_CATALOG_WIDGETS', [])
+        extra_catalog_widgets = getattr(conf, 'EXTRA_CATALOG_WIDGETS', [])
         self._extraCatalogWidgets = []
-        for classname, pixmapname in EXTRA_CATALOG_WIDGETS:
+        for class_name, pix_map_name in extra_catalog_widgets:
             # If a relative file name is given, the conf directory will be used
             # as base path
-            if pixmapname and not Qt.QFile.exists(pixmapname):
-                pixmapname = os.path.join(self._confDirectory, pixmapname)
-            self._extraCatalogWidgets.append((classname, pixmapname))
+            if pix_map_name and not Qt.QFile.exists(pix_map_name):
+                pix_map_name = os.path.join(self._confDirectory, pix_map_name)
+            self._extraCatalogWidgets.append((class_name, pix_map_name))
 
-        # manual panel
-        MANUAL_URI = getattr(conf, 'MANUAL_URI',
+    def _loadManualUri(self, conf, xmlroot):
+        """
+        manual panel
+        """
+        manual_uri = getattr(conf, 'MANUAL_URI',
                              self.__getVarFromXML(xmlroot, "MANUAL_URI",
                                                   taurus.Release.url))
-        self.setHelpManualURI(MANUAL_URI)
+        self.setHelpManualURI(manual_uri)
 
-        self.createPanel(self.helpManualBrowser, 'Manual', permanent=True,
-                         icon=Qt.QIcon.fromTheme('help-browser'))
+        if self.HELP_MENU_ENABLED:
+            self.createPanel(self.helpManualBrowser, 'Manual', permanent=True,
+                             icon=Qt.QIcon.fromTheme('help-browser'))
 
-        # configure the macro infrastructure
-        MACROSERVER_NAME = getattr(conf, 'MACROSERVER_NAME', self.__getVarFromXML(
-            xmlroot, "MACROSERVER_NAME", None))
-        MACRO_PANELS = getattr(conf, 'MACRO_PANELS', self.__getVarFromXML(
-            xmlroot, "MACRO_PANELS", True))
+    ### SARDANA MACRO STUFF ON
+    def _loadSardanaOptions(self, conf, xmlroot):
+        """configure macro infrastructure"""
+        ms = self._loadMacroServerName(conf, xmlroot)
+        mp = self._loadMacroPanels(conf, xmlroot)
         # macro infrastructure will only be created if MACROSERVER_NAME is set
-        if MACRO_PANELS and MACROSERVER_NAME is not None:
+        if ms is not None and mp is True:
             from sardana.taurus.qt.qtgui.macrolistener import MacroBroker
             self.__macroBroker = MacroBroker(self)
-        if MACROSERVER_NAME:
-            self.macroserverNameChanged.emit(MACROSERVER_NAME)
+        self._loadDoorName(conf, xmlroot)
+        self._loadMacroEditorsPath(conf, xmlroot)
+        pool_instruments = self._loadInstrumentsFromPool(conf, xmlroot, ms)
+        return pool_instruments
 
-        DOOR_NAME = getattr(conf, 'DOOR_NAME',
+    def _loadMacroServerName(self, conf, xmlroot):
+        macro_server_name = getattr(conf, "MACROSERVER_NAME", self.__getVarFromXML(
+            xmlroot, "MACROSERVER_NAME", None))
+        if macro_server_name:
+            self.macroserverNameChanged.emit(macro_server_name)
+        return macro_server_name
+
+    def _loadMacroPanels(self, conf, xmlroot):
+        macro_panels = getattr(conf, "MACRO_PANELS", self.__getVarFromXML(
+            xmlroot, "MACRO_PANELS", True))
+        return macro_panels
+
+    def _loadDoorName(self, conf, xmlroot):
+        door_name = getattr(conf, "DOOR_NAME",
                             self.__getVarFromXML(xmlroot, "DOOR_NAME", ''))
-        if DOOR_NAME:
-            self.doorNameChanged.emit(DOOR_NAME)
+        if door_name:
+            self.doorNameChanged.emit(door_name)
 
-        MACROEDITORS_PATH = getattr(conf, 'MACROEDITORS_PATH', self.__getVarFromXML(
-            xmlroot, "MACROEDITORS_PATH", ''))
-        if MACROEDITORS_PATH:
-            from sardana.taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import ParamEditorManager
-            ParamEditorManager().parsePaths(MACROEDITORS_PATH)
+    def _loadMacroEditorsPath(self, conf, xmlroot):
+        macro_editors_path = getattr(conf, "MACROEDITORS_PATH", self.__getVarFromXML(
+            xmlroot, "MACROEDITORS_PATH", ""))
+        if macro_editors_path:
+            from sardana.taurus.qt.qtgui.extra_macroexecutor.macroparameterseditor.macroparameterseditor import \
+                ParamEditorManager
+            ParamEditorManager().parsePaths(macro_editors_path)
             ParamEditorManager().browsePaths()
 
+    def _loadInstrumentsFromPool(self, conf, xmlroot, macro_server_name):
+        """
+        Get panel descriptions from pool if required
+        """
+        instruments_from_pool = getattr(conf, "INSTRUMENTS_FROM_POOL", (self.__getVarFromXML(
+            xmlroot, "INSTRUMENTS_FROM_POOL", "False").lower() == "true"))
+        if instruments_from_pool:
+            try:
+                self.splashScreen().showMessage("Gathering Instrument info from Pool")
+            except AttributeError:
+                pass
+            pool_instruments = self.createInstrumentsFromPool(
+                macro_server_name)  # auto create instruments from pool
+        else:
+            pool_instruments = []
+        return pool_instruments
+    ### SARDANA MACRO STUFF OFF
+    
+    def _loadSynoptic(self, conf, xmlroot):
         # Synoptics
-        SYNOPTIC = getattr(conf, 'SYNOPTIC', None)
-        if isinstance(SYNOPTIC, string_types):  # old config file style
+        synoptic = getattr(conf, 'SYNOPTIC', None)
+        if isinstance(synoptic, string_types):  # old config file style
             self.warning(
-                'Deprecated usage of SYNOPTIC keyword (now it expects a list of paths). Please update your configuration file to: "SYNOPTIC=[\'%s\']".' % SYNOPTIC)
-            SYNOPTIC = [SYNOPTIC]
-        if SYNOPTIC is None:  # we look in the xml config file if not present in the python config
-            SYNOPTIC = []
+                'Deprecated usage of synoptic keyword (now it expects a list of paths). Please update your configuration file to: "synoptic=[\'%s\']".' % synoptic)
+            synoptic = [synoptic]
+        if synoptic is None:  # we look in the xml config file if not present in the python config
+            synoptic = []
             node = xmlroot.find("SYNOPTIC")
             if (node is not None) and (node.text is not None):
                 for child in node:
                     s = child.get("str")
                     # we do not append empty strings
                     if s is not None and len(s):
-                        SYNOPTIC.append(s)
-        for s in SYNOPTIC:
+                        synoptic.append(s)
+        for s in synoptic:
             self.createMainSynoptic(s)
 
-        # Get panel descriptions from pool if required
-        INSTRUMENTS_FROM_POOL = getattr(conf, 'INSTRUMENTS_FROM_POOL', (self.__getVarFromXML(
-            xmlroot, "INSTRUMENTS_FROM_POOL", 'False').lower() == 'true'))
-        if INSTRUMENTS_FROM_POOL:
-            try:
-                self.splashScreen().showMessage("Gathering Instrument info from Pool")
-            except AttributeError:
-                pass
-            POOLINSTRUMENTS = self.createInstrumentsFromPool(
-                MACROSERVER_NAME)  # auto create instruments from pool
-        else:
-            POOLINSTRUMENTS = []
-
-        #######################################################################
-        # Deprecated CONSOLE command (if you need a IPython Console, just add a
-        # Panel with a `silx.gui.console.IPythonWidget`
-        # TODO: remove this block when deprecation grace time is due
-        CONSOLE = getattr(conf, 'CONSOLE', self.__getVarFromXML(
+    def _loadConsole(self, conf, xmlroot):
+        """
+        Deprecated CONSOLE command (if you need a IPython Console, just add a
+        Panel with a `silx.gui.console.IPythonWidget`
+        """
+        # TODO: remove this method when making deprecation efective
+        console = getattr(conf, 'CONSOLE', self.__getVarFromXML(
             xmlroot, "CONSOLE", []))
-        if CONSOLE:
+        if console:
             self.createConsole([])
-        #######################################################################
 
-        # get custom panel descriptions from the python config file
-        CUSTOM_PANELS = [obj for name, obj in inspect.getmembers(
+    def _loadCustomPanels(self, conf, xmlroot, poolinstruments=None):
+        """
+        get custom panel descriptions from the python config file, xml config and
+        create panels based on the panel descriptions
+        """
+        custom_panels = [obj for name, obj in inspect.getmembers(
             conf) if isinstance(obj, PanelDescription)]
 
-        # add custom panel descriptions from xml config
-        panelDescriptions = xmlroot.find("PanelDescriptions")
-        if (panelDescriptions is not None):
-            for child in panelDescriptions:
-                if (child.tag == "PanelDescription"):
-                    pd = PanelDescription.fromXml(etree.tostring(child))
+        panel_descriptions = xmlroot.find("PanelDescriptions")
+        if panel_descriptions is not None:
+            for child in panel_descriptions:
+                if child.tag == "PanelDescription":
+                    child_str = etree.tostring(child, encoding='unicode')
+                    pd = PanelDescription.fromXml(child_str)
                     if pd is not None:
-                        CUSTOM_PANELS.append(pd)
+                        custom_panels.append(pd)
 
-        # create panels based on the panel descriptions gathered before
-        for p in CUSTOM_PANELS + POOLINSTRUMENTS:
+        for p in custom_panels + poolinstruments:
             try:
                 try:
                     self.splashScreen().showMessage("Creating panel %s" % p.name)
                 except AttributeError:
                     pass
                 w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-                if hasattr(w, 'setCustomWidgetMap'):
+                if hasattr(w, "setCustomWidgetMap"):
                     w.setCustomWidgetMap(self.getCustomWidgetMap())
                 if p.model is not None:
                     w.setModel(p.model)
@@ -1189,35 +1295,38 @@ class TaurusGui(TaurusMainWindow):
                     instrumentkey = self.IMPLICIT_ASSOCIATION
                 # the pool instruments may change when the pool config changes,
                 # so we do not store their config
-                registerconfig = p not in POOLINSTRUMENTS
+                registerconfig = p not in poolinstruments
                 # create a panel
                 self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
                                  instrumentkey=instrumentkey, permanent=True)
             except Exception as e:
-                msg = 'Cannot create panel %s' % getattr(
-                    p, 'name', '__Unknown__')
+                msg = "Cannot create panel %s" % getattr(
+                    p, "name", "__Unknown__")
                 self.error(msg)
                 self.traceback(level=taurus.Info)
-                result = Qt.QMessageBox.critical(self, 'Initialization error', '%s\n\n%s' % (
+                result = Qt.QMessageBox.critical(self, "Initialization error", "%s\n\n%s" % (
                     msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
                     sys.exit()
 
-        # get custom toolbars descriptions from the python config file
-        CUSTOM_TOOLBARS = [obj for name, obj in inspect.getmembers(
+    def _loadCustomToolBars(self, conf, xmlroot):
+        """
+        get custom toolbars descriptions from the python config file, xml config and
+        create toolbars based on the descriptions
+        """
+        custom_toolbars = [obj for name, obj in inspect.getmembers(
             conf) if isinstance(obj, ToolBarDescription)]
 
-        # add custom toolbar descriptions from xml config
-        toolBarDescriptions = xmlroot.find("ToolBarDescriptions")
-        if (toolBarDescriptions is not None):
-            for child in toolBarDescriptions:
-                if (child.tag == "ToolBarDescription"):
-                    d = ToolBarDescription.fromXml(etree.tostring(child))
+        tool_bar_descriptions = xmlroot.find("ToolBarDescriptions")
+        if tool_bar_descriptions is not None:
+            for child in tool_bar_descriptions:
+                if child.tag == "ToolBarDescription":
+                    child_str = etree.tostring(child, encoding='unicode')
+                    d = ToolBarDescription.fromXml(child_str)
                     if d is not None:
-                        CUSTOM_TOOLBARS.append(d)
+                        custom_toolbars.append(d)
 
-        # create toolbars based on the descriptions gathered before
-        for d in CUSTOM_TOOLBARS:
+        for d in custom_toolbars:
             try:
                 try:
                     self.splashScreen().showMessage("Creating Toolbar %s" % d.name)
@@ -1236,38 +1345,41 @@ class TaurusGui(TaurusMainWindow):
                     self.registerConfigDelegate(w, d.name)
 
             except Exception as e:
-                msg = 'Cannot add toolbar %s' % getattr(
-                    d, 'name', '__Unknown__')
+                msg = "Cannot add toolbar %s" % getattr(
+                    d, "name", "__Unknown__")
                 self.error(msg)
                 self.traceback(level=taurus.Info)
-                result = Qt.QMessageBox.critical(self, 'Initialization error', '%s\n\n%s' % (
+                result = Qt.QMessageBox.critical(self, "Initialization error", "%s\n\n%s" % (
                     msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
                     sys.exit()
 
-        CUSTOM_APPLETS = []
+    def _loadCustomApplets(self, conf, xmlroot):
+        """
+        get custom applet descriptions from the python config file, xml config and
+        create applet based on the descriptions
+        """
+        custom_applets = []
         # for backwards compatibility
         MONITOR = getattr(
-            conf, 'MONITOR', self.__getVarFromXML(xmlroot, "MONITOR", []))
+            conf, "MONITOR", self.__getVarFromXML(xmlroot, "MONITOR", []))
         if MONITOR:
-            CUSTOM_APPLETS.append(AppletDescription(
-                'monitor', classname='TaurusMonitorTiny', model=MONITOR))
+            custom_applets.append(AppletDescription(
+                "monitor", classname="TaurusMonitorTiny", model=MONITOR))
 
-        # get custom applet descriptions from the python config file
-        CUSTOM_APPLETS += [obj for name, obj in inspect.getmembers(
+        custom_applets += [obj for name, obj in inspect.getmembers(
             conf) if isinstance(obj, AppletDescription)]
 
-        # add applet descriptions from xml config
-        appletDescriptions = xmlroot.find("AppletDescriptions")
-        if (appletDescriptions is not None):
-            for child in appletDescriptions:
-                if (child.tag == "AppletDescription"):
-                    d = AppletDescription.fromXml(etree.tostring(child))
+        applet_descriptions = xmlroot.find("AppletDescriptions")
+        if applet_descriptions is not None:
+            for child in applet_descriptions:
+                if child.tag == "AppletDescription":
+                    child_str = etree.tostring(child, encoding='unicode')
+                    d = AppletDescription.fromXml(child_str)
                     if d is not None:
-                        CUSTOM_APPLETS.append(d)
+                        custom_applets.append(d)
 
-        # create applet based on the descriptions gathered before
-        for d in CUSTOM_APPLETS:
+        for d in custom_applets:
             try:
                 try:
                     self.splashScreen().showMessage("Creating applet %s" % d.name)
@@ -1282,38 +1394,45 @@ class TaurusGui(TaurusMainWindow):
                 if isinstance(w, BaseConfigurableClass):
                     self.registerConfigDelegate(w, d.name)
             except Exception as e:
-                msg = 'Cannot add applet %s' % getattr(
-                    d, 'name', '__Unknown__')
+                msg = "Cannot add applet %s" % getattr(
+                    d, "name", "__Unknown__")
                 self.error(msg)
                 self.traceback(level=taurus.Info)
-                result = Qt.QMessageBox.critical(self, 'Initialization error', '%s\n\n%s' % (
+                result = Qt.QMessageBox.critical(self, "Initialization error", "%s\n\n%s" % (
                     msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
                 if result == Qt.QMessageBox.Abort:
                     sys.exit()
 
-        # add external applications from both the python and the xml config
-        # files
-        EXTERNAL_APPS = [obj for name, obj in inspect.getmembers(
+    def _loadExternalApps(self, conf, xmlroot):
+        """
+        add external applications from both the python and the xml config files
+        """
+        external_apps = [obj for name, obj in inspect.getmembers(
             conf) if isinstance(obj, ExternalApp)]
 
-        externalAppsNode = xmlroot.find("ExternalApps")
-        if (externalAppsNode is not None):
-            for child in externalAppsNode:
-                if (child.tag == "ExternalApp"):
-                    ea = ExternalApp.fromXml(etree.tostring(child))
+        ext_apps_node = xmlroot.find("ExternalApps")
+        if ext_apps_node is not None:
+            for child in ext_apps_node:
+                if child.tag == "ExternalApp":
+                    child_str = etree.tostring(child, encoding='unicode')
+                    ea = ExternalApp.fromXml(child_str)
                     if ea is not None:
-                        EXTERNAL_APPS.append(ea)
+                        external_apps.append(ea)
 
-        for a in EXTERNAL_APPS:
+        for a in external_apps:
             self._external_app_names.append(str(a.getAction().text()))
             self.addExternalAppLauncher(a.getAction())
 
-        # get the "factory settings" filename. By default, it is called
-        # "default.ini" and resides in the configuration dir
-        INIFILE = getattr(conf, 'INIFILE', self.__getVarFromXML(
+    def _loadIniFile(self, conf, xmlroot):
+        """
+        get the "factory settings" filename. By default, it is called
+        "default.ini" and resides in the configuration dir
+        """
+
+        ini_file = getattr(conf, 'INIFILE', self.__getVarFromXML(
             xmlroot, "INIFILE", "default.ini"))
         # if a relative name is given, the conf dir is used as the root path
-        iniFileName = os.path.join(self._confDirectory, INIFILE)
+        ini_file_name = os.path.join(self._confDirectory, ini_file)
 
         # read the settings (or the factory settings if the regular file is not
         # found)
@@ -1324,7 +1443,7 @@ class TaurusGui(TaurusMainWindow):
             self.splashScreen().showMessage(msg)
         except AttributeError:
             pass
-        self.loadSettings(factorySettingsFileName=iniFileName)
+        self.loadSettings(factorySettingsFileName=ini_file_name)
 
     def setLockView(self, locked):
         self.setModifiableByUser(not locked)
@@ -1337,14 +1456,21 @@ class TaurusGui(TaurusMainWindow):
         for panel in self.__panels.values():
             panel.toggleViewAction().setEnabled(modifiable)
             panel.setFeatures(dwfeat)
-        for action in (self.newPanelAction, self.showAllPanelsAction,
-                       self.hideAllPanelsAction,
-                       self.addExternalApplicationAction,
-                       self.removeExternalApplicationAction,
-                       ):
-            action.setEnabled(modifiable)
+
+        if self.PANELS_MENU_ENABLED:
+            for action in (self.newPanelAction, self.showAllPanelsAction,
+                           self.hideAllPanelsAction,
+                        ):
+                action.setEnabled(modifiable)
+
+        if self.TOOLS_MENU_ENABLED:
+            for action in (self.addExternalApplicationAction,
+                           self.removeExternalApplicationAction,
+                        ):
+                action.setEnabled(modifiable)
 
         self._lockviewAction.setChecked(not modifiable)
+
         TaurusMainWindow.setModifiableByUser(self, modifiable)
 
     def onShortMessage(self, msg):
@@ -1529,6 +1655,7 @@ class TaurusGui(TaurusMainWindow):
                 xmlroot, "PanelDescriptions")
 
         # Get all custom panels
+        from taurus.qt.qtgui.panel import QDoubleListDlg
         dlg = QDoubleListDlg(winTitle='Export Panels to XML',
                              mainLabel='Select which of the custom panels you want to export as xml configuration',
                              label1='Not Exported', label2='Exported',
@@ -1547,7 +1674,7 @@ class TaurusGui(TaurusMainWindow):
                 self.registerConfigDelegate(panel, name)
             panelxml = PanelDescription.fromPanel(panel).toXml()
             panelDescriptionsNode.append(etree.fromstring(panelxml))
-        xml = etree.tostring(xmlroot, pretty_print=True)
+        xml = etree.tostring(xmlroot, pretty_print=True, encoding='unicode')
 
         # write to file
         while True:
@@ -1605,52 +1732,34 @@ class TaurusGui(TaurusMainWindow):
         self.info(nfo)
 
 
-#------------------------------------------------------------------------------
-def main(confname=None):
+@click.command('gui')
+@click.argument('confname', nargs=1, required=True)
+@click.option('--safe-mode', 'safe_mode', is_flag=True, default=False,
+              help=('launch in safe mode (it prevents potentially problematic '
+                    + 'configs from being loaded)')
+              )
+@click.option('--ini', type=click.Path(exists=True),
+              metavar="INIFILE",
+              help=('settings file (.ini) to be loaded (defaults to '
+                    + '<user_config_dir>/<appname>.ini)'),
+              default=None
+              )
+def gui_cmd(confname, safe_mode, ini):
+    """Launch a TaurusGUI using the given CONF"""
     import sys
     import taurus
-    from taurus.core.util import argparse
     from taurus.qt.qtgui.application import TaurusApplication
 
     taurus.info('Starting execution of TaurusGui')
 
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] confname")
-    parser.set_description("The taurus GUI application")
-    parser.add_option("", "--config-dir", dest="config_dir", default=None,
-                      help="use the given configuration directory for initialization")
-    parser.add_option("", "--new-gui", action="store_true", dest="new_gui", default=None,
-                      help="launch a wizard for creating a new TaurusGUI application")
-    parser.add_option("", "--fail-proof", action="store_true", dest="fail_proof", default=None,
-                      help="launch in fail proof mode (it prevents potentially problematic configs from being loaded)")
+    app = TaurusApplication(cmd_line_parser=None, app_name="taurusgui")
 
-    app = TaurusApplication(cmd_line_parser=parser, app_name="taurusgui",
-                            app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
-
-    if options.new_gui:  # launch app settings wizard instead of taurusgui
-        from taurus.qt.qtgui.taurusgui import AppSettingsWizard
-        wizard = AppSettingsWizard()
-        wizard.show()
-        sys.exit(app.exec_())
-
-    if confname is None:
-        confname = options.config_dir
-
-    if confname is None:
-        if len(args) == 1:  # for backwards compat, we allow to specify the confname without the "--config-dir" parameter
-            confname = args[0]
-        else:
-            parser.print_help(sys.stderr)
-            sys.exit(1)
-
-    if options.fail_proof:
+    if safe_mode:
         configRecursionDepth = 0
     else:
         configRecursionDepth = None
 
-    gui = TaurusGui(None, confname=confname,
+    gui = TaurusGui(None, confname=confname, settingsname=ini,
                     configRecursionDepth=configRecursionDepth)
 
     gui.show()
@@ -1660,6 +1769,27 @@ def main(confname=None):
     sys.exit(ret)
 
 
+@click.command('newgui')
+# @click.option('--stub', 'stub_name',
+#               metavar="NAME",
+#               default=None,
+#               help='Create an empty stub of gui with the given NAME'
+#               )
+def newgui_cmd():
+    """Create a new TaurusGui"""
+    import sys
+    from taurus.qt.qtgui.application import TaurusApplication
+
+    app = TaurusApplication(cmd_line_parser=None, app_name="newgui")
+
+    # if stub_name is not None:
+    #     pass # TODO
+
+    from taurus.qt.qtgui.taurusgui import AppSettingsWizard
+    wizard = AppSettingsWizard()
+    wizard.show()
+    sys.exit(app.exec_())
+
+
 if __name__ == "__main__":
-    main()
-    # xmlTest()
+    gui_cmd()

@@ -31,7 +31,7 @@ from builtins import map
 from builtins import str
 from future.utils import string_types
 
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from taurus.core.taurusbasetypes import LockStatus, TaurusLockInfo
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.qt.qtgui.base import TaurusBaseWidget
@@ -265,7 +265,7 @@ class TaurusCommandButton(Qt.QPushButton, TaurusBaseWidget):
     .. seealso:: :class:`TaurusCommandsForm` provides a good example of use of
                  TaurusCommandButton (including managing the return value) '''
     # TODO: tango-centric
-    commandExecuted = Qt.pyqtSignal(object)
+    commandExecuted = Qt.pyqtSignal(compat.PY_OBJECT)
 
     def __init__(self, parent=None, designMode=False, command=None,
                  parameters=None, icon=None, text=None,
@@ -659,7 +659,7 @@ def commandButtonMain():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
     form = TaurusCommandButton(parent=None, designMode=False, command='DevBoolean', parameters=[
                                123], icon='logos:taurus.png', text='launch: DevBoolean 123')
     form.setModel('sys/tg_test/1')
@@ -677,7 +677,7 @@ def launcherButtonMain():
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     # Creating button giving the widget
     # from taurus.qt.qtgui.plot import TaurusPlot

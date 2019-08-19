@@ -61,6 +61,7 @@ install_requires = [
     'numpy>=1.1',
     'pint>=0.8',
     'future',
+    'click',
 ]
 
 #Workaround for old setuptools
@@ -92,25 +93,34 @@ extras_require = {
 }
 
 console_scripts = [
-    'taurustestsuite = taurus.test.testsuite:main',
-    'taurusconfigbrowser = taurus.qt.qtgui.panel.taurusconfigeditor:main',
-    'taurusplot = taurus.qt.qtgui.qwt5.taurusplot:main',
-    'taurustrend = taurus.qt.qtgui.qwt5.taurustrend:main',
-    'taurusform = taurus.qt.qtgui.panel.taurusform:taurusFormMain',
-    'tauruspanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusPanelMain',
-    'taurusdevicepanel = taurus.qt.qtgui.panel.taurusdevicepanel:TaurusDevicePanelMain',
-    'taurusgui = taurus.qt.qtgui.taurusgui.taurusgui:main',
-    'taurusdesigner = taurus.qt.qtdesigner.taurusdesigner:main',
-    'tauruscurve = taurus.qt.qtgui.extra_guiqwt.plot:taurusCurveDlgMain',
-    'taurustrend1d = taurus.qt.qtgui.extra_guiqwt.plot:taurusTrendDlgMain',
-    'taurusimage = taurus.qt.qtgui.extra_guiqwt.plot:taurusImageDlgMain',
-    'taurustrend2d = taurus.qt.qtgui.extra_guiqwt.taurustrend2d:taurusTrend2DMain',
-    'taurusiconcatalog = taurus.qt.qtgui.icon.catalog:main',
-    'taurusdemo = taurus.qt.qtgui.panel.taurusdemo:main',
-    # TODO: taurusdoc,
+    'taurus = taurus.cli:main',
 ]
 
-entry_points = {'console_scripts': console_scripts,
+taurus_subcommands = [
+    'testsuite = taurus.test.testsuite:testsuite_cmd',
+    'config = taurus.qt.qtgui.panel.taurusconfigeditor:config_cmd',
+    'qwt5 = taurus.qt.qtgui.qwt5.cli:qwt5',
+    'device = taurus.qt.qtgui.panel.taurusdevicepanel:device_cmd',
+    'panel = taurus.qt.qtgui.panel.taurusdevicepanel:panel_cmd',
+    'gui = taurus.qt.qtgui.taurusgui.taurusgui:gui_cmd',
+    'newgui = taurus.qt.qtgui.taurusgui.taurusgui:newgui_cmd',
+    'designer = taurus.qt.qtdesigner.taurusdesigner:designer_cmd',
+    'guiqwt = taurus.qt.qtgui.extra_guiqwt.cli:guiqwt',
+    'icons = taurus.qt.qtgui.icon.catalog:icons_cmd',
+    'form = taurus.qt.qtgui.panel.taurusform:form_cmd',
+    'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
+    'logmon = taurus.core.util.remotelogmonitor:logmon_cmd',
+    'qlogmon = taurus.qt.qtgui.table.qlogtable:qlogmon_cmd',
+]
+
+model_selectors = [
+    'Tango = taurus.qt.qtgui.panel.taurusmodelchooser:TangoModelSelectorItem',
+]
+
+entry_points = {
+    'console_scripts': console_scripts,
+    'taurus.cli.subcommands': taurus_subcommands,
+    'taurus.qt.qtgui.panel.TaurusModelSelector.items': model_selectors,
 }
 
 classifiers = [

@@ -37,6 +37,7 @@ import os
 import sys
 import re
 import unittest
+import click
 import taurus
 from taurus.external.qt import PYQT4
 
@@ -101,38 +102,28 @@ def run(disableLogger=True, exclude_pattern='(?!)'):
     return runner.run(suite)
 
 
-def main():
-    import taurus.test.skip
-    import argparse
-    from taurus import Release
-    parser = argparse.ArgumentParser(description='Main test suite for Taurus')
-    parser.add_argument('--skip-gui-tests', dest='skip_gui',
-                        action='store_true', default=False,
-                        help='Do not perform tests requiring GUI')
-    # TODO: Define the default exclude patterns as a tauruscustomsettings
-    # variable.
-    help = """regexp pattern matching test ids to be excluded.
+@click.command('testsuite')
+@click.option(
+    '--gui-tests/--skip-gui-tests', 'gui_tests',
+    default=True, show_default=True,
+    help='Perform tests requiring GUI'
+)
+@click.option(
+    '-e', '--exclude-pattern', 'exclude_pattern',
+    default='(?!)',
+    help="""regexp pattern matching test ids to be excluded.
     (e.g. 'taurus\.core\..*' would exclude taurus.core tests)
     """
-    parser.add_argument('-e', '--exclude-pattern',
-                        dest='exclude_pattern',
-                        default='(?!)',
-                        help=help)
-    parser.add_argument('--version', action='store_true', default=False,
-                        help="show program's version number and exit")
-    args = parser.parse_args()
+)
+def testsuite_cmd(gui_tests, exclude_pattern):
+    """Launch the main test suite for Taurus'"""
+    import taurus.test.skip
 
-    if args.version:
-        print(Release.version)
-        sys.exit(0)
-
-    if args.skip_gui:
-        import taurus.test.skip
-        taurus.test.skip.GUI_TESTS_ENABLED = False
+    taurus.test.skip.GUI_TESTS_ENABLED = gui_tests
     if not taurus.test.skip.GUI_TESTS_ENABLED:
-        exclude_pattern = '(taurus\.qt\..*)|(%s)' % args.exclude_pattern
+        exclude_pattern = '(taurus\.qt\..*)|(%s)' % exclude_pattern
     else:
-        exclude_pattern = args.exclude_pattern
+        exclude_pattern = exclude_pattern
 
     ret = run(exclude_pattern=exclude_pattern)
 
@@ -145,4 +136,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    testsuite_cmd()

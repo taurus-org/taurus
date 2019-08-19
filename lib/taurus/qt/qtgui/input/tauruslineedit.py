@@ -89,7 +89,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
     def _updateValidator(self, value):
         """This method sets a validator depending on the data type"""
         val = None
-        if isinstance(value.wvalue, Quantity):
+        if value is not None and isinstance(value.wvalue, Quantity):
             val = self.validator()
             if not isinstance(val, PintValidator):
                 val = PintValidator(self)

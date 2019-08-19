@@ -383,7 +383,7 @@ def main():
 
     if owns_app:
         from taurus.qt.qtgui.application import TaurusApplication
-        app = TaurusApplication(sys.argv)
+        app = TaurusApplication(sys.argv, cmd_line_parser=None)
 
     w = Qt.QWidget()
     layout = Qt.QGridLayout()

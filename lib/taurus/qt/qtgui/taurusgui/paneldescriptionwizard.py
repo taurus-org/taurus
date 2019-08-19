@@ -35,7 +35,6 @@ import weakref
 from taurus.qt.qtgui.taurusgui.utils import PanelDescription
 from taurus.qt.qtgui.icon import getCachedPixmap
 from taurus.qt.qtgui.input import GraphicalChoiceWidget
-from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE
@@ -429,6 +428,7 @@ class AdvSettingsPage(Qt.QWizardPage):
         self.commLV.setItemDelegate(self.itemDelegate)
 
     def showModelChooser(self):
+        from taurus.qt.qtgui.panel import TaurusModelChooser
         models, ok = TaurusModelChooser.modelChooserDlg(
             parent=self, asMimeData=True)
         if not ok:
@@ -652,7 +652,7 @@ class PanelDescriptionWizard(Qt.QWizard, TaurusBaseWidget):
 
 def test():
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     form = PanelDescriptionWizard()
 
     def kk(d):
@@ -667,14 +667,14 @@ def test():
 
 def test2():
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     print(ExpertWidgetChooserDlg.getDialog())
     sys.exit()
 
 
 def main():
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     from taurus.qt.qtgui.container import TaurusMainWindow
     form = Qt.QMainWindow()
 

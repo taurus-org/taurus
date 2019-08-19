@@ -34,7 +34,7 @@ from __future__ import print_function
 from builtins import object
 import copy
 
-from taurus.external.qt import Qt, Qwt5
+from taurus.external.qt import Qt, Qwt5, compat
 from taurus.core.util.containers import CaselessDict
 from taurus.qt.qtgui.util.ui import UILoadable
 
@@ -106,7 +106,7 @@ class CurvesAppearanceChooser(Qt.QWidget):
     NAME_ROLE = Qt.Qt.UserRole
 
     controlChanged = Qt.pyqtSignal()
-    curveAppearanceChanged = Qt.pyqtSignal(object, list)
+    curveAppearanceChanged = Qt.pyqtSignal(compat.PY_OBJECT, list)
     CurveTitleEdited = Qt.pyqtSignal('QString', 'QString')
 
     def __init__(self, parent=None, curvePropDict={}, showButtons=False, autoApply=False, designMode=False):

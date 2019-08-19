@@ -1020,7 +1020,12 @@ class TaurusTrend(TaurusPlot):
                               self._startingTime)  # Set a range of 1 min
         else:
             self.setAxisScale(axis, 0, 10)  # Set a range of 10 events
-            self.axisWidget(axis).scaleDivChanged.disconnect(self.rescheduleReplot)  # disconnects the previous axis
+            w = self.axisWidget(axis)
+            try:
+                # disconnect the previous axis
+                w.scaleDivChanged.disconnect(self.rescheduleReplot)
+            except TypeError:
+                pass  # ignore exception if signal was not previously connected
         # enable/disable the archiving action
         self._useArchivingAction.setEnabled(enable)
         # call the parent class method
@@ -1869,8 +1874,8 @@ class TaurusTrend(TaurusPlot):
 
 def test():
     import sys
-    import taurus.qt.qtgui.application
-    app = taurus.qt.qtgui.application.TaurusApplication()
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(cmd_line_parser=None)
     w = Qt.QWidget()
     w.setLayout(Qt.QVBoxLayout())
     s = Qt.QSplitter()
@@ -1885,89 +1890,57 @@ def test():
     sys.exit(app.exec_())
 
 
-def main():
+def trend_main(models=(), config_file=None, x_axis_mode='n',
+               use_archiving=False,
+               max_buffer_size=None,
+               forced_read_period=-1,
+               demo=False,
+               window_name='TaurusTrend (qwt5)'):
     import sys
-    import taurus.qt.qtgui.application
-    import taurus.core.util.argparse
+    from taurus.qt.qtgui.application import TaurusApplication
 
-    parser = taurus.core.util.argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [<model1> [<model2>] ...]")
-    parser.set_description("a taurus application for plotting trends")
-    parser.add_option("-x", "--x-axis-mode", dest="x_axis_mode", default='t', metavar="t|e",
-                      help="interprete X values as either timestamps (t) or event numbers (e). Accepted values: t|e")
-    parser.add_option("-b", "--buffer", dest="max_buffer_size", default=TaurusTrend.DEFAULT_MAX_BUFFER_SIZE,
-                      help="maximum number of values per curve to be plotted (default = %i) (when reached, the oldest values will be discarded)" % TaurusTrend.DEFAULT_MAX_BUFFER_SIZE)
-    parser.add_option("--config", "--config-file", dest="config_file", default=None,
-                      help="use the given config file for initialization")
-    parser.add_option("--export", "--export-file", dest="export_file", default=None,
-                      help="use the given file to as output instead of showing the plot")
-    parser.add_option("-r", "--forced-read", dest="forced_read_period", type="int", default=-1, metavar="MILLISECONDS",
-                      help="force Taurustrend to re-read the attributes every MILLISECONDS ms")
-    parser.add_option("-a", "--use-archiving",
-                      action="store_true", dest="use_archiving", default=False)
-    parser.add_option("--window-name", dest="window_name",
-                      default="TaurusTrend", help="Name of the window")
-
-    app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
-                                                        app_name="taurustrend",
-                                                        app_version=taurus.Release.version)
-    args = app.get_command_line_args()
-    options = app.get_command_line_options()
-    if options.x_axis_mode.lower() not in ['t', 'e']:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
-    models = args
+    app = TaurusApplication(cmd_line_parser=None, app_name="taurustrend(qwt5)")
 
     w = TaurusTrend()
-    w.setWindowTitle(options.window_name)
+
+    w.setWindowTitle(window_name)
+
+    # demo option
+    if demo:
+        models = list(models)
+        models.extend(['eval:rand()', 'eval:1+rand(2)'])
 
     # xistime option
-    w.setXIsTime(options.x_axis_mode.lower() == 't')
+    w.setXIsTime(x_axis_mode.lower() == 't')
+
     # max buffer size option
-    w.setMaxDataBufferSize(int(options.max_buffer_size))
+    if max_buffer_size is not None:
+        w.setMaxDataBufferSize(max_buffer_size)
+
     # configuration file option
-    if options.config_file is not None:
-        w.loadConfig(options.config_file)
+    if config_file is not None:
+        w.loadConfig(config_file)
+
     # set models
     if models:
-        w.setModel(models)
-    # export option
-    if options.export_file is not None:
-        curves = dict.fromkeys(w.trendSets, 0)
-
-        def exportIfAllCurves(curve, trend=w, counters=curves):
-            curve = str(curve)
-            print('*' * 10 + ' %s: Event received for %s  ' % (datetime.now().isoformat(), curve) + '*' * 10)
-            if curve in counters:
-                counters[curve] += 1
-                if all(counters.values()):
-                    trend.exportPdf(options.export_file)
-                    print('*' * 10 + ' %s: Exported to : %s  ' % (datetime.now().isoformat(), options.export_file) + '*' * 10)
-                    trend.close()
-            return
-        if not curves:
-            w.close()
-        else:
-            for ts in w.trendSets.values():
-                ts.dataChanged.connect(exportIfAllCurves)
-        sys.exit(app.exec_())  # exit without showing the widget
+        w.setModel(list(models))
 
     # period option
-    if options.forced_read_period > 0:
-        w.setForcedReadingPeriod(options.forced_read_period)
+    if forced_read_period > 0:
+        w.setForcedReadingPeriod(forced_read_period)
 
     # archiving option
-    w.setUseArchiving(options.use_archiving)
+    w.setUseArchiving(use_archiving)
 
     # show the widget
     w.show()
 
     # if no models are passed, show the data import dialog
-    if len(models) == 0 and options.config_file is None:
+    if not models and config_file is None:
         w.showDataImportDlg()
 
     sys.exit(app.exec_())
 
+
 if __name__ == "__main__":
-    main()
+    trend_main()

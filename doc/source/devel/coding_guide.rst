@@ -130,6 +130,20 @@ PyQt4, PyQt5 and PySide versions.
        from taurus.external.qt import QtWebKit
        from taurus.external.qt import Qwt5
 
+.. note:: this guideline applies to code which is part of the taurus module or its
+ plugins. For end-user applications that use taurus, this rule may not apply,
+ as mentioned in `TEP18`_:
+
+   *For an end-user application based on taurus* it is probably better to import
+   directly from a specific binding (PyQt5 is the best supported) and let taurus to
+   adapt to that choice. In this way, one can write idiomatic code that better
+   matches the chosen binding. Using the ``taurus.external.qt`` shim
+   is also possible if one wants to make the code binding-agnostic, but in that
+   case one must keep in mind that the resulting code will be less idiomatic
+   and that the shim's API may be eventually altered to better fit with taurus
+   own requirements (and that those changes may not be aligned with the
+   application needs).
+
 2. Since Taurus v>=4.0, Qt-based code in Taurus assumes
    that `PyQt API v2`_ is used. PyQt API 1 code is not accepted in taurus.
 
@@ -209,3 +223,4 @@ PyQt4, PyQt5 and PySide versions.
 .. _`PyQt API v2`: http://pyqt.sourceforge.net/Docs/PyQt4/incompatible_apis.html
 .. _`new-style signals`: http://pyqt.sourceforge.net/Docs/PyQt4/new_style_signals_slots.html
 .. _future: https://python-future.org/
+.. _TEP18: http://taurus-scada.org/tep/?TEP18.md

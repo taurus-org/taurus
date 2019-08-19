@@ -264,7 +264,7 @@ class TaurusGuiComponentDescription(object):
         model = etree.SubElement(root, "model")
         model.text = self._model
 
-        return etree.tostring(root, pretty_print=True)
+        return etree.tostring(root, pretty_print=True, encoding='unicode')
 
     @staticmethod
     def fromXml(xmlstring):

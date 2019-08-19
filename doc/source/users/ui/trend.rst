@@ -37,11 +37,11 @@ You may also use TaurusTrend as a stand-alone application for showing trends of
 attributes from the control system. You can launch the stand-alone TaurusTrend
 with the following command::
 
-    taurustrend [options] [<model_list>]
+    taurus qwt5 trend [options] [<model_list>]
 	
 Run the following command for more details::
 
-    taurustrend --help
+    taurus qwt5 trend --help
 
     
 The model list is optional and is a space-separated list of models for TaurusTrend. 
@@ -208,11 +208,11 @@ guiqwt_.
 The :class:`TaurusTrend2DDialog` widget can be launched as a 
 stand-alone application with the following command::
 
-	taurustrend2d <array_attribute_name>
+	taurus guiqwt trend2d <array_attribute_name>
 
 Run the following command for more details::
 
-    taurustrend2d --help
+    taurus guiqwt trend2d --help
 
 
 .. _guiqwt: https://pypi.python.org/pypi/guiqwt

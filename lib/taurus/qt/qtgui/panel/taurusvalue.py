@@ -389,7 +389,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         itself.
         '''
         if followCompact and self.isCompact():
-            return self._readWidget.readWidget
+            return getattr(self._readWidget, 'readWidget', self._readWidget)
         return self._readWidget
 
     def writeWidget(self, followCompact=False):
@@ -607,11 +607,13 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                 result = [UnitLessLineEdit,
                           TaurusValueSpinBox, TaurusWheelEdit]
         elif modelobj.data_format == DataFormat._1D:
+            result = [TaurusValuesTableButton_W, TaurusValueLineEdit]
             if modelType in (DataType.Float, DataType.Integer):
-                result = [TaurusArrayEditorButton,
-                          TaurusValuesTableButton_W, UnitLessLineEdit]
-            else:
-                result = [TaurusValuesTableButton_W, TaurusValueLineEdit]
+                try:
+                    import taurus.qt.qtgui.qwt5
+                    result.insert(0, TaurusArrayEditorButton)
+                except:
+                    pass
         elif modelobj.data_format == DataFormat._2D:
             result = [TaurusValuesTableButton_W]
         else:
@@ -1398,7 +1400,7 @@ if __name__ == "__main__":
 
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     form = Qt.QMainWindow()
     # ly=Qt.QVBoxLayout(form)
     # container=Qt.QWidget()

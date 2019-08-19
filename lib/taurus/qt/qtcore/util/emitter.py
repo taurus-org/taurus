@@ -91,9 +91,6 @@ class QEmitter(Qt.QObject):
 
 class TaurusEmitterThread(Qt.QThread):
     """
-    The TaurusEmitterThread Class
-    ==========================
-
     This object get items from a python Queue and performs a thread safe 
     operation on them.
     It is useful to serialize Qt tasks in a background thread.
@@ -106,8 +103,7 @@ class TaurusEmitterThread(Qt.QThread):
     :param cursor: if True or QCursor a custom cursor is set while 
         the Queue is not empty
 
-    How TaurusEmitterThread works
-    --------------------------
+    How TaurusEmitterThread works:
 
     TaurusEmitterThread is a worker thread that processes a queue of iterables 
     passed as arguments to the specified method every time that  
@@ -126,7 +122,7 @@ class TaurusEmitterThread(Qt.QThread):
         to ``self.todo queue``
       + every time that a *somethingDone* signal arrives ``next()`` is called.
       + ``next()`` can be called also externally to ensure that the main queue 
-      is being processed.
+        is being processed.
       + the queue can be accessed externally using ``getQueue()``
       + ``getQueue().qsize()`` returns number of remaining objects in queue.
       + while there are objects in queue the ``.next()`` method will 
@@ -139,8 +135,7 @@ class TaurusEmitterThread(Qt.QThread):
       - if an object is found, it is sent in a *doSomething* signal.
       - if *"exit"* is found the loop exits.
 
-    Usage example
-    -------------
+    Usage example:
 
     .. code-block:: python
 

@@ -59,7 +59,7 @@ if __name__ == '__main__':
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
     w = DropDebugger()
     w.show()
     sys.exit(app.exec_())

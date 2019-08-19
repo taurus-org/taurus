@@ -436,7 +436,8 @@ class Delegate(QtGui.QItemDelegate):
 if __name__ == '__main__':
     import sys
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication(app_name="TaurusDevice property table")
+    app = TaurusApplication(app_name="TaurusDevice property table",
+                            cmd_line_parser=None)
     widget = TaurusPropTable()
     args = sys.argv
     if len(args) == 1:

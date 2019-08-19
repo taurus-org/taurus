@@ -36,6 +36,7 @@ import logging.handlers
 import datetime
 import threading
 import socket
+import click
 
 import taurus
 from taurus.core.util.log import Logger
@@ -597,5 +598,42 @@ def main():
     app.exec_()
     w.stop_logging()
 
+
+@click.command('qlogmon')
+@click.option('--port', 'port', type=int,
+              default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
+              show_default=True,
+              help='port where log server is running')
+@click.option('--log-name', 'log_name', default=None,
+              help='filter specific log object')
+@click.option('--log-level', 'log_level',
+              type=click.Choice(['critical', 'error', 'warning', 'info',
+                                 'debug', 'trace']),
+              default='debug', show_default=True,
+              help='filter specific log level')
+def qlogmon_cmd(port, log_name, log_level):
+    """Show the Taurus Remote Log Monitor"""
+    import taurus
+    host = socket.gethostname()
+    level = getattr(taurus, log_level.capitalize(), taurus.Trace)
+
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(cmd_line_parser=None,
+                            app_name="Taurus remote logger")
+    w = QLoggingWidget(perspective="Remote")
+    w.setMinimumSize(1024, 600)
+
+    filterbar = w.getFilterBar()
+    filterbar.setLogLevel(level)
+    if log_name is not None:
+        filterbar.setFilterText(log_name)
+    w.getPerspectiveBar().setEnabled(False)
+    w.getQModel().connect_logging(host, port)
+    w.show()
+    app.exec_()
+    w.getQModel().disconnect_logging()
+
+
 if __name__ == '__main__':
     main()
+    # qlogmon_cmd

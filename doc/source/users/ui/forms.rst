@@ -47,11 +47,11 @@ You may also use TaurusForm as a stand-alone application for controlling some
 attributes or devices from the control system. You can launch the stand-alone TaurusForm
 with the following command::
 
-    taurusform [options] [<model_list>]
+    taurus form [options] [<model_list>]
     
 Run the following command for more details::
 
-    taurusform --help
+    taurus form --help
 
 The model list is optional and is a space-separated list of models for
 TaurusForm. Valid models are: attribute names, device names or alias. See
@@ -66,7 +66,7 @@ representing its attributes and/or widgets.
 .. figure:: /_static/forms03.png
   :align: center
   
-  A taurusform created with the following command `taurusform sys/tg_test/1
+  A Taurus form created with the following command `taurus form sys/tg_test/1
   sys/tg_test/1/state sys/tg_test/1/status sys/tg_test/1/string_scalar
   sys/tg_test/1/boolean_scalar sys/tg_test/1/boolean_spectrum
   sys/tg_test/1/float_scalar sys/tg_test/1/float_spectrum

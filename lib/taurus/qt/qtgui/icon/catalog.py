@@ -30,6 +30,7 @@ from __future__ import print_function
 from builtins import str
 
 import os
+import click
 import hashlib
 from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.input import GraphicalChoiceWidget
@@ -38,7 +39,7 @@ from taurus.external.qt import Qt
 
 
 class QIconCatalogPage(GraphicalChoiceWidget):
-    """A widget that shows all icons available under a given searchPath preffix
+    """A widget that shows all icons available under a given searchPath prefix
     """
 
     def __init__(self, prefix, iconSize=24, columns=10):
@@ -139,6 +140,7 @@ class QIconCatalogPage(GraphicalChoiceWidget):
         dlg.setIconPixmap(getCachedPixmap(name, size=128))
         dlg.exec_()
 
+
 class QIconCatalog(Qt.QTabWidget):
     """
     A widget that shows a tab for each registered search path prefix.
@@ -166,11 +168,11 @@ class QIconCatalog(Qt.QTabWidget):
         progress.setValue(nprefix)
 
 
-def main():
-    """launcher of QIconCatalog"""
+@click.command('icons')
+def icons_cmd():
+    """Show the Taurus icon catalog"""
     import sys
-    from taurus import Release
-    app = TaurusApplication(app_version=Release.version)
+    app = TaurusApplication(cmd_line_parser=None)
     w = QIconCatalog()
     w.setWindowTitle('Taurus Icon Catalog')
     w.show()
@@ -178,4 +180,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    icons_cmd()

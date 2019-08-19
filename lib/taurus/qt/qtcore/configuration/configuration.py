@@ -137,7 +137,7 @@ class BaseConfigurableClass(object):
     # the latest element of this list is considered the current version
     _supportedConfigVersions = ("__UNVERSIONED__",)
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.resetConfigurableItems()
 
     @staticmethod
@@ -444,8 +444,8 @@ class BaseConfigurableClass(object):
             )
             if not ofile:
                 return
-        if not isinstance(ofile, file):
-            ofile = open(ofile, 'w')
+        if isinstance(ofile, string_types):
+            ofile = open(ofile, 'wb')
         configdict = self.createConfig(allowUnpickable=False)
         self.info("Saving current settings in '%s'" % ofile.name)
         pickle.dump(configdict, ofile)
@@ -465,8 +465,8 @@ class BaseConfigurableClass(object):
                 self, 'Load Configuration', '', 'Configuration File (*.pck)')
             if not ifile:
                 return
-        if not isinstance(ifile, file):
-            ifile = open(ifile, 'r')
+        if isinstance(ifile, string_types):
+            ifile = open(ifile, 'rb')
 
         configdict = pickle.load(ifile)
         self.applyConfig(configdict)

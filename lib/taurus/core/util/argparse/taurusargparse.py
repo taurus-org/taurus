@@ -84,6 +84,12 @@ __all__ = ["get_taurus_parser", "init_taurus_args", "parse_taurus_args",
 __docformat__ = "restructuredtext"
 
 
+from taurus.core.util import log as __log
+
+__log.deprecated(dep='taurus.core.util.argparse', rel='4.5.4',
+                 alt='argparse or (better) click')
+
+
 def get_taurus_parser(parser=None):
     """ Returns a :class:`optparse.OptionParser` initialized with a
     :class:`optparse.OptionGroup` containning some taurus options.

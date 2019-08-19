@@ -119,8 +119,10 @@ class TangoAttrValue(TaurusAttrValue):
                     for _ in range(len(shape) - 1):
                         p.value = [p.value]
 
-        rvalue = p.value
-        wvalue = p.w_value
+        # Protect against DeviceAttribute not providing .value in some cases,
+        # seen e.g. in PyTango 9.3.0
+        rvalue = getattr(p, 'value', None)
+        wvalue = getattr(p, 'w_value', None)
         if numerical:
             units = self._attrRef._units
             if rvalue is not None:
@@ -324,6 +326,7 @@ class TangoAttribute(TaurusAttribute):
     def cleanUp(self):
         self.trace("[TangoAttribute] cleanUp")
         self._unsubscribeConfEvents()
+        self._unsubscribeChangeEvents()
         TaurusAttribute.cleanUp(self)
         self.__dev_hw_obj = None
         self._pytango_attrinfoex = None
@@ -417,7 +420,7 @@ class TangoAttribute(TaurusAttribute):
         elif fmt in (DataFormat._1D, DataFormat._2D):
             if PyTango.is_int_type(tgtype):
                 # cast to integer because the magnitude conversion gives floats
-                attrvalue = magnitude.astype('int64')
+                attrvalue = numpy.array(magnitude, copy=False, dtype='int64')
             elif tgtype == PyTango.CmdArgType.DevUChar:
                 attrvalue = magnitude.view('uint8')
             else:
@@ -600,7 +603,7 @@ class TangoAttribute(TaurusAttribute):
         assert len(listeners) >= 1
 
         if self.__subscription_state == SubscriptionState.Unsubscribed and len(listeners) == 1:
-            self._subscribeEvents()
+            self._subscribeChangeEvents()
 
         # if initial_subscription_state == SubscriptionState.Subscribed:
         if (len(listeners) > 1
@@ -630,7 +633,7 @@ class TangoAttribute(TaurusAttribute):
             return ret
 
         if self.__subscription_state != SubscriptionState.Unsubscribed:
-            self._unsubscribeEvents()
+            self._unsubscribeChangeEvents()
 
         return ret
 
@@ -654,7 +657,7 @@ class TangoAttribute(TaurusAttribute):
     def _process_event_exception(self, ex):
         pass
 
-    def _subscribeEvents(self):
+    def _subscribeChangeEvents(self):
         """ Enable subscription to the attribute events. If change events are
             not supported polling is activated """
             
@@ -705,7 +708,7 @@ class TangoAttribute(TaurusAttribute):
         
         return self.__chg_evt_id
                 
-    def _unsubscribeEvents(self):
+    def _unsubscribeChangeEvents(self):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object

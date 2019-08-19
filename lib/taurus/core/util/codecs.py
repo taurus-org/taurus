@@ -63,7 +63,7 @@ A Taurus related example::
     >>> f, d = codec.decode((v.format, v.value))
 """
 from __future__ import absolute_import
-from builtins import str
+from builtins import str, bytes
 
 import copy
 
@@ -79,7 +79,8 @@ from .log import Logger
 from .containers import CaselessDict
 
 __all__ = ["Codec", "NullCodec", "ZIPCodec", "BZ2Codec", "JSONCodec",
-           "FunctionCodec", "PlotCodec", "CodecPipeline", "CodecFactory"]
+           "Utf8Codec", "FunctionCodec", "PlotCodec", "CodecPipeline",
+           "CodecFactory"]
 
 __docformat__ = "restructuredtext"
 
@@ -171,7 +172,7 @@ class ZIPCodec(Codec):
         'Hello world\\nHello wo'"""
 
     def encode(self, data, *args, **kwargs):
-        """encodes the given data to a gzip string. The given data **must** be a string
+        """encodes the given data to gzip bytes. The given data **must** be bytes
 
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
 
@@ -183,7 +184,7 @@ class ZIPCodec(Codec):
         return format, zlib.compress(data[1])
 
     def decode(self, data, *args, **kwargs):
-        """decodes the given data from a gzip string.
+        """decodes the given data from a gzip bytes.
 
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
 
@@ -214,7 +215,7 @@ class BZ2Codec(Codec):
         'Hello world\\nHello wo'"""
 
     def encode(self, data, *args, **kwargs):
-        """encodes the given data to a bz2 string. The given data **must** be a string
+        """encodes the given data to bz2 bytes. The given data **must** be bytes
 
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
 
@@ -226,7 +227,7 @@ class BZ2Codec(Codec):
         return format, bz2.compress(data[1])
 
     def decode(self, data, *args, **kwargs):
-        """decodes the given data from a bz2 string.
+        """decodes the given data from bz2 bytes.
 
         :param data: (sequence[str, obj]) a sequence of two elements where the first item is the encoding format of the second item object
 
@@ -259,7 +260,7 @@ class PickleCodec(Codec):
         {'hello': 'world', 'goodbye': 1000}"""
 
     def encode(self, data, *args, **kwargs):
-        """encodes the given data to a pickle string. The given data **must** be
+        """encodes the given data to pickle bytes. The given data **must** be
         a python object that :mod:`pickle` is able to convert.
 
         :param data: (sequence[str, obj]) a sequence of two elements where the
@@ -331,7 +332,7 @@ class JSONCodec(Codec):
             format += '_%s' % data[0]
         # make it compact by default
         kwargs['separators'] = kwargs.get('separators', (',', ':'))
-        return format, json.dumps(data[1], *args, **kwargs).encode('utf-8')
+        return format, json.dumps(data[1], *args, **kwargs)
 
     def decode(self, data, *args, **kwargs):
         """decodes the given data from a json string.
@@ -350,8 +351,6 @@ class JSONCodec(Codec):
 
         if isinstance(data[1], buffer_types):
             data = data[0], str(data[1])
-        elif isinstance(data[1], bytes):
-            data = data[0], data[1].decode('utf-8')
         
         data = json.loads(data[1])
         if ensure_ascii:
@@ -378,6 +377,56 @@ class JSONCodec(Codec):
         for k, v in dct.items():
             newdict[self._transform_ascii(k)] = self._transform_ascii(v)
         return newdict
+
+
+class Utf8Codec(Codec):
+    """A codec able to encode/decode utf8 strings to/from bytes.
+    Useful to adapt i/o encodings in a codec pipe.
+
+    Example::
+
+        >>> from taurus.core.util.codecs import CodecFactory
+
+        >>> cf = CodecFactory()
+        >>> codec = cf.getCodec('zip_utf8_json')
+        >>>
+        >>> # first encode something
+        >>> data = { 'hello' : 'world', 'goodbye' : 1000 }
+        >>> format, encoded_data = codec.encode(("", data))
+        >>>
+        >>> # now decode it
+        >>> _, decoded_data = codec.decode((format, encoded_data))
+        >>> print decoded_data
+    """
+
+    def encode(self, data, *args, **kwargs):
+        """
+        Encodes the given utf8 string to bytes.
+
+        :param data: (sequence[str, obj]) a sequence of two elements where the
+                     first item is the encoding format of the second item object
+
+        :return: (sequence[str, obj]) a sequence of two elements where the
+                 first item is the encoding format of the second item object
+        """
+        format = 'utf8'
+        fmt, data = data
+        if len(fmt):
+            format += '_%s' % fmt
+        return format, str(data).encode()
+
+    def decode(self, data, *args, **kwargs):
+        """decodes the given data from a bytes.
+
+        :param data: (sequence[str, obj]) a sequence of two elements where the
+                     first item is the encoding format of the second item object
+
+        :return: (sequence[str, obj]) a sequence of two elements where the
+                 first item is the encoding format of the second item object
+        """
+        fmt, data = data
+        fmt = fmt.partition('_')[2]
+        return fmt, bytes(data).decode()
 
 
 class BSONCodec(Codec):
@@ -550,7 +599,19 @@ class VideoImageCodec(Codec):
 
         imgBuffer = data[1][struct.calcsize(self.VIDEO_HEADER_FORMAT):]
         dtype = self.__getDtypeId(header['imageMode'])
-        if header['imageMode'] == 7:
+
+        if header['imageMode'] == 6:
+            # RGB24, 3 bytes per pixel
+            rgba = numpy.fromstring(imgBuffer, dtype)
+            bbuf = rgba[0::3]
+            gbuf = rgba[1::3]
+            rbuf = rgba[2::3]
+            r = rbuf.reshape(header['height'], header['width'])
+            g = gbuf.reshape(header['height'], header['width'])
+            b = bbuf.reshape(header['height'], header['width'])
+            img2D = numpy.dstack((r, g, b))
+
+        elif header['imageMode'] == 7:
             # RGBA 4 bytes per pixel
             rgba = numpy.fromstring(imgBuffer, dtype)
             bbuf = rgba[0::4]
@@ -698,7 +759,7 @@ class VideoImageCodec(Codec):
             # TODO: other modes
             #'RGB555'     : 4,#Core.RGB555,
             #'RGB565'     : 5,#Core.RGB565,
-            #'RGB24'      : 6,#Core.RGB24,
+            'RGB24': 6,  # Core.RGB24,
             'RGB32': 7,  # Core.RGB32,
             #'BGR24'      : 8,#Core.BGR24,
             #'BGR32'      : 9,#Core.BGR32,
@@ -719,7 +780,7 @@ class VideoImageCodec(Codec):
                 3: 'L',
                 #'RGB555'     : Core.RGB555,
                 #'RGB565'     : Core.RGB565,
-                #'RGB24'      : Core.RGB24,
+                6: 'RGB24',  # Core.RGB24,
                 7: 'RGB32',  # Core.RGB32,
                 # 8     : 'BGR24',#Core.BGR24,
                 #'BGR32'      : Core.BGR32,
@@ -740,7 +801,7 @@ class VideoImageCodec(Codec):
                 3: 'uint64',
                 #'RGB555'     : Core.RGB555,
                 #'RGB565'     : Core.RGB565,
-                # 6      : 'uint8', # Core.RGB24,
+                6: 'uint8',  # Core.RGB24,
                 7: 'uint8',  # Core.RGB32,
                 #'BGR24'      : Core.BGR24,
                 #'BGR32'      : Core.BGR32,
@@ -854,6 +915,7 @@ class CodecFactory(Singleton, Logger):
     #: Default minimum map of registered codecs
     CODEC_MAP = CaselessDict({
         'json': JSONCodec,
+        'utf8': Utf8Codec,
         'bson': BSONCodec,
         'bz2': BZ2Codec,
         'zip': ZIPCodec,

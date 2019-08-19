@@ -59,7 +59,7 @@ def skipUnlessGui():
 
     '''
     Logger.deprecated(dep='skipUnlessGui', rel='4.0',
-                      alt='taurustestsuite --exclude-pattern')
+                      alt='taurus testsuite --exclude-pattern')
     return unittest.skipUnless(GUI_TESTS_ENABLED, 'requires GUI')
 
 

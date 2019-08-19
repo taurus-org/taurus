@@ -643,21 +643,22 @@ def get_env_var(env_var_name):
     if not os.path.exists(fname):
         return None
 
-    for line in file(fname):
-        strippedline = line.split('#', 1)[0].strip()
+    with open(fname) as f:
+        for line in f:
+            strippedline = line.split('#', 1)[0].strip()
 
-        if not strippedline:
-            # empty line
-            continue
+            if not strippedline:
+                # empty line
+                continue
 
-        tup = strippedline.split('=', 1)
-        if len(tup) != 2:
-            # illegal line!
-            continue
+            tup = strippedline.split('=', 1)
+            if len(tup) != 2:
+                # illegal line!
+                continue
 
-        key, val = list(map(str.strip, tup))
-        if key == env_var_name:
-            return val
+            key, val = list(map(str.strip, tup))
+            if key == env_var_name:
+                return val
 
 
 class TangoAuthority(TaurusAuthority):

@@ -41,23 +41,21 @@ __docformat__ = "restructuredtext"
 def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
            separateRows=False, prefix='', postfix='', wrapfunc=lambda x: x):
     """Indents a table by column.
-       - rows: A sequence of sequences of items, one sequence per row.
-       - hasHeader: True if the first row consists of the columns' names.
-       - headerChar: Character to be used for the row separator line
-         (if hasHeader==True or separateRows==True).
-       - delim: The column delimiter.
-       - justify: Determines how are data justified in their column.
-         Valid values are 'left','right' and 'center'.
-       - separateRows: True if rows are to be separated by a line
-         of 'headerChar's.
-       - prefix: A string prepended to each printed row.
-       - postfix: A string appended to each printed row.
-       - wrapfunc: A function f(text) for wrapping text; each element in
-         the table is first wrapped by this function.
-
-        Returns a list of strings. One for each row of the table
+    :param rows: A sequence of sequences of items, one sequence per row.
+    :param hasHeader: True if the first row consists of the columns' names.
+    :param headerChar: Character to be used for the row separator line
+    (if hasHeader==True or separateRows==True).
+    :param delim: The column delimiter.
+    :param justify: Determines how are data justified in their column.
+    Valid values are 'left','right' and 'center'.
+    :param separateRows: True if rows are to be separated by a line of
+    'headerChar's.
+    :param prefix: A string prepended to each printed row.
+    :param postfix: A string appended to each printed row.
+    :param wrapfunc: A function f(text) for wrapping text;
+    each element in the table is first wrapped by this function.
+    :return: a list of strings. One for each row of the table
     """
-
     # closure for breaking logical rows to physical, using wrapfunc
     def rowWrapper(row):
         newRows = [wrapfunc(item).split('\n') for item in row]
@@ -102,10 +100,9 @@ def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
 
 
 def wrap_onspace(text, width):
-    """
-    A word-wrap function that preserves existing line breaks
+    """A word-wrap function that preserves existing line breaks
     and most spaces in the text. Expects that existing line
-    breaks are posix newlines (\n).
+    breaks are posix newlines (\\\\n).
     """
     return reduce(lambda line, word, width=width: '%s%s%s' %
                   (line,

@@ -64,10 +64,9 @@ class BaseWidgetTestCase(object):
         from taurus.core.util.log import _DEPRECATION_COUNT
         self._depCounter = _DEPRECATION_COUNT
         self._depCounter.clear()
-
         app = TaurusApplication.instance()
         if app is None:
-            app = TaurusApplication([])
+            app = TaurusApplication([], cmd_line_parser=None)
         self._app = app
 
         if self._klass is not None:

@@ -25,10 +25,12 @@
 
 from builtins import str
 import sys
+import click
 import os.path
-import optparse
+import subprocess
 
 import taurus
+import taurus.tauruscustomsettings
 from taurus.external.qt import Qt
 from taurus.core.util.log import deprecation_decorator
 
@@ -73,17 +75,24 @@ def append_or_create_env_list(env, env_name, env_value):
 
 
 def get_qtdesigner_bin():
+    designer_bin = getattr(taurus.tauruscustomsettings, 'QT_DESIGNER_PATH', None)
+    if designer_bin:
+        return designer_bin
     designer_bin = str(Qt.QLibraryInfo.location(Qt.QLibraryInfo.BinariesPath))
 
     plat = sys.platform
     if plat == "darwin":
         designer_bin = os.path.join(
-            designer_bin, "Designer.app", "Contents", "MacOS")
+            designer_bin, "Designer.app", "Contents", "MacOS", "designer")
     elif plat in ("win32", "nt"):
-        import PyQt4
-        designer_bin = os.path.abspath(os.path.dirname(PyQt4.__file__))
-
-    designer_bin = os.path.join(designer_bin, "designer")
+        designer_bin = os.path.join(designer_bin, "designer.exe")
+        if not os.path.exists(designer_bin):
+            # some installations don't properly install designer
+            # in QLibraryInfo.BinariesPath. We do a best effort to find it
+            designer_bin = subprocess.check_output('where designer')
+            designer_bin = designer_bin.decode().strip()
+    else:
+        designer_bin = os.path.join(designer_bin, "designer")
     return designer_bin
 
 
@@ -151,31 +160,17 @@ def qtdesigner_start(args, env=None):
     return designer.exitCode()
 
 
-def main(env=None):
-    if env is not None:
-        taurus.info('ignoring obsolete env parameter to qtdesigner_start')
+@click.command('designer')
+@click.argument('ui_files', nargs=-1)
+@click.option("--taurus-path", "tauruspath",
+              metavar='TAURUSPATH',
+              default=None,
+              help="additional directories to look for taurus widgets")
+def designer_cmd(ui_files, tauruspath):
+    """Launch a Taurus-customized Qt Designer application"""
 
-    version = "taurusdesigner %s" % (taurus.Release.version)
-    usage = "Usage: %prog [options] <ui file(s)>"
-    description = "The Qt designer application customized for taurus"
-    parser = optparse.OptionParser(
-        version=version, usage=usage, description=description)
-    parser.add_option("--taurus-path", dest="tauruspath", default="",
-                      help="additional directories to look for taurus widgets")
-    parser.add_option("--qt-designer-path", dest="pyqtdesignerpath", default="",
-                      help="additional directories to look for python qt widgets")
-
-    options, args = parser.parse_args()
-
-    taurus_extra_path = None
-    # Set TAURUSQTDESIGNERPATH
-    if len(options.tauruspath) > 0:
-        taurus_extra_path = options.tauruspath
-
-    if env is None:
-        env = get_taurus_designer_env(taurus_extra_path=taurus_extra_path)
-
-    sys.exit(qtdesigner_start(args, env=env))
+    env = get_taurus_designer_env(taurus_extra_path=tauruspath)
+    sys.exit(qtdesigner_start(ui_files, env=env))
 
 if __name__ == "__main__":
-    main()
+    designer_cmd()

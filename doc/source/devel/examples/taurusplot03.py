@@ -4,7 +4,7 @@ import sys
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.plot import TaurusPlot, CurveAppearanceProperties
 from taurus.qt.qtgui.application import TaurusApplication
-app = TaurusApplication(sys.argv)
+app = TaurusApplication(sys.argv, cmd_line_parser=None)
 ##########################
 # BEGIN EXAMPLE CODE
 ##########################

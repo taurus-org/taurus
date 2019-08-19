@@ -51,7 +51,7 @@ from taurus.core.util.log import Logger, deprecation_decorator
 from taurus.core.taurusdevice import TaurusDevice
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.util.enumeration import Enumeration
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from taurus.qt.qtgui.base import TaurusBaseComponent
 from taurus.qt.qtgui.util import (QT_ATTRIBUTE_QUALITY_PALETTE, QT_DEVICE_STATE_PALETTE,
                                   ExternalAppAction, TaurusWidgetFactory)
@@ -110,7 +110,7 @@ def parseTangoUri(name):
 
 
 class QEmitter(Qt.QObject):
-    updateView = Qt.pyqtSignal(object)
+    updateView = Qt.pyqtSignal(compat.PY_OBJECT)
 
 
 class TaurusGraphicsUpdateThread(Qt.QThread):
@@ -867,12 +867,21 @@ class QGraphicsTextBoxing(Qt.QGraphicsItemGroup):
     _TEXT_RATIO = 0.8
 
     def __init__(self, parent=None, scene=None):
-        Qt.QGraphicsItemGroup.__init__(self, parent, scene)
-        self._rect = Qt.QGraphicsRectItem(self, scene)
+        Qt.QGraphicsItemGroup.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
+        self._rect = Qt.QGraphicsRectItem(self)
+        if scene is not None:
+            scene.addItem(self._rect)
         self._rect.setBrush(Qt.QBrush(Qt.Qt.NoBrush))
         self._rect.setPen(Qt.QPen(Qt.Qt.NoPen))
-        self._text = Qt.QGraphicsTextItem(self, scene)
-        self._text.scale(self._TEXT_RATIO, self._TEXT_RATIO)
+        self._text = Qt.QGraphicsTextItem(self)
+        if scene is not None:
+            scene.addItem(self._text)
+        self._text.setTransform(
+            Qt.QTransform.fromScale(self._TEXT_RATIO, self._TEXT_RATIO),
+            True)
+
         self._validBackground = None
         # using that like the previous code create a worst result
         self.__layoutValide = True
@@ -1163,8 +1172,9 @@ class TaurusGraphicsAttributeItem(TaurusGraphicsItem):
                 _frName = None
             else:
                 _frName = 'rvalue.magnitude'
-            text = self._currText = self.getDisplayValue(fragmentName=_frName)
-        self._currText = text.decode('unicode-escape')
+            text = self.getDisplayValue(fragmentName=_frName)
+
+        self._currText = text
         self._currHtmlText = None
 
         TaurusGraphicsItem.updateStyle(self)

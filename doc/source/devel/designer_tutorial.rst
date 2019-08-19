@@ -6,13 +6,13 @@ Taurus Qt Designer tutorial
 
 Taurus widgets behave just as any other Qt widget, and as such, they can be used
 to create GUIs in a regular way, both programmatically or using the Qt designer.
-For convenience, Taurus provides the `taurusdesigner` command that launches the
+For convenience, Taurus provides the `taurus designer` command that launches the
 standard Qt designer application extended to show also the widgets provided by
 Taurus.
 
 To launch it, just execute::
   
-  taurusdesigner
+  taurus designer
 
 .. tip::
 

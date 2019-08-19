@@ -27,6 +27,7 @@
 itemsmodel Model and view for new CurveItem configuration
 """
 from builtins import object
+from builtins import bytes
 #raise UnimplementedError('Under Construction!')
 
 import copy
@@ -61,6 +62,16 @@ class TaurusModelItem(object):
         self.setSrc(src)
         if display is not None:
             self.display = display
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        result.icon = Qt.QIcon(self.icon)
+        result.ok = copy.deepcopy(self.ok, memo)
+        result._src = copy.deepcopy(self._src, memo)
+        result.display = copy.deepcopy(self.display, memo)
+        return result
 
     def __repr__(self):
         ret = "TaurusModelItem('%s')" % (self.display)
@@ -236,11 +247,12 @@ class TaurusModelModel(Qt.QAbstractListModel):
         if row == -1 and parent.isValid():
             row = parent.row()
         if data.hasFormat(TAURUS_ATTR_MIME_TYPE):
-            items = [str(data.data(TAURUS_ATTR_MIME_TYPE))]
+            items = [bytes(data.data(TAURUS_ATTR_MIME_TYPE)).decode("utf-8")]
         elif data.hasFormat(TAURUS_MODEL_MIME_TYPE):
-            items = [str(data.data(TAURUS_MODEL_MIME_TYPE))]
+            items = [bytes(data.data(TAURUS_MODEL_MIME_TYPE)).decode("utf-8")]
         elif data.hasFormat(TAURUS_MODEL_LIST_MIME_TYPE):
-            items = str(data.data(TAURUS_MODEL_LIST_MIME_TYPE)).split()
+            items = bytes(
+                data.data(TAURUS_MODEL_LIST_MIME_TYPE)).decode("utf-8").split()
         elif data.hasText():
             items = [str(data.text())]
         else:
@@ -442,7 +454,7 @@ class TaurusModelList(Qt.QListView):
 if __name__ == "__main__":
     from taurus.qt.qtgui.application import TaurusApplication
     import sys
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
     w = TaurusModelList()
     w.addModels(["item%i" % i for i in range(3)] +
                 [TaurusModelItem(src='src1', display='d1')] + [('src2', 'd2')])

@@ -84,7 +84,7 @@ EXTRA_SCHEME_MODULES = []
 #: Consider using the API for modifying this on a per-widget or per-class
 #: basis at runtime, or using the related `--default-formatter` parameter 
 #: from TaurusApplication, e.g.:
-#:     $ taurusform MODEL --default-formatter='{:2.3f}'
+#:     $ taurus form MODEL --default-formatter='{:2.3f}'
 #: The formatter can be a python format string or the name of a formatter
 #: callable, e.g.
 #: DEFAULT_FORMATTER = '{0}'
@@ -135,6 +135,13 @@ QT_THEME_NAME = 'Tango'
 #: In Linux the QT_THEME_NAME is not applied (to respect the system theme)
 #: setting QT_THEME_FORCE_ON_LINUX=True overrides this.
 QT_THEME_FORCE_ON_LINUX = True
+
+#: Full Qt designer path (including filename. Default is None, meaning:
+#: - linux: look for the system designer following Qt.QLibraryInfo.BinariesPath
+#: - windows: look for the system designer following
+#: Qt.QLibraryInfo.BinariesPath. If this fails, taurus tries to locate binary
+#: manually
+QT_DESIGNER_PATH = None
 
 #: Custom organization logo. Set the absolute path to an image file to be used as your
 #: organization logo. Qt registered paths can also be used. 

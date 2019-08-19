@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     bb = QButtonBox()
     bb.okClicked.connect(on_ok)
     bb.cancelClicked.connect(on_cancel)

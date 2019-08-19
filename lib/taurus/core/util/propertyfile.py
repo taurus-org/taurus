@@ -246,9 +246,6 @@ class Properties(object):
     def load(self, stream):
         """ Load properties from an open file stream """
 
-        # For the time being only accept file input streams
-        if type(stream) is not file:
-            raise TypeError('Argument should be a file object!')
         # Check for the opened mode
         if stream.mode != 'r':
             raise ValueError('Stream should be opened in read-only mode!')

@@ -230,10 +230,11 @@ if PYQT5 and getattr(__config, 'QT_AVOID_ABORT_ON_EXCEPTION', True):
     # TODO: check if we also want to do this for PySide(2)
     __addExceptHook()
 
-__log.info('Using %s (v%s , with Qt %s)',
+__log.info('Using %s (v%s with Qt %s and Python %s)',
            API_NAME,
            PYQT_VERSION or PYSIDE_VERSION,
-           QT_VERSION)
+           QT_VERSION,
+           sys.version.split()[0])
 
 
 # --------------------------------------------------------------------------

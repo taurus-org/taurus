@@ -396,6 +396,17 @@ class TaurusFactory(object):
             ret.append(TaurusElementType.Authority)
         return ret
 
+    def getValidatorFromName(self, name):
+        """
+        Obtain the validator object corresponding to the given model
+        name. If the model name is not valid for any TaurusModel class,
+        it returns None
+        """
+        modeltypes = self.getValidTypesForName(name)
+        if not modeltypes:
+            return None
+        return self.elementTypesMap[modeltypes[0]].getNameValidator()
+
     def findObjectClass(self, absolute_name):
         """
         Obtain the class object corresponding to the given name.
