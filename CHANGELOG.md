@@ -17,6 +17,12 @@ develop branch) won't be reflected in this file.
 ### Deprecated
 ### Fixed
 
+## [4.6.1] - 2019-08-19
+Hotfix for auto-deployment in PyPI with Travis. No other difference from 4.6.0.
+
+### Fixed
+- Travis not deploying tar.gz (#990)
+
 ## [4.6.0] - 2019-08-19
 [Jul19 milestone](https://github.com/taurus-org/taurus/milestone/13)
 
