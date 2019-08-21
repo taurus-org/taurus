@@ -107,7 +107,7 @@ expected of Taurus (which are considered "extras"). For example:
 For a complete list of "extra" features and their corresponding
 requirements, execute the following command::
 
-    python -c 'import taurus; taurus.check_dependencies()'
+    taurus check-deps
 
 
 How you install the required dependencies depends on your preferred
