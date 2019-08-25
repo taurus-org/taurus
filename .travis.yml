@@ -33,7 +33,7 @@ script:
   - python -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
   - set -e
   - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py install"
-  - docker exec -t taurus-test /bin/bash -c "TAURUS_STARTER_WAIT=5 taurus testsuite -e 'taurus\.core\.util\.test\.test_timer'"
+  - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python -m pytest lib/taurus"
   - docker exec -t taurus-test /bin/bash -c "cd /taurus ; sphinx-build -qW doc/source/ build/sphinx/html"
   # deploy sphinx-built docs to taurus-doc repo
   - if [[ "$DOCKER_IMG" == "cpascual/taurus-test:debian-stretch" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
