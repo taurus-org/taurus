@@ -15,9 +15,17 @@ env:
 matrix:
   include:
     - python: 3.6
-      env: TOXENV=flake8
+      env: TOXENV=py27-qt4
+    - python: 3.6
+      env: TOXENV=py27
+    - python: 3.6
+      env: TOXENV=py35
     - python: 3.6
       env: TOXENV=py36
+    - python: 3.7
+      env: TOXENV=py37
+    - python: 3.6
+      env: TOXENV=flake8
   allow_failures:
     - python: 3.6
       env: TOXENV=flake8
@@ -25,11 +33,7 @@ matrix:
 
 before_install:
   # install conda
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget -nv https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget -nv https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
+  - wget -nv https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
