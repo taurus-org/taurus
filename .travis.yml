@@ -17,6 +17,10 @@ matrix:
       env: TOXENV=flake8
     - python: 3.6
       env: TOXENV=py36
+  allow_failures:
+    - python: 3.6
+      env: TOXENV=flake8
+
 
 before_install:
   # install conda
