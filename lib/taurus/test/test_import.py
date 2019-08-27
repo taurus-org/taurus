@@ -51,6 +51,7 @@ class TaurusImportTestCase(unittest.TestCase):
         exclude_patterns = [r'taurus\.qt\.qtgui\.extra_.*',
                             r'taurus\.qt\.qtgui\.qwt5',
                             r'taurus\.external\.qt\.QtUiTools',
+                            r'taurus\.external\.qt\.QtWebKit',
                             r'taurus\.external\.qt\.Qwt5',
                             ]
 
