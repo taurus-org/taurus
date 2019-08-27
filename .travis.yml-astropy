@@ -1,4 +1,5 @@
 language: python
+
 python:
   - 3.6
 
@@ -11,29 +12,19 @@ env:
   global:
     - secure: "CCVtBQ8xIrOwUJGXxd81wyD1ng72Hf6d9y2U+5X88aVGTrOa8/hut10C+Jmnyf0NTZmGh/49eVvoWRvLDhjpECFMuO/bLkiNtVjz0VtWAHT2W98QJYmeymPzx86tGa+iAZCwlgXeRQFJCw1eqQvBYnjumMZWb9kj3fqgpqpSRH5SWnuRCmbxOoelmtTTUC8YKkzasAHYs03faR0DCq0oBmDy9nU2cfcRN7oE5wXUfEnDwNaoHbiQA4wiJbzNpBV432bIDtzD7gsFdiIT6ExJVFHi1gWB32bGZdbiDPpej7I2fW5qunbzUXS5doVhoBU67qqhI241RJ+AOBVb+sQnF8gwwi9/5/mcORiSBX7yI59YsOXYwo2YW+8PGr3OlF3t0+z92Q3uPytUXysdtVO4dExnLbV8OEzgmWCkv2M3GIajjE3isYAaBItqSBJHJnRClza4nNg2WLwmqLPBgM4AuSUZEpB/8kbz9kTecVEb13WrlTCNc8KVRGR+EGa4KmWADwOOxurxeb/NsTteOnzdyfrP2TXKeGOkN2uqBGYJaI7OoefsgLG7VF/+Sz4MTETMs/gZojwpO6igKBS1sJlcXujz/kt125b8gcSnrAiU1TjbZIBew/D40H64tpBcuk+dqF6i6HCoV2QmZ1QEpHOSoDk9FEaKMlgKhQj59/cWcI8="
 
-matrix:
-  include:
-    - python: 3.6
-      env: TOXENV=flake8
-    - python: 3.6
-      env: TOXENV=py36
-
 before_install:
   # start a docker-based tango system with tango-test
-  - if [[ "$TOXENV" == "flake8" ]]; then
-        echo "Skipping tango initialization";
-    else
-        docker-compose -f ci/tango_docker-compose.yml up -d;
-    fi
-  - export TANGO_HOST=localhost:10000
+  - docker-compose -f ci/tango_docker-compose.yml
 
 install:
-  - pip install -U tox tox-conda
-
+    # use astropy's ci-helpers to set up conda
+    - git clone --depth 1 git://github.com/astropy/ci-helpers.git
+    - source ci-helpers/travis/setup_conda.sh
+  
 script:
   - docker version
   - docker-compose version
-  - tox
+  - pytest
 
 deploy:
   # deploy to pypi when a version tag is pushed to the official repo
