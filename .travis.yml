@@ -41,8 +41,8 @@ before_install:
         echo "Skipping tango initialization";
     else
         docker-compose -f ci/tango_docker-compose.yml up -d;
+        echo 'TANGO_HOST=localhost:10000' >> $HOME/.tangorc;
     fi
-  - export TANGO_HOST=localhost:10000
 
 install:
   - pip install -U tox tox-conda
