@@ -26,10 +26,12 @@
 """Test for taurus.qt.qtgui.panel.taurusvalue"""
 
 import unittest
+import pytest
 from taurus.test import insertTest
 from taurus.qt.qtgui.test import BaseWidgetTestCase
 from taurus.qt.qtgui.panel import TaurusValue
 from taurus.core.tango.test import TangoSchemeTestLauncher
+
 
 DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
 
@@ -59,6 +61,7 @@ class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
         self.assertEqual(label, shownLabel, msg)
         self.assertMaxDeprecations(1)
 
+    @pytest.mark.flaky
     def texts(self, model=None, expected=None, fgRole=None, maxdepr=0):
         """Checks the texts for scalar attributes"""
         self._widget.setModel(model)
@@ -75,6 +78,7 @@ class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
         self.assertEqual(got, expected, msg)
         self.assertMaxDeprecations(maxdepr)
 
+    @pytest.mark.flaky
     def test_labelCaseSensitivity(self):
         """Verify that case is respected of in the label widget"""
         w = self._widget
