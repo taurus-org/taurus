@@ -610,7 +610,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             result = [TaurusValuesTableButton_W, TaurusValueLineEdit]
             if modelType in (DataType.Float, DataType.Integer):
                 try:
-                    import taurus.qt.qtgui.qwt5
+                    import PyQt4.Qwt5  # noqa
                     result.insert(0, TaurusArrayEditorButton)
                 except:
                     pass
