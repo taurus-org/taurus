@@ -15,14 +15,16 @@ env:
 matrix:
   include:
     - env: TOXENV=flake8
-    - env: TOXENV=py37-docs
+    - env: TOXENV=py37-qt5-docs
+    - env: TOXENV=py37-ps2
+    - env: TOXENV=py37-qt5
+    - env: TOXENV=py36-qt5
+    - env: TOXENV=py35-qt5
+    - env: TOXENV=py27-qt5
     - env: TOXENV=py27-qt4
-    - env: TOXENV=py27
-    - env: TOXENV=py35
-    - env: TOXENV=py36
-    - env: TOXENV=py37
   allow_failures:
     - env: TOXENV=flake8
+    - env: TOXENV=py37-ps2
 
 
 before_install:
