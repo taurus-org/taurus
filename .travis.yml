@@ -14,12 +14,13 @@ env:
 
 matrix:
   include:
+    - env: TOXENV=flake8
+    - env: TOXENV=py37-docs
     - env: TOXENV=py27-qt4
     - env: TOXENV=py27
     - env: TOXENV=py35
     - env: TOXENV=py36
     - env: TOXENV=py37
-    - env: TOXENV=flake8
   allow_failures:
     - env: TOXENV=flake8
 
@@ -47,6 +48,27 @@ install:
 
 script:
   - tox
+
+after_success:
+  # Deploy docs to taurus-org/taurus-doc
+  - if [[ "$TOXENV" == "py37-docs" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
+      pip install doctr ;
+      touch build/sphinx/html/.nojekyll;
+      if [[ "${TRAVIS_BRANCH}" == "develop" ]]; then
+        doctr deploy . ;
+      else
+        doctr deploy "v-$TRAVIS_BRANCH"  ;
+      fi;
+    else
+      echo "Skip doc deployment for $TOXENV in $TRAVIS_REPO_SLUG";
+    fi
+
+doctr:
+  key-path : ci/github_deploy_key.enc
+  deploy-repo : taurus-org/taurus-doc
+  require-master: false
+  sync: true
+  built-docs: build/sphinx/html/
 
 deploy:
   # deploy to pypi when a version tag is pushed to the official repo
