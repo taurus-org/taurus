@@ -52,7 +52,7 @@ script:
 
 after_success:
   # Deploy docs to taurus-org/taurus-doc
-  - if [[ "$TOXENV" == "py37-docs" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
+  - if [[ "$TOXENV" == "py37-qt5-docs" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
       pip install doctr ;
       touch build/sphinx/html/.nojekyll;
       if [[ "${TRAVIS_BRANCH}" == "develop" ]]; then
