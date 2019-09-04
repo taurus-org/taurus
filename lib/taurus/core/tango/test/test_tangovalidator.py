@@ -38,11 +38,11 @@ from taurus.core.tango.tangovalidator import (TangoAuthorityNameValidator,
                                               TangoAttributeNameValidator)
 
 import PyTango
-import socket
+from taurus.core.util.fqdn import fqdn_no_alias
 
 __PY_TANGO_HOST = PyTango.ApiUtil.get_env_var("TANGO_HOST")
 host, port = __PY_TANGO_HOST.split(':')
-__TANGO_HOST = "{0}:{1}".format(socket.getfqdn(host), port)
+__TANGO_HOST = "{0}:{1}".format(fqdn_no_alias(host), port)
 
 #=========================================================================
 # Tests for Tango Authority  name validation
