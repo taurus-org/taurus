@@ -44,7 +44,6 @@ def fqdn_no_alias(hostname):
         real, aliases, _ = socket.gethostbyname_ex(hostname)
     except (socket.gaierror, socket.herror) as e:
         # return the given hostname in case of error
-        warning("fqdn_no_alias: problem resolving %s: %r", hostname, e)
         return hostname
 
     if aliases:
