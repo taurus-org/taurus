@@ -40,7 +40,6 @@ def fqdn_no_alias(hostname):
     if hostname == "localhost" or "." in hostname:
         # optimization: leave localhost or names including domain as they are
         return hostname
-
     try:
         real, aliases, _ = socket.gethostbyname_ex(hostname)
     except (socket.gaierror, socket.herror) as e:
@@ -49,6 +48,11 @@ def fqdn_no_alias(hostname):
         return hostname
 
     if aliases:
+        if hostname == real or hostname in aliases:
+            # in some corner cases (e.g. when defining several aliases in a
+            # hosts file), the hostname may be one of the aliases.
+            return hostname
+
         # return alias if it exists
         if len(aliases) > 1:
             # warn in the (unusual) case that there is more than 1 alias
@@ -64,20 +68,31 @@ def fqdn_no_alias(hostname):
 
 if __name__ == '__main__':
 
-    # TODO: convert this into a pytest test
-    #       (but need to figure out how to generalize the "www" test)
+    # TODO: once we move to PyTest, test_fqdn_no_alias could be put in the
+    #       official tests (test_fqdn_no_alias_local would require to be
+    #       generalized)
 
-    # test nonexistent
-    assert fqdn_no_alias("NONEXISTENT") == "NONEXISTENT"
-    # test localhost
-    assert fqdn_no_alias("localhost") == "localhost"
-    # test with an existent host in your domain (with just host name)
-    # TODO: this is domain-specific! it needs to be generalized somehow
-    print(socket.gethostbyname_ex('www'))  # use something in your domain
-    print("socket.getfqdn:", socket.getfqdn("www"))
-    assert fqdn_no_alias("www") == "www.cells.es"
-    # test with an aliased full hostname+domain (the alias is not resolved!)
-    print(socket.gethostbyname_ex('mail.google.com'))
-    print("socket.getfqdn:", socket.getfqdn("mail.google.com"))
-    assert fqdn_no_alias("mail.google.com") == "mail.google.com"
+    def test_fqdn_no_alias():
+        """tests for test_fqdn_no_alias"""
+        assert fqdn_no_alias("NONEXISTENT") == "NONEXISTENT"
+        # test localhost
+        assert fqdn_no_alias("localhost") == "localhost"
+        # test with an aliased full hostname+domain (alias should not resolv!)
+        print(socket.gethostbyname_ex('mail.google.com'))
+        print("socket.getfqdn:", socket.getfqdn("mail.google.com"))
+        assert fqdn_no_alias("mail.google.com") == "mail.google.com"
+
+
+    def test_fqdn_no_alias_local(name="www"):
+        import re
+        # test with an existent host in your domain
+        print(socket.gethostbyname_ex(name))
+        print("socket.getfqdn:", socket.getfqdn(name))
+        assert re.match(name + "\.[a-zA-Z0-9\.-]+", fqdn_no_alias(name))
+
+
+    test_fqdn_no_alias()
+    test_fqdn_no_alias_local()
+
+
 
