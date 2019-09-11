@@ -369,8 +369,8 @@ class PanelDescription(TaurusGuiComponentDescription):
 
         :param args:
         :param instrumentkey: (str)
-        :param modelinconfig: (bool) whther to store model in settigns file or not
-        :param modifiablebyuser: (bool) whether user can edit widget or not
+        :param model_in_config: (bool) whther to store model in settigns file or not
+        :param modifiable_by_user: (bool) whether user can edit widget or not
         :param formatter: (str) formatter used by this widget
 
         Additionally, extra configuration options can be passed in constructor as key word arguments.
@@ -378,8 +378,8 @@ class PanelDescription(TaurusGuiComponentDescription):
         """
         self.instrumentkey = kwargs.pop('instrumentkey', None)
         self.icon = kwargs.pop("icon", None)
-        self.model_in_config = kwargs.pop("modelinconfig", None)
-        self.modifiable_by_user = kwargs.pop("modifiablebyuser", None)
+        self.model_in_config = kwargs.pop("model_in_config", None)
+        self.modifiable_by_user = kwargs.pop("modifiable_by_user", None)
         self.formatter = kwargs.pop("formatter", None)
         self.widget_properties = kwargs.pop("widget_properties", None)
         TaurusGuiComponentDescription.__init__(self, *args, **kwargs)

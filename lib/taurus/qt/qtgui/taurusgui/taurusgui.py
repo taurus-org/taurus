@@ -1305,10 +1305,10 @@ class TaurusGui(TaurusMainWindow):
                     instrumentkey = self.IMPLICIT_ASSOCIATION
 
                 if isinstance(w, TaurusBaseComponent):
-                    if p.modifiablebyuser is not None:
-                        w.setModifiableByUser(p.modifiablebyuser)
-                    if p.modelinconfig is not None:
-                        w.setModelInConfig(p.modelinconfig)
+                    if p.modifiable_by_user is not None:
+                        w.setModifiableByUser(p.modifiable_by_user)
+                    if p.model_in_config is not None:
+                        w.setModelInConfig(p.model_in_config)
                     if p.formatter is not None:
                         w.setFormat(p.formatter)
 
