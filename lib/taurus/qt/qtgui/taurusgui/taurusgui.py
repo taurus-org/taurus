@@ -1305,9 +1305,12 @@ class TaurusGui(TaurusMainWindow):
                     instrumentkey = self.IMPLICIT_ASSOCIATION
 
                 if isinstance(w, TaurusBaseComponent):
-                    w.setModifiableByUser(p.modifiablebyuser)
-                    w.setModelInConfig(p.modelinconfig)
-                    w.setFormat(p.formatter)
+                    if p.modifiablebyuser is not None:
+                        w.setModifiableByUser(p.modifiablebyuser)
+                    if p.modelinconfig is not None:
+                        w.setModelInConfig(p.modelinconfig)
+                    if p.formatter is not None:
+                        w.setFormat(p.formatter)
 
                 icon = p.icon
                 # the pool instruments may change when the pool config changes,

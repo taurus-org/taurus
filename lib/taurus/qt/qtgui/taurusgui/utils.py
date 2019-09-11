@@ -378,10 +378,10 @@ class PanelDescription(TaurusGuiComponentDescription):
         """
         self.instrumentkey = kwargs.pop('instrumentkey', None)
         self.icon = kwargs.pop("icon", None)
-        self.model_in_config = kwargs.pop("modelinconfig", False)
-        self.modifiable_by_user = kwargs.pop("modifiablebyuser", False)
-        self.formatter = kwargs.pop("formatter", 'taurus.qt.qtgui.base.taurusbase.defaultFormatter')
-        self.widget_properties = kwargs.pop("widget_properties", {})
+        self.model_in_config = kwargs.pop("modelinconfig", None)
+        self.modifiable_by_user = kwargs.pop("modifiablebyuser", None)
+        self.formatter = kwargs.pop("formatter", None)
+        self.widget_properties = kwargs.pop("widget_properties", None)
         TaurusGuiComponentDescription.__init__(self, *args, **kwargs)
 
     @staticmethod
