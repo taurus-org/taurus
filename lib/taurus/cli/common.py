@@ -24,49 +24,74 @@
 import click
 
 
-log_port = click.option('--port', 'port', type=int,
-              default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
-              show_default=True,
-              help='port where log server is running')
+log_port = click.option(
+    '--port', 'port', type=int,
+    default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
+    show_default=True,
+    help='port where log server is running',
+)
 
-log_name = click.option('--log-name', 'log_name', default=None,
-              help='filter specific log object')
+log_name = click.option(
+    '--log-name', 'log_name',
+    default=None,
+    help='filter specific log object',
+)
 
-log_level = click.option('--log-level', 'log_level',
-              type=click.Choice(['critical', 'error', 'warning', 'info',
-                                 'debug', 'trace']),
-              default='debug', show_default=True,
-              help='filter specific log level')
+log_level = click.option(
+    '--log-level', 'log_level',
+    type=click.Choice(['critical', 'error', 'warning', 'info',
+                       'debug', 'trace']),
+    default='debug', show_default=True,
+    help='filter specific log level',
+)
 
-config_file = click.option('--config', 'config_file', type=click.File('rb'),
-              help='configuration file for initialization')
+config_file = click.option(
+    '--config', 'config_file',
+    type=click.File('rb'),
+    help='configuration file for initialization',
+)
 
 def window_name(default):
-    window_name = click.option('--window-name', 'window_name',
-              default=default,
-              help='Name of the window')
+    window_name = click.option(
+        '--window-name', 'window_name',
+        default=default,
+        help='Name of the window',
+    )
     return window_name
 
-models = click.argument('models', nargs=-1)
+models = click.argument(
+    'models', nargs=-1,
+)
 
-x_axis_mode = click.option("-x", "--x-axis-mode", "x_axis_mode",
-              type=click.Choice(['t', 'n']),
-              default='n',
-              show_default=True,
-              help=('X axis mode. "t" implies using a Date axis'
-                    + '"n" uses the regular axis')
-              )
+x_axis_mode = click.option(
+    "-x", "--x-axis-mode", "x_axis_mode",
+    type=click.Choice(['t', 'n']),
+    default='n',
+    show_default=True,
+    help=('X axis mode. "t" implies using a Date axis'
+          + '"n" uses the regular axis'),
+)
 
-demo = click.option("--demo", is_flag=True, help="show a demo of the widget")
+demo = click.option(
+    "--demo",
+    is_flag=True,
+    help="show a demo of the widget",
+)
 
-model = click.argument('model', nargs=1, required=False)
+model = click.argument(
+    'model',
+    nargs=1,
+    required=False,
+)
 
 def buffer(default):
-    o = click.option('-b', '--buffer', 'max_buffer_size', type=int,
-              default=default,
-              show_default=True,
-              help=("maximum number of values to be stacked "
-                    + "(when reached, the oldest values will be "
-                    + "discarded)")
-              )
+    o = click.option(
+        '-b', '--buffer', 'max_buffer_size',
+        type=int,
+        default=default,
+        show_default=True,
+        help=("maximum number of values to be stacked "
+              + "(when reached, the oldest values will be "
+              + "discarded)"),
+        )
     return o
