@@ -23,6 +23,7 @@
 
 import click
 from .taurustrend import TaurusTrend
+from taurus.cli import common as cli_common
 
 
 @click.group('qwt5')
@@ -32,20 +33,11 @@ def qwt5():
 
 
 @qwt5.command('plot')
-@click.argument('models', nargs=-1)
-@click.option('--config', 'config_file', type=click.File('rb'),
-              help='configuration file for initialization')
-@click.option("-x", "--x-axis-mode", "x_axis_mode",
-              type=click.Choice(['t', 'n']),
-              default='n',
-              show_default=True,
-              help=('X axis mode. "t" implies using a Date axis'
-                    + '"n" uses the regular axis')
-              )
-@click.option("--demo", is_flag=True, help="show a demo of the widget")
-@click.option('--window-name', 'window_name',
-              default='TaurusPlot (qwt5)',
-              help='Name of the window')
+@cli_common.models
+@cli_common.config_file
+@cli_common.x_axis_mode
+@cli_common.demo
+@cli_common.window_name("TaurusPlot (qwt5)")
 def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
     """Shows a plot for the given models"""
     from .taurusplot import plot_main
@@ -58,14 +50,11 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
 
 
 @qwt5.command('trend')
-@click.argument('models', nargs=-1)
-@click.option("-x", "--x-axis-mode", "x_axis_mode",
-              type=click.Choice(['t', 'n']),
-              default='n',
-              show_default=True,
-              help=('X axis mode. "t" implies using a Date axis'
-                    + '"n" uses the regular axis')
-              )
+@cli_common.models
+@cli_common.x_axis_mode
+@cli_common.config_file
+@cli_common.demo
+@cli_common.window_name
 @click.option('-a', '--use-archiving', 'use_archiving',
               is_flag=True,
               default=False,
@@ -78,12 +67,6 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
               default=-1,
               metavar="MILLISECONDS",
               help="force re-reading of the attributes every MILLISECONDS ms")
-@click.option('--config', 'config_file', type=click.File('rb'),
-              help='configuration file for initialization')
-@click.option("--demo", is_flag=True, help="show a demo of the widget")
-@click.option('--window-name', 'window_name',
-              default='TaurusPlot (qwt5)',
-              help='Name of the window')
 def trend_cmd(models, x_axis_mode, use_archiving, max_buffer_size,
               forced_read_period, config_file, demo, window_name):
     """Shows a trend for the given models"""
