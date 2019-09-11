@@ -44,6 +44,7 @@ from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_T
 from taurus.qt.qtgui.container import TaurusWidget, TaurusScrollArea
 from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
 from .taurusmodelchooser import TaurusModelChooser
+from taurus.cli import common as cli_common
 
 __all__ = ["TaurusAttrForm", "TaurusCommandsForm", "TaurusForm"]
 
@@ -1048,12 +1049,9 @@ def test4():
 
 
 @click.command('form')
-@click.option('--window-name', 'window_name',
-              default='Taurus Form',
-              help='Name of the window')
-@click.option('--config', 'config_file', type=click.File('rb'),
-              help='configuration file for initialization')
-@click.argument('models', nargs=-1)
+@cli_common.window_name("")
+@cli_common.config_file
+@cli_common.models
 def form_cmd(window_name, config_file, models):
     """Shows a Taurus form populated with the given model names"""
     from taurus.qt.qtgui.application import TaurusApplication
