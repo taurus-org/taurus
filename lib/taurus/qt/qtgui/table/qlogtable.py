@@ -47,6 +47,7 @@ from taurus.core.util.decorator.memoize import memoized
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.model import FilterToolBar
 from taurus.qt.qtgui.util import ActionFactory
+from taurus.cli import common as cli_common
 
 from .qtable import QBaseTableWidget
 
