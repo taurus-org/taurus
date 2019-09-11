@@ -629,8 +629,7 @@ class TaurusGui(TaurusMainWindow):
         self.debug('Panel "%s" removed' % name)
 
     def createPanel(self, widget, name, floating=False, registerconfig=True, custom=False,
-                    permanent=False, icon=None, instrumentkey=None, modelinconfig=False,
-                    modifiablebyuser=False, formatter='taurus.qt.qtgui.base.taurusbase.defaultFormatter'):
+                    permanent=False, icon=None, instrumentkey=None):
         '''
         Creates a panel containing the given widget.
 
@@ -642,9 +641,6 @@ class TaurusGui(TaurusMainWindow):
         :param permanent: (bool) set this to True for panels that need to be recreated when restoring the app
         :param icon: (QIcon) icon for the panel
         :param instrumentkey: (str) name of an instrument to which this panel is to be associated
-        :param modelinconfig: (bool) whether to store model in settings file or not
-        :param modifiablebyuser: (bool) whether user can modify widget or not
-        :param formatter: (str) formatter for widget
 
         :return: (DockWidgetPanel) the created panel
 
@@ -668,11 +664,6 @@ class TaurusGui(TaurusMainWindow):
         if name in self.__panels:
             self.info('Panel with name "%s" already exists. Reusing.' % name)
             return self.__panels[name]
-
-        if isinstance(widget, TaurusBaseComponent):
-            widget.setModifiableByUser(modifiablebyuser)
-            widget.setModelInConfig(modelinconfig)
-            widget.setFormat(formatter)
 
         # create a panel
         panel = DockWidgetPanel(None, widget, name, self)
@@ -1312,18 +1303,19 @@ class TaurusGui(TaurusMainWindow):
                     w.setModel(p.model)
                 if p.instrumentkey is None:
                     instrumentkey = self.IMPLICIT_ASSOCIATION
+
+                if isinstance(w, TaurusBaseComponent):
+                    w.setModifiableByUser(p.modifiablebyuser)
+                    w.setModelInConfig(p.modelinconfig)
+                    w.setFormat(p.formatter)
+
                 icon = p.icon
-                model_in_config = p.model_in_config
-                modifiable_by_user = p.modifiable_by_user
-                formatter = p.formatter
                 # the pool instruments may change when the pool config changes,
                 # so we do not store their config
                 registerconfig = p not in poolinstruments
                 # create a panel
                 self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
-                                 instrumentkey=instrumentkey, permanent=True, icon=icon,
-                                 modelinconfig=model_in_config, modifiablebyuser=modifiable_by_user,
-                                 formatter=formatter)
+                                 instrumentkey=instrumentkey, permanent=True, icon=icon)
             except Exception as e:
                 msg = "Cannot create panel %s" % getattr(
                     p, "name", "__Unknown__")
