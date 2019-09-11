@@ -49,6 +49,7 @@ from taurus.qt.qtgui.panel.taurusform import TaurusForm
 from taurus.qt.qtgui.panel.taurusform import TaurusCommandsForm
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.icon import getCachedPixmap
+from taurus.cli import common as cli_common
 
 
 __all__ = ["TaurusDevicePanel", "TaurusDevPanel"]
@@ -611,8 +612,7 @@ class TaurusDevPanel(TaurusGui):
                     + '(it can be passed more than once)'),
               multiple=True,
               )
-@click.option('--config', 'config_file', type=click.File('rb'),
-              help='configuration file for initialization')
+@cli_common.config_file
 def device_cmd(dev, filter, config_file):
     """Show a Device Panel"""
     import sys
