@@ -1049,7 +1049,7 @@ def test4():
 
 
 @click.command('form')
-@cli_common.window_name("")
+@cli_common.window_name("TaurusForm")
 @cli_common.config_file
 @cli_common.models
 def form_cmd(window_name, config_file, models):

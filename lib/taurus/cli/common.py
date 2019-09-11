@@ -41,9 +41,9 @@ log_level = click.option('--log-level', 'log_level',
 config_file = click.option('--config', 'config_file', type=click.File('rb'),
               help='configuration file for initialization')
 
-def window_name(help):
+def window_name(default):
     window_name = click.option('--window-name', 'window_name',
-              default='TaurusPlot ' + help,
+              default=default,
               help='Name of the window')
     return window_name
 
