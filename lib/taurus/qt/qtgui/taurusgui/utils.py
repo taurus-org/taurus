@@ -381,7 +381,7 @@ class PanelDescription(TaurusGuiComponentDescription):
         self.model_in_config = kwargs.pop("modelinconfig", False)
         self.modifiable_by_user = kwargs.pop("modifiablebyuser", False)
         self.formatter = kwargs.pop("formatter", 'taurus.qt.qtgui.base.taurusbase.defaultFormatter')
-        self.extra_config = kwargs
+        self.widget_properties = kwargs.pop("widget_properties", {})
         TaurusGuiComponentDescription.__init__(self, *args, **kwargs)
 
     @staticmethod
@@ -417,7 +417,7 @@ class PanelDescription(TaurusGuiComponentDescription):
         model_in_config = panel.model_in_config
         modifiable_by_user = panel.modifiablebyuser
         formatter = panel.formatter
-        extra_config = panel.extra_config
+        widget_properties = panel.widget_properties
         return PanelDescription(name, classname=classname,
                                 modulename=modulename, widgetname=widgetname,
                                 floating=floating,
@@ -425,7 +425,7 @@ class PanelDescription(TaurusGuiComponentDescription):
                                 sharedDataRead=sharedDataRead, model=model,
                                 icon=icon, modelinconfig=model_in_config,
                                 modifiablebyuser=modifiable_by_user,
-                                formatter=formatter, **extra_config)
+                                formatter=formatter, widget_properties=widget_properties)
 
 
 class ToolBarDescription(TaurusGuiComponentDescription):

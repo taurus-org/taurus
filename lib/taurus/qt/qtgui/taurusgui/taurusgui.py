@@ -1289,12 +1289,12 @@ class TaurusGui(TaurusMainWindow):
                 except AttributeError:
                     pass
                 w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-                extra_config = p.extra_config
-                if extra_config:
-                    for key in extra_config:
+                widget_properties = p.widget_properties
+                if widget_properties:
+                    for key in widget_properties:
                         if hasattr(w, key):
                             try:
-                                value = extra_config[key]
+                                value = widget_properties[key]
                                 setattr(w, key, value)
                             except Exception as e:
                                 msg = "Cannot set attribute '%s' of widget '%s' " \
