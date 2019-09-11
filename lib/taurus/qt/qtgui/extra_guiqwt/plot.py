@@ -630,13 +630,13 @@ def taurusTrendDlgMain():
 
 
 @click.command('image')
-@click.argument('model', nargs=1, required=False)
 @click.option('-c', '--color-mode', 'color_mode',
               type=click.Choice(['gray', 'rgb']),
               default='gray',
               show_default=True,
               help=('Color mode expected from the attribute')
               )
+@cli_common.model
 @cli_common.demo
 @cli_common.window_name('TaurusPlot (qwt5)')
 def image_cmd(model, color_mode, demo, window_name):

@@ -40,6 +40,7 @@ from taurus.qt.qtgui.extra_guiqwt.tools import (TaurusModelChooserTool,
                                                 TimeAxisTool, AutoScrollTool,
                                                 AutoScaleXTool, AutoScaleYTool,
                                                 AutoScaleZTool)
+from taurus.cli import common as cli_common
 
 
 class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
@@ -309,7 +310,6 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
 
 
 @click.command('trend2d')
-@click.argument('model', nargs=1, required=False)
 @click.option("-x", "--x-axis-mode", "x_axis_mode",
               type=click.Choice(['t', 'd', 'e']),
               default='d',
@@ -324,10 +324,9 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
                     + "(when reached, the oldest values will be "
                     + "discarded)")
               )
-@click.option("--demo", is_flag=True, help="show a demo of the widget")
-@click.option('--window-name', 'window_name',
-              default='TaurusPlot (qwt5)',
-              help='Name of the window')
+@cli_common.model
+@cli_common.demo
+@cli_common.window_name('TaurusPlot (qwt5)')
 def trend2d_cmd(model, x_axis_mode, max_buffer_size,
                 demo, window_name):
     from taurus.qt.qtgui.application import TaurusApplication

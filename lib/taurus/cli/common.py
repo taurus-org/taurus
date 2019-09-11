@@ -58,3 +58,5 @@ x_axis_mode = click.option("-x", "--x-axis-mode", "x_axis_mode",
               )
 
 demo = click.option("--demo", is_flag=True, help="show a demo of the widget")
+
+model = click.argument('model', nargs=1, required=False)
