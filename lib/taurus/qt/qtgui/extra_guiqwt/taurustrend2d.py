@@ -317,13 +317,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
               help=("interpret X values as timestamps (t), "
                     + "time deltas (d) or event numbers (e). ")
               )
-@click.option('-b', '--buffer', 'max_buffer_size', type=int,
-              default=512,
-              show_default=True,
-              help=("maximum number of values to be stacked "
-                    + "(when reached, the oldest values will be "
-                    + "discarded)")
-              )
+@cli_common.buffer(512)
 @cli_common.model
 @cli_common.demo
 @cli_common.window_name('TaurusPlot (qwt5)')

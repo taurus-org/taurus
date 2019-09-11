@@ -55,14 +55,11 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
 @cli_common.config_file
 @cli_common.demo
 @cli_common.window_name
+@cli_common.buffer(TaurusTrend.DEFAULT_MAX_BUFFER_SIZE)
 @click.option('-a', '--use-archiving', 'use_archiving',
               is_flag=True,
               default=False,
               help='enable automatic archiving queries')
-@click.option('-b', '--buffer', 'max_buffer_size', type=int,
-              default=TaurusTrend.DEFAULT_MAX_BUFFER_SIZE,
-              show_default=True,
-              help='maximum number of values per curve to be plotted')
 @click.option('-r', '--forced-read', 'forced_read_period', type=int,
               default=-1,
               metavar="MILLISECONDS",
