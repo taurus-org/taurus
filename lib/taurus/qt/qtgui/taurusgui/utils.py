@@ -415,7 +415,7 @@ class PanelDescription(TaurusGuiComponentDescription):
             model = None
         icon = panel.icon
         model_in_config = panel.model_in_config
-        modifiable_by_user = panel.modifiablebyuser
+        modifiable_by_user = panel.modifiable_by_user
         formatter = panel.formatter
         widget_properties = panel.widget_properties
         return PanelDescription(name, classname=classname,
@@ -423,8 +423,8 @@ class PanelDescription(TaurusGuiComponentDescription):
                                 floating=floating,
                                 sharedDataWrite=sharedDataWrite,
                                 sharedDataRead=sharedDataRead, model=model,
-                                icon=icon, modelinconfig=model_in_config,
-                                modifiablebyuser=modifiable_by_user,
+                                icon=icon, model_in_config=model_in_config,
+                                modifiable_by_user=modifiable_by_user,
                                 formatter=formatter, widget_properties=widget_properties)
 
 

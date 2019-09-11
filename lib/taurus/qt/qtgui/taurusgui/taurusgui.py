@@ -836,7 +836,7 @@ class TaurusGui(TaurusMainWindow):
 
         self.createPanel(w, paneldesc.name, floating=paneldesc.floating, custom=True,
                          registerconfig=False, instrumentkey=paneldesc.instrumentkey,
-                         permanent=False, modelinconfig=True, modifiablebyuser=True)
+                         permanent=False)
         msg = 'Panel %s created. Drag items to it or use the context menu to customize it' % w.name
         self.newShortMessage.emit(msg)
 
