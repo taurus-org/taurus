@@ -1309,8 +1309,8 @@ class TaurusGui(TaurusMainWindow):
                         w.setModifiableByUser(p.modifiable_by_user)
                     if p.model_in_config is not None:
                         w.setModelInConfig(p.model_in_config)
-                    if p.formatter is not None:
-                        w.setFormat(p.formatter)
+                    if p.widget_formatter is not None:
+                        w.setFormat(p.widget_formatter)
 
                 icon = p.icon
                 # the pool instruments may change when the pool config changes,
