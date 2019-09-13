@@ -26,6 +26,7 @@
 """Tests for taurus.core.tango.tangofactory"""
 
 
+import time
 import taurus
 
 from taurus.external.unittest import TestCase
@@ -74,3 +75,38 @@ class TestFactoryGarbageCollection(TangoSchemeTestLauncher, TestCase):
 
     def tearDown(self):
         self.factory = None
+
+def test_cleanup_after_polling_1():
+    """
+    Ensure that polling a Tango attribute does not keep device alive
+    """
+    polling_period = .1  # seconds
+    a = taurus.Attribute('sys/tg_test/1/float_scalar')
+    f = a.factory()
+    a.activatePolling(polling_period * 1000, force=True)
+    assert len(f.tango_attrs.keys()) == 1
+    assert len(f.tango_devs.keys()) == 1
+    a.disablePolling()
+    a = None
+    assert len(f.tango_attrs.keys()) == 0
+    assert len(f.tango_devs.keys()) == 0
+
+
+def test_cleanup_after_polling_2():
+    """
+    Ensure that polling a Tango attribute does not keep device alive
+    See Bug #999
+    """
+    polling_period = .1  # seconds
+    a = taurus.Attribute('sys/tg_test/1/float_scalar')
+    f = a.factory()
+    a.activatePolling(polling_period * 1000, force=True)
+    assert len(f.tango_attrs.keys()) == 1
+    assert len(f.tango_devs.keys()) == 1
+    a = None
+    assert len(f.tango_attrs.keys()) == 0
+    assert len(f.tango_devs.keys()) == 1
+    time.sleep(polling_period)
+    assert len(f.tango_attrs.keys()) == 0
+    assert len(f.tango_devs.keys()) == 0
+
