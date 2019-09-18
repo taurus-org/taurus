@@ -1530,14 +1530,31 @@ class TaurusBaseGraphicsFactory(object):
                 name = str(name).replace(k, v)
                 params[self.getNameParam()] = name
         cls = None
-        if '/' in name:
-            # replacing Taco identifiers in %s'%name
-            if name.lower().startswith('tango:') and (name.count('/') == 2 or not 'tango:/' in name.lower()):
-                nname = name.split(':', 1)[-1]
-                params[self.getNameParam()] = name = nname
-            if name.lower().endswith('/state'):
-                name = name.rsplit('/', 1)[0]
-            cls = Manager().findObjectClass(name)
+        # TODO: starting slashes are allowed while we support parent model
+        #       feature (taurus-org/taurus#734)
+        if not name.startswith("/") and "/" in name:
+            try:
+                from taurus.core.tango.tangovalidator import (
+                    TangoDeviceNameValidator,
+                    TangoAttributeNameValidator,
+                )
+            except ImportError:
+                pass
+            else:
+                if (TangoDeviceNameValidator().isValid(name)
+                        or TangoAttributeNameValidator().isValid(name)):
+                    # replacing Taco identifiers in %s'%name
+                    if name.lower().startswith("tango:"):
+                        if name.count('/') == 2 or 'tango:/' not in name.lower():  # noqa
+                            nname = name.split(':', 1)[-1]
+                            params[self.getNameParam()] = name = nname
+                    else:
+                        from taurus import warning
+                        warning("if you use a tango name as JD name it must "
+                                "with tango:")
+                    if name.lower().endswith('/state'):
+                        name = name.rsplit('/', 1)[0]
+                    cls = Manager().findObjectClass(name)
         else:
             if name:
                 self.debug('%s does not match a tango name' % name)
