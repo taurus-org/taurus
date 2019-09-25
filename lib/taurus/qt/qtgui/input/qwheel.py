@@ -220,6 +220,10 @@ class QWheelEdit(Qt.QFrame):
         self._setValue(0)
 
         self._build()
+        self.setDigitCountAction = Qt.QAction("Change digits", self)
+        self.setDigitCountAction.triggered.connect(self._onSetDigitCount)
+        self.addAction(self.setDigitCountAction)
+        self.setContextMenuPolicy(Qt.Qt.ActionsContextMenu)
 
     def _getMinPossibleValue(self):
         """_getMinPossibleValue(self) -> None
@@ -547,6 +551,28 @@ class QWheelEdit(Qt.QFrame):
             self._setValue(self.getValue() + b._inc)
             self._updateValue()
 
+    def _onSetDigitCount(self):
+        text, ok = Qt.QInputDialog.getText(
+            self,
+            "Change digits",
+            "Enter digits as <int_nb>.<dec_nb>",
+            text="{:d}.{:d}".format(
+                self.getIntDigitCount(),
+                self.getDecDigitCount()
+            )
+        )
+        if ok:
+            try:
+                dc = list(map(int, text.split('.')))
+                self.setDigitCount(*dc)
+            except Exception as e:
+                Qt.QMessageBox.warning(
+                    self,
+                    "Invalid digit count specification",
+                    'Invalid specification: "{}"\nReason:{}'.format(text, e)
+                )
+                self._onSetDigitCount()
+
     def setDigitCount(self, int_nb, dec_nb):
         """setDigitCount(self, int_nb, dec_nb) -> None
 
@@ -775,7 +801,6 @@ class QWheelEdit(Qt.QFrame):
                                                                l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
         ed.setAlignment(Qt.Qt.AlignRight)
-        ed.setMaxLength(self.getDigitCount() + 2)
         ed.setText(self.getValueStr())
         ed.selectAll()
         ed.setFocus()
