@@ -504,6 +504,8 @@ class QWheelEdit(Qt.QFrame):
         Sets value of this widget. If the given value exceeds any limit, the
         value is NOT set.
         """
+        if v is None:
+            return
         if self._roundFunc:
             v = self._roundFunc(v)
         if v > self._maxValue or v < self._minValue:
