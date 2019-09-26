@@ -511,6 +511,13 @@ class QWheelEdit(Qt.QFrame):
         if self._roundFunc:
             v = self._roundFunc(v)
         if v > self._maxValue or v < self._minValue:
+            Qt.QMessageBox.warning(
+                self,
+                "Invalid Value",
+                ("'{}' cannot be represented in current widget. \n"
+                 + "Tip: try changing the number of digits from context menu"
+                 ).format(v)
+            )
             return
         self._previous_value = self._value
         self._value = v
