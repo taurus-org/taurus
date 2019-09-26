@@ -179,7 +179,9 @@ class _NumericEditor(Qt.QLineEdit):
 
     def __init__(self, parent=None):
         Qt.QLineEdit.__init__(self, parent)
-        self.setValidator(Qt.QDoubleValidator(self))
+        validator = Qt.QDoubleValidator(self)
+        validator.setNotation(validator.StandardNotation)
+        self.setValidator(validator)
         self.setFrame(False)
 
 
