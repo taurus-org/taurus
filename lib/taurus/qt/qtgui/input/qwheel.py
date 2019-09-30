@@ -174,17 +174,6 @@ class _DigitLabel(Qt.QLabel):
     skin = Qt.pyqtProperty('QString', getSkin, setSkin, resetSkin)
 
 
-class _NumericEditor(Qt.QLineEdit):
-    """A private editor to be used by QWheelEdit widget"""
-
-    def __init__(self, parent=None):
-        Qt.QLineEdit.__init__(self, parent)
-        validator = Qt.QDoubleValidator(self)
-        validator.setNotation(validator.StandardNotation)
-        self.setValidator(validator)
-        self.setFrame(False)
-
-
 class QWheelEdit(Qt.QFrame):
     """A widget designed to handle numeric scalar values. It allows interaction
     based on single digit as well as normal value edition."""
@@ -217,6 +206,8 @@ class QWheelEdit(Qt.QFrame):
         self._hideEditWidget = True
         self._showArrowButtons = True
         self._forwardReturn = False
+        self._validator = Qt.QDoubleValidator(self)
+        self._validator.setNotation(self._validator.StandardNotation)
         self._setDigits(QWheelEdit.DefaultIntDigitCount,
                         QWheelEdit.DefaultDecDigitCount)
         self._setValue(0)
@@ -327,17 +318,19 @@ class QWheelEdit(Qt.QFrame):
         self._upButtons.buttonClicked.connect(self.buttonPressed)
         self._downButtons.buttonClicked.connect(self.buttonPressed)
 
-        ed = _NumericEditor(self)
+        ed = Qt.QLineEdit(self)
+        ed.setFrame(False)
         ed.returnPressed.connect(self.editingFinished)
         ed.editingFinished.connect(self.hideEditWidget)
         rect = Qt.QRect(l.cellRect(1, 0).topLeft(),
                         l.cellRect(1, l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
         ed.setAlignment(Qt.Qt.AlignRight)
-        ed.validator().setRange(self.getMinValue(), self.getMaxValue(),
-                                self.getDecDigitCount())
+        ed.setValidator(self._validator)
         ed.setVisible(False)
         self._editor = ed
+
+        self._updateValidator()
 
         # set the minimum height for the widget
         # (otherwise the hints seem to be ignored by the layouts)
@@ -377,17 +370,6 @@ class QWheelEdit(Qt.QFrame):
         self._editor.destroy()
         self._editor = None
 
-    def _setMinMax(self, min, max):
-        """_setMinMax(self, min, max) -> None
-
-        Sets the minimum and maximum values for this widget
-
-        @param[in] min(float) minimum value
-        @param[in] max(float) maximum value
-        """
-        self._minValue = min
-        self._maxValue = max
-
     def _setDigits(self, int_nb=None, dec_nb=None):
         """_setDigits(self, int_nb=None, dec_nb=None) -> None
 
@@ -415,8 +397,7 @@ class QWheelEdit(Qt.QFrame):
         if self._decDigitCount > 0:
             total_chars += 1  # for dot
         self._valueFormat = '%%+0%d.%df' % (total_chars, self._decDigitCount)
-        self._setMinMax(self._getMinPossibleValue(),
-                        self._getMaxPossibleValue())
+        self._updateValidator()
         # we call setValue to update the self._value_str
         self._setValue(self.getValue())
 
@@ -510,13 +491,15 @@ class QWheelEdit(Qt.QFrame):
             return
         if self._roundFunc:
             v = self._roundFunc(v)
-        if v > self._maxValue or v < self._minValue:
+        if v > self._validator.top() or v < self._validator.bottom():
             Qt.QMessageBox.warning(
                 self,
                 "Invalid Value",
-                ("'{}' cannot be represented in current widget. \n"
-                 + "Tip: try changing the number of digits from context menu"
-                 ).format(v)
+                "'{}' is out of the allowed range ({}, {})".format(
+                    v,
+                    self._validator.bottom(),
+                    self._validator.top(),
+                )
             )
             return
         self._previous_value = self._value
@@ -712,17 +695,19 @@ class QWheelEdit(Qt.QFrame):
         @param[in] v (float) the new minimum allowed value
         """
         self._minValue = v
-        w = self.getEditWidget()
-        if not w is None:
-            w.validator().setRange(self._minValue, self._maxValue, self._decDigitCount)
+        self._updateValidator()
+
+    def _updateValidator(self):
+        min_ = max(self._minValue, self._getMinPossibleValue())
+        max_ = min(self._maxValue, self._getMaxPossibleValue())
+        self._validator.setRange(min_, max_, self._decDigitCount)
 
     def resetMinValue(self):
         """resetMinValue(self) -> None
 
-        Resets the minimum allowed value to the minimum possible according to
-        the current total number of digits
+        Resets the minimum allowed value to -inf
         """
-        self.setMinValue(self._getMinPossibleValue())
+        self.setMinValue(numpy.finfo('d').min)
 
     def getMaxValue(self):
         """getMaxValue(self) -> float
@@ -741,17 +726,14 @@ class QWheelEdit(Qt.QFrame):
         @param[in] v (float) the new maximum allowed value
         """
         self._maxValue = v
-        w = self.getEditWidget()
-        if not w is None:
-            w.validator().setRange(self._minValue, self._maxValue, self._decDigitCount)
+        self._updateValidator()
 
     def resetMaxValue(self):
         """resetMaxValue(self) -> None
 
-        Resets the maximum allowed value to the maximum possible according to
-        the current total number of digits
+        Resets the maximum allowed value to +inf
         """
-        self.setMaxValue(self._getMaxPossibleValue())
+        self.setMaxValue(numpy.finfo('d').max)
 
     def getAutoRepeat(self):
         return self._upButtons.buttons()[0].autoRepeat()
