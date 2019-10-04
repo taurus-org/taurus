@@ -56,42 +56,16 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
 
     def handleEvent(self, evt_src, evt_type, evt_value):
         if evt_type == TaurusEventType.Config and evt_value is not None:
-            import re
-            # match the format string to "%[width][.precision][f_type]"
             obj = self.getModelObj()
-            m = re.match(r'%([0-9]+)?(\.([0-9]+))?([df])', obj.format)
-            if m is None:
-                raise ValueError("'%s' format unsupported" % obj.format)
+            # set decimal digits
+            self.setDigitCount(int_nb=None, dec_nb=obj.precision)
+            # set min and max values
+            min_, max_ = obj.getRange()
+            if min_ is not None:
+                self.setMinValue(min_.magnitude)
+            if max_ is not None:
+                self.setMaxValue(max_.magnitude)
 
-            width, _, precision, f_type = m.groups()
-
-            if width is None:
-                width = self.DefaultIntDigitCount + \
-                    self.DefaultDecDigitCount + 1
-            else:
-                width = int(width)
-
-            if precision is None:
-                precision = self.DefaultDecDigitCount
-            else:
-                precision = int(precision)
-
-            dec_nb = precision
-
-            if dec_nb == 0 or f_type == 'd':
-                int_nb = width
-            else:
-                int_nb = width - dec_nb - 1  # account for decimal sep
-
-            self.setDigitCount(int_nb=int_nb, dec_nb=dec_nb)
-            try:
-                self.setMinValue(float(obj.min_value))
-            except:
-                pass
-            try:
-                self.setMaxValue(float(obj.max_value))
-            except:
-                pass
         TaurusBaseWritableWidget.handleEvent(
             self, evt_src, evt_type, evt_value)
 

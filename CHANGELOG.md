@@ -16,6 +16,7 @@ develop branch) won't be reflected in this file.
 ### Changed
 ### Deprecated
 ### Fixed
+- Several issues in TaurusWheelEdit (#1010)
 
 ## [4.6.1] - 2019-08-19
 Hotfix for auto-deployment in PyPI with Travis. No other difference from 4.6.0.
