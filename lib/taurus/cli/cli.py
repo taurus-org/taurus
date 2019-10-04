@@ -81,11 +81,8 @@ def taurus_cmd(log_level, polling_period, serialization_mode, rconsole_port,
         setattr(tauruscustomsettings, 'DEFAULT_FORMATTER', default_formatter)
 
 
-def main():
-    # set the log level to WARNING avoid spamming the CLI while loading
-    # subcommands
-    # it will be restored to the desired one first thing in taurus_cmd()
-    taurus.setLogLevel(taurus.Warning)
+def register_subcommands():
+    """Discover and add subcommands to taurus_cmd"""
 
     # Add subcommands from the taurus_subcommands entry point
     for ep in pkg_resources.iter_entry_points('taurus.cli.subcommands'):
@@ -106,7 +103,19 @@ def main():
                 continue
             # -----------------------------------------------------------
             taurus.warning('Cannot add "%s" subcommand to taurus. Reason: %r',
-                 ep.name, e)
+                           ep.name, e)
+
+
+def main():
+    """Register subcommands and run taurus_cmd"""
+
+    # set the log level to WARNING avoid spamming the CLI while loading
+    # subcommands
+    # it will be restored to the desired one first thing in taurus_cmd()
+    taurus.setLogLevel(taurus.Warning)
+
+    #register the subcommands
+    register_subcommands()
 
     # launch the taurus command
     taurus_cmd()

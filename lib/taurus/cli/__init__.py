@@ -37,4 +37,4 @@ To define a subcommand for taurus, you need to register it using the
 
 """
 
-from .cli import main
+from .cli import main, register_subcommands, taurus_cmd
