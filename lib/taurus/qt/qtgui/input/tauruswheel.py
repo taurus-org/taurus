@@ -49,14 +49,14 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
         self.numberChanged.connect(self.notifyValueChanged)
         self.returnPressed.connect(self.writeValue)
         self.valueChangedSignal.connect(self.updatePendingOperations)
-        self._init_range = False
+        self._configured = False
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget overwriting
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type == TaurusEventType.Config or not self._init_range:
+        if evt_type == TaurusEventType.Config or not self._configured:
             if evt_value is not None:
                 obj = self.getModelObj()
                 # set decimal digits
@@ -67,7 +67,7 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
                     self.setMinValue(min_.magnitude)
                 if max_ is not None:
                     self.setMaxValue(max_.magnitude)
-                self._init_range = True
+                self._configured = True
 
         TaurusBaseWritableWidget.handleEvent(
             self, evt_src, evt_type, evt_value)
