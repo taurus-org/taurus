@@ -49,22 +49,25 @@ class TaurusWheelEdit(QWheelEdit, TaurusBaseWritableWidget):
         self.numberChanged.connect(self.notifyValueChanged)
         self.returnPressed.connect(self.writeValue)
         self.valueChangedSignal.connect(self.updatePendingOperations)
+        self._init_range = False
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # TaurusBaseWidget overwriting
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     def handleEvent(self, evt_src, evt_type, evt_value):
-        if evt_type == TaurusEventType.Config and evt_value is not None:
-            obj = self.getModelObj()
-            # set decimal digits
-            self.setDigitCount(int_nb=None, dec_nb=obj.precision)
-            # set min and max values
-            min_, max_ = obj.getRange()
-            if min_ is not None:
-                self.setMinValue(min_.magnitude)
-            if max_ is not None:
-                self.setMaxValue(max_.magnitude)
+        if evt_type == TaurusEventType.Config or not self._init_range:
+            if evt_value is not None:
+                obj = self.getModelObj()
+                # set decimal digits
+                self.setDigitCount(int_nb=None, dec_nb=obj.precision)
+                # set min and max values
+                min_, max_ = obj.getRange()
+                if min_ is not None:
+                    self.setMinValue(min_.magnitude)
+                if max_ is not None:
+                    self.setMaxValue(max_.magnitude)
+                self._init_range = True
 
         TaurusBaseWritableWidget.handleEvent(
             self, evt_src, evt_type, evt_value)
