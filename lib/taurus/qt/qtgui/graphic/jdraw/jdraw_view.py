@@ -167,7 +167,8 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     @Qt.pyqtSlot(object)
     @Qt.pyqtSlot('QString')
     def selectGraphicItem(self, item_name):
-        self.scene().selectGraphicItem(item_name)
+        if self.scene() is not None:
+            self.scene().selectGraphicItem(item_name)
         return False
 
     def _graphicItemSelected(self, item_name):
@@ -389,7 +390,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.path = os.path.dirname(filename)
                 factory = self.getGraphicsFactory(delayed=delayed)
                 scene = parse(filename, factory)
-                scene.setSelectionStyle(self._selectionStyle)
+                self.setSelectionStyle(self._selectionStyle)
                 self.debug("Obtained %s(%s)", type(scene).__name__, filename)
                 if not scene:
                     self.warning("TaurusJDrawSynopticsView.setModel(%s): Unable to parse %s!!!" % (
@@ -450,7 +451,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.debug('invalid selectionStyle "%s"', selectionStyle)
                 return
         if self.scene() is not None:
-            self.scene().setSelectionStyle(selectionStyle)
+            self.setSelectionStyle(selectionStyle)
         self._selectionStyle = selectionStyle
 
     def getSelectionStyle(self):
