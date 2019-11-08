@@ -1250,7 +1250,9 @@ class TaurusEllipseStateItem(Qt.QGraphicsEllipseItem, TaurusGraphicsStateItem):
 
     def __init__(self, name=None, parent=None, scene=None):
         name = name or self.__class__.__name__
-        Qt.QGraphicsEllipseItem.__init__(self, parent, scene)
+        Qt.QGraphicsEllipseItem.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
         self.call__init__(TaurusGraphicsStateItem, name, parent)
 
     def paint(self, painter, option, widget=None):
@@ -1264,7 +1266,9 @@ class TaurusRectStateItem(Qt.QGraphicsRectItem, TaurusGraphicsStateItem):
 
     def __init__(self, name=None, parent=None, scene=None):
         name = name or self.__class__.__name__
-        Qt.QGraphicsRectItem.__init__(self, parent, scene)
+        Qt.QGraphicsRectItem.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
         self.call__init__(TaurusGraphicsStateItem, name, parent)
 
     def paint(self, painter, option, widget):
@@ -1278,7 +1282,9 @@ class TaurusSplineStateItem(QSpline, TaurusGraphicsStateItem):
 
     def __init__(self, name=None, parent=None, scene=None):
         name = name or self.__class__.__name__
-        QSpline.__init__(self, parent, scene)
+        QSpline.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
         self.call__init__(TaurusGraphicsStateItem, name, parent)
 
     def paint(self, painter, option, widget):
@@ -1341,7 +1347,9 @@ class TaurusRoundRectStateItem(TaurusRoundRectItem, TaurusGraphicsStateItem):
 class TaurusGroupItem(Qt.QGraphicsItemGroup):
 
     def __init__(self, name=None, parent=None, scene=None):
-        Qt.QGraphicsItemGroup.__init__(self, parent, scene)
+        Qt.QGraphicsItemGroup.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
 
 
 class TaurusGroupStateItem(TaurusGroupItem, TaurusGraphicsStateItem):
@@ -1359,8 +1367,10 @@ class TaurusPolygonStateItem(Qt.QGraphicsPolygonItem, TaurusGraphicsStateItem):
 
     def __init__(self, name=None, parent=None, scene=None):
         name = name or self.__class__.__name__
-        #Qt.QGraphicsRectItem.__init__(self, parent, scene)
-        Qt.QGraphicsPolygonItem.__init__(self, parent, scene)
+        #Qt.QGraphicsRectItem.__init__(self, parent)
+        Qt.QGraphicsPolygonItem.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
         self.call__init__(TaurusGraphicsStateItem, name, parent)
 
     def paint(self, painter, option, widget):
@@ -1374,7 +1384,9 @@ class TaurusLineStateItem(Qt.QGraphicsLineItem, TaurusGraphicsStateItem):
 
     def __init__(self, name=None, parent=None, scene=None):
         name = name or self.__class__.__name__
-        Qt.QGraphicsLineItem.__init__(self, parent, scene)
+        Qt.QGraphicsLineItem.__init__(self, parent)
+        if scene is not None:
+            scene.addItem(self)
         self.call__init__(TaurusGraphicsStateItem, name, parent)
 
     def paint(self, painter, option, widget):
