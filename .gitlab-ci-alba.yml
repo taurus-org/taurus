@@ -1,0 +1,8 @@
+# ---------------------------------------------------------
+# Use this as the ".gitlab-ci.yml" in your project root dir
+# to activate the ctpipeline
+# ---------------------------------------------------------
+
+include: 
+- https://git.cells.es/ctpkg/ci/ctpipeline/raw/master/ctjobdefs-ci.yml
+- https://git.cells.es/ctpkg/ci/ctpipeline/raw/master/ctpipeline.yml
