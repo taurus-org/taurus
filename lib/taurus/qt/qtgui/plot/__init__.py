@@ -52,7 +52,17 @@ __log.deprecated(dep='taurus.qt.qtgui.plot', rel='4.5',
                  alt='taurus.qt.qtgui.tpg or taurus.qt.qtgui.qwt5')
 
 try:
+    # Import all from qwt5
     from taurus.qt.qtgui.qwt5 import *
+    # ...and patch sys.modules to expose all qwt5 submodules here
+    # (even those not in the public API). This fixes
+    # https://github.com/taurus-org/taurus/issues/909)
+    import sys
+    d = {}
+    for k, v in sys.modules.items():
+        if 'taurus.qt.qtgui.qwt5.' in k:
+            d[k.replace('taurus.qt.qtgui.qwt5.', 'taurus.qt.qtgui.plot.')] = v
+    sys.modules.update(d)
 except:
     try:
         from taurus.qt.qtgui.tpg import TaurusPlot, TaurusTrend
