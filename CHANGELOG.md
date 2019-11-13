@@ -7,16 +7,27 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## Unreleased 
+## [Unreleased]
 
 ### Added
 - check-deps subcommand (#988)
+- `taurus.cli.register_subcommands()` and `taurus.cli.taurus_cmd()` (#991)
 
 ### Removed
 ### Changed
+- Qt theme no longer set to TangoIcons by default (for coherence with docs) (#1012)
+- (for developers) Support of tox and change to pytest. More platforms
+  being now automatically tested by travis (#994)
+
 ### Deprecated
 ### Fixed
-- Several issues in TaurusWheelEdit (#1010)
+- Several issues in TaurusWheelEdit (#1010, #1021)
+- Several issues affecting synoptics (#1005, #1029)
+- Support dns aliases for the authority name in tango model names (#998)
+- Py3 exception in `TaurusModelChooser.getListedModels()` (#1008)
+- (for py2) Improved backwards compatibility of `taurus.qt.qtgui.plot` (#1027)
+- Exception in DelayedSubscriber (#1030)
+
 
 ## [4.6.1] - 2019-08-19
 Hotfix for auto-deployment in PyPI with Travis. No other difference from 4.6.0.
