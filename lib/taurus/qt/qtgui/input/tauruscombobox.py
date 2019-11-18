@@ -115,7 +115,7 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
         Set the value for the widget to display, not the value of the
         attribute.
         """
-        index = self.findData(value)
+        index = self.findData(str(value))
         self._setCurrentIndex(index)
 
     def updateStyle(self):
