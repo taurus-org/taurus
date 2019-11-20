@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 #############################################################################
 ##
@@ -23,12 +24,13 @@
 ##
 #############################################################################
 
-from taurus.core.units import UR, Q_
+from taurus.core.units import Q_
 
 # from pint import UnitRegistry
 # UR = UnitRegistry()
 # Q_= UR.Quantity
 # UR.define(u'degreeC = kelvin; offset: 273.15  = °C = ºC = degC = celsius')
+
 
 def test_celsius():
     """
@@ -37,17 +39,17 @@ def test_celsius():
     """
     a = Q_(3, u"°C")
     b = Q_(3, u"ºC")
-    c = Q_(3, "degC")
-    d = Q_(3, "celsius")
-    e = Q_(276.15, "kelvin")
+    c = Q_(3, u"degC")
+    d = Q_(3, u"celsius")
+    e = Q_(276.15, u"kelvin")
     assert(a == b)
     assert(a == c)
     assert(a == d)
     assert(a == e)
-    assert(a.to("kelvin") == e)
-    assert(a == e.to("°C"))
-    assert(a == e.to("ºC"))
-    assert(a == e.to("celsius"))
+    assert(a.to(u"kelvin") == e)
+    assert(a == e.to(u"°C"))
+    assert(a == e.to(u"ºC"))
+    assert(a == e.to(u"celsius"))
     assert(u"{}".format(a) == u"3 °C")
     assert(u"{}".format(b) == u"3 °C")
     assert(u"{}".format(c) == u"3 °C")
