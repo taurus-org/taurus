@@ -35,3 +35,6 @@ from pint import UnitRegistry
 UR = UnitRegistry()
 UR.default_format = '~'  # use abbreviated units
 Q_ = Quantity = UR.Quantity
+
+# Support degreeC
+UR.define(u'degreeC = kelvin; offset: 273.15  = °C = ºC = degC = celsius')
