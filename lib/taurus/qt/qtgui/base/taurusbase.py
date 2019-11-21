@@ -707,12 +707,12 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         """
         if toolTipObj is None:
             return self.getNoneValue()
-        ret = '<TABLE width="500" border="0" cellpadding="1" cellspacing="0">'
+        ret = u'<TABLE width="500" border="0" cellpadding="1" cellspacing="0">'
 
         for id, value in toolTipObj:
-            ret += '<TR><TD WIDTH="80" ALIGN="RIGHT" VALIGN="MIDDLE"><B>%s:</B></TD><TD>%s</TD></TR>' % (
+            ret += u'<TR><TD WIDTH="80" ALIGN="RIGHT" VALIGN="MIDDLE"><B>%s:</B></TD><TD>%s</TD></TR>' % (
                 id.capitalize(), value)
-        ret += '</TABLE>'
+        ret += u'</TABLE>'
         return ret
 
     def displayValue(self, v):
@@ -783,7 +783,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             fmt_v = self._format.format(v, bc=self)
         except Exception:
             self.debug("Invalid format %r for %r. Using '{0}'", self._format, v)
-            fmt_v = "{0}".format(v)
+            fmt_v = u"{0}".format(v)
 
         return fmt_v
 
