@@ -106,9 +106,9 @@ class TaurusDevice(TaurusModel):
 
     def getDisplayDescrObj(self, cache=True):
         obj = []
-        obj.append(('name', self.getDisplayName(cache=cache)))
-        obj.append(('description', self.description))
-        obj.append(('device state', self.state.name))
+        obj.append((u'name', self.getDisplayName(cache=cache)))
+        obj.append((u'description', self.description))
+        obj.append((u'device state', self.state.name))
         return obj
 
     def getChildObj(self, child_name):
