@@ -58,9 +58,9 @@ class TaurusPollingTimer(Logger):
         """ Starts the polling timer """
         self.timer.start()
 
-    def stop(self):
+    def stop(self, sync=False):
         """ Stop the polling timer"""
-        self.timer.stop()
+        self.timer.stop(sync=sync)
 
     def containsAttribute(self, attribute):
         """Determines if the polling timer already contains this attribute
@@ -128,7 +128,7 @@ class TaurusPollingTimer(Logger):
             if not attr_dict:
                 del self.dev_dict[dev]
             if not self.dev_dict:
-                self.stop()
+                self.stop(sync=True)
 
     def _pollAttributes(self):
         """Polls the registered attributes. This method is called by the timer
