@@ -27,6 +27,7 @@ develop branch) won't be reflected in this file.
 - Py3 exception in `TaurusModelChooser.getListedModels()` (#1008)
 - (for py2) Improved backwards compatibility of `taurus.qt.qtgui.plot` (#1027)
 - Exception in DelayedSubscriber (#1030)
+- Compatibility issue in deprecated TangoAttribute's `isScalar()` and `isSpectrum()` (#1034)
 
 
 ## [4.6.1] - 2019-08-19
