@@ -1169,11 +1169,13 @@ class TangoAttribute(TaurusAttribute):
         return self.isWritable(cache)
 
     @taurus4_deprecation(alt='self.data_format')
-    def isScalar(self):
+    def isScalar(self, cache=True):
+        # cache is ignored, it is only for back. compat.
         return self.data_format == DataFormat._0D
 
     @taurus4_deprecation(alt='self.data_format')
-    def isSpectrum(self):
+    def isSpectrum(self, cache=True):
+        # cache is ignored, it is only for back. compat.
         return self.data_format == DataFormat._1D
 
     @taurus4_deprecation(alt='self.data_format')
