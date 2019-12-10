@@ -184,9 +184,9 @@ class TangoDevice(TaurusDevice):
         # extend the info on dev state
         ret = []
         for name, value in desc_obj:
-            if name.lower() == 'device state' and self.stateObj is not None:
+            if name.lower() == u'device state' and self.stateObj is not None:
                 tg_state = self.stateObj.read(cache).rvalue.name
-                value = "%s (%s)" % (value, tg_state)
+                value = u"%s (%s)" % (value, tg_state)
             ret.append((name, value))
         return ret
 

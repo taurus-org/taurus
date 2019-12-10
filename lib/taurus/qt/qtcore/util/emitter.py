@@ -361,7 +361,7 @@ class DelayedSubscriber(Logger):
                                                  sleep=sleep, loopwait=pause,
                                                  polling=period)
 
-        self._modelsQueue.put((self.addUnsubscribedAttributes,))
+        self._modelsQueue.put([self.addUnsubscribedAttributes])
         self._modelsThread.start()
 
     def _modelSubscriber(self, method, args=[]):
@@ -402,7 +402,7 @@ class DelayedSubscriber(Logger):
                 self.debug('addModelObj(%s), proxy not available' % modelObj)
                 return
 
-        self._modelsQueue.put((modelObj.subscribePendingEvents,))
+        self._modelsQueue.put([modelObj.subscribePendingEvents])
         self.debug('addModelObj(%s)' % str(modelObj))
 
     def cleanUp(self):

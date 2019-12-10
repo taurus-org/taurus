@@ -474,7 +474,7 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         return taurus.core.taurusattribute.TaurusAttribute
 
-    @Qt.pyqtSlot(str)
+    @Qt.pyqtSlot("QString")
     def setModel(self, model):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         if self.getUseParentModel():

@@ -134,7 +134,7 @@ QT_THEME_NAME = 'Tango'
 
 #: In Linux the QT_THEME_NAME is not applied (to respect the system theme)
 #: setting QT_THEME_FORCE_ON_LINUX=True overrides this.
-QT_THEME_FORCE_ON_LINUX = True
+QT_THEME_FORCE_ON_LINUX = False
 
 #: Full Qt designer path (including filename. Default is None, meaning:
 #: - linux: look for the system designer following Qt.QLibraryInfo.BinariesPath
