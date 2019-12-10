@@ -29,7 +29,7 @@ import weakref
 import threading
 
 from .util.log import Logger
-from .util.containers import CaselessWeakValueDict
+from .util.containers import CaselessWeakValueDict, CaselessDict
 from .util.timer import Timer
 
 __all__ = ["TaurusPollingTimer"]
@@ -138,7 +138,10 @@ class TaurusPollingTimer(Logger):
         dev_dict = {}
         with self.lock:
             for dev, attrs in self.dev_dict.items():
-                dev_dict[dev] = dict(attrs)
+                if dev.factory().caseSensitive:
+                    dev_dict[dev] = dict(attrs)
+                else:
+                    dev_dict[dev] = CaselessDict(attrs)
 
         for dev, attrs in dev_dict.items():
             try:
