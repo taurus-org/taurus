@@ -29,6 +29,7 @@ should inherit to be considered valid taurus widgets."""
 
 import sys
 import threading
+import pkg_resources
 from types import MethodType
 from future.builtins import str
 from future.utils import string_types
@@ -37,6 +38,7 @@ from taurus.external.qt import Qt
 from enum import Enum
 
 import taurus
+from taurus import warning
 from taurus.core.util import eventfilters
 from taurus.core.util.timer import Timer
 from taurus.core.taurusbasetypes import TaurusElementType, TaurusEventType
@@ -64,6 +66,23 @@ __docformat__ = 'restructuredtext'
 
 
 DefaultNoneValue = "-----"
+
+
+
+# ------------------------------------------------------------------------
+# Note: this is an experimental feature introduced in v 4.6.4a
+# It may be removed or changed in future releases
+
+scheme_formatters = {}
+for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui.base.formatter'):
+    try:
+        scheme_formatters[__p.name] = '{}.{}'.format(__p.module_name,
+                                                     __p.attrs[0])
+    except Exception as e:
+        warning('Could not load formatter plugin "%s". Reason: %s',
+                __p.module_name, e)
+
+# ------------------------------------------------------------------------
 
 
 def defaultFormatter(dtype=None, basecomponent=None, **kwargs):

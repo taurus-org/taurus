@@ -118,10 +118,16 @@ model_selectors = [
     'Tango = taurus.qt.qtgui.panel.taurusmodelchooser:TangoModelSelectorItem',
 ]
 
+formatters = [
+    'default = taurus.qt.qtgui.base.taurusbase:defaultFormatter',
+    'tango = taurus.core.tango.util.formatter:tangoFormatter',
+]
+
 entry_points = {
     'console_scripts': console_scripts,
     'taurus.cli.subcommands': taurus_subcommands,
     'taurus.qt.qtgui.panel.TaurusModelSelector.items': model_selectors,
+    'taurus.qt.qtgui.base.formatter': formatters,
 }
 
 classifiers = [
