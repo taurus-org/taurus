@@ -12,6 +12,7 @@ develop branch) won't be reflected in this file.
 ### Added
 - check-deps subcommand (#988)
 - `taurus.cli.register_subcommands()` and `taurus.cli.taurus_cmd()` (#991)
+- Support for spyder v4 in `taurus.qt.qtgui.editor` (#1038)
 
 ### Removed
 ### Changed
