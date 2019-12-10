@@ -340,7 +340,7 @@ class TangoDevice(TaurusDevice):
                 v, err = None, DevFailed(*da.get_err_stack())
             else:
                 v, err = da, None
-            attr = attrs[da.name.lower()]
+            attr = attrs[da.name]
             attr.poll(single=False, value=v, error=err, time=ts)
 
     def __pollAsynch(self, attrs):
