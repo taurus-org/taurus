@@ -33,10 +33,21 @@ from taurus.external.qt import Qt
 
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.editortools import OutlineExplorerWidget
-from spyder.widgets.editor import EditorMainWindow, EditorSplitter
+try:
+    from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
+except ImportError:
+    # spyder v3
+    from spyder.widgets.editortools import OutlineExplorerWidget
+try:
+    from spyder.plugins.editor.widgets.editor import (
+        EditorMainWindow,
+        EditorSplitter,
+    )
+except:
+    # spyder v3
+    from spyder.widgets.editor import EditorMainWindow, EditorSplitter
 from spyder.py3compat import to_text_string
-from spyder.utils.introspection.manager import IntrospectionManager
+
 
 class TaurusBaseEditor(Qt.QSplitter):
     def __init__(self, parent=None):
@@ -72,11 +83,16 @@ class TaurusBaseEditor(Qt.QSplitter):
         self.menu_list = None
         self.setup_window([], [])
 
-        # Set introspector
-        introspector = IntrospectionManager()
-        editorstack = self.editor_splitter.editorstack
-        editorstack.set_introspector(introspector)
-        introspector.set_editor_widget(editorstack)
+        try:
+            # spyder v3
+            from spyder.utils.introspection.manager import IntrospectionManager
+            # Set introspector
+            introspector = IntrospectionManager()
+            editorstack = self.editor_splitter.editorstack
+            editorstack.set_introspector(introspector)
+            introspector.set_editor_widget(editorstack)
+        except ImportError:
+            pass  # TODO: support introspection with spyder v4
 
     def createMenuActions(self):
         """Returns a list of menu actions and a list of IO actions.
