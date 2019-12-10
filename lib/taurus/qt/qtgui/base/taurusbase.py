@@ -1361,6 +1361,8 @@ class TaurusBaseWidget(TaurusBaseComponent):
         self.call__init__(TaurusBaseComponent, name,
                           parent=parent, designMode=designMode)
         self._setText = self._findSetTextMethod()
+        self._formaters = scheme_formatters
+        self._formaters['{:2.3e}'] = '{:2.3e}'
 
     def showFormatterDlg(self):
         """
@@ -1369,13 +1371,27 @@ class TaurusBaseWidget(TaurusBaseComponent):
         (in string version) or None
         """
         current_format = self.getFormat()
+        ind = self._formaters.values().index(current_format)
 
-        formatter, ok = Qt.QInputDialog.getText(self, "Set formatter",
-                                                "Enter a formatter:",
-                                                Qt.QLineEdit.Normal,
-                                                current_format)
+        formatter, ok = Qt.QInputDialog.getItem(self, "Set formatter",
+                                                "Choose/Enter a formatter:",
+                                                list(self._formaters.keys()),
+                                                current=ind,
+                                                editable=True)
+
+        try:
+            moduleName, formatterName = formatter.rsplit('.', 1)
+            __import__(moduleName)
+            k, v = formatterName, formatter
+        except:
+            # Python format string
+            k = v = formatter
+
+        if not self._formaters.has_key(k):
+            self._formaters[k] = v
+
         if ok and formatter:
-            return formatter
+            return self._formaters[k]
 
         return None
 
@@ -1390,13 +1406,6 @@ class TaurusBaseWidget(TaurusBaseComponent):
         if format is not None:
             self.debug(
                 'Default format has been changed to: {0}'.format(format))
-            # -----------------------------------------------------------------
-            # TODO: Tango-centric (replace by agnostic entry point solution)
-            # shortcut to setup the tango formatter
-            if format.strip() == "tangoFormatter":
-                from taurus.core.tango.util.formatter import tangoFormatter
-                format = tangoFormatter
-            # -----------------------------------------------------------------
             self.setFormat(format)
         return format
 
