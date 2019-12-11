@@ -254,9 +254,15 @@ class CaselessDict(dict):
     def __init__(self, other=None):
         if other:
             # Doesn't do keyword args
-            if isinstance(other, dict):
+
+            # -------------------------------------------------------
+            # TODO: when we drop py2 support, change this to
+            #       `if isinstance(other, collections.abc.Mapping)`
+            #
+            if hasattr(other, 'items'):
                 for k, v in other.items():
                     dict.__setitem__(self, k.lower(), v)
+            # -------------------------------------------------------
             else:
                 for k, v in other:
                     dict.__setitem__(self, k.lower(), v)
