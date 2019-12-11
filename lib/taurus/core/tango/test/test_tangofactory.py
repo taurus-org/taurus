@@ -81,9 +81,28 @@ def test_cleanup_after_polling():
     """
     Ensure that polling a Tango attribute does not keep device alive
     See Bug #999
+    (Also check case insensitivity)
     """
     polling_period = .1  # seconds
-    a = taurus.Attribute('sys/tg_test/1/float_scalar')
+    a = taurus.Attribute('sys/TG_test/1/FLOAT_scalar')
+    f = a.factory()
+    a.activatePolling(polling_period * 1000, force=True)
+    assert len(list(f.tango_attrs.keys())) == 1
+    assert len(list(f.tango_devs.keys())) == 1
+    a = None
+    time.sleep(polling_period)
+    assert len(list(f.tango_attrs.keys())) == 0
+    assert len(list(f.tango_devs.keys())) == 0
+
+
+def test_cleanup_state_after_polling():
+    """
+    Ensure that polling the state Tango attribute does not keep device alive
+    See Bug #999
+    (Also check case insensitivity)
+    """
+    polling_period = .1  # seconds
+    a = taurus.Attribute('sys/TG_TEST/1/STate')
     f = a.factory()
     a.activatePolling(polling_period * 1000, force=True)
     assert len(list(f.tango_attrs.keys())) == 1
