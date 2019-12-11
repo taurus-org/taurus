@@ -89,7 +89,6 @@ def test_cleanup_after_polling():
     assert len(list(f.tango_attrs.keys())) == 1
     assert len(list(f.tango_devs.keys())) == 1
     a = None
-    assert len(list(f.tango_attrs.keys())) == 0
     time.sleep(polling_period)
     assert len(list(f.tango_attrs.keys())) == 0
     assert len(list(f.tango_devs.keys())) == 0
