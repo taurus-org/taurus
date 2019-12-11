@@ -735,6 +735,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         that returns a python format string.
         If a callable is used, it will be called with the following 
         keyword arguments:
+
         - dtype: the data type of the value to be formatted
         - basecomponent: the affected widget
   
@@ -1019,6 +1020,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         restored when calling :meth:`applyConfig`).
         By default this is not enabled.
         The following properties are affected by this:
+
         - "model"
 
         :param yesno: (bool) If True, the model-related properties will be
@@ -1914,6 +1916,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
 
         The dictionary returned by this method should contain *at least* the
         following keys and values:
+
         - 'module' : a string representing the full python module name (ex.: 'taurus.qt.qtgui.base')
         - 'icon' : a string representing valid resource icon (ex.: 'designer:combobox.png')
         - 'container' : a bool telling if this widget is a container widget or not.
