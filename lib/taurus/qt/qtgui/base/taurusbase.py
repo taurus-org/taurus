@@ -69,22 +69,6 @@ DefaultNoneValue = "-----"
 
 
 
-# ------------------------------------------------------------------------
-# Note: this is an experimental feature introduced in v 4.6.4a
-# It may be removed or changed in future releases
-
-scheme_formatters = {}
-for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui.base.formatter'):
-    try:
-        scheme_formatters[__p.name] = '{}.{}'.format(__p.module_name,
-                                                     __p.attrs[0])
-    except Exception as e:
-        warning('Could not load formatter plugin "%s". Reason: %s',
-                __p.module_name, e)
-
-# ------------------------------------------------------------------------
-
-
 def defaultFormatter(dtype=None, basecomponent=None, **kwargs):
     """
     Default formatter callable. Returns a format string based on dtype
@@ -99,6 +83,10 @@ def defaultFormatter(dtype=None, basecomponent=None, **kwargs):
     if issubclass(dtype, Enum):
         dtype = Enum
     return basecomponent.defaultFormatDict.get(dtype, "{0}")
+
+
+expFormatter = '{:2.3e}'
+floatFormatter = '{:.5f}'
 
 
 class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
@@ -193,6 +181,23 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
             self.taurusEvent.connect(self.filterEvent)
         except Exception as e:
             self.warning('Could not connect taurusEvent signal: %r', e)
+
+    @staticmethod
+    def get_registered_formatters():
+        """ Static method to get the registered formatters
+        """
+        # Note: this is an experimental feature introduced in v 4.6.4a
+        # It may be removed or changed in future releases
+
+        formatters = {}
+        for ep in pkg_resources.iter_entry_points('taurus.qt.formatters'):
+            try:
+                formatters[ep.name] = '{}.{}'.format(ep.module_name,
+                                                     ep.attrs[0])
+            except Exception as e:
+                warning('Could not load formatter plugin "%s". Reason: %s',
+                        ep.module_name, e)
+        return formatters
 
     @deprecation_decorator(rel='4.0')
     def getSignaller(self):
@@ -1361,8 +1366,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         self.call__init__(TaurusBaseComponent, name,
                           parent=parent, designMode=designMode)
         self._setText = self._findSetTextMethod()
-        self._formaters = scheme_formatters
-        self._formaters['{:2.3e}'] = '{:2.3e}'
+        self._formatters = None
 
     def showFormatterDlg(self):
         """
@@ -1370,12 +1374,19 @@ class TaurusBaseWidget(TaurusBaseComponent):
         :return: formatter: python fromat string or formatter callable
         (in string version) or None
         """
+        if self._formatters is None:
+            # initialize cache
+            self._formatters = TaurusBaseWidget.get_registered_formatters()
+
         current_format = self.getFormat()
-        ind = self._formaters.values().index(current_format)
+        try:
+            ind = self._formatters.values().index(current_format)
+        except ValueError:
+            ind = 0
 
         formatter, ok = Qt.QInputDialog.getItem(self, "Set formatter",
                                                 "Choose/Enter a formatter:",
-                                                list(self._formaters.keys()),
+                                                list(self._formatters.keys()),
                                                 current=ind,
                                                 editable=True)
 
@@ -1387,11 +1398,11 @@ class TaurusBaseWidget(TaurusBaseComponent):
             # Python format string
             k = v = formatter
 
-        if not self._formaters.has_key(k):
-            self._formaters[k] = v
+        if not self._formatters.has_key(k):
+            self._formatters[k] = v
 
         if ok and formatter:
-            return self._formaters[k]
+            return self._formatters[k]
 
         return None
 
