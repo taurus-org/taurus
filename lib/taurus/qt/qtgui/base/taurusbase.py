@@ -1384,8 +1384,12 @@ class TaurusBaseWidget(TaurusBaseComponent):
         except ValueError:
             ind = 0
 
+        uri = "http://taurus-scada.org/devel/api/taurus/qt/qtgui/base/_TaurusBaseComponent.html"
+        help = "<a href=\"{}\"> Find more info in doc</a>".format(uri)
+
+        msg = "Choose/Enter a formatter: {}".format(help)
         formatter, ok = Qt.QInputDialog.getItem(self, "Set formatter",
-                                                "Choose/Enter a formatter:",
+                                                msg,
                                                 list(self._formatters.keys()),
                                                 current=ind,
                                                 editable=True)
