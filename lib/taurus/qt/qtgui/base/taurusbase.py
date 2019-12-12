@@ -192,11 +192,11 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         formatters = {}
         for ep in pkg_resources.iter_entry_points('taurus.qt.formatters'):
             try:
-                formatters[ep.name] = '{}.{}'.format(ep.module_name,
-                                                     ep.attrs[0])
+                formatters[ep.name] = ep.load()
             except Exception as e:
-                warning('Could not load formatter plugin "%s". Reason: %s',
-                        ep.module_name, e)
+                taurus.warning('Cannot load "%s" formatter. Reason: %r',
+                               ep.name, e)
+
         return formatters
 
     @deprecation_decorator(rel='4.0')
@@ -1378,9 +1378,9 @@ class TaurusBaseWidget(TaurusBaseComponent):
             # initialize cache
             self._formatters = TaurusBaseWidget.get_registered_formatters()
 
-        current_format = self.getFormat()
+        # Find index of the current formatter
         try:
-            ind = self._formatters.values().index(current_format)
+            ind = self._formatters.values().index(self.FORMAT)
         except ValueError:
             ind = 0
 
@@ -1391,9 +1391,14 @@ class TaurusBaseWidget(TaurusBaseComponent):
                                                 editable=True)
 
         try:
+            # Try to register new formatter
             moduleName, formatterName = formatter.rsplit('.', 1)
-            __import__(moduleName)
-            k, v = formatterName, formatter
+            f = pkg_resources.get_entry_map('taurus')['taurus.qt.formatters']
+            ep = pkg_resources.EntryPoint.parse('{} = {}:{}'.format(
+                formatterName, moduleName, formatterName),
+                dist=pkg_resources.get_distribution('taurus'))
+            f[formatterName] = ep
+            k, v = formatterName, ep.load()
         except:
             # Python format string
             k = v = formatter
