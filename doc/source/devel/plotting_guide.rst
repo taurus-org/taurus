@@ -4,7 +4,7 @@
 Taurus plotting guide
 =====================
 
-*TL;DR*: Use taurus-pyqtgraph_
+*TL;DR*: Use taurus_pyqtgraph_
 
 In taurus, the following dependencies are used for its various plotting widgets:
 
@@ -28,9 +28,10 @@ Still, some features available in the old PyQwt5-based implementations of `Tauru
 missing in the pyqtgraph-based implementations (any help with this is welcome). The main ones are:
 
 - persistence of user changes related to models (but this is not needed for use cases where the models are set
-programmatically and not altered by the user)
+  programmatically and not altered by the user)
 - full support of tango archiving in TaurusTrend (but basic support already available with the taurus_tangoarchiving_ plugin)
 - maturity (certainly these classes are less tested than the qwt5 ones!)
+
 
 Tips for Getting started with taurus_pyqtgraph_
 ------------------------------------------------
