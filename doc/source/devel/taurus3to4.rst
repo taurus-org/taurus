@@ -141,17 +141,18 @@ This list is a best-effort to document changes, but it may not be 100% complete 
 +-----------------------------------------------+---------------------------------------------------------------+
 +-----------------------------------------------+---------------------------------------------------------------+
 | TangoDevice.getState                          | TangoDevice.stateObj.read().rvalue *tango* or                 |
-|                                               | .state *agnostic*                                             |
+|                                               | .state  *agnostic*                                            |
 +-----------------------------------------------+---------------------------------------------------------------+
 | TangoDevice.state() *PyTango.DeviceProxy API* | TangoDevice.stateObj.read(cache=False).rvalue *tango* or      |
 |                                               | .state  *agnostic*                                            |
 +-----------------------------------------------+---------------------------------------------------------------+
 | TangoDevice.getStateObj                       | TangoDevice.stateObj  *tango* or                              |
-|                                               | .factory.getAttribute(state_full_name) *agnostic*             |
+|                                               | .factory.getAttribute(state_full_name)  *agnostic*            |
 +-----------------------------------------------+---------------------------------------------------------------+
 | TangoDevice.getSWState                        | TangoDevice.state                                             |
 +-----------------------------------------------+---------------------------------------------------------------+
-| TangoDevice.getValueObj                       | TangoDevice.state *agnostic or* stateObj.read *tango*         |
+| TangoDevice.getValueObj                       | TangoDevice.stateObj.read  *tango* or                         |
+|                                               | state  *agnostic*                                             |
 +-----------------------------------------------+---------------------------------------------------------------+
 | TangoDevice.getDisplayValue                   | TangoDevice.state().name                                      |
 +-----------------------------------------------+---------------------------------------------------------------+
