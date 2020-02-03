@@ -151,7 +151,7 @@ This list is a best-effort to document changes, but it may not be 100% complete 
 +-----------------------------------------------+---------------------------------------------------------------+
 | TangoDevice.getSWState                        | TangoDevice.state                                             |
 +-----------------------------------------------+---------------------------------------------------------------+
-| TangoDevice.getValueObj                       | TangoDevice.stateObj.read()  *tango* or                       |
+| TangoDevice.getValueObj                       | TangoDevice.stateObj.read  *tango* or                         |
 |                                               | .state  *agnostic*                                            |
 +-----------------------------------------------+---------------------------------------------------------------+
 | TangoDevice.getDisplayValue                   | TangoDevice.stateObj.read().rvalue.name  *tango*  or          |
