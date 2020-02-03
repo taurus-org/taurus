@@ -19,6 +19,7 @@ develop branch) won't be reflected in this file.
 - Qt theme no longer set to TangoIcons by default (for coherence with docs) (#1012)
 - (for developers) Support of tox and change to pytest. More platforms
   being now automatically tested by travis (#994)
+- TaurusForm provides more debugging info when failing to handle a model (#1049)
 
 ### Deprecated
 ### Fixed
