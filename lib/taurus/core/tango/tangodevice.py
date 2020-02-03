@@ -200,9 +200,9 @@ class TangoDevice(TaurusDevice):
         self._deviceObj = None
         TaurusDevice.cleanUp(self)
 
-    @taurus4_deprecation(alt='.state().name')
+    @taurus4_deprecation(alt='.state.name')
     def getDisplayValue(self, cache=True):
-        return self.state(cache).name
+        return self.stateObj.read(cache=cache).rvalue.name
 
     def _createHWObject(self):
         try:
