@@ -14,7 +14,7 @@ In taurus, the following dependencies are used for its various plotting widgets:
 - guiqwt_: for `TaurusImageDialog` and `TaurusTrend2DDialog` implemented in :mod:`taurus.qt.qtgui.extra_guiqwt`.
   It does not depend at all of PyQwt5, and supports py2, py3 and Qt4, Qt5 so replacing it is not urgent
   (but still it should be eventually replaced by pyqtgraph-based widgets)
-- pyqtgraph_: for `TaurusPlot` and `TaurusTrend` implementions in :mod:`taurus.qt.qtgui.qtgui.tpg`] provided by the
+- pyqtgraph_: for `TaurusPlot` and `TaurusTrend` implementions in :mod:`taurus.qt.qtgui.qtgui.tpg` provided by the
   taurus_pyqtgraph_ plugin. It supports py2, py3 and Qt4, Qt5 and is the intended replacement for all taurus plotting
   widgets (TEP17_).
 
