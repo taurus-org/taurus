@@ -143,6 +143,9 @@ This list is a best-effort to document changes, but it may not be 100% complete 
 | TangoDevice.getState                          | TangoDevice.stateObj.read().rvalue *tango* or                 |
 |                                               | .state *agnostic*                                             |
 +-----------------------------------------------+---------------------------------------------------------------+
+| TangoDevice.state() *PyTango.DeviceProxy API* | TangoDevice.stateObj.read(cache=False).rvalue *tango* or      |
+|                                               | .state  *agnostic*                                            |
++-----------------------------------------------+---------------------------------------------------------------+
 | TangoDevice.getStateObj                       | TangoDevice.stateObj  *tango* or                              |
 |                                               | .factory.getAttribute(state_full_name) *agnostic*             |
 +-----------------------------------------------+---------------------------------------------------------------+
