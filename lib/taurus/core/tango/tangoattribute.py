@@ -1078,7 +1078,7 @@ class TangoAttribute(TaurusAttribute):
         match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
         if match:
             self.precision = int(match.group(1))
-        elif re.match("%[0-9]*d", '%d'):
+        elif re.match("%[0-9]*d", fmt):
             self.precision = 0
         # self._units and self._display_format is to be used by
         # TangoAttrValue for performance reasons. Do not rely on it in other
