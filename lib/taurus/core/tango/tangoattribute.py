@@ -831,7 +831,7 @@ class TangoAttribute(TaurusAttribute):
         # it must be managed out of the critical region to avoid deadlock
         if self.__deactivate_polling:
             self.__deactivate_polling = False
-            self.disablePolling()
+            self._deactivatePolling()
 
     def _pushAttrEvent(self, event):
         """Handler of (non-configuration) events from the PyTango layer.
