@@ -1165,13 +1165,14 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                     or allowUnpickable):
                 #configdict[key] = classID
                 configdict[key] = {'classid': classID}
-                widget = getattr(self, key[0].lower() + key[1:])()
-                if isinstance(widget, BaseConfigurableClass):
-                    configdict[key]['delegate'] = widget.createConfig()
             else:
-                self.info('createConfig: %s not saved because it is not Pickable (%s)' % (
+                self.debug('createConfig: classid of %s not saved because it is not Pickable (%s)' % (
                     key, str(classID)))
-
+            widget = getattr(self, key[0].lower() + key[1:])()
+            if isinstance(widget, BaseConfigurableClass):
+                widget_configdict = configdict.get(key, {})
+                widget_configdict['delegate'] = widget.createConfig()
+                configdict[key] = widget_configdict
         return configdict
 
     def applyConfig(self, configdict, **kwargs):
@@ -1187,8 +1188,9 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
             if key in configdict:
                 widget_configdict = configdict[key]
-                getattr(self, 'set%sClass' % key)(
-                    widget_configdict.get('classid', None))
+                classid = widget_configdict.get('classid', None)
+                if classid:
+                    getattr(self, 'set%sClass' % key)(classid)
                 if 'delegate' in widget_configdict:
                     widget = getattr(self, key[0].lower() + key[1:])()
                     if isinstance(widget, BaseConfigurableClass):
