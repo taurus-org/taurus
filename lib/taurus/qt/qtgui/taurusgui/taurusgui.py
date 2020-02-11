@@ -207,6 +207,7 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
         configdict['widgetModuleName'] = self.getWidgetModuleName()
         if isinstance(self.widget(), BaseConfigurableClass):
             configdict['widget'] = self.widget().createConfig()
+            print("CREATING CONFIG DICT ")
         return configdict
 
     def closeEvent(self, event):

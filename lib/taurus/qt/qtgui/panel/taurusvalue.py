@@ -1175,6 +1175,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             else:
                 self.info('createConfig: %s not saved because it is not Pickable (%s)' % (
                         key, str(classID)))
+
         return configdict
 
     def applyConfig(self, configdict, **kwargs):
@@ -1190,16 +1191,19 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
             if key in configdict:
                 widget_configdict = configdict[key]
-                if ":" in widget_configdict.get('classid', None):
-                    # Check if classid is not a taurus class but has a classid generated from a type class.
-                    import importlib
-                    classID = widget_configdict.get('classid')
-                    module, name = classID.split(":")
-                    module = importlib.import_module(module)
-                    getattr(self, 'set%sClass' % key)(getattr(module, name))
+                classID = widget_configdict.get('classid', None)
+                if classID is not None:
+                    if ":" in classID:
+                        # Check if classid is not a taurus class but has a classid generated from a type class.
+                        import importlib
+                        classID = widget_configdict.get('classid')
+                        module, name = classID.split(":")
+                        module = importlib.import_module(module)
+                        getattr(self, 'set%sClass' % key)(getattr(module, name))
+                    else:
+                        getattr(self, 'set%sClass' % key)(classID)
                 else:
-                    getattr(self, 'set%sClass' % key)(
-                        widget_configdict.get('classid', None))
+                    getattr(self, 'set%sClass' % key)(None)
 
                 if 'delegate' in widget_configdict:
                     widget = getattr(self, key[0].lower() + key[1:])()
