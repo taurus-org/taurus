@@ -1174,7 +1174,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
                     configdict[key]['delegate'] = widget.createConfig()
             else:
                 self.info('createConfig: %s not saved because it is not Pickable (%s)' % (
-                        key, str(classID)))
+                    key, str(classID)))
 
         return configdict
 
