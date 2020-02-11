@@ -128,7 +128,7 @@ class TaurusPollingTimer(Logger):
             if not attr_dict:
                 del self.dev_dict[dev]
             if not self.dev_dict:
-                self.stop(sync=False)
+                self.stop(sync=True)
 
     def _pollAttributes(self):
         """Polls the registered attributes. This method is called by the timer
