@@ -1167,7 +1167,6 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
 
             if (isinstance(classID, string_types)
                     or allowUnpickable):
-                #configdict[key] = classID
                 configdict[key] = {'classid': classID}
                 widget = getattr(self, key[0].lower() + key[1:])()
                 if isinstance(widget, BaseConfigurableClass):
@@ -1192,18 +1191,13 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             if key in configdict:
                 widget_configdict = configdict[key]
                 classID = widget_configdict.get('classid', None)
-                if classID is not None:
-                    if ":" in classID:
-                        # Check if classid is not a taurus class but has a classid generated from a type class.
-                        import importlib
-                        classID = widget_configdict.get('classid')
-                        module, name = classID.split(":")
-                        module = importlib.import_module(module)
-                        getattr(self, 'set%sClass' % key)(getattr(module, name))
-                    else:
-                        getattr(self, 'set%sClass' % key)(classID)
-                else:
-                    getattr(self, 'set%sClass' % key)(None)
+                if classID is not None and ":" in classID:
+                    # classid is of type "module:type" instead of a taurus class name
+                    import importlib
+                    module, name = classID.split(":")
+                    module = importlib.import_module(module)
+                    classID = getattr(module, name)
+                getattr(self, 'set%sClass' % key)(classID)
 
                 if 'delegate' in widget_configdict:
                     widget = getattr(self, key[0].lower() + key[1:])()
