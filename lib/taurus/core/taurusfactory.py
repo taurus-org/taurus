@@ -359,7 +359,7 @@ class TaurusFactory(object):
         timers = dict(self.polling_timers)
         for period, timer in timers.items():
             timer.removeAttribute(attribute)
-            if not timer.dev_dict:
+            if not timer.dev_dict and period in self.polling_timers:
                 del self.polling_timers[period]
 
     def __str__(self):
