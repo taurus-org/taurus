@@ -98,7 +98,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             if attr is None:
                 bottom, top = -numpy.inf, numpy.inf
             else:
-                bottom, top= value.range
+                bottom, top = value.range
             if bottom != val.bottom:
                 val.setBottom(bottom)
             if top != val.top:
