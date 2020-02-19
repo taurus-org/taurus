@@ -95,14 +95,12 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 val = PintValidator(self)
                 self.setValidator(val)
             attr = self.getModelObj()
-            if attr is None:
-                bottom, top = -numpy.inf, numpy.inf
-            else:
-                bottom, top = value.range
-            if bottom != val.bottom:
-                val.setBottom(bottom)
-            if top != val.top:
-                val.setTop(top)
+            if attr is not None:
+                bottom, top = attr.range
+                if bottom != val.bottom:
+                    val.setBottom(bottom)
+                if top != val.top:
+                    val.setTop(top)
             units = value.wvalue.units
             if units != val.units:
                 val.setUnits(units)
