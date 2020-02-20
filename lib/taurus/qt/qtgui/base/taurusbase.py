@@ -1397,7 +1397,7 @@ class TaurusBaseWidget(TaurusBaseComponent):
         if self.FORMAT not in known_formatters.values():
             known_formatters[str(self.FORMAT)] = self.FORMAT
 
-        names, formatters = list(zip(*sorted(known_formatters.items())))
+        names, formatters = list(zip(*known_formatters.items()))
 
         url = ("http://taurus-scada.org/devel/api/taurus/qt/qtgui/base/"
                + "_TaurusBaseComponent.html")
