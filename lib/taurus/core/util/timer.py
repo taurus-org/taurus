@@ -76,12 +76,14 @@ class Timer(Logger):
         finally:
             self.__lock.release()
 
-    def stop(self):
+    def stop(self, sync=False):
         """ Stop Timer Object """
         self.debug("Timer::stop()")
         self.__lock.acquire()
         self.__loop = False
         self.__lock.release()
+        if sync and self.__thread is not None:
+            self.__thread.join()
 
     def __run(self):
         """ Private Thread Function """

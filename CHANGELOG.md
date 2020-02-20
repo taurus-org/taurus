@@ -19,6 +19,7 @@ develop branch) won't be reflected in this file.
 - Qt theme no longer set to TangoIcons by default (for coherence with docs) (#1012)
 - (for developers) Support of tox and change to pytest. More platforms
   being now automatically tested by travis (#994)
+- TaurusForm provides more debugging info when failing to handle a model (#1049)
 
 ### Deprecated
 ### Fixed
@@ -26,9 +27,11 @@ develop branch) won't be reflected in this file.
 - Several issues affecting synoptics (#1005, #1029)
 - Support dns aliases for the authority name in tango model names (#998)
 - Py3 exception in `TaurusModelChooser.getListedModels()` (#1008)
+- Thread safety issues in `TaurusPollingTimer`'s add/remove attributes API (#1022, #999)
 - (for py2) Improved backwards compatibility of `taurus.qt.qtgui.plot` (#1027)
 - Exception in DelayedSubscriber (#1030)
 - Compatibility issue in deprecated TangoAttribute's `isScalar()` and `isSpectrum()` (#1034)
+- Some CI test issues (#1075, #1069)
 
 
 ## [4.6.1] - 2019-08-19

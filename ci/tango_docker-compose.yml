@@ -21,7 +21,7 @@ services:
     depends_on:
      - tango-db
   tango-test:
-    image: tangocs/tango-test:latest
+    image: tangocs/tango-test:9.3.3-rc1
     environment:
      - TANGO_HOST=tango-cs:10000
     links:
