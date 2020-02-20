@@ -93,7 +93,8 @@ def defaultFormatter(dtype=None, basecomponent=None, **kwargs):
 
 expFormatter = '{:2.3e}'
 floatFormatter = '{:.5f}'
-
+kkFormatter = '{:.7g}'
+def kkFormatter2(*a, **kw):return {}
 
 class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
     """A generic Taurus component.
@@ -1372,7 +1373,6 @@ class TaurusBaseWidget(TaurusBaseComponent):
         self.call__init__(TaurusBaseComponent, name,
                           parent=parent, designMode=designMode)
         self._setText = self._findSetTextMethod()
-        self._formatters = None
 
     def showFormatterDlg(self):
         """
@@ -1380,46 +1380,41 @@ class TaurusBaseWidget(TaurusBaseComponent):
         :return: formatter: python fromat string or formatter callable
         (in string version) or None
         """
-        if self._formatters is None:
-            # initialize cache
-            self._formatters = TaurusBaseWidget.get_registered_formatters()
+        # add formatters from plugins
+        known_formatters = TaurusBaseWidget.get_registered_formatters()
+        # add default formatter
+        from taurus import tauruscustomsettings
+        default = getattr(taurus.tauruscustomsettings,
+                          'DEFAULT_FORMATTER',
+                          defaultFormatter)
+        known_formatters['<DEFAULT_FORMATTER>'] = default
+        # add the formatter of this class
+        cls = self.__class__
+        known_formatters['<{}.FORMAT>'.format(cls.__name__)] = cls.FORMAT
+        # add current formatter of this object
+        if self.FORMAT not in known_formatters.values():
+            known_formatters[str(self.FORMAT)] = self.FORMAT
 
-        # Find index of the current formatter
-        try:
-            ind = self._formatters.values().index(self.FORMAT)
-        except ValueError:
-            ind = 0
+        names, formatters = list(zip(*sorted(known_formatters.items())))
 
-        uri = "http://taurus-scada.org/devel/api/taurus/qt/qtgui/base/_TaurusBaseComponent.html"
-        help = "<a href=\"{}\"> Find more info in doc</a>".format(uri)
+        url = ("http://taurus-scada.org/devel/api/taurus/qt/qtgui/base/"
+               + "_TaurusBaseComponent.html")
 
-        msg = "Choose/Enter a formatter: {}".format(help)
-        formatter, ok = Qt.QInputDialog.getItem(self, "Set formatter",
-                                                msg,
-                                                list(self._formatters.keys()),
-                                                current=ind,
-                                                editable=True)
+        choice, ok = Qt.QInputDialog.getItem(
+            self,
+            "Set formatter",
+            'Choose/Enter a formatter (<a href="{}">help</a>)'.format(url),
+            names,
+            current=formatters.index(self.FORMAT),
+            editable=True
+        )
+        if not ok:
+            return None
 
-        try:
-            # Try to register new formatter
-            moduleName, formatterName = formatter.rsplit('.', 1)
-            f = pkg_resources.get_entry_map('taurus')['taurus.qt.formatters']
-            ep = pkg_resources.EntryPoint.parse('{} = {}:{}'.format(
-                formatterName, moduleName, formatterName),
-                dist=pkg_resources.get_distribution('taurus'))
-            f[formatterName] = ep
-            k, v = formatterName, ep.load()
-        except:
-            # Python format string
-            k = v = formatter
-
-        if not self._formatters.has_key(k):
-            self._formatters[k] = v
-
-        if ok and formatter:
-            return self._formatters[k]
-
-        return None
+        if choice in names:
+            return known_formatters[choice]
+        else:
+            return choice
 
     def onSetFormatter(self):
         """Slot to allow interactive setting of the Formatter.
