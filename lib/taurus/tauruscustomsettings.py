@@ -88,9 +88,9 @@ EXTRA_SCHEME_MODULES = []
 #: The formatter can be a python format string or the name of a formatter
 #: callable, e.g.
 #: DEFAULT_FORMATTER = '{0}'
-#: DEFAULT_FORMATTER = 'taurus.core.tango.util.formatter.tangoFormatter'
+#: DEFAULT_FORMATTER = 'taurus.core.tango.util.tangoFormatter'
 #: If not defined, taurus.qt.qtgui.base.defaultFormatter will be used
-pass
+
 
 #: Default serialization mode **for the tango scheme**. Possible values are:
 #: 'Serial', 'Concurrent', or 'TangoSerial' (default)
