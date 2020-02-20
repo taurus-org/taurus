@@ -59,8 +59,14 @@ from taurus.qt.qtgui.util import ActionFactory
 from taurus.core.units import Quantity
 
 
-__all__ = ["TaurusBaseComponent", "TaurusBaseWidget",
-           "TaurusBaseWritableWidget", "defaultFormatter"]
+__all__ = [
+    "TaurusBaseComponent",
+    "TaurusBaseWidget",
+    "TaurusBaseWritableWidget",
+    "defaultFormatter",
+    "expFormatter",
+    "floatFormatter",
+]
 
 __docformat__ = 'restructuredtext'
 

@@ -119,10 +119,10 @@ model_selectors = [
 ]
 
 formatters = [
-    'taurus = taurus.qt.qtgui.base.taurusbase:defaultFormatter',
-    'tango = taurus.core.tango.util.formatter:tangoFormatter',
-    '{:2.3e} = taurus.qt.qtgui.base.taurusbase:expFormatter',
-    '{:.5f} = taurus.qt.qtgui.base.taurusbase:floatFormatter',
+    'taurus = taurus.qt.qtgui.base:defaultFormatter',
+    'tango = taurus.core.tango.util:tangoFormatter',
+    '{:2.3e} = taurus.qt.qtgui.base:expFormatter',
+    '{:.5f} = taurus.qt.qtgui.base:floatFormatter',
 ]
 
 entry_points = {
