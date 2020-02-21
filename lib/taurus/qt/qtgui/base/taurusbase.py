@@ -830,14 +830,14 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param kwargs: keyword arguments that will be passed to
                        :attribute:`FORMAT` if it is a callable
         """
-        if not isinstance(self.FORMAT, string_types):
+        if self._format is None or isinstance(self.FORMAT, string_types):
+            self._format = self.FORMAT
+        else:
             # unbound method to callable
             if isinstance(self.FORMAT, MethodType):
                 self.FORMAT = self.FORMAT.__func__
             self._format = self.FORMAT(dtype=dtype, basecomponent=self,  
                                        **kwargs)
-        else:
-            self._format = self.FORMAT
 
     def setFormat(self, format):
         """ Method to set the `FORMAT` attribute for this instance.
@@ -1376,10 +1376,21 @@ class TaurusBaseWidget(TaurusBaseComponent):
                           parent=parent, designMode=designMode)
         self._setText = self._findSetTextMethod()
 
+    @deprecation_decorator(rel="4.6.2", alt="onSetFormatter")
     def showFormatterDlg(self):
+        """deprecated because it does not distinguish between a user cancelling
+        the dialog and the user selecting `None` as a formatter."""
+        formatter, ok = self.showFormatterDlg()
+        if not ok:
+            return None
+        else:
+            return formatter
+
+    def __showFormatterDlg(self):
         """
-        showFormatterDlg show a dialog to get the formatter from the user.
-        :return: formatter: python fromat string or formatter callable
+        Shows a dialog to get the formatter from the user.
+
+        :return: formatter: python format string or formatter callable
         (in string version) or None
         """
         # add formatters from plugins
@@ -1411,22 +1422,22 @@ class TaurusBaseWidget(TaurusBaseComponent):
             editable=True
         )
         if not ok:
-            return None
+            return None, False
 
         if choice in names:
-            return known_formatters[choice]
+            return known_formatters[choice], True
         else:
-            return choice
+            return choice, True
 
     def onSetFormatter(self):
         """Slot to allow interactive setting of the Formatter.
 
-        .. seealso:: :meth:`TaurusBaseWidget.showFormatterDlg`,
+        .. seealso:: :meth:`TaurusBaseWidget.__showFormatterDlg`,
                      :meth:`TaurusBaseComponent.displayValue`,
                      :attr:`tauruscustomsettings.DEFAULT_FORMATTER`
         """
-        format = self.showFormatterDlg()
-        if format is not None:
+        format, ok = self.__showFormatterDlg()
+        if ok:
             self.debug(
                 'Default format has been changed to: {0}'.format(format))
             self.setFormat(format)

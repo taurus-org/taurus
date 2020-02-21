@@ -13,6 +13,7 @@ develop branch) won't be reflected in this file.
 - check-deps subcommand (#988)
 - `taurus.cli.register_subcommands()` and `taurus.cli.taurus_cmd()` (#991)
 - Support for spyder v4 in `taurus.qt.qtgui.editor` (#1038)
+- Entry-point ("taurus.qt.formatters") for registering formatters via plugins (#1039)
 
 ### Removed
 ### Changed
@@ -20,8 +21,11 @@ develop branch) won't be reflected in this file.
 - (for developers) Support of tox and change to pytest. More platforms
   being now automatically tested by travis (#994)
 - TaurusForm provides more debugging info when failing to handle a model (#1049)
+- Improved GUI dialog for changing the formatter of a widget (#1039)
 
 ### Deprecated
+- `TaurusBaseWidget.showFormatterDlg()` (#1039)
+
 ### Fixed
 - Several issues in TaurusWheelEdit (#1010, #1021)
 - Several issues affecting synoptics (#1005, #1029)
