@@ -151,6 +151,15 @@ class TaurusJDrawGraphicsFactory(Singleton, TaurusBaseGraphicsFactory, Logger):
 
         return item
 
+    def getBarObj(self, params):
+        # TODO: properly implement JDBar support
+        # As a workaround, use a filled rectangle as a substitute of a JDBar
+        self.warning('JDBar not yet supported. Using a JDRectangle instead')
+        if 'fillStyle' not in params:
+            params['fillStyle'] = 1
+
+        return self.getRectangleObj(params)
+
     def getRoundRectangleObj(self, params):
         item = self.getGraphicsItem('RoundRectangle', params)
         x1, y1, x2, y2 = params.get('summit')
