@@ -13,6 +13,7 @@ develop branch) won't be reflected in this file.
 - check-deps subcommand (#988)
 - `taurus.cli.register_subcommands()` and `taurus.cli.taurus_cmd()` (#991)
 - Support for spyder v4 in `taurus.qt.qtgui.editor` (#1038)
+- New `worker_cls` argument for `taurus.core.util.ThreadPool` costructor (#1081)
 
 ### Removed
 ### Changed
