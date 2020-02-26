@@ -1,0 +1,9 @@
+JDFile v11 {
+  Global {
+  }
+  JDBar {
+    summit:385,70,422,105
+    origin:437,57
+    name:"tango:sys/tg_test/1/state"
+  }
+}
