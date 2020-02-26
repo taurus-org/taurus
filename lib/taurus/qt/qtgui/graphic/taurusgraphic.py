@@ -1208,10 +1208,10 @@ class TaurusGraphicsStateItem(TaurusGraphicsItem):
                 bg_brush, fg_brush = None, None
                 if self.getModelObj().getType() == DataType.DevState:
                     bg_brush, fg_brush = QT_DEVICE_STATE_PALETTE.qbrush(
-                        v.value)
+                        v.rvalue)
                 elif self.getModelObj().getType() == DataType.Boolean:
                     bg_brush, fg_brush = QT_DEVICE_STATE_PALETTE.qbrush(
-                        (DevState.FAULT, DevState.ON)[v.value])
+                        (DevState.FAULT, DevState.ON)[v.rvalue])
                 elif self.getShowQuality():
                     bg_brush, fg_brush = QT_ATTRIBUTE_QUALITY_PALETTE.qbrush(
                         v.quality)
