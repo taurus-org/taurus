@@ -14,6 +14,7 @@ develop branch) won't be reflected in this file.
 - `taurus.cli.register_subcommands()` and `taurus.cli.taurus_cmd()` (#991)
 - Support for spyder v4 in `taurus.qt.qtgui.editor` (#1038)
 - Entry-point ("taurus.qt.formatters") for registering formatters via plugins (#1039)
+- New `worker_cls` argument for `taurus.core.util.ThreadPool` costructor (#1081)
 
 ### Removed
 ### Changed
