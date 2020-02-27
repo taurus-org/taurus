@@ -830,7 +830,7 @@ class TaurusBaseComponent(TaurusListener, BaseConfigurableClass):
         :param kwargs: keyword arguments that will be passed to
                        :attribute:`FORMAT` if it is a callable
         """
-        if self._format is None or isinstance(self.FORMAT, string_types):
+        if self.FORMAT is None or isinstance(self.FORMAT, string_types):
             self._format = self.FORMAT
         else:
             # unbound method to callable
