@@ -1161,9 +1161,12 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
             # calls self.getLabelWidgetClass, self.getReadWidgetClass,...
             classID = getattr(self, 'get%sClass' % key)()
+            if isinstance(classID, type):
+                # If the class is not from taurus, it doesn't have classid, so we generate it.
+                classID = "{0.__module__}:{0.__name__}".format(classID)
+
             if (isinstance(classID, string_types)
                     or allowUnpickable):
-                #configdict[key] = classID
                 configdict[key] = {'classid': classID}
                 widget = getattr(self, key[0].lower() + key[1:])()
                 if isinstance(widget, BaseConfigurableClass):
@@ -1187,8 +1190,15 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
             if key in configdict:
                 widget_configdict = configdict[key]
-                getattr(self, 'set%sClass' % key)(
-                    widget_configdict.get('classid', None))
+                classID = widget_configdict.get('classid', None)
+                if classID is not None and ":" in classID:
+                    # classid is of type "module:type" instead of a taurus class name
+                    import importlib
+                    module, name = classID.split(":")
+                    module = importlib.import_module(module)
+                    classID = getattr(module, name)
+                getattr(self, 'set%sClass' % key)(classID)
+
                 if 'delegate' in widget_configdict:
                     widget = getattr(self, key[0].lower() + key[1:])()
                     if isinstance(widget, BaseConfigurableClass):
