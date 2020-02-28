@@ -836,6 +836,10 @@ class TaurusGui(TaurusMainWindow):
             w.setCustomWidgetMap(self.getCustomWidgetMap())
         if paneldesc.model is not None:
             w.setModel(paneldesc.model)
+        if isinstance(w, TaurusBaseComponent):
+            # TODO: allow to select these options in the dialog
+            w.setModifiableByUser(True)
+            w.setModelInConfig(True)
 
         self.createPanel(w, paneldesc.name, floating=paneldesc.floating, custom=True,
                          registerconfig=False, instrumentkey=paneldesc.instrumentkey,
