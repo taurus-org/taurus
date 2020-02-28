@@ -1292,22 +1292,23 @@ class TaurusGui(TaurusMainWindow):
                 except AttributeError:
                     pass
                 w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-                widget_properties = p.widget_properties
-                if widget_properties:
-                    for key in widget_properties:
-                        if hasattr(w, key):
-                            try:
-                                value = widget_properties[key]
-                                setattr(w, key, value)
-                            except Exception as e:
-                                msg = "Cannot set attribute '%s' of widget '%s' " \
-                                      "to value '%s'" % (key, p.classname, str(value))
-                                self.error(msg)
-                                self.traceback(level=taurus.Info)
-                                result = Qt.QMessageBox.critical(self, "Initialization error", "%s\n\n%s" % (
-                                    msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
-                                if result == Qt.QMessageBox.Abort:
-                                    sys.exit()
+                for key, value in p.widget_properties.items():
+                    # set additional configuration for the
+                    if hasattr(w, key):
+                        try:
+                            setattr(w, key, value)
+                        except Exception as e:
+                            msg = "Cannot set %r.%s=%s" % (w, key, str(value))
+                            self.error(msg)
+                            self.traceback(level=taurus.Info)
+                            result = Qt.QMessageBox.critical(
+                                self,
+                                "Initialization error",
+                                "%s\n\n%r" % (msg, e),
+                                Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore
+                            )
+                            if result == Qt.QMessageBox.Abort:
+                                sys.exit()
 
                 if hasattr(w, "setCustomWidgetMap"):
                     w.setCustomWidgetMap(self.getCustomWidgetMap())
