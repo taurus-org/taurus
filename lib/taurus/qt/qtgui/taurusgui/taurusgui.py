@@ -1330,8 +1330,15 @@ class TaurusGui(TaurusMainWindow):
                 # so we do not store their config
                 registerconfig = p not in poolinstruments
                 # create a panel
-                self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
-                                 instrumentkey=instrumentkey, permanent=True, icon=icon)
+                self.createPanel(
+                    w,
+                    p.name,
+                    floating=p.floating,
+                    registerconfig=registerconfig,
+                    instrumentkey=instrumentkey,
+                    permanent=True,
+                    icon=icon
+                )
             except Exception as e:
                 msg = "Cannot create panel %s" % getattr(
                     p, "name", "__Unknown__")
