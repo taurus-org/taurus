@@ -88,9 +88,9 @@ EXTRA_SCHEME_MODULES = []
 #: The formatter can be a python format string or the name of a formatter
 #: callable, e.g.
 #: DEFAULT_FORMATTER = '{0}'
-#: DEFAULT_FORMATTER = 'taurus.core.tango.util.formatter.tangoFormatter'
+#: DEFAULT_FORMATTER = 'taurus.core.tango.util.tangoFormatter'
 #: If not defined, taurus.qt.qtgui.base.defaultFormatter will be used
-pass
+
 
 #: Default serialization mode **for the tango scheme**. Possible values are:
 #: 'Serial', 'Concurrent', or 'TangoSerial' (default)
@@ -134,7 +134,14 @@ QT_THEME_NAME = 'Tango'
 
 #: In Linux the QT_THEME_NAME is not applied (to respect the system theme)
 #: setting QT_THEME_FORCE_ON_LINUX=True overrides this.
-QT_THEME_FORCE_ON_LINUX = True
+QT_THEME_FORCE_ON_LINUX = False
+
+#: Full Qt designer path (including filename. Default is None, meaning:
+#: - linux: look for the system designer following Qt.QLibraryInfo.BinariesPath
+#: - windows: look for the system designer following
+#: Qt.QLibraryInfo.BinariesPath. If this fails, taurus tries to locate binary
+#: manually
+QT_DESIGNER_PATH = None
 
 #: Custom organization logo. Set the absolute path to an image file to be used as your
 #: organization logo. Qt registered paths can also be used. 

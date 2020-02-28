@@ -49,7 +49,11 @@ class TaurusImportTestCase(unittest.TestCase):
         on module importing
         """
         exclude_patterns = [r'taurus\.qt\.qtgui\.extra_.*',
-                            r'taurus\.qt\.qtgui\.qwt5']
+                            r'taurus\.qt\.qtgui\.qwt5',
+                            r'taurus\.external\.qt\.QtUiTools',
+                            r'taurus\.external\.qt\.QtWebKit',
+                            r'taurus\.external\.qt\.Qwt5',
+                            ]
 
         try:
             import PyTango
@@ -64,7 +68,7 @@ class TaurusImportTestCase(unittest.TestCase):
                                        exclude_patterns=exclude_patterns)
         msg = None
         if wrn:
-            msg = '\n%s' % '\n'.join(zip(*wrn)[1])
+            msg = '\n%s' % '\n'.join(list(zip(*wrn))[1])
         self.assertEqual(len(wrn), 0, msg=msg)
 
 

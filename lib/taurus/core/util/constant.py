@@ -69,5 +69,7 @@ class _consttype(object):
     def __del__(self):
         self.__dict__.clear()
 
-import sys
-sys.modules[__name__] = _consttype()
+
+if __name__ == '__main__':
+    import sys
+    sys.modules[__name__] = _consttype()

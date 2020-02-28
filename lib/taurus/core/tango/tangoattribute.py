@@ -295,6 +295,7 @@ class TangoAttribute(TaurusAttribute):
         self.__already_warned_unit = None
 
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
+        self.__deactivate_polling = False
 
         attr_info = None
         if parent:
@@ -485,6 +486,7 @@ class TangoAttribute(TaurusAttribute):
                     value = self.decode(value)
                     self.__attr_err = error
                     if self.__attr_err:
+
                         raise self.__attr_err
                     # Avoid "valid-but-outdated" notifications
                     # if FILTER_OLD_TANGO_EVENTS is enabled
@@ -727,7 +729,7 @@ class TangoAttribute(TaurusAttribute):
                 else:
                     self.debug("Failed: %s", df.args[0].desc)
                     self.trace(str(df))
-        self._deactivatePolling()
+        self.disablePolling()
         self.__subscription_state = SubscriptionState.Unsubscribed
 
     def _subscribeConfEvents(self):
@@ -803,6 +805,7 @@ class TangoAttribute(TaurusAttribute):
         specific handlers for different event types.
         """
         with self.__read_lock:
+
             # if it is a configuration event
             if isinstance(event, PyTango.AttrConfEventData):
                 etype, evalue = self._pushConfEvent(event)
@@ -823,6 +826,12 @@ class TangoAttribute(TaurusAttribute):
                 manager.enqueueJob(job, job_args=(etype, evalue),
                                    job_kwargs={'listeners': listeners},
                                    serialization_mode=sm)
+
+        # Deactivate polling in case of PyTango.DevFailed
+        # it must be managed out of the critical region to avoid deadlock
+        if self.__deactivate_polling:
+            self.__deactivate_polling = False
+            self._deactivatePolling()
 
     def _pushAttrEvent(self, event):
         """Handler of (non-configuration) events from the PyTango layer.
@@ -856,7 +865,7 @@ class TangoAttribute(TaurusAttribute):
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
             if not self.isPollingForced():
-                self._deactivatePolling()
+                self.disablePolling()
             return TaurusEventType.Change, self.__attr_value
 
         elif event.errors[0].reason in EVENT_TO_POLLING_EXCEPTIONS:
@@ -872,7 +881,7 @@ class TangoAttribute(TaurusAttribute):
                 *event.errors)
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
-            self._deactivatePolling()
+            self.__deactivate_polling = True
             return TaurusEventType.Error, self.__attr_err
 
     def _pushConfEvent(self, event):
@@ -1078,6 +1087,8 @@ class TangoAttribute(TaurusAttribute):
         match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
         if match:
             self.precision = int(match.group(1))
+        elif re.match("%[0-9]*d", fmt):
+            self.precision = 0
         # self._units and self._display_format is to be used by
         # TangoAttrValue for performance reasons. Do not rely on it in other
         # code
@@ -1169,11 +1180,13 @@ class TangoAttribute(TaurusAttribute):
         return self.isWritable(cache)
 
     @taurus4_deprecation(alt='self.data_format')
-    def isScalar(self):
+    def isScalar(self, cache=True):
+        # cache is ignored, it is only for back. compat.
         return self.data_format == DataFormat._0D
 
     @taurus4_deprecation(alt='self.data_format')
-    def isSpectrum(self):
+    def isSpectrum(self, cache=True):
+        # cache is ignored, it is only for back. compat.
         return self.data_format == DataFormat._1D
 
     @taurus4_deprecation(alt='self.data_format')

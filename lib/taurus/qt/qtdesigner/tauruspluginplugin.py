@@ -32,8 +32,7 @@ from taurus.external.qt import QtDesigner
 
 
 def build_qtdesigner_widget_plugin(klass):
-    #from . import taurusplugin # - after futurize stage 1
-    import taurusplugin.taurusplugin as taurusplugin # + after futurize stage 1
+    from taurus.qt.qtdesigner.taurusplugin import taurusplugin
 
     class Plugin(taurusplugin.TaurusWidgetPlugin):
         WidgetClass = klass

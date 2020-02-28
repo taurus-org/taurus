@@ -38,7 +38,7 @@ import numpy
 
 @insertTest(helper_name='encDec', cname='json', data=[1, 2, 3])
 @insertTest(helper_name='encDec', cname='zip', data=b'foobar')
-@insertTest(helper_name='encDec', cname='zip_json', data=[1, 2, 3])
+@insertTest(helper_name='encDec', cname='zip_utf8_json', data=[1, 2, 3])
 @insertTest(helper_name='encDec', cname='videoimage',
             data=numpy.ones((2, 2), dtype='uint8'))
 @insertTest(helper_name='encDec', cname='zip_null_zip_videoimage',

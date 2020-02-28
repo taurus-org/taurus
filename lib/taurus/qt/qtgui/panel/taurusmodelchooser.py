@@ -355,12 +355,16 @@ class TaurusModelChooser(TaurusWidget):
             models = models[:1]
         if asMimeData:
             md = Qt.QMimeData()
-            md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, str(
-                "\r\n".join(models)))
+            md.setData(
+                taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE,
+                bytes("\r\n".join(models), encoding="utf8")
+            )
             md.setText(", ".join(models))
             if len(models) == 1:
                 md.setData(
-                    taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(models[0]))
+                    taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE,
+                    bytes(models[0], encoding="utf8")
+                )
             return md
         return models
 

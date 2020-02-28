@@ -73,8 +73,8 @@ class TaurusAuthority(TaurusModel):
 
     def getDisplayDescrObj(self, cache=True):
         obj = []
-        obj.append(('name', self.getDisplayName(cache=cache)))
-        obj.append(('description', self.description))
+        obj.append((u'name', self.getDisplayName(cache=cache)))
+        obj.append((u'description', self.description))
         return obj
 
     def getChildObj(self, child_name):

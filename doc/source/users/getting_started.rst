@@ -26,22 +26,6 @@ Note: pip is already included in python>2.7.9
 
 Note: some "extra" features of taurus have additional dependencies_.
 
-Installing from sources manually (platform-independent)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You may alternatively install from a downloaded release package:
-
-#. Download the latest sources of taurus from http://pypi.python.org/pypi/taurus
-#. Extract the downloaded source into a temporary directory and change to it
-#. run::
-
-       pip install .
-
-#. test the installation::
-
-       python -c "import taurus; print taurus.Release.version"
-
-Note: some "extra" features of taurus have additional dependencies_.
 
 Linux (Debian-based)
 ~~~~~~~~~~~~~~~~~~~~
@@ -52,22 +36,22 @@ doing (as root)::
 
        aptitude install python-taurus
 
-(see more detailed instructions in `this step-by-step howto
-<https://sourceforge.net/p/sardana/wiki/Howto-SardanaFromScratch/>`__)
+Note: `python3-taurus` and `python3-taurus-pyqtgraph` packages are already
+built in https://salsa.debian.org , but are not yet part of the official debian
+repositories
 
 
-Windows
-~~~~~~~
+Installing in a conda environment (Windows and linux)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. Install the `Python(x,y)`_ bundle (alternatively, you could install Python,
-   PyQt_, PLY_, and other dependencies_ independently, but `Python(x,y)`_
-   will save you much worries about versions).
-#. Download the latest Taurus windows binary from http://pypi.python.org/pypi/taurus
-#. Run the installation executable
-#. test the installation::
+First create a Conda_ environment with all the dependencies and activate it::
 
-       C:\Python27\python -c "import taurus; print taurus.Release.version"
+    conda config --add channels conda-forge
+    conda config --add channels tango-controls  # for windows, use "tcoutinho" instead of "tango-controls"
+    conda create -n py3qt5 python=3 pyqt=5 itango pytango lxml future guidata guiqwt ipython pillow pint ply pyqtgraph pythonqwt numpy scipy pymca click
+    conda activate py3qt5
 
+Then install taurus and taurus_pyqtgraph using pip (as explained above)
 
 Working from Git source directly (in develop mode)
 --------------------------------------------------
@@ -75,15 +59,15 @@ Working from Git source directly (in develop mode)
 If you intend to do changes to Taurus itself, or want to try the latest
 developments, it is convenient to work directly from the git source in
 "develop" (aka "editable") mode, so that you do not need to re-install
-on each change.
+on each change::
 
-You can clone taurus from our main git repository::
+    # install taurus in develop mode
+    git clone https://github.com/taurus-org/taurus.git
+    pip install -e ./taurus  # <-- Note the -e !!
 
-    git clone https://github.com/taurus-org/taurus.git taurus
-
-Then, to work in develop mode, just do::
-
-    pip install -e ./taurus
+    # install taurus_pyqtgraph in develop mode
+    git clone https://github.com/taurus-org/taurus_pyqtgraph.git
+    pip install -e ./taurus_pyqtgraph  # <-- Note the -e !!
 
 
 .. _dependencies:
@@ -104,7 +88,7 @@ expected of Taurus (which are considered "extras"). For example:
   is done with PyQt4 and PyQt5, so many features may not be
   regularly tested with PySide and PySide2.
 
-- The :mod:`taurus.qt.qtgui.plot` module requires PyQwt_, which is
+- The :mod:`taurus.qt.qtgui.qwt5` module requires PyQwt_, which is
   only available when using PyQt4 and python2. As an alternative
   that supports both python2 and python3 and all the Qt bindings,
   refer to the taurus_pyqtgraph_ plugin.
@@ -123,31 +107,18 @@ expected of Taurus (which are considered "extras"). For example:
 For a complete list of "extra" features and their corresponding
 requirements, execute the following command::
 
-    python -c 'import taurus; taurus.check_dependencies()'
+    taurus check-deps
 
 
 How you install the required dependencies depends on your preferred
 installation method:
 
 - For GNU/Linux, it is in general better to install the dependencies from
-  your distribution repositories if available.
+  your distribution repositories if available. A Conda_ environment can be
+  used alternatively (interesting for testing new features in isolation)
 
-- For Windows users: many of these dependencies are already satisfied
-  by installing the `Python(x,y)`_ bundle. Also, most can be installed
-  from PyPI_ (e.g. using pip). For some versions, PyPI may not provide
-  pre-built windows binaries, so pip may try to compile from sources,
-  which takes long and may not succeed without some further work. In
-  those cases, one may use windows binaries from other versions and/or
-  wheel packages from the Silx_WheelHouse_.
-
-- In general, you can use pip to install dependencies for a given
-  extra feature (if they are in PyPI or in one of your configured
-  indexes). Use::
-
-      pip install taurus[NAME_OF_EXTRA]
-
-- The Conda_ package management system may also be used to install
-  most of the required dependencies.
+- For Windows users, the recommended option is to use a Conda_ environment
+  (see above).
 
 - The `taurus-test Docker container`_ provides a Docker container (based
   on Debian) with all the dependencies pre-installed (including Tango and
@@ -159,7 +130,6 @@ installation method:
 .. _pint: http://pint.readthedocs.org/
 .. _future: https://python-future.org/
 .. _PLY: http://www.dabeaz.com/ply/
-.. _Python(x,y): http://python-xy.github.io/
 .. _Tango: http://www.tango-controls.org/
 .. _PyTango: http://pytango.readthedocs.io
 .. _Qt: http://qt.nokia.com/products/
@@ -173,7 +143,6 @@ installation method:
 .. _pyepics: http://pypi.python.org/pypi/pyepics
 .. _spyder: http://pythonhosted.org/spyder
 .. _lxml: http://lxml.de
-.. _Silx_WheelHouse: http://www.silx.org/pub/wheelhouse/
 .. _PyPI: http://pypi.python.org/pypi
 .. _Conda: http://conda.io/docs/
 .. _taurus-test Docker container: http://hub.docker.com/r/cpascual/taurus-test/

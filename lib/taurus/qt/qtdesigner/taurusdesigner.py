@@ -27,8 +27,10 @@ from builtins import str
 import sys
 import click
 import os.path
+import subprocess
 
 import taurus
+import taurus.tauruscustomsettings
 from taurus.external.qt import Qt
 from taurus.core.util.log import deprecation_decorator
 
@@ -73,19 +75,24 @@ def append_or_create_env_list(env, env_name, env_value):
 
 
 def get_qtdesigner_bin():
+    designer_bin = getattr(taurus.tauruscustomsettings, 'QT_DESIGNER_PATH', None)
+    if designer_bin:
+        return designer_bin
     designer_bin = str(Qt.QLibraryInfo.location(Qt.QLibraryInfo.BinariesPath))
 
     plat = sys.platform
     if plat == "darwin":
         designer_bin = os.path.join(
-            designer_bin, "Designer.app", "Contents", "MacOS")
+            designer_bin, "Designer.app", "Contents", "MacOS", "designer")
     elif plat in ("win32", "nt"):
-        # TODO: refactor this to make it Qt-binding agnostic
-        # TODO: check if this works for conda installations on windows
-        import PyQt4
-        designer_bin = os.path.abspath(os.path.dirname(PyQt4.__file__))
-
-    designer_bin = os.path.join(designer_bin, "designer")
+        designer_bin = os.path.join(designer_bin, "designer.exe")
+        if not os.path.exists(designer_bin):
+            # some installations don't properly install designer
+            # in QLibraryInfo.BinariesPath. We do a best effort to find it
+            designer_bin = subprocess.check_output('where designer')
+            designer_bin = designer_bin.decode().strip()
+    else:
+        designer_bin = os.path.join(designer_bin, "designer")
     return designer_bin
 
 
@@ -166,4 +173,4 @@ def designer_cmd(ui_files, tauruspath):
     sys.exit(qtdesigner_start(ui_files, env=env))
 
 if __name__ == "__main__":
-    main()
+    designer_cmd()
