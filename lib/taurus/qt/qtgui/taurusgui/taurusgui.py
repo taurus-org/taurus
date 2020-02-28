@@ -361,12 +361,16 @@ class TaurusGui(TaurusMainWindow):
         self.newShortMessage.emit(msg)
 
         if self.defaultConfigRecursionDepth >= 0:
-            Qt.QMessageBox.information(self, "Fail-proof mode",
-                                       ('Running in fail-proof mode.' +
-                                        '\nLoading of potentially problematic settings is disabled.' +
-                                        '\nSome panels may not be loaded or may ignore previous user configuration' +
-                                        '\nThis will also apply when loading perspectives'),
-                                       Qt.QMessageBox.Ok, Qt.QMessageBox.NoButton)
+            self.newShortMessage.emit(
+                "Running in Safe Mode. Settings not loaded"
+            )
+            self.warning(
+                "Safe mode: \n"
+                + '\n\tLoading of potentially problematic settings is disabled.'
+                + '\n\tSome panels may not be loaded or may ignore previous '
+                + 'user configuration'
+                + '\n\tThis will also apply when loading perspectives'
+            )
 
     def closeEvent(self, event):
         try:
