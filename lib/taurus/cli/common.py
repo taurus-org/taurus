@@ -22,6 +22,7 @@
 #############################################################################
 
 import click
+import logging
 
 
 log_port = click.option(
