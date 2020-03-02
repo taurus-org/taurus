@@ -33,11 +33,11 @@ standard_library.install_aliases()
 from taurus.external.qt import Qt, compat
 import pickle
 import os
+import shutil
 import tempfile
 import click
 from taurus.qt.qtcore.configuration import BaseConfigurableClass
 from taurus.qt.qtgui.container import TaurusWidget
-import shutil
 
 
 __all__ = ["QConfigEditor"]
@@ -81,10 +81,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
 
         :param iniFileName: (str)
         '''
-        self.originalFile = str(iniFileName)
-        self._file = tempfile.NamedTemporaryFile()
-        self._temporaryFile = str(self._file.name)
-
+        self.originalFile = iniFileName
+        self._temporaryFile = tempfile.NamedTemporaryFile(delete=False).name
         shutil.copyfile(self.originalFile, self._temporaryFile)
 
         self._settings = Qt.QSettings(
@@ -347,7 +345,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         '''
         result = None
         qstate = self._settings.value(key)
-        if qstate is not None and not qstate.isNull():
+        if qstate is not None:
             try:
                 result = pickle.loads(qstate.data())
             except Exception as e:
@@ -367,6 +365,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         '''
         if self.markedItems == []:
             return
+        self._settings.sync()
+
         shutil.copyfile(self._temporaryFile, self.originalFile)
         self.clearChanges()
         # self.reloadFile()
@@ -396,7 +396,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         '''
         if self.markedItems == []:
             return
-        shutil.copyfile(self.originalFile, self._temporaryFile)
+
         self.reloadFile()
 
     def clearChanges(self):

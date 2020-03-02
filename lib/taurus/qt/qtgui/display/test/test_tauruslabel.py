@@ -34,6 +34,8 @@ from taurus.qt.qtgui.container import TaurusWidget
 from taurus.core.tango.test import TangoSchemeTestLauncher
 import functools
 from taurus.core.util.colors import ATTRIBUTE_QUALITY_DATA, DEVICE_STATE_DATA
+from pint import UnitRegistry as ur
+import numpy
 
 DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
 
@@ -102,7 +104,9 @@ testOldFgroles = functools.partial(insertTest, helper_name='text', maxdepr=1,
 # ------------------------------------------------------------------------------
 @insertTest(helper_name='text',
             model='tango:' + DEV_NAME + '/double_image#rvalue[1,::2]',
-            expected='[ 1.23  1.23] mm')
+            expected='{:~}'.format(numpy.array([1.23,1.23])*ur().mm)
+            # expected is not explicit to support pint v<0.8 particularities
+            )
 @insertTest(helper_name='text',
             model='tango:' + DEV_NAME + '/double_spectrum#rvalue[1]',
             expected='1.23 mm')

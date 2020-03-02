@@ -25,6 +25,8 @@
 
 """This package provides the TaurusGui class"""
 
+from __future__ import absolute_import
+
 from builtins import str
 import os
 import sys
@@ -47,8 +49,6 @@ from taurus.qt.qtgui.container import TaurusMainWindow
 from taurus.qt.qtgui.taurusgui.utils import (ExternalApp, PanelDescription,
                                              ToolBarDescription,
                                              AppletDescription)
-from taurus.qt.qtgui.taurusgui.appsettingswizard import ExternalAppEditor
-from taurus.qt.qtgui.panel import QDoubleListDlg
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.taurusgui.utils import ExternalAppAction
 
@@ -505,6 +505,7 @@ class TaurusGui(TaurusMainWindow):
 
     def createExternalApp(self):
         '''Add a new external application on execution time'''
+        from .appsettingswizard import ExternalAppEditor
         app_editor = ExternalAppEditor(self)
         name, xml, ok = app_editor.getDialog()
         if name in self._external_app_names:
@@ -766,6 +767,7 @@ class TaurusGui(TaurusMainWindow):
         temp = [n for n, p in self.__panels.items() if (
             p.isCustom() and not p.isPermanent())]
         if len(temp) > 0 or showAlways:
+            from taurus.qt.qtgui.panel import QDoubleListDlg
             dlg = QDoubleListDlg(winTitle='Stored panels',
                                  mainLabel='Select which of the panels should be stored',
                                  label1='Temporary (to be discarded)', label2='Permanent (to be stored)',
@@ -794,6 +796,7 @@ class TaurusGui(TaurusMainWindow):
         # be made permanent
         #permanet_ext_app = list(self._external_app_names)
         if len(self.__external_app) > 0 or showAlways:
+            from taurus.qt.qtgui.panel import QDoubleListDlg
             msg = 'Select which of the external applications should be stored'
             dlg = QDoubleListDlg(winTitle='Stored external applications',
                                  mainLabel=msg,
@@ -1229,14 +1232,14 @@ class TaurusGui(TaurusMainWindow):
     
     def _loadSynoptic(self, conf, xmlroot):
         # Synoptics
-        synoptic = getattr(conf, 'synoptic', None)
+        synoptic = getattr(conf, 'SYNOPTIC', None)
         if isinstance(synoptic, string_types):  # old config file style
             self.warning(
                 'Deprecated usage of synoptic keyword (now it expects a list of paths). Please update your configuration file to: "synoptic=[\'%s\']".' % synoptic)
             synoptic = [synoptic]
         if synoptic is None:  # we look in the xml config file if not present in the python config
             synoptic = []
-            node = xmlroot.find("synoptic")
+            node = xmlroot.find("SYNOPTIC")
             if (node is not None) and (node.text is not None):
                 for child in node:
                     s = child.get("str")
@@ -1269,7 +1272,8 @@ class TaurusGui(TaurusMainWindow):
         if panel_descriptions is not None:
             for child in panel_descriptions:
                 if child.tag == "PanelDescription":
-                    pd = PanelDescription.fromXml(etree.tostring(child))
+                    child_str = etree.tostring(child, encoding='unicode')
+                    pd = PanelDescription.fromXml(child_str)
                     if pd is not None:
                         custom_panels.append(pd)
 
@@ -1341,7 +1345,8 @@ class TaurusGui(TaurusMainWindow):
         if tool_bar_descriptions is not None:
             for child in tool_bar_descriptions:
                 if child.tag == "ToolBarDescription":
-                    d = ToolBarDescription.fromXml(etree.tostring(child))
+                    child_str = etree.tostring(child, encoding='unicode')
+                    d = ToolBarDescription.fromXml(child_str)
                     if d is not None:
                         custom_toolbars.append(d)
 
@@ -1393,7 +1398,8 @@ class TaurusGui(TaurusMainWindow):
         if applet_descriptions is not None:
             for child in applet_descriptions:
                 if child.tag == "AppletDescription":
-                    d = AppletDescription.fromXml(etree.tostring(child))
+                    child_str = etree.tostring(child, encoding='unicode')
+                    d = AppletDescription.fromXml(child_str)
                     if d is not None:
                         custom_applets.append(d)
 
@@ -1432,7 +1438,8 @@ class TaurusGui(TaurusMainWindow):
         if ext_apps_node is not None:
             for child in ext_apps_node:
                 if child.tag == "ExternalApp":
-                    ea = ExternalApp.fromXml(etree.tostring(child))
+                    child_str = etree.tostring(child, encoding='unicode')
+                    ea = ExternalApp.fromXml(child_str)
                     if ea is not None:
                         external_apps.append(ea)
 
@@ -1672,6 +1679,7 @@ class TaurusGui(TaurusMainWindow):
                 xmlroot, "PanelDescriptions")
 
         # Get all custom panels
+        from taurus.qt.qtgui.panel import QDoubleListDlg
         dlg = QDoubleListDlg(winTitle='Export Panels to XML',
                              mainLabel='Select which of the custom panels you want to export as xml configuration',
                              label1='Not Exported', label2='Exported',
@@ -1690,7 +1698,7 @@ class TaurusGui(TaurusMainWindow):
                 self.registerConfigDelegate(panel, name)
             panelxml = PanelDescription.fromPanel(panel).toXml()
             panelDescriptionsNode.append(etree.fromstring(panelxml))
-        xml = etree.tostring(xmlroot, pretty_print=True)
+        xml = etree.tostring(xmlroot, pretty_print=True, encoding='unicode')
 
         # write to file
         while True:

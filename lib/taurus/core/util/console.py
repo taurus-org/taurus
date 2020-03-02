@@ -34,8 +34,7 @@ __docformat__ = "restructuredtext"
 
 def make_color_table(in_class, use_name=False, fake=False):
     """Build a set of color attributes in a class.
-
-    Helper function for building the *TermColors classes."""
+    Helper function for building the TermColors classes."""
     color_templates = (
         ("Black", "0;30"),
         ("Red", "0;31"),

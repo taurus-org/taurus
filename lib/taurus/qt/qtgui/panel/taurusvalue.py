@@ -389,7 +389,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         itself.
         '''
         if followCompact and self.isCompact():
-            return self._readWidget.readWidget
+            return getattr(self._readWidget, 'readWidget', self._readWidget)
         return self._readWidget
 
     def writeWidget(self, followCompact=False):

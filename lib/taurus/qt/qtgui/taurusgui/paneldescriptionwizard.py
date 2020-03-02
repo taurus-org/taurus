@@ -35,7 +35,6 @@ import weakref
 from taurus.qt.qtgui.taurusgui.utils import PanelDescription
 from taurus.qt.qtgui.icon import getCachedPixmap
 from taurus.qt.qtgui.input import GraphicalChoiceWidget
-from taurus.qt.qtgui.panel import TaurusModelChooser
 from taurus.qt.qtgui.base import TaurusBaseComponent, TaurusBaseWidget
 from taurus.qt.qtcore.communication import SharedDataManager
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE
@@ -429,6 +428,7 @@ class AdvSettingsPage(Qt.QWizardPage):
         self.commLV.setItemDelegate(self.itemDelegate)
 
     def showModelChooser(self):
+        from taurus.qt.qtgui.panel import TaurusModelChooser
         models, ok = TaurusModelChooser.modelChooserDlg(
             parent=self, asMimeData=True)
         if not ok:

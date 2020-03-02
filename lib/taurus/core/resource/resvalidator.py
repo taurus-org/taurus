@@ -29,8 +29,8 @@ from taurus.core.taurusvalidator import (TaurusAttributeNameValidator,
                                          TaurusAuthorityNameValidator)
 from taurus.core.taurushelper import getSchemeFromName, Factory
 
-__all__ = ['ResDeviceNameValidator',
-           'ResAttributeNameValidator']
+__all__ = ['ResourceAuthorityNameValidator', 'ResourceDeviceNameValidator',
+           'ResourceAttributeNameValidator']
 
 # Pattern for python variables
 PY_VAR = r'(?<![\.a-zA-Z0-9_])[a-zA-Z_][a-zA-Z0-9_]*'
