@@ -48,7 +48,7 @@ First create a Conda_ environment with all the dependencies and activate it::
 
     conda config --add channels conda-forge
     conda config --add channels tango-controls  # for windows, use "tcoutinho" instead of "tango-controls"
-    conda create -n py3qt5 python=3 pyqt=5 itango pytango lxml future guidata guiqwt ipython pillow pint ply pyqtgraph pythonqwt numpy scipy pymca
+    conda create -n py3qt5 python=3 pyqt=5 itango pytango lxml future guidata guiqwt ipython pillow pint ply pyqtgraph pythonqwt numpy scipy pymca click
     conda activate py3qt5
 
 Then install taurus and taurus_pyqtgraph using pip (as explained above)
@@ -107,7 +107,7 @@ expected of Taurus (which are considered "extras"). For example:
 For a complete list of "extra" features and their corresponding
 requirements, execute the following command::
 
-    python -c 'import taurus; taurus.check_dependencies()'
+    taurus check-deps
 
 
 How you install the required dependencies depends on your preferred

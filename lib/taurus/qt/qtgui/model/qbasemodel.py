@@ -221,7 +221,7 @@ class RefreshToolBar(BaseToolBar):
 
 class PerspectiveToolBar(BaseToolBar):
 
-    perspectiveChanged = Qt.pyqtSignal(str)
+    perspectiveChanged = Qt.pyqtSignal(compat.PY_OBJECT)
 
     def __init__(self, perspective, view=None, parent=None, designMode=False):
         BaseToolBar.__init__(self, name="Taurus refresh toolbar", view=view,

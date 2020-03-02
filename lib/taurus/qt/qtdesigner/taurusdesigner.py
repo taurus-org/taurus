@@ -173,4 +173,4 @@ def designer_cmd(ui_files, tauruspath):
     sys.exit(qtdesigner_start(ui_files, env=env))
 
 if __name__ == "__main__":
-    main()
+    designer_cmd()

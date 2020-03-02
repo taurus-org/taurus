@@ -12,14 +12,7 @@ of stuff that should be manually tested.
 4. Create the release branch if it was not done already in the previous step and:
     1. Review and update the CHANGELOG.md if necessary. See [this](http://keepachangelog.com)
     2. Bump version using `bumpversion <major|minor|patch>`  (use [semver](http://semver.org/) criteria to choose amongst `major`, `minor` or `patch`
-    3. Update man pages:
-         ```
-         cd <taurus>/doc
-         ./makeman
-         git add man
-         git commit -m "Update man pages"
-         ```
-    4. Create a PR to merge the `release-XXX` against the **`master`** branch of the taurus-org repo
+    3. Create a PR to merge the `release-XXX` against the **`master`** branch of the taurus-org repo
 5. Request reviews in the PR from at least one integrator from each participating institute. The master branch is protected, so the reviews need to be cleared (or dismissed with an explanation) before the release can be merged.
 6. Perform manual tests (see checklist below). You may use the CI artifacts (e.g., from appveyor). To avoid spamming the PR comments with the manual test results, a new issue can be created to report the tests results on each platform (and just use a single check for each platform in the PR).
 7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, run `bumpversion release`, push and merge the PR and tag in master
@@ -151,7 +144,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Open an ini file with taurus config and check that it is loaded correctly.
 
 ### taurus icons catalog
-- [ ] Launch `taurus icons`. Several tabs with an array of icons [should be displayed](http://taurus-scada.org/en/latest/devel/icon_guide.html#taurus-icon-catalog)
+- [ ] Launch `taurus icons`. Several tabs with an array of icons [should be displayed](http://taurus-scada.org/devel/icon_guide.html#taurus-icon-catalog)
 - [ ] Check that tooltips give info on each icon
 - [ ] Click on some icons and check that they give a bigger view of the icon and more info.
 
@@ -175,7 +168,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] With curves in Y1 and Y2, test zooms and panning on separate axes (drag with right/left on the axis)
 - [ ] Test plot configuration dialog
 - [ ] Test Forced reading tool
-- [ ] Test autopanning tool
+- [ ] Test Fixed Range Scale tool
 - [ ] Test autoscale x mode
 - [ ] NOT YET READY <s> Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)</s>
 
@@ -193,14 +186,15 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Test changing curve titles
 - [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
 - [ ] Open the "Input data selection" dialog and add/remove/reorder /edit models
-- [ ] export one curve data to ASCII and then load it using "Input data selection"  -> raw data -> open file
+- [ ] export one curve data to ASCII and then load it using "Input data selection"  -> raw data -> open file 
+      (Note: make sure to select the X colum as 0)
 - [ ] ... other features from [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
 ### taurus qwt5 trend _Only if using py2 qt4_
 (basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
 - [ ] Execute: `taurus qwt5 trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
-- [ ] Execute: `taurus qwt5 trend -xe "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Execute: `taurus qwt5 trend -xn "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
 - [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
 - [ ] Check mouse wheel Zoom
 - [ ] Test panning (dragging with CTRL pressed)
@@ -209,7 +203,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Move curves between axes by clicking on legend (and test zoom on Y2)
 - [ ] Test plot configuration dialog
 - [ ] Test Forced reading mode
-- [ ] Test autopanning mode
+- [ ] Test X Axis 'fixed range scale' mode
 - [ ] Test autoscale x mode
 - [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
 - [ ] ... other features from [user's guide](http://taurus-scada.org/users/ui/index.html)

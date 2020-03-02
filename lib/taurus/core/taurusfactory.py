@@ -340,7 +340,8 @@ class TaurusFactory(object):
         """Activates the polling (client side) for the given attribute with the
            given period (seconds).
 
-           :param attribute: (taurus.core.tango.TangoAttribute) attribute name.
+           :param attribute: (taurus.core.taurusattribute.TaurusAttribute)
+                             the attribute to be added
            :param period: (float) polling period (in seconds)
            :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
         """
@@ -352,17 +353,14 @@ class TaurusFactory(object):
         """Deactivate the polling (client side) for the given attribute. If the
            polling of the attribute was not previously enabled, nothing happens.
 
-           :param attribute: (str) attribute name.
+           :param attribute: (taurus.core.taurusattribute.TaurusAttribute)
+                             the attribute to be removed
         """
-        p = None
-        for period, timer in self.polling_timers.items():
-            if timer.containsAttribute(attribute):
-                timer.removeAttribute(attribute)
-                if timer.getAttributeCount() == 0:
-                    p = period
-                break
-        if p:
-            del self.polling_timers[period]
+        timers = dict(self.polling_timers)
+        for period, timer in timers.items():
+            timer.removeAttribute(attribute)
+            if not timer.dev_dict and period in self.polling_timers:
+                del self.polling_timers[period]
 
     def __str__(self):
         return '{0}()'.format(self.__class__.__name__)

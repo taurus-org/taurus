@@ -332,9 +332,10 @@ class TaurusForm(TaurusWidget):
         except:
             try:
                 obj = taurus.Device(model)
-            except:
+            except Exception as e:
                 self.warning(
-                    'Cannot handle model "%s". Using default widget.' % (model))
+                    'Cannot handle model "%s". Using default widget.', model)
+                self.debug('Model error: %s', e)
                 return self._defaultFormWidget, (), {}
             try:
                 key = obj.getDeviceProxy().info().dev_class  # TODO: Tango-centric

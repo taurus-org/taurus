@@ -1,8 +1,4 @@
-# Use old ubuntu image as a workarount to Tango DS launch problems
-group: deprecated-2017Q4
-
 language: python
-
 python:
   - 3.6
 
@@ -10,40 +6,61 @@ sudo: required
 
 services:
   - docker
+  - xvfb
 
 env:
   global:
     - secure: "CCVtBQ8xIrOwUJGXxd81wyD1ng72Hf6d9y2U+5X88aVGTrOa8/hut10C+Jmnyf0NTZmGh/49eVvoWRvLDhjpECFMuO/bLkiNtVjz0VtWAHT2W98QJYmeymPzx86tGa+iAZCwlgXeRQFJCw1eqQvBYnjumMZWb9kj3fqgpqpSRH5SWnuRCmbxOoelmtTTUC8YKkzasAHYs03faR0DCq0oBmDy9nU2cfcRN7oE5wXUfEnDwNaoHbiQA4wiJbzNpBV432bIDtzD7gsFdiIT6ExJVFHi1gWB32bGZdbiDPpej7I2fW5qunbzUXS5doVhoBU67qqhI241RJ+AOBVb+sQnF8gwwi9/5/mcORiSBX7yI59YsOXYwo2YW+8PGr3OlF3t0+z92Q3uPytUXysdtVO4dExnLbV8OEzgmWCkv2M3GIajjE3isYAaBItqSBJHJnRClza4nNg2WLwmqLPBgM4AuSUZEpB/8kbz9kTecVEb13WrlTCNc8KVRGR+EGa4KmWADwOOxurxeb/NsTteOnzdyfrP2TXKeGOkN2uqBGYJaI7OoefsgLG7VF/+Sz4MTETMs/gZojwpO6igKBS1sJlcXujz/kt125b8gcSnrAiU1TjbZIBew/D40H64tpBcuk+dqF6i6HCoV2QmZ1QEpHOSoDk9FEaKMlgKhQj59/cWcI8="
 
-  matrix:
-  - DOCKER_IMG=cpascual/taurus-test:debian-stretch
-  - DOCKER_IMG=cpascual/taurus-test:debian-buster
-  - DOCKER_IMG=cpascual/taurus-test:debian-stretch-py3
-  - DOCKER_IMG=cpascual/taurus-test:debian-stretch-py3qt5
-
 matrix:
-    allow_failures:
-        - env: DOCKER_IMG=cpascual/taurus-test:debian-stretch-py3
+  include:
+    - env: TOXENV=flake8
+    - env: TOXENV=py27-qt4
+    - env: TOXENV=py27-qt5
+    - env: TOXENV=py35-qt5
+    - env: TOXENV=py36-qt5
+    - env: TOXENV=py37-qt5
+    - env: TOXENV=py37-ps2
+    - env: TOXENV=py37-qt5-docs
+  allow_failures:
+    - env: TOXENV=flake8
 
 before_install:
-  - docker run -d --name=taurus-test -h taurus-test --volume=`pwd`:/taurus $DOCKER_IMG
-  - sleep 10
-  
+  # install conda
+  - wget -nv https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+
+  # start a docker-based tango system with tango-test
+  - if [[ "$TOXENV" == "flake8" ]]; then
+        echo "Skipping tango initialization";
+    else
+        docker-compose -f ci/tango_docker-compose.yml up -d;
+        echo 'TANGO_HOST=localhost:10000' >> $HOME/.tangorc;
+    fi
+
+install:
+  - pip install -U tox tox-conda
+
 script:
-  - python -c "import fcntl; fcntl.fcntl(1, fcntl.F_SETFL, 0)"
-  - set -e
-  - docker exec -t taurus-test /bin/bash -c "cd /taurus ; python setup.py install"
-  - docker exec -t taurus-test /bin/bash -c "TAURUS_STARTER_WAIT=5 taurus testsuite -e 'taurus\.core\.util\.test\.test_timer'"
-  - docker exec -t taurus-test /bin/bash -c "cd /taurus ; sphinx-build -qW doc/source/ build/sphinx/html"
-  # deploy sphinx-built docs to taurus-doc repo
-  - if [[ "$DOCKER_IMG" == "cpascual/taurus-test:debian-stretch" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
+  - tox
+
+after_success:
+  # Deploy docs to taurus-org/taurus-doc
+  - if [[ "$TOXENV" == "py37-qt5-docs" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
       pip install doctr ;
-      docker exec taurus-test /bin/bash -c "touch /taurus/build/sphinx/html/.nojekyll" ;
+      touch build/sphinx/html/.nojekyll;
       if [[ "${TRAVIS_BRANCH}" == "develop" ]]; then
         doctr deploy . ;
       else
         doctr deploy "v-$TRAVIS_BRANCH"  ;
       fi;
+    else
+      echo "Skip doc deployment for $TOXENV in $TRAVIS_REPO_SLUG";
     fi
 
 doctr:
@@ -57,6 +74,7 @@ deploy:
   # deploy to pypi when a version tag is pushed to the official repo
   - provider: pypi
     user: taurus_bot
+    skip_existing: true
     password:
       secure: "QjqutDroKg1ZcSXUAEGtaut9kwxHifSQKkisE+Pvd8UXElr6+inJqUbtLGkBRDDJsjVrSZi4TeLu/NfZyey/9kTQvwqrSHio80KgQ7HzuktgdmnFKfU4TWFEt4wd8LzYF4O5ljtYj4/k6txQ0zMVsLN5/SAQl44E0KSRBZBifrbeEXL3k9YI6nhw7cBiV+9XVFJBuBP5IVGhk4mOAFDT0UGyuCpMBKacfmtgDtZnYqb1SnRkFb9vT2kSPy8j3ZfZ3YPfZECwVWZtvG98/ujz1S6+mZKyErGNZc5RocBNdQFAG6AP8Epl05k+UmHO0mtHkSC+Mmh3J2grZXCKmojqcsrgJ/oP82WOQQtzZvLjYylIBC6tJ8GI0AJxUa7yukXS+x7ihkK3Xd9SoUuQri6dRlbE7iEJr7z6ZqwoiossY0feqN/v03fyJgze3KOsZ/sR1jQ2A8jdN62NzzM674w+UGhK7Q7hRRsiaODNzNrwcOrhYh4mjIXk9T8Iij223AjTixSJ29l2GUMyFgFU3KsgEUhgx8ZcL4G0olirokoMAn3wnqCbocQt7nWwUFGvQE384Br27iW598mka2njvAuww05xGCW6+/n3/aPXZYoE+DgMtYQLF8yHy7Ucvc+8mVfkrlNSkPzCF5W05JgkvVpNYznIMvnzjRcO5yoXdVUDcRM="
     on:

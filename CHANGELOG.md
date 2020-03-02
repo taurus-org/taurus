@@ -10,7 +10,46 @@ develop branch) won't be reflected in this file.
 ## [Unreleased]
 
 ### Added
-- New CLI API based on click and `taurus` command supporting plugabble subcommands (#856)
+- check-deps subcommand (#988)
+- `taurus.cli.register_subcommands()` and `taurus.cli.taurus_cmd()` (#991)
+- Support for spyder v4 in `taurus.qt.qtgui.editor` (#1038)
+- Entry-point ("taurus.qt.formatters") for registering formatters via plugins (#1039)
+- New `worker_cls` argument for `taurus.core.util.ThreadPool` costructor (#1081)
+
+### Removed
+### Changed
+- Qt theme no longer set to TangoIcons by default (for coherence with docs) (#1012)
+- (for developers) Support of tox and change to pytest. More platforms
+  being now automatically tested by travis (#994)
+- TaurusForm provides more debugging info when failing to handle a model (#1049)
+- Improved GUI dialog for changing the formatter of a widget (#1039)
+
+### Deprecated
+- `TaurusBaseWidget.showFormatterDlg()` (#1039)
+
+### Fixed
+- Several issues in TaurusWheelEdit (#1010, #1021)
+- Several issues affecting synoptics (#1005, #1029)
+- Support dns aliases for the authority name in tango model names (#998)
+- Py3 exception in `TaurusModelChooser.getListedModels()` (#1008)
+- Thread safety issues in `TaurusPollingTimer`'s add/remove attributes API (#1022, #999)
+- (for py2) Improved backwards compatibility of `taurus.qt.qtgui.plot` (#1027)
+- Exception in DelayedSubscriber (#1030)
+- Compatibility issue in deprecated TangoAttribute's `isScalar()` and `isSpectrum()` (#1034)
+- Some issues in taurus v3 to v4 migration support (#1059)
+- Some CI test issues (#1075, #1069)
+
+## [4.6.1] - 2019-08-19
+Hotfix for auto-deployment in PyPI with Travis. No other difference from 4.6.0.
+
+### Fixed
+- Travis not deploying tar.gz (#990)
+
+## [4.6.0] - 2019-08-19
+[Jul19 milestone](https://github.com/taurus-org/taurus/milestone/13)
+
+### Added
+- New CLI API based on click and `taurus` command supporting pluggable subcommands (#856)
 - TaurusGui now accepts a `settingsname` argument to specify the settings file to 
   be loaded. Also accessible from the CLI as `taurus gui --ini NAME` (#570) 
 - `TaurusModelSelector` and `TaurusModelSelectorItem` classes and the
@@ -18,15 +57,24 @@ develop branch) won't be reflected in this file.
 - `TaurusFactory.getValidatorFromName` method and `getValidatorFromName` helper (#893)
 - New options API for TaurusMainWindow and TaurusGui (#858)
 - New optional set of color-blind friendly LED icons for Tango states (#902)
+- New configuration options in QWheelEdit to customize its internal editor (#832)
+- New `Utf8Codec` (#960)
+- Support for RGB24 in VideoImageCodec (#832)
 
 ### Removed
 - Functions implementing the old CLI scripts (#856).
   Note: these functions and the corresponding console scripts are still provided 
-  by the "taurus_legacy_cli" plugin. (#856)
+  by the "[taurus_legacy_cli]" plugin. (#856)
+- Unused ini file `<taurus>/qt/qtgui/taurusgui/conf/tgconf_macrogui/tgconf_macrogui.ini`
 
 ### Changed
 - Old CLI scripts (taurusform, taurusdemo, etc.) are replaced by equivalent
   subcommands to the `taurus` command.  (#856)
+- TaurusDevPanel now is able to show the attributes independently of the 
+  state of the device (#946)
+- `JsonCodec.encode` now outputs strings (in v4.5, it was inconsistently returning bytes when in py3) (#960)
+- TaurusDevPanel is now a TaurusGui (new panels can be added by the user) (#939)
+- Taurus mixin classes (e.g. `TaurusBaseComponent`) are now `super()`-friendly (#934)
   
 ### Deprecated
 - `taurus.core.util.argparse` (#856)
@@ -36,12 +84,18 @@ develop branch) won't be reflected in this file.
   `_supportUserPerspectives`, `_splashLogo`, `_splashMessage`) (#858)
   
 ### Fixed
-- taurusgui does not run if tango not installed (#912)
+- taurusgui not running if tango not installed (#912)
+- Outdated template for new guis created with `taurus newgui` (#933)
 - wrong return value of `isValidName` in some cases (#897)
 - exception when calling TangoAtribute.write with a list of integers (#915)
-- several issues related to py2+p3 simultaneous support (#878, #879, #881, #885, #886, #894)
-- several issues related to multiple Qt bindings support (#875, #890, #895)
+- several issues related to py2+p3 simultaneous support (#878, #879, #881, #885, #886, #894, #947)
+- several issues related to multiple Qt bindings support (#875, #890, #895, #962)
+- Some modules not being autodocumented (#941)
+- TaurusArrayEditorButton used in forms even if Qwt5 is not available (#973)
 - TaurusGuis do not show output in console on Windows (#868)
+- TaurusConfigEditor not working on Windows (#950, #957)
+- TaurusDesigner not working on Windows (#955, #968)
+- Other (#956, #954, #948, #925)
   
 ## [4.5.1] - 2019-02-15
 
@@ -449,6 +503,7 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [Unreleased]: https://github.com/taurus-org/taurus/tree/develop
+[4.6.0]: https://github.com/taurus-org/taurus/tree/release-4.6.0
 [4.5.1]: https://github.com/taurus-org/taurus/tree/release-4.5.1
 [4.5.0]: https://github.com/taurus-org/taurus/tree/release-4.5.0
 [4.4.0]: https://github.com/taurus-org/taurus/tree/4.4.0
@@ -462,6 +517,7 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [3.7.0]: https://github.com/taurus-org/taurus/tree/3.7.0
 [3.6.0]: https://github.com/taurus-org/taurus/tree/3.6.0
 [support-3.x]: https://github.com/taurus-org/taurus/tree/support-3.x
+[taurus_legacy_cli] https://github.com/taurus-org/taurus_legacy_cli
 
 
 
