@@ -185,8 +185,11 @@ class TangoDevice(TaurusDevice):
         ret = []
         for name, value in desc_obj:
             if name.lower() == u'device state' and self.stateObj is not None:
-                tg_state = self.stateObj.read(cache).rvalue.name
-                value = u"%s (%s)" % (value, tg_state)
+                try:
+                    tg_state = self.stateObj.read(cache).rvalue.name
+                    value = u"%s (%s)" % (value, tg_state)
+                except Exception as e:
+                    value = u"cannot read state"
             ret.append((name, value))
         return ret
 
