@@ -361,12 +361,16 @@ class TaurusGui(TaurusMainWindow):
         self.newShortMessage.emit(msg)
 
         if self.defaultConfigRecursionDepth >= 0:
-            Qt.QMessageBox.information(self, "Fail-proof mode",
-                                       ('Running in fail-proof mode.' +
-                                        '\nLoading of potentially problematic settings is disabled.' +
-                                        '\nSome panels may not be loaded or may ignore previous user configuration' +
-                                        '\nThis will also apply when loading perspectives'),
-                                       Qt.QMessageBox.Ok, Qt.QMessageBox.NoButton)
+            self.newShortMessage.emit(
+                "Running in Safe Mode. Settings not loaded"
+            )
+            self.warning(
+                "Safe mode: \n"
+                + '\n\tLoading of potentially problematic settings is disabled.'
+                + '\n\tSome panels may not be loaded or may ignore previous '
+                + 'user configuration'
+                + '\n\tThis will also apply when loading perspectives'
+            )
 
     def closeEvent(self, event):
         try:
@@ -837,6 +841,11 @@ class TaurusGui(TaurusMainWindow):
         if paneldesc.model is not None:
             w.setModel(paneldesc.model)
 
+        if isinstance(w, TaurusBaseComponent):
+            # TODO: allow to select these options in the dialog
+            w.setModifiableByUser(True)
+            w.setModelInConfig(True)
+
         self.createPanel(w, paneldesc.name, floating=paneldesc.floating, custom=True,
                          registerconfig=False, instrumentkey=paneldesc.instrumentkey,
                          permanent=False)
@@ -1284,22 +1293,24 @@ class TaurusGui(TaurusMainWindow):
                 except AttributeError:
                     pass
                 w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-                widget_properties = p.widget_properties
-                if widget_properties:
-                    for key in widget_properties:
-                        if hasattr(w, key):
-                            try:
-                                value = widget_properties[key]
-                                setattr(w, key, value)
-                            except Exception as e:
-                                msg = "Cannot set attribute '%s' of widget '%s' " \
-                                      "to value '%s'" % (key, p.classname, str(value))
-                                self.error(msg)
-                                self.traceback(level=taurus.Info)
-                                result = Qt.QMessageBox.critical(self, "Initialization error", "%s\n\n%s" % (
-                                    msg, repr(e)), Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore)
-                                if result == Qt.QMessageBox.Abort:
-                                    sys.exit()
+
+                for key, value in p.widget_properties.items():
+                    # set additional configuration for the
+                    if hasattr(w, key):
+                        try:
+                            setattr(w, key, value)
+                        except Exception as e:
+                            msg = "Cannot set %r.%s=%s" % (w, key, str(value))
+                            self.error(msg)
+                            self.traceback(level=taurus.Info)
+                            result = Qt.QMessageBox.critical(
+                                self,
+                                "Initialization error",
+                                "%s\n\n%r" % (msg, e),
+                                Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore
+                            )
+                            if result == Qt.QMessageBox.Abort:
+                                sys.exit()
 
                 if hasattr(w, "setCustomWidgetMap"):
                     w.setCustomWidgetMap(self.getCustomWidgetMap())
@@ -1321,8 +1332,16 @@ class TaurusGui(TaurusMainWindow):
                 # so we do not store their config
                 registerconfig = p not in poolinstruments
                 # create a panel
-                self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
-                                 instrumentkey=instrumentkey, permanent=True, icon=icon)
+
+                self.createPanel(
+                    w,
+                    p.name,
+                    floating=p.floating,
+                    registerconfig=registerconfig,
+                    instrumentkey=instrumentkey,
+                    permanent=True,
+                    icon=icon
+                )
             except Exception as e:
                 msg = "Cannot create panel %s" % getattr(
                     p, "name", "__Unknown__")
