@@ -27,6 +27,7 @@ import taurus
 
 from taurus.cli import common as cli_common
 
+
 @click.group('taurus')
 @cli_common.log_level
 @cli_common.poll_period
