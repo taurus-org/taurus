@@ -1,0 +1,30 @@
+version: '2'
+services:
+  tango-db:
+    image: tangocs/mysql:9.2.2
+    ports:
+     - "9999:3306"
+    environment:
+     - MYSQL_ROOT_PASSWORD=root
+  tango-cs:
+    image: tangocs/tango-cs:9.3.2-alpha.1-no-tango-test
+    ports:
+     - "10000:10000"
+    environment:
+     - TANGO_HOST=localhost:10000
+     - MYSQL_HOST=tango-db:3306
+     - MYSQL_USER=tango
+     - MYSQL_PASSWORD=tango
+     - MYSQL_DATABASE=tango
+    links:
+     - "tango-db:localhost"
+    depends_on:
+     - tango-db
+  tango-test:
+    image: tangocs/tango-test:9.3.3-rc1
+    environment:
+     - TANGO_HOST=tango-cs:10000
+    links:
+     - "tango-cs:localhost"
+    depends_on:
+     - tango-cs

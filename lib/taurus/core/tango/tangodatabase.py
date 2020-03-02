@@ -34,7 +34,6 @@ from builtins import object
 import collections
 
 import os
-import socket
 import weakref
 
 from PyTango import (Database, DeviceProxy, DevFailed, ApiUtil)
@@ -43,6 +42,7 @@ from taurus.core.taurusbasetypes import TaurusDevState, TaurusEventType
 from taurus.core.taurusauthority import TaurusAuthority
 from taurus.core.util.containers import CaselessDict
 from taurus.core.util.log import taurus4_deprecation
+from taurus.core.util.fqdn import fqdn_no_alias
 
 
 __all__ = ["TangoInfo", "TangoAttrInfo", "TangoDevInfo", "TangoServInfo",
@@ -679,7 +679,7 @@ class TangoAuthority(TaurusAuthority):
                 warning("Error getting default Tango host")
 
         # Set host to fqdn
-        host = socket.getfqdn(host)
+        host = fqdn_no_alias(host)
 
         self.dbObj = Database(host, port)
         self._dbProxy = None

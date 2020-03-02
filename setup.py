@@ -111,16 +111,25 @@ taurus_subcommands = [
     'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
     'logmon = taurus.core.util.remotelogmonitor:logmon_cmd',
     'qlogmon = taurus.qt.qtgui.table.qlogtable:qlogmon_cmd',
+    'check-deps = taurus.core.taurushelper:check_dependencies_cmd'
 ]
 
 model_selectors = [
     'Tango = taurus.qt.qtgui.panel.taurusmodelchooser:TangoModelSelectorItem',
 ]
 
+formatters = [
+    'taurus = taurus.qt.qtgui.base:defaultFormatter',
+    'tango = taurus.core.tango.util:tangoFormatter',
+    '{:2.3e} = taurus.qt.qtgui.base:expFormatter',
+    '{:.5f} = taurus.qt.qtgui.base:floatFormatter',
+]
+
 entry_points = {
     'console_scripts': console_scripts,
     'taurus.cli.subcommands': taurus_subcommands,
     'taurus.qt.qtgui.panel.TaurusModelSelector.items': model_selectors,
+    'taurus.qt.formatters': formatters,
 }
 
 classifiers = [

@@ -35,6 +35,7 @@ import taurus
 from taurus.test import insertTest, getResourcePath
 from taurus.core.taurusbasetypes import DataType, AttrQuality, DataFormat
 from taurus.core.taurusbasetypes import TaurusAttrValue
+import pytest
 
 
 
@@ -58,6 +59,7 @@ from taurus.core.taurusbasetypes import TaurusAttrValue
             )
 @unittest.skipIf(('epics' in sys.modules) is False,
                  "epics module is not available")
+@pytest.mark.xfail(reason='epics CV init issues need fixing in this test')
 class AttributeTestCase(unittest.TestCase):
     """TestCase for the taurus.Attribute helper"""
     _process = None
