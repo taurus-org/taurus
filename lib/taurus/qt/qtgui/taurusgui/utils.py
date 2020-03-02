@@ -366,6 +366,7 @@ class PanelDescription(TaurusGuiComponentDescription):
 
     def __init__(self, *args, **kwargs):
         """
+
         Constructor. The following arguments are processed (the rest are
         directly passed to the constructor of
         :class:`TaurusGuiComponentDescription` )
@@ -415,6 +416,7 @@ class PanelDescription(TaurusGuiComponentDescription):
         else:
             # ignore other "model" attributes (they are not from Taurus)
             model = None
+
         return PanelDescription(
             name,
             classname=classname,

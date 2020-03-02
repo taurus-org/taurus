@@ -840,6 +840,7 @@ class TaurusGui(TaurusMainWindow):
             w.setCustomWidgetMap(self.getCustomWidgetMap())
         if paneldesc.model is not None:
             w.setModel(paneldesc.model)
+
         if isinstance(w, TaurusBaseComponent):
             # TODO: allow to select these options in the dialog
             w.setModifiableByUser(True)
@@ -1292,6 +1293,7 @@ class TaurusGui(TaurusMainWindow):
                 except AttributeError:
                     pass
                 w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
+
                 for key, value in p.widget_properties.items():
                     # set additional configuration for the
                     if hasattr(w, key):
@@ -1330,6 +1332,7 @@ class TaurusGui(TaurusMainWindow):
                 # so we do not store their config
                 registerconfig = p not in poolinstruments
                 # create a panel
+
                 self.createPanel(
                     w,
                     p.name,
