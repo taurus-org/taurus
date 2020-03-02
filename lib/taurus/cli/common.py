@@ -96,3 +96,28 @@ def buffer(default):
               + "discarded)"),
         )
     return o
+
+poll_period = click.option(
+    "--polling-period", "polling_period",
+    type=click.INT,
+    metavar="MILLISEC",
+    default=None,
+    help='Change the Default Taurus polling period',
+)
+
+serial_mode = click.option(
+    "--serialization-mode", "serialization_mode",
+    type=click.Choice(['Serial', 'Concurrent', 'TangoSerial']),
+    default=None,
+    show_default=True,
+    help=("Set the default Taurus serialization mode for those "
+          + "models that do not explicitly define it)"),
+)
+
+default_formatter = click.option(
+    "--default-formatter", "default_formatter",
+    type=click.STRING,
+    metavar="FORMATTER",
+    default=None,
+    help="Override the default formatter (use with caution!)",
+)
