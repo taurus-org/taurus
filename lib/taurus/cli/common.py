@@ -21,6 +21,67 @@
 ##
 #############################################################################
 
+"""
+This module provides the taurus Command Line Interface common options.
+
+It is based on the click module to provide commonly used flags/options.
+They are used by taurus commands and can be used by plugin to easily
+extend its functionality.
+
+Example 1: Add custom subcommand
+script::
+
+    import click
+
+    from taurus.cli import common as cli_common
+
+
+    @click.command("bar")
+    @cli_common.poll_period
+    @cli_common.default_formatter
+    @cli_common.window_name("Super Bar")
+    def bar(poll_period, default_formatter, window_name):
+        ...
+
+
+    if __name__ == '__main__':
+        bar()
+
+Example 2: Add custom subcommands' group
+script::
+
+    import click
+
+    from taurus.cli import common as cli_common
+
+
+    @click.group("foo")
+    def foo():
+        pass
+
+
+    @qwt5.command('cmd1')
+    @cli_common.models
+    @cli_common.config_file
+    @cli_common.window_name("Super Foo (cmd1)")
+    def cmd1(models, config_file, window_name):
+        ...
+
+
+    @qwt5.command('trend')
+    @cli_common.model
+    @cli_common.serial_mode
+    @cli_common.poll_period
+    @cli_common.default_formatter
+    def cmd2(model, serial_mode, poll_period, default_formatter):
+        ...
+
+
+    if __name__ == '__main__':
+        foo()
+
+"""
+
 import click
 import logging
 

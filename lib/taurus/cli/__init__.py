@@ -34,6 +34,9 @@ To define a subcommand for taurus, you need to register it using the
 
 .. todo:: add click link , add code snippet for plugins, etc.
 
+This module provides also common options/flags for command-line interfaces
+that can be used by taurus plugins. For list of available options,
+see :mod:`taurus.cli.common`
 
 """
 
