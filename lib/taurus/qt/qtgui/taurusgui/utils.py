@@ -365,7 +365,26 @@ class PanelDescription(TaurusGuiComponentDescription):
     '''
 
     def __init__(self, *args, **kwargs):
+        """
+
+        Constructor. The following arguments are processed (the rest are
+        directly passed to the constructor of
+        :class:`TaurusGuiComponentDescription` )
+
+        :param instrumentkey: (str)
+        :param model_in_config: (bool) whther to store model in settigns file or not
+        :param modifiable_by_user: (bool) whether user can edit widget or not
+        :param widget_formatter: (str) formatter used by this widget
+        :param widget_properties: (dict) a dictionary of property_names:values
+                                  to be set on the widget
+
+        """
         self.instrumentkey = kwargs.pop('instrumentkey', None)
+        self.icon = kwargs.pop("icon", None)
+        self.model_in_config = kwargs.pop("model_in_config", None)
+        self.modifiable_by_user = kwargs.pop("modifiable_by_user", None)
+        self.widget_formatter = kwargs.pop("widget_formatter", None)
+        self.widget_properties = kwargs.pop("widget_properties", {})
         TaurusGuiComponentDescription.__init__(self, *args, **kwargs)
 
     @staticmethod
@@ -397,11 +416,22 @@ class PanelDescription(TaurusGuiComponentDescription):
         else:
             # ignore other "model" attributes (they are not from Taurus)
             model = None
-        return PanelDescription(name, classname=classname,
-                                modulename=modulename, widgetname=widgetname,
-                                floating=floating,
-                                sharedDataWrite=sharedDataWrite,
-                                sharedDataRead=sharedDataRead, model=model)
+
+        return PanelDescription(
+            name,
+            classname=classname,
+            modulename=modulename,
+            widgetname=widgetname,
+            floating=floating,
+            sharedDataWrite=sharedDataWrite,
+            sharedDataRead=sharedDataRead,
+            model=model,
+            icon=panel.icon,
+            model_in_config=panel.model_in_config,
+            modifiable_by_user=panel.modifiable_by_user,
+            widget_formatter=panel.widget_formatter,
+            widget_properties=panel.widget_properties
+            )
 
 
 class ToolBarDescription(TaurusGuiComponentDescription):
