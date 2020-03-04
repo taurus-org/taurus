@@ -211,19 +211,25 @@ class TaurusApplication(Qt.QApplication, Logger):
         if parser is None:
             p, opt, args = None, None, None
         else:
-            if parser.version is None and app_version:
-                # if the parser does not contain version information
-                # but we have an application version, add the
-                # --version capability
-                v = app_version
-                if app_name:
-                    v = app_name + " " + app_version
-                parser.version = v
-                parser._add_version_option()
+            try:
+                if parser.version is None and app_version:
+                    # if the parser does not contain version information
+                    # but we have an application version, add the
+                    # --version capability
+                    v = app_version
+                    if app_name:
+                        v = app_name + " " + app_version
+                    parser.version = v
+                    parser._add_version_option()
 
-            import taurus.core.util.argparse
-            p, opt, args = taurus.core.util.argparse.init_taurus_args(
-                parser=parser, args=args[0][1:])
+                import taurus.core.util.argparse
+                p, opt, args = taurus.core.util.argparse.init_taurus_args(
+                    parser=parser, args=args[0][1:])
+            except Exception:
+                self.error("Error while using the given cmd_line_parser. \n"
+                           + "hint: it must be either None or an "
+                           + "optparse.OptionParser instance")
+                raise
 
         self._cmd_line_parser = p
         self._cmd_line_options = opt
