@@ -37,9 +37,9 @@ script::
 
 
     @click.command("bar")
-    @aurus.cli.common.poll_period
-    @aurus.cli.common.default_formatter
-    @aurus.cli.common.window_name("Super Bar")
+    @taurus.cli.common.poll_period
+    @taurus.cli.common.default_formatter
+    @taurus.cli.common.window_name("Super Bar")
     def bar(poll_period, default_formatter, window_name):
         ...
 
@@ -61,18 +61,18 @@ script::
 
 
     @foo.command('cmd1')
-    @aurus.cli.common.models
-    @aurus.cli.common.config_file
-    @aurus.cli.common.window_name("Super Foo (cmd1)")
+    @taurus.cli.common.models
+    @taurus.cli.common.config_file
+    @taurus.cli.common.window_name("Super Foo (cmd1)")
     def cmd1(models, config_file, window_name):
         ...
 
 
     @foo.command('trend')
-    @aurus.cli.common.model
-    @aurus.cli.common.serial_mode
-    @aurus.cli.common.poll_period
-    @aurus.cli.common.default_formatter
+    @taurus.cli.common.model
+    @taurus.cli.common.serial_mode
+    @taurus.cli.common.poll_period
+    @taurus.cli.common.default_formatter
     def cmd2(model, serial_mode, poll_period, default_formatter):
         ...
 
