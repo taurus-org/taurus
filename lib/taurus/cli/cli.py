@@ -25,14 +25,14 @@ import pkg_resources
 import click
 import taurus
 
-from taurus.cli import common as cli_common
+import taurus.cli.common
 
 
 @click.group('taurus')
-@cli_common.log_level
-@cli_common.poll_period
-@cli_common.serial_mode
-@cli_common.default_formatter
+@taurus.cli.common.log_level
+@taurus.cli.common.poll_period
+@taurus.cli.common.serial_mode
+@taurus.cli.common.default_formatter
 @click.option("--rconsole", "rconsole_port", type=click.INT,
               metavar="PORT", default=None,
               help="Enable remote debugging with rfoo on the given PORT")

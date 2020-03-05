@@ -40,7 +40,7 @@ from taurus.qt.qtgui.extra_guiqwt.tools import (TaurusModelChooserTool,
                                                 TimeAxisTool, AutoScrollTool,
                                                 AutoScaleXTool, AutoScaleYTool,
                                                 AutoScaleZTool)
-from taurus.cli import common as cli_common
+import taurus.cli.common
 
 
 class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
@@ -317,10 +317,10 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
               help=("interpret X values as timestamps (t), "
                     + "time deltas (d) or event numbers (e). ")
               )
-@cli_common.buffer(512)
-@cli_common.model
-@cli_common.demo
-@cli_common.window_name('TaurusPlot (qwt5)')
+@taurus.cli.common.buffer(512)
+@taurus.cli.common.model
+@taurus.cli.common.demo
+@taurus.cli.common.window_name('TaurusPlot (qwt5)')
 def trend2d_cmd(model, x_axis_mode, max_buffer_size,
                 demo, window_name):
     from taurus.qt.qtgui.application import TaurusApplication

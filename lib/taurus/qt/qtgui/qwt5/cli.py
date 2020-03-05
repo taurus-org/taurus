@@ -23,7 +23,7 @@
 
 import click
 from .taurustrend import TaurusTrend
-from taurus.cli import common as cli_common
+import taurus.cli.common
 
 
 @click.group('qwt5')
@@ -33,11 +33,11 @@ def qwt5():
 
 
 @qwt5.command('plot')
-@cli_common.models
-@cli_common.config_file
-@cli_common.x_axis_mode
-@cli_common.demo
-@cli_common.window_name("TaurusPlot (qwt5)")
+@taurus.cli.common.models
+@taurus.cli.common.config_file
+@taurus.cli.common.x_axis_mode
+@taurus.cli.common.demo
+@taurus.cli.common.window_name("TaurusPlot (qwt5)")
 def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
     """Shows a plot for the given models"""
     from .taurusplot import plot_main
@@ -50,12 +50,12 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
 
 
 @qwt5.command('trend')
-@cli_common.models
-@cli_common.x_axis_mode
-@cli_common.config_file
-@cli_common.demo
-@cli_common.window_name('TaurusPlot (qwt5)')
-@cli_common.buffer(TaurusTrend.DEFAULT_MAX_BUFFER_SIZE)
+@taurus.cli.common.models
+@taurus.cli.common.x_axis_mode
+@taurus.cli.common.config_file
+@taurus.cli.common.demo
+@taurus.cli.common.window_name('TaurusPlot (qwt5)')
+@taurus.cli.common.buffer(TaurusTrend.DEFAULT_MAX_BUFFER_SIZE)
 @click.option('-a', '--use-archiving', 'use_archiving',
               is_flag=True,
               default=False,

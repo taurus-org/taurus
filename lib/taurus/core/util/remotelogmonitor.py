@@ -42,7 +42,7 @@ import click
 
 import socketserver
 
-from taurus.cli import common as cli_common
+import taurus.cli.common
 
 
 _all__ = ["LogRecordStreamHandler", "LogRecordSocketReceiver", "log"]
@@ -185,9 +185,9 @@ def log(host, port, name=None, level=None):
 
 
 @click.command('logmon')
-@cli_common.log_port
-@cli_common.log_name
-@cli_common.log_level
+@taurus.cli.common.log_port
+@taurus.cli.common.log_name
+@taurus.cli.common.log_level
 def logmon_cmd(port, log_name, log_level):
     """Show the console-based Taurus Remote Log Monitor"""
     import taurus
