@@ -601,8 +601,17 @@ def main():
 
 
 @click.command('qlogmon')
-@taurus.cli.common.log_port
-@taurus.cli.common.log_name
+@click.option(
+    '--port', 'port', type=int,
+    default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
+    show_default=True,
+    help='port where log server is running',
+)
+@click.option(
+    '--log-name', 'log_name',
+    default=None,
+    help='filter specific log object',
+)
 @taurus.cli.common.log_level
 def qlogmon_cmd(port, log_name, log_level):
     """Show the Taurus Remote Log Monitor"""

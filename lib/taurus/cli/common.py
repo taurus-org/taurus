@@ -83,21 +83,7 @@ script::
 """
 
 import click
-import logging
 
-
-log_port = click.option(
-    '--port', 'port', type=int,
-    default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
-    show_default=True,
-    help='port where log server is running',
-)
-
-log_name = click.option(
-    '--log-name', 'log_name',
-    default=None,
-    help='filter specific log object',
-)
 
 log_level = click.option(
     '--log-level', 'log_level',
