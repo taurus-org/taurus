@@ -605,12 +605,12 @@ def main():
     '--port', 'port', type=int,
     default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
     show_default=True,
-    help='port where log server is running',
+    help='Port where log server is running',
 )
 @click.option(
     '--log-name', 'log_name',
     default=None,
-    help='filter specific log object',
+    help='Filter specific log object',
 )
 @taurus.cli.common.log_level
 def qlogmon_cmd(port, log_name, log_level):
