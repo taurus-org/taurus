@@ -69,7 +69,7 @@ class LazyModule(ModuleType):
         # Replace lazy module with actual module in sys.modules
         modname = "%s.%s" % (self.__package__, self.__name__)
         sys.modules[modname] = mod
-        return getattr(mod, memeber)
+        return getattr(mod, member)
 
 # Discover the taurus.qt.qtgui plugins
 __mod = __modname = None
