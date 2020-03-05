@@ -313,7 +313,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
 @click.command('trend2d')
 @taurus.cli.common.model
 @taurus.cli.common.demo
-@taurus.cli.common.window_name('TaurusPlot (qwt5)')
+@taurus.cli.common.window_name('TaurusTrend2D')
 @taurus.qt.qtgui.extra_guiqwt.cli.buffer(512)
 @click.option(
     "-x", "--x-axis-mode", "x_axis_mode",
