@@ -123,18 +123,6 @@ model = click.argument(
     required=False,
 )
 
-def buffer(default):
-    o = click.option(
-        '-b', '--buffer', 'max_buffer_size',
-        type=int,
-        default=default,
-        show_default=True,
-        help=("maximum number of values to be stacked "
-              + "(when reached, the oldest values will be "
-              + "discarded)"),
-        )
-    return o
-
 poll_period = click.option(
     "--polling-period", "polling_period",
     type=click.INT,

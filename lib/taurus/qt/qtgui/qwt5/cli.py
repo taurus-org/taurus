@@ -35,6 +35,18 @@ x_axis_mode = click.option(
           + '"n" uses the regular axis'),
 )
 
+def buffer(default):
+    o = click.option(
+        '-b', '--buffer', 'max_buffer_size',
+        type=int,
+        default=default,
+        show_default=True,
+        help=("maximum number of values to be stacked "
+              + "(when reached, the oldest values will be "
+              + "discarded)"),
+        )
+    return o
+
 
 @click.group('qwt5')
 def qwt5():
@@ -65,7 +77,7 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
 @taurus.cli.common.config_file
 @taurus.cli.common.demo
 @taurus.cli.common.window_name('TaurusPlot (qwt5)')
-@taurus.cli.common.buffer(TaurusTrend.DEFAULT_MAX_BUFFER_SIZE)
+@buffer(TaurusTrend.DEFAULT_MAX_BUFFER_SIZE)
 @click.option('-a', '--use-archiving', 'use_archiving',
               is_flag=True,
               default=False,

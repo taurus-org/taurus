@@ -41,6 +41,7 @@ from taurus.qt.qtgui.extra_guiqwt.tools import (TaurusModelChooserTool,
                                                 AutoScaleXTool, AutoScaleYTool,
                                                 AutoScaleZTool)
 import taurus.cli.common
+import taurus.qt.qtgui.qwt5.cli
 
 
 class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
@@ -317,7 +318,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
               help=("interpret X values as timestamps (t), "
                     + "time deltas (d) or event numbers (e). ")
               )
-@taurus.cli.common.buffer(512)
+@taurus.qt.qtgui.qwt5.cli.buffer(512)
 @taurus.cli.common.model
 @taurus.cli.common.demo
 @taurus.cli.common.window_name('TaurusPlot (qwt5)')
