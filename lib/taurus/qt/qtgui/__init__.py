@@ -35,6 +35,7 @@ import os
 import sys
 import glob
 import pkg_resources
+from types import ModuleType
 from taurus import tauruscustomsettings as __S
 from taurus import info as __info
 from taurus import warning as __warning
@@ -54,16 +55,32 @@ __icon.registerTheme(name=getattr(__S, 'QT_THEME_NAME', 'Tango'),
 # Note: this is an experimental feature introduced in v 4.3.0a
 # It may be removed or changed in future releases
 
+class LazyModule(ModuleType):
+
+    def __init__(self, name, package, entry_point):
+        super(LazyModule, self).__init__(name)
+        self.__package__ = package
+        self.ep = entry_point
+
+    def __getattr__(self, member):
+        mod = self.ep.load()
+        # Replace lazy module with actual module for package
+        setattr(sys.modules[self.__package__], self.__name__, mod)
+        # Replace lazy module with actual module in sys.modules
+        modname = "%s.%s" % (self.__package__, self.__name__)
+        sys.modules[modname] = mod
+        return getattr(mod, memeber)
+
 # Discover the taurus.qt.qtgui plugins
 __mod = __modname = None
 for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui'):
     try:
         __modname = '%s.%s' % (__name__, __p.name)
-        __mod = __p.load()
+        __lazy_mod = LazyModule(__p.name, __name__, __p)
         # Add it to the current module
-        setattr(sys.modules[__name__], __p.name, __mod)
+        setattr(sys.modules[__name__], __p.name, __lazy_mod)
         # Add it to sys.modules
-        sys.modules[__modname] = __mod
+        sys.modules[__modname] = __lazy_mod
         __info('Plugin "%s" loaded as "%s"', __p.module_name, __modname)
     except Exception as e:
         __warning('Could not load plugin "%s". Reason: %s', __p.module_name, e)
