@@ -89,8 +89,8 @@ log_level = click.option(
     '--log-level', 'log_level',
     type=click.Choice(['Critical', 'Error', 'Warning', 'Info',
                        'Debug', 'Trace']),
-    default='Debug', show_default=True,
-    help='filter specific log level',
+    default='Info', show_default=True,
+    help='Show only logs with priority LEVEL or above',
 )
 
 config_file = click.option(
