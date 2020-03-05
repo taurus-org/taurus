@@ -320,7 +320,7 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
     type=click.Choice(['t', 'd', 'e']),
     default='d',
     show_default=True,
-    help=("interpret X values as timestamps (t), time deltas (d) "
+    help=("Interpret X values as timestamps (t), time deltas (d) "
           + " or event numbers (e). ")
 )
 def trend2d_cmd(model, demo, window_name, max_buffer_size,

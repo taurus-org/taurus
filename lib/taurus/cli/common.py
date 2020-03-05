@@ -96,7 +96,7 @@ log_level = click.option(
 config_file = click.option(
     '--config', 'config_file',
     type=click.File('rb'),
-    help='configuration file for initialization',
+    help='Configuration file for initialization',
 )
 
 def window_name(default):
@@ -114,7 +114,7 @@ models = click.argument(
 demo = click.option(
     "--demo",
     is_flag=True,
-    help="show a demo of the widget",
+    help="Show a demo of the widget",
 )
 
 model = click.argument(
