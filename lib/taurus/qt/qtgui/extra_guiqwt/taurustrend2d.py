@@ -41,7 +41,6 @@ from taurus.qt.qtgui.extra_guiqwt.tools import (TaurusModelChooserTool,
                                                 AutoScaleXTool, AutoScaleYTool,
                                                 AutoScaleZTool)
 import taurus.cli.common
-import taurus.qt.qtgui.extra_guiqwt.cli
 
 
 class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
@@ -314,7 +313,15 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
 @taurus.cli.common.model
 @taurus.cli.common.demo
 @taurus.cli.common.window_name('TaurusTrend2D')
-@taurus.qt.qtgui.extra_guiqwt.cli.buffer(512)
+@click.option(
+    '-b', '--buffer', 'max_buffer_size',
+    type=int,
+    default=512,
+    show_default=True,
+    help=("Maximum number of values to be stacked "
+          + "(when reached, the oldest values will be "
+          + "discarded)"),
+)
 @click.option(
     "-x", "--x-axis-mode", "x_axis_mode",
     type=click.Choice(['t', 'd', 'e']),

@@ -28,19 +28,6 @@ from .plot import image_cmd
 from .taurustrend2d import trend2d_cmd
 
 
-def buffer(default):
-    o = click.option(
-        '-b', '--buffer', 'max_buffer_size',
-        type=int,
-        default=default,
-        show_default=True,
-        help=("Maximum number of values to be stacked "
-              + "(when reached, the oldest values will be "
-              + "discarded)"),
-        )
-    return o
-
-
 @click.group('guiqwt')
 def guiqwt():
     """guiqwt related commands (image, trend2d)"""
