@@ -76,7 +76,7 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
 @x_axis_mode
 @taurus.cli.common.config_file
 @taurus.cli.common.demo
-@taurus.cli.common.window_name('TaurusPlot (qwt5)')
+@taurus.cli.common.window_name('TaurusTrend(qwt5)')
 @buffer(TaurusTrend.DEFAULT_MAX_BUFFER_SIZE)
 @click.option('-a', '--use-archiving', 'use_archiving',
               is_flag=True,
