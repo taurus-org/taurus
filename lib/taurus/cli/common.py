@@ -87,9 +87,9 @@ import click
 
 log_level = click.option(
     '--log-level', 'log_level',
-    type=click.Choice(['critical', 'error', 'warning', 'info',
-                       'debug', 'trace']),
-    default='debug', show_default=True,
+    type=click.Choice(['Critical', 'Error', 'Warning', 'Info',
+                       'Debug', 'Trace']),
+    default='Debug', show_default=True,
     help='filter specific log level',
 )
 
