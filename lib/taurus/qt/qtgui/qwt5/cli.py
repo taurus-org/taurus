@@ -26,6 +26,16 @@ from .taurustrend import TaurusTrend
 import taurus.cli.common
 
 
+x_axis_mode = click.option(
+    "-x", "--x-axis-mode", "x_axis_mode",
+    type=click.Choice(['t', 'n']),
+    default='n',
+    show_default=True,
+    help=('X axis mode. "t" implies using a Date axis'
+          + '"n" uses the regular axis'),
+)
+
+
 @click.group('qwt5')
 def qwt5():
     """Qwt5 related commands"""
@@ -35,7 +45,7 @@ def qwt5():
 @qwt5.command('plot')
 @taurus.cli.common.models
 @taurus.cli.common.config_file
-@taurus.cli.common.x_axis_mode
+@x_axis_mode
 @taurus.cli.common.demo
 @taurus.cli.common.window_name("TaurusPlot (qwt5)")
 def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
@@ -51,7 +61,7 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
 
 @qwt5.command('trend')
 @taurus.cli.common.models
-@taurus.cli.common.x_axis_mode
+@x_axis_mode
 @taurus.cli.common.config_file
 @taurus.cli.common.demo
 @taurus.cli.common.window_name('TaurusPlot (qwt5)')

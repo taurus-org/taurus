@@ -111,15 +111,6 @@ models = click.argument(
     'models', nargs=-1,
 )
 
-x_axis_mode = click.option(
-    "-x", "--x-axis-mode", "x_axis_mode",
-    type=click.Choice(['t', 'n']),
-    default='n',
-    show_default=True,
-    help=('X axis mode. "t" implies using a Date axis'
-          + '"n" uses the regular axis'),
-)
-
 demo = click.option(
     "--demo",
     is_flag=True,
