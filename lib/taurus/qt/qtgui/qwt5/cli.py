@@ -86,8 +86,8 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
               default=-1,
               metavar="MILLISECONDS",
               help="force re-reading of the attributes every MILLISECONDS ms")
-def trend_cmd(models, x_axis_mode, use_archiving, max_buffer_size,
-              forced_read_period, config_file, demo, window_name):
+def trend_cmd(models, x_axis_mode, config_file, demo, window_name,
+              max_buffer_size, use_archiving, forced_read_period):
     """Shows a trend for the given models"""
     from .taurustrend import trend_main
     return trend_main(models=models,

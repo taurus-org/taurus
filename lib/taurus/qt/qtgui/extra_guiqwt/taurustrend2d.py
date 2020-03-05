@@ -311,19 +311,20 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
 
 
 @click.command('trend2d')
-@click.option("-x", "--x-axis-mode", "x_axis_mode",
-              type=click.Choice(['t', 'd', 'e']),
-              default='d',
-              show_default=True,
-              help=("interpret X values as timestamps (t), "
-                    + "time deltas (d) or event numbers (e). ")
-              )
-@taurus.qt.qtgui.qwt5.cli.buffer(512)
 @taurus.cli.common.model
 @taurus.cli.common.demo
 @taurus.cli.common.window_name('TaurusPlot (qwt5)')
-def trend2d_cmd(model, x_axis_mode, max_buffer_size,
-                demo, window_name):
+@taurus.qt.qtgui.qwt5.cli.buffer(512)
+@click.option(
+    "-x", "--x-axis-mode", "x_axis_mode",
+    type=click.Choice(['t', 'd', 'e']),
+    default='d',
+    show_default=True,
+    help=("interpret X values as timestamps (t), time deltas (d) "
+          + " or event numbers (e). ")
+)
+def trend2d_cmd(model, demo, window_name, max_buffer_size,
+                x_axis_mode):
     from taurus.qt.qtgui.application import TaurusApplication
     import sys
 

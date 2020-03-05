@@ -37,8 +37,8 @@ import taurus.cli.common
               metavar="PORT", default=None,
               help="Enable remote debugging with rfoo on the given PORT")
 @click.version_option(version=taurus.Release.version)
-def taurus_cmd(log_level, polling_period, serialization_mode, rconsole_port,
-               default_formatter):
+def taurus_cmd(log_level, polling_period, serialization_mode, default_formatter,
+               rconsole_port):
     """The main taurus command"""
 
     # set log level
