@@ -60,7 +60,7 @@ script::
         pass
 
 
-    @qwt5.command('cmd1')
+    @foo.command('cmd1')
     @cli_common.models
     @cli_common.config_file
     @cli_common.window_name("Super Foo (cmd1)")
@@ -68,7 +68,7 @@ script::
         ...
 
 
-    @qwt5.command('trend')
+    @foo.command('trend')
     @cli_common.model
     @cli_common.serial_mode
     @cli_common.poll_period
