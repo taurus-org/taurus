@@ -63,12 +63,14 @@ class LazyModule(ModuleType):
         self.ep = entry_point
 
     def __getattr__(self, member):
+        import sys as __sys
         mod = self.ep.load()
         # Replace lazy module with actual module for package
-        setattr(sys.modules[self.__package__], self.__name__, mod)
+        setattr(__sys.modules[self.__package__], self.__name__, mod)
         # Replace lazy module with actual module in sys.modules
         modname = "%s.%s" % (self.__package__, self.__name__)
-        sys.modules[modname] = mod
+        __sys.modules[modname] = mod
+        del __sys
         return getattr(mod, member)
 
 # Discover the taurus.qt.qtgui plugins
