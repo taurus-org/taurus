@@ -40,6 +40,7 @@ from taurus.qt.qtgui.extra_guiqwt.tools import (TaurusModelChooserTool,
                                                 TimeAxisTool, AutoScrollTool,
                                                 AutoScaleXTool, AutoScaleYTool,
                                                 AutoScaleZTool)
+import taurus.cli.common
 
 
 class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
@@ -309,27 +310,28 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
 
 
 @click.command('trend2d')
-@click.argument('model', nargs=1, required=False)
-@click.option("-x", "--x-axis-mode", "x_axis_mode",
-              type=click.Choice(['t', 'd', 'e']),
-              default='d',
-              show_default=True,
-              help=("interpret X values as timestamps (t), "
-                    + "time deltas (d) or event numbers (e). ")
-              )
-@click.option('-b', '--buffer', 'max_buffer_size', type=int,
-              default=512,
-              show_default=True,
-              help=("maximum number of values to be stacked "
-                    + "(when reached, the oldest values will be "
-                    + "discarded)")
-              )
-@click.option("--demo", is_flag=True, help="show a demo of the widget")
-@click.option('--window-name', 'window_name',
-              default='TaurusPlot (qwt5)',
-              help='Name of the window')
-def trend2d_cmd(model, x_axis_mode, max_buffer_size,
-                demo, window_name):
+@taurus.cli.common.model
+@taurus.cli.common.demo
+@taurus.cli.common.window_name('TaurusTrend2D')
+@click.option(
+    '-b', '--buffer', 'max_buffer_size',
+    type=int,
+    default=512,
+    show_default=True,
+    help=("Maximum number of values to be stacked "
+          + "(when reached, the oldest values will be "
+          + "discarded)"),
+)
+@click.option(
+    "-x", "--x-axis-mode", "x_axis_mode",
+    type=click.Choice(['t', 'd', 'e']),
+    default='d',
+    show_default=True,
+    help=("Interpret X values as timestamps (t), time deltas (d) "
+          + " or event numbers (e). ")
+)
+def trend2d_cmd(model, demo, window_name, max_buffer_size,
+                x_axis_mode):
     from taurus.qt.qtgui.application import TaurusApplication
     import sys
 

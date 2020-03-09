@@ -25,29 +25,21 @@ import pkg_resources
 import click
 import taurus
 
+import taurus.cli.common
+from .import common
+
+
 @click.group('taurus')
-@click.option('--log-level', 'log_level',
-              type=click.Choice(['Critical', 'Error', 'Warning', 'Info',
-                                 'Debug', 'Trace']),
-              default='Info', show_default=True,
-              help='Show only logs with priority LEVEL or above')
-@click.option("--polling-period", "polling_period",
-              type=click.INT, metavar="MILLISEC", default=None,
-              help='Change the Default Taurus polling period')
-@click.option("--serialization-mode", "serialization_mode",
-              type=click.Choice(['Serial', 'Concurrent', 'TangoSerial']),
-              default=None, show_default=True,
-              help=("Set the default Taurus serialization mode for those "
-                    + "models that do not explicitly define it)"))
+@common.log_level
+@common.poll_period
+@common.serial_mode
+@common.default_formatter
 @click.option("--rconsole", "rconsole_port", type=click.INT,
               metavar="PORT", default=None,
               help="Enable remote debugging with rfoo on the given PORT")
-@click.option("--default-formatter", "default_formatter",
-              type=click.STRING, metavar="FORMATTER", default=None,
-              help="Override the default formatter (use with caution!)")
 @click.version_option(version=taurus.Release.version)
-def taurus_cmd(log_level, polling_period, serialization_mode, rconsole_port,
-               default_formatter):
+def taurus_cmd(log_level, polling_period, serialization_mode, default_formatter,
+               rconsole_port):
     """The main taurus command"""
 
     # set log level

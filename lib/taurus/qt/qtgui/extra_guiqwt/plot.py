@@ -43,6 +43,7 @@ from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.extra_guiqwt.builder import make
 from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendParam, TaurusTrendItem
+import taurus.cli.common
 
 
 __all__ = ["TaurusCurveDialog", "TaurusTrendDialog", "TaurusImageDialog"]
@@ -629,18 +630,17 @@ def taurusTrendDlgMain():
 
 
 @click.command('image')
-@click.argument('model', nargs=1, required=False)
-@click.option('-c', '--color-mode', 'color_mode',
-              type=click.Choice(['gray', 'rgb']),
-              default='gray',
-              show_default=True,
-              help=('Color mode expected from the attribute')
-              )
-@click.option("--demo", is_flag=True, help="show a demo of the widget")
-@click.option('--window-name', 'window_name',
-              default='TaurusPlot (qwt5)',
-              help='Name of the window')
-def image_cmd(model, color_mode, demo, window_name):
+@taurus.cli.common.model
+@taurus.cli.common.demo
+@taurus.cli.common.window_name('TaurusPlot (qwt5)')
+@click.option(
+    '-c', '--color-mode', 'color_mode',
+    type=click.Choice(['gray', 'rgb']),
+    default='gray',
+    show_default=True,
+    help=('Color mode expected from the attribute'),
+)
+def image_cmd(model, demo, window_name, color_mode):
     from taurus.qt.qtgui.application import TaurusApplication
     import sys
 

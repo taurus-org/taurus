@@ -47,6 +47,7 @@ from taurus.core.util.decorator.memoize import memoized
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.model import FilterToolBar
 from taurus.qt.qtgui.util import ActionFactory
+import taurus.cli.common
 
 from .qtable import QBaseTableWidget
 
@@ -600,17 +601,18 @@ def main():
 
 
 @click.command('qlogmon')
-@click.option('--port', 'port', type=int,
-              default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
-              show_default=True,
-              help='port where log server is running')
-@click.option('--log-name', 'log_name', default=None,
-              help='filter specific log object')
-@click.option('--log-level', 'log_level',
-              type=click.Choice(['critical', 'error', 'warning', 'info',
-                                 'debug', 'trace']),
-              default='debug', show_default=True,
-              help='filter specific log level')
+@click.option(
+    '--port', 'port', type=int,
+    default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
+    show_default=True,
+    help='Port where log server is running',
+)
+@click.option(
+    '--log-name', 'log_name',
+    default=None,
+    help='Filter specific log object',
+)
+@taurus.cli.common.log_level
 def qlogmon_cmd(port, log_name, log_level):
     """Show the Taurus Remote Log Monitor"""
     import taurus
