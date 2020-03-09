@@ -38,7 +38,6 @@ import pkg_resources
 from types import ModuleType
 from taurus import tauruscustomsettings as __S
 from taurus import info as __info
-from taurus import warning as __warning
 
 
 __docformat__ = 'restructuredtext'
@@ -64,31 +63,36 @@ class LazyModule(ModuleType):
 
     def __getattr__(self, member):
         import sys as __sys
-        mod = self.ep.load()
-        # Replace lazy module with actual module for package
-        setattr(__sys.modules[self.__package__], self.__name__, mod)
-        # Replace lazy module with actual module in sys.modules
-        modname = "%s.%s" % (self.__package__, self.__name__)
-        __sys.modules[modname] = mod
-        del __sys
-        return getattr(mod, member)
+
+        from taurus import warning as __warning
+
+        try:
+            mod = self.ep.load()
+            # Replace lazy module with actual module for package
+            setattr(__sys.modules[self.__package__], self.__name__, mod)
+            # Replace lazy module with actual module in sys.modules
+            modname = "%s.%s" % (self.__package__, self.__name__)
+            __sys.modules[modname] = mod
+            return getattr(mod, member)
+        except Exception as e:
+            __warning('Could not load plugin "%s". Reason: %s', __p.module_name, e)
+            return None
+        finally:
+            del __sys, __warning
+
 
 # Discover the taurus.qt.qtgui plugins
 __mod = __modname = None
 for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui'):
-    try:
-        __modname = '%s.%s' % (__name__, __p.name)
-        __lazy_mod = LazyModule(__p.name, __name__, __p)
-        # Add it to the current module
-        setattr(sys.modules[__name__], __p.name, __lazy_mod)
-        # Add it to sys.modules
-        sys.modules[__modname] = __lazy_mod
-        __info('Plugin "%s" loaded as "%s"', __p.module_name, __modname)
-    except Exception as e:
-        __warning('Could not load plugin "%s". Reason: %s', __p.module_name, e)
+    __modname = '%s.%s' % (__name__, __p.name)
+    __lazy_mod = LazyModule(__p.name, __name__, __p)
+    # Add it to the current module
+    setattr(sys.modules[__name__], __p.name, __lazy_mod)
+    # Add it to sys.modules
+    sys.modules[__modname] = __lazy_mod
+    __info('Plugin "%s" loaded as "%s"', __p.module_name, __modname)
 
 # ------------------------------------------------------------------------
     
-del (os, glob, __icon, icon_dir, pkg_resources, sys, __mod, __modname, __info,
-     __warning)
+del (os, glob, __icon, icon_dir, pkg_resources, sys, __mod, __modname, __info)
 
