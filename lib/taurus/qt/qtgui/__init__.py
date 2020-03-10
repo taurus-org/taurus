@@ -64,7 +64,7 @@ for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui'):
     setattr(sys.modules[__name__], __p.name, __lazy_mod)
     # Add it to sys.modules
     sys.modules[__modname] = __lazy_mod
-    __info('Plugin "%s" loaded as "%s"', __p.module_name, __modname)
+    __info('Plugin "%s" lazy-loaded as "%s"', __p.module_name, __modname)
 
 # ------------------------------------------------------------------------
     
