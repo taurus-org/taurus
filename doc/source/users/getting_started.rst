@@ -47,8 +47,8 @@ Installing in a conda environment (Windows and linux)
 First create a Conda_ environment with all the dependencies and activate it::
 
     conda config --add channels conda-forge
-    conda config --add channels tango-controls  # for windows, use "tcoutinho" instead of "tango-controls"
-    conda create -n py3qt5 python=3 pyqt=5 itango pytango lxml future guidata guiqwt ipython pillow pint ply pyqtgraph pythonqwt numpy scipy pymca click
+    conda config --add channels tango-controls
+    conda create -n py3qt5 python=3 pyqt=5 pytango lxml future guidata guiqwt ipython pillow pint ply pyqtgraph pythonqwt numpy scipy pymca click
     conda activate py3qt5
 
 Then install taurus and taurus_pyqtgraph using pip (as explained above)
