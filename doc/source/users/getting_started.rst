@@ -20,7 +20,7 @@ download and install the latest release of Taurus (see pip --help for options)::
 
 You can test the installation by running::
 
-       python -c "import taurus; print taurus.Release.version"
+       python -c "import taurus; print(taurus.Release.version)"
 
 
 Note: some "extra" features of taurus have additional dependencies_.
