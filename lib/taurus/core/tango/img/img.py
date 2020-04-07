@@ -72,6 +72,7 @@ class ImageCounterDevice(ImageDevice):
         self._image_data = CaselessDict()
         self._image_id_attr_name = image_ct
         self.call__init__(ImageDevice, name, image_name, **kw)
+        self.image_attr = self.getAttribute(image_name)
         self._image_id_attr = self.getAttribute(self._image_id_attr_name)
         self.discard_event = False
         self._image_id_attr.addListener(self)
