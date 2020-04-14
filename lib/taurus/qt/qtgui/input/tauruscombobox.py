@@ -79,7 +79,8 @@ class TaurusValueComboBox(Qt.QComboBox, TaurusBaseWritableWidget):
             self.currentIndexChanged.disconnect(self.writeIndexValue)
         except (RuntimeError, TypeError):
             # In new style-signal if a signal is disconnected without
-            # previously was connected it, it raises a TypeError
+            # previously was connected it, it raises a TypeError (PyQt)
+            # or RuntimeError (PySide)
             pass
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
