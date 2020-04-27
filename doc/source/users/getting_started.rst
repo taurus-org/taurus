@@ -40,13 +40,14 @@ built in https://salsa.debian.org , but are not yet part of the official debian
 repositories
 
 
-Installing in a conda environment (Windows and linux)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installing in a conda environment (platform-independent)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First create a Conda_ environment with all the dependencies and activate it::
 
     conda config --add channels conda-forge
     conda config --add channels tango-controls
+    # note: MacOSX users, remove "pytango" from the following command
     conda create -n py3qt5 python=3 pyqt=5 pytango lxml future guidata guiqwt ipython pillow pint ply pyqtgraph pythonqwt numpy scipy pymca click
     conda activate py3qt5
 
