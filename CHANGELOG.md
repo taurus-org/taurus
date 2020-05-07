@@ -15,6 +15,7 @@ develop branch) won't be reflected in this file.
 - Support for spyder v4 in `taurus.qt.qtgui.editor` (#1038)
 - Entry-point ("taurus.qt.formatters") for registering formatters via plugins (#1039)
 - New `worker_cls` argument for `taurus.core.util.ThreadPool` costructor (#1081)
+- `taurus.core.util.lazymodule` for delayed entry-point loading of modules (#1090)
 
 ### Removed
 ### Changed
@@ -23,6 +24,7 @@ develop branch) won't be reflected in this file.
   being now automatically tested by travis (#994)
 - TaurusForm provides more debugging info when failing to handle a model (#1049)
 - Improved GUI dialog for changing the formatter of a widget (#1039)
+- Modules registered with `"taurus.qt.qtgui"` entry-point are now lazy-loaded (#1090)
 
 ### Deprecated
 - `TaurusBaseWidget.showFormatterDlg()` (#1039)
