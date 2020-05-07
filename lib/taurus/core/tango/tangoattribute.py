@@ -515,7 +515,7 @@ class TangoAttribute(TaurusAttribute):
                 self.__subscription_event.set()
                 self.fireEvent(TaurusEventType.Periodic, self.__attr_value)
 
-    def read(self, cache=True):
+    def read(self, cache=True, expiration_period=None):
         """ Returns the current value of the attribute.
             if cache is set to True (default) or the attribute has events
             active then it will return the local cached value. Otherwise it will
@@ -527,7 +527,9 @@ class TangoAttribute(TaurusAttribute):
             except AttributeError:
                 attr_timestamp = 0
             dt = (curr_time - attr_timestamp) * 1000
-            if dt < self.getPollingPeriod():
+            if expiration_period is None:
+                expiration_period = self.getPollingPeriod()
+            if dt < expiration_period:
                 if self.__attr_value is not None:
                     return self.__attr_value
                 elif self.__attr_err is not None:
