@@ -22,7 +22,7 @@
 #############################################################################
 
 """
-This module provides LazyModule for loading plugins in lazy way -
+This module provides LazyModule for loading plugin modules in lazy way -
 only when members of actual plugin are requested.
 """
 
@@ -31,18 +31,28 @@ __all__ = ["LazyModule"]
 from types import ModuleType
 import sys
 
-from taurus import warning
+from taurus import warning, info
 
 
 class LazyModule(ModuleType):
-
+    """It provides a ModuleType object that acts as a placeholder for modules
+    registered via entry-points. It replaces the actual module without actually
+    importing it until a member of the module is requested, which automatically
+    triggers the load of the entry-point and the substitution of this
+    placeholder by the actual module
+    """
     def __init__(self, name, package, entry_point):
+        """
+
+        :param name: name of the module
+        :param package: name of the package to which the module belongs
+        :param entry_point: entry-point for the module
+        """
         super(LazyModule, self).__init__(name)
         self.__package__ = package
         self.ep = entry_point
 
     def __getattr__(self, member):
-
         try:
             mod = self.ep.load()
             # Replace lazy module with actual module for package
@@ -50,7 +60,29 @@ class LazyModule(ModuleType):
             # Replace lazy module with actual module in sys.modules
             modname = "%s.%s" % (self.__package__, self.__name__)
             sys.modules[modname] = mod
-            return getattr(mod, member)
         except Exception as e:
             warning('Could not load plugin "%s". Reason: %s', self.ep.name, e)
             return None
+        return getattr(mod, member)
+
+    @staticmethod
+    def import_ep(name, package, entry_point):
+        """
+        Lazily imports a module defined in an entry point. The LazyModule is
+        inserted in sys.modules as <package>.<name>
+
+        :param name: name of the module
+        :param package: name of the package to which the module belongs
+        :param entry_point: entry-point for a module
+        :return: A LazyModule object
+        """
+        m = LazyModule(name, package, entry_point)
+        setattr(sys.modules[package], name, m)
+        modname = "{}.{}".format(package, name)
+        sys.modules[modname] = m
+        info(
+            'Plugin "%s" lazy-loaded as "%s"',
+            entry_point.module_name,
+            modname
+        )
+        return m
