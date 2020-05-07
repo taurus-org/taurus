@@ -35,9 +35,9 @@ import os
 import sys
 import glob
 import pkg_resources
+
 from taurus import tauruscustomsettings as __S
-from taurus import info as __info
-from taurus import warning as __warning
+from taurus.core.util.lazymodule import LazyModule as __LM
 
 
 __docformat__ = 'restructuredtext'
@@ -55,21 +55,10 @@ __icon.registerTheme(name=getattr(__S, 'QT_THEME_NAME', 'Tango'),
 # It may be removed or changed in future releases
 
 # Discover the taurus.qt.qtgui plugins
-__mod = __modname = None
+# __mod = __modname = None
 for __p in pkg_resources.iter_entry_points('taurus.qt.qtgui'):
-    try:
-        __modname = '%s.%s' % (__name__, __p.name)
-        __mod = __p.load()
-        # Add it to the current module
-        setattr(sys.modules[__name__], __p.name, __mod)
-        # Add it to sys.modules
-        sys.modules[__modname] = __mod
-        __info('Plugin "%s" loaded as "%s"', __p.module_name, __modname)
-    except Exception as e:
-        __warning('Could not load plugin "%s". Reason: %s', __p.module_name, e)
+    __LM.import_ep(__p.name, __name__, __p)
 
 # ------------------------------------------------------------------------
     
-del (os, glob, __icon, icon_dir, pkg_resources, sys, __mod, __modname, __info,
-     __warning)
-
+del (os, glob, __icon, icon_dir, pkg_resources, sys, __LM)
