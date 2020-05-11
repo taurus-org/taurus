@@ -515,21 +515,20 @@ class TangoAttribute(TaurusAttribute):
                 self.__subscription_event.set()
                 self.fireEvent(TaurusEventType.Periodic, self.__attr_value)
 
-    def read(self, cache=True, expiration_period=None):
+    def read(self, cache=True):
         """ Returns the current value of the attribute.
 
         If cache is set to True (default) or the attribute has events
         active then it will return the local cached value. Otherwise it will
         read the attribute value from the tango device.
 
-        Cached value can expire if it is older then expiration_period,
-        or if this is not specified the *polling period*, what would result in
-        the attribute readout as if cache would be False.
+        Cached value expires if it is older then the *polling period*, what
+        results in the attribute readout as if cache would be False. You can
+        pass a different expiration period with the cache argument.
 
-        :param cache: use cache value or make readout
-        :type cache: :obj:`bool`
-        :param expiration_period: time period in seconds
-        :type expiration_period: :obj:`float`
+        :param cache: use cache value or make readout, eventually pass a
+             cache's expiration period in milliseconds
+        :type cache: :obj:`bool` or :obj:`float`
         :return: attribute value
         :rtype: :obj:`~taurus.core.tango.TangoAttributeValue`
         """
@@ -540,8 +539,10 @@ class TangoAttribute(TaurusAttribute):
             except AttributeError:
                 attr_timestamp = 0
             dt = (curr_time - attr_timestamp) * 1000
-            if expiration_period is None:
+            if cache is True:  # cache *is* a bool True
                 expiration_period = self.getPollingPeriod()
+            else:  # cache is a non-zero numeric value
+                expiration_period = cache
             if dt < expiration_period:
                 if self.__attr_value is not None:
                     return self.__attr_value
