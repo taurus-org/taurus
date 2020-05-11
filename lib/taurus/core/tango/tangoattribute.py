@@ -518,13 +518,14 @@ class TangoAttribute(TaurusAttribute):
     def read(self, cache=True):
         """ Returns the current value of the attribute.
 
-        If cache is set to True (default) or the attribute has events
-        active then it will return the local cached value. Otherwise it will
+        If `cache` is not False, or expired, or the attribute has events
+        active, then it will return the local cached value. Otherwise it will
         read the attribute value from the tango device.
 
-        Cached value expires if it is older then the *polling period*, what
-        results in the attribute readout as if cache would be False. You can
-        pass a different expiration period with the cache argument.
+        The cached value expires if it is older than the value (im ms) passed 
+        as the `cache` argument or the *polling period* if `cache==True` 
+        (default). If the cache is expired a reading will be done just as if 
+        cache was False.
 
         :param cache: use cache value or make readout, eventually pass a
              cache's expiration period in milliseconds
