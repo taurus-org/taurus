@@ -16,6 +16,7 @@ develop branch) won't be reflected in this file.
 - Entry-point ("taurus.qt.formatters") for registering formatters via plugins (#1039)
 - New `worker_cls` argument for `taurus.core.util.ThreadPool` costructor (#1081)
 - `taurus.core.util.lazymodule` for delayed entry-point loading of modules (#1090)
+- `'taurus.qt.taurusform.item_factories'` entry-point (#1108)
 
 ### Removed
 ### Changed
@@ -25,9 +26,13 @@ develop branch) won't be reflected in this file.
 - TaurusForm provides more debugging info when failing to handle a model (#1049)
 - Improved GUI dialog for changing the formatter of a widget (#1039)
 - Modules registered with `"taurus.qt.qtgui"` entry-point are now lazy-loaded (#1090)
+- The control over which custom widgets are to be used in a TaurusForm is now
+  done by registering factories to the`'taurus.qt.taurusform.item_factories'`
+  entry-point (#1108)
 
 ### Deprecated
 - `TaurusBaseWidget.showFormatterDlg()` (#1039)
+- TaurusForm custom widget map API (#1108) 
 
 ### Fixed
 - Several issues in TaurusWheelEdit (#1010, #1021)
