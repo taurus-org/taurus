@@ -164,7 +164,7 @@ _MAX_DEPRECATIONS_LOGGED = 1
 #: device_class_name:(classname_with_full_module_path, args, kwargs)
 #: where the args and kwargs will be passed to the constructor of the class
 T_FORM_CUSTOM_WIDGET_MAP = {}
-OLD_T_FORM_CUSTOM_WIDGET_MAP = {
+_OLD_T_FORM_CUSTOM_WIDGET_MAP = {
     'SimuMotor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
     'Motor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
     'PseudoMotor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
@@ -178,6 +178,6 @@ OLD_T_FORM_CUSTOM_WIDGET_MAP = {
 try:  # just for backwards compatibility. This will be removed.
     import sardana
     if sardana.release.version < '3':
-        T_FORM_CUSTOM_WIDGET_MAP = OLD_T_FORM_CUSTOM_WIDGET_MAP
+        T_FORM_CUSTOM_WIDGET_MAP = _OLD_T_FORM_CUSTOM_WIDGET_MAP
 except:
     pass
