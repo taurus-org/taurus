@@ -31,6 +31,7 @@ from __future__ import absolute_import
 import click
 from datetime import datetime
 from functools import partial
+import pkg_resources
 
 from future.utils import string_types, binary_type
 
@@ -44,7 +45,10 @@ from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_T
 from taurus.qt.qtgui.container import TaurusWidget, TaurusScrollArea
 from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
 from .taurusmodelchooser import TaurusModelChooser
+from taurus.core.util.log import deprecation_decorator
+from taurus import warning
 import taurus.cli.common
+
 
 __all__ = ["TaurusAttrForm", "TaurusCommandsForm", "TaurusForm"]
 
@@ -102,6 +106,8 @@ class TaurusForm(TaurusWidget):
     You can also see some code that exemplifies the use of TaurusForm in :ref:`Taurus
     coding examples <examples>` '''
 
+    _itemFactories = None
+
     def __init__(self, parent=None,
                  formWidget=None,
                  buttons=None,
@@ -114,10 +120,11 @@ class TaurusForm(TaurusWidget):
         if buttons is None:
             buttons = Qt.QDialogButtonBox.Apply | \
                 Qt.QDialogButtonBox.Reset
-        self._customWidgetMap = {}
+        self._customWidgetMap = {}  # deprecated
         self._model = []
         # self._children = []
         self.setFormWidget(formWidget)
+        self._loadItemFactories(force=False)
 
         self.setLayout(Qt.QVBoxLayout())
 
@@ -180,6 +187,38 @@ class TaurusForm(TaurusWidget):
         '''returns the number of items contained by the form'''
         return len(self.getItems())
 
+    @classmethod
+    def _loadItemFactories(cls, force=False):
+        """
+        Loads TaurusValue factories registered via the
+        'taurus.qt.taurusform.item_factories' entry point group.
+
+        TaurusValue factories are functions that receive a TaurusModel as
+        their only argument and return either a TaurusValue-like instance
+        or None in case the factory does not handle the given model.
+
+        The result is cached at class level in order to avoid re-loading for
+        each new form. It can be force-reloaded by passing force=True
+        """
+        if cls._itemFactories is not None and not force:
+            return cls._itemFactories
+
+        cls._itemFactories = {}
+        for ep in pkg_resources.iter_entry_points(
+                'taurus.qt.taurusform.item_factories'
+        ):
+            key = ep.name
+            # allow for more than one plugin registering with same name
+            i = 2
+            while key in cls._itemFactories:
+                key = "{}({})".format(ep.name, i)
+                i += 1
+            try:
+                # load the plugin
+                cls._itemFactories[key] = ep.load()
+            except:
+                warning('cannot load item factory "%s"', key)
+
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
         if isinstance(modelNames, binary_type):
@@ -189,6 +228,7 @@ class TaurusForm(TaurusWidget):
             modelNames = modelNames.split()
         return modelNames
 
+    @deprecation_decorator(alt="TaurusValue factories", rel="4.6.5")
     def setCustomWidgetMap(self, cwmap):
         '''Sets a map map for custom widgets.
 
@@ -199,6 +239,7 @@ class TaurusForm(TaurusWidget):
         # TODO: tango-centric
         self._customWidgetMap = cwmap
 
+    @deprecation_decorator(alt="TaurusValue factories", rel="4.6.5")
     def getCustomWidgetMap(self):
         '''Returns the map used to create custom widgets.
 
@@ -312,6 +353,7 @@ class TaurusForm(TaurusWidget):
         self.destroyChildren()
         self._model = []
 
+    @deprecation_decorator(alt="TaurusValue factories", rel="4.6.5")
     def getFormWidget(self, model=None):
         '''Returns a tuple that can be used for creating a widget for a given model.
 
@@ -482,11 +524,31 @@ class TaurusForm(TaurusWidget):
         for i, model in enumerate(self.getModel()):
             if not model:
                 continue
+            try:
+                model_obj = taurus.Object(model)
+            except:
+                self.warning('problem adding item "%s"', model)
+                self.traceback(level=taurus.Debug)
+                continue
             if parent_name:
                 # @todo: Change this (it assumes tango model naming!)
                 model = "%s/%s" % (parent_name, model)
-            klass, args, kwargs = self.getFormWidget(model=model)
-            widget = klass(frame, *args, **kwargs)
+
+            widget = None
+            # check if some item factory handles this model
+            for n, f in sorted(self._itemFactories.items()):
+                widget = f(model_obj)
+                if widget is not None:
+                    self.debug("widget for '%s' provided by '%s'", model, n)
+                    break  # todo: consider exploring all to detect conflicts
+            # bck-compat with old custom widget map
+            if self._customWidgetMap:
+                klass, args, kwargs = self.getFormWidget(model=model)
+                widget = klass(frame, *args, **kwargs)
+            # no factory handles the model and no custom widgets. Use default
+            if widget is None:
+                widget = self._defaultFormWidget()
+
             # @todo UGLY... See if this can be done in other ways... (this causes trouble with widget that need more vertical space , like PoolMotorTV)
             widget.setMinimumHeight(20)
 
@@ -496,8 +558,7 @@ class TaurusForm(TaurusWidget):
                 widget.setParent(frame)
             except:
                 # raise
-                self.warning(
-                    'an error occurred while adding the child "%s". Skipping' % model)
+                self.warning('problem adding item "%s"', model)
                 self.traceback(level=taurus.Debug)
             try:
                 widget.setModifiableByUser(self.isModifiableByUser())
@@ -1013,7 +1074,7 @@ def test3():
 
 
 def test4():
-    '''tests customwidgetma in taurusforms'''
+    '''tests old customwidgetmap in taurusforms'''
     import sys
     from taurus.qt.qtgui.display import TaurusLabel
     from taurus.qt.qtgui.application import TaurusApplication
@@ -1084,10 +1145,11 @@ def form_cmd(window_name, config_file, models):
     dialog.addActions(
         (saveConfigAction, loadConfigAction, quitApplicationAction))
 
-    # set the default map for this installation
+    # backwards-compat: in case T_FORM_CUSTOM_WIDGET_MAP was manually edited
     from taurus import tauruscustomsettings
-    dialog.setCustomWidgetMap(
-        getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {}))
+    cwmap = getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {})
+    if cwmap:
+        dialog.setCustomWidgetMap(cwmap)
 
     # set a model list from the command line or launch the chooser
     if config_file is not None:
