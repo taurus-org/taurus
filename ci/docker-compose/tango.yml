@@ -1,0 +1,52 @@
+# 
+# Docker compose file for TANGO database and database device server
+#
+# Defines:
+#   - tangodb: MariaDB database with TANGO schema
+#   - databaseds: TANGO database device server
+#
+# Requires:
+#   - None
+#
+version: '2'
+
+volumes:
+  tangodb: {}
+        
+services:
+  tangodb:
+    image: ${DOCKER_REGISTRY_HOST}/${DOCKER_REGISTRY_USER}/tango-db:latest
+    container_name: ${CONTAINER_NAME_PREFIX}tangodb
+    network_mode: ${NETWORK_MODE}
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=tango
+      - MYSQL_USER=tango
+      - MYSQL_PASSWORD=tango
+    volumes:
+      - tangodb:/var/lib/mysql
+    restart: on-failure
+
+  databaseds:
+    image: ${DOCKER_REGISTRY_HOST}/${DOCKER_REGISTRY_USER}/tango-cpp:latest
+    container_name: ${CONTAINER_NAME_PREFIX}databaseds
+    network_mode: ${NETWORK_MODE}
+    depends_on:
+      - tangodb
+    environment:
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_DATABASE=tango
+      - MYSQL_USER=tango
+      - MYSQL_PASSWORD=tango
+      - TANGO_HOST=${TANGO_HOST}
+    entrypoint:
+      - /usr/local/bin/wait-for-it.sh
+      - ${MYSQL_HOST}
+      - --timeout=30
+      - --strict
+      - --
+      - /usr/local/bin/DataBaseds
+      - "2"
+      - -ORBendPoint
+      - giop:tcp::10000
+    restart: on-failure

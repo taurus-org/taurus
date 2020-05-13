@@ -1,0 +1,40 @@
+#
+# Docker compose file that launches HdbViewer, sending the display to a remote X11
+# display.
+#
+#
+# Requires:
+#   - tango.yml
+#
+version: '2'
+
+services:
+  hdbpp-viewer:
+    image: ${DOCKER_REGISTRY_HOST}/${DOCKER_REGISTRY_USER}/hdbpp_viewer:latest
+    container_name: ${CONTAINER_NAME_PREFIX}hdbpp-viewer
+    network_mode: ${NETWORK_MODE}
+    depends_on:
+      - databaseds
+      - dsconfig
+      - maria-db
+      - hdbpp-es
+      - hdbpp-cm
+    volumes:
+      - ${XAUTHORITY_MOUNT}
+    environment:
+      - XAUTHORITY=${XAUTHORITY}
+      - DISPLAY=${DISPLAY}
+      - TANGO_HOST=${TANGO_HOST}
+      - HDB_TYPE=mysql
+      - HDB_MYSQL_HOST=archiver-maria-db
+      - HDB_MYSQL_PORT=3306
+      - HDB_USER=tango
+      - HDB_PASSWORD=tango
+      - HDB_NAME=hdbpp
+      - CLASSPATH=JTango.jar:ATKCore.jar:ATKWidget.jar:jhdbviewer.jar:HDBPP.jar:jython.jar:jcalendar.jar
+    entrypoint:
+      - wait-for-it.sh
+      - ${TANGO_HOST}
+      - --strict
+      - --
+      - ./hdbpp_viewer/hdbpp_viewer_script

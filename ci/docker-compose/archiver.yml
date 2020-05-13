@@ -1,0 +1,67 @@
+version: '2'
+
+services:
+  maria-db:
+    image: ${DOCKER_REGISTRY_HOST}/${DOCKER_REGISTRY_USER}/mariadb_hdbpp:latest
+    container_name: archiver-maria-db
+    network_mode: ${NETWORK_MODE}
+    depends_on:
+      - databaseds
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=hdbpp
+      - MYSQL_HOST=archiver-maria-db:3306
+      - MYSQL_USER=tango
+      - MYSQL_PASSWORD=tango
+      - TANGO_HOST=${TANGO_HOST}
+    restart: on-failure
+
+  hdbpp-es:
+      image: ${DOCKER_REGISTRY_HOST}/${DOCKER_REGISTRY_USER}/tango-archiver:latest
+      network_mode: ${NETWORK_MODE}
+      container_name: hdbpp-es
+      depends_on:
+        - databaseds
+        - dsconfig
+        - maria-db
+      environment:
+        - TANGO_HOST=${TANGO_HOST}
+        - HdbManager=archiving/hdbpp/confmanager01
+      command: >
+        /bin/bash -c "
+          wait-for-it.sh archiver-maria-db:3306 --timeout=30 --strict --
+          wait-for-it.sh ${TANGO_HOST} --timeout=30 --strict --
+               hdbppes-srv 01"
+
+  hdbpp-cm:
+      image: ${DOCKER_REGISTRY_HOST}/${DOCKER_REGISTRY_USER}/tango-archiver:latest
+      network_mode: ${NETWORK_MODE}
+      container_name: hdbpp-cm
+      depends_on:
+        - databaseds
+        - dsconfig
+        - maria-db
+      environment:
+        - TANGO_HOST=${TANGO_HOST}
+        - HdbManager=archiving/hdbpp/confmanager01
+      command: >
+        /bin/bash -c "
+          wait-for-it.sh archiver-maria-db:3306 --timeout=30 --strict --
+          wait-for-it.sh ${TANGO_HOST} --timeout=30 --strict --
+               hdbppcm-srv 01"
+
+  dsconfig:
+    image: ${DOCKER_REGISTRY_HOST}/${DOCKER_REGISTRY_USER}/tango-dsconfig:latest
+    container_name: dsconfig
+    network_mode: ${NETWORK_MODE}
+    depends_on:
+      - databaseds
+    environment:
+      - TANGO_HOST=${TANGO_HOST}
+    command: >
+      sh -c "wait-for-it.sh ${TANGO_HOST} --timeout=30 --strict --
+             json2tango -w -a -u /tango-archiver/data/archiver-devices.json &&
+             sleep infinity"
+    volumes:
+      - ../docker/tango/tango-archiver:/tango-archiver
+
