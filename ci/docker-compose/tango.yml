@@ -31,6 +31,8 @@ services:
     image: ${DOCKER_REGISTRY_HOST}/${DOCKER_REGISTRY_USER}/tango-cpp:latest
     container_name: ${CONTAINER_NAME_PREFIX}databaseds
     network_mode: ${NETWORK_MODE}
+    ports:
+      - "10000:10000"
     depends_on:
       - tangodb
     environment:
