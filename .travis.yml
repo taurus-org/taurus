@@ -39,7 +39,7 @@ before_install:
   - if [[ "$TOXENV" == "flake8" ]]; then
         echo "Skipping tango initialization";
     else
-        make -C ci/docker-compose start tangotest
+        make -C ci/docker-compose start tangotest;
         echo 'TANGO_HOST=localhost:10000' >> $HOME/.tangorc;
     fi
 
