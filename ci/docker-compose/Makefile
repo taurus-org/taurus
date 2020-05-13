@@ -34,6 +34,7 @@ endif
 # prevent collisions with jobs from the same project running at the same
 # time.
 #
+CI_JOB_ID ?= $(TRAVIS_JOB_ID)
 ifneq ($(CI_JOB_ID),)
 NETWORK_MODE := tangonet-$(CI_JOB_ID)
 CONTAINER_NAME_PREFIX := $(CI_JOB_ID)-
