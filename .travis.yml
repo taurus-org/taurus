@@ -23,6 +23,8 @@ matrix:
     - env: TOXENV=py37-ps2
     - env: TOXENV=py37-qt5-docs
   allow_failures:
+    - env: TOXENV=py27-qt4
+    - env: TOXENV=py27-qt5
     - env: TOXENV=flake8
 
 before_install:
