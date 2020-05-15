@@ -547,7 +547,7 @@ class TaurusForm(TaurusWidget):
 
             widget = None
             # check if some item factory handles this model
-            for n, ep in sorted(self._itemFactories.items()):
+            for ep in self._itemFactories:
                 try:
                     # load the plugin
                     f = ep.load()
@@ -557,7 +557,11 @@ class TaurusForm(TaurusWidget):
 
                 widget = f(model_obj)
                 if widget is not None:
-                    self.debug("widget for '%s' provided by '%s'", model, n)
+                    self.debug(
+                        "widget for '%s' provided by '%s'",
+                        model,
+                        ep.name
+                    )
                     break  # todo: consider exploring all to detect conflicts
             # bck-compat with old custom widget map
             if self._customWidgetMap:
