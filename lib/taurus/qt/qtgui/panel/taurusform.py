@@ -209,11 +209,14 @@ class TaurusForm(TaurusWidget):
         :function:`taurus.core.util.plugin.selectEntryPoints()`. See it for
         more details.
 
+        The selected list is updated in the form, and returned.
+
         :param include: (tuple of `str` or `re.Pattern`). Regexp patterns for
         names to be included in the selection. Default is `(".*",)`, which
         matches all registered names and the sort is purely alphabetical.
         :param exclude: (tuple of `str` or `re.Pattern`). Regexp patterns for
         names to be excluded. Default is `()`, so no entry point is exclude.
+        :return: (list) selected item factories entry points
         """
 
         self._itemFactories = selectEntryPoints(
@@ -221,6 +224,7 @@ class TaurusForm(TaurusWidget):
             include=include,
             exclude=exclude
         )
+        return self._itemFactories
 
     def getItemFactories(self):
         """returns the list of item factories entry points currently in use"""
