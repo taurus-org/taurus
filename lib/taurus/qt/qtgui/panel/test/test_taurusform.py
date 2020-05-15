@@ -26,16 +26,16 @@
 
 import unittest
 from taurus.qt.qtgui.test import GenericWidgetTestCase
-from taurus.qt.qtgui.panel import TaurusForm, TaurusAttrForm
+from taurus.qt.qtgui.panel import TaurusForm, TaurusAttrForm, TaurusValue
+from taurus.core.util.test.test_plugin import mock_entry_point
 
 
 class TaurusFormTest(GenericWidgetTestCase, unittest.TestCase):
-
-    '''
+    """
     Generic tests for TaurusForm widget.
 
     .. seealso: :class:`taurus.qt.qtgui.test.base.GenericWidgetTestCase`
-    '''
+    """
     _klass = TaurusForm
     modelnames = [['sys/tg_test/1'],
                   ['sys/tg_test/1/wave'],
@@ -55,17 +55,86 @@ class TaurusFormTest(GenericWidgetTestCase, unittest.TestCase):
 
 
 class TaurusAttrFormTest(GenericWidgetTestCase, unittest.TestCase):
-
-    '''
+    """
     Generic tests for TaurusAttrForm widget.
 
     .. seealso: :class:`taurus.qt.qtgui.test.base.GenericWidgetTestCase`
-    '''
+    """
     _klass = TaurusAttrForm
     modelnames = ['sys/tg_test/1', None]
 
 
-# if __name__ == "__main__":
-#     unittest.main()
-#    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TaurusFormTest)
-#    unittest.TextTestRunner(verbosity=2).run(suite)
+class _DummyTV(TaurusValue):
+    pass
+
+
+def _DummyItemFactory(m):
+    """
+    A dummy item factory that returns _DummyTV instance for one specific
+    attribute: "eval://localhost/@dummy/'test_itemfactory'"
+    """
+    if m.fullname == "eval://localhost/@dummy/'test_itemfactory'":
+        return _DummyTV()
+
+
+def test_form_itemFactory():
+    """Checks that the TaurusForm itemFactory API works"""
+    lines = ["test_Form_ItemFactory={}:_DummyItemFactory".format(__name__)]
+    group = "taurus.qt.taurusform.item_factories"
+    mock_entry_point(lines, group=group)
+
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication.instance()
+    if app is None:
+        _ = TaurusApplication([], cmd_line_parser=None)
+
+    w = TaurusForm()
+    w.setModel(
+        [
+            "eval://localhost/@dummy/'test_itemfactory'",
+            "eval://localhost/@dummy/'test_itemfactory2'",
+        ]
+    )
+    # The first item should get a customized _DummyTV widget
+    assert type(w[0]) is _DummyTV
+    # The second item shoud get the default form widget
+    assert type(w[1]) is w._defaultFormWidget
+
+
+def test_form_itemFactory_selection():
+    """Checks that the TaurusForm itemFactory selection API works"""
+    lines = ["test_Form_ItemFactory={}:_DummyItemFactory".format(__name__)]
+    group = "taurus.qt.taurusform.item_factories"
+    mapping = mock_entry_point(lines, group=group)
+    ep1 = mapping[group]["test_Form_ItemFactory"]
+
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication.instance()
+    if app is None:
+        _ = TaurusApplication([], cmd_line_parser=None)
+
+    w = TaurusForm()
+
+    # the test_Form_ItemFactory should be in the default factories
+    default_factories = w.getItemFactories()
+    assert ep1 in default_factories
+
+    # Check that we can deselect all factories
+    no_factories = w.selectItemFactories(include=[])
+    assert no_factories == []
+
+    # Check that we can exclude everything except test_Form_ItemFactory
+    select1 = w.selectItemFactories(exclude=[r"(?!.*test_Form_ItemFactory).*"])
+    assert select1 == [ep1]
+
+    # Check that we can include only test_Form_ItemFactory
+    select2 = w.selectItemFactories(include=["test_Form_ItemFactory"])
+    assert select2 == [ep1]
+
+    # Check that the selected test_Form_ItemFactory is an entry point
+    from pkg_resources import EntryPoint
+    assert type(select2[0]) == EntryPoint
+
+    # Check that the selected entry point loads _DummyItemFactory
+    assert select2[0].load() is _DummyItemFactory
+
