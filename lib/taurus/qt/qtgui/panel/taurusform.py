@@ -32,6 +32,7 @@ import click
 from datetime import datetime
 from functools import partial
 import pkg_resources
+import re
 
 from future.utils import string_types, binary_type
 
@@ -106,7 +107,7 @@ class TaurusForm(TaurusWidget):
     You can also see some code that exemplifies the use of TaurusForm in :ref:`Taurus
     coding examples <examples>` '''
 
-    _itemFactories = None
+    _allItemFactories = None
 
     def __init__(self, parent=None,
                  formWidget=None,
@@ -124,7 +125,9 @@ class TaurusForm(TaurusWidget):
         self._model = []
         # self._children = []
         self.setFormWidget(formWidget)
-        self._loadItemFactories(force=False)
+
+        self._itemFactories = []
+        self.selectItemFactories()
 
         self.setLayout(Qt.QVBoxLayout())
 
@@ -188,7 +191,7 @@ class TaurusForm(TaurusWidget):
         return len(self.getItems())
 
     @classmethod
-    def _loadItemFactories(cls, force=False):
+    def _getAllItemFactories(cls, force=False):
         """
         Loads TaurusValue factories registered via the
         'taurus.qt.taurusform.item_factories' entry point group.
@@ -200,24 +203,69 @@ class TaurusForm(TaurusWidget):
         The result is cached at class level in order to avoid re-loading for
         each new form. It can be force-reloaded by passing force=True
         """
-        if cls._itemFactories is not None and not force:
-            return cls._itemFactories
+        if cls._allItemFactories is not None and not force:
+            return cls._allItemFactories
 
-        cls._itemFactories = {}
+        cls._allItemFactories = {}
         for ep in pkg_resources.iter_entry_points(
                 'taurus.qt.taurusform.item_factories'
         ):
             key = ep.name
-            # allow for more than one plugin registering with same name
+            # allow (but warn about) duplicated registered names
             i = 2
-            while key in cls._itemFactories:
+            while key in cls._allItemFactories:
                 key = "{}({})".format(ep.name, i)
                 i += 1
-            try:
-                # load the plugin
-                cls._itemFactories[key] = ep.load()
-            except:
-                warning('cannot load item factory "%s"', key)
+                warning("Duplicated form item factory name --> '%s'", key)
+            cls._allItemFactories[key] = ep
+
+    def selectItemFactories(self, included=('.*',), excluded=()):
+        """
+        Select which factories will be used to crete the form's items.
+        The factories are selected using the names registered in the
+        'taurus.qt.taurusform.item_factories' entry point group.
+
+        The selection is done by regex matching on the names. First the names
+        that match any of the patterns in `excluded` are discarded. Then
+        each pattern in `included` is used to select from the names.
+
+        In this way, the factories will be selected in the order dictated by
+        the `included` pattern list. If a pattern matches several names, these
+        will be sorted alphabetically.
+
+        For example, if there are the following registered factory names:
+        - names = ['foo1', 'foo2', 'baz1', 'baz2, 'bar1', 'bar2']
+        And we use `exclude=("foo2",)` and `include=("bar2", "b.*1", "f.*")` ,
+        then the selection will be: ["bar2","bar1","baz1","foo1"]
+
+        :param included: iterable of regexps patterns (str or re.Pattern)
+        :param excluded: iterable of regexps patterns (str or re.Pattern)
+        """
+        self._itemFactories = []
+        all = self._getAllItemFactories()
+
+        # filter out the factory keys matching a exclude pattern
+        remaining = all.keys()
+        for p in excluded:
+            remaining = [k for k in remaining if not re.match(p, k)]
+
+        #sort the remaining keys alphabetically
+        remaining.sort()
+
+        # fill the _itemFactories list with the selected entry points,
+        # sorting according to the order in included (and then alphabetically)
+        for p in included:
+            keys = remaining
+            remaining = []
+            for k in keys:
+                if re.match(p, k):
+                    self._itemFactories.append(all[k])
+                else:
+                    remaining.append(k)
+
+    def getItemFactories(self):
+        """returns the list of item factories entry points currently in use"""
+        return self._itemFactories
 
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
@@ -536,7 +584,14 @@ class TaurusForm(TaurusWidget):
 
             widget = None
             # check if some item factory handles this model
-            for n, f in sorted(self._itemFactories.items()):
+            for n, ep in sorted(self._itemFactories.items()):
+                try:
+                    # load the plugin
+                    f = ep.load()
+                except:
+                    warning('cannot load item factory "%s"', ep.name)
+                    continue
+
                 widget = f(model_obj)
                 if widget is not None:
                     self.debug("widget for '%s' provided by '%s'", model, n)

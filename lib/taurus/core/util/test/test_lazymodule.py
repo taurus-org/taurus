@@ -1,5 +1,4 @@
 import sys
-import pkg_resources
 from types import ModuleType
 from taurus.core.util.lazymodule import LazyModule
 
