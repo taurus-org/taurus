@@ -47,6 +47,7 @@ from taurus.qt.qtgui.container import TaurusWidget, TaurusScrollArea
 from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
 from .taurusmodelchooser import TaurusModelChooser
 from taurus.core.util.log import deprecation_decorator
+from taurus.core.util.plugin import selectEntryPoints
 from taurus import warning
 import taurus.cli.common
 
@@ -106,8 +107,6 @@ class TaurusForm(TaurusWidget):
 
     You can also see some code that exemplifies the use of TaurusForm in :ref:`Taurus
     coding examples <examples>` '''
-
-    _allItemFactories = None
 
     def __init__(self, parent=None,
                  formWidget=None,
@@ -190,78 +189,38 @@ class TaurusForm(TaurusWidget):
         '''returns the number of items contained by the form'''
         return len(self.getItems())
 
-    @classmethod
-    def _getAllItemFactories(cls, force=False):
+    def selectItemFactories(self, include=('.*',), exclude=()):
         """
-        Loads TaurusValue factories registered via the
-        'taurus.qt.taurusform.item_factories' entry point group.
+        Selects and prioritizes the factories to be used to create the form's
+        items.
 
         TaurusValue factories are functions that receive a TaurusModel as
         their only argument and return either a TaurusValue-like instance
         or None in case the factory does not handle the given model.
 
-        The result is cached at class level in order to avoid re-loading for
-        each new form. It can be force-reloaded by passing force=True
+        The factories are selected using their entry point names as registered
+        in the "taurus.qt.taurusform.item_factories" entry point group.
+
+        The factories entry point name is up to the registrar of the entry
+        point (typically a taurus plugin) and should be documented by the
+        registrar to allow for selection and prioritization.
+
+        The selection and prioritization is done using
+        :function:`taurus.core.util.plugin.selectEntryPoints()`. See it for
+        more details.
+
+        :param include: (tuple of `str` or `re.Pattern`). Regexp patterns for
+        names to be included in the selection. Default is `(".*",)`, which
+        matches all registered names and the sort is purely alphabetical.
+        :param exclude: (tuple of `str` or `re.Pattern`). Regexp patterns for
+        names to be excluded. Default is `()`, so no entry point is exclude.
         """
-        if cls._allItemFactories is not None and not force:
-            return cls._allItemFactories
 
-        cls._allItemFactories = {}
-        for ep in pkg_resources.iter_entry_points(
-                'taurus.qt.taurusform.item_factories'
-        ):
-            key = ep.name
-            # allow (but warn about) duplicated registered names
-            i = 2
-            while key in cls._allItemFactories:
-                key = "{}({})".format(ep.name, i)
-                i += 1
-                warning("Duplicated form item factory name --> '%s'", key)
-            cls._allItemFactories[key] = ep
-
-    def selectItemFactories(self, included=('.*',), excluded=()):
-        """
-        Select which factories will be used to crete the form's items.
-        The factories are selected using the names registered in the
-        'taurus.qt.taurusform.item_factories' entry point group.
-
-        The selection is done by regex matching on the names. First the names
-        that match any of the patterns in `excluded` are discarded. Then
-        each pattern in `included` is used to select from the names.
-
-        In this way, the factories will be selected in the order dictated by
-        the `included` pattern list. If a pattern matches several names, these
-        will be sorted alphabetically.
-
-        For example, if there are the following registered factory names:
-        - names = ['foo1', 'foo2', 'baz1', 'baz2, 'bar1', 'bar2']
-        And we use `exclude=("foo2",)` and `include=("bar2", "b.*1", "f.*")` ,
-        then the selection will be: ["bar2","bar1","baz1","foo1"]
-
-        :param included: iterable of regexps patterns (str or re.Pattern)
-        :param excluded: iterable of regexps patterns (str or re.Pattern)
-        """
-        self._itemFactories = []
-        all = self._getAllItemFactories()
-
-        # filter out the factory keys matching a exclude pattern
-        remaining = all.keys()
-        for p in excluded:
-            remaining = [k for k in remaining if not re.match(p, k)]
-
-        #sort the remaining keys alphabetically
-        remaining.sort()
-
-        # fill the _itemFactories list with the selected entry points,
-        # sorting according to the order in included (and then alphabetically)
-        for p in included:
-            keys = remaining
-            remaining = []
-            for k in keys:
-                if re.match(p, k):
-                    self._itemFactories.append(all[k])
-                else:
-                    remaining.append(k)
+        self._itemFactories = selectEntryPoints(
+            group='taurus.qt.taurusform.item_factories',
+            include=include,
+            exclude=exclude
+        )
 
     def getItemFactories(self):
         """returns the list of item factories entry points currently in use"""
