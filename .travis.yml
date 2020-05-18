@@ -23,6 +23,8 @@ matrix:
     - env: TOXENV=py37-ps2
     - env: TOXENV=py37-qt5-docs
   allow_failures:
+    - env: TOXENV=py27-qt4
+    - env: TOXENV=py27-qt5
     - env: TOXENV=flake8
 
 before_install:
@@ -39,7 +41,7 @@ before_install:
   - if [[ "$TOXENV" == "flake8" ]]; then
         echo "Skipping tango initialization";
     else
-        docker-compose -f ci/tango_docker-compose.yml up -d;
+        make -C ci/docker-compose start tangotest;
         echo 'TANGO_HOST=localhost:10000' >> $HOME/.tangorc;
     fi
 

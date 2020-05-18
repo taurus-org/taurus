@@ -1,0 +1,28 @@
+#
+# Docker compose file for TANGO test device server.
+#
+# Defines:
+#   - tangotest: TANGO test device server
+#
+# Requires: 
+#   - tango.yml
+#
+version: '2'
+
+services:
+  tangotest:
+    image: ${DOCKER_REGISTRY_HOST}/${DOCKER_REGISTRY_USER}/tango-java:latest
+    container_name: ${CONTAINER_NAME_PREFIX}tangotest
+    network_mode: ${NETWORK_MODE}
+    environment:
+      - TANGO_HOST=${TANGO_HOST}
+    entrypoint:
+      - /usr/local/bin/wait-for-it.sh
+      - ${TANGO_HOST}
+      - --timeout=30
+      - --strict
+      - --
+      - /usr/local/bin/TangoTest
+      - test
+    restart: on-failure
+

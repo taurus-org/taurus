@@ -36,12 +36,8 @@ from taurus.core.tango.test import TangoSchemeTestLauncher
 DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
 
 
-@insertTest(helper_name="texts",
-            model="tango:" + DEV_NAME + "/double_scalar",
-            expected=("double_scalar", "1.23", "0.00", "mm")
-            )
-class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
-                      unittest.TestCase):
+class TaurusValueTestTango(TangoSchemeTestLauncher, BaseWidgetTestCase,
+                           unittest.TestCase):
     """
     Specific tests for TaurusValue
     """
@@ -62,23 +58,6 @@ class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
         self.assertMaxDeprecations(1)
 
     @pytest.mark.flaky
-    def texts(self, model=None, expected=None, fgRole=None, maxdepr=0):
-        """Checks the texts for scalar attributes"""
-        self._widget.setModel(model)
-        if fgRole is not None:
-            self._widget.setFgRole(fgRole)
-        self.processEvents(repetitions=10, sleep=.1)
-        got = (str(self._widget.labelWidget().text()),
-               str(self._widget.readWidget().text()),
-               str(self._widget.writeWidget().displayText()),
-               str(self._widget.unitsWidget().text()),
-               )
-        msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
-               (model, expected, got))
-        self.assertEqual(got, expected, msg)
-        self.assertMaxDeprecations(maxdepr)
-
-    @pytest.mark.flaky
     def test_labelCaseSensitivity(self):
         """Verify that case is respected of in the label widget"""
         w = self._widget
@@ -96,6 +75,36 @@ class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
         self._widget.setModel(None)
         TangoSchemeTestLauncher.tearDown(self)
         unittest.TestCase.tearDown(self)
+
+
+@insertTest(
+    helper_name="texts",
+    model='eval:@a=taurus.core.evaluation.test.res.mymod.MyClass()/a.foo',
+    expected=("a.foo", "123", "123", "m")
+)
+class TaurusValueTest(BaseWidgetTestCase, unittest.TestCase):
+    """
+    Specific tests for TaurusValue
+    """
+    _klass = TaurusValue
+
+    def texts(self, model=None, expected=None, fgRole=None, maxdepr=0):
+        """Checks the texts for scalar attributes"""
+        self._widget.setModel(model)
+        if fgRole is not None:
+            self._widget.setFgRole(fgRole)
+        # wait until there is some text in the read widget
+        self.processEvents(repetitions=20, sleep=.05)
+        got = (str(self._widget.labelWidget().text()),
+               str(self._widget.readWidget().text()),
+               str(self._widget.writeWidget().displayText()),
+               str(self._widget.unitsWidget().text()),
+               )
+        msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
+               (model, expected, got))
+        self.assertEqual(got, expected, msg)
+        self.assertMaxDeprecations(maxdepr)
+
 
 if __name__ == "__main__":
     pass
