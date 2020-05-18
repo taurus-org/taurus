@@ -517,9 +517,22 @@ class TangoAttribute(TaurusAttribute):
 
     def read(self, cache=True):
         """ Returns the current value of the attribute.
-            if cache is set to True (default) or the attribute has events
-            active then it will return the local cached value. Otherwise it will
-            read the attribute value from the tango device."""
+
+        If `cache` is not False, or expired, or the attribute has events
+        active, then it will return the local cached value. Otherwise it will
+        read the attribute value from the tango device.
+
+        The cached value expires if it is older than the value (im ms) passed 
+        as the `cache` argument or the *polling period* if `cache==True` 
+        (default). If the cache is expired a reading will be done just as if 
+        cache was False.
+
+        :param cache: use cache value or make readout, eventually pass a
+             cache's expiration period in milliseconds
+        :type cache: :obj:`bool` or :obj:`float`
+        :return: attribute value
+        :rtype: :obj:`~taurus.core.tango.TangoAttributeValue`
+        """
         curr_time = time.time()
         if cache:
             try:
@@ -527,7 +540,11 @@ class TangoAttribute(TaurusAttribute):
             except AttributeError:
                 attr_timestamp = 0
             dt = (curr_time - attr_timestamp) * 1000
-            if dt < self.getPollingPeriod():
+            if cache is True:  # cache *is* a bool True
+                expiration_period = self.getPollingPeriod()
+            else:  # cache is a non-zero numeric value
+                expiration_period = cache
+            if dt < expiration_period:
                 if self.__attr_value is not None:
                     return self.__attr_value
                 elif self.__attr_err is not None:
