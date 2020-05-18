@@ -27,8 +27,11 @@
 Utilities for plugin loading and selection
 """
 
+__all__ = ["selectEntryPoints"]
+
 import re
 import pkg_resources
+
 
 def selectEntryPoints(group=None, include=('.*',), exclude=()):
     """
@@ -52,12 +55,12 @@ def selectEntryPoints(group=None, include=('.*',), exclude=()):
     then the selection will be: ["bar2","bar1","baz1","foo1"]
 
     :param group: (`str`) entry point group name from which the entry points
-    are obtained.
+        are obtained.
     :param include: (`tuple` of `str` or `re.Pattern`). Regexp patterns for
-    names to be included in the selection. Default is `(".*",)`, which matches
-    all registered names and the sort is purely alphabetical.
+        names to be included in the selection. Default is `(".*",)`, which
+        matches all registered names and the sort is purely alphabetical.
     :param exclude: (`tuple` of `str` or `re.Pattern`). Regexp patterns for
-    names to be excluded. Default is `()`, so no entry point is excluded.
+        names to be excluded. Default is `()`, so no entry point is excluded.
     """
     ret = []
 
