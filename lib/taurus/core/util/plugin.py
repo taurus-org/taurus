@@ -51,12 +51,12 @@ def selectEntryPoints(group=None, include=('.*',), exclude=()):
     And we use `exclude=("foo2",)` and `include=("bar2", "b.*1", "f.*")` ,
     then the selection will be: ["bar2","bar1","baz1","foo1"]
 
-    :param: group: (`str`) entry point group name from which the entry points
+    :param group: (`str`) entry point group name from which the entry points
     are obtained.
-    :param include: (tuple of `str` or `re.Pattern`). Regexp patterns for
+    :param include: (`tuple` of `str` or `re.Pattern`). Regexp patterns for
     names to be included in the selection. Default is `(".*",)`, which matches
     all registered names and the sort is purely alphabetical.
-    :param exclude: (tuple of `str` or `re.Pattern`). Regexp patterns for
+    :param exclude: (`tuple` of `str` or `re.Pattern`). Regexp patterns for
     names to be excluded. Default is `()`, so no entry point is excluded.
     """
     ret = []
