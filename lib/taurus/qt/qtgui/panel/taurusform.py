@@ -126,7 +126,7 @@ class TaurusForm(TaurusWidget):
         self.setFormWidget(formWidget)
 
         self._itemFactories = []
-        self.selectItemFactories()
+        self.setItemFactories()
 
         self.setLayout(Qt.QVBoxLayout())
 
@@ -189,7 +189,7 @@ class TaurusForm(TaurusWidget):
         '''returns the number of items contained by the form'''
         return len(self.getItems())
 
-    def selectItemFactories(self, include=('.*',), exclude=()):
+    def setItemFactories(self, include=('.*',), exclude=()):
         """
         Selects and prioritizes the factories to be used to create the form's
         items.
@@ -211,13 +211,16 @@ class TaurusForm(TaurusWidget):
 
         The selected list is updated in the form, and returned.
 
-        :param include: (tuple of `str` or `re.Pattern`). Regexp patterns for
-                        names to be included in the selection. Default is
-                        `(".*",)`, which matches all registered names and the
-                        sort is purely alphabetical.
+        :param include: (tuple). The members in the tuple can be: Regexp
+                        patterns (in string or compiled form) matching the
+                        names to be included in the selection. They can also be
+                        item factory functions (which then are wrapped in an
+                        EntryPoint-like object and included in the selection).
+                        The Default is `(".*",)`, which matches all registered
+                        names and the sort is purely alphabetical.
         :param exclude: (tuple of `str` or `re.Pattern`). Regexp patterns for
-                        names to be excluded. Default is `()`, so no entry
-                        point is exclude.
+                        registered names to be excluded. Default is `()`, so no
+                        entry point is excluded.
         :return: (list) selected item factories entry points
         """
 

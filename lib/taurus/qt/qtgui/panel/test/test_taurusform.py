@@ -120,17 +120,17 @@ def test_form_itemFactory_selection():
     assert ep1 in default_factories
 
     # Check that we can deselect all factories
-    no_factories = w.selectItemFactories(include=[])
+    no_factories = w.setItemFactories(include=[])
     assert no_factories == []
 
     # Check that we can exclude everything except test_Form_ItemFactory
-    select1 = w.selectItemFactories(
+    select1 = w.setItemFactories(
         exclude=[r"(?!.*test_Form_ItemFactorySel).*"]
     )
     assert select1 == [ep1]
 
     # Check that we can include only test_Form_ItemFactory
-    select2 = w.selectItemFactories(include=["test_Form_ItemFactorySel"])
+    select2 = w.setItemFactories(include=["test_Form_ItemFactorySel"])
     assert select2 == [ep1]
 
     # Check that the selected test_Form_ItemFactory is an entry point
@@ -139,3 +139,18 @@ def test_form_itemFactory_selection():
 
     # Check that the selected entry point loads _DummyItemFactory
     assert select2[0].load() is _DummyItemFactory
+
+    # Check that we can include a factory instance
+    select3 = w.setItemFactories(include=[_DummyItemFactory])
+
+    # Check that the selected test_Form_ItemFactory is an entry point-alike
+    from taurus.core.util.plugin import EntryPointAlike
+    assert type(select3[0]) == EntryPointAlike
+
+    # Check that the selected entry point loads _DummyItemFactory
+    assert select3[0].load() is _DummyItemFactory
+
+    # Check that the selected entry point has the given name
+    assert select3[0].name == repr(_DummyItemFactory)
+
+
