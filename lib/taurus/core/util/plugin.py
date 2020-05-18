@@ -27,10 +27,29 @@
 Utilities for plugin loading and selection
 """
 
-__all__ = ["selectEntryPoints"]
+__all__ = ["selectEntryPoints", "EntryPointAlike"]
 
 import re
 import pkg_resources
+
+
+class EntryPointAlike(object):
+    """
+    A dummy EntryPoint substitute to be used with :class:`selectEntryPoints`
+    for wrapping arbitrary objects and imitate the `name` and `load()` API of
+    a :class:`pkg_resources.EntryPoint` instance.
+
+    Pass an object and optionally a name to the constructor to get the wrapped
+    `EntryPointAlike` instance. The `repr` of the object is used as the name
+    if `name` arg is not provided.
+    """
+    def __init__(self, obj, name=None):
+        self._obj = obj
+        if name is None:
+            name = repr(obj)
+        self.name = name
+    def load(self):
+        return self._obj
 
 
 def selectEntryPoints(group=None, include=('.*',), exclude=()):
@@ -54,15 +73,31 @@ def selectEntryPoints(group=None, include=('.*',), exclude=()):
     And we use `exclude=("foo2",)` and `include=("bar2", "b.*1", "f.*")` ,
     then the selection will be: ["bar2","bar1","baz1","foo1"]
 
+    Note: apart from regex patterns (strings or compiled) the `include` list
+    can also contain :class:`pkg_resources`EntryPoint`-like instances
+    (more specifically, an object having `.name` and `.load()` members), in
+    which case they are added directly to the selected list. If a member is
+    something other than a pattern or an EntryPoint-like object, it will be
+    wrapped in an :class:`EntryPointAlike` instance and also included in the
+    selection.
+
     :param group: (str) entry point group name from which the entry points
                   are obtained.
-    :param include: (`tuple` of `str` or `re.Pattern`). Regexp patterns for
-                    names to be included in the selection. Default is
-                    `(".*",)`, which matches all registered names and the sort
-                    is purely alphabetical.
+    :param include: (`tuple`). The members of the tuple can either be
+                    Regexp patterns (both in the form of strings or of regexp
+                    compiled patterns), which will be matched against
+                    registered names in group; or EntryPoint-like objects which
+                    will be included as they are; or an arbitrary object which
+                    will be wrapped as an EntryPoint-like object before being
+                    included. Default is `(".*",)`, which matches all
+                    registered names in group and the sort is purely
+                    alphabetical.
     :param exclude: (`tuple` of `str` or `re.Pattern`). Regexp patterns for
                     names to be excluded. Default is `()`, so no entry point
                     is excluded.
+
+    :return: (list of :class:`pkg_resources.EntryPoint`) the selected entry
+             points.
     """
     ret = []
 
@@ -80,6 +115,17 @@ def selectEntryPoints(group=None, include=('.*',), exclude=()):
     # patterns in `include` (and alphabetically for a pattern that produces
     # multiple matches)
     for p in include:
+        try:
+            # check if it is a pattern string or pattern object
+            p = re.compile(p)
+        except TypeError:
+            # if p is not an entry point -like object, create one
+            if not hasattr(p, 'name') or not hasattr(p, 'load'):
+                p = EntryPointAlike(p)
+            # and add it directly
+            ret.append(p)
+            continue
+        # if it is a pattern, match it against remaining entry points
         tmp = remaining
         remaining = []
         for e in tmp:

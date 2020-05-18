@@ -21,7 +21,7 @@
 ##
 #############################################################################
 
-from taurus.core.util.plugin import selectEntryPoints
+from taurus.core.util.plugin import selectEntryPoints, EntryPointAlike
 
 import pkg_resources
 import random
@@ -71,7 +71,7 @@ def mock_entry_point(lines, group=None, dist_name=None):
     return mapping
 
 
-def test_Plugin():
+def test_selectEntryPoints():
 
     # create a fake entry point mapping (with group name testgroup))
     group = _random_string(8, prefix='dummygroup_')
@@ -98,3 +98,12 @@ def test_Plugin():
         include=("bar2", "b.*1", "f.*")
     )
     assert [ep.name for ep in some] == ["bar2", "bar1", "baz1", "foo1"]
+
+    mixed = selectEntryPoints(
+        group,
+        exclude=("b.*",),
+        include=(123, "f.*", EntryPointAlike(321, name="boo"))
+    )
+    assert [ep.name for ep in mixed] == ["123", "foo1", "foo2", "boo"]
+    assert mixed[0].load() == 123
+    assert mixed[-1].load() == 321
