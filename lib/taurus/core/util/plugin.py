@@ -78,7 +78,7 @@ def selectEntryPoints(group=None, include=('.*',), exclude=()):
         tmp = remaining
         remaining = []
         for e in tmp:
-            if re.match(p, e.name):
+            if re.fullmatch(p, e.name):
                 ret.append(e)
             else:
                 remaining.append(e)
