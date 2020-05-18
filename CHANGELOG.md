@@ -39,7 +39,7 @@ develop branch) won't be reflected in this file.
 - Exception in DelayedSubscriber (#1030)
 - Compatibility issue in deprecated TangoAttribute's `isScalar()` and `isSpectrum()` (#1034)
 - Some issues in taurus v3 to v4 migration support (#1059)
-- Some CI test issues (#1075, #1069)
+- Some CI test issues (#1075, #1069, #1109)
 
 ## [4.6.1] - 2019-08-19
 Hotfix for auto-deployment in PyPI with Travis. No other difference from 4.6.0.
