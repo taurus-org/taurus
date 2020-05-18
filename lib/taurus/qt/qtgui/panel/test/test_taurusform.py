@@ -103,10 +103,10 @@ def test_form_itemFactory():
 
 def test_form_itemFactory_selection():
     """Checks that the TaurusForm itemFactory selection API works"""
-    lines = ["test_Form_ItemFactory={}:_DummyItemFactory".format(__name__)]
+    lines = ["test_Form_ItemFactorySel={}:_DummyItemFactory".format(__name__)]
     group = "taurus.qt.taurusform.item_factories"
     mapping = mock_entry_point(lines, group=group)
-    ep1 = mapping[group]["test_Form_ItemFactory"]
+    ep1 = mapping[group]["test_Form_ItemFactorySel"]
 
     from taurus.qt.qtgui.application import TaurusApplication
     app = TaurusApplication.instance()
@@ -124,11 +124,13 @@ def test_form_itemFactory_selection():
     assert no_factories == []
 
     # Check that we can exclude everything except test_Form_ItemFactory
-    select1 = w.selectItemFactories(exclude=[r"(?!.*test_Form_ItemFactory).*"])
+    select1 = w.selectItemFactories(
+        exclude=[r"(?!.*test_Form_ItemFactorySel).*"]
+    )
     assert select1 == [ep1]
 
     # Check that we can include only test_Form_ItemFactory
-    select2 = w.selectItemFactories(include=["test_Form_ItemFactory"])
+    select2 = w.selectItemFactories(include=["test_Form_ItemFactorySel"])
     assert select2 == [ep1]
 
     # Check that the selected test_Form_ItemFactory is an entry point
@@ -137,4 +139,3 @@ def test_form_itemFactory_selection():
 
     # Check that the selected entry point loads _DummyItemFactory
     assert select2[0].load() is _DummyItemFactory
-
