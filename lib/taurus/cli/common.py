@@ -88,7 +88,7 @@ import click
 log_level = click.option(
     '--log-level', 'log_level',
     type=click.Choice(['Critical', 'Error', 'Warning', 'Info',
-                       'Debug', 'Trace']),
+                       'Debug', 'Trace'], case_sensitive=False),
     default='Info', show_default=True,
     help='Show only logs with priority LEVEL or above',
 )
