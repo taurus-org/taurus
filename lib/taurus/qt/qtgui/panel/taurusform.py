@@ -206,16 +206,18 @@ class TaurusForm(TaurusWidget):
         registrar to allow for selection and prioritization.
 
         The selection and prioritization is done using
-        :function:`taurus.core.util.plugin.selectEntryPoints()`. See it for
+        :meth:`taurus.core.util.plugin.selectEntryPoints()`. See it for
         more details.
 
         The selected list is updated in the form, and returned.
 
         :param include: (tuple of `str` or `re.Pattern`). Regexp patterns for
-        names to be included in the selection. Default is `(".*",)`, which
-        matches all registered names and the sort is purely alphabetical.
+                        names to be included in the selection. Default is
+                        `(".*",)`, which matches all registered names and the
+                        sort is purely alphabetical.
         :param exclude: (tuple of `str` or `re.Pattern`). Regexp patterns for
-        names to be excluded. Default is `()`, so no entry point is exclude.
+                        names to be excluded. Default is `()`, so no entry
+                        point is exclude.
         :return: (list) selected item factories entry points
         """
 
