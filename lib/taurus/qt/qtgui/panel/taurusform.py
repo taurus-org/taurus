@@ -31,8 +31,6 @@ from __future__ import absolute_import
 import click
 from datetime import datetime
 from functools import partial
-import pkg_resources
-import re
 
 from future.utils import string_types, binary_type
 
@@ -40,7 +38,7 @@ from taurus import tauruscustomsettings as _ts
 from taurus.external.qt import Qt
 
 import taurus.core
-from taurus.core import TaurusDevState, DisplayLevel
+from taurus.core import DisplayLevel
 
 from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE,
                                         TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_MODEL_MIME_TYPE)
