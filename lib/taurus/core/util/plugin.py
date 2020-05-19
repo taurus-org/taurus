@@ -105,7 +105,7 @@ def selectEntryPoints(group=None, include=('.*',), exclude=()):
 
     # filter out the entry points whose name matches a exclude pattern
     for p in exclude:
-        remaining = [e for e in remaining if not re.match(p, e.name)]
+        remaining = [e for e in remaining if not re.fullmatch(p, e.name)]
 
     # sort the remaining entry points alphabetically
     remaining.sort(key=lambda e: e.name)
