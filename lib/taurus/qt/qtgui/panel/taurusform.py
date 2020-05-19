@@ -226,7 +226,7 @@ class TaurusForm(TaurusWidget):
         if include is None:
             include = patterns.get("include", ('.*',))
         if exclude is None:
-            include = patterns.get("exclude", ())
+            exclude = patterns.get("exclude", ())
         self._itemFactories = selectEntryPoints(
             group='taurus.qt.taurusform.item_factories',
             include=include,
