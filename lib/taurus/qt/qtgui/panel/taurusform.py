@@ -1152,13 +1152,50 @@ def test4():
 @click.command('form')
 @taurus.cli.common.window_name("TaurusForm")
 @taurus.cli.common.config_file
+@click.option(
+    '--add-fact',
+    multiple=True,
+    metavar="INC",
+    default=(".*",),
+    type=click.STRING,
+    help=("Enable item factories matching INC pattern"
+          + " (can be passed multiple times)")
+)
+@click.option(
+    '--exc-fact',
+    multiple=True,
+    metavar="EXC",
+    default="",
+    type=click.STRING,
+    help=("Disable item factories matching EXC pattern"
+          + " (can be passed multiple times)")
+)
+@click.option(
+    '--ls-fact',
+    is_flag=True,
+    help="List the available item factories"
+)
 @taurus.cli.common.models
-def form_cmd(window_name, config_file, models):
+def form_cmd(window_name, config_file, add_fact, exc_fact, ls_fact, models):
     """Shows a Taurus form populated with the given model names"""
     from taurus.qt.qtgui.application import TaurusApplication
     import sys
     app = TaurusApplication(cmd_line_parser=None)
     dialog = TaurusForm()
+
+    dialog.setItemFactories(include=add_fact, exclude=exc_fact)
+
+    if ls_fact:
+        inc, exc = dialog.getItemFactories(return_disabled=True)
+        msg = "\nItem Factories in {}:\n".format(window_name)
+        msg += "\n".join(["  [*] " + e.name for e in inc] +
+                         ["  [ ] " + e.name for e in exc])
+        msg += "\nPatterns used for item factory selection:\n"
+        msg += "  A: {}\n".format(add_fact)
+        msg += "  E: {}\n".format(exc_fact)
+        print(msg)
+        click.get_current_context().exit(0)
+
     dialog.setModifiableByUser(True)
     dialog.setModelInConfig(True)
 
