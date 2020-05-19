@@ -30,6 +30,11 @@ The idea is that the final user may edit the values here to customize certain
 aspects of Taurus.
 """
 
+#: Default include and exclude patterns for TaurusForm item factories
+#: See `TaurusForm.setItemFactories` docs. By default, all available
+#: factories are enabled (and tried alphabetically)
+T_FORM_ITEM_FACTORIES = {"include": (".*",), "exclude": ()}
+
 #: Compact mode for widgets
 #: True sets the preferred mode of TaurusForms to use "compact" widgets
 T_FORM_COMPACT = False

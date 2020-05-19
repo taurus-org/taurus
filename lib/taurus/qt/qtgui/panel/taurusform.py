@@ -36,6 +36,7 @@ import re
 
 from future.utils import string_types, binary_type
 
+from taurus import tauruscustomsettings as _ts
 from taurus.external.qt import Qt
 
 import taurus.core
@@ -189,7 +190,7 @@ class TaurusForm(TaurusWidget):
         '''returns the number of items contained by the form'''
         return len(self.getItems())
 
-    def setItemFactories(self, include=('.*',), exclude=()):
+    def setItemFactories(self, include=None, exclude=None):
         """
         Selects and prioritizes the factories to be used to create the form's
         items.
@@ -211,19 +212,23 @@ class TaurusForm(TaurusWidget):
 
         The selected list is updated in the form, and returned.
 
+        The default values for the include and exclude arguments are defined
+        in `tauruscustomsettings.T_FORM_ITEM_FACTORIES`
+
         :param include: (tuple). The members in the tuple can be: Regexp
                         patterns (in string or compiled form) matching the
                         names to be included in the selection. They can also be
                         item factory functions (which then are wrapped in an
                         EntryPoint-like object and included in the selection).
-                        The Default is `(".*",)`, which matches all registered
-                        names and the sort is purely alphabetical.
         :param exclude: (tuple of `str` or `re.Pattern`). Regexp patterns for
-                        registered names to be excluded. Default is `()`, so no
-                        entry point is excluded.
+                        registered names to be excluded.
         :return: (list) selected item factories entry points
         """
-
+        patterns = getattr(_ts, "T_FORM_ITEM_FACTORIES", {})
+        if include is None:
+            include = patterns.get("include", ('.*',))
+        if exclude is None:
+            include = patterns.get("exclude", ())
         self._itemFactories = selectEntryPoints(
             group='taurus.qt.taurusform.item_factories',
             include=include,
@@ -1153,10 +1158,11 @@ def test4():
 @taurus.cli.common.window_name("TaurusForm")
 @taurus.cli.common.config_file
 @click.option(
-    '--add-fact',
+    '--inc-fact',
     multiple=True,
     metavar="INC",
-    default=(".*",),
+    default=getattr(_ts, 'T_FORM_ITEM_FACTORIES', {}).get('include', ('.*',)),
+    show_default=True,
     type=click.STRING,
     help=("Enable item factories matching INC pattern"
           + " (can be passed multiple times)")
@@ -1165,7 +1171,8 @@ def test4():
     '--exc-fact',
     multiple=True,
     metavar="EXC",
-    default="",
+    default=getattr(_ts, 'T_FORM_ITEM_FACTORIES', {}).get('exclude', ()),
+    show_default=True,
     type=click.STRING,
     help=("Disable item factories matching EXC pattern"
           + " (can be passed multiple times)")
@@ -1176,14 +1183,14 @@ def test4():
     help="List the available item factories"
 )
 @taurus.cli.common.models
-def form_cmd(window_name, config_file, add_fact, exc_fact, ls_fact, models):
+def form_cmd(window_name, config_file, inc_fact, exc_fact, ls_fact, models):
     """Shows a Taurus form populated with the given model names"""
     from taurus.qt.qtgui.application import TaurusApplication
     import sys
     app = TaurusApplication(cmd_line_parser=None)
     dialog = TaurusForm()
 
-    dialog.setItemFactories(include=add_fact, exclude=exc_fact)
+    dialog.setItemFactories(include=inc_fact, exclude=exc_fact)
 
     if ls_fact:
         inc, exc = dialog.getItemFactories(return_disabled=True)
@@ -1191,8 +1198,8 @@ def form_cmd(window_name, config_file, add_fact, exc_fact, ls_fact, models):
         msg += "\n".join(["  [*] " + e.name for e in inc] +
                          ["  [ ] " + e.name for e in exc])
         msg += "\nPatterns used for item factory selection:\n"
-        msg += "  A: {}\n".format(add_fact)
-        msg += "  E: {}\n".format(exc_fact)
+        msg += "  INC: {}\n".format(inc_fact)
+        msg += "  EXC: {}\n".format(exc_fact)
         print(msg)
         click.get_current_context().exit(0)
 
