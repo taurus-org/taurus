@@ -193,7 +193,7 @@ class TaurusForm(TaurusWidget):
         Selects and prioritizes the factories to be used to create the form's
         items.
 
-        TaurusValue factories are functions that receive a TaurusModel as
+        TaurusForm item factories are functions that receive a TaurusModel as
         their only argument and return either a TaurusValue-like instance
         or None in case the factory does not handle the given model.
 
@@ -259,7 +259,7 @@ class TaurusForm(TaurusWidget):
             modelNames = modelNames.split()
         return modelNames
 
-    @deprecation_decorator(alt="TaurusValue factories", rel="4.6.5")
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def setCustomWidgetMap(self, cwmap):
         '''Sets a map map for custom widgets.
 
@@ -270,7 +270,7 @@ class TaurusForm(TaurusWidget):
         # TODO: tango-centric
         self._customWidgetMap = cwmap
 
-    @deprecation_decorator(alt="TaurusValue factories", rel="4.6.5")
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def getCustomWidgetMap(self):
         '''Returns the map used to create custom widgets.
 
@@ -384,7 +384,7 @@ class TaurusForm(TaurusWidget):
         self.destroyChildren()
         self._model = []
 
-    @deprecation_decorator(alt="TaurusValue factories", rel="4.6.5")
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def getFormWidget(self, model=None):
         '''Returns a tuple that can be used for creating a widget for a given model.
 

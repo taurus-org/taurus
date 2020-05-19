@@ -54,14 +54,13 @@ Run the following command for more details::
     taurus form --help
 
 The model list is optional and is a space-separated list of models for
-TaurusForm. Valid models are: attribute names, device names or alias. See
-:class:`TaurusForm` API for more information about valid models.
+TaurusForm.
 
-The widgets used for different types of attributes and devices
----------------------------------------------------------------
+The widgets used for different types of models
+----------------------------------------------
 
 By default, TaurusForm tries to use the most appropriate Taurus widget for
-representing its attributes and/or widgets.
+representing its models.
 
 .. figure:: /_static/forms03.png
   :align: center
@@ -73,22 +72,18 @@ representing its attributes and/or widgets.
   sys/tg_test/1/float_image`
 
 
-For the attributes, TaurusForm checks the type of attribute (whether it is a
-scalar or an array, whether it is a number or a string or a boolean, whether it
-is writable or read-only, etc.). For certain attributes, more than one widget
-may be adequate, and the form allows the user to switch between them (See the
-`Changing the contents of a form`_ section).
-
-For Tango devices, the Tango Class of the device is searched in the 
-`T_FORM_CUSTOM_WIDGET_MAP` map defined in
-:ref:`tauruscustomsettings` and the given widget is used if there is a
-match. Otherwise, the default device representation is used, which shows a
-button that launches an :class:`AttributeForm` showing *all* the attributes for
-that device.
-
-As an example, Sardana_ makes heavy use of `T_FORM_CUSTOM_WIDGET_MAP` in order
-to display specific widgets for its motor and channel devices.
-
+TaurusForm uses "item factories" to obtain the widget with which each model
+is represented. These item factories can be provided by taurus itself or by
+external plugins (e.g. sardana provides a factory to display its pool devices).
+The available factories can be listed, enabled and excluded using CLI arguments
+(see `taurus form --help`). If a given model is not handled by any enabled
+item factory, a default generic widget will be used which introspects the model
+(e.g., if it is an attribute, it checks whether it is a scalar or an array,
+whether it is a number or a string or a boolean, whether it is writable or
+read-only, etc.) and uses adequate subwidgets to display it. In certain cases
+this generic widget may be further customized by the user (e.g. by swithing
+among a set of possible subwidgets). See the `Changing the contents of a form`_
+section).
 
 Changing the contents of a form
 -------------------------------
