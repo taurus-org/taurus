@@ -250,6 +250,25 @@ class TaurusForm(TaurusWidget):
         else:
             return enabled
 
+    def _customWidgetFactory(self, model):
+        """
+        Taurus Value Factory to provide backwards-compatibility for code
+        relaying on deprecated customWidGetMap API
+
+        :param model: taurus model object
+
+        :return: custom TaurusValue class
+        """
+        try:
+            key = model.getDeviceProxy().info().dev_class
+            name, args, kwargs = self._customWidgetMap[key]
+            pkgname, klassname = name.rsplit('.', 1)
+            pkg = __import__(pkgname, fromlist=[klassname])
+            klass = getattr(pkg, klassname)
+        except Exception:
+            return None
+        return klass(*args, **kwargs)
+
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
         if isinstance(modelNames, binary_type):
@@ -582,11 +601,12 @@ class TaurusForm(TaurusWidget):
                         model,
                         ep.name
                     )
-                    break  # todo: consider exploring all to detect conflicts
-            # bck-compat with old custom widget map
-            if self._customWidgetMap:
-                klass, args, kwargs = self.getFormWidget(model=model)
-                widget = klass(frame, *args, **kwargs)
+                    break
+
+            # backwards-compat with deprecated custom widget map API
+            if widget is None and self._customWidgetMap:
+                widget = self._customWidgetFactory(model_obj)
+
             # no factory handles the model and no custom widgets. Use default
             if widget is None:
                 widget = self._defaultFormWidget()
@@ -1112,43 +1132,6 @@ def test3():
     dialog.show()
 #    dialog.getSplitter().setSizes([10,220])
 
-    sys.exit(app.exec_())
-
-
-def test4():
-    '''tests old customwidgetmap in taurusforms'''
-    import sys
-    from taurus.qt.qtgui.display import TaurusLabel
-    from taurus.qt.qtgui.application import TaurusApplication
-
-    app = TaurusApplication(sys.argv, cmd_line_parser=None)
-
-    from taurus.qt.qtgui.panel import TaurusValue
-
-    class DummyCW(TaurusValue):
-
-        def setModel(self, model):
-            print("!!!!! IN DUMMYCW.SETMODEL", model)
-            TaurusValue.setModel(self, model + '/double_scalar')
-
-    models = ['sys/database/2', 'sys/tg_test/1', 'sys/tg_test/1/short_spectrum',
-              'sys/tg_test/1/state', 'sys/tg_test/1/short_scalar_ro']
-    models.append('tango://controls02:10000/expchan/bl97_simucotictrl_1/1')
-    map = {
-        # taurusvalue-like classes given as strings
-        'PseudoCounter': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-        'CTExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-        'ZeroDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-        'OneDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-        'TwoDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-        # a TaurusValue-like class given as a class (old way)
-        'TangoTest': DummyCW,
-        'DataBase': TaurusLabel}  # a non-TaurusValue-like class given as a class (old way)
-
-    dialog = TaurusForm()
-    dialog.setCustomWidgetMap(map)
-    dialog.setModel(models)
-    dialog.show()
     sys.exit(app.exec_())
 
 

@@ -158,3 +158,35 @@ def test_form_itemFactory_selection():
     assert select3[0].name == repr(_DummyItemFactory)
 
 
+def test_form_cwidget_bck_compat():
+    """check that the cusomWidgetMap bck-compat works"""
+
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication.instance()
+    if app is None:
+        _ = TaurusApplication([], cmd_line_parser=None)
+
+    w = TaurusForm()
+
+    # check that custom widget map is empty by default
+    assert w.getCustomWidgetMap() == {}
+
+    w.setItemFactories(include=())
+
+    # check that an explicit call to setCustomWidgetMap works
+    dummy = ("taurus.qt.qtgui.panel.test.test_taurusform._DummyTV", (), {})
+    w.setCustomWidgetMap({"DataBase": dummy})
+    w.setModel(["tango:sys/database/2", "tango:sys/tg_test/1"])
+    assert type(w[0]) == _DummyTV
+    assert type(w[1]) == TaurusValue
+    assert w.getCustomWidgetMap() == {"DataBase": dummy}
+
+    # check that the custom widget map can be restored
+    w.setCustomWidgetMap({})
+    w.setModel(["tango:sys/database/2", "tango:sys/tg_test/1"])
+    assert type(w[0]) == TaurusValue
+    assert type(w[1]) == TaurusValue
+    assert w.getCustomWidgetMap() == {}
+
+
+
