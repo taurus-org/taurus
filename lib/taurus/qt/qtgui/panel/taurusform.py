@@ -231,9 +231,21 @@ class TaurusForm(TaurusWidget):
         )
         return self._itemFactories
 
-    def getItemFactories(self):
-        """returns the list of item factories entry points currently in use"""
-        return self._itemFactories
+    def getItemFactories(self, return_disabled=False):
+        """
+        returns the list of item factories entry points currently in use
+
+        :param return_disabled: If False (default), it returns only a list of
+                                the enabled factories. If True, it returns a
+                                tuple containing two lists: the enabled and
+                                the available but disabled factories.
+        """
+        enabled = self._itemFactories
+        if return_disabled:
+            all_ = selectEntryPoints('taurus.qt.taurusform.item_factories')
+            return enabled, [f for f in all_ if f not in enabled]
+        else:
+            return enabled
 
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''

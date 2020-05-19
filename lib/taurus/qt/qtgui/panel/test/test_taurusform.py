@@ -119,6 +119,10 @@ def test_form_itemFactory_selection():
     default_factories = w.getItemFactories()
     assert ep1 in default_factories
 
+    # no factories should be excluded by default
+    inc, exc = w.getItemFactories(return_disabled=True)
+    assert exc == []
+
     # Check that we can deselect all factories
     no_factories = w.setItemFactories(include=[])
     assert no_factories == []
