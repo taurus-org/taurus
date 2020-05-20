@@ -960,7 +960,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self._customWidget = self._newSubwidget(self._customWidget, klass)
 
         # take care of the layout
-        self.addCustomWidgetToLayout()
+        self.__addCustomWidgetToLayout()
 
         if self._customWidget is not None:
             # set the model for the subwidget
