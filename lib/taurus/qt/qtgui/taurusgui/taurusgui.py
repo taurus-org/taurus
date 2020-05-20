@@ -51,6 +51,7 @@ from taurus.qt.qtgui.taurusgui.utils import (ExternalApp, PanelDescription,
                                              AppletDescription)
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.taurusgui.utils import ExternalAppAction
+from taurus.core.util.log import deprecation_decorator
 
 
 __all__ = ["DockWidgetPanel", "TaurusGui"]
@@ -168,9 +169,14 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
                 except Exception as e:
                     raise RuntimeError(
                         'Cannot create widget from classname "%s". Reason: %s' % (classname, repr(e)))
-            # set customwidgetmap if necessary
-            if hasattr(w, 'setCustomWidgetMap'):
-                w.setCustomWidgetMap(self._mainwindow.getCustomWidgetMap())
+
+            # ----------------------------------------------------------------
+            # Backwards-compat. Remove when removing  CW map support
+            gui_cwmap = self._mainwindow._customWidgetMap
+            if gui_cwmap and hasattr(w, 'setCustomWidgetMap'):
+                w.setCustomWidgetMap(gui_cwmap)
+            # ----------------------------------------------------------------
+
             self.setWidget(w)
             wname = "%s-%s" % (str(self.objectName()), str(classname))
             w.setObjectName(wname)
@@ -314,9 +320,10 @@ class TaurusGui(TaurusMainWindow):
         self.registerConfigProperty(self.getAllInstrumentAssociations,
                                     self.setAllInstrumentAssociations, 'instrumentAssociation')
 
+        # backwards-compat
         from taurus import tauruscustomsettings
-        self.setCustomWidgetMap(
-            getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {}))
+        cwmap = getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {})
+        self._customWidgetMap = cwmap  # deprecated
 
         # Create a global SharedDataManager
         Qt.qApp.SDM = SharedDataManager(self)
@@ -564,6 +571,7 @@ class TaurusGui(TaurusMainWindow):
         self.deleteExternalAppLauncher(action)
         self.debug('External application "%s" removed' % name)
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def setCustomWidgetMap(self, map):
         '''
         Sets the widget map that is used application-wide. This widget map will
@@ -577,6 +585,7 @@ class TaurusGui(TaurusMainWindow):
         '''
         self._customWidgetMap = map
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def getCustomWidgetMap(self):
         '''
         Returns the default map used to create custom widgets by the TaurusForms
@@ -836,8 +845,11 @@ class TaurusGui(TaurusMainWindow):
             if not ok:
                 return
         w = paneldesc.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-        if hasattr(w, 'setCustomWidgetMap'):
-            w.setCustomWidgetMap(self.getCustomWidgetMap())
+        # ----------------------------------------------------------------
+        # Backwards-compat. Remove when removing  CW map support
+        if self._customWidgetMap and hasattr(w, 'setCustomWidgetMap'):
+            w.setCustomWidgetMap(self._customWidgetMap)
+        # ----------------------------------------------------------------
         if paneldesc.model is not None:
             w.setModel(paneldesc.model)
 
@@ -1311,9 +1323,11 @@ class TaurusGui(TaurusMainWindow):
                             )
                             if result == Qt.QMessageBox.Abort:
                                 sys.exit()
-
-                if hasattr(w, "setCustomWidgetMap"):
-                    w.setCustomWidgetMap(self.getCustomWidgetMap())
+                # -------------------------------------------------------------
+                # Backwards-compat. Remove when removing  CW map support
+                if self._customWidgetMap and hasattr(w, 'setCustomWidgetMap'):
+                    w.setCustomWidgetMap(self._customWidgetMap)
+                # -------------------------------------------------------------
                 if p.model is not None:
                     w.setModel(p.model)
                 if p.instrumentkey is None:
