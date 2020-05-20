@@ -108,7 +108,7 @@ class TaurusForm(TaurusWidget):
     coding examples <examples>` '''
 
     def __init__(self, parent=None,
-                 formWidget=None,
+                 formWidget=None,  # deprecated
                  buttons=None,
                  withButtons=True,
                  designMode=False):
@@ -121,8 +121,14 @@ class TaurusForm(TaurusWidget):
                 Qt.QDialogButtonBox.Reset
         self._customWidgetMap = {}  # deprecated
         self._model = []
-        # self._children = []
-        self.setFormWidget(formWidget)
+
+        if formWidget is None:
+            from taurus.qt.qtgui.panel import TaurusValue
+            formWidget = TaurusValue
+        else:
+            self.deprecated(
+                dep="formWidget argument", alt="item factories", rel="4.6.5")
+        self._defaultFormWidget = formWidget
 
         self._itemFactories = []
         self.setItemFactories()
@@ -459,16 +465,14 @@ class TaurusForm(TaurusWidget):
                 klass = self._defaultFormWidget
             return klass, args, kwargs
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def setFormWidget(self, formWidget):
         if formWidget is None:
             from taurus.qt.qtgui.panel import TaurusValue
-            self._defaultFormWidget = TaurusValue
-        elif issubclass(formWidget, Qt.QWidget):
-            self._defaultFormWidget = formWidget
-        else:
-            raise TypeError(
-                'formWidget must be one of None, QWidget. %s passed' % repr(type(formWidget)))
+            formWidget = TaurusValue
+        self._defaultFormWidget = formWidget
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def resetFormWidget(self):
         self.setFormWidget(self, None)
 
