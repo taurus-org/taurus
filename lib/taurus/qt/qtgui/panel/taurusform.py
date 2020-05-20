@@ -204,7 +204,7 @@ class TaurusForm(TaurusWidget):
         or None in case the factory does not handle the given model.
 
         The factories are selected using their entry point names as registered
-        in the "taurus.qt.taurusform.item_factories" entry point group.
+        in the "taurus.form.item_factories" entry point group.
 
         The factories entry point name is up to the registrar of the entry
         point (typically a taurus plugin) and should be documented by the
@@ -234,7 +234,7 @@ class TaurusForm(TaurusWidget):
         if exclude is None:
             exclude = patterns.get("exclude", ())
         self._itemFactories = selectEntryPoints(
-            group='taurus.qt.taurusform.item_factories',
+            group='taurus.form.item_factories',
             include=include,
             exclude=exclude
         )
@@ -251,7 +251,7 @@ class TaurusForm(TaurusWidget):
         """
         enabled = self._itemFactories
         if return_disabled:
-            all_ = selectEntryPoints('taurus.qt.taurusform.item_factories')
+            all_ = selectEntryPoints('taurus.form.item_factories')
             return enabled, [f for f in all_ if f not in enabled]
         else:
             return enabled

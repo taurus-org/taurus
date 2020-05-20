@@ -98,7 +98,7 @@ class _BadEntryPoint(object):
 def test_form_itemFactory():
     """Checks that the TaurusForm itemFactory API works"""
     lines = ["test_Form_ItemFactory={}:_DummyItemFactory".format(__name__)]
-    group = "taurus.qt.taurusform.item_factories"
+    group = "taurus.form.item_factories"
     mock_entry_point(lines, group=group)
 
     from taurus.qt.qtgui.application import TaurusApplication
@@ -122,7 +122,7 @@ def test_form_itemFactory():
 def test_form_itemFactory_selection():
     """Checks that the TaurusForm itemFactory selection API works"""
     lines = ["test_Form_ItemFactorySel={}:_DummyItemFactory".format(__name__)]
-    group = "taurus.qt.taurusform.item_factories"
+    group = "taurus.form.item_factories"
     mapping = mock_entry_point(lines, group=group)
     ep1 = mapping[group]["test_Form_ItemFactorySel"]
 

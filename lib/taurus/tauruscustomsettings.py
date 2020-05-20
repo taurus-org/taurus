@@ -163,7 +163,7 @@ _MAX_DEPRECATIONS_LOGGED = 1
 # DEPRECATED SETTINGS
 # ----------------------------------------------------------------------------
 
-#: DEPRECATED. Use "taurus.qt.taurusform.item_factories" plugin group instead
+#: DEPRECATED. Use "taurus.form.item_factories" plugin group instead
 #: A map for using custom widgets for certain devices in TaurusForms. It is a
 #: dictionary with the following structure:
 #: device_class_name:(classname_with_full_module_path, args, kwargs)
