@@ -91,8 +91,8 @@ class TaurusForm(TaurusWidget):
     which are vertically aligned with their counterparts from other items.
 
     By default a :class:`TaurusValue` object is used for each item, but this
-    can be changed and specific mappings can be defined using the
-    :meth:`setCustomWidgetMap` method.
+    can be changed and customizations can be provided by enabling/disabling
+    item factories with :meth:`setItemFactories`.
 
     Item objects can be accessed by index using a list-like notation::
 
