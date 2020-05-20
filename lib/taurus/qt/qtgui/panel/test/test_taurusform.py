@@ -77,6 +77,24 @@ def _DummyItemFactory(m):
         return _DummyTV()
 
 
+def _BadFactory(m):
+    """
+    A dummy item factory that fails when called with the attribute
+    "eval://localhost/@dummy/'test_badfactory'" and returns _DummyTV otherwise.
+    """
+    if m.fullname == "eval://localhost/@dummy/'test_badfactory'":
+        return _DummyTV()
+    raise RuntimeError("_BadFactory is doomed to fail")
+
+
+
+class _BadEntryPoint(object):
+    """A dummy entry point -like class that fails when loaded (for testing)"""
+    name = '_BadEntryPoint'
+    def load(self):
+        raise RuntimeError("_BadEntryPoint is doomed to fail")
+
+
 def test_form_itemFactory():
     """Checks that the TaurusForm itemFactory API works"""
     lines = ["test_Form_ItemFactory={}:_DummyItemFactory".format(__name__)]
@@ -187,6 +205,37 @@ def test_form_cwidget_bck_compat():
     assert type(w[0]) == TaurusValue
     assert type(w[1]) == TaurusValue
     assert w.getCustomWidgetMap() == {}
+
+
+def test_form_itemFactory_loading():
+    """
+    check that the factory loading is robust against unloadable plugins
+    and badly-implemented item factories
+    """
+
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication.instance()
+    if app is None:
+        _ = TaurusApplication([], cmd_line_parser=None)
+
+    w = TaurusForm()
+
+    w.setItemFactories(
+        include=(_BadEntryPoint, _BadFactory, _DummyItemFactory)
+    )
+    w.setModel(
+        ["eval://localhost/@dummy/'test_itemfactory'",
+         "eval://localhost/@dummy/'test_badfactory'",
+         "eval:1",
+         ]
+    )
+
+    # handled by _DummyItemFactory
+    assert type(w[0]) == _DummyTV
+    # handled in _BadFactory (even if with worng return value)
+    assert type(w[1]) == _DummyTV
+    # errored in _BadFactory, ignored by _DummyItemFactory
+    assert type(w[2]) == TaurusValue
 
 
 

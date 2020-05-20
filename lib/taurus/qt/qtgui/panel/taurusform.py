@@ -597,8 +597,11 @@ class TaurusForm(TaurusWidget):
                 except:
                     warning('cannot load item factory "%s"', ep.name)
                     continue
-
-                widget = f(model_obj)
+                try:
+                    widget = f(model_obj)
+                except Exception as e:
+                    warning('factory "%s" raised "%r" for "%s". '
+                            + 'Tip: consider disabling it', ep.name, e, model)
                 if widget is not None:
                     self.debug(
                         "widget for '%s' provided by '%s'",
