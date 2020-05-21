@@ -29,10 +29,49 @@ from builtins import object
 import PyTango
 from taurus.core.tango.starter import ProcessStarter
 from taurus.test import getResourcePath
+import pytest
+from random import randint
 
-__all__ = ['TangoSchemeTestLauncher']
+
+__all__ = ['TangoSchemeTestLauncher', 'taurus_test_ds']
 
 __docformat__ = 'restructuredtext'
+
+
+@pytest.fixture(scope="module")
+def taurus_test_ds():
+    """
+    A pytest fixture that launches TangoSchemeTest for the test
+    It provides the device name as the fixture value.
+
+    Usage::
+        from taurus.core.tango.test import taurus_test_ds
+
+        def test_foo(taurus_test_ds):
+            import taurus
+            d = taurus.Device(taurus_test_ds)
+            assert d["string_scalar"].rvalue == "hello world"
+
+    """
+    ds_name = 'TangoSchemeTest/unittest/temp-{:08d}'.format(
+        randint(0, 99999999))
+
+    # get path to DS and executable
+    device = getResourcePath(
+        'taurus.core.tango.test.res', 'TangoSchemeTest')
+    # create starter for the device server
+    _starter = ProcessStarter(device, 'TangoSchemeTest/unittest')
+    # register
+    _starter.addNewDevice(ds_name, klass='TangoSchemeTest')
+    # start device server
+    _starter.startDs()
+
+    yield ds_name
+    d = PyTango.DeviceProxy(ds_name)
+    d.Reset()
+    _starter.stopDs(hard_kill=True)
+    # remove server
+    _starter.cleanDb(force=True)
 
 
 class TangoSchemeTestLauncher(object):
