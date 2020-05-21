@@ -33,6 +33,25 @@ import unittest
 from taurus.qt.qtgui.application import TaurusApplication
 
 
+def taurus_widget_set_models(qtbot, klass, models=[]):
+    """
+    Generic test that checks that a widget can be instantiated and given
+    its setModel called sequentially.
+
+    It can be parameterized or run with functools.partial
+    """
+    w = klass()
+    qtbot.addWidget(w)
+
+    for model in models:
+        if not model:
+            model_obj = None
+        else:
+            model_obj = taurus.Object(model)
+        w.setModel(model)
+        assert w.getModelObj() == model_obj
+
+
 class BaseWidgetTestCase(object):
 
     '''
