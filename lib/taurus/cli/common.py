@@ -85,11 +85,16 @@ script::
 import click
 
 
+__levels = ['Critical', 'Error', 'Warning', 'Info', 'Debug', 'Trace']
+try:
+    __log_choice = click.Choice(__levels, case_sensitive=False)
+except TypeError:  # click v< 7 does not allow case_sensitive option
+    __log_choice = click.Choice(__levels)
+
+
 log_level = click.option(
     '--log-level', 'log_level',
-    type=click.Choice(['Critical', 'Error', 'Warning', 'Info',
-                       'Debug', 'Trace']),
-    default='Info', show_default=True,
+    type=__log_choice, default='Info', show_default=True,
     help='Show only logs with priority LEVEL or above',
 )
 
