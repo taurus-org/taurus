@@ -31,7 +31,8 @@ develop branch) won't be reflected in this file.
 
 ### Deprecated
 - `TaurusBaseWidget.showFormatterDlg()` (#1039)
-- Custom widget API in TaurusForm, TaurusValue and TaurusGui (#1108) 
+- Custom widget API in TaurusForm, TaurusValue and TaurusGui (#1108)
+- `tauruscustomsettings.T_FORM_CUSTOM_WIDGET_MAP` (#1108)
 
 ### Fixed
 - Several issues in TaurusWheelEdit (#1010, #1021)

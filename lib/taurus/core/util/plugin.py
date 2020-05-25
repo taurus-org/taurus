@@ -35,7 +35,7 @@ import pkg_resources
 
 class EntryPointAlike(object):
     """
-    A dummy EntryPoint substitute to be used with :class:`selectEntryPoints`
+    A dummy EntryPoint substitute to be used with :func:`selectEntryPoints`
     for wrapping arbitrary objects and imitate the `name` and `load()` API of
     a :class:`pkg_resources.EntryPoint` instance.
 
@@ -48,7 +48,9 @@ class EntryPointAlike(object):
         if name is None:
             name = repr(obj)
         self.name = name
+
     def load(self):
+        """Returns the wrapped object"""
         return self._obj
 
 
@@ -66,7 +68,7 @@ def selectEntryPoints(group=None, include=('.*',), exclude=()):
     In this way, the entry points are selected in the order dictated by
     the `included` pattern list. If a pattern matches several names, these
     will be sorted alphabetically. If a name is matched by several patterns,
-    it is only selected byt the first pattern.
+    it is only selected by the first pattern.
 
     For example, if there are the following registered entry point names:
     ['foo1', 'foo2', 'baz1', 'baz2', 'bar1', 'bar2']
@@ -84,17 +86,17 @@ def selectEntryPoints(group=None, include=('.*',), exclude=()):
     :param group: (str) entry point group name from which the entry points
                   are obtained.
     :param include: (`tuple`). The members of the tuple can either be
-                    Regexp patterns (both in the form of strings or of regexp
-                    compiled patterns), which will be matched against
+                    patterns (both in the form of strings or of
+                    :class:`re.Pattern` objects), which will be matched against
                     registered names in group; or EntryPoint-like objects which
                     will be included as they are; or an arbitrary object which
                     will be wrapped as an EntryPoint-like object before being
                     included. Default is `(".*",)`, which matches all
                     registered names in group and the sort is purely
                     alphabetical.
-    :param exclude: (`tuple` of `str` or `re.Pattern`). Regexp patterns for
-                    names to be excluded. Default is `()`, so no entry point
-                    is excluded.
+    :param exclude: (`tuple`). Regexp patterns (either `str` or
+                    :class:`re.Pattern` objects) matching names to be excluded.
+                    Default is `()`, so no entry point is excluded.
 
     :return: (list of :class:`pkg_resources.EntryPoint`) the selected entry
              points.
