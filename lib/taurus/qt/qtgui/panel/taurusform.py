@@ -224,8 +224,9 @@ class TaurusForm(TaurusWidget):
                         names to be included in the selection. They can also be
                         item factory functions (which then are wrapped in an
                         EntryPoint-like object and included in the selection).
-        :param exclude: (tuple of `str` or `re.Pattern`). Regexp patterns for
-                        registered names to be excluded.
+        :param exclude: (tuple). Regexp patterns ( either `str` or
+                        :class:`re.Pattern` objects) matching registered names
+                        to be excluded.
         :return: (list) selected item factories entry points
         """
         patterns = getattr(_ts, "T_FORM_ITEM_FACTORIES", {})
