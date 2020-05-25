@@ -30,21 +30,10 @@ The idea is that the final user may edit the values here to customize certain
 aspects of Taurus.
 """
 
-#: A map for using custom widgets for certain devices in TaurusForms. It is a
-#: dictionary with the following structure:
-#: device_class_name:(classname_with_full_module_path, args, kwargs)
-#: where the args and kwargs will be passed to the constructor of the class
-T_FORM_CUSTOM_WIDGET_MAP = \
-    {'SimuMotor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
-     'Motor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
-     'PseudoMotor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
-     'PseudoCounter': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'CTExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'ZeroDExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'OneDExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'TwoDExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-     'IORegister': ('sardana.taurus.qt.qtgui.extra_pool.PoolIORegisterTV', (), {})
-     }
+#: Default include and exclude patterns for TaurusForm item factories
+#: See `TaurusForm.setItemFactories` docs. By default, all available
+#: factories are enabled (and tried alphabetically)
+T_FORM_ITEM_FACTORIES = {"include": (".*",), "exclude": ()}
 
 #: Compact mode for widgets
 #: True sets the preferred mode of TaurusForms to use "compact" widgets
@@ -72,17 +61,17 @@ DEFAULT_SCHEME = "tango"
 FILTER_OLD_TANGO_EVENTS = True
 
 #: Extra Taurus schemes. You can add a list of modules to be loaded for
-#: providing support to new schemes 
+#: providing support to new schemes
 #: (e.g. EXTRA_SCHEME_MODULES = ['myownschememodule']
 EXTRA_SCHEME_MODULES = []
 
 #: Custom formatter. Taurus widgets use a default formatter based on the
 #: attribute type, but sometimes a custom formatter is needed.
 #: IMPORTANT: setting this option in this file will affect ALL widgets
-#: of ALL applications (which is probably **not** what you want, since it 
-#: may have unexpected effects in some applications). 
+#: of ALL applications (which is probably **not** what you want, since it
+#: may have unexpected effects in some applications).
 #: Consider using the API for modifying this on a per-widget or per-class
-#: basis at runtime, or using the related `--default-formatter` parameter 
+#: basis at runtime, or using the related `--default-formatter` parameter
 #: from TaurusApplication, e.g.:
 #:     $ taurus form MODEL --default-formatter='{:2.3f}'
 #: The formatter can be a python format string or the name of a formatter
@@ -144,8 +133,8 @@ QT_THEME_FORCE_ON_LINUX = False
 QT_DESIGNER_PATH = None
 
 #: Custom organization logo. Set the absolute path to an image file to be used as your
-#: organization logo. Qt registered paths can also be used. 
-#: If not set, it defaults to 'logos:taurus.png" 
+#: organization logo. Qt registered paths can also be used.
+#: If not set, it defaults to 'logos:taurus.png"
 #: (note that "logos:" is a Qt a registered path for "<taurus>/qt/qtgui/icon/logos/")
 ORGANIZATION_LOGO = "logos:taurus.png"
 
@@ -170,3 +159,30 @@ IMPLICIT_OPTPARSE = False
 #: be raised instead of logging the message (useful for finding obsolete code)
 _MAX_DEPRECATIONS_LOGGED = 1
 
+# ----------------------------------------------------------------------------
+# DEPRECATED SETTINGS
+# ----------------------------------------------------------------------------
+
+#: DEPRECATED. Use "taurus.form.item_factories" plugin group instead
+#: A map for using custom widgets for certain devices in TaurusForms. It is a
+#: dictionary with the following structure:
+#: device_class_name:(classname_with_full_module_path, args, kwargs)
+#: where the args and kwargs will be passed to the constructor of the class
+T_FORM_CUSTOM_WIDGET_MAP = {}
+_OLD_T_FORM_CUSTOM_WIDGET_MAP = {
+    'SimuMotor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
+    'Motor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
+    'PseudoMotor': ('sardana.taurus.qt.qtgui.extra_pool.PoolMotorTV', (), {}),
+    'PseudoCounter': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+    'CTExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+    'ZeroDExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+    'OneDExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+    'TwoDExpChannel': ('sardana.taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
+    'IORegister': ('sardana.taurus.qt.qtgui.extra_pool.PoolIORegisterTV', (), {}),
+}
+try:  # just for backwards compatibility. This will be removed.
+    import sardana
+    if sardana.release.version < '3':
+        T_FORM_CUSTOM_WIDGET_MAP = _OLD_T_FORM_CUSTOM_WIDGET_MAP
+except:
+    pass

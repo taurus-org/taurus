@@ -34,17 +34,22 @@ from functools import partial
 
 from future.utils import string_types, binary_type
 
+from taurus import tauruscustomsettings as _ts
 from taurus.external.qt import Qt
 
 import taurus.core
-from taurus.core import TaurusDevState, DisplayLevel
+from taurus.core import DisplayLevel
 
 from taurus.qt.qtcore.mimetypes import (TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE,
                                         TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_MODEL_MIME_TYPE)
 from taurus.qt.qtgui.container import TaurusWidget, TaurusScrollArea
 from taurus.qt.qtgui.button import QButtonBox, TaurusCommandButton
 from .taurusmodelchooser import TaurusModelChooser
+from taurus.core.util.log import deprecation_decorator
+from taurus.core.util.plugin import selectEntryPoints
+from taurus import warning
 import taurus.cli.common
+
 
 __all__ = ["TaurusAttrForm", "TaurusCommandsForm", "TaurusForm"]
 
@@ -86,8 +91,8 @@ class TaurusForm(TaurusWidget):
     which are vertically aligned with their counterparts from other items.
 
     By default a :class:`TaurusValue` object is used for each item, but this
-    can be changed and specific mappings can be defined using the
-    :meth:`setCustomWidgetMap` method.
+    can be changed and customizations can be provided by enabling/disabling
+    item factories with :meth:`setItemFactories`.
 
     Item objects can be accessed by index using a list-like notation::
 
@@ -103,7 +108,7 @@ class TaurusForm(TaurusWidget):
     coding examples <examples>` '''
 
     def __init__(self, parent=None,
-                 formWidget=None,
+                 formWidget=None,  # deprecated
                  buttons=None,
                  withButtons=True,
                  designMode=False):
@@ -114,10 +119,19 @@ class TaurusForm(TaurusWidget):
         if buttons is None:
             buttons = Qt.QDialogButtonBox.Apply | \
                 Qt.QDialogButtonBox.Reset
-        self._customWidgetMap = {}
+        self._customWidgetMap = {}  # deprecated
         self._model = []
-        # self._children = []
-        self.setFormWidget(formWidget)
+
+        if formWidget is None:
+            from taurus.qt.qtgui.panel import TaurusValue
+            formWidget = TaurusValue
+        else:
+            self.deprecated(
+                dep="formWidget argument", alt="item factories", rel="4.6.5")
+        self._defaultFormWidget = formWidget
+
+        self._itemFactories = []
+        self.setItemFactories()
 
         self.setLayout(Qt.QVBoxLayout())
 
@@ -180,6 +194,88 @@ class TaurusForm(TaurusWidget):
         '''returns the number of items contained by the form'''
         return len(self.getItems())
 
+    def setItemFactories(self, include=None, exclude=None):
+        """
+        Selects and prioritizes the factories to be used to create the form's
+        items.
+
+        TaurusForm item factories are functions that receive a TaurusModel as
+        their only argument and return either a TaurusValue-like instance
+        or None in case the factory does not handle the given model.
+
+        The factories are selected using their entry point names as registered
+        in the "taurus.form.item_factories" entry point group.
+
+        The factories entry point name is up to the registrar of the entry
+        point (typically a taurus plugin) and should be documented by the
+        registrar to allow for selection and prioritization.
+
+        The selection and prioritization is done using
+        :meth:`taurus.core.util.plugin.selectEntryPoints()`. See it for
+        more details.
+
+        The selected list is updated in the form, and returned.
+
+        The default values for the include and exclude arguments are defined
+        in `tauruscustomsettings.T_FORM_ITEM_FACTORIES`
+
+        :param include: (tuple). The members in the tuple can be: Regexp
+                        patterns (in string or compiled form) matching the
+                        names to be included in the selection. They can also be
+                        item factory functions (which then are wrapped in an
+                        EntryPoint-like object and included in the selection).
+        :param exclude: (tuple). Regexp patterns ( either `str` or
+                        :class:`re.Pattern` objects) matching registered names
+                        to be excluded.
+        :return: (list) selected item factories entry points
+        """
+        patterns = getattr(_ts, "T_FORM_ITEM_FACTORIES", {})
+        if include is None:
+            include = patterns.get("include", ('.*',))
+        if exclude is None:
+            exclude = patterns.get("exclude", ())
+        self._itemFactories = selectEntryPoints(
+            group='taurus.form.item_factories',
+            include=include,
+            exclude=exclude
+        )
+        return self._itemFactories
+
+    def getItemFactories(self, return_disabled=False):
+        """
+        returns the list of item factories entry points currently in use
+
+        :param return_disabled: If False (default), it returns only a list of
+                                the enabled factories. If True, it returns a
+                                tuple containing two lists: the enabled and
+                                the available but disabled factories.
+        """
+        enabled = self._itemFactories
+        if return_disabled:
+            all_ = selectEntryPoints('taurus.form.item_factories')
+            return enabled, [f for f in all_ if f not in enabled]
+        else:
+            return enabled
+
+    def _customWidgetFactory(self, model):
+        """
+        Taurus Value Factory to provide backwards-compatibility for code
+        relaying on deprecated customWidGetMap API
+
+        :param model: taurus model object
+
+        :return: custom TaurusValue class
+        """
+        try:
+            key = model.getDeviceProxy().info().dev_class
+            name, args, kwargs = self._customWidgetMap[key]
+            pkgname, klassname = name.rsplit('.', 1)
+            pkg = __import__(pkgname, fromlist=[klassname])
+            klass = getattr(pkg, klassname)
+        except Exception:
+            return None
+        return klass(*args, **kwargs)
+
     def _splitModel(self, modelNames):
         '''convert str to list if needed (commas and whitespace are considered as separators)'''
         if isinstance(modelNames, binary_type):
@@ -189,6 +285,7 @@ class TaurusForm(TaurusWidget):
             modelNames = modelNames.split()
         return modelNames
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def setCustomWidgetMap(self, cwmap):
         '''Sets a map map for custom widgets.
 
@@ -199,6 +296,7 @@ class TaurusForm(TaurusWidget):
         # TODO: tango-centric
         self._customWidgetMap = cwmap
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def getCustomWidgetMap(self):
         '''Returns the map used to create custom widgets.
 
@@ -312,6 +410,7 @@ class TaurusForm(TaurusWidget):
         self.destroyChildren()
         self._model = []
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def getFormWidget(self, model=None):
         '''Returns a tuple that can be used for creating a widget for a given model.
 
@@ -367,16 +466,14 @@ class TaurusForm(TaurusWidget):
                 klass = self._defaultFormWidget
             return klass, args, kwargs
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def setFormWidget(self, formWidget):
         if formWidget is None:
             from taurus.qt.qtgui.panel import TaurusValue
-            self._defaultFormWidget = TaurusValue
-        elif issubclass(formWidget, Qt.QWidget):
-            self._defaultFormWidget = formWidget
-        else:
-            raise TypeError(
-                'formWidget must be one of None, QWidget. %s passed' % repr(type(formWidget)))
+            formWidget = TaurusValue
+        self._defaultFormWidget = formWidget
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def resetFormWidget(self):
         self.setFormWidget(self, None)
 
@@ -482,11 +579,46 @@ class TaurusForm(TaurusWidget):
         for i, model in enumerate(self.getModel()):
             if not model:
                 continue
+            try:
+                model_obj = taurus.Object(model)
+            except:
+                self.warning('problem adding item "%s"', model)
+                self.traceback(level=taurus.Debug)
+                continue
             if parent_name:
                 # @todo: Change this (it assumes tango model naming!)
                 model = "%s/%s" % (parent_name, model)
-            klass, args, kwargs = self.getFormWidget(model=model)
-            widget = klass(frame, *args, **kwargs)
+
+            widget = None
+            # check if some item factory handles this model
+            for ep in self._itemFactories:
+                try:
+                    # load the plugin
+                    f = ep.load()
+                except:
+                    warning('cannot load item factory "%s"', ep.name)
+                    continue
+                try:
+                    widget = f(model_obj)
+                except Exception as e:
+                    warning('factory "%s" raised "%r" for "%s". '
+                            + 'Tip: consider disabling it', ep.name, e, model)
+                if widget is not None:
+                    self.debug(
+                        "widget for '%s' provided by '%s'",
+                        model,
+                        ep.name
+                    )
+                    break
+
+            # backwards-compat with deprecated custom widget map API
+            if widget is None and self._customWidgetMap:
+                widget = self._customWidgetFactory(model_obj)
+
+            # no factory handles the model and no custom widgets. Use default
+            if widget is None:
+                widget = self._defaultFormWidget()
+
             # @todo UGLY... See if this can be done in other ways... (this causes trouble with widget that need more vertical space , like PoolMotorTV)
             widget.setMinimumHeight(20)
 
@@ -496,8 +628,7 @@ class TaurusForm(TaurusWidget):
                 widget.setParent(frame)
             except:
                 # raise
-                self.warning(
-                    'an error occurred while adding the child "%s". Skipping' % model)
+                self.warning('problem adding item "%s"', model)
                 self.traceback(level=taurus.Debug)
             try:
                 widget.setModifiableByUser(self.isModifiableByUser())
@@ -1012,53 +1143,55 @@ def test3():
     sys.exit(app.exec_())
 
 
-def test4():
-    '''tests customwidgetma in taurusforms'''
-    import sys
-    from taurus.qt.qtgui.display import TaurusLabel
-    from taurus.qt.qtgui.application import TaurusApplication
-
-    app = TaurusApplication(sys.argv, cmd_line_parser=None)
-
-    from taurus.qt.qtgui.panel import TaurusValue
-
-    class DummyCW(TaurusValue):
-
-        def setModel(self, model):
-            print("!!!!! IN DUMMYCW.SETMODEL", model)
-            TaurusValue.setModel(self, model + '/double_scalar')
-
-    models = ['sys/database/2', 'sys/tg_test/1', 'sys/tg_test/1/short_spectrum',
-              'sys/tg_test/1/state', 'sys/tg_test/1/short_scalar_ro']
-    models.append('tango://controls02:10000/expchan/bl97_simucotictrl_1/1')
-    map = {
-        # taurusvalue-like classes given as strings
-        'PseudoCounter': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-        'CTExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-        'ZeroDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-        'OneDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-        'TwoDExpChannel': ('taurus.qt.qtgui.extra_pool.PoolChannelTV', (), {}),
-        # a TaurusValue-like class given as a class (old way)
-        'TangoTest': DummyCW,
-        'DataBase': TaurusLabel}  # a non-TaurusValue-like class given as a class (old way)
-
-    dialog = TaurusForm()
-    dialog.setCustomWidgetMap(map)
-    dialog.setModel(models)
-    dialog.show()
-    sys.exit(app.exec_())
-
-
 @click.command('form')
 @taurus.cli.common.window_name("TaurusForm")
 @taurus.cli.common.config_file
+@click.option(
+    '--inc-fact',
+    multiple=True,
+    metavar="INC",
+    default=getattr(_ts, 'T_FORM_ITEM_FACTORIES', {}).get('include', ('.*',)),
+    show_default=True,
+    type=click.STRING,
+    help=("Enable item factories matching INC pattern"
+          + " (can be passed multiple times)")
+)
+@click.option(
+    '--exc-fact',
+    multiple=True,
+    metavar="EXC",
+    default=getattr(_ts, 'T_FORM_ITEM_FACTORIES', {}).get('exclude', ()),
+    show_default=True,
+    type=click.STRING,
+    help=("Disable item factories matching EXC pattern"
+          + " (can be passed multiple times)")
+)
+@click.option(
+    '--ls-fact',
+    is_flag=True,
+    help="List the available item factories"
+)
 @taurus.cli.common.models
-def form_cmd(window_name, config_file, models):
+def form_cmd(window_name, config_file, inc_fact, exc_fact, ls_fact, models):
     """Shows a Taurus form populated with the given model names"""
     from taurus.qt.qtgui.application import TaurusApplication
     import sys
     app = TaurusApplication(cmd_line_parser=None)
     dialog = TaurusForm()
+
+    dialog.setItemFactories(include=inc_fact, exclude=exc_fact)
+
+    if ls_fact:
+        inc, exc = dialog.getItemFactories(return_disabled=True)
+        msg = "\nItem Factories in {}:\n".format(window_name)
+        msg += "\n".join(["  [*] " + e.name for e in inc] +
+                         ["  [ ] " + e.name for e in exc])
+        msg += "\nPatterns used for item factory selection:\n"
+        msg += "  INC: {}\n".format(inc_fact)
+        msg += "  EXC: {}\n".format(exc_fact)
+        print(msg)
+        click.get_current_context().exit(0)
+
     dialog.setModifiableByUser(True)
     dialog.setModelInConfig(True)
 
@@ -1084,10 +1217,11 @@ def form_cmd(window_name, config_file, models):
     dialog.addActions(
         (saveConfigAction, loadConfigAction, quitApplicationAction))
 
-    # set the default map for this installation
+    # backwards-compat: in case T_FORM_CUSTOM_WIDGET_MAP was manually edited
     from taurus import tauruscustomsettings
-    dialog.setCustomWidgetMap(
-        getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {}))
+    cwmap = getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {})
+    if cwmap:
+        dialog.setCustomWidgetMap(cwmap)
 
     # set a model list from the command line or launch the chooser
     if config_file is not None:
