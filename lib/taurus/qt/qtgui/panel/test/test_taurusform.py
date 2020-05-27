@@ -180,22 +180,27 @@ def test_form_cwidget_bck_compat(qtbot):
 
     w.setItemFactories(include=())
 
-    # check that an explicit call to setCustomWidgetMap works
-    dummy = ("taurus.qt.qtgui.panel.test.test_taurusform._DummyTV", (), {})
-    w.setCustomWidgetMap({"DataBase": dummy})
-    w.setModel(["tango:sys/database/2", "tango:sys/tg_test/1"])
-    qtbot.wait_until(lambda: len(w) == 2, timeout=3200)
-    assert type(w[0]) == _DummyTV
-    assert type(w[1]) == TaurusValue
-    assert w.getCustomWidgetMap() == {"DataBase": dummy}
+    try:
+        # check that an explicit call to setCustomWidgetMap works
+        dummy = ("taurus.qt.qtgui.panel.test.test_taurusform._DummyTV", (), {})
+        w.setCustomWidgetMap({"DataBase": dummy})
+        w.setModel(["tango:sys/database/2", "tango:sys/tg_test/1"])
+        qtbot.wait_until(lambda: len(w) == 2, timeout=3200)
+        assert type(w[0]) == _DummyTV
+        assert type(w[1]) == TaurusValue
+        assert w.getCustomWidgetMap() == {"DataBase": dummy}
 
-    # check that the custom widget map can be restored
-    w.setCustomWidgetMap({})
-    w.setModel(["tango:sys/database/2", "tango:sys/tg_test/1"])
-    qtbot.wait_until(lambda: len(w) == 2, timeout=3200)
-    assert type(w[0]) == TaurusValue
-    assert type(w[1]) == TaurusValue
-    assert w.getCustomWidgetMap() == {}
+        # check that the custom widget map can be restored
+        w.setCustomWidgetMap({})
+        w.setModel(["tango:sys/database/2", "tango:sys/tg_test/1"])
+        qtbot.wait_until(lambda: len(w) == 2, timeout=3200)
+        assert type(w[0]) == TaurusValue
+        assert type(w[1]) == TaurusValue
+        assert w.getCustomWidgetMap() == {}
+    finally:
+        # set model to None as an attempt to avoid problems in atexit()
+        w.setModel(None)
+        qtbot.wait_until(lambda: len(w) == 0, timeout=3200)
 
 
 def test_form_itemFactory_loading(qtbot):
