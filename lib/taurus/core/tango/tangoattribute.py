@@ -679,7 +679,7 @@ class TangoAttribute(TaurusAttribute):
     def _subscribeChangeEvents(self):
         """ Enable subscription to the attribute events. If change events are
             not supported polling is activated """
-            
+        print("!!!!! IN SUBSCRIBE_CHG", self.__chg_evt_id, self._full_name)
         if self.__chg_evt_id is not None:
             self.warning("chg events already subscribed (id=%s)"
                        %self.__chg_evt_id)
@@ -731,7 +731,7 @@ class TangoAttribute(TaurusAttribute):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object
-        
+        print("!!!!! IN UNSUBSCRIBE_CHG", self.__chg_evt_id, self._full_name)
         if self.__dev_hw_obj is not None and self.__chg_evt_id is not None:
             self.trace("Unsubscribing to change events (ID=%d)",
                        self.__chg_evt_id)
@@ -750,6 +750,7 @@ class TangoAttribute(TaurusAttribute):
         self.__subscription_state = SubscriptionState.Unsubscribed
 
     def _subscribeConfEvents(self):
+        print("!!!!! IN SUBSCRIBE_CONF", self.__cfg_evt_id, self._full_name)
         """ Enable subscription to the attribute configuration events."""
         self.trace("Subscribing to configuration events...")
 
@@ -796,7 +797,7 @@ class TangoAttribute(TaurusAttribute):
         # Careful in this method: This is intended to be executed in the cleanUp
         # so we should not access external objects from the factory, like the
         # parent object
-        
+        print("!!!!! IN UNSUBSCRIBE_CONF", self.__cfg_evt_id, self._full_name)
         if self.__cfg_evt_id is not None and self.__dev_hw_obj is not None:
             self.trace("Unsubscribing to configuration events (ID=%s)",
                        str(self.__cfg_evt_id))
