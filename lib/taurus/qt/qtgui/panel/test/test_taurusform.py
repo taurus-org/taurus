@@ -64,60 +64,57 @@ class TaurusAttrFormTest(GenericWidgetTestCase, unittest.TestCase):
     modelnames = ['sys/tg_test/1', None]
 
 
-# class _DummyTV(TaurusValue):
-#     pass
-#
-#
-# def _DummyItemFactory(m):
-#     """
-#     A dummy item factory that returns _DummyTV instance for one specific
-#     attribute: "eval://localhost/@dummy/'test_itemfactory'"
-#     """
-#     if m.fullname == "eval://localhost/@dummy/'test_itemfactory'":
-#         return _DummyTV()
-#
-#
-# def _BadFactory(m):
-#     """
-#     A dummy item factory that fails when called with the attribute
-#     "eval://localhost/@dummy/'test_badfactory'" and returns _DummyTV otherwise.
-#     """
-#     if m.fullname == "eval://localhost/@dummy/'test_badfactory'":
-#         return _DummyTV()
-#     raise RuntimeError("_BadFactory is doomed to fail")
-#
-#
-#
-# class _BadEntryPoint(object):
-#     """A dummy entry point -like class that fails when loaded (for testing)"""
-#     name = '_BadEntryPoint'
-#     def load(self):
-#         raise RuntimeError("_BadEntryPoint is doomed to fail")
-#
-#
-# def test_form_itemFactory():
-#     """Checks that the TaurusForm itemFactory API works"""
-#     lines = ["test_Form_ItemFactory={}:_DummyItemFactory".format(__name__)]
-#     group = "taurus.form.item_factories"
-#     mock_entry_point(lines, group=group)
-#
-#     from taurus.qt.qtgui.application import TaurusApplication
-#     app = TaurusApplication.instance()
-#     if app is None:
-#         _ = TaurusApplication([], cmd_line_parser=None)
-#
-#     w = TaurusForm()
-#     w.setModel(
-#         [
-#             "eval://localhost/@dummy/'test_itemfactory'",
-#             "eval://localhost/@dummy/'test_itemfactory2'",
-#         ]
-#     )
-#     # The first item should get a customized _DummyTV widget
-#     assert type(w[0]) is _DummyTV
-#     # The second item shoud get the default form widget
-#     assert type(w[1]) is w._defaultFormWidget
-#
+class _DummyTV(TaurusValue):
+    pass
+
+
+def _DummyItemFactory(m):
+    """
+    A dummy item factory that returns _DummyTV instance for one specific
+    attribute: "eval://localhost/@dummy/'test_itemfactory'"
+    """
+    if m.fullname == "eval://localhost/@dummy/'test_itemfactory'":
+        return _DummyTV()
+
+
+def _BadFactory(m):
+    """
+    A dummy item factory that fails when called with the attribute
+    "eval://localhost/@dummy/'test_badfactory'" and returns _DummyTV otherwise.
+    """
+    if m.fullname == "eval://localhost/@dummy/'test_badfactory'":
+        return _DummyTV()
+    raise RuntimeError("_BadFactory is doomed to fail")
+
+
+class _BadEntryPoint(object):
+    """A dummy entry point -like class that fails when loaded (for testing)"""
+    name = '_BadEntryPoint'
+    def load(self):
+        raise RuntimeError("_BadEntryPoint is doomed to fail")
+
+
+def test_form_itemFactory(qtbot):
+    """Checks that the TaurusForm itemFactory API works"""
+    lines = ["test_Form_ItemFactory={}:_DummyItemFactory".format(__name__)]
+    group = "taurus.form.item_factories"
+    mock_entry_point(lines, group=group)
+
+    w = TaurusForm()
+    qtbot.addWidget(w)
+
+    w.setModel(
+        [
+            "eval://localhost/@dummy/'test_itemfactory'",
+            "eval://localhost/@dummy/'test_itemfactory2'",
+        ]
+    )
+    qtbot.wait_until(lambda: len(w) == 2, timeout=3200)
+    # The first item should get a customized _DummyTV widget
+    assert type(w[0]) is _DummyTV
+    # The second item shoud get the default form widget
+    assert type(w[1]) is w._defaultFormWidget
+
 #
 # def test_form_itemFactory_selection():
 #     """Checks that the TaurusForm itemFactory selection API works"""
