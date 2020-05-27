@@ -679,7 +679,6 @@ class TangoAttribute(TaurusAttribute):
     def _subscribeChangeEvents(self):
         """ Enable subscription to the attribute events. If change events are
             not supported polling is activated """
-        print("!!!!! IN SUBSCRIBE_CHG", self.__chg_evt_id, self._full_name)
         if self.__chg_evt_id is not None:
             self.warning("chg events already subscribed (id=%s)"
                        %self.__chg_evt_id)
@@ -724,7 +723,7 @@ class TangoAttribute(TaurusAttribute):
         self.__chg_evt_id = self.__dev_hw_obj.subscribe_event(
                 attr_name, PyTango.EventType.CHANGE_EVENT,
                 _BoundMethodWeakrefWithCall(self.push_event), [], stateless)
-        
+        print("!!!!! IN DEV_HW SUBSCRIBE_CHG", self.__chg_evt_id, self._full_name, stateless)
         return self.__chg_evt_id
                 
     def _unsubscribeChangeEvents(self):
