@@ -745,7 +745,7 @@ class ThreadDict(dict):
         import threading
         if not self.threaded:
             return
-        if hasattr(self, '_Thread') and self._Thread and self._Thread.isAlive():
+        if hasattr(self, '_Thread') and self._Thread and self._Thread.is_alive():
             return
         self.event = threading.Event()
         self.event.clear()
@@ -763,7 +763,7 @@ class ThreadDict(dict):
         if not hasattr(self, '_Thread') or not self._Thread:
             return False
         else:
-            return self._Thread.isAlive()
+            return self._Thread.is_alive()
 
     def __del__(self):
         self.stop()
