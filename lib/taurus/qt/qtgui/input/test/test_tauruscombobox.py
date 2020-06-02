@@ -62,11 +62,11 @@ def test_TaurusValueCombobox(qtbot, model, names, value, expected):
     w.addValueNames(names)
     qtbot.wait_until(lambda: w.count() == len(names), timeout=3200)
     try:
-        with qtbot.waitSignal(w.taurusEvent, timeout=3200):
+        with qtbot.waitSignal(w.valueChangedSignal, timeout=3200):
             w.setModel(model)
-            assert w.currentText() == expected
+        assert w.currentText() == expected
     finally:
-        a = None
+        del a
         # set model to None as an attempt to avoid problems in atexit()
-        with qtbot.waitSignal(w.taurusEvent, timeout=3200):
+        with qtbot.waitSignal(w.valueChangedSignal, timeout=3200):
             w.setModel(None)
