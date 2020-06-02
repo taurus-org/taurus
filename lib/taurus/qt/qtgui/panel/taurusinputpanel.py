@@ -29,7 +29,10 @@ from __future__ import print_function
 from builtins import str
 from builtins import object
 
-import collections
+try:
+    from collections.abc import Sequence, Mapping
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence, Mapping
 import numpy
 
 from future.utils import string_types
@@ -111,7 +114,7 @@ class TaurusInputPanel(Qt.QWidget):
         layout = Qt.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         panel.setLayout(layout)
-        if isinstance(input_data, collections.Mapping):
+        if isinstance(input_data, Mapping):
             single_panel, getter = self.create_single_input_panel(input_data)
             layout.addWidget(single_panel)
             self.value = getter
@@ -127,7 +130,7 @@ class TaurusInputPanel(Qt.QWidget):
 
         data_type = input_data.get('data_type', 'String')
         is_seq = not isinstance(data_type, string_types) and \
-            isinstance(data_type, collections.Sequence)
+            isinstance(data_type, Sequence)
         if is_seq:
             panel, getter = self.create_selection_panel(input_data)
         else:
@@ -167,7 +170,7 @@ class TaurusInputPanel(Qt.QWidget):
         items = input_data['data_type']
         for item in items:
             is_seq = not isinstance(item, string_types) and \
-                isinstance(item, collections.Sequence)
+                isinstance(item, Sequence)
             if is_seq:
                 text, userData = item
             else:
@@ -189,7 +192,7 @@ class TaurusInputPanel(Qt.QWidget):
         buttongroup.setExclusive(True)
         for item in items:
             is_seq = not isinstance(item, string_types) and \
-                isinstance(item, collections.Sequence)
+                isinstance(item, Sequence)
             if is_seq:
                 text, userData = item
             else:
@@ -216,7 +219,7 @@ class TaurusInputPanel(Qt.QWidget):
         if default_value is None:
             default_value = ()
         dft_is_seq = not isinstance(default_value, string_types) and \
-            isinstance(default_value, collections.Sequence)
+            isinstance(default_value, Sequence)
         if not dft_is_seq:
             default_value = default_value,
 
@@ -225,7 +228,7 @@ class TaurusInputPanel(Qt.QWidget):
 
         for item in items:
             is_seq = not isinstance(item, string_types) and \
-                isinstance(item, collections.Sequence)
+                isinstance(item, Sequence)
             if is_seq:
                 text, userData = item
             else:

@@ -34,7 +34,10 @@ import sys
 import weakref
 import threading
 import time
-import collections
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 import taurus.core
 
 
@@ -695,7 +698,7 @@ class AttributeEventIterator(object):
             self.connect(attrs)
 
     def connect(self, attrs):
-        if not isinstance(attrs, collections.Sequence):
+        if not isinstance(attrs, Sequence):
             attrs = (attrs,)
         self.disconnect()
         self._attrs = attrs

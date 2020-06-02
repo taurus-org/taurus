@@ -31,7 +31,10 @@ from builtins import str
 from builtins import map
 from builtins import range
 from builtins import object
-import collections
+try:
+    from collections.abc import Mapping
+except ImportError:  # bck-compat py 2.7
+    from collections import Mapping
 
 import os
 import weakref
@@ -517,7 +520,7 @@ class TangoDevTree(CaselessDict):
 
     def _update(self, other):
         try:
-            if isinstance(other, collections.Mapping):
+            if isinstance(other, Mapping):
                 other = list(other.values())
             for dev in other:
                 try:
@@ -563,7 +566,7 @@ class TangoServerTree(dict):
 
     def _update(self, other):
         try:
-            if isinstance(other, collections.Mapping):
+            if isinstance(other, Mapping):
                 other = list(other.values())
             for serv in other:
                 try:

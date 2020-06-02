@@ -39,7 +39,10 @@ import re
 import os
 import subprocess
 import traceback
-import collections
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 
 from future.utils import string_types
 from queue import Queue
@@ -153,7 +156,7 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
                     break
                 else:
                     continue
-            if not isinstance(item, collections.Sequence):
+            if not isinstance(item, Sequence):
                 item = (item,)
             # @todo: Unless the call to boundingRect() has a side effect, this line is useless..  probably related to todo in _updateView()
             item_rects = [i.boundingRect() for i in item]

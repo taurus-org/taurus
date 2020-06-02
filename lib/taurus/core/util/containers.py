@@ -35,10 +35,12 @@ from builtins import object
 from future.utils import string_types
 
 import copy
-import collections
 import time
 import weakref
-
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 
 __all__ = ["CaselessList", "CaselessDict", "CaselessWeakValueDict", "LoopList",
            "CircBuf", "LIFO", "TimedQueue", "self_locked", "ThreadDict",
@@ -637,7 +639,7 @@ class TimedQueue(list):
         """ Initializes the list with a sequence or an initial value. """
         if arg is None:
             list.__init__(self)
-        elif isinstance(arg, collections.Sequence):
+        elif isinstance(arg, Sequence):
             list.__init__(self, arg)
         else:
             list.__init__(self)
