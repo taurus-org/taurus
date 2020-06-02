@@ -365,7 +365,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
 
         strict = (
             not self.ANY_ATTRIBUTE_SELECTS_DEVICE) if strict is None else strict
-        alnum = '(?:[a-zA-Z0-9-_\*]|(?:\.\*))(?:[a-zA-Z0-9-_\*]|(?:\.\*))*'
+        alnum = r'(?:[a-zA-Z0-9-_\*]|(?:\.\*))(?:[a-zA-Z0-9-_\*]|(?:\.\*))*'
         target = str(item_name).strip().split()[0].lower().replace(
             '/state', '')  # If it has spaces only the first word is used
         # Device names should match also its attributes or only state?

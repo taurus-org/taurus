@@ -217,17 +217,19 @@ class ModuleExplorer(object):
         return minfo, ModuleExplorer.getAll(minfo, 'warnings')
 
 
-def main(modulename='taurus', exclude_patterns=(
-                                    '_[^\.]*[^_]',
-                                    '.*\.test',
-                                    'taurus\.external',
-                                    'taurus\.qt\.qtgui\.extra_sardana',
-                                    'taurus\.qt\.qtgui\.extra_pool',
-                                    'taurus\.qt\.qtgui\.extra_macroexecutor',
-                                    'taurus\.qt\.qtgui\.resource',
-                                    'taurus\.qt\.qtgui\.taurusgui\.conf',
-                                    )
-         ):
+def main(
+        modulename='taurus',
+        exclude_patterns=(
+            r'_[^\.]*[^_]',
+            r'.*\.test',
+            r'taurus\.external',
+            r'taurus\.qt\.qtgui\.extra_sardana',
+            r'taurus\.qt\.qtgui\.extra_pool',
+            r'taurus\.qt\.qtgui\.extra_macroexecutor',
+            r'taurus\.qt\.qtgui\.resource',
+            r'taurus\.qt\.qtgui\.taurusgui\.conf',
+        )
+):
     moduleinfo, allw = ModuleExplorer.explore(
         modulename, exclude_patterns=exclude_patterns, verbose=True)
     print('\n\n' + '*' * 50)

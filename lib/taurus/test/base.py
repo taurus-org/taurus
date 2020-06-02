@@ -57,8 +57,7 @@ def insertTest(klass=None, helper_name=None, test_method_name=None,
       - test_skip (str): Optional. A reason for skipping the test. If None
                          given, the test will not be skipped
 
-      - \*\*helper_kwargs: All remaining keyword arguments are passed to the
-                           helper.
+      - All remaining keyword arguments are passed to the helper.
 
     This decorator can be considered a "base" decorator. It is often used to
     create other decorators in which the helper method is pre-set, as in

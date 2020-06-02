@@ -1101,10 +1101,10 @@ class TangoAttribute(TaurusAttribute):
         ###############################################################
         fmt = standard_display_format_from_tango(i.data_type, i.format)
         self.format_spec = fmt.lstrip('%')  # format specifier
-        match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
+        match = re.search(r"[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
         if match:
             self.precision = int(match.group(1))
-        elif re.match("%[0-9]*d", fmt):
+        elif re.match(r"%[0-9]*d", fmt):
             self.precision = 0
         # self._units and self._display_format is to be used by
         # TangoAttrValue for performance reasons. Do not rely on it in other

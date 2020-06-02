@@ -64,7 +64,7 @@ __docformat__ = "restructuredtext"
 
 
 class TangoFactory(Singleton, TaurusFactory, Logger):
-    """A :class:`TaurusFactory` singleton class to provide Tango-specific
+    r"""A :class:`TaurusFactory` singleton class to provide Tango-specific
     Taurus Element objects (TangoAuthority, TangoDevice, TangoAttribute)
 
     Tango model names are URI based See https://tools.ietf.org/html/rfc3986.
