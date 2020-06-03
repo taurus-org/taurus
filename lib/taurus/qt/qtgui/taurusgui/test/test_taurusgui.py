@@ -16,6 +16,7 @@ p1 = utils.PanelDescription(
 def test_paneldescription(qtbot):
     gui = TaurusGui(confname=__file__, configRecursionDepth=0)
     w1 = gui.getPanel('testpanel1').widget()
+    qtbot.addWidget(gui)
     qtbot.addWidget(w1)
     assert w1.withButtons is False
     assert w1.isWithButtons() is False
