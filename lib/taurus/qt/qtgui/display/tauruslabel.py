@@ -91,7 +91,10 @@ class TaurusLabelController(TaurusBaseController):
 
         # handle special cases (that are not covered with fragment)
         if fgRole.lower() == 'state':
-            value = self.state().name
+            try:
+                value = self.state().name
+            except AttributeError:
+                pass  # protect against calls with state not instantiated
         elif fgRole.lower() in ('', 'none'):
             pass
         else:
