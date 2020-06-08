@@ -38,21 +38,12 @@ try:
     # TODO: change them if/when TaurusCommandbuttongets generalized
     from PyTango import CommunicationFailed
     from taurus.core.tango.test import taurus_test_ds  # pytest fixture
-    _TANGO = False
+    _TANGO_MISSING = False
 except:
-    _TANGO = True
+    _TANGO_MISSING = True
 
 
-# TODO: move to another module where we parameterize taurus_widget_set_models
-#  for a lot of widgets
-test_models = partial(
-    taurus_widget_set_models,
-    klass=TaurusCommandButton,
-    models=['sys/tg_test/1', None, 'sys/database/2', '']
-)
-
-
-@pytest.mark.skipIf(_TANGO, reason="tango-dependent test")
+@pytest.mark.skipIf(_TANGO_MISSING, reason="tango-dependent test")
 def test_timeout(qtbot, taurus_test_ds):
     """Check that the timeout property works"""
     w = TaurusCommandButton(command='Sleep')
