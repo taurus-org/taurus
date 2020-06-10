@@ -87,7 +87,7 @@ def _chek_tauruslabel(
         qtbot.waitUntil(_ok, timeout=3200)
 
 
-@pytest.mark.skipIf(_TANGO_MISSING, reason="tango-dependent test")
+@pytest.mark.skipif(_TANGO_MISSING, reason="tango-dependent test")
 @pytest.mark.parametrize(
     "model, fgRole, modelIndex, depr, fg",
     [
@@ -136,7 +136,7 @@ TAURUS_READY_BG = DEVICE_STATE_DATA["TaurusDevState.Ready"][1:4]
 TG_ATTR_VALID_BG = ATTRIBUTE_QUALITY_DATA["ATTR_VALID"][1:4]
 
 
-@pytest.mark.skipIf(_TANGO_MISSING, reason="tango-dependent test")
+@pytest.mark.skipif(_TANGO_MISSING, reason="tango-dependent test")
 @pytest.mark.parametrize(
     "model, bgRole, bg",
     [

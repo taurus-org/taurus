@@ -43,7 +43,7 @@ except:
     _TANGO_MISSING = True
 
 
-@pytest.mark.skipIf(_TANGO_MISSING, reason="tango-dependent test")
+@pytest.mark.skipif(_TANGO_MISSING, reason="tango-dependent test")
 def test_timeout(qtbot, taurus_test_ds):
     """Check that the timeout property works"""
     w = TaurusCommandButton(command='Sleep')

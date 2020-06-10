@@ -40,7 +40,7 @@ except:
     _TANGO_MISSING = True
 
 
-@pytest.mark.skipIf(_TANGO_MISSING, reason="tango-dependent test")
+@pytest.mark.skipif(_TANGO_MISSING, reason="tango-dependent test")
 @pytest.mark.parametrize(
     "model, expected",
     [
