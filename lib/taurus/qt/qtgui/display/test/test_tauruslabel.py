@@ -199,9 +199,19 @@ def test_instance_format(qtbot, caplog, taurus_test_ds, model, fmt, fg):
         ("eval:Q(5)#rvalue.magnitude", _typeFormatter, "int"),
     ],
 )
-def test_class_format(
-    monkeypatch, qtbot, caplog, taurus_test_ds, model, fmt, fg
-):
+def test_class_format(monkeypatch, qtbot, caplog, model, fmt, fg):
     """Check formatter API at class level"""
     monkeypatch.setattr(TaurusLabel, "FORMAT", fmt)
-    _chek_tauruslabel(qtbot, caplog, taurus_test_ds, model, expected_fg=fg)
+
+    with check_taurus_deprecations(caplog, expected=0):
+        w = TaurusLabel()
+        qtbot.addWidget(w)
+
+        w.setModel(model)
+        w.resetFormat()  # needed to avoid fuzzyness in the tests
+
+        def _ok():
+            """Check text"""
+            assert w.text() == fg
+
+        qtbot.waitUntil(_ok, timeout=3200)
