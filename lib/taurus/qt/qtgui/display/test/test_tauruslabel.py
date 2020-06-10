@@ -92,8 +92,8 @@ def _chek_tauruslabel(
     "model, fgRole, modelIndex, depr, fg",
     [
         # pre-tep14 compat FgRole checks: value, w_value, state, quality, none
-        ("/double_scalar", "value", None, 1, "1.23 mm"),
-        ("/double_scalar", "w_value", None, 1, "0.00 mm"),
+        ("/double_scalar", "value", None, 0, "1.23 mm"),
+        ("/double_scalar", "w_value", None, 0, "0.00 mm"),
         ("/double_scalar", "state", None, 0, "Ready"),
         ("/double_scalar", "quality", None, 0, "ATTR_VALID"),
         ("/double_scalar", "none", None, 0, ""),
