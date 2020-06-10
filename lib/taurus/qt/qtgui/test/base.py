@@ -55,8 +55,9 @@ def taurus_widget_set_models(klass, qtbot, caplog, depr=0, models=[]):
 
 
 class BaseWidgetTestCase(object):
-
     '''
+    DEPRECATED: use pytest-qt instead of this
+
     A base class for tests that need a widget instance
 
     To use it, simply inherit from BaseWidgetTestCase *and* unittest.TestCase
@@ -80,6 +81,10 @@ class BaseWidgetTestCase(object):
           - The widget must be instantiated
 
         """
+        from taurus.core.util import deprecated
+        deprecated(dep="BaseWidgetTestCase", alt="pytest-qt", rel="4.6.5")
+        raise unittest.SkipTest("*WidgetTestCase is deprecated. Use pytest-qt")
+
         unittest.TestCase.setUp(self)
 
         from taurus.core.util.log import _DEPRECATION_COUNT
@@ -112,8 +117,10 @@ class BaseWidgetTestCase(object):
 
 
 class GenericWidgetTestCase(BaseWidgetTestCase):
+    '''
+    DEPRECATED: use pytest-qt instead of this
 
-    '''a base class for testing common cases of arbitrary Taurus widget classes
+    a base class for testing common cases of arbitrary Taurus widget classes
 
     To use it, simply inherit from GenericWidgetTestCase *and* unittest.TestCase
     and provide the following class members:
@@ -139,6 +146,13 @@ class GenericWidgetTestCase(BaseWidgetTestCase):
             None should be used as a placeholder when a model cannot be created
             for a given modelname.
         """
+        from taurus.core.util import deprecated
+        deprecated(
+            dep="GenericWidgetTestCase",
+            alt="taurus_widget_set_models and pytest-qt",
+            rel="4.6.5"
+        )
+
         # Make sure the basics are taken care of (QApplication, etc)
         BaseWidgetTestCase.setUp(self)
 
