@@ -26,7 +26,6 @@
 """Common tools and fixtures for using with taurus and pytest"""
 
 import contextlib
-import functools
 
 
 @contextlib.contextmanager
@@ -50,5 +49,3 @@ def check_taurus_deprecations(caplog, expected=0):
     n = len(deps)
     msg = "{} Deprecation Warnings ({} expected)".format(n, expected)
     assert len(deps) == expected, msg
-
-

@@ -486,6 +486,11 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         """Reset auto-trimming to its default value"""
         self.setAutoTrim(self.DefaultAutoTrim)
 
+    def resetFormat(self):
+        """reimplement to update controller if format is changed"""
+        TaurusBaseWidget.resetFormat(self)
+        self.controllerUpdate()
+
     def displayValue(self, v):
         """Reimplementation of displayValue for TaurusLabel"""
         if self._permanentText is None:
