@@ -30,40 +30,6 @@ from taurus.qt.qtgui.panel import TaurusForm, TaurusAttrForm, TaurusValue
 from taurus.core.util.test.test_plugin import mock_entry_point
 
 
-class TaurusFormTest(GenericWidgetTestCase, unittest.TestCase):
-    """
-    Generic tests for TaurusForm widget.
-
-    .. seealso: :class:`taurus.qt.qtgui.test.base.GenericWidgetTestCase`
-    """
-    _klass = TaurusForm
-    modelnames = [['sys/tg_test/1'],
-                  ['sys/tg_test/1/wave'],
-                  [],
-                  '',
-                  ['eval:1'],
-                  None,
-                  ['sys/tg_test/1/%s' % a for a in (
-                   'short_scalar', 'double_array',
-                   'uchar_image_ro', 'string_spectrum',
-                   'no_value', 'throw_exception')],
-                  [''],
-                  'sys/tg_test/1,eval:1',
-                  'sys/tg_test/1/short_image eval:rand(16)',
-                  [None]
-                  ]
-
-
-class TaurusAttrFormTest(GenericWidgetTestCase, unittest.TestCase):
-    """
-    Generic tests for TaurusAttrForm widget.
-
-    .. seealso: :class:`taurus.qt.qtgui.test.base.GenericWidgetTestCase`
-    """
-    _klass = TaurusAttrForm
-    modelnames = ['sys/tg_test/1', None]
-
-
 class _DummyTV(TaurusValue):
     pass
 

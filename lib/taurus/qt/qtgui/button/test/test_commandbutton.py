@@ -28,9 +28,7 @@
 
 
 import pytest
-from functools import partial
 from taurus.qt.qtgui.button import TaurusCommandButton
-from taurus.qt.qtgui.test.base import taurus_widget_set_models
 from taurus.external.qt import Qt
 
 try:

@@ -33,16 +33,21 @@ import taurus
 from taurus.test.pytest import check_taurus_deprecations
 
 
-EMPTY = ''
-TGT = 'tango:sys/tg_test/1'
 DB = 'sys/database/2'
-TGT_F_SC = 'tango:sys/tg_test/1/'
-TGT_F_SP = 'tango:sys/tg_test/1/'
-TGT_WAVE = 'tango:sys/tg_test/1/wave'
+TGT = 'tango:sys/tg_test/1'
+TGT_FL_SC = TGT + '/float_scalar'
+TGT_FL_SP = TGT + '/float_spectrum'
+TGT_SH_SC = TGT + '/short_scalar'
+TGT_UC_IM = TGT + '/uchar_image_ro'
+TGT_ST_SP = TGT + '/string_spectrum'
+TGT_WAVE = TGT + '/wave'
+TGT_NOVAL = TGT + '/no_value'
+TGT_EXC = TGT + '/throw_exception'
 EV_INT = 'eval:123'
 EV_Q = 'eval:1.23*UR.mV'
+EV_RND5 = 'eval:rand(5)'
 
-# TODO: create model objects in setup_module to speed up
+# TODO: create and keep model objects in setup_module to speed up
 
 
 def _import_obj(obj_str, package="taurus.qt.qtgui"):
@@ -61,6 +66,20 @@ def _import_obj(obj_str, package="taurus.qt.qtgui"):
     [
         (".display:TaurusLabel", 0, [TGT_WAVE, "", EV_INT, None]),
         (".button:TaurusCommandButton", 0, [TGT, "", DB, None]),
+        (".panel:TaurusAttrForm", 0, [TGT, "", DB, None]),
+        (".panel:TaurusForm", 0, [
+                  [TGT],
+                  [TGT_WAVE],
+                  [],
+                  "",
+                  [EV_INT],
+                  None,
+                  [TGT_SH_SC, TGT_UC_IM, TGT_ST_SP, TGT_NOVAL, TGT_EXC],
+                  [""],
+                  ",".join((TGT, EV_INT)),
+                  " ".join((TGT_UC_IM, EV_RND5)),
+                  [None]
+        ]),
     ]
 )
 def test_set_models(qtbot, caplog, widgetname, depr, models):
@@ -79,6 +98,9 @@ def test_set_models(qtbot, caplog, widgetname, depr, models):
             if not model:
                 model_obj = None
             else:
-                model_obj = taurus.Object(model)
+                try:
+                    model_obj = taurus.Object(model)
+                except:  # allow non-string models (e.g. lists of models)
+                    model_obj = None
             w.setModel(model)
             assert w.getModelObj() == model_obj
