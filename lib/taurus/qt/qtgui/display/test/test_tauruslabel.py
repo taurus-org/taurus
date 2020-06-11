@@ -58,6 +58,9 @@ def _chek_tauruslabel(
     expected_bg=None,
 ):
     """Check the label foreground and background"""
+    # TODO: these tests are not properly isolated. For example, the
+    #       parameterization testing fgrole="quality" fails in PySide2
+    #       if it is called after another parameterization.
     if expected_fg is None and expected_bg is None:
         raise ValueError("expected_fg or expected_bg must not be None")
     with check_taurus_deprecations(caplog, expected=depr):
@@ -92,10 +95,10 @@ def _chek_tauruslabel(
     "model, fgRole, modelIndex, depr, fg",
     [
         # pre-tep14 compat FgRole checks: value, w_value, state, quality, none
+        ("/double_scalar", "quality", None, 0, "ATTR_VALID"),
         ("/double_scalar", "value", None, 0, "1.23 mm"),
         ("/double_scalar", "w_value", None, 0, "0.00 mm"),
         ("/double_scalar", "state", None, 0, "Ready"),
-        ("/double_scalar", "quality", None, 0, "ATTR_VALID"),
         ("/double_scalar", "none", None, 0, ""),
         # fragment and modelIndex checks
         ("/double_scalar#label", None, None, 0, "double_scalar"),
