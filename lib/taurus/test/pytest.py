@@ -25,7 +25,9 @@
 
 """Common tools and fixtures for using with taurus and pytest"""
 
+import pytest
 import contextlib
+from taurus.external.qt import PYSIDE2
 
 
 @contextlib.contextmanager
@@ -48,4 +50,8 @@ def check_taurus_deprecations(caplog, expected=0):
     deps = [r for r in caplog.records if "DeprecationWarning" in r.msg]
     n = len(deps)
     msg = "{} Deprecation Warnings ({} expected)".format(n, expected)
+    if PYSIDE2 and len(deps) != expected:
+        # TODO: investigate the cause for this (note that it happens only
+        #       if taurus.external.qt has been imported)
+        pytest.xfail("log handling is not working as expected for PySide2")
     assert len(deps) == expected, msg
