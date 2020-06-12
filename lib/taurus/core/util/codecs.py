@@ -602,7 +602,7 @@ class VideoImageCodec(Codec):
 
         if header['imageMode'] == 6:
             # RGB24, 3 bytes per pixel
-            rgba = numpy.fromstring(imgBuffer, dtype)
+            rgba = numpy.frombuffer(imgBuffer, dtype)
             bbuf = rgba[0::3]
             gbuf = rgba[1::3]
             rbuf = rgba[2::3]
@@ -613,7 +613,7 @@ class VideoImageCodec(Codec):
 
         elif header['imageMode'] == 7:
             # RGBA 4 bytes per pixel
-            rgba = numpy.fromstring(imgBuffer, dtype)
+            rgba = numpy.frombuffer(imgBuffer, dtype)
             bbuf = rgba[0::4]
             gbuf = rgba[1::4]
             rbuf = rgba[2::4]
@@ -626,7 +626,7 @@ class VideoImageCodec(Codec):
 
         elif header['imageMode'] == 17:
             # YUV444 3 bytes per pixel
-            yuv = numpy.fromstring(imgBuffer, dtype)
+            yuv = numpy.frombuffer(imgBuffer, dtype)
             y = yuv[0::3]
             u = yuv[1::3]
             v = yuv[2::3]
@@ -643,7 +643,7 @@ class VideoImageCodec(Codec):
 
         elif header['imageMode'] == 16:
             # YUV422 4 bytes per 2 pixels
-            yuv = numpy.fromstring(imgBuffer, dtype)
+            yuv = numpy.frombuffer(imgBuffer, dtype)
             u = yuv[0::4]
             y1 = yuv[1::4]
             v = yuv[2::4]
@@ -670,7 +670,7 @@ class VideoImageCodec(Codec):
 
         elif header['imageMode'] == 15:
             # YUV411 6 bytes per 4 pixels
-            yuv = numpy.fromstring(imgBuffer, dtype)
+            yuv = numpy.frombuffer(imgBuffer, dtype)
             u = yuv[0::6]
             y1 = yuv[1::6]
             y2 = yuv[2::6]
@@ -699,7 +699,7 @@ class VideoImageCodec(Codec):
             img2D = numpy.dstack((r, g, b))
 
         else:
-            img1D = numpy.fromstring(imgBuffer, dtype)
+            img1D = numpy.frombuffer(imgBuffer, dtype)
             img2D = img1D.reshape(header['height'], header['width'])
 
         return fmt, img2D
