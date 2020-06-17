@@ -110,7 +110,7 @@ def get_taurus_parser(parser=None):
                                      "Basic options present in any taurus application")
 
         help_tauruslog = "taurus log level. Allowed values are (case insensitive): critical, "\
-                         "error, warning/warn, info, debug, trace"
+                         "error, warning, info, debug, trace"
         help_tangohost = "Tango host name (either HOST:PORT or a Taurus URI, e.g. tango://foo:1234)"
         help_tauruspolling = "taurus global polling period in milliseconds"
         help_taurusserial = "taurus serialization mode. Allowed values are (case insensitive): "\

@@ -39,7 +39,10 @@ import re
 import os
 import subprocess
 import traceback
-import collections
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 
 from future.utils import string_types
 from queue import Queue
@@ -153,7 +156,7 @@ class TaurusGraphicsUpdateThread(Qt.QThread):
                     break
                 else:
                     continue
-            if not isinstance(item, collections.Sequence):
+            if not isinstance(item, Sequence):
                 item = (item,)
             # @todo: Unless the call to boundingRect() has a side effect, this line is useless..  probably related to todo in _updateView()
             item_rects = [i.boundingRect() for i in item]
@@ -365,7 +368,7 @@ class TaurusGraphicsScene(Qt.QGraphicsScene):
 
         strict = (
             not self.ANY_ATTRIBUTE_SELECTS_DEVICE) if strict is None else strict
-        alnum = '(?:[a-zA-Z0-9-_\*]|(?:\.\*))(?:[a-zA-Z0-9-_\*]|(?:\.\*))*'
+        alnum = r'(?:[a-zA-Z0-9-_\*]|(?:\.\*))(?:[a-zA-Z0-9-_\*]|(?:\.\*))*'
         target = str(item_name).strip().split()[0].lower().replace(
             '/state', '')  # If it has spaces only the first word is used
         # Device names should match also its attributes or only state?

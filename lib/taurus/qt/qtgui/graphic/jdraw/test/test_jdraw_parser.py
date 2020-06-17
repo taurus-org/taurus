@@ -1,5 +1,8 @@
 import os
-from taurus.qt.qtgui.application import TaurusApplication
+from taurus.external.qt.QtCore import PYSIDE2
+import pytest
+
+
 from taurus.qt.qtgui.graphic.jdraw import (
     TaurusJDrawGraphicsFactory,
     jdraw_parser
@@ -7,12 +10,8 @@ from taurus.qt.qtgui.graphic.jdraw import (
 from taurus.qt.qtgui.graphic import TaurusGraphicsScene
 
 
-app = TaurusApplication.instance()
-if app is None:
-    app = TaurusApplication([], cmd_line_parser=None)
-
-
-def test_jdraw_parser():
+@pytest.mark.skipif(PYSIDE2, reason="Avoid segfault when using PySide2")
+def test_jdraw_parser(qtbot):
     """Check that jdraw_parser does not break with JDBar elements"""
     fname = os.path.join(os.path.dirname(__file__), "res", "bug1077.jdw")
     factory = TaurusJDrawGraphicsFactory(None)

@@ -64,7 +64,7 @@ class ExpertWidgetChooserDlg(Qt.QDialog):
         # subwidgets
         self.moduleNameLE = Qt.QLineEdit()
         self.moduleNameLE.setValidator(Qt.QRegExpValidator(
-            Qt.QRegExp('[a-zA-Z0-9\.\_]*'), self.moduleNameLE))
+            Qt.QRegExp(r'[a-zA-Z0-9\.\_]*'), self.moduleNameLE))
         self.membersCB = Qt.QComboBox()
         self.dlgBox = Qt.QDialogButtonBox(
             Qt.QDialogButtonBox.Ok | Qt.QDialogButtonBox.Cancel)

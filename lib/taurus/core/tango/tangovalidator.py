@@ -52,7 +52,7 @@ class TangoAuthorityNameValidator(TaurusAuthorityNameValidator):
     '''
 
     scheme = 'tango'
-    authority = '//(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
+    authority = r'//(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
     path = '(?!)'
     query = '(?!)'
     fragment = '(?!)'
@@ -181,7 +181,7 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
                   r'(?P<path>%(path)s)' + \
                   r'(\?(?P<query>%(query)s))?' + \
                   r'(#%(fragment)s)?$'
-        authority = '(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
+        authority = r'(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
         path = '/?(?P<devname>((?P<_devalias>([^/?#:]+))|' + \
                '(?P<_devslashname>[^/?#:]+/[^/?#:]+/[^/?#:]+)))'
 
@@ -267,7 +267,7 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
                   r'(?P<path>%(path)s)' + \
                   r'(\?(?P<query>%(query)s))?' + \
                   r'(#%(fragment)s)?$'
-        authority = '(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
+        authority = r'(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
         query = 'configuration(=(?P<fragment>(?P<cfgkey>[^# ]+)))?'
 
         return pattern % dict(scheme=self.scheme,

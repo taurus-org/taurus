@@ -1,63 +1,72 @@
 from taurus.qt.qtgui.application import TaurusApplication
 from taurus.qt.qtgui.input import TaurusValueComboBox
+from taurus.core.units import UR
 import taurus
+import pytest
+from taurus.external.qt import PYSIDE2
 
-def test_TaurusValueCombobox():
+
+@pytest.mark.parametrize(
+    "model,names,value,expected",
+    [
+        # test with quantities
+        ('eval:@taurus.core.evaluation.test.res.mymod.MyClass()/self.foo',
+         [("A", 1234), ("B", "123"), ("C", 123 * UR.mm), ("E", -123)],
+         123 * UR.mm,
+         "C",
+         ),
+        # test with a boolean
+        ('sys/tg_test/1/boolean_scalar',
+         [("N", None), ("F", False), ("T", True)],
+         False,
+         "F",
+         ),
+        # test with a boolean spectrum
+        ('sys/tg_test/1/boolean_spectrum',
+         [
+             ("A", False),
+             ("B", [False, False, False]),
+             ("C", [False, True, False]),
+         ],
+         [False, True, False],
+         "C",
+         ),
+        # test with a string
+        ('sys/tg_test/1/string_scalar',
+         [("A", "foobarbaz"), ("B", "FOOBAR"), ("C", "foobar")],
+         "foobar",
+         "C",
+         ),
+        # test non-match
+        ('sys/tg_test/1/string_scalar',
+         [("A", "foobarbaz"), ("B", "FOOBAR"), ("C", "foobar")],
+         "foo",
+         "",
+         ),
+    ]
+)
+def test_TaurusValueCombobox(qtbot, model, names, value, expected):
     """Check that the TaurusValueComboBox is started with the right display
     See https://github.com/taurus-org/taurus/pull/1032
     """
-    # TODO: Parameterize this test
-    app = TaurusApplication.instance()
-    if app is None:
-        app = TaurusApplication(cmd_line_parser=None)
-
-    # test with a pint quantity
-    model = 'sys/tg_test/1/short_scalar'
     a = taurus.Attribute(model)
-    units = a.write(123).wvalue.units
+    a.write(value)
     w = TaurusValueComboBox()
-    names = [("A", 1234), ("B", "123"), ("C", 123 * units), ("E", -123)]
+    qtbot.addWidget(w)
+    # ----------------------------------
+    # workaround: avoid PySide2 segfaults when adding quantity to combobox
+    # https://bugreports.qt.io/browse/PYSIDE-683
+    if isinstance(value, UR.Quantity) and PYSIDE2:
+        pytest.skip("avoid segfault due to PYSIDE-683 bug")
+    # ----------------------------------
     w.addValueNames(names)
-    w.setModel(model)
-    assert(w.currentText() == "C")
-
-    # test with a boolean (using quantities)
-    model = 'sys/tg_test/1/boolean_scalar'
-    a = taurus.Attribute(model)
-    a.write(False)
-    w = TaurusValueComboBox()
-    w.addValueNames([("N", None), ("F", False), ("T", True)])
-    w.setModel(model)
-    assert (w.currentText() == "F")
-
-    # test with a spectrum
-    model = 'sys/tg_test/1/boolean_spectrum'
-    a = taurus.Attribute(model)
-    a.write([False, True, False])
-    w = TaurusValueComboBox()
-    w.addValueNames([
-        ("A", False),
-        ("B", [False, False, False]),
-        ("C", [False, True, False]),
-    ])
-    w.setModel(model)
-    assert (w.currentText() == "C")
-
-    # test with strings
-    model = 'sys/tg_test/1/string_scalar'
-    a = taurus.Attribute(model)
-    a.write("foobar")
-    w = TaurusValueComboBox()
-    w.addValueNames([("A", "foobarbaz"), ("B", "FOOBAR"), ("C", "foobar")])
-    w.setModel(model)
-    assert (w.currentText() == "C")
-
-    # test non-match
-    model = 'sys/tg_test/1/string_scalar'
-    a = taurus.Attribute(model)
-    a.write("foo")
-    w = TaurusValueComboBox()
-    w.addValueNames([("A", "foobarbaz"), ("B", "FOOBAR"), ("C", "foobar")])
-    w.setModel(model)
-    assert (w.currentText() == "")
-    w.setModel(None)
+    qtbot.wait_until(lambda: w.count() == len(names), timeout=3200)
+    try:
+        with qtbot.waitSignal(w.valueChangedSignal, timeout=3200):
+            w.setModel(model)
+        assert w.currentText() == expected
+    finally:
+        del a
+        # set model to None as an attempt to avoid problems in atexit()
+        with qtbot.waitSignal(w.valueChangedSignal, timeout=3200):
+            w.setModel(None)

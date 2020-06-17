@@ -102,7 +102,7 @@ class ThreadPool(Logger):
         self.accept = False
         while True:
             for w in self.workers:
-                if w.isAlive():
+                if w.is_alive():
                     self.jobs.put(self.NoJob)
                     break
             else:

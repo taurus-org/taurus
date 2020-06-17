@@ -31,7 +31,10 @@ from future.utils import string_types
 
 import os
 import imp
-import collections
+try:
+    from collections.abc import Mapping
+except ImportError:  # bck-compat py 2.7
+    from collections import Mapping
 
 from taurus.core.taurushelper import Manager
 from taurus.core.util.singleton import Singleton
@@ -85,7 +88,7 @@ class ResourcesFactory(Singleton, TaurusFactory, Logger):
         """
         if priority < 1:
             raise ValueError('priority must be >=1')
-        if isinstance(obj, collections.Mapping):
+        if isinstance(obj, Mapping):
             name = name or 'DICT%02d' % priority
         elif type(obj) in (str,) or obj is None:
             name, mod = self.__reloadResource(obj)

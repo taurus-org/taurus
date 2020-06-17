@@ -23,5 +23,31 @@
 ##
 #############################################################################
 
-from __future__ import absolute_import
-from .tgtestds import TangoSchemeTestLauncher, taurus_test_ds
+from taurus.core.util.log import deprecated
+import pytest
+from .pytest import check_taurus_deprecations
+
+
+def test_deprecations(caplog):
+    """Test the check_taurus_deprecations context manager"""
+
+    with check_taurus_deprecations(caplog, expected=1):
+        deprecated(dep="foo", alt="bar")
+
+    with check_taurus_deprecations(caplog):
+        pass
+
+    with check_taurus_deprecations(caplog, expected=0):
+        pass
+
+    with pytest.raises(AssertionError):
+        with check_taurus_deprecations(caplog, expected=1):
+            pass
+
+    with pytest.raises(AssertionError):
+        with check_taurus_deprecations(caplog, expected=0):
+            deprecated(dep="foo", alt="bar")
+
+    with pytest.raises(AssertionError):
+        with check_taurus_deprecations(caplog, expected=10):
+            deprecated(dep="foo", alt="bar")

@@ -17,6 +17,6 @@ if PYQT5:
 elif PYQT4:
     from PyQt4.QtDesigner import *
 else:
-    raise PythonQtError('No Qt bindings could be found')
+    raise PythonQtError('No compatible Qt bindings could be found')
 
 del PYQT4, PYQT5, PythonQtError

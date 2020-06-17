@@ -14,19 +14,19 @@ env:
 
 matrix:
   include:
-    - env: TOXENV=flake8
-    - env: TOXENV=py27-qt4
-    - env: TOXENV=py27-qt5
+    #- env: TOXENV=flake8
+    #- env: TOXENV=py27-qt4
+    #- env: TOXENV=py27-qt5
     - env: TOXENV=py35-qt5
     - env: TOXENV=py36-qt5
     - env: TOXENV=py37-qt5
     - env: TOXENV=py37-ps2
     - env: TOXENV=py37-qt5-docs
   allow_failures:
-    - env: TOXENV=flake8
-    - env: TOXENV=py27-qt4
-    - env: TOXENV=py27-qt5
-    - env: TOXENV=py35-qt5
+    #- env: TOXENV=flake8
+    #- env: TOXENV=py27-qt4
+    #- env: TOXENV=py27-qt5
+    #- env: TOXENV=py35-qt5
 
 before_install:
   # install conda

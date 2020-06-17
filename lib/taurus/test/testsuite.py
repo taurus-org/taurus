@@ -111,7 +111,7 @@ def run(disableLogger=True, exclude_pattern='(?!)'):
 @click.option(
     '-e', '--exclude-pattern', 'exclude_pattern',
     default='(?!)',
-    help="""regexp pattern matching test ids to be excluded.
+    help=r"""regexp pattern matching test ids to be excluded.
     (e.g. 'taurus\.core\..*' would exclude taurus.core tests)
     """
 )
@@ -121,7 +121,7 @@ def testsuite_cmd(gui_tests, exclude_pattern):
 
     taurus.test.skip.GUI_TESTS_ENABLED = gui_tests
     if not taurus.test.skip.GUI_TESTS_ENABLED:
-        exclude_pattern = '(taurus\.qt\..*)|(%s)' % exclude_pattern
+        exclude_pattern = r'(taurus\.qt\..*)|(%s)' % exclude_pattern
     else:
         exclude_pattern = exclude_pattern
 

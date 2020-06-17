@@ -56,7 +56,7 @@ from taurus.core.taurusmanager import TaurusManager
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.panel import TaurusValue
 
-metachars = re.compile('([.][*])|([.][^*])|([$^+\-?{}\[\]|()])')
+metachars = re.compile(r'([.][*])|([.][^*])|([$^+\-?{}\[\]|()])')
 
 
 def re_search_low(regexp, target):
@@ -151,7 +151,7 @@ def get_readwrite_models(expressions, limit=1000):
     # self.debug( 'In TaurusGrid.get_all_models(%s:"%s") ...' % (type(expressions),expressions))
     if isinstance(expressions, string_types):
         if any(re.match(s, expressions) for s in
-               ('\{.*\}', '\(.*\)', '\[.*\]')):
+               (r'\{.*\}', r'\(.*\)', r'\[.*\]')):
             # self.trace( 'evaluating expressions ....')
             expressions = list(eval(expressions))
         else:

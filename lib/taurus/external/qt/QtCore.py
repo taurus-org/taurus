@@ -50,7 +50,17 @@ elif PYSIDE2:
     from PySide2.QtCore import *
     from PySide2.QtCore import Signal as pyqtSignal
     from PySide2.QtCore import Slot as pyqtSlot
-    from PySide2.QtCore import Property as pyqtProperty
+
+    # ------------------------------------------------
+    # Calling Property with doc="" produces segfaults in the tests.
+    # As a workaround, just remove the doc kwarg. Note this is an ad-hoc
+    # workaround: I could not find the API definition for
+    # PySide.QtCore.Property in order to do a more complete mock
+    def pyqtProperty(*args, **kwargs):
+        kwargs.pop('doc', None)
+        return Property(*args, **kwargs)
+    # -------------------------------------------------
+
     try:  # may be limited to PySide-5.11a1 only
         from PySide2.QtGui import QStringListModel
     except:

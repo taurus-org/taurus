@@ -230,16 +230,16 @@ class Properties(object):
         # Java escapes the '=' and ':' in the value
         # string with backslashes in the store method.
         # So let us do the same.
-        newvalue = value.replace(':', '\:')
-        newvalue = newvalue.replace('=', '\=')
+        newvalue = value.replace(':', r'\:')
+        newvalue = newvalue.replace('=', r'\=')
 
         return newvalue
 
     def unescape(self, value):
 
         # Reverse of escape
-        newvalue = value.replace('\:', ':')
-        newvalue = newvalue.replace('\=', '=')
+        newvalue = value.replace(r'\:', ':')
+        newvalue = newvalue.replace(r'\=', '=')
 
         return newvalue
 

@@ -87,7 +87,7 @@ if __name__ == '__main__':
         # test with an existent host in your domain
         print(socket.gethostbyname_ex(name))
         print("socket.getfqdn:", socket.getfqdn(name))
-        assert re.match(name + "\.[a-zA-Z0-9\.-]+", fqdn_no_alias(name))
+        assert re.match(name + r"\.[a-zA-Z0-9\.-]+", fqdn_no_alias(name))
 
 
     test_fqdn_no_alias()

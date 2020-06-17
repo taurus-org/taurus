@@ -31,7 +31,10 @@ from future.utils import string_types
 from builtins import map
 from builtins import range
 import textwrap
-import collections
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 from future.utils import string_types
 from .enums import Alignment
 
@@ -87,7 +90,7 @@ class List(list):
     def setMaxColumnWidth(self, max_col_width):
         if max_col_width is None:
             max_col_width = -1
-        if not isinstance(max_col_width, collections.Sequence):
+        if not isinstance(max_col_width, Sequence):
             max_col_width = self.col_nb * [max_col_width]
         self.MaxColumnWidth = max_col_width
 
@@ -97,7 +100,7 @@ class List(list):
     max_column_width = property(getMaxColumnWidth, setMaxColumnWidth)
 
     def setTextAlignment(self, text_alignment):
-        if not isinstance(text_alignment, collections.Sequence):
+        if not isinstance(text_alignment, Sequence):
             text_alignment = self.col_nb * [text_alignment]
         self.TextAlignment = text_alignment
 
