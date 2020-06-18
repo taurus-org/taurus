@@ -28,11 +28,14 @@ develop branch) won't be reflected in this file.
 - Modules registered with `"taurus.qt.qtgui"` entry-point are now lazy-loaded (#1090)
 - The control over which custom widgets are to be used in a TaurusForm is now
   done by registering factories to `"taurus.form.item_factories"` entry-point (#1108)
+- Qt unit tests reimplemented using pytest-qt (#1114)
 
 ### Deprecated
 - `TaurusBaseWidget.showFormatterDlg()` (#1039)
 - Custom widget API in TaurusForm, TaurusValue and TaurusGui (#1108)
 - `tauruscustomsettings.T_FORM_CUSTOM_WIDGET_MAP` (#1108)
+- `BaseWidgetTestCase` and `GenericWidgetTestCase` (#1114)
+- `TimeOut` Device Server (#1114)
 
 ### Fixed
 - Several issues in TaurusWheelEdit (#1010, #1021)
@@ -44,7 +47,7 @@ develop branch) won't be reflected in this file.
 - Exception in DelayedSubscriber (#1030)
 - Compatibility issue in deprecated TangoAttribute's `isScalar()` and `isSpectrum()` (#1034)
 - Some issues in taurus v3 to v4 migration support (#1059)
-- Some CI test issues (#1075, #1069, #1109)
+- Some CI test issues (#1075, #1069, #1109, #1114)
 
 ## [4.6.1] - 2019-08-19
 Hotfix for auto-deployment in PyPI with Travis. No other difference from 4.6.0.
