@@ -77,6 +77,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         self._enableWheelEvent = False
         self._last_value = None
         self._singleStep = 1.
+        self._allow_auto_enable = True
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
@@ -146,7 +147,10 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             except Exception as e:
                 self.info('Failed attempt to initialize value: %r', e)
 
-        self.setEnabled(evt_type != TaurusEventType.Error)
+        if self._allow_auto_enable:
+            # use QLineEdit.setEnabled in order to avoid changing
+            # _allow_auto_enable status
+            Qt.QLineEdit.setEnabled(self, evt_type != TaurusEventType.Error)
 
         if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self._updateValidator(evt_value)
@@ -156,6 +160,14 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
         if evt_type == TaurusEventType.Error:
             self.updateStyle()
+
+    def setEnabled(self, enabled):
+        """Reimplement from :class:`QLineEdit` to avoid autoenabling if the
+        widget is explicitly disabled (but allow auto-disabling if the
+        widget is explicitly enabled)
+        """
+        self._allow_auto_enable = enabled
+        return Qt.QLineEdit.setEnabled(self, enabled)
 
     def isTextValid(self):
         """
