@@ -115,6 +115,10 @@ taurus_subcommands = [
     'plot = taurus.cli.plot:plot_cmd',
 ]
 
+plot_alternatives = [
+    "qwt5 = taurus.qt.qtgui.qwt5:TaurusPlot",
+]
+
 model_selectors = [
     'Tango = taurus.qt.qtgui.panel.taurusmodelchooser:TangoModelSelectorItem',
 ]
@@ -131,6 +135,7 @@ entry_points = {
     'taurus.cli.subcommands': taurus_subcommands,
     'taurus.qt.qtgui.panel.TaurusModelSelector.items': model_selectors,
     'taurus.qt.formatters': formatters,
+    'taurus.alt.plots': plot_alternatives,
 }
 
 classifiers = [
