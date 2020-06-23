@@ -31,6 +31,17 @@ __all__ = ["selectEntryPoints", "EntryPointAlike"]
 
 import re
 import pkg_resources
+try:
+    from re import fullmatch
+except ImportError:  # TODO: remove this when dropping support of py2
+    def fullmatch(regex, string, flags=0):
+        """
+        Emulate python-3.4 re.fullmatch()...  mostly
+        See: https://stackoverflow.com/a/30212414
+        """
+        m = re.match(regex, string, flags=flags)
+        if m and m.span()[1] == len(string):
+            return m
 
 
 class EntryPointAlike(object):
@@ -107,7 +118,7 @@ def selectEntryPoints(group=None, include=('.*',), exclude=()):
 
     # filter out the entry points whose name matches a exclude pattern
     for p in exclude:
-        remaining = [e for e in remaining if not re.fullmatch(p, e.name)]
+        remaining = [e for e in remaining if not fullmatch(p, e.name)]
 
     # sort the remaining entry points alphabetically
     remaining.sort(key=lambda e: e.name)
@@ -131,7 +142,7 @@ def selectEntryPoints(group=None, include=('.*',), exclude=()):
         tmp = remaining
         remaining = []
         for e in tmp:
-            if re.fullmatch(p, e.name):
+            if fullmatch(p, e.name):
                 ret.append(e)
             else:
                 remaining.append(e)
