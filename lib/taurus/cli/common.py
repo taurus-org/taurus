@@ -152,3 +152,17 @@ default_formatter = click.option(
     default=None,
     help="Override the default formatter (use with caution!)",
 )
+
+list_alternatives = click.option(
+    '--ls-alt',
+    is_flag=True,
+    help="List the available alternative implementations",
+)
+
+use_alternative = click.option(
+    '--use-alt',
+    metavar="ALT",
+    type=click.STRING,
+    default=None,
+    help="Use ALT alternative implementation"
+)
