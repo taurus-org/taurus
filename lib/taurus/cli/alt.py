@@ -33,6 +33,7 @@ from taurus.qt.qtgui.application import TaurusApplication
 EP_GROUP_PLOT = "taurus.plot.alts"
 EP_GROUP_TREND = "taurus.trend.alts"
 EP_GROUP_TREND2D = "taurus.trend2d.alts"
+EP_GROUP_IMAGE = "taurus.image.alts"
 
 
 def _print_alts(group):
@@ -307,14 +308,69 @@ def trend2d_cmd(
 
     app = TaurusApplication(app_name="Taurus Trend 2D ({})".format(epname))
     w = TTrend2D(
-        stackMode=x_axis_mode,
-        wintitle=window_name,
-        buffersize=max_buffer_size
+        stackMode=x_axis_mode, wintitle=window_name, buffersize=max_buffer_size
     )
 
     if demo:
-        model = 'eval:x=linspace(0,3,40);t=rand();sin(x+t)'
+        model = "eval:x=linspace(0,3,40);t=rand();sin(x+t)"
 
+    if model:
+        w.setModel(model)
+
+    w.show()
+    sys.exit(app.exec_())
+
+
+@click.command("image")
+@taurus.cli.common.model
+@taurus.cli.common.demo
+@taurus.cli.common.window_name("TaurusImage")
+@taurus.cli.common.use_alternative
+@taurus.cli.common.list_alternatives
+@click.option(
+    "-c",
+    "--color-mode",
+    "color_mode",
+    type=click.Choice(["gray", "rgb"]),
+    default="gray",
+    show_default=True,
+    help=("Color mode expected from the attribute"),
+)
+def image_cmd(model, demo, window_name, color_mode, use_alt, ls_alt):
+    # list alternatives option
+    if ls_alt:
+        _print_alts(EP_GROUP_IMAGE)
+        sys.exit(0)
+
+    # use alternative
+    if use_alt is None:
+        use_alt = getattr(_ts, "IMAGE_IMPL", ".*")
+
+    # get the selected alternative
+    try:
+        TImage, epname = _load_class_from_group(
+            EP_GROUP_IMAGE, include=[use_alt]
+        )
+    except:
+        _print_alts(EP_GROUP_IMAGE)
+        sys.exit(1)
+
+    app = TaurusApplication(app_name="Taurus Image ({})".format(epname))
+
+    rgb_mode = color_mode == "rgb"
+
+    # TODO:  is "-c rgb --demo" doing the right thing?? Check it.
+    if demo:
+        if color_mode == "rgb":
+            model = "eval:randint(0,256,(10,20,3))"
+        else:
+            model = "eval:rand(256,128)"
+
+    w = TImage(wintitle=window_name)
+
+    w.setRGBmode(rgb_mode)
+
+    # set model
     if model:
         w.setModel(model)
 
