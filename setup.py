@@ -112,11 +112,16 @@ taurus_subcommands = [
     'logmon = taurus.core.util.remotelogmonitor:logmon_cmd',
     'qlogmon = taurus.qt.qtgui.table.qlogtable:qlogmon_cmd',
     'check-deps = taurus.core.taurushelper:check_dependencies_cmd',
-    'plot = taurus.cli.plot:plot_cmd',
+    'plot = taurus.cli.alt:plot_cmd',
+    'trend = taurus.cli.alt:trend_cmd',
 ]
 
 plot_alternatives = [
     "qwt5 = taurus.qt.qtgui.qwt5:TaurusPlot",
+]
+
+trend_alternatives = [
+    "qwt5 = taurus.qt.qtgui.qwt5:TaurusTrend",
 ]
 
 model_selectors = [
@@ -135,7 +140,8 @@ entry_points = {
     'taurus.cli.subcommands': taurus_subcommands,
     'taurus.qt.qtgui.panel.TaurusModelSelector.items': model_selectors,
     'taurus.qt.formatters': formatters,
-    'taurus.alt.plots': plot_alternatives,
+    'taurus.plot.alts': plot_alternatives,
+    'taurus.trend.alts': trend_alternatives,
 }
 
 classifiers = [
