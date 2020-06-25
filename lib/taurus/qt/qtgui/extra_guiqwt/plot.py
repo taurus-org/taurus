@@ -29,7 +29,6 @@ Extension of :mod:`guiqwt.plot`
 from builtins import next
 from builtins import str
 
-import click
 import copy
 
 from future.utils import string_types
@@ -628,48 +627,3 @@ def taurusTrendDlgMain():
     w.show()
     sys.exit(app.exec_())
 
-
-@click.command('image')
-@taurus.cli.common.model
-@taurus.cli.common.demo
-@taurus.cli.common.window_name('TaurusPlot (qwt5)')
-@click.option(
-    '-c', '--color-mode', 'color_mode',
-    type=click.Choice(['gray', 'rgb']),
-    default='gray',
-    show_default=True,
-    help=('Color mode expected from the attribute'),
-)
-def image_cmd(model, demo, window_name, color_mode):
-    from taurus.qt.qtgui.application import TaurusApplication
-    import sys
-
-    app = TaurusApplication(cmd_line_parser=None,
-                            app_name="Taurus Image Dialog")
-
-    rgb_mode = (color_mode == 'rgb')
-
-    # TODO:  is "-c rgb --demo" doing the right thing?? Check it.
-    if demo:
-        if color_mode == 'rgb':
-            model = 'eval:randint(0,256,(10,20,3))'
-        else:
-            model = 'eval:rand(256,128)'
-
-    w = TaurusImageDialog(wintitle=window_name)
-
-    w.setRGBmode(rgb_mode)
-
-    # set model
-    if model:
-        w.setModel(model)
-
-    w.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    image_cmd()
-    # taurusCurveDlgMain()
-    # taurusTrendDlgMain()
-    # taurusImageDlgMain()

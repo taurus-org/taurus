@@ -22,20 +22,27 @@
 #############################################################################
 
 import click
-
-
-from .plot import image_cmd
-from .taurustrend2d import trend2d_cmd
-
+import sys
 
 @click.group('guiqwt')
 def guiqwt():
-    """guiqwt related commands (image, trend2d)"""
-    pass
+    """[DEPRECATED] use "taurus image" or "taurus trend2d" instead"""
+    print('"taurus guiqwt" subcommand is deprecated. '
+          + 'Use "taurus image" or "taurus trend2d" instead\n')
+    sys.exit(1)
 
 
-guiqwt.add_command(image_cmd)
-guiqwt.add_command(trend2d_cmd)
+@guiqwt.command()
+def image():
+    """[DEPRECATED] use "taurus image" instead"""
+    sys.exit(1)
+
+
+@guiqwt.command()
+def trend2d():
+    """[DEPRECATED] use "taurus trend2d" instead"""
+    sys.exit(1)
+
 
 if __name__ == '__main__':
     guiqwt()
