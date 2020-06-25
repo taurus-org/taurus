@@ -63,7 +63,7 @@ def test_load_onlybad_class_from_group():
     assert "bad = _unimportablemod:Bad" in str(exc_info.value)
 
 
-def test_plot_cmd_ls_alt():
+def test_plot_cmd_options():
     response = runner.invoke(plot_cmd, ["--ls-alt"])
     assert response.exit_code == 0
     assert "Available alternatives" in response.output
@@ -73,6 +73,15 @@ def test_plot_cmd_use_alt():
     response = runner.invoke(plot_cmd, ["--use-alt", "_non_existent_alt_"])
     assert "Available alternatives" in response.output
     assert response.exit_code == 1
+
+    response = runner.invoke(plot_cmd, ["-x", "unsupported"])
+    assert "Invalid value" in response.output
+    assert response.exit_code == 2
+
+    response = runner.invoke(plot_cmd, ["--config", "_non_existent_"])
+    assert "Invalid value" in response.output
+    assert "No such file or directory" in response.output
+    assert response.exit_code == 2
 
 
 def test_plot_cmd_help():
