@@ -23,7 +23,8 @@
 
 import pytest
 from taurus.core.util.test.test_plugin import mock_entry_point
-from taurus.cli.alt import _load_class_from_group, plot_cmd, trend_cmd
+from taurus.cli.alt import (
+    _load_class_from_group, plot_cmd, trend_cmd, trend2d_cmd)
 from click.testing import CliRunner
 
 runner = CliRunner()
@@ -129,6 +130,34 @@ def test_trend_cmd_help():
     assert "-b" in response.output
     assert "--forced-read" in response.output
     assert "-r" in response.output
+    assert "--help" in response.output
+    assert response.exit_code == 0
+
+
+def test_trend2d_cmd_options():
+    response = runner.invoke(trend2d_cmd, ["--ls-alt"])
+    assert response.exit_code == 0
+    assert "Registered alternatives" in response.output
+
+    response = runner.invoke(trend2d_cmd, ["--use-alt", "_non_existent_"])
+    assert "Registered alternatives" in response.output
+    assert response.exit_code == 1
+
+    response = runner.invoke(trend2d_cmd, ["-x", "unsupported"])
+    assert "Invalid value" in response.output
+    assert response.exit_code == 2
+
+
+def test_trend2d_cmd_help():
+    response = runner.invoke(trend2d_cmd, ["--help"])
+    assert "--demo" in response.output
+    assert "--ls-alt" in response.output
+    assert "--use-alt" in response.output
+    assert "--window-name" in response.output
+    assert "--x-axis-mode" in response.output
+    assert "-x" in response.output
+    assert "--buffer" in response.output
+    assert "-b" in response.output
     assert "--help" in response.output
     assert response.exit_code == 0
 

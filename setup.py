@@ -114,6 +114,7 @@ taurus_subcommands = [
     'check-deps = taurus.core.taurushelper:check_dependencies_cmd',
     'plot = taurus.cli.alt:plot_cmd',
     'trend = taurus.cli.alt:trend_cmd',
+    'trend2d = taurus.cli.alt:trend2d_cmd',
 ]
 
 plot_alternatives = [
@@ -122,6 +123,10 @@ plot_alternatives = [
 
 trend_alternatives = [
     "qwt5 = taurus.qt.qtgui.qwt5:TaurusTrend",
+]
+
+trend2d_alternatives = [
+    "guiqwt = taurus.qt.qtgui.extra_guiqwt:TaurusTrend2DDialog",
 ]
 
 model_selectors = [
@@ -142,6 +147,7 @@ entry_points = {
     'taurus.qt.formatters': formatters,
     'taurus.plot.alts': plot_alternatives,
     'taurus.trend.alts': trend_alternatives,
+    'taurus.trend2d.alts': trend2d_alternatives,
 }
 
 classifiers = [

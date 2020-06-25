@@ -32,6 +32,7 @@ from taurus.qt.qtgui.application import TaurusApplication
 
 EP_GROUP_PLOT = "taurus.plot.alts"
 EP_GROUP_TREND = "taurus.trend.alts"
+EP_GROUP_TREND2D = "taurus.trend2d.alts"
 
 
 def _print_alts(group):
@@ -56,17 +57,25 @@ def _load_class_from_group(group, include=(".*",), exclude=()):
     raise ImportError("Could not load any class from {}".format(eps))
 
 
-def x_axis_mode_option(default="n"):
-    x_axis_mode_option = click.option(
+def x_axis_mode_option(choices=("t", "n")):
+    hlp = {
+        "n": "regular axis",
+        "e": "event number",
+        "t": "absolute time/date axis",
+        "d": "delta time axis"
+    }
+    o = click.option(
         "-x",
         "--x-axis-mode",
         "x_axis_mode",
-        type=click.Choice(["t", "n"]),
-        default=default,
+        type=click.Choice(choices),
+        default=choices[0],
         show_default=True,
-        help=('X axis mode. Use "t" for a time axis or "n" for a regular one'),
+        help=("X axis mode: "
+              + ', '.join([k + " for " + hlp[k] for k in choices])
+              )
     )
-    return x_axis_mode_option
+    return o
 
 
 def max_buffer_option(default):
@@ -95,7 +104,7 @@ forced_read_option = click.option(
 @click.command("plot")
 @taurus.cli.common.models
 @taurus.cli.common.config_file
-@x_axis_mode_option("n")
+@x_axis_mode_option(["n", "t"])
 @taurus.cli.common.demo
 @taurus.cli.common.window_name("TaurusPlot")
 @taurus.cli.common.use_alternative
@@ -160,7 +169,7 @@ def plot_cmd(
 @click.command("trend")
 @taurus.cli.common.models
 @taurus.cli.common.config_file
-@x_axis_mode_option("t")
+@x_axis_mode_option(["t", "n"])
 @taurus.cli.common.demo
 @taurus.cli.common.window_name("TaurusTrend")
 @taurus.cli.common.use_alternative
@@ -258,3 +267,56 @@ def trend_cmd(
     w.show()
     sys.exit(app.exec_())
 
+
+@click.command('trend2d')
+@taurus.cli.common.model
+@x_axis_mode_option(["d", "t", "n"])
+@taurus.cli.common.demo
+@taurus.cli.common.window_name("TaurusTrend2D")
+@taurus.cli.common.use_alternative
+@taurus.cli.common.list_alternatives
+@max_buffer_option(512)
+def trend2d_cmd(
+        model,
+        x_axis_mode,
+        demo,
+        window_name,
+        use_alt,
+        ls_alt,
+        max_buffer_size
+):
+
+    # list alternatives option
+    if ls_alt:
+        _print_alts(EP_GROUP_TREND2D)
+        sys.exit(0)
+
+    # use alternative
+    if use_alt is None:
+        use_alt = getattr(_ts, "TREND2D_IMPL", ".*")
+
+    # get the selected alternative
+    try:
+        TTrend2D, epname = _load_class_from_group(
+            EP_GROUP_TREND2D,
+            include=[use_alt]
+        )
+    except:
+        _print_alts(EP_GROUP_TREND2D)
+        sys.exit(1)
+
+    app = TaurusApplication(app_name="Taurus Trend 2D ({})".format(epname))
+    w = TTrend2D(
+        stackMode=x_axis_mode,
+        wintitle=window_name,
+        buffersize=max_buffer_size
+    )
+
+    if demo:
+        model = 'eval:x=linspace(0,3,40);t=rand();sin(x+t)'
+
+    if model:
+        w.setModel(model)
+
+    w.show()
+    sys.exit(app.exec_())

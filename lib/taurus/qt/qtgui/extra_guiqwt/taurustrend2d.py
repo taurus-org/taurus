@@ -74,6 +74,9 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         ImageDialog.__init__(self, parent=parent, toolbar=toolbar,
                              options=defaultOptions, **kwargs)
         TaurusBaseWidget.__init__(self, "TaurusTrend2DDialog")
+        # support x_axis_mode values (map them to stackMode values)
+        stackMode = dict(
+            t='datetime', d='deltatime', e='event').get(stackMode, stackMode)
         self.trendItem = None
         self.buffersize = buffersize
         self._useArchiving = False
@@ -155,9 +158,9 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         """set the type of stack to be used. This determines how X values are
         interpreted:
 
-            - as timestamps ('datetime')
-            - as time deltas ('timedelta')
-            - as event numbers ('event')
+            - as timestamps ('datetime' or 't')
+            - as time deltas ('deltatime' or 'd')
+            - as event numbers ('event' or 'e')
 
         :param mode:(one of 'datetime', 'timedelta' or 'event')
         """
