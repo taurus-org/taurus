@@ -105,7 +105,7 @@ def plot_cmd(
         models.extend(["eval:rand(100)", "eval:0.5*sqrt(arange(100))"])
 
     try:
-        w.set_x_axis_mode(x_axis_mode)
+        w.setXAxisMode(x_axis_mode)
     except Exception as e:
         warning(
             "Could not set X axis mode to '%s' on %s plot. Reason: %s",

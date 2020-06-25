@@ -3568,7 +3568,7 @@ class TaurusPlot(Qwt5.QwtPlot, TaurusBaseWidget):
         '''equivalent to setXIsTime(False)'''
         self.setXIsTime(False)
 
-    def set_x_axis_mode(self, x_axis_mode):
+    def setXAxisMode(self, x_axis_mode):
         """Required generic TaurusPlot API """
         self.setXIsTime(x_axis_mode.lower() == "t")
 
