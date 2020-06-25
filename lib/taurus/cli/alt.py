@@ -63,7 +63,7 @@ def x_axis_mode_option(choices=("t", "n")):
         "n": "regular axis",
         "e": "event number",
         "t": "absolute time/date axis",
-        "d": "delta time axis"
+        "d": "delta time axis",
     }
     o = click.option(
         "-x",
@@ -72,33 +72,39 @@ def x_axis_mode_option(choices=("t", "n")):
         type=click.Choice(choices),
         default=choices[0],
         show_default=True,
-        help=("X axis mode: "
-              + ', '.join([k + " for " + hlp[k] for k in choices])
-              )
+        help=(
+            "X axis mode: "
+            + ", ".join([k + " for " + hlp[k] for k in choices])
+        ),
     )
     return o
 
 
 def max_buffer_option(default):
     o = click.option(
-        '-b', '--buffer', 'max_buffer_size',
+        "-b",
+        "--buffer",
+        "max_buffer_size",
         type=int,
         default=default,
         show_default=True,
-        help=("Maximum number of values to be stacked "
-              + "(when reached, the oldest values will be "
-              + "discarded)"),
-        )
+        help=(
+            "Maximum number of values to be stacked "
+            + "(when reached, the oldest values will be "
+            + "discarded)"
+        ),
+    )
     return o
 
+
 forced_read_option = click.option(
-    '-r',
-    '--forced-read',
-    'forced_read_period',
+    "-r",
+    "--forced-read",
+    "forced_read_period",
     type=int,
     default=-1,
     metavar="MILLISECONDS",
-    help="force re-reading of the attributes every MILLISECONDS ms"
+    help="force re-reading of the attributes every MILLISECONDS ms",
 )
 
 
@@ -111,7 +117,7 @@ forced_read_option = click.option(
 @taurus.cli.common.use_alternative
 @taurus.cli.common.list_alternatives
 def plot_cmd(
-        models, config_file, x_axis_mode, demo, window_name, use_alt, ls_alt
+    models, config_file, x_axis_mode, demo, window_name, use_alt, ls_alt
 ):
     """Shows a plot for the given models"""
 
@@ -123,7 +129,9 @@ def plot_cmd(
         use_alt = getattr(_ts, "PLOT_IMPL", ".*")
 
     try:
-        TPlot, epname = _load_class_from_group(EP_GROUP_PLOT, include=[use_alt])
+        TPlot, epname = _load_class_from_group(
+            EP_GROUP_PLOT, include=[use_alt]
+        )
     except:
         _print_alts(EP_GROUP_PLOT)
         sys.exit(1)
@@ -144,7 +152,7 @@ def plot_cmd(
             'Could not set X axis mode to "%s" on %s plot. Reason: "%s"',
             x_axis_mode,
             epname,
-            e
+            e,
         )
         sys.exit(1)
 
@@ -156,7 +164,7 @@ def plot_cmd(
                 'Could not load config file "%s" on %s plot. Reason: "%s"',
                 config_file,
                 epname,
-                e
+                e,
             )
         sys.exit(1)
 
@@ -175,18 +183,18 @@ def plot_cmd(
 @taurus.cli.common.window_name("TaurusTrend")
 @taurus.cli.common.use_alternative
 @taurus.cli.common.list_alternatives
-@max_buffer_option(None )
+@max_buffer_option(None)
 @forced_read_option
 def trend_cmd(
-        models,
-        config_file,
-        x_axis_mode,
-        demo,
-        window_name,
-        use_alt,
-        ls_alt,
-        max_buffer_size,
-        forced_read_period
+    models,
+    config_file,
+    x_axis_mode,
+    demo,
+    window_name,
+    use_alt,
+    ls_alt,
+    max_buffer_size,
+    forced_read_period,
 ):
     """Shows a trend for the given models"""
 
@@ -202,8 +210,7 @@ def trend_cmd(
     # get the selected alternative
     try:
         TTrend, epname = _load_class_from_group(
-            EP_GROUP_TREND,
-            include=[use_alt]
+            EP_GROUP_TREND, include=[use_alt]
         )
     except:
         _print_alts(EP_GROUP_TREND)
@@ -228,7 +235,7 @@ def trend_cmd(
             'Could not set X axis mode to "%s" on %s plot. Reason: "%s"',
             x_axis_mode,
             epname,
-            e
+            e,
         )
         sys.exit(1)
 
@@ -241,7 +248,7 @@ def trend_cmd(
                 'Could not load config file "%s" on %s plot. Reason: "%s"',
                 config_file,
                 epname,
-                e
+                e,
             )
         sys.exit(1)
 
@@ -253,7 +260,7 @@ def trend_cmd(
             warning(
                 'Could not set max buffer size on %s trend. Reason: "%s"',
                 epname,
-                e
+                e,
             )
         sys.exit(1)
 
@@ -269,7 +276,7 @@ def trend_cmd(
     sys.exit(app.exec_())
 
 
-@click.command('trend2d')
+@click.command("trend2d")
 @taurus.cli.common.model
 @x_axis_mode_option(["d", "t", "n"])
 @taurus.cli.common.demo
@@ -278,13 +285,7 @@ def trend_cmd(
 @taurus.cli.common.list_alternatives
 @max_buffer_option(512)
 def trend2d_cmd(
-        model,
-        x_axis_mode,
-        demo,
-        window_name,
-        use_alt,
-        ls_alt,
-        max_buffer_size
+    model, x_axis_mode, demo, window_name, use_alt, ls_alt, max_buffer_size
 ):
 
     # list alternatives option
@@ -299,8 +300,7 @@ def trend2d_cmd(
     # get the selected alternative
     try:
         TTrend2D, epname = _load_class_from_group(
-            EP_GROUP_TREND2D,
-            include=[use_alt]
+            EP_GROUP_TREND2D, include=[use_alt]
         )
     except:
         _print_alts(EP_GROUP_TREND2D)

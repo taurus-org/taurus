@@ -85,7 +85,7 @@ script::
 import click
 
 
-__levels = ['Critical', 'Error', 'Warning', 'Info', 'Debug', 'Trace']
+__levels = ["Critical", "Error", "Warning", "Info", "Debug", "Trace"]
 try:
     __log_choice = click.Choice(__levels, case_sensitive=False)
 except TypeError:  # click v< 7 does not allow case_sensitive option
@@ -93,60 +93,62 @@ except TypeError:  # click v< 7 does not allow case_sensitive option
 
 
 log_level = click.option(
-    '--log-level', 'log_level',
-    type=__log_choice, default='Info', show_default=True,
-    help='Show only logs with priority LEVEL or above',
+    "--log-level",
+    "log_level",
+    type=__log_choice,
+    default="Info",
+    show_default=True,
+    help="Show only logs with priority LEVEL or above",
 )
 
 config_file = click.option(
-    '--config', 'config_file',
-    type=click.File('rb'),
-    help='Configuration file for initialization',
+    "--config",
+    "config_file",
+    type=click.File("rb"),
+    help="Configuration file for initialization",
 )
+
 
 def window_name(default):
     window_name = click.option(
-        '--window-name', 'window_name',
+        "--window-name",
+        "window_name",
         default=default,
-        help='Name of the window',
+        help="Name of the window",
     )
     return window_name
 
-models = click.argument(
-    'models', nargs=-1,
-)
 
-demo = click.option(
-    "--demo",
-    is_flag=True,
-    help="Show a demo of the widget",
-)
+models = click.argument("models", nargs=-1,)
 
-model = click.argument(
-    'model',
-    nargs=1,
-    required=False,
-)
+demo = click.option("--demo", is_flag=True, help="Show a demo of the widget",)
+
+model = click.argument("model", nargs=1, required=False,)
 
 poll_period = click.option(
-    "--polling-period", "polling_period",
+    "--polling-period",
+    "polling_period",
     type=click.INT,
     metavar="MILLISEC",
     default=None,
-    help='Change the Default Taurus polling period',
+    help="Change the Default Taurus polling period",
 )
 
 serial_mode = click.option(
-    "--serialization-mode", "serialization_mode",
-    type=click.Choice(['Serial', 'Concurrent', 'TangoSerial']),
+    "--serialization-mode",
+    "serialization_mode",
+    type=click.Choice(["Serial", "Concurrent", "TangoSerial"]),
     default=None,
     show_default=True,
-    help=("Set the default Taurus serialization mode for those "
-          + "models that do not explicitly define it)"),
+    help=(
+        "Set the default Taurus serialization mode for those "
+        + "models that do not explicitly define it)"
+    ),
 )
 
 default_formatter = click.option(
-    "--default-formatter", "default_formatter",
+    "--default-formatter",
+    "default_formatter",
     type=click.STRING,
     metavar="FORMATTER",
     default=None,
@@ -154,15 +156,15 @@ default_formatter = click.option(
 )
 
 list_alternatives = click.option(
-    '--ls-alt',
+    "--ls-alt",
     is_flag=True,
     help="List the available alternative implementations",
 )
 
 use_alternative = click.option(
-    '--use-alt',
+    "--use-alt",
     metavar="ALT",
     type=click.STRING,
     default=None,
-    help="Use ALT alternative implementation"
+    help="Use ALT alternative implementation",
 )
