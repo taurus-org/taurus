@@ -14,6 +14,7 @@ Developer's Guide
     Icon guide <icon_guide>
     Core tutorial <core_tutorial>
     Plotting guide <plotting_guide>
+    Plugins <plugins>
     Taurus Custom Settings <tauruscustomsettings>
     Examples <examples>
     API <api/taurus>
