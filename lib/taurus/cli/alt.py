@@ -126,7 +126,7 @@ def plot_cmd(
         sys.exit(0)
 
     if use_alt is None:
-        use_alt = getattr(_ts, "PLOT_IMPL", ".*")
+        use_alt = getattr(_ts, "PLOT_ALT", ".*")
 
     try:
         TPlot, epname = _load_class_from_group(
@@ -205,7 +205,7 @@ def trend_cmd(
 
     # use alternative
     if use_alt is None:
-        use_alt = getattr(_ts, "TREND_IMPL", ".*")
+        use_alt = getattr(_ts, "TREND_ALT", ".*")
 
     # get the selected alternative
     try:
@@ -295,7 +295,7 @@ def trend2d_cmd(
 
     # use alternative
     if use_alt is None:
-        use_alt = getattr(_ts, "TREND2D_IMPL", ".*")
+        use_alt = getattr(_ts, "TREND2D_ALT", ".*")
 
     # get the selected alternative
     try:
@@ -344,7 +344,7 @@ def image_cmd(model, demo, window_name, color_mode, use_alt, ls_alt):
 
     # use alternative
     if use_alt is None:
-        use_alt = getattr(_ts, "IMAGE_IMPL", ".*")
+        use_alt = getattr(_ts, "IMAGE_ALT", ".*")
 
     # get the selected alternative
     try:

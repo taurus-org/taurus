@@ -30,6 +30,23 @@ The idea is that the final user may edit the values here to customize certain
 aspects of Taurus.
 """
 
+#: Widget alternatives. Some widgets may be have alternative implementations
+#: (e.g. the `TaurusPlot` is implemented both by the qwt5 submodule and by the
+#: taurus_pyqtgraph plugin). The different implementations are registered in
+#: entry point groups (`taurus.plot.alt`, `taurus.trend.alt`, ...) and they
+#: are tried in alphabetical order of their registered  entry point names
+#: (the first one that works is used). You can restrict the set of available
+#: implementation alternatives to be tried (or even just select a given
+#: alternative) by setting the corresponding *_ALT variable with a name
+#: regexp pattern that must be matched by the entry point name in order to be
+#: tried. For example, to force the `taurus_pyqtgraph` implementation for the
+#: plots, set `PLOT_ALT = "tpg"`.
+#: Leaving the variable undefined is equivalent to setting it to `".*"`
+PLOT_ALT = ".*"
+TREND_ALT = ".*"
+TREND2D_ALT = ".*"
+IMAGE_ALT = ".*"
+
 #: Default include and exclude patterns for TaurusForm item factories
 #: See `TaurusForm.setItemFactories` docs. By default, all available
 #: factories are enabled (and tried alphabetically)
@@ -43,7 +60,6 @@ T_FORM_COMPACT = False
 #: True makes Taurus only use the strict URI names
 #: False enables a backwards-compatibility mode for pre-sep3 model names
 STRICT_MODEL_NAMES = False
-
 
 #: Lightweight imports:
 #: True enables delayed imports (may break older code).
