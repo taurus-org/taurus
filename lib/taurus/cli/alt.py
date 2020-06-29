@@ -21,6 +21,35 @@
 ##
 #############################################################################
 
+"""
+This module provides several taurus CLI subcommands (plot, trend, image,...)
+that show a widget which may have more than one alternative implementation.
+The available registered implementations for each command can be listed with
+the `--ls-alt` option. Specific implementations can be selected with the
+`--use-alt` option.
+
+These commands also honour the default implementation selection configured in
+:mod:`taurus.tauruscustomsettings` via the `*_ALT` variables
+
+The alternative implementations can be registered using the following
+entry-point group names:
+
+- `taurus.plot.alt`: the loaded object is expected to be a `TaurusPlot`
+  implementation
+
+- `taurus.trend.alt`: the loaded object is expected to be a `TaurusTrend`
+  implementation
+
+- `taurus.trend2d.alt`: the loaded object is expected to be a
+  `TaurusTrend2dDialog` implementation
+
+- `taurus.image.alt`: the loaded object is expected to be a `TaurusImageDialog`
+  implementation
+
+
+.. todo:: explicit the expected API from the loaded alternative implementations
+"""
+
 import sys
 import click
 import taurus.cli.common
