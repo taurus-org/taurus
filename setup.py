@@ -148,7 +148,7 @@ formatters = [
 entry_points = {
     'console_scripts': console_scripts,
     'taurus.cli.subcommands': taurus_subcommands,
-    'taurus.qt.qtgui.panel.TaurusModelSelector.items': model_selectors,
+    'taurus.model_selector.items': model_selectors,
     'taurus.qt.formatters': formatters,
     'taurus.plot.alts': plot_alternatives,
     'taurus.trend.alts': trend_alternatives,
