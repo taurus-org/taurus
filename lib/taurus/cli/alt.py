@@ -73,13 +73,16 @@ to provide the following minimum API:
 
 - For TaurusTrend2D:
   - should accept the following keyword arguments in its constructor:
+
     - stackMode=x_axis_mode where mode is one of `"d"` or `"n"` or `"t"`
     - wintitle=window_name,
     - buffersize=max_buffer_size
 
 - For TaurusImage:
   - should accept the following keyword arguments in its constructor:
+
     - wintitle=window_name,
+
   - should implement `setRGBmode(mode)` where mode is one of `"gray"`, `"rgb"`
 
 """
