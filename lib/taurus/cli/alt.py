@@ -47,7 +47,41 @@ entry-point group names:
   implementation
 
 
-.. todo:: explicit the expected API from the loaded alternative implementations
+Expected API for alternative implementations
+--------------------------------------------
+
+When registering a widget class to be used for these commands, the classes need
+to provide the following minimum API:
+
+- For **all** the classes:
+  - must be a Qt.QWidget
+  - must implement `setModel()` and `getModel()` equivalent to those in
+    :class:`taurus.qt.qtgui.base.TaurusBaseComponent`
+
+- For TaurusPlot:
+  - should implement `setXAxisMode(mode)` where mode is one of `"n"` or `"t"`
+  - should implement `loadConfigFile(name)` equivalent to
+    :meth:`taurus.qt.qtcore.configuration.BaseConfigurableClass.loadConfigFile`
+
+- For TaurusTrend:
+  - should implement `setXAxisMode(mode)` where mode is one of `"n"` or `"t"`
+  - should implement  `loadConfigFile(name)` equivalent to
+    :meth:`taurus.qt.qtcore.configuration.BaseConfigurableClass.loadConfigFile`
+  - should implement `setMaxDataBufferSize(n)` where `n` is an integer
+  - should implement `setForcedReadingPeriod(period)` where `period` is an
+    integer
+
+- For TaurusTrend2D:
+  - should accept the following keyword arguments in its constructor:
+    - stackMode=x_axis_mode where mode is one of `"d"` or `"n"` or `"t"`
+    - wintitle=window_name,
+    - buffersize=max_buffer_size
+
+- For TaurusImage:
+  - should accept the following keyword arguments in its constructor:
+    - wintitle=window_name,
+  - should implement `setRGBmode(mode)` where mode is one of `"gray"`, `"rgb"`
+
 """
 
 import sys
