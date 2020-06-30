@@ -56,20 +56,20 @@ to provide the following minimum API:
 - For **all** the classes:
   - must be a Qt.QWidget
   - must implement `setModel()` and `getModel()` equivalent to those in
-    :class:`taurus.qt.qtgui.base.TaurusBaseComponent`
+  :class:`taurus.qt.qtgui.base.TaurusBaseComponent`
 
 - For TaurusPlot:
   - should implement `setXAxisMode(mode)` where mode is one of `"n"` or `"t"`
   - should implement `loadConfigFile(name)` equivalent to
-    :meth:`taurus.qt.qtcore.configuration.BaseConfigurableClass.loadConfigFile`
+  :meth:`taurus.qt.qtcore.configuration.BaseConfigurableClass.loadConfigFile`
 
 - For TaurusTrend:
   - should implement `setXAxisMode(mode)` where mode is one of `"n"` or `"t"`
   - should implement  `loadConfigFile(name)` equivalent to
-    :meth:`taurus.qt.qtcore.configuration.BaseConfigurableClass.loadConfigFile`
+  :meth:`taurus.qt.qtcore.configuration.BaseConfigurableClass.loadConfigFile`
   - should implement `setMaxDataBufferSize(n)` where `n` is an integer
   - should implement `setForcedReadingPeriod(period)` where `period` is an
-    integer
+  integer
 
 - For TaurusTrend2D:
   - should accept the following keyword arguments in its constructor:
@@ -113,7 +113,7 @@ def _load_class_from_group(group, include=(".*",), exclude=()):
     The selection is done among the classes registered in
     the `group` entry-point, prioritized according to the given
     `include` and `exclude` patterns
-    (see :function:`taurus.core.util.plugin.selectEntryPoints`)
+    (see :func:`taurus.core.util.plugin.selectEntryPoints`)
     """
     eps = selectEntryPoints(group, include=include, exclude=exclude)
     for ep in eps:
