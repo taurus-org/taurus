@@ -17,10 +17,10 @@ from taurus import tauruscustomsettings as ts
         (None, "", "PySide", "pyside"),
         # no explicit selection, with default selection, all available
         (None, "pyqt5", "all", "pyqt5"),
-        (None, "pyqt",  "all", "pyqt"),
-        (None, "pyqt4",  "all", "pyqt"),
-        (None, "pyside2",  "all", "pyside2"),
-        (None, "pyside",  "all", "pyside"),
+        (None, "pyqt", "all", "pyqt"),
+        (None, "pyqt4", "all", "pyqt"),
+        (None, "pyside2", "all", "pyside2"),
+        (None, "pyside", "all", "pyside"),
         # explicit selection, all bindings available
         ("pyqt5", "", "all", "pyqt5"),
         ("pyqt", "", "all", "pyqt"),
@@ -38,7 +38,7 @@ from taurus import tauruscustomsettings as ts
         ("pyqt", "", "PyQt5", ImportError),
         ("pyside2", "", "PySide", ImportError),
         ("pyside", "", "PySide2", ImportError),
-    ]
+    ],
 )
 @pytest.mark.forked  # run in separate process to avoid side-effects
 def test_qt_select(monkeypatch, qt_api, default_qt_api, available, expected):
@@ -47,7 +47,7 @@ def test_qt_select(monkeypatch, qt_api, default_qt_api, available, expected):
     monkeypatch.delitem(sys.modules, "taurus.external.qt", raising=False)
     for binding in "PyQt5", "PyQt4", "PySide2", "PySide":
         monkeypatch.delitem(sys.modules, binding, raising=False)
-        monkeypatch.delitem(sys.modules, binding+".QtCore", raising=False)
+        monkeypatch.delitem(sys.modules, binding + ".QtCore", raising=False)
     # monkeypatch QT_API and DEFAULT_QT_API with the values from arguments
     if qt_api is None:
         monkeypatch.delenv("QT_API", raising=False)
@@ -67,4 +67,5 @@ def test_qt_select(monkeypatch, qt_api, default_qt_api, available, expected):
             from taurus.external.qt import API
     else:
         from taurus.external.qt import API
+
         assert API == expected
