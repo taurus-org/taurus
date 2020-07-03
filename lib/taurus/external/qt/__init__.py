@@ -37,7 +37,7 @@ from taurus import tauruscustomsettings as __config
 
 
 class PythonQtError(RuntimeError):
-    """Error raise if no bindings could be selected."""
+    """Error raised if no bindings could be selected."""
     pass
 
 
@@ -78,8 +78,10 @@ else:
     API = os.environ.get(QT_API, getattr(__config, 'DEFAULT_QT_API', ''))
     API = API.lower()
 
-msg = "Unknown Qt API '{}'".format(API)
-assert (API in (PYQT5_API + PYQT4_API + PYSIDE_API + PYSIDE2_API + [''])), msg
+
+if API not in (PYQT5_API + PYQT4_API + PYSIDE_API + PYSIDE2_API + ['']):
+    raise ImportError("Unknown Qt API '{}'".format(API))
+
 
 if not API or API in PYQT5_API:
     try:
@@ -109,7 +111,7 @@ if not API or API in PYQT5_API:
             del macos_version
     except ImportError:
         if API:  # if an specific API was requested, fail with import error
-            raise PythonQtError('Cannot import PyQt5')
+            raise ImportError('Cannot import PyQt5')
         # if no specific API was requested, allow trying other bindings
         __log.debug('Cannot import PyQt5')
 
@@ -133,7 +135,7 @@ if not API or API in PYQT4_API:
         API = os.environ['QT_API'] = 'pyqt'  # "pyqt4" is forced to "pyqt"
     except ImportError:
         if API:  # if an specific API was requested, fail with import error
-            raise PythonQtError('Cannot import PyQt4')
+            raise ImportError('Cannot import PyQt4')
         # if no specific API was requested, allow trying other bindings
         __log.debug('Cannot import PyQt4')
 
@@ -159,7 +161,7 @@ if not API or API in PYSIDE2_API:
             del macos_version
     except ImportError:
         if API:  # if an specific API was requested, fail with import error
-            raise PythonQtError('Cannot import PySide2')
+            raise ImportError('Cannot import PySide2')
         # if no specific API was requested, allow trying other bindings
         __log.debug('Cannot import PySide2')
 
@@ -175,12 +177,12 @@ if not API or API in PYSIDE_API:
 
     except ImportError:
         if API:  # if an specific API was requested, fail with import error
-            raise PythonQtError('Cannot import PySide')
+            raise ImportError('Cannot import PySide')
         # if no specific API was requested, allow trying other bindings
         __log.debug('Cannot import PySide')
 
 if not API:
-    raise PythonQtError('No Qt bindings could be imported')
+    raise ImportError('No Qt bindings could be imported')
 
 API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyqt4': 'PyQt4',
             'pyside': 'PySide', 'pyside2': 'PySide2'}[API]
