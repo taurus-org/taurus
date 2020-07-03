@@ -41,7 +41,8 @@ from taurus import tauruscustomsettings as ts
     ]
 )
 @pytest.mark.forked  # run in separate process to avoid side-effects
-def test_foo(monkeypatch, qt_api, default_qt_api, available, expected):
+def test_qt_select(monkeypatch, qt_api, default_qt_api, available, expected):
+    """Check that the selection of Qt binding by taurus.external.qt works"""
     # temporarily remove qt bindings from sys.modules
     for binding in "PyQt5", "PyQt4", "PySide2", "PySide":
         monkeypatch.delitem(sys.modules, binding, raising=False)
