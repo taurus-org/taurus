@@ -44,10 +44,11 @@ from taurus import tauruscustomsettings as ts
 def test_qt_select(monkeypatch, qt_api, default_qt_api, available, expected):
     """Check that the selection of Qt binding by taurus.external.qt works"""
     # temporarily remove qt bindings from sys.modules
+    monkeypatch.delitem(sys.modules, "taurus.external.qt", raising=False)
     for binding in "PyQt5", "PyQt4", "PySide2", "PySide":
         monkeypatch.delitem(sys.modules, binding, raising=False)
         monkeypatch.delitem(sys.modules, binding+".QtCore", raising=False)
-    # monkeypatch QT_API and DEFAULT_QT_API
+    # monkeypatch QT_API and DEFAULT_QT_API with the values from arguments
     if qt_api is None:
         monkeypatch.delenv("QT_API", raising=False)
     else:
@@ -60,7 +61,7 @@ def test_qt_select(monkeypatch, qt_api, default_qt_api, available, expected):
     # provide importable mocks for all supported bindings
     monkeypatch.syspath_prepend(os.path.join(os.path.dirname(__file__), "res"))
     monkeypatch.setenv("AVAILABLE_QT_MOCKS", available)
-    # test the shim
+    # Now that the environment is clean, test the shim
     if not isinstance(expected, str):
         with pytest.raises(expected):
             from taurus.external.qt import API
