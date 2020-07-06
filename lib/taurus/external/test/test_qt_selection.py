@@ -40,21 +40,18 @@ from taurus import tauruscustomsettings as ts
         ("pyside2", "", "PySide", None, ImportError),
         ("pyside", "", "PySide2", None, ImportError),
         # previously imported binding
-        (None, "", "all", "PyQt5", "pyqt5"),
-        (None, "", "all", "PyQt4", "pyqt"),
-        (None, "", "all", "PySide2", "pyside2"),
-        (None, "", "all", "PySide", "pyside"),
-        ("pyqt5", "pyqt4", "all", "PySide2", "pyside2"),
+        (None, "", "all", ("PyQt5",), "pyqt5"),
+        (None, "", "all", ("PyQt4",), "pyqt"),
+        (None, "", "all", ("PySide2",), "pyside2"),
+        (None, "", "all", ("PySide",), "pyside"),
+        (None, "", "all", ("PySide.QtCore",), "pyside"),
+        (None, "", "all", (".QtCore", "PyQt4"), "pyqt"),
+        ("pyqt5", "pyqt4", "all", ("PySide2",), "pyside2"),
     ],
 )
 @pytest.mark.forked  # run in separate process to avoid side-effects
 def test_qt_select(
-        monkeypatch,
-        qt_api,
-        default_qt_api,
-        installed,
-        imported,
-        expected
+    monkeypatch, qt_api, default_qt_api, installed, imported, expected
 ):
     """Check that the selection of Qt binding by taurus.external.qt works"""
     # temporarily remove qt bindings from sys.modules
@@ -77,7 +74,7 @@ def test_qt_select(
     monkeypatch.setenv("AVAILABLE_QT_MOCKS", installed)
     # emulate an already-imported binding
     if imported is not None:
-        importlib.import_module(imported)
+        importlib.import_module(*imported)
     # Now that the environment is clean and ready, test the shim
     if not isinstance(expected, str):
         with pytest.raises(expected):
