@@ -1,47 +1,61 @@
 import os
 import sys
+import importlib
 import pytest
 from taurus import tauruscustomsettings as ts
 
 
 @pytest.mark.parametrize(
-    "qt_api, default_qt_api, available, expected",
+    "qt_api, default_qt_api, installed, imported, expected",
     [
-        # no explicit selection, all bindings available
-        ("", "", "all", "pyqt5"),
-        (None, "", "all", "pyqt5"),
-        # no explicit selection, only one binding available
-        (None, "", "PyQt5", "pyqt5"),
-        (None, "", "PyQt4", "pyqt"),
-        (None, "", "PySide2", "pyside2"),
-        (None, "", "PySide", "pyside"),
-        # no explicit selection, with default selection, all available
-        (None, "pyqt5", "all", "pyqt5"),
-        (None, "pyqt", "all", "pyqt"),
-        (None, "pyqt4", "all", "pyqt"),
-        (None, "pyside2", "all", "pyside2"),
-        (None, "pyside", "all", "pyside"),
-        # explicit selection, all bindings available
-        ("pyqt5", "", "all", "pyqt5"),
-        ("pyqt", "", "all", "pyqt"),
-        ("pyqt4", "", "all", "pyqt"),
-        ("pyside2", "", "all", "pyside2"),
-        ("pyside", "", "all", "pyside"),
-        ("pyqt5", "pyqt4", "all", "pyqt5"),
-        ("pyqt", "pyqt5", "all", "pyqt"),
-        ("pyqt4", "pyqt5", "all", "pyqt"),
+        # no explicit selection, all bindings installed
+        ("", "", "all", None, "pyqt5"),
+        (None, "", "all", None, "pyqt5"),
+        # no explicit selection, only one binding installed
+        (None, "", "PyQt5", None, "pyqt5"),
+        (None, "", "PyQt4", None, "pyqt"),
+        (None, "", "PySide2", None, "pyside2"),
+        (None, "", "PySide", None, "pyside"),
+        # no explicit selection, with default selection, all installed
+        (None, "pyqt5", "all", None, "pyqt5"),
+        (None, "pyqt", "all", None, "pyqt"),
+        (None, "pyqt4", "all", None, "pyqt"),
+        (None, "pyside2", "all", None, "pyside2"),
+        (None, "pyside", "all", None, "pyside"),
+        # explicit selection, all bindings installed
+        ("pyqt5", "", "all", None, "pyqt5"),
+        ("pyqt", "", "all", None, "pyqt"),
+        ("pyqt4", "", "all", None, "pyqt"),
+        ("pyside2", "", "all", None, "pyside2"),
+        ("pyside", "", "all", None, "pyside"),
+        ("pyqt5", "pyqt4", "all", None, "pyqt5"),
+        ("pyqt", "pyqt5", "all", None, "pyqt"),
+        ("pyqt4", "pyqt5", "all", None, "pyqt"),
         # unsupported selection
-        ("unsupported_binding", "", "all", ImportError),
-        (None, "unsupported_binding", "all", ImportError),
-        ("pyqt5", "", "none", ImportError),
-        ("pyqt5", "", "PyQt4", ImportError),
-        ("pyqt", "", "PyQt5", ImportError),
-        ("pyside2", "", "PySide", ImportError),
-        ("pyside", "", "PySide2", ImportError),
+        ("unsupported_binding", "", "all", None, ImportError),
+        (None, "unsupported_binding", "all", None, ImportError),
+        ("pyqt5", "", "none", None, ImportError),
+        ("pyqt5", "", "PyQt4", None, ImportError),
+        ("pyqt", "", "PyQt5", None, ImportError),
+        ("pyside2", "", "PySide", None, ImportError),
+        ("pyside", "", "PySide2", None, ImportError),
+        # previously imported binding
+        (None, "", "all", "PyQt5", "pyqt5"),
+        (None, "", "all", "PyQt4", "pyqt"),
+        (None, "", "all", "PySide2", "pyside2"),
+        (None, "", "all", "PySide", "pyside"),
+        ("pyqt5", "pyqt4", "all", "PySide2", "pyside2"),
     ],
 )
 @pytest.mark.forked  # run in separate process to avoid side-effects
-def test_qt_select(monkeypatch, qt_api, default_qt_api, available, expected):
+def test_qt_select(
+        monkeypatch,
+        qt_api,
+        default_qt_api,
+        installed,
+        imported,
+        expected
+):
     """Check that the selection of Qt binding by taurus.external.qt works"""
     # temporarily remove qt bindings from sys.modules
     monkeypatch.delitem(sys.modules, "taurus.external.qt", raising=False)
@@ -60,8 +74,11 @@ def test_qt_select(monkeypatch, qt_api, default_qt_api, available, expected):
     monkeypatch.setattr(ts, "QT_AVOID_ABORT_ON_EXCEPTION", False)
     # provide importable mocks for all supported bindings
     monkeypatch.syspath_prepend(os.path.join(os.path.dirname(__file__), "res"))
-    monkeypatch.setenv("AVAILABLE_QT_MOCKS", available)
-    # Now that the environment is clean, test the shim
+    monkeypatch.setenv("AVAILABLE_QT_MOCKS", installed)
+    # emulate an already-imported binding
+    if imported is not None:
+        importlib.import_module(imported)
+    # Now that the environment is clean and ready, test the shim
     if not isinstance(expected, str):
         with pytest.raises(expected):
             from taurus.external.qt import API
