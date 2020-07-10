@@ -317,8 +317,11 @@ class TangoAttribute(TaurusAttribute):
         self._decodeAttrInfoEx(attr_info)
 
         # subscribe to configuration events (unsubscription done at cleanup)
+        auto_subscribe_conf = getattr(
+            tauruscustomsettings, "TANGO_AUTOSUBSCRIBE_CONF", True
+        )
         self.__cfg_evt_id = None
-        if self.factory().is_tango_subscribe_enabled():
+        if auto_subscribe_conf and self.factory().is_tango_subscribe_enabled():
             self._subscribeConfEvents()
 
     def __del__(self):

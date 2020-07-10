@@ -85,6 +85,14 @@ EXTRA_SCHEME_MODULES = []
 #: 'Serial', 'Concurrent', or 'TangoSerial' (default)
 TANGO_SERIALIZATION_MODE = 'TangoSerial'
 
+#: Whether TangoAttribute is subscribed to configuration events by default.
+#: Setting to True (or not setting it) makes the TangoAttribute auto-subscribe
+#: Setting to False avoids this subscription, which prevents issues such as
+#: https://github.com/taurus-org/taurus/issues/1118
+#: but it also prevents clients to be notified when configurations (e.g.,
+#: units, format) change.
+TANGO_AUTOSUBSCRIBE_CONF = True
+
 #: PLY (lex/yacc) optimization: 1=Active (default) , 0=disabled.
 #: Set PLY_OPTIMIZE = 0 if you are getting yacc exceptions while loading
 #: synoptics
