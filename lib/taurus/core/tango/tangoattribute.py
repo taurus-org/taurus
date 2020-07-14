@@ -749,7 +749,7 @@ class TangoAttribute(TaurusAttribute):
                 else:
                     self.debug("Failed: %s", df.args[0].desc)
                     self.trace(str(df))
-        self.disablePolling()
+        self._deactivatePolling()
         self.__subscription_state = SubscriptionState.Unsubscribed
 
     def _subscribeConfEvents(self):
