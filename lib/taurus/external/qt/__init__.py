@@ -37,29 +37,31 @@ from taurus import tauruscustomsettings as __config
 
 
 class PythonQtError(RuntimeError):
-    """Error raise if no bindings could be selected."""
+    """Error raised if no bindings could be selected."""
     pass
 
 
 #: Qt API environment variable name
 QT_API = 'QT_API'
-#: names of the expected PyQt5 api
+#: names of the PyQt5 api
 PYQT5_API = ['pyqt5']
-#: names of the expected PyQt4 api
+#: names of the PyQt4 api
 PYQT4_API = [
     'pyqt',  # name used in IPython.qt
     'pyqt4'  # pyqode.qt original name
 ]
-#: names of the expected PySide api
+#: names of the PySide api
 PYSIDE_API = ['pyside']
 
-#: names of the expected PySide2 api
+#: names of the PySide2 api
 PYSIDE2_API = ['pyside2']
 
+#: The constants PYQT5, PYQT4, PYSIDE, PYSIDE2, PYSIDE_VERSION and PYQT_VERSION
+#: will be updated depending on the selected binding
+PYQT5 = PYQT4 = PYSIDE = PYSIDE2 = False
+PYSIDE_VERSION = PYQT_VERSION = None
 
-PYQT5 = True
-PYQT4 = PYSIDE = PYSIDE2 = False
-
+# First, check if some binding is already in use (and, if so, select it)
 if 'PyQt5' in sys.modules:
     API = 'pyqt5'
 elif 'PySide2' in sys.modules:
@@ -72,40 +74,24 @@ else:
     # if no binding is already loaded, use (in this order):
     #   - QT_API environment variable
     #   - tauruscustomsettings.DEFAULT_QT_API
-    #   - 'pyqt5'
-    API = os.environ.get(QT_API, getattr(__config, 'DEFAULT_QT_API', 'pyqt'))
+    #   - first successful import of 'pyqt5', 'pyqt4', 'pyside2', 'pyside'
+    API = os.environ.get(QT_API, getattr(__config, 'DEFAULT_QT_API', ''))
     API = API.lower()
 
-assert API in (PYQT5_API + PYQT4_API + PYSIDE_API + PYSIDE2_API)
 
-if API in PYQT4_API:
-    try:
-        import sip
+if API not in (PYQT5_API + PYQT4_API + PYSIDE_API + PYSIDE2_API + ['']):
+    raise ImportError("Unknown Qt API '{}'".format(API))
 
-        sip.setapi('QString', 2)
-        sip.setapi('QVariant', 2)
-        sip.setapi('QDate', 2)
-        sip.setapi('QDateTime', 2)
-        sip.setapi('QTextStream', 2)
-        sip.setapi('QTime', 2)
-        sip.setapi('QUrl', 2)
-        from PyQt4.QtCore import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
-        from PyQt4.QtCore import QT_VERSION_STR as QT_VERSION  # analysis:ignore
 
-        PYSIDE_VERSION = None
-        PYQT5 = False
-        PYQT4 = True
-        API = os.environ['QT_API'] = 'pyqt'  # in case the original was "pyqt4"
-    except ImportError:
-        __log.debug('Cannot import PyQt4. Trying with PyQt5')
-        API = os.environ['QT_API'] = 'pyqt5'
-
-if API in PYQT5_API:
+if not API or API in PYQT5_API:
     try:
         from PyQt5.QtCore import PYQT_VERSION_STR as PYQT_VERSION
         from PyQt5.QtCore import QT_VERSION_STR as QT_VERSION
 
         PYSIDE_VERSION = None
+        PYQT4 = PYSIDE = PYSIDE2 = False
+        PYQT5 = True
+        API = os.environ['QT_API'] = 'pyqt5'
 
         if sys.platform == 'darwin':
             macos_version = LooseVersion(platform.mac_ver()[0])
@@ -124,17 +110,44 @@ if API in PYQT5_API:
 
             del macos_version
     except ImportError:
-        __log.debug('Cannot import PyQt5. Trying with PySide2')
-        API = os.environ['QT_API'] = 'pyside2'
+        if API:  # if an specific API was requested, fail with import error
+            raise ImportError('Cannot import PyQt5')
+        # if no specific API was requested, allow trying other bindings
+        __log.debug('Cannot import PyQt5')
 
-if API in PYSIDE2_API:
+if not API or API in PYQT4_API:
+    try:
+        import sip
+
+        sip.setapi('QString', 2)
+        sip.setapi('QVariant', 2)
+        sip.setapi('QDate', 2)
+        sip.setapi('QDateTime', 2)
+        sip.setapi('QTextStream', 2)
+        sip.setapi('QTime', 2)
+        sip.setapi('QUrl', 2)
+        from PyQt4.QtCore import PYQT_VERSION_STR as PYQT_VERSION  # analysis:ignore
+        from PyQt4.QtCore import QT_VERSION_STR as QT_VERSION  # analysis:ignore
+
+        PYSIDE_VERSION = None
+        PYQT5 = PYSIDE = PYSIDE2 = False
+        PYQT4 = True
+        API = os.environ['QT_API'] = 'pyqt'  # "pyqt4" is forced to "pyqt"
+    except ImportError:
+        if API:  # if an specific API was requested, fail with import error
+            raise ImportError('Cannot import PyQt4')
+        # if no specific API was requested, allow trying other bindings
+        __log.debug('Cannot import PyQt4')
+
+if not API or API in PYSIDE2_API:
     try:
         from PySide2 import __version__ as PYSIDE_VERSION  # analysis:ignore
         from PySide2.QtCore import __version__ as QT_VERSION  # analysis:ignore
 
         PYQT_VERSION = None
-        PYQT5 = False
+        PYQT5 = PYQT4 = PYSIDE = False
         PYSIDE2 = True
+        API = os.environ['QT_API'] = 'pyside2'
 
         if sys.platform == 'darwin':
             macos_version = LooseVersion(platform.mac_ver()[0])
@@ -147,20 +160,29 @@ if API in PYSIDE2_API:
 
             del macos_version
     except ImportError:
-        __log.debug('Cannot import PyQt5. Trying with PySide')
-        API = os.environ['QT_API'] = 'pyside'
+        if API:  # if an specific API was requested, fail with import error
+            raise ImportError('Cannot import PySide2')
+        # if no specific API was requested, allow trying other bindings
+        __log.debug('Cannot import PySide2')
 
-if API in PYSIDE_API:
+if not API or API in PYSIDE_API:
     try:
         from PySide import __version__ as PYSIDE_VERSION  # analysis:ignore
         from PySide.QtCore import __version__ as QT_VERSION  # analysis:ignore
 
         PYQT_VERSION = None
-        PYQT5 = False
+        PYQT5 = PYQT4 = PYSIDE = False
         PYSIDE = True
+        API = os.environ['QT_API'] = 'pyside'
+
     except ImportError:
+        if API:  # if an specific API was requested, fail with import error
+            raise ImportError('Cannot import PySide')
+        # if no specific API was requested, allow trying other bindings
         __log.debug('Cannot import PySide')
-        raise PythonQtError('No Qt bindings could be found')
+
+if not API:
+    raise ImportError('No Qt bindings could be imported')
 
 API_NAME = {'pyqt5': 'PyQt5', 'pyqt': 'PyQt4', 'pyqt4': 'PyQt4',
             'pyside': 'PySide', 'pyside2': 'PySide2'}[API]
