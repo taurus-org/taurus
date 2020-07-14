@@ -111,7 +111,27 @@ taurus_subcommands = [
     'demo = taurus.qt.qtgui.panel.taurusdemo:demo_cmd',
     'logmon = taurus.core.util.remotelogmonitor:logmon_cmd',
     'qlogmon = taurus.qt.qtgui.table.qlogtable:qlogmon_cmd',
-    'check-deps = taurus.core.taurushelper:check_dependencies_cmd'
+    'check-deps = taurus.core.taurushelper:check_dependencies_cmd',
+    'plot = taurus.cli.alt:plot_cmd',
+    'trend = taurus.cli.alt:trend_cmd',
+    'trend2d = taurus.cli.alt:trend2d_cmd',
+    'image = taurus.cli.alt:image_cmd',
+]
+
+plot_alternatives = [
+    "qwt5 = taurus.qt.qtgui.qwt5:TaurusPlot",
+]
+
+trend_alternatives = [
+    "qwt5 = taurus.qt.qtgui.qwt5:TaurusTrend",
+]
+
+trend2d_alternatives = [
+    "guiqwt = taurus.qt.qtgui.extra_guiqwt:TaurusTrend2DDialog",
+]
+
+image_alternatives = [
+    "guiqwt = taurus.qt.qtgui.extra_guiqwt:TaurusImageDialog",
 ]
 
 model_selectors = [
@@ -128,8 +148,12 @@ formatters = [
 entry_points = {
     'console_scripts': console_scripts,
     'taurus.cli.subcommands': taurus_subcommands,
-    'taurus.qt.qtgui.panel.TaurusModelSelector.items': model_selectors,
+    'taurus.model_selector.items': model_selectors,
     'taurus.qt.formatters': formatters,
+    'taurus.plot.alts': plot_alternatives,
+    'taurus.trend.alts': trend_alternatives,
+    'taurus.trend2d.alts': trend2d_alternatives,
+    'taurus.image.alts': image_alternatives,
 }
 
 classifiers = [

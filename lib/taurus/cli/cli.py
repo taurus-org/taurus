@@ -26,20 +26,30 @@ import click
 import taurus
 
 import taurus.cli.common
-from .import common
+from . import common
 
 
-@click.group('taurus')
+@click.group("taurus")
 @common.log_level
 @common.poll_period
 @common.serial_mode
 @common.default_formatter
-@click.option("--rconsole", "rconsole_port", type=click.INT,
-              metavar="PORT", default=None,
-              help="Enable remote debugging with rfoo on the given PORT")
+@click.option(
+    "--rconsole",
+    "rconsole_port",
+    type=click.INT,
+    metavar="PORT",
+    default=None,
+    help="Enable remote debugging with rfoo on the given PORT",
+)
 @click.version_option(version=taurus.Release.version)
-def taurus_cmd(log_level, polling_period, serialization_mode, default_formatter,
-               rconsole_port):
+def taurus_cmd(
+    log_level,
+    polling_period,
+    serialization_mode,
+    default_formatter,
+    rconsole_port,
+):
     """The main taurus command"""
 
     # set log level
@@ -52,6 +62,7 @@ def taurus_cmd(log_level, polling_period, serialization_mode, default_formatter,
     # set serialization mode
     if serialization_mode is not None:
         from taurus.core.taurusbasetypes import TaurusSerializationMode
+
         m = getattr(TaurusSerializationMode, serialization_mode)
         taurus.Manager().setSerializationMode(m)
 
@@ -59,25 +70,30 @@ def taurus_cmd(log_level, polling_period, serialization_mode, default_formatter,
     if rconsole_port is not None:
         try:
             import rfoo.utils.rconsole
+
             rfoo.utils.rconsole.spawn_server(port=rconsole_port)
-            taurus.info(("rconsole started. "
-                         + "You can connect to it by typing: rconsole -p %d"),
-                        rconsole_port
-                        )
+            taurus.info(
+                (
+                    "rconsole started. "
+                    + "You can connect to it by typing: rconsole -p %d"
+                ),
+                rconsole_port,
+            )
         except Exception as e:
             taurus.warning("Cannot spawn debugger. Reason: %s", e)
 
     # set the default formatter
     if default_formatter is not None:
         from taurus import tauruscustomsettings
-        setattr(tauruscustomsettings, 'DEFAULT_FORMATTER', default_formatter)
+
+        setattr(tauruscustomsettings, "DEFAULT_FORMATTER", default_formatter)
 
 
 def register_subcommands():
     """Discover and add subcommands to taurus_cmd"""
 
     # Add subcommands from the taurus_subcommands entry point
-    for ep in pkg_resources.iter_entry_points('taurus.cli.subcommands'):
+    for ep in pkg_resources.iter_entry_points("taurus.cli.subcommands"):
         try:
             subcommand = ep.load()
             taurus_cmd.add_command(subcommand)
@@ -88,14 +104,17 @@ def register_subcommands():
             # This special case can be removed when taurus.qt.qtgui.qwt5
             # is moved to a separate plugin, since the entry point will
             # be registered only if the plugin is installed
-            if ep.name == 'qwt5':
+            if ep.name == "qwt5":
                 taurus.info(
                     'Cannot add "%s" subcommand to taurus. Reason: %r',
-                    ep.name, e)
+                    ep.name,
+                    e,
+                )
                 continue
             # -----------------------------------------------------------
-            taurus.warning('Cannot add "%s" subcommand to taurus. Reason: %r',
-                           ep.name, e)
+            taurus.warning(
+                'Cannot add "%s" subcommand to taurus. Reason: %r', ep.name, e
+            )
 
 
 def main():
@@ -106,12 +125,12 @@ def main():
     # it will be restored to the desired one first thing in taurus_cmd()
     taurus.setLogLevel(taurus.Warning)
 
-    #register the subcommands
+    # register the subcommands
     register_subcommands()
 
     # launch the taurus command
     taurus_cmd()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -50,7 +50,7 @@ def buffer(default):
 
 @click.group('qwt5')
 def qwt5():
-    """Qwt5 related commands"""
+    """[DEPRECATED] use "taurus plot" or "taurus trend" instead"""
     pass
 
 
@@ -61,7 +61,7 @@ def qwt5():
 @taurus.cli.common.demo
 @taurus.cli.common.window_name("TaurusPlot (qwt5)")
 def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
-    """Shows a plot for the given models"""
+    """[DEPRECATED] use "taurus plot" instead"""
     from .taurusplot import plot_main
     return plot_main(models=models,
                      config_file=config_file,
@@ -88,7 +88,7 @@ def plot_cmd(models, config_file, x_axis_mode, demo, window_name):
               help="force re-reading of the attributes every MILLISECONDS ms")
 def trend_cmd(models, x_axis_mode, config_file, demo, window_name,
               max_buffer_size, use_archiving, forced_read_period):
-    """Shows a trend for the given models"""
+    """[DEPRECATED] use "taurus trend" instead"""
     from .taurustrend import trend_main
     return trend_main(models=models,
                       config_file=config_file,

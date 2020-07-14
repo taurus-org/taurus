@@ -10,13 +10,18 @@ develop branch) won't be reflected in this file.
 ## [Unreleased]
 
 ### Added
+- `plot`, `trend`, `trend2d`, `image` first-level taurus subcommands (#1120)
+- `"taurus.*.alt"` entry-point groups for registering alternative 
+  implementations of `plot`, `trend`, `trend2d`, `image` (#1120)
 - check-deps subcommand (#988)
 - `taurus.cli.register_subcommands()` and `taurus.cli.taurus_cmd()` (#991)
 - Support for spyder v4 in `taurus.qt.qtgui.editor` (#1038)
 - Entry-point ("taurus.qt.formatters") for registering formatters via plugins (#1039)
 - New `worker_cls` argument for `taurus.core.util.ThreadPool` costructor (#1081)
 - `taurus.core.util.lazymodule` for delayed entry-point loading of modules (#1090)
-- `"taurus.form.item_factories"` entry-point (#1108)
+- `"taurus.form.item_factories"` entry-point group (#1108)
+- Documentation about (experimental) entry-point based plugin support (#1120) 
+
 
 ### Removed
 ### Changed
@@ -29,6 +34,8 @@ develop branch) won't be reflected in this file.
 - The control over which custom widgets are to be used in a TaurusForm is now
   done by registering factories to `"taurus.form.item_factories"` entry-point (#1108)
 - Qt unit tests reimplemented using pytest-qt (#1114)
+- `"'taurus.qt.qtgui.panel.TaurusModelSelector.items"` entry-point group 
+  renamed to `"taurus.model_selector.items"`
 
 ### Deprecated
 - `TaurusBaseWidget.showFormatterDlg()` (#1039)
@@ -36,6 +43,7 @@ develop branch) won't be reflected in this file.
 - `tauruscustomsettings.T_FORM_CUSTOM_WIDGET_MAP` (#1108)
 - `BaseWidgetTestCase` and `GenericWidgetTestCase` (#1114)
 - `TimeOut` Device Server (#1114)
+- `qwt5` and `guiqwt` CLI subcommands (#1120)
 
 ### Fixed
 - Several issues in TaurusWheelEdit (#1010, #1021)

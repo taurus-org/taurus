@@ -64,8 +64,8 @@ class TaurusModelSelector(Qt.QTabWidget):
         # Note: this is an experimental feature
         # It may be removed or changed in future releases
         # Discover the taurus.modelselector plugins
-        ep_name = 'taurus.qt.qtgui.panel.TaurusModelSelector.items'
-        for ep in pkg_resources.iter_entry_points(ep_name):
+        ep_group_name = 'taurus.model_selector.items'
+        for ep in pkg_resources.iter_entry_points(ep_group_name):
             try:
                 ms_class = ep.load()
                 ms_item = ms_class(parent=self)
