@@ -59,7 +59,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Install taurus-pyqtgraph from the master branch of its repo: 
       `pip install https://github.com/taurus-org/taurus_pyqtgraph/archive/master.zip`.
 - [ ] Check installed version of taurus: `taurus --version`
-- [ ] Check installed version of taurus_pyqtgraph: `taurus tpg --version`
+- [ ] Check installed version of taurus_pyqtgraph: `python -c "import taurus_pyqtgraph; print(taurus_pyqtgraph.__version__)"`
 
 ### taurus demo
 
