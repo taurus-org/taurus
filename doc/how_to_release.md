@@ -82,6 +82,7 @@ http://taurus-scada.org/users/getting_started.html
 
 - [ ] Execute: `taurus --polling-period 333 trend2d --demo`
 - [ ] Execute: `taurus --polling-period 333 trend2d -xt --demo`  **(known to fail in 4.1.0)**
+- [ ] Execute: `taurus --polling-period 333 trend2d -xn --demo`
 - [ ] Execute: `taurus --polling-period 333 trend2d -xe --demo`
 - [ ] Execute: `taurus --polling-period 333 trend2d --demo -b 10` 
   (deactivate auto-scale bottom axis and see that the plot is limited to the 
@@ -168,8 +169,9 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Execute `taurus trend --ls-alt` (check that it lists "qwt5" and "tpg")
 - [ ] Execute: `taurus trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
   (if using py2 and Qt4, you may need to use `--use-alt=tpg` to select the tpg implementation)
-- [ ] Execute: `taurus trend -xe "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Execute: `taurus trend -xn "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
   (if using py2 and Qt4, you may need to use `--use-alt=tpg` to select the tpg implementation)
+  - THIS IS NOT YET SUPPORTED: You should get a *"X mode "n" not yet supported"* message
 - [ ] Check zoom / panning (drag with right / left button), and Use (A) button to auto-range
 - [ ] Test inspector tool
 - [ ] Move curves between axes by using the plot configuration option in context menu
@@ -183,7 +185,7 @@ http://taurus-scada.org/users/getting_started.html
 ### taurus qwt5 plot _Only if using py2 qt4_
 (basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
-- [ ] Execute: `taurus plot --use-alt=qwt5 "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`
+- [ ] Execute: `QT_API=pyqt taurus plot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`
 - [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
 - [ ] Check mouse wheel Zoom
 - [ ] Test panning (dragging with CTRL pressed)
@@ -201,8 +203,8 @@ http://taurus-scada.org/users/getting_started.html
 ### taurus qwt5 trend _Only if using py2 qt4_
 (basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
-- [ ] Execute: `taurus trend --use-alt=qwt5 "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
-- [ ] Execute: `taurus trend --use-alt=qwt5 -xn "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Execute: `QT_API=pyqt taurus trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Execute: `QT_API=pyqt taurus trend --use-alt=qwt5 -xn "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
 - [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
 - [ ] Check mouse wheel Zoom
 - [ ] Test panning (dragging with CTRL pressed)
