@@ -152,6 +152,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Click on some icons and check that they give a bigger view of the icon and more info.
 
 ### taurus_pyqtgraph plot (needs taurus_pyqtgraph installed)
+- [ ] Execute `taurus plot --ls-alt` (check that it lists "qwt5" and "tpg")
 - [ ] Execute: `taurus plot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`  
   (if using py2 and Qt4, you may need to use `--use-alt=tpg` to select the tpg implementation)
 - [ ] Check zoom / panning (drag with right / left button), and Use (A) button to auto-range
@@ -159,11 +160,12 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Move curves between axes by using the plot configuration option in context menu
 - [ ] With curves in Y1 and Y2, test zooms and panning on separate axes (drag with right/left on the axis)
 - [ ] Test plot configuration dialog
-- [ ] Test changing curve titles
-- [ ] Open the "Input data selection" dialog and add/remove/reorder/edit models. Try adding models both for X and Y
+- [ ] Test changing curve titles (NOT YET READY: See taurus-org/taurus_pyqtgraph#31)
+- [ ] Open the "Model selection" dialog and add/remove/reorder/edit models. Try adding models both for X and Y
 - [ ] NOT YET READY <s>Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)</s>
 
 ### taurus_pyqtgraph trend  (needs taurus_pyqtgraph installed)
+- [ ] Execute `taurus trend --ls-alt` (check that it lists "qwt5" and "tpg")
 - [ ] Execute: `taurus trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
   (if using py2 and Qt4, you may need to use `--use-alt=tpg` to select the tpg implementation)
 - [ ] Execute: `taurus trend -xe "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
