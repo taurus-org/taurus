@@ -344,7 +344,7 @@ def trend_cmd(
 
 @click.command("trend2d")
 @taurus.cli.common.model
-@x_axis_mode_option(["d", "t", "e"])
+@x_axis_mode_option(["d", "t", "n", "e"])
 @taurus.cli.common.demo
 @taurus.cli.common.window_name("TaurusTrend2D")
 @taurus.cli.common.use_alternative
