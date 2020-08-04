@@ -142,6 +142,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Create a new TaurusGui (call it `foogui`) with `taurus newgui` (follow the wizard)
 - [ ] Install `foogui` with pip (using a virtualenv may be a good idea)
 - [ ] launch `foogui` using the script that has been installed
+- [ ] edit the just created gui by relaunching the wizard (`taurus newgui`) and selecting the same directory
 - [ ] ... other features from [user's guide](http://taurus-scada.org/users/ui/index.html)
 
 ### taurus config
