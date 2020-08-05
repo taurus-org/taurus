@@ -232,7 +232,7 @@ def plot_cmd(
                 epname,
                 e,
             )
-        sys.exit(1)
+            sys.exit(1)
 
     if models:
         w.setModel(models)
@@ -316,7 +316,7 @@ def trend_cmd(
                 epname,
                 e,
             )
-        sys.exit(1)
+            sys.exit(1)
 
     # max buffer size option
     if max_buffer_size is not None:
