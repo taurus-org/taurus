@@ -31,10 +31,8 @@ def get_release_info():
     if sys.version_info >= (3, 5):
         from importlib.util import spec_from_file_location, module_from_spec
         from pathlib import Path
-        spec = spec_from_file_location(
-            'release',
-            Path(__file__).parent / 'lib' / 'taurus' / 'core' / 'release.py'
-        )
+        path = Path(__file__).parent / 'lib' / 'taurus' / 'core' / 'release.py'
+        spec = spec_from_file_location('release', path.as_posix())
         module = module_from_spec(spec)
         spec.loader.exec_module(module)
     else:  # for py27
