@@ -7,7 +7,9 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## [4.7.0-a1] - 2020-07-15 [unreleased]
+
+## [4.7.0] - 2020-08-07 
+[Jul20 milestone](https://github.com/taurus-org/taurus/milestone/15)
 
 ### Added
 - `plot`, `trend`, `trend2d`, `image` first-level taurus subcommands (#1120)
@@ -23,6 +25,8 @@ develop branch) won't be reflected in this file.
 - `"taurus.form.item_factories"` entry-point group (#1108)
 - `tauruscustomsettings.TANGO_AUTOSUBSCRIBE_CONF` to allow skipping of config 
   event subscription by `TangoAttribute`
+- Official taurus packages are now automatically published in the taurus-org 
+  Anaconda channel
 
 ### Changed
 - Improved Qt binding selection mechanism (and prioritize PyQt5 over PyQt4) (#1121)
