@@ -11,6 +11,10 @@
     :target: https://pypi.python.org/pypi/taurus
     :alt: Latest Version
 
+.. image:: https://anaconda.org/taurus-org/taurus/badges/version.svg   
+    :target: https://anaconda.org/taurus-org/taurus
+    :alt: Conda
+
 .. image:: https://badge.fury.io/gh/taurus-org%2Ftaurus.svg
     :target: https://github.com/taurus-org/taurus
     :alt: GitHub
