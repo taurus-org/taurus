@@ -1,7 +1,13 @@
 {% set data = load_setup_py_data(setup_file="../setup.py",
   from_recipe_dir=True) %}
 
-{% set GIT_HASHTAG =  os.popen("git log --pretty=format:'%h' -n 1").read().strip()%}
+{% set BUILD_NUMBER =  environ.get('GITHUB_RUN_NUMBER','0') %}
+
+{% set GIT_HASHTAG =  environ.get('GITHUB_SHA',
+    os.popen("git log --pretty=format:'%h' -n 1").read().strip()
+    )[:7] %}
+
+
 package:
   name: {{data.get('name').lower().replace(' ', '_')}}
   version: {{ data.get('version').replace('-alpha', 'a0') }}
@@ -10,8 +16,8 @@ source:
   path: ..
 
 build:
-  number: {{environ.get('BUILD_NUMBER',0)}}
-  string: {{ PKG_BUILDNUM }}_g{{GIT_HASHTAG}}
+  number: {{BUILD_NUMBER}}
+  string: {{ PKG_BUILDNUM }}_{{GIT_HASHTAG}}
   noarch: python
   script: '{{PYTHON}} setup.py install --single-version-externally-managed
     --record=record.txt'
