@@ -232,7 +232,7 @@ def plot_cmd(
                 epname,
                 e,
             )
-        sys.exit(1)
+            sys.exit(1)
 
     if models:
         w.setModel(models)
@@ -316,7 +316,7 @@ def trend_cmd(
                 epname,
                 e,
             )
-        sys.exit(1)
+            sys.exit(1)
 
     # max buffer size option
     if max_buffer_size is not None:
@@ -344,7 +344,7 @@ def trend_cmd(
 
 @click.command("trend2d")
 @taurus.cli.common.model
-@x_axis_mode_option(["d", "t", "n"])
+@x_axis_mode_option(["d", "t", "n", "e"])
 @taurus.cli.common.demo
 @taurus.cli.common.window_name("TaurusTrend2D")
 @taurus.cli.common.use_alternative

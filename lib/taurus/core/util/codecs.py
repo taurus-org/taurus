@@ -577,7 +577,7 @@ class VideoImageCodec(Codec):
         # frameNumber, unknown then -1
         height, width = data[1].shape
         header = self.__packHeader(imgMode, -1, width, height)
-        buffer = data[1].tostring()
+        buffer = data[1].tobytes()
         return fmt, header + buffer
 
     def decode(self, data, *args, **kwargs):

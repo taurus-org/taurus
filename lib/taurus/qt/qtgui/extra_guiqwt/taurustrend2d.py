@@ -74,7 +74,8 @@ class TaurusTrend2DDialog(ImageDialog, TaurusBaseWidget):
         TaurusBaseWidget.__init__(self, "TaurusTrend2DDialog")
         # support x_axis_mode values (map them to stackMode values)
         stackMode = dict(
-            t='datetime', d='deltatime', e='event').get(stackMode, stackMode)
+            t='datetime', d='deltatime', e='event', n='event'
+        ).get(stackMode, stackMode)
         self.trendItem = None
         self.buffersize = buffersize
         self._useArchiving = False

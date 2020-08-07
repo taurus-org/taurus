@@ -23,20 +23,28 @@
 ##
 ##############################################################################
 
-import os
-import imp
 import sys
-from distutils.version import LooseVersion
-from setuptools import setup, find_packages, __version__
+from setuptools import setup, find_packages
 
 
 def get_release_info():
-    name = "release"
-    setup_dir = os.path.dirname(os.path.abspath(__file__))
-    release_dir = os.path.join(setup_dir, 'lib', 'taurus', 'core')
-    data = imp.find_module(name, [release_dir])
-    ret = imp.load_module(name, *data)
-    return ret
+    if sys.version_info >= (3, 5):
+        from importlib.util import spec_from_file_location, module_from_spec
+        from pathlib import Path
+        path = Path(__file__).parent / 'lib' / 'taurus' / 'core' / 'release.py'
+        spec = spec_from_file_location('release', path.as_posix())
+        module = module_from_spec(spec)
+        spec.loader.exec_module(module)
+    else:  # for py27
+        import os
+        import imp
+        module_name = "release"
+        setup_dir = os.path.dirname(os.path.abspath(__file__))
+        release_dir = os.path.join(setup_dir, 'lib', 'taurus', 'core')
+        data = imp.find_module(module_name, [release_dir])
+        module = imp.load_module(module_name, *data)
+    return module
+
 
 release = get_release_info()
 
@@ -46,15 +54,6 @@ packages = find_packages(where='lib')
 
 provides = [
     'taurus',
-    # 'taurus.core',
-    # 'taurus.qt',
-    # 'Taurus-Tango',  # [Taurus-Tango]
-    # 'Taurus-Qt',  # [Taurus-Qt]
-    # 'Taurus-Qt-PyQwt',  # [Taurus-Qt-Plot]
-    # 'Taurus-Qt-Synoptic',  # [Taurus-Qt-Synoptic]
-    # 'Taurus-Qt-TaurusGUI',  # [Taurus-Qt-TaurusGUI]
-    # 'Taurus-Qt-Editor',  # [Taurus-Qt-Editor] --> or maybe move it to sardana
-    # 'Taurus-Qt-Guiqwt',  # [Taurus-Qt-Guiqwt]
 ]
 
 install_requires = [
@@ -62,23 +61,15 @@ install_requires = [
     'pint>=0.8',
     'future',
     'click',
+    'enum34;python_version<"3.4"',
 ]
-
-#Workaround for old setuptools
-
-if LooseVersion(__version__) < LooseVersion('20.2'):
-    if sys.version_info < (3, 4):
-        install_requires.append('enum34')
-else:
-    install_requires.append('enum34;python_version<"3.4"')
-
 
 extras_require = {
     'taurus-qt': [# 'PyQt4 >=4.8',
-                  # 'PyQt4.Qwt5 >=5.2.0',  # [Taurus-Qt-Plot]
-                  'ply >=2.3',  # [Taurus-Qt-Synoptic]
-                  'lxml >=2.1',  # [Taurus-Qt-TaurusGUI]
-                  'guiqwt >=3',  # [Taurus-Qt-Guiqwt]
+                  # 'PyQt4.Qwt5 >=5.2.0',
+                  'ply >=2.3',  # synoptics
+                  'lxml >=2.1',  # taurusgui
+                  'guiqwt >=3',  # extra_guiqwt
                   ],
     'taurus-tango': ['PyTango >=7.1',
                      ],
@@ -173,6 +164,8 @@ classifiers = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
     'Topic :: Scientific/Engineering',
     'Topic :: Software Development :: Libraries',
     'Topic :: Software Development :: User Interfaces',
@@ -198,6 +191,7 @@ setup(name='taurus',
       include_package_data=True,
       entry_points=entry_points,
       provides=provides,
+      python_requires='>=2.7',
       install_requires=install_requires,
       extras_require=extras_require,
       test_suite='taurus.test.testsuite.get_taurus_suite',
