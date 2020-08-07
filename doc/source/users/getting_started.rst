@@ -45,11 +45,11 @@ Installing in a conda environment (platform-independent)
 
 In a conda environment (we recommend creating one specifically for taurus)::
 
-    conda -c conda-forge -c taurus-org taurus taurus_pyqtgraph
+    conda install -c conda-forge -c taurus-org taurus taurus_pyqtgraph
 
 optionally, you may also want to install tango::
 
-    conda -c tango-controls pytango
+    conda install -c tango-controls pytango
 
 
 Working from Git source directly (in develop mode)
