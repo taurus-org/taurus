@@ -35,10 +35,12 @@ from builtins import object
 from future.utils import string_types
 
 import copy
-import collections
 import time
 import weakref
-
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 
 __all__ = ["CaselessList", "CaselessDict", "CaselessWeakValueDict", "LoopList",
            "CircBuf", "LIFO", "TimedQueue", "self_locked", "ThreadDict",
@@ -254,9 +256,15 @@ class CaselessDict(dict):
     def __init__(self, other=None):
         if other:
             # Doesn't do keyword args
-            if isinstance(other, dict):
+
+            # -------------------------------------------------------
+            # TODO: when we drop py2 support, change this to
+            #       `if isinstance(other, collections.abc.Mapping)`
+            #
+            if hasattr(other, 'items'):
                 for k, v in other.items():
                     dict.__setitem__(self, k.lower(), v)
+            # -------------------------------------------------------
             else:
                 for k, v in other:
                     dict.__setitem__(self, k.lower(), v)
@@ -631,7 +639,7 @@ class TimedQueue(list):
         """ Initializes the list with a sequence or an initial value. """
         if arg is None:
             list.__init__(self)
-        elif isinstance(arg, collections.Sequence):
+        elif isinstance(arg, Sequence):
             list.__init__(self, arg)
         else:
             list.__init__(self)
@@ -739,7 +747,7 @@ class ThreadDict(dict):
         import threading
         if not self.threaded:
             return
-        if hasattr(self, '_Thread') and self._Thread and self._Thread.isAlive():
+        if hasattr(self, '_Thread') and self._Thread and self._Thread.is_alive():
             return
         self.event = threading.Event()
         self.event.clear()
@@ -757,7 +765,7 @@ class ThreadDict(dict):
         if not hasattr(self, '_Thread') or not self._Thread:
             return False
         else:
-            return self._Thread.isAlive()
+            return self._Thread.is_alive()
 
     def __del__(self):
         self.stop()

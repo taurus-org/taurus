@@ -295,6 +295,7 @@ class TangoAttribute(TaurusAttribute):
         self.__already_warned_unit = None
 
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
+        self.__deactivate_polling = False
 
         attr_info = None
         if parent:
@@ -316,8 +317,11 @@ class TangoAttribute(TaurusAttribute):
         self._decodeAttrInfoEx(attr_info)
 
         # subscribe to configuration events (unsubscription done at cleanup)
+        auto_subscribe_conf = getattr(
+            tauruscustomsettings, "TANGO_AUTOSUBSCRIBE_CONF", True
+        )
         self.__cfg_evt_id = None
-        if self.factory().is_tango_subscribe_enabled():
+        if auto_subscribe_conf and self.factory().is_tango_subscribe_enabled():
             self._subscribeConfEvents()
 
     def __del__(self):
@@ -485,6 +489,7 @@ class TangoAttribute(TaurusAttribute):
                     value = self.decode(value)
                     self.__attr_err = error
                     if self.__attr_err:
+
                         raise self.__attr_err
                     # Avoid "valid-but-outdated" notifications
                     # if FILTER_OLD_TANGO_EVENTS is enabled
@@ -515,9 +520,22 @@ class TangoAttribute(TaurusAttribute):
 
     def read(self, cache=True):
         """ Returns the current value of the attribute.
-            if cache is set to True (default) or the attribute has events
-            active then it will return the local cached value. Otherwise it will
-            read the attribute value from the tango device."""
+
+        If `cache` is not False, or expired, or the attribute has events
+        active, then it will return the local cached value. Otherwise it will
+        read the attribute value from the tango device.
+
+        The cached value expires if it is older than the value (im ms) passed 
+        as the `cache` argument or the *polling period* if `cache==True` 
+        (default). If the cache is expired a reading will be done just as if 
+        cache was False.
+
+        :param cache: use cache value or make readout, eventually pass a
+             cache's expiration period in milliseconds
+        :type cache: :obj:`bool` or :obj:`float`
+        :return: attribute value
+        :rtype: :obj:`~taurus.core.tango.TangoAttributeValue`
+        """
         curr_time = time.time()
         if cache:
             try:
@@ -525,7 +543,11 @@ class TangoAttribute(TaurusAttribute):
             except AttributeError:
                 attr_timestamp = 0
             dt = (curr_time - attr_timestamp) * 1000
-            if dt < self.getPollingPeriod():
+            if cache is True:  # cache *is* a bool True
+                expiration_period = self.getPollingPeriod()
+            else:  # cache is a non-zero numeric value
+                expiration_period = cache
+            if dt < expiration_period:
                 if self.__attr_value is not None:
                     return self.__attr_value
                 elif self.__attr_err is not None:
@@ -803,6 +825,7 @@ class TangoAttribute(TaurusAttribute):
         specific handlers for different event types.
         """
         with self.__read_lock:
+
             # if it is a configuration event
             if isinstance(event, PyTango.AttrConfEventData):
                 etype, evalue = self._pushConfEvent(event)
@@ -823,6 +846,12 @@ class TangoAttribute(TaurusAttribute):
                 manager.enqueueJob(job, job_args=(etype, evalue),
                                    job_kwargs={'listeners': listeners},
                                    serialization_mode=sm)
+
+        # Deactivate polling in case of PyTango.DevFailed
+        # it must be managed out of the critical region to avoid deadlock
+        if self.__deactivate_polling:
+            self.__deactivate_polling = False
+            self._deactivatePolling()
 
     def _pushAttrEvent(self, event):
         """Handler of (non-configuration) events from the PyTango layer.
@@ -856,7 +885,7 @@ class TangoAttribute(TaurusAttribute):
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
             if not self.isPollingForced():
-                self._deactivatePolling()
+                self.disablePolling()
             return TaurusEventType.Change, self.__attr_value
 
         elif event.errors[0].reason in EVENT_TO_POLLING_EXCEPTIONS:
@@ -872,7 +901,7 @@ class TangoAttribute(TaurusAttribute):
                 *event.errors)
             self.__subscription_state = SubscriptionState.Subscribed
             self.__subscription_event.set()
-            self._deactivatePolling()
+            self.__deactivate_polling = True
             return TaurusEventType.Error, self.__attr_err
 
     def _pushConfEvent(self, event):
@@ -1075,9 +1104,11 @@ class TangoAttribute(TaurusAttribute):
         ###############################################################
         fmt = standard_display_format_from_tango(i.data_type, i.format)
         self.format_spec = fmt.lstrip('%')  # format specifier
-        match = re.search("[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
+        match = re.search(r"[^\.]*\.(?P<precision>[0-9]+)[eEfFgG%]", fmt)
         if match:
             self.precision = int(match.group(1))
+        elif re.match(r"%[0-9]*d", fmt):
+            self.precision = 0
         # self._units and self._display_format is to be used by
         # TangoAttrValue for performance reasons. Do not rely on it in other
         # code
@@ -1169,11 +1200,13 @@ class TangoAttribute(TaurusAttribute):
         return self.isWritable(cache)
 
     @taurus4_deprecation(alt='self.data_format')
-    def isScalar(self):
+    def isScalar(self, cache=True):
+        # cache is ignored, it is only for back. compat.
         return self.data_format == DataFormat._0D
 
     @taurus4_deprecation(alt='self.data_format')
-    def isSpectrum(self):
+    def isSpectrum(self, cache=True):
+        # cache is ignored, it is only for back. compat.
         return self.data_format == DataFormat._1D
 
     @taurus4_deprecation(alt='self.data_format')

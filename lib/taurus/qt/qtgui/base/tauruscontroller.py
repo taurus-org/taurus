@@ -327,7 +327,10 @@ def updateLabelBackground(ctrl, widget):
                 palette = QT_ATTRIBUTE_QUALITY_PALETTE
                 bgItem = ctrl.quality()
             elif bgRole == 'state':
-                bgItem = ctrl.state()
+                try:
+                    bgItem = ctrl.state()
+                except AttributeError:
+                    pass  # protect against calls with state not instantiated
             elif bgRole == 'value':
                 bgItem = ctrl.value()
             else:

@@ -30,7 +30,10 @@ from __future__ import absolute_import
 from builtins import str
 from builtins import object
 
-import collections
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 
 from taurus.core.taurusbasetypes import (TaurusElementType, TaurusEventType,
                                          AttrQuality, TaurusDevState)
@@ -284,7 +287,7 @@ class TaurusLCD(Qt.QLCDNumber, TaurusBaseWidget):
                 return
             if type(mi_value) == int:
                 mi_value = mi_value,
-            if not isinstance(mi_value, collections.Sequence):
+            if not isinstance(mi_value, Sequence):
                 return
             self._modelIndex = mi_value
         self._modelIndexStr = mi

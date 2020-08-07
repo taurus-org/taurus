@@ -28,7 +28,10 @@
 from builtins import object
 
 import weakref
-import collections
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 
 from .util.log import Logger
 from .util.event import (CallableRef,
@@ -277,7 +280,7 @@ class TaurusModel(Logger):
         if listeners is None:
             return
 
-        if not isinstance(listeners, collections.Sequence):
+        if not isinstance(listeners, Sequence):
             listeners = listeners,
 
         for listener in listeners:

@@ -66,5 +66,5 @@ if __name__ == "__main__":
     print(getResourcePath('taurus.test'))
     print(getResourcePath('taurus.test', 'resource.py'))
     # print getResourcePath('taurus.qt.qtgui.plot', 'taurusplot.py')
-    # print getResourcePath('taurus.test', 'kk.py')
+    # print getResourcePath('taurus.test', 'dummy.py')
     # print getResourcePath('taurus.kk', 'resource.py')

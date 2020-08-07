@@ -24,4 +24,4 @@
 #############################################################################
 
 from __future__ import absolute_import
-from .tgtestds import TangoSchemeTestLauncher
+from .tgtestds import TangoSchemeTestLauncher, taurus_test_ds

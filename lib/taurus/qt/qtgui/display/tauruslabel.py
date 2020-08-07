@@ -29,7 +29,10 @@ from __future__ import absolute_import
 from builtins import str
 from builtins import object
 
-import collections
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 import re
 
 from taurus.core.taurusbasetypes import (TaurusElementType, TaurusEventType,
@@ -91,7 +94,10 @@ class TaurusLabelController(TaurusBaseController):
 
         # handle special cases (that are not covered with fragment)
         if fgRole.lower() == 'state':
-            value = self.state().name
+            try:
+                value = self.state().name
+            except AttributeError:
+                pass  # protect against calls with state not instantiated
         elif fgRole.lower() in ('', 'none'):
             pass
         else:
@@ -347,7 +353,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
                 return
             if type(mi_value) == int:
                 mi_value = mi_value,
-            if not isinstance(mi_value, collections.Sequence):
+            if not isinstance(mi_value, Sequence):
                 return
             self._modelIndex = mi_value
         self._modelIndexStr = mi
@@ -482,6 +488,11 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     def resetAutoTrim(self):
         """Reset auto-trimming to its default value"""
         self.setAutoTrim(self.DefaultAutoTrim)
+
+    def resetFormat(self):
+        """reimplement to update controller if format is changed"""
+        TaurusBaseWidget.resetFormat(self)
+        self.controllerUpdate()
 
     def displayValue(self, v):
         """Reimplementation of displayValue for TaurusLabel"""

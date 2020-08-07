@@ -31,7 +31,10 @@ from builtins import str
 from builtins import object
 
 import weakref
-import collections
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 
 from taurus.external.qt import Qt
 
@@ -349,7 +352,7 @@ class TaurusLed(QLed, TaurusBaseWidget):
                 return
             if type(mi_value) == int:
                 mi_value = mi_value,
-            if not isinstance(mi_value, collections.Sequence):
+            if not isinstance(mi_value, Sequence):
                 return
             self._modelIndex = mi_value
         self._modelIndexStr = mi

@@ -20,9 +20,8 @@ download and install the latest release of Taurus (see pip --help for options)::
 
 You can test the installation by running::
 
-       python -c "import taurus; print taurus.Release.version"
+       python -c "import taurus; print(taurus.Release.version)"
 
-Note: pip is already included in python>2.7.9
 
 Note: some "extra" features of taurus have additional dependencies_.
 
@@ -30,25 +29,26 @@ Note: some "extra" features of taurus have additional dependencies_.
 Linux (Debian-based)
 ~~~~~~~~~~~~~~~~~~~~
 
-Since v3.0, Taurus is part of the official repositories of Debian (and Ubuntu
+Taurus is part of the official repositories of Debian (and Ubuntu
 and other Debian-based distros). You can install it and all its dependencies by
 doing (as root)::
 
-       aptitude install python-taurus
+       apt-get install python-taurus
 
 Note: `python3-taurus` and `python3-taurus-pyqtgraph` packages are already
 built in https://salsa.debian.org , but are not yet part of the official debian
 repositories
 
 
-Installing in a conda environment (Windows and linux)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installing in a conda environment (platform-independent)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First create a Conda_ environment with all the dependencies and activate it::
 
     conda config --add channels conda-forge
-    conda config --add channels tango-controls  # for windows, use "tcoutinho" instead of "tango-controls"
-    conda create -n py3qt5 python=3 pyqt=5 itango pytango lxml future guidata guiqwt ipython pillow pint ply pyqtgraph pythonqwt numpy scipy pymca
+    conda config --add channels tango-controls
+    # note: MacOSX users, remove "pytango" from the following command
+    conda create -n py3qt5 python=3 pyqt=5 pytango lxml future guidata guiqwt ipython pillow pint ply pyqtgraph pythonqwt numpy scipy pymca click
     conda activate py3qt5
 
 Then install taurus and taurus_pyqtgraph using pip (as explained above)
@@ -75,7 +75,7 @@ on each change::
 Dependencies
 ------------
 
-Strictly speaking, Taurus only depends on numpy_, pint_ and future_
+Strictly speaking, Taurus only depends on numpy_, click_, pint_ and future_
 but that will leave out most of the features normally
 expected of Taurus (which are considered "extras"). For example:
 
@@ -85,7 +85,7 @@ expected of Taurus (which are considered "extras"). For example:
 
 - Using the taurus Qt_ widgets, requires either PyQt_ (v4 or v5)
   or PySide_ (v1 or v2). Note that most development and testing of
-  is done with PyQt4 and PyQt5, so many features may not be
+  is done with PyQt, so many features may not be
   regularly tested with PySide and PySide2.
 
 - The :mod:`taurus.qt.qtgui.qwt5` module requires PyQwt_, which is
@@ -107,7 +107,7 @@ expected of Taurus (which are considered "extras"). For example:
 For a complete list of "extra" features and their corresponding
 requirements, execute the following command::
 
-    python -c 'import taurus; taurus.check_dependencies()'
+    taurus check-deps
 
 
 How you install the required dependencies depends on your preferred
@@ -137,12 +137,12 @@ installation method:
 .. _PySide: https://wiki.qt.io/Qt_for_Python
 .. _PyQwt: http://pyqwt.sourceforge.net/
 .. _taurus_pyqtgraph: https://github.com/taurus-org/taurus_pyqtgraph
-.. _guiqwt: https://pypi.python.org/pypi/guiqtw
+.. _guiqwt: https://pypi.org/project/guiqwt/
 .. _IPython: http://ipython.org
 .. _PyMca5: http://pymca.sourceforge.net/
-.. _pyepics: http://pypi.python.org/pypi/pyepics
+.. _pyepics: https://pypi.org/project/pyepics/
 .. _spyder: http://pythonhosted.org/spyder
 .. _lxml: http://lxml.de
-.. _PyPI: http://pypi.python.org/pypi
 .. _Conda: http://conda.io/docs/
+.. _click: https://pypi.org/project/click/
 .. _taurus-test Docker container: http://hub.docker.com/r/cpascual/taurus-test/

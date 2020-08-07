@@ -42,6 +42,8 @@ import click
 
 import socketserver
 
+import taurus.cli.common
+
 
 _all__ = ["LogRecordStreamHandler", "LogRecordSocketReceiver", "log"]
 
@@ -183,17 +185,18 @@ def log(host, port, name=None, level=None):
 
 
 @click.command('logmon')
-@click.option('--port', 'port', type=int,
-              default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
-              show_default=True,
-              help='port where log server is running')
-@click.option('--log-name', 'log_name', default=None,
-              help='filter specific log object')
-@click.option('--log-level', 'log_level',
-              type=click.Choice(['critical', 'error', 'warning', 'info',
-                                 'debug', 'trace']),
-              default='debug', show_default=True,
-              help='filter specific log level')
+@click.option(
+    '--port', 'port', type=int,
+    default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
+    show_default=True,
+    help='Port where log server is running',
+)
+@click.option(
+    '--log-name', 'log_name',
+    default=None,
+    help='Filter specific log object',
+)
+@taurus.cli.common.log_level
 def logmon_cmd(port, log_name, log_level):
     """Show the console-based Taurus Remote Log Monitor"""
     import taurus

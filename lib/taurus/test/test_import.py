@@ -51,6 +51,7 @@ class TaurusImportTestCase(unittest.TestCase):
         exclude_patterns = [r'taurus\.qt\.qtgui\.extra_.*',
                             r'taurus\.qt\.qtgui\.qwt5',
                             r'taurus\.external\.qt\.QtUiTools',
+                            r'taurus\.external\.qt\.QtWebKit',
                             r'taurus\.external\.qt\.Qwt5',
                             ]
 
@@ -62,6 +63,11 @@ class TaurusImportTestCase(unittest.TestCase):
             import epics
         except ImportError:
             exclude_patterns.append(r'taurus\.core\.epics')
+
+        from taurus.external.qt import PYSIDE2
+        if PYSIDE2:
+            exclude_patterns.append(r'taurus\.external\.qt\.QtDesigner')
+            exclude_patterns.append(r'taurus\.qt\.qtdesigner')
 
         moduleinfo, wrn = self.explore('taurus', verbose=False,
                                        exclude_patterns=exclude_patterns)

@@ -50,8 +50,13 @@ class ThreadPool(Logger):
 
     NoJob = 6 * (None,)
 
-    def __init__(self, name=None, parent=None, Psize=20, Qsize=20, daemons=True):
+    def __init__(self, name=None, parent=None, Psize=20, Qsize=20,
+                 daemons=True, worker_cls=None):
         Logger.__init__(self, name, parent)
+        if worker_cls is None:
+            self._worker_cls = Worker
+        else:
+            self._worker_cls = worker_cls
         self._daemons = daemons
         self.localThreadId = 0
         self.workers = []
@@ -70,7 +75,7 @@ class ThreadPool(Logger):
             for i in range(newSize - nb_workers):
                 self.localThreadId += 1
                 name = "%s.W%03i" % (self.log_name, self.localThreadId)
-                new = Worker(self, name, self._daemons)
+                new = self._worker_cls(self, name, self._daemons)
                 self.workers.append(new)
                 self.debug("Starting %s" % name)
                 new.start()
@@ -97,7 +102,7 @@ class ThreadPool(Logger):
         self.accept = False
         while True:
             for w in self.workers:
-                if w.isAlive():
+                if w.is_alive():
                     self.jobs.put(self.NoJob)
                     break
             else:

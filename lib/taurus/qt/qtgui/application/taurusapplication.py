@@ -31,12 +31,12 @@ from builtins import str
 import os
 import sys
 import logging
-import optparse
 import threading
 
 from taurus.external.qt import Qt
 
 from taurus.core.util.log import LogExceptHook, Logger
+from taurus import tauruscustomsettings
 
 
 __all__ = ["TaurusApplication"]
@@ -133,11 +133,12 @@ class TaurusApplication(Qt.QApplication, Logger):
         - org_domain: (str) organization domain
         - cmd_line_parser (None [or DEPRECATED :class:`optparse.OptionParser`])
 
-    If cmd_line_parser is explicitly set to None (recommended), no parsing will
+    If cmd_line_parser is explicitly set to None, no parsing will
     be done at all. If a  :class:`optparse.OptionParser` instance is passed as
     cmd_line_parser (deprecated), it will be used for parsing the command line
-    arguments. If it is not explicitly passed (not recommended), a default
-    parser will be assumed with the default taurus options.
+    arguments. If cmd_line_parser is not explicitly passed, the behaviour will
+    depend on the value of tauruscustomsettings.IMPLICIT_OPTPARSE (which by
+    default is False, indicating that no parsing is done).
 
     Simple example::
 
@@ -173,7 +174,13 @@ class TaurusApplication(Qt.QApplication, Logger):
         app_version = kwargs.pop('app_version', None)
         org_name = kwargs.pop('org_name', None)
         org_domain = kwargs.pop('org_domain', None)
-        parser = kwargs.pop('cmd_line_parser', optparse.OptionParser())
+
+        if getattr(tauruscustomsettings, 'IMPLICIT_OPTPARSE', True):
+            import optparse
+            default_parser = optparse.OptionParser()
+        else:
+            default_parser = None
+        parser = kwargs.pop('cmd_line_parser', default_parser)
 
         #######################################################################
         # Workaround for XInitThreads-related crash.
@@ -211,19 +218,25 @@ class TaurusApplication(Qt.QApplication, Logger):
         if parser is None:
             p, opt, args = None, None, None
         else:
-            if parser.version is None and app_version:
-                # if the parser does not contain version information
-                # but we have an application version, add the
-                # --version capability
-                v = app_version
-                if app_name:
-                    v = app_name + " " + app_version
-                parser.version = v
-                parser._add_version_option()
+            try:
+                if parser.version is None and app_version:
+                    # if the parser does not contain version information
+                    # but we have an application version, add the
+                    # --version capability
+                    v = app_version
+                    if app_name:
+                        v = app_name + " " + app_version
+                    parser.version = v
+                    parser._add_version_option()
 
-            import taurus.core.util.argparse
-            p, opt, args = taurus.core.util.argparse.init_taurus_args(
-                parser=parser, args=args[0][1:])
+                import taurus.core.util.argparse
+                p, opt, args = taurus.core.util.argparse.init_taurus_args(
+                    parser=parser, args=args[0][1:])
+            except Exception:
+                self.error("Error while using the given cmd_line_parser. \n"
+                           + "hint: it must be either None or an "
+                           + "optparse.OptionParser instance")
+                raise
 
         self._cmd_line_parser = p
         self._cmd_line_options = opt

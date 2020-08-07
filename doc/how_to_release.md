@@ -59,7 +59,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Install taurus-pyqtgraph from the master branch of its repo: 
       `pip install https://github.com/taurus-org/taurus_pyqtgraph/archive/master.zip`.
 - [ ] Check installed version of taurus: `taurus --version`
-- [ ] Check installed version of taurus_pyqtgraph: `taurus tpg --version`
+- [ ] Check installed version of taurus_pyqtgraph: `python -c "import taurus_pyqtgraph; print(taurus_pyqtgraph.__version__)"`
 
 ### taurus demo
 
@@ -71,18 +71,22 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] For LCD: Test the foreground roles and the background role
 - [ ] For Led: Test the colors, ON color, Off color. (hint: you can use `eval:False` as a model for testing)
 
-### taurus guiqwt image
+### taurus image
 
-- [ ] Execute `taurus guiqwt image --demo`
+- [ ] Execute `taurus image --demo`
 - [ ] try to resize the image and pan it using the mouse.
 - [ ] check the cross section tools, the color maps, etc.
 - [ ] replace the image using the "Change Taurus Model" button (choose , eg, sys/tg_test/1/double_image_ro)
 
-### taurus guiqwt trend2d
+### taurus trend2d
 
-- [ ] Execute: `taurus --polling-period 333 guiqwt trend2d --demo`
-- [ ] Execute: `taurus --polling-period 333 guiqwt trend2d -xt --demo`  **(known to fail in 4.1.0)**
-- [ ] Execute: `taurus --polling-period 333 guiqwt trend2d -xe --demo`
+- [ ] Execute: `taurus --polling-period 333 trend2d --demo`
+- [ ] Execute: `taurus --polling-period 333 trend2d -xt --demo`  **(known to fail in 4.1.0)**
+- [ ] Execute: `taurus --polling-period 333 trend2d -xn --demo`
+- [ ] Execute: `taurus --polling-period 333 trend2d -xe --demo`
+- [ ] Execute: `taurus --polling-period 333 trend2d --demo -b 10` 
+  (deactivate auto-scale bottom axis and see that the plot is limited to the 
+  last 10 values )
 - [ ] Test auto-scroll and auto-scale tools (from context menu)
 
 ### taurus designer
@@ -130,7 +134,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Create a new panel (a TaurusForm) and drag and drop several models from other forms
 - [ ] Move panels around (with view unlocked!) and hide ("close") and re-show them
 - [ ] Test saving and restoring perspectives
-- [ ] Test drag&drop from a form to a trend (won't work if using the tpg.TaurusTrend, until [this](https://github.com/taurus-org/taurus_pyqtgraph/issues/25)) is fixed
+- [ ] Test drag&drop from a form to a trend
 - [ ] Test drag&drop from a form to a plot
 - [ ] Test clicking on "example01 synoptic" elements and check that the panels raised
 - [ ] Test that selecting a panel changes the selection on "example01 synoptic"
@@ -138,30 +142,37 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Create a new TaurusGui (call it `foogui`) with `taurus newgui` (follow the wizard)
 - [ ] Install `foogui` with pip (using a virtualenv may be a good idea)
 - [ ] launch `foogui` using the script that has been installed
+- [ ] edit the just created gui by relaunching the wizard (`taurus newgui`) and selecting the same directory
 - [ ] ... other features from [user's guide](http://taurus-scada.org/users/ui/index.html)
 
 ### taurus config
 - [ ] Open an ini file with taurus config and check that it is loaded correctly.
 
 ### taurus icons catalog
-- [ ] Launch `taurus icons`. Several tabs with an array of icons [should be displayed](http://taurus-scada.org/en/latest/devel/icon_guide.html#taurus-icon-catalog)
+- [ ] Launch `taurus icons`. Several tabs with an array of icons [should be displayed](http://taurus-scada.org/devel/icon_guide.html#taurus-icon-catalog)
 - [ ] Check that tooltips give info on each icon
 - [ ] Click on some icons and check that they give a bigger view of the icon and more info.
 
-### taurus tpg plot (needs taurus_pyqtgraph installed)
-- [ ] Execute: `taurus tpg plot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`
+### taurus_pyqtgraph plot (needs taurus_pyqtgraph installed)
+- [ ] Execute `taurus plot --ls-alt` (check that it lists "qwt5" and "tpg")
+- [ ] Execute: `taurus plot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`  
+  (if using py2 and Qt4, you may need to use `--use-alt=tpg` to select the tpg implementation)
 - [ ] Check zoom / panning (drag with right / left button), and Use (A) button to auto-range
 - [ ] Test inspector tool
 - [ ] Move curves between axes by using the plot configuration option in context menu
 - [ ] With curves in Y1 and Y2, test zooms and panning on separate axes (drag with right/left on the axis)
 - [ ] Test plot configuration dialog
-- [ ] Test changing curve titles
-- [ ] Open the "Input data selection" dialog and add/remove/reorder/edit models. Try adding models both for X and Y
+- [ ] Test changing curve titles (NOT YET READY: See taurus-org/taurus_pyqtgraph#31)
+- [ ] Open the "Model selection" dialog and add/remove/reorder/edit models. Try adding models both for X and Y
 - [ ] NOT YET READY <s>Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)</s>
 
-### taurus tpg trend  (needs taurus_pyqtgraph installed)
-- [ ] Execute: `taurus tpg trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
-- [ ] Execute: `taurus tpg trend -xe "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+### taurus_pyqtgraph trend  (needs taurus_pyqtgraph installed)
+- [ ] Execute `taurus trend --ls-alt` (check that it lists "qwt5" and "tpg")
+- [ ] Execute: `taurus trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+  (if using py2 and Qt4, you may need to use `--use-alt=tpg` to select the tpg implementation)
+- [ ] Execute: `taurus trend -xn "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+  (if using py2 and Qt4, you may need to use `--use-alt=tpg` to select the tpg implementation)
+  - THIS IS NOT YET SUPPORTED: You should get a *"X mode "n" not yet supported"* message
 - [ ] Check zoom / panning (drag with right / left button), and Use (A) button to auto-range
 - [ ] Test inspector tool
 - [ ] Move curves between axes by using the plot configuration option in context menu
@@ -175,7 +186,7 @@ http://taurus-scada.org/users/getting_started.html
 ### taurus qwt5 plot _Only if using py2 qt4_
 (basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
-- [ ] Execute: `taurus qwt5 plot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`
+- [ ] Execute: `QT_API=pyqt taurus plot "eval:Q(rand(333),'mm')" sys/tg_test/1/wave`
 - [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
 - [ ] Check mouse wheel Zoom
 - [ ] Test panning (dragging with CTRL pressed)
@@ -193,8 +204,8 @@ http://taurus-scada.org/users/getting_started.html
 ### taurus qwt5 trend _Only if using py2 qt4_
 (basically try all features described in the [user's guide](http://taurus-scada.org/en/latest/users/ui/index.html)
 
-- [ ] Execute: `taurus qwt5 trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
-- [ ] Execute: `taurus qwt5 trend -xn "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Execute: `QT_API=pyqt taurus trend "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
+- [ ] Execute: `QT_API=pyqt taurus trend --use-alt=qwt5 -xn "eval:Q(rand(),'mm')" sys/tg_test/1/ampli`
 - [ ] Check region Zoom in and out with region zoom and go back stacked zoom levels with the mouse middle button
 - [ ] Check mouse wheel Zoom
 - [ ] Test panning (dragging with CTRL pressed)
@@ -203,7 +214,7 @@ http://taurus-scada.org/users/getting_started.html
 - [ ] Move curves between axes by clicking on legend (and test zoom on Y2)
 - [ ] Test plot configuration dialog
 - [ ] Test Forced reading mode
-- [ ] Test autopanning mode
+- [ ] Test X Axis 'fixed range scale' mode
 - [ ] Test autoscale x mode
 - [ ] Test Save & restore config (change curve properties, zoom, etc & check that everything is restored)
 - [ ] ... other features from [user's guide](http://taurus-scada.org/users/ui/index.html)

@@ -29,7 +29,6 @@ Extension of :mod:`guiqwt.plot`
 from builtins import next
 from builtins import str
 
-import click
 import copy
 
 from future.utils import string_types
@@ -43,6 +42,7 @@ from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtcore.mimetypes import TAURUS_MODEL_LIST_MIME_TYPE, TAURUS_ATTR_MIME_TYPE
 from taurus.qt.qtgui.extra_guiqwt.builder import make
 from taurus.qt.qtgui.extra_guiqwt.curve import TaurusCurveItem, TaurusTrendParam, TaurusTrendItem
+import taurus.cli.common
 
 
 __all__ = ["TaurusCurveDialog", "TaurusTrendDialog", "TaurusImageDialog"]
@@ -474,7 +474,7 @@ class TaurusImageDialog(ImageDialog, TaurusBaseWidget):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         return taurus.core.taurusattribute.TaurusAttribute
 
-    @Qt.pyqtSlot(str)
+    @Qt.pyqtSlot("QString")
     def setModel(self, model):
         '''reimplemented from :class:`TaurusBaseWidget`'''
         if self.getUseParentModel():
@@ -627,49 +627,3 @@ def taurusTrendDlgMain():
     w.show()
     sys.exit(app.exec_())
 
-
-@click.command('image')
-@click.argument('model', nargs=1, required=False)
-@click.option('-c', '--color-mode', 'color_mode',
-              type=click.Choice(['gray', 'rgb']),
-              default='gray',
-              show_default=True,
-              help=('Color mode expected from the attribute')
-              )
-@click.option("--demo", is_flag=True, help="show a demo of the widget")
-@click.option('--window-name', 'window_name',
-              default='TaurusPlot (qwt5)',
-              help='Name of the window')
-def image_cmd(model, color_mode, demo, window_name):
-    from taurus.qt.qtgui.application import TaurusApplication
-    import sys
-
-    app = TaurusApplication(cmd_line_parser=None,
-                            app_name="Taurus Image Dialog")
-
-    rgb_mode = (color_mode == 'rgb')
-
-    # TODO:  is "-c rgb --demo" doing the right thing?? Check it.
-    if demo:
-        if color_mode == 'rgb':
-            model = 'eval:randint(0,256,(10,20,3))'
-        else:
-            model = 'eval:rand(256,128)'
-
-    w = TaurusImageDialog(wintitle=window_name)
-
-    w.setRGBmode(rgb_mode)
-
-    # set model
-    if model:
-        w.setModel(model)
-
-    w.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    image_cmd()
-    # taurusCurveDlgMain()
-    # taurusTrendDlgMain()
-    # taurusImageDlgMain()

@@ -581,6 +581,11 @@ class TangoSchemeTest(with_metaclass(__DeviceMeta, Device)):
                           }
         self._quality = quality_states.get(quality) or AttrQuality.ATTR_VALID
 
+    @command(dtype_in=float, dtype_out=float)
+    def Sleep(self, seconds):
+        sleep(seconds)
+        return seconds
+
     @command
     def Reset(self):
         """ Reset the attributes value and configuration parameters

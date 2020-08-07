@@ -137,6 +137,9 @@ class Enumeration(object):
         # Enumeration member.
         return self.lookup[self.whatis(i)]
 
+    def __len__(self):
+        return len(self.lookup)
+
     def _generateUniqueId(self):
         if self._flaggable:
             n = 2 ** self._uniqueId

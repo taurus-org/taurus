@@ -64,8 +64,8 @@ class TaurusModelSelector(Qt.QTabWidget):
         # Note: this is an experimental feature
         # It may be removed or changed in future releases
         # Discover the taurus.modelselector plugins
-        ep_name = 'taurus.qt.qtgui.panel.TaurusModelSelector.items'
-        for ep in pkg_resources.iter_entry_points(ep_name):
+        ep_group_name = 'taurus.model_selector.items'
+        for ep in pkg_resources.iter_entry_points(ep_group_name):
             try:
                 ms_class = ep.load()
                 ms_item = ms_class(parent=self)
@@ -355,12 +355,16 @@ class TaurusModelChooser(TaurusWidget):
             models = models[:1]
         if asMimeData:
             md = Qt.QMimeData()
-            md.setData(taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE, str(
-                "\r\n".join(models)))
+            md.setData(
+                taurus.qt.qtcore.mimetypes.TAURUS_MODEL_LIST_MIME_TYPE,
+                bytes("\r\n".join(models), encoding="utf8")
+            )
             md.setText(", ".join(models))
             if len(models) == 1:
                 md.setData(
-                    taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE, str(models[0]))
+                    taurus.qt.qtcore.mimetypes.TAURUS_MODEL_MIME_TYPE,
+                    bytes(models[0], encoding="utf8")
+                )
             return md
         return models
 

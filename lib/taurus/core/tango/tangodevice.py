@@ -184,9 +184,12 @@ class TangoDevice(TaurusDevice):
         # extend the info on dev state
         ret = []
         for name, value in desc_obj:
-            if name.lower() == 'device state' and self.stateObj is not None:
-                tg_state = self.stateObj.read(cache).rvalue.name
-                value = "%s (%s)" % (value, tg_state)
+            if name.lower() == u'device state' and self.stateObj is not None:
+                try:
+                    tg_state = self.stateObj.read(cache).rvalue.name
+                    value = u"%s (%s)" % (value, tg_state)
+                except Exception as e:
+                    value = u"cannot read state"
             ret.append((name, value))
         return ret
 
@@ -200,9 +203,9 @@ class TangoDevice(TaurusDevice):
         self._deviceObj = None
         TaurusDevice.cleanUp(self)
 
-    @taurus4_deprecation(alt='.state().name')
+    @taurus4_deprecation(alt='.state.name')
     def getDisplayValue(self, cache=True):
-        return self.state(cache).name
+        return self.stateObj.read(cache=cache).rvalue.name
 
     def _createHWObject(self):
         try:

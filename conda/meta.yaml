@@ -1,0 +1,68 @@
+{% set data = load_setup_py_data(setup_file="../setup.py",
+  from_recipe_dir=True) %}
+
+{% set BUILD_NUMBER =  environ.get('GITHUB_RUN_NUMBER','0') %}
+
+{% set GIT_HASHTAG =  environ.get('GITHUB_SHA',
+    os.popen("git log --pretty=format:'%h' -n 1").read().strip()
+    )[:7] %}
+
+
+package:
+  name: {{data.get('name').lower().replace(' ', '_')}}
+  version: {{ data.get('version').replace('-alpha', 'a0') }}
+
+source:
+  path: ..
+
+build:
+  number: {{BUILD_NUMBER}}
+  string: {{ PKG_BUILDNUM }}_{{GIT_HASHTAG}}
+  noarch: python
+  script: '{{PYTHON}} setup.py install --single-version-externally-managed
+    --record=record.txt'
+  entry_points: {{data.get('entry_points', {}).get('console_scripts', [])}}
+
+requirements:
+  host:
+    - python {{data.get('python_requires','')}}
+    - setuptools
+  run:
+    - python {{data.get('python_requires','')}}
+    - numpy
+    - pint
+    - future
+    - click
+    - pyqt
+    - lxml
+    - guidata
+    - guiqwt
+    - ipython
+    - pillow
+    - ply
+    - pythonqwt
+    - scipy
+    - pymca
+
+test:
+  imports:
+    - taurus
+    - taurus.core
+    - taurus.qt
+    - taurus.external
+    - taurus.cli
+  commands:
+    - taurus --help
+  requires:
+    {% for dep in data.get('tests_require',[]) %}
+    - {{ dep.lower()}}
+    {% endfor %}
+    - pytest >= 3.6.3
+    - pytest-qt
+    - pytest-forked
+
+about:
+  home: {{ data.get('url')}}
+  license: {{ data.get('license')}}
+  summary: {{ data.get('description')}}
+  author: {{ data.get('author')}}

@@ -7,7 +7,73 @@ Note: changes in the [support-3.x] branch (which was split from
 the master branch after [3.7.1] and maintained in parallel to the 
 develop branch) won't be reflected in this file.
 
-## [4.6.1] - 2019-08-19
+
+## [4.7.0] - 2020-08-07 
+[Jul20 milestone](https://github.com/taurus-org/taurus/milestone/15)
+
+### Added
+- `plot`, `trend`, `trend2d`, `image` first-level taurus subcommands (#1120)
+- `"taurus.*.alt"` entry-point groups for registering alternative 
+  implementations of `plot`, `trend`, `trend2d`, `image` (#1120)
+- check-deps subcommand (#988)
+- `taurus.cli.register_subcommands()` and `taurus.cli.taurus_cmd()` (#991)
+- Support for `ºC` as degree celsius in units (#1033)
+- Support for spyder v4 in `taurus.qt.qtgui.editor` (#1038)
+- Entry-point ("taurus.qt.formatters") for registering formatters via plugins (#1039)
+- New `worker_cls` argument for `taurus.core.util.ThreadPool` costructor (#1081)
+- `taurus.core.util.lazymodule` for delayed entry-point loading of modules (#1090)
+- `"taurus.form.item_factories"` entry-point group (#1108)
+- `tauruscustomsettings.TANGO_AUTOSUBSCRIBE_CONF` to allow skipping of config 
+  event subscription by `TangoAttribute`
+- Official taurus packages are now automatically published in the taurus-org 
+  Anaconda channel
+
+### Changed
+- Improved Qt binding selection mechanism (and prioritize PyQt5 over PyQt4) (#1121)
+- Qt theme no longer set to TangoIcons by default (for coherence with docs) (#1012)
+- Improved Configuration options for TaurusGui (#940)
+- Passing `cmd_line_parser=None` to TaurusApplication is no longer required (#1089)
+- (for developers) Support of tox and change to pytest. More platforms
+  being now automatically tested by travis (#994)
+- TaurusForm provides more debugging info when failing to handle a model (#1049)
+- Improved GUI dialog for changing the formatter of a widget (#1039)
+- Modules registered with `"taurus.qt.qtgui"` entry-point are now lazy-loaded (#1090)
+- The control over which custom widgets are to be used in a TaurusForm is now
+  done by registering factories to `"taurus.form.item_factories"` entry-point (#1108)
+- Allow case-insensitive values for the `taurus --log-level` option (#1112)
+- Qt unit tests reimplemented using pytest-qt (#1114)
+- `"'taurus.qt.qtgui.panel.TaurusModelSelector.items"` entry-point group 
+  renamed to `"taurus.model_selector.items"`
+- Added support for 3rd party widgets in TaurusValue config settings (#1066)
+- Improved documentation (#1044, #1056, #1059, #1120)
+
+### Deprecated
+- `qwt5` and `guiqwt` CLI subcommands (#1120)
+- `TaurusBaseWidget.showFormatterDlg()` (#1039)
+- Custom widget API in TaurusForm, TaurusValue and TaurusGui (#1108)
+- `tauruscustomsettings.T_FORM_CUSTOM_WIDGET_MAP` (#1108)
+- `BaseWidgetTestCase` and `GenericWidgetTestCase` (#1114)
+- `TimeOut` Device Server (#1114)
+
+### Fixed
+- Several issues in TaurusWheelEdit (#1010, #1021)
+- Several issues affecting synoptics (#1005, #1029, #1082)
+- Issues with TaurusValueComboBox (#1102, #1032)
+- Issues with TaurusValueLineEdit (#1072)
+- TaurusValueLineEdit could not be enabled (#1117)
+- Support dns aliases for the authority name in tango model names (#998)
+- Py3 exception in `TaurusModelChooser.getListedModels()` (#1008)
+- Thread safety issues in `TaurusPollingTimer`'s add/remove attributes API (#1002)
+- Problem preventing editing existing GUIs with Taurus New Gui wizard (#1126)
+- (for py2) Improved backwards compatibility of `taurus.qt.qtgui.plot` (#1027)
+- Issues with events and subscriptions in Tango (#1030, #1061, #1113)
+- Compatibility issue in deprecated TangoAttribute's `isScalar()` and `isSpectrum()` (#1034)
+- Tooltip issues in case of device connection problems (#1087)
+- Some issues in taurus v3 to v4 migration support (#1059)
+- Some CI test issues (#1042, #1069, #1073, #1075, #1109, #1114)
+
+
+## 4.6.1 - 2019-08-19
 Hotfix for auto-deployment in PyPI with Travis. No other difference from 4.6.0.
 
 ### Fixed
@@ -471,7 +537,7 @@ and several other places](https://sf.net/p/tauruslib/tickets/milestone/Jul15/)
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [Unreleased]: https://github.com/taurus-org/taurus/tree/develop
-[4.6.1]: https://github.com/taurus-org/taurus/tree/release-4.6.1
+[4.7.0]: https://github.com/taurus-org/taurus/tree/release-4.7.0
 [4.6.0]: https://github.com/taurus-org/taurus/tree/release-4.6.0
 [4.5.1]: https://github.com/taurus-org/taurus/tree/release-4.5.1
 [4.5.0]: https://github.com/taurus-org/taurus/tree/release-4.5.0

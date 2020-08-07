@@ -27,8 +27,8 @@
 TaurusDatabase to TaurusAuthority"""
 
 
-from logging import warn
-warn('taurusdatabase module is deprecated. Use taurusauthority instead')
+from logging import warning
+warning('taurusdatabase module is deprecated. Use taurusauthority instead')
 
 import traceback
 traceback.print_stack()
@@ -46,5 +46,5 @@ TaurusDatabase = TaurusAuthority
 #                                                             TaurusDevClassInfo
 #     from taurus.core.tango.tangodatabase import TangoServInfo as TaurusServInfo
 # except ImportError, e:
-#     warn('taurusdatabase: Cannot import tango info objects: %s', repr(e))
+#     warning('taurusdatabase: Cannot import tango info objects: %s', repr(e))
 #

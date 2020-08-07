@@ -51,6 +51,7 @@ from taurus.qt.qtgui.taurusgui.utils import (ExternalApp, PanelDescription,
                                              AppletDescription)
 from taurus.qt.qtgui.util.ui import UILoadable
 from taurus.qt.qtgui.taurusgui.utils import ExternalAppAction
+from taurus.core.util.log import deprecation_decorator
 
 
 __all__ = ["DockWidgetPanel", "TaurusGui"]
@@ -168,9 +169,14 @@ class DockWidgetPanel(Qt.QDockWidget, TaurusBaseWidget):
                 except Exception as e:
                     raise RuntimeError(
                         'Cannot create widget from classname "%s". Reason: %s' % (classname, repr(e)))
-            # set customwidgetmap if necessary
-            if hasattr(w, 'setCustomWidgetMap'):
-                w.setCustomWidgetMap(self._mainwindow.getCustomWidgetMap())
+
+            # ----------------------------------------------------------------
+            # Backwards-compat. Remove when removing  CW map support
+            gui_cwmap = self._mainwindow._customWidgetMap
+            if gui_cwmap and hasattr(w, 'setCustomWidgetMap'):
+                w.setCustomWidgetMap(gui_cwmap)
+            # ----------------------------------------------------------------
+
             self.setWidget(w)
             wname = "%s-%s" % (str(self.objectName()), str(classname))
             w.setObjectName(wname)
@@ -314,9 +320,10 @@ class TaurusGui(TaurusMainWindow):
         self.registerConfigProperty(self.getAllInstrumentAssociations,
                                     self.setAllInstrumentAssociations, 'instrumentAssociation')
 
+        # backwards-compat
         from taurus import tauruscustomsettings
-        self.setCustomWidgetMap(
-            getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {}))
+        cwmap = getattr(tauruscustomsettings, 'T_FORM_CUSTOM_WIDGET_MAP', {})
+        self._customWidgetMap = cwmap  # deprecated
 
         # Create a global SharedDataManager
         Qt.qApp.SDM = SharedDataManager(self)
@@ -361,12 +368,16 @@ class TaurusGui(TaurusMainWindow):
         self.newShortMessage.emit(msg)
 
         if self.defaultConfigRecursionDepth >= 0:
-            Qt.QMessageBox.information(self, "Fail-proof mode",
-                                       ('Running in fail-proof mode.' +
-                                        '\nLoading of potentially problematic settings is disabled.' +
-                                        '\nSome panels may not be loaded or may ignore previous user configuration' +
-                                        '\nThis will also apply when loading perspectives'),
-                                       Qt.QMessageBox.Ok, Qt.QMessageBox.NoButton)
+            self.newShortMessage.emit(
+                "Running in Safe Mode. Settings not loaded"
+            )
+            self.warning(
+                "Safe mode: \n"
+                + '\n\tLoading of potentially problematic settings is disabled.'
+                + '\n\tSome panels may not be loaded or may ignore previous '
+                + 'user configuration'
+                + '\n\tThis will also apply when loading perspectives'
+            )
 
     def closeEvent(self, event):
         try:
@@ -560,6 +571,7 @@ class TaurusGui(TaurusMainWindow):
         self.deleteExternalAppLauncher(action)
         self.debug('External application "%s" removed' % name)
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def setCustomWidgetMap(self, map):
         '''
         Sets the widget map that is used application-wide. This widget map will
@@ -573,6 +585,7 @@ class TaurusGui(TaurusMainWindow):
         '''
         self._customWidgetMap = map
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def getCustomWidgetMap(self):
         '''
         Returns the default map used to create custom widgets by the TaurusForms
@@ -832,11 +845,16 @@ class TaurusGui(TaurusMainWindow):
             if not ok:
                 return
         w = paneldesc.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-        if hasattr(w, 'setCustomWidgetMap'):
-            w.setCustomWidgetMap(self.getCustomWidgetMap())
+        # ----------------------------------------------------------------
+        # Backwards-compat. Remove when removing  CW map support
+        if self._customWidgetMap and hasattr(w, 'setCustomWidgetMap'):
+            w.setCustomWidgetMap(self._customWidgetMap)
+        # ----------------------------------------------------------------
         if paneldesc.model is not None:
             w.setModel(paneldesc.model)
+
         if isinstance(w, TaurusBaseComponent):
+            # TODO: allow to select these options in the dialog
             w.setModifiableByUser(True)
             w.setModelInConfig(True)
 
@@ -1042,7 +1060,12 @@ class TaurusGui(TaurusMainWindow):
         self._loadAppName(conf, confname, xmlroot)
         self._loadOrgName(conf, xmlroot)
         self._loadCustomLogo(conf, xmlroot)
-        Qt.QApplication.instance().basicConfig()
+
+        # do some extra config if we have a TaurusApplication
+        _app = Qt.QApplication.instance()
+        if hasattr(_app, 'basicConfig'):
+            _app.basicConfig()
+
         self._loadOrgLogo(conf, xmlroot)
 
         self._loadSingleInstance(conf, xmlroot)
@@ -1287,18 +1310,57 @@ class TaurusGui(TaurusMainWindow):
                 except AttributeError:
                     pass
                 w = p.getWidget(sdm=Qt.qApp.SDM, setModel=False)
-                if hasattr(w, "setCustomWidgetMap"):
-                    w.setCustomWidgetMap(self.getCustomWidgetMap())
+
+                for key, value in p.widget_properties.items():
+                    # set additional configuration for the
+                    if hasattr(w, key):
+                        try:
+                            setattr(w, key, value)
+                        except Exception as e:
+                            msg = "Cannot set %r.%s=%s" % (w, key, str(value))
+                            self.error(msg)
+                            self.traceback(level=taurus.Info)
+                            result = Qt.QMessageBox.critical(
+                                self,
+                                "Initialization error",
+                                "%s\n\n%r" % (msg, e),
+                                Qt.QMessageBox.Abort | Qt.QMessageBox.Ignore
+                            )
+                            if result == Qt.QMessageBox.Abort:
+                                sys.exit()
+                # -------------------------------------------------------------
+                # Backwards-compat. Remove when removing  CW map support
+                if self._customWidgetMap and hasattr(w, 'setCustomWidgetMap'):
+                    w.setCustomWidgetMap(self._customWidgetMap)
+                # -------------------------------------------------------------
                 if p.model is not None:
                     w.setModel(p.model)
                 if p.instrumentkey is None:
                     instrumentkey = self.IMPLICIT_ASSOCIATION
+
+                if isinstance(w, TaurusBaseComponent):
+                    if p.modifiable_by_user is not None:
+                        w.setModifiableByUser(p.modifiable_by_user)
+                    if p.model_in_config is not None:
+                        w.setModelInConfig(p.model_in_config)
+                    if p.widget_formatter is not None:
+                        w.setFormat(p.widget_formatter)
+
+                icon = p.icon
                 # the pool instruments may change when the pool config changes,
                 # so we do not store their config
                 registerconfig = p not in poolinstruments
                 # create a panel
-                self.createPanel(w, p.name, floating=p.floating, registerconfig=registerconfig,
-                                 instrumentkey=instrumentkey, permanent=True)
+
+                self.createPanel(
+                    w,
+                    p.name,
+                    floating=p.floating,
+                    registerconfig=registerconfig,
+                    instrumentkey=instrumentkey,
+                    permanent=True,
+                    icon=icon
+                )
             except Exception as e:
                 msg = "Cannot create panel %s" % getattr(
                     p, "name", "__Unknown__")

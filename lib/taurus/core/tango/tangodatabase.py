@@ -31,10 +31,12 @@ from builtins import str
 from builtins import map
 from builtins import range
 from builtins import object
-import collections
+try:
+    from collections.abc import Mapping
+except ImportError:  # bck-compat py 2.7
+    from collections import Mapping
 
 import os
-import socket
 import weakref
 
 from PyTango import (Database, DeviceProxy, DevFailed, ApiUtil)
@@ -43,6 +45,7 @@ from taurus.core.taurusbasetypes import TaurusDevState, TaurusEventType
 from taurus.core.taurusauthority import TaurusAuthority
 from taurus.core.util.containers import CaselessDict
 from taurus.core.util.log import taurus4_deprecation
+from taurus.core.util.fqdn import fqdn_no_alias
 
 
 __all__ = ["TangoInfo", "TangoAttrInfo", "TangoDevInfo", "TangoServInfo",
@@ -517,7 +520,7 @@ class TangoDevTree(CaselessDict):
 
     def _update(self, other):
         try:
-            if isinstance(other, collections.Mapping):
+            if isinstance(other, Mapping):
                 other = list(other.values())
             for dev in other:
                 try:
@@ -563,7 +566,7 @@ class TangoServerTree(dict):
 
     def _update(self, other):
         try:
-            if isinstance(other, collections.Mapping):
+            if isinstance(other, Mapping):
                 other = list(other.values())
             for serv in other:
                 try:
@@ -679,7 +682,7 @@ class TangoAuthority(TaurusAuthority):
                 warning("Error getting default Tango host")
 
         # Set host to fqdn
-        host = socket.getfqdn(host)
+        host = fqdn_no_alias(host)
 
         self.dbObj = Database(host, port)
         self._dbProxy = None
