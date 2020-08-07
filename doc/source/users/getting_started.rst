@@ -43,15 +43,14 @@ repositories
 Installing in a conda environment (platform-independent)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First create a Conda_ environment with all the dependencies and activate it::
+In a conda environment (we recommend creating one specifically for taurus)::
 
-    conda config --add channels conda-forge
-    conda config --add channels tango-controls
-    # note: MacOSX users, remove "pytango" from the following command
-    conda create -n py3qt5 python=3 pyqt=5 pytango lxml future guidata guiqwt ipython pillow pint ply pyqtgraph pythonqwt numpy scipy pymca click
-    conda activate py3qt5
+    conda -c conda-forge -c taurus-org taurus taurus_pyqtgraph
 
-Then install taurus and taurus_pyqtgraph using pip (as explained above)
+optionally, you may also want to install tango::
+
+    conda -c tango-controls pytango
+
 
 Working from Git source directly (in develop mode)
 --------------------------------------------------
