@@ -16,7 +16,7 @@ of stuff that should be manually tested.
 5. Request reviews in the PR from at least one integrator from each participating institute. The master branch is protected, so the reviews need to be cleared (or dismissed with an explanation) before the release can be merged.
 6. Perform manual tests (see checklist below). You may use the CI artifacts (e.g., from appveyor). To avoid spamming the PR comments with the manual test results, a new issue can be created to report the tests results on each platform (and just use a single check for each platform in the PR).
 7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, run `bumpversion release`, push and merge the PR and then tag in master and push the tag.
-8. Check that travis-ci correctly uploaded to PyPI and anaconda cloud (triggered on tag push).  
+8. Check that the CI correctly uploaded to PyPI and anaconda cloud (triggered on tag push).  
 9. Merge also the `release-XXX` branch into develop, and bump the version of develop with `bumpversion patch`
 10. Complete GitHub release (upload artifacts, edit text)
 11. Create news in www.tango-controls.org
