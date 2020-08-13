@@ -15,29 +15,17 @@ of stuff that should be manually tested.
     3. Create a PR to merge the `release-XXX` against the **`master`** branch of the taurus-org repo
 5. Request reviews in the PR from at least one integrator from each participating institute. The master branch is protected, so the reviews need to be cleared (or dismissed with an explanation) before the release can be merged.
 6. Perform manual tests (see checklist below). You may use the CI artifacts (e.g., from appveyor). To avoid spamming the PR comments with the manual test results, a new issue can be created to report the tests results on each platform (and just use a single check for each platform in the PR).
-7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, run `bumpversion release`, push and merge the PR and tag in master
-8. Check that travis-ci correctly uploaded to PyPI (triggered on tag push).
-
-   Previously:
-   ~~Release to PyPI **from a clean checkout** and using [twine](https://github.com/pypa/twine):~~
-   > ```
-   > cd /tmp
-   > git clone https://github.com/taurus-org/taurus.git -b <RELEASE_TAG>
-   > cd taurus
-   > python setup.py sdist bdist_wheel
-   >twine upload dist/*
-   > ```
-  
-9. Merge also the  `release-XXX` branch into develop, and bump the version of develop with `bumpversion patch`
+7. Once all reviews a cleared, update the date of the release in the CHANGELOG.md, run `bumpversion release`, push and merge the PR and then tag in master and push the tag.
+8. Check that travis-ci correctly uploaded to PyPI and anaconda cloud (triggered on tag push).  
+9. Merge also the `release-XXX` branch into develop, and bump the version of develop with `bumpversion patch`
 10. Complete GitHub release (upload artifacts, edit text)
 11. Create news in www.tango-controls.org
     1. On the News page click on Submit a news and fill up the form (if it doesn't work, try opening in new tab):
        * Title: New Release Of Taurus X.X.X (Jan|JulXX)
        * Ilustration: Taurus official logo (use png)
-       * Summary: short summary of the news (do not include the whole changelog here..)
+       * Summary: short summary of the news (do not include the whole changelog here)
        * Categories: Release
-    2. After submitting click on Modify this content text of the area \<\<Content\>\> and provide detailes of the release e.g. changelog.
-12. Notify mailing lists (taurus-users@lists.sourceforge.net, taurus-devel@lists.sourceforge.net, info@tango-controls.org)
+12. Notify mailing lists (tauruslib-users@lists.sourceforge.net, tauruslib-devel@lists.sourceforge.net, info@tango-controls.org)
 
 
 
