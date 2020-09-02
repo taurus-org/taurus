@@ -60,6 +60,9 @@ developments, it is convenient to work directly from the git source in
 "develop" (aka "editable") mode, so that you do not need to re-install
 on each change::
 
+    # optional: if using a conda environment, pre-install dependencies with:
+    conda install --only-deps -c conda-forge -c taurus-org taurus taurus_pyqtgraph
+
     # install taurus in develop mode
     git clone https://github.com/taurus-org/taurus.git
     pip install -e ./taurus  # <-- Note the -e !!
