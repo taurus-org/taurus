@@ -156,7 +156,7 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
         self._records = []
         self._accumulated_records = []
         Logger.addRootLogHandler(self)
-        self.startTimer(freq * 1000)
+        self.startTimer(int(freq * 1000))
 
     # ---------------------------------
     # Qt.QAbstractTableModel overwrite
