@@ -20,8 +20,9 @@ matrix:
     - env: TOXENV=py35-qt5
     - env: TOXENV=py36-qt5
     - env: TOXENV=py37-qt5
+    - env: TOXENV=py38-qt5
     - env: TOXENV=py37-ps2
-    - env: TOXENV=py37-qt5-docs
+    - env: TOXENV=py38-qt5-docs
   allow_failures:
     #- env: TOXENV=flake8
     #- env: TOXENV=py27-qt4
@@ -54,7 +55,7 @@ script:
 
 after_success:
   # Deploy docs to taurus-org/taurus-doc
-  - if [[ "$TOXENV" == "py37-qt5-docs" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
+  - if [[ "$TOXENV" == "py38-qt5-docs" && "$TRAVIS_REPO_SLUG" == "taurus-org/taurus" ]]; then
       pip install doctr ;
       touch build/sphinx/html/.nojekyll;
       if [[ "${TRAVIS_BRANCH}" == "develop" ]]; then
