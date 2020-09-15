@@ -34,6 +34,7 @@ try:
 except ImportError:  # bck-compat py 2.7
     from collections import Sequence
 import re
+import string
 
 from taurus.core.taurusbasetypes import (TaurusElementType, TaurusEventType,
                                          AttrQuality, TaurusDevState)
@@ -57,6 +58,20 @@ _QT_PLUGIN_INFO = {
 
 TaurusModelType = TaurusElementType
 EventType = TaurusEventType
+
+
+class _SafeFormatter(string.Formatter):
+    """
+    Like default formatter but leaves unmatched keys in the result string
+    instead of raising an exception.
+    Inspired by:
+    https://github.com/silx-kit/pyFAI/blob/0.19/pyFAI/utils/stringutil.py#L41
+    """
+    def get_field(self, field_name, args, kwargs):
+        try:
+            return string.Formatter.get_field(self, field_name, args, kwargs)
+        except KeyError:
+            return "{%s}" % field_name, field_name
 
 
 class TaurusLabelController(TaurusBaseController):
@@ -236,6 +251,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     _deprecatedRoles = dict(value='rvalue', w_value='wvalue')
 
     def __init__(self, parent=None, designMode=False):
+        self._safeFormatter = _SafeFormatter()
         self._prefix = self.DefaultPrefix
         self._suffix = self.DefaultSuffix
         self._permanentText = None
@@ -512,7 +528,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
             dev = attr.getParent()
 
         try:
-            v = value.format(dev=dev, attr=attr)
+            v = self._safeFormatter.format(value, dev=dev, attr=attr)
         except Exception as e:
             self.warning(
                 "Error formatting display (%r). Reverting to raw string", e)
