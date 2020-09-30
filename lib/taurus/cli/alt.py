@@ -328,7 +328,7 @@ def trend_cmd(
                 epname,
                 e,
             )
-        sys.exit(1)
+            sys.exit(1)
 
     # set models
     if models:
