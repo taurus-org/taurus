@@ -318,6 +318,14 @@ def trend_cmd(
             )
             sys.exit(1)
 
+    # set models
+    if models:
+        w.setModel(list(models))
+
+    # period option
+    if forced_read_period > 0:
+        w.setForcedReadingPeriod(forced_read_period)
+        
     # max buffer size option
     if max_buffer_size is not None:
         try:
@@ -329,14 +337,6 @@ def trend_cmd(
                 e,
             )
             sys.exit(1)
-
-    # set models
-    if models:
-        w.setModel(list(models))
-
-    # period option
-    if forced_read_period > 0:
-        w.setForcedReadingPeriod(forced_read_period)
 
     w.show()
     sys.exit(app.exec_())
