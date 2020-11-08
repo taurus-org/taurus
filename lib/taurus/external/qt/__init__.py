@@ -203,6 +203,8 @@ def __initializeQtLogging():
         QtCore.QtFatalMsg: __log.fatal,
         QtCore.QtSystemMsg: __log.critical,
     }
+    if hasattr(QtCore, "QtInfoMsg"):
+        QT_LEVEL_MATCHER[QtCore.QtInfoMsg] = __log.info
 
     if hasattr(QtCore, "qInstallMessageHandler"):
         # Qt5
