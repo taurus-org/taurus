@@ -198,12 +198,13 @@ def __initializeQtLogging():
 
     QT_LEVEL_MATCHER = {
         QtCore.QtDebugMsg: __log.debug,
-        QtCore.QtInfoMsg: __log.info,
         QtCore.QtWarningMsg: __log.warning,
         QtCore.QtCriticalMsg: __log.critical,
         QtCore.QtFatalMsg: __log.fatal,
         QtCore.QtSystemMsg: __log.critical,
     }
+    if hasattr(QtCore, "QtInfoMsg"):
+        QT_LEVEL_MATCHER[QtCore.QtInfoMsg] = __log.info
 
     if hasattr(QtCore, "qInstallMessageHandler"):
         # Qt5
