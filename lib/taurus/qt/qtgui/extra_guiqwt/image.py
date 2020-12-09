@@ -30,10 +30,10 @@ __all__ = ["TaurusImageItem", "TaurusRGBImageItem", "TaurusTrend2DItem",
            "TaurusTrend2DScanItem", "TaurusEncodedImageItem",
            "TaurusEncodedRGBImageItem"]
 
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.base import TaurusBaseComponent
-from taurus.qt.qtcore.util.signal import baseSignal
+from taurus.qt.qtcore.util import baseSignal
 import taurus.core
 from taurus.core.util.containers import ArrayBuffer
 
@@ -69,7 +69,7 @@ class TaurusBaseImageItem(TaurusBaseComponent):
             # TODO: units should be used for setting some title in the colorbar
         try:
             v = self.filterData(v)
-        except Exception, e:
+        except Exception as e:
             self.info('Ignoring event. Reason: %s', e.message)
             return
         # this is the range of the z axis (color scale)
@@ -143,7 +143,7 @@ class TaurusEncodedBaseImageItem(TaurusBaseImageItem):
 
             try:
                 fmt, decoded_data = codec.decode(data)
-            except Exception, e:
+            except Exception as e:
                 self.info('Decoder error: %s', e.message)
                 raise e
 
@@ -601,7 +601,7 @@ def test1():
     from guiqwt.plot import ImageDialog
     from taurus.qt.qtgui.extra_guiqwt.builder import make
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     # define a taurus image
     #model1 = 'sys/tg_test/1/short_image_ro'

@@ -158,7 +158,7 @@ Summary of API changes
 
 The deprecations introduced by this proposal can be identified in the code by the use of the `@tep14_deprecation` decorator and the calls to the `deprecated` function with the `rel='tep14'` argument.
 
-The [Taurus4-API_changes](https://sourceforge.net/p/tauruslib/wiki/Taurus4-API_changes/) document is an attempt to explicitly list all the changes (it is not considered part of this TEP because it is likely to be modified to include more comments or missing changes)
+The [Taurus4-API_changes](http://taurus-scada.org/devel/taurus3to4.html#api-changes) document is an attempt to explicitly list all the changes (it is not considered part of this TEP because it is likely to be modified to include more comments or missing changes)
 
 
 Links to more details and discussions
@@ -215,18 +215,21 @@ Changes
 
 
 2015-04-28
-[cpascual](http://sf.net/u/cpascual/) First draft based on parts moved from [TEP3][] and previous discussions with [tiagocoutinho](http://sf.net/u/tiagocoutinho/), [cfalcon](https://sf.net/u/cmft/) and [zreszela](http://sf.net/u/zreszela/)
+[cpascual](https://github.com/cpascual/) First draft based on parts moved from [TEP3][] and previous discussions with [tiagocoutinho](http://sf.net/u/tiagocoutinho/), [cfalcon](https://sf.net/u/cmft/) and [zreszela](http://sf.net/u/zreszela/)
 
 2015-11-23
-[cpascual](http://sf.net/u/cpascual/) Implementation proposal uploaded to taurus4-preview branch of official repo
+[cpascual](https://github.com/cpascual/) Implementation proposal uploaded to taurus4-preview branch of official repo
 
 2016-03-11
-[cpascual](http://sf.net/u/cpascual/) Completed missing sections, rewritted existing ones and passed to CANDIDATE
+[cpascual](https://github.com/cpascual/) Completed missing sections, rewritted existing ones and passed to CANDIDATE
 
 2016-03-16
-[cpascual](http://sf.net/u/cpascual/) Passing to  ACCEPTED
+[cpascual](https://github.com/cpascual/) Passing to  ACCEPTED
 
 2016-11-16
 [mrosanes](https://github.com/sagiss/) Adapt TEP format and URL according TEP16
+
+2019-04-03
+[cpascual](https://github.com/cpascual/) Update outdated sf.net links
 
 [TEP3]: http://www.taurus-scada.org/tep?TEP3.md

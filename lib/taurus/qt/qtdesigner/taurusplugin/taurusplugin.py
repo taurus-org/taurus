@@ -37,6 +37,7 @@
       editing the widget model (same has 'Edit model...' task menu item
 """
 
+from __future__ import print_function
 import inspect
 
 from taurus.external.qt import Qt
@@ -46,8 +47,8 @@ from taurus.core.util.log import Logger
 
 
 def Q_TYPEID(class_name):
-    """ Helper function to generate an IID for Qt. Returns a QString."""
-    return Qt.QString("com.trolltech.Qt.Designer.%s" % class_name)
+    """ Helper function to generate an IID for Qt."""
+    return "com.trolltech.Qt.Designer.%s" % class_name
 
 designer_logger = Logger("PyQtDesigner")
 
@@ -103,11 +104,11 @@ class TaurusWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
                                                 designMode=True,
                                                 parent=parent)
             w = klass(*args, **kwargs)
-        except Exception, e:
+        except Exception as e:
             name = self._getWidgetClassName()
-            print 100 * "="
-            print "taurus designer plugin error creating %s: %s" % (name, str(e))
-            print 100 * "-"
+            print(100 * "=")
+            print("taurus designer plugin error creating %s: %s" % (name, str(e)))
+            print(100 * "-")
             import traceback
             traceback.print_exc()
             w = None

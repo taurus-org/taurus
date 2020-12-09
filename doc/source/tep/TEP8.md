@@ -1,6 +1,6 @@
     Title: Remove from Taurus objects the direct Logger dependence.
     TEP: 8
-    State: CANDIDATE
+    State: REJECTED
     Date: 2013-10-30
     Drivers: Carlos Falcon Torres <cfalcon@cells.es>; Tiago Coutinho Macara <tiago.coutinho@esrf.fr>
     URL: http://www.taurus-scada.org/tep?TEP8.md
@@ -238,6 +238,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Changes
 -----
+2018-06-27 [cpascual](https://github.com/cpascual/) Change state CANDIDATE --> REJECTED. 
+The [proposed implementation](https://github.com/taurus-org/taurus/pull/348) never got 
+properly reviewed and it was rendered obsolete by the evolving code. But note that the 
+motivation behind this TEP is still valid and as such, another implementation may be
+proposed in the future if there is enough interest.
 
 2016-11-16 [mrosanes](https://github.com/sagiss/) Adapt format and URL according to TEP16
 

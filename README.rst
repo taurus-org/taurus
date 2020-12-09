@@ -11,13 +11,13 @@
     :target: https://pypi.python.org/pypi/taurus
     :alt: Latest Version
 
+.. image:: https://anaconda.org/taurus-org/taurus/badges/version.svg   
+    :target: https://anaconda.org/taurus-org/taurus
+    :alt: Conda
+
 .. image:: https://badge.fury.io/gh/taurus-org%2Ftaurus.svg
     :target: https://github.com/taurus-org/taurus
     :alt: GitHub
-    
-.. image:: https://readthedocs.org/projects/taurus/badge/
-    :target: http://taurus-scada.org/docs.html
-    :alt: Documentation
     
 .. image:: https://travis-ci.org/taurus-org/taurus.svg?branch=develop
     :target: https://travis-ci.org/taurus-org/taurus

@@ -24,45 +24,48 @@
 #############################################################################
 
 """Adapted from http://code.activestate.com/recipes/267662/"""
-
-__docformat__ = "restructuredtext"
-
-import cStringIO
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import str
+from builtins import range
+from functools import reduce
 import operator
 import re
 import math
+
+__docformat__ = "restructuredtext"
 
 
 def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
            separateRows=False, prefix='', postfix='', wrapfunc=lambda x: x):
     """Indents a table by column.
-       - rows: A sequence of sequences of items, one sequence per row.
-       - hasHeader: True if the first row consists of the columns' names.
-       - headerChar: Character to be used for the row separator line
-         (if hasHeader==True or separateRows==True).
-       - delim: The column delimiter.
-       - justify: Determines how are data justified in their column.
-         Valid values are 'left','right' and 'center'.
-       - separateRows: True if rows are to be separated by a line
-         of 'headerChar's.
-       - prefix: A string prepended to each printed row.
-       - postfix: A string appended to each printed row.
-       - wrapfunc: A function f(text) for wrapping text; each element in
-         the table is first wrapped by this function.
-
-        Returns a list of strings. One for each row of the table
+    :param rows: A sequence of sequences of items, one sequence per row.
+    :param hasHeader: True if the first row consists of the columns' names.
+    :param headerChar: Character to be used for the row separator line
+    (if hasHeader==True or separateRows==True).
+    :param delim: The column delimiter.
+    :param justify: Determines how are data justified in their column.
+    Valid values are 'left','right' and 'center'.
+    :param separateRows: True if rows are to be separated by a line of
+    'headerChar's.
+    :param prefix: A string prepended to each printed row.
+    :param postfix: A string appended to each printed row.
+    :param wrapfunc: A function f(text) for wrapping text;
+    each element in the table is first wrapped by this function.
+    :return: a list of strings. One for each row of the table
     """
-
     # closure for breaking logical rows to physical, using wrapfunc
     def rowWrapper(row):
         newRows = [wrapfunc(item).split('\n') for item in row]
-        return [[substr or '' for substr in item] for item in map(None, *newRows)]
+        return [[substr or '' for substr in item] for item in list(*newRows)]
 
     # break each logical row into one or more physical ones
     logicalRows = [rowWrapper(row) for row in rows]
     # columns of physical rows
 
-    columns = map(None, *reduce(operator.add, logicalRows))
+    columns = list(*reduce(operator.add, logicalRows))
 
     # get the maximum of each column by the string length of its items
     maxWidths = [max([len(str(item)) for item in column])
@@ -97,10 +100,9 @@ def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
 
 
 def wrap_onspace(text, width):
-    """
-    A word-wrap function that preserves existing line breaks
+    """A word-wrap function that preserves existing line breaks
     and most spaces in the text. Expects that existing line
-    breaks are posix newlines (\n).
+    breaks are posix newlines (\\\\n).
     """
     return reduce(lambda line, word, width=width: '%s%s%s' %
                   (line,
@@ -118,14 +120,12 @@ def wrap_onspace_strict(text, width):
     wordRegex = re.compile(r'\S{' + str(width) + r',}')
     return wrap_onspace(wordRegex.sub(lambda m: wrap_always(m.group(), width), text), width)
 
-import math
-
 
 def wrap_always(text, width):
     """A simple word-wrap function that wraps text on exactly width characters.
        It doesn't split the text in words."""
     return '\n'.join([text[width * i:width * (i + 1)]
-                      for i in xrange(int(math.ceil(1. * len(text) / width)))])
+                      for i in range(int(math.ceil(1. * len(text) / width)))])
 
 if __name__ == '__main__':
     labels = ('First Name', 'Last Name', 'Age', 'Position')
@@ -135,19 +135,19 @@ if __name__ == '__main__':
        Aristidis,Papageorgopoulos,28,Senior Reseacher'''
     rows = [row.strip().split(',') for row in data.splitlines()]
 
-    print 'Without wrapping function\n'
+    print('Without wrapping function\n')
     for l in indent([labels] + rows, hasHeader=True):
-        print l
+        print(l)
 
     # test indent with different wrapping functions
     width = 10
     for wrapper in (wrap_always, wrap_onspace, wrap_onspace_strict):
-        print 'Wrapping function: %s(x,width=%d)\n' % (wrapper.__name__, width)
+        print('Wrapping function: %s(x,width=%d)\n' % (wrapper.__name__, width))
         o = indent([labels] + rows, headerChar='=', hasHeader=True, separateRows=False,
                    prefix='|', postfix='|', delim=' ',
                    wrapfunc=lambda x: wrapper(x, width))
         for l in o:
-            print l
+            print(l)
 
     # output:
     #

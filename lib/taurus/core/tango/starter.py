@@ -29,16 +29,17 @@ servers
 It is not a replacement of the Tango Starter Device Server since this is much
 more limited in scope.
 """
-
-__docformat__ = 'restructuredtext'
-
+from __future__ import print_function
+from builtins import object
 
 import os
 import time
 import subprocess
 import PyTango
-
 from taurus.core.util.log import Logger
+
+
+__docformat__ = 'restructuredtext'
 
 _log = Logger('Starter')
 
@@ -230,15 +231,16 @@ class ProcessStarter(Starter):
 if __name__ == '__main__':
 
     from taurus.test.resource import getResourcePath
-    timeoutExec = getResourcePath('taurus.qt.qtgui.button.test.res', 'Timeout')
-    s = ProcessStarter(timeoutExec, 'Timeout/test_removeme')
-    devname = 'testing/timeout/temp-1'
-    s.addNewDevice(devname, klass='Timeout')
+    exe = getResourcePath('taurus.core.tango.test.res', 'TangoSchemeTest')
+    s = ProcessStarter(exe, 'TangoSchemeTest/test_removeme')
+    devname = 'testing/tangoschemetest/temp-1'
+    s.addNewDevice(devname, klass='TangoSchemeTest')
     s.startDs()
     try:
-        print 'Is running:', s.isRunning()
-        print "ping:", PyTango.DeviceProxy(devname).ping()
-    except Exception, e:
-        print e
+        print('Is running:', s.isRunning())
+        print("ping:", PyTango.DeviceProxy(devname).ping())
+    except Exception as e:
+        print(e)
     s.stopDs()
     s.cleanDb(force=False)
+

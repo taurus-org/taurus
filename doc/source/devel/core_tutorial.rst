@@ -11,7 +11,7 @@ The core has been designed to provide a model-based abstraction to the various
 sources of data and/or control objects supported via the Taurus schemes (we use 
 the term "model" to refer to the model component in an MVC driven architecture). 
 
-An scheme is a plugin for Taurus that provides the glue between Taurus and a
+A scheme is a plugin for Taurus that provides the glue between Taurus and a
 given source of data and/or of objects that can be controlled. For example, 
 schemes exist for various control system libraries (such as
 Tango_, or EPICS_) as well as for processing data (e.g. the
@@ -112,7 +112,7 @@ EPICS process variable (PV) "my:example.RBV" is:
 
 ``epics:my:example.RBV``
 
-Note that you can create your own schemes and add them to taurus (e.g., an 
+Note that you can create your own schemes and add them to taurus (e.g., a 
 scheme to access your own home-brew control system). Some schemes that are in 
 our TO-DO list are:
 

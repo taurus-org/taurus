@@ -32,7 +32,7 @@ Taurus icon catalog
 -------------------
 
 In order to explore the icon collections provided by Taurus, you can use the
-`taurusiconcatalog` application, which will let you browse the icons.
+`taurus icons` application, which will let you browse the icons.
 
 .. figure:: /_static/taurusiconcatalog-01.png
   :align: center

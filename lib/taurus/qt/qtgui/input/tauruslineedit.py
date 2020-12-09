@@ -27,10 +27,12 @@
 This module provides a set of basic taurus widgets based on QLineEdit
 """
 
+from builtins import bytes
+from builtins import str
 import sys
 import numpy
 from taurus.external.qt import Qt
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 from taurus.qt.qtgui.base import TaurusBaseWritableWidget
 from taurus.qt.qtgui.util import PintValidator
 from taurus.core import DataType, DataFormat, TaurusEventType
@@ -41,6 +43,31 @@ __docformat__ = 'restructuredtext'
 
 
 class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
+    """
+    A taurus-aware ``QLineEdit``. It will display the value (or fragment
+    of the value) referenced by its model. It is a
+    :class:`~taurus.qt.qtgui.base.TaurusBaseWritableWidget`
+    and as such it does not apply the changes straight away to the model
+    (unless ``autoApply`` is enabled), but instead shows that there are pending
+    operations which can be applied by pressing "ENTER".
+
+    When used with numerical value Attributes as its model, it provides some
+    extended behaviour:
+
+    - It represents out-of-limit values using different colours (for warning,
+      range, invalid,...)
+    - It uses a validator that is range-aware
+    - The mouse wheel and keyboard arrows can be enabled for doing value
+      increments
+
+    .. note::
+        when used with models whose value is a pint `Quantity`, the text
+        is parsed by pint and therefore one can write e.g. `2 3 mm` which is
+        equivalent to `6 mm` !
+
+    """
+
+    _bytesEncoding = sys.stdin.encoding
 
     def __init__(self, qt_parent=None, designMode=False):
         name = self.__class__.__name__
@@ -49,6 +76,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                           name, designMode=designMode)
         self._enableWheelEvent = False
         self._last_value = None
+        self._singleStep = 1.
+        self._allow_auto_enable = True
 
         self.setAlignment(Qt.Qt.AlignRight)
         self.setValidator(None)
@@ -60,17 +89,19 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def _updateValidator(self, value):
         """This method sets a validator depending on the data type"""
-        if isinstance(value.wvalue, Quantity):
+        val = None
+        if value is not None and isinstance(value.wvalue, Quantity):
             val = self.validator()
             if not isinstance(val, PintValidator):
                 val = PintValidator(self)
                 self.setValidator(val)
             attr = self.getModelObj()
-            bottom, top = attr.range
-            if bottom != val.bottom:
-                val.setBottom(bottom)
-            if top != val.top:
-                val.setTop(top)
+            if attr is not None:
+                bottom, top = attr.range
+                if bottom != val.bottom:
+                    val.setBottom(bottom)
+                if top != val.top:
+                    val.setTop(top)
             units = value.wvalue.units
             if units != val.units:
                 val.setUnits(units)
@@ -80,6 +111,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         else:
             self.setValidator(None)
             self.debug("Validator disabled")
+        return val
 
     def __decimalDigits(self, fmt):
         """returns the number of decimal digits from a format string
@@ -109,22 +141,33 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
         # handle the case in which the line edit is not yet initialized
         if self._last_value is None:
             try:
-                self.getModelObj().read(cache=True)
-                frag_name = self.modelFragmentName or 'wvalue'
-                value = self.getModelFragmentObj(fragmentName=frag_name)
-                self.debug('Overwriting wvalue=None with %s' % (value))
-                self.setValue(value)
-                self.setEnabled(value is not None)
+                value = self.getModelObj().read(cache=True)
+                self._updateValidator(value)
+                self.setValue(value.wvalue)
             except Exception as e:
-                self.debug('Failed attempt to initialize value: %r', e)
+                self.info('Failed attempt to initialize value: %r', e)
 
-        self.setEnabled(evt_type != TaurusEventType.Error)
+        if self._allow_auto_enable:
+            # use QLineEdit.setEnabled in order to avoid changing
+            # _allow_auto_enable status
+            Qt.QLineEdit.setEnabled(self, evt_type != TaurusEventType.Error)
+
         if evt_type in (TaurusEventType.Change, TaurusEventType.Periodic):
             self._updateValidator(evt_value)
+
         TaurusBaseWritableWidget.handleEvent(
             self, evt_src, evt_type, evt_value)
+
         if evt_type == TaurusEventType.Error:
             self.updateStyle()
+
+    def setEnabled(self, enabled):
+        """Reimplement from :class:`QLineEdit` to avoid autoenabling if the
+        widget is explicitly disabled (but allow auto-disabling if the
+        widget is explicitly enabled)
+        """
+        self._allow_auto_enable = enabled
+        return Qt.QLineEdit.setEnabled(self, enabled)
 
     def isTextValid(self):
         """
@@ -175,13 +218,8 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return Qt.QLineEdit.wheelEvent(self, evt)
 
         evt.accept()
-        numDegrees = evt.delta() / 8
-        numSteps = numDegrees / 15
-        modifiers = evt.modifiers()
-        if modifiers & Qt.Qt.ControlModifier:
-            numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
-            numSteps *= .1
+        numDegrees = evt.delta() // 8
+        numSteps = numDegrees // 15
         self._stepBy(numSteps)
 
     def keyPressEvent(self, evt):
@@ -204,47 +242,36 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
             return Qt.QLineEdit.keyPressEvent(self, evt)
 
         evt.accept()
-        modifiers = evt.modifiers()
-        if modifiers & Qt.Qt.ControlModifier:
-            numSteps *= 10
-        elif (modifiers & Qt.Qt.AltModifier) and model.type == DataType.Float:
-            numSteps *= .1
         self._stepBy(numSteps)
 
-    def _stepBy(self, v):
+    def _stepBy(self, steps):
         value = self.getValue()
-        self.setValue(value + Quantity(v, value.units))
+        self.setValue(value + Quantity(steps * self._singleStep, value.units))
 
-    def getDisplayValue(self, cache=True, fragmentName=None):
-        """Returns a string representation of the model value associated with
-        this component. As this is a writable widget, if there is no fragment
-        specified, the default behaviour is to display the wvalue.
-
-        :param cache: (bool) (ignored, just for bck-compat).
-        :param fragmentName: (str or None) the returned value will correspond
-                        to the given fragmentName. If None passed,
-                         self.modelFragmentName will be used, and if None is
-                         set, the defaultFragmentName of the model will be used
-                         instead.
-
-        :return: (str) a string representation of the model value.
-        """
-        if fragmentName is None and self.modelFragmentName is None:
-            return TaurusBaseWritableWidget.getDisplayValue(
-                self, cache=cache, fragmentName='wvalue')
+        if self.getAutoApply():
+            self.editingFinished.emit()
         else:
-            return TaurusBaseWritableWidget.getDisplayValue(
-                self, cache=cache, fragmentName=fragmentName)
+            kmods = Qt.QCoreApplication.instance().keyboardModifiers()
+            controlpressed = bool(kmods & Qt.Qt.ControlModifier)
+            if controlpressed:
+                self.writeValue(forceApply=True)
 
     def setValue(self, v):
-        model = self.getModelObj()
-        if model is None:
-            v_str = str(v)
-        else:
-            v_str = str(self.getDisplayValue(v))
-        v_str = v_str.strip()
+        """Set the displayed text from a given value object"""
+        # Support displaying the value without units (enabled by fragment)
+        # Other fragments are ignored by setValue
+        if self.modelFragmentName == "wvalue.magnitude":
+            try:
+                validator = self.validator()
+                if validator is None:
+                    value = self.getModelValueObj()
+                    validator = self._updateValidator(value)
+                units = validator.units
+                v = v.to(units).magnitude
+            except Exception as e:
+                self.debug('Cannot enforce fragment. Reason: %r', e)
         self._last_value = v
-        self.setText(v_str)
+        self.setText(str(self.displayValue(v)).strip())
 
     def getValue(self):
         text = self.text()
@@ -279,7 +306,7 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
                 else:
                     return numpy.array(eval(text), dtype=str).tolist()
             elif model_type == DataType.Bytes:
-                return bytes(text)
+                return bytes(text, self._bytesEncoding)
             else:
                 raise TypeError('Unsupported model type "%s"' % model_type)
         except Exception as e:
@@ -298,6 +325,15 @@ class TaurusValueLineEdit(Qt.QLineEdit, TaurusBaseWritableWidget):
 
     def resetEnableWheelEvent(self):
         self.setEnableWheelEvent(False)
+
+    def getSingleStep(self):
+        return self._singleStep
+
+    def setSingleStep(self, step):
+        self._singleStep = step
+
+    def resetSingleStep(self):
+        self.setSingleStep(1.0)
 
     @classmethod
     def getQtDesignerPluginInfo(cls):

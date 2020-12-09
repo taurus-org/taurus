@@ -55,20 +55,22 @@
   <https://tools.ietf.org/html/rfc3986#section-3.3>)
 
 """
+from __future__ import absolute_import
+from builtins import object
+
+import atexit
+from weakref import WeakValueDictionary
+from .taurusbasetypes import TaurusElementType
+from .taurusauthority import TaurusAuthority
+from .taurusdevice import TaurusDevice
+from .taurusattribute import TaurusAttribute
+from .taurusconfiguration import TaurusConfiguration, TaurusConfigurationProxy
+from .taurusexception import TaurusException
+from taurus.core.tauruspollingtimer import TaurusPollingTimer
 
 __all__ = ["TaurusFactory"]
 
 __docformat__ = "restructuredtext"
-
-import atexit
-from weakref import WeakValueDictionary
-from taurusbasetypes import TaurusElementType
-from taurusauthority import TaurusAuthority
-from taurusdevice import TaurusDevice
-from taurusattribute import TaurusAttribute
-from taurusconfiguration import TaurusConfiguration, TaurusConfigurationProxy
-from taurusexception import TaurusException
-from taurus.core.tauruspollingtimer import TaurusPollingTimer
 
 
 class TaurusFactory(object):
@@ -93,7 +95,7 @@ class TaurusFactory(object):
         self._devs = WeakValueDictionary()
         self._auths = WeakValueDictionary()
 
-        import taurusmanager
+        from . import taurusmanager
         manager = taurusmanager.TaurusManager()
         self._serialization_mode = manager.getSerializationMode()
 
@@ -323,14 +325,14 @@ class TaurusFactory(object):
         if not self.isPollingEnabled():
             return
         self._polling_enabled = False
-        for period, timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.items():
             timer.stop()
 
     def enablePolling(self):
         """Enable the application tango polling"""
         if self.isPollingEnabled():
             return
-        for period, timer in self.polling_timers.iteritems():
+        for period, timer in self.polling_timers.items():
             timer.start()
         self._polling_enabled = True
 
@@ -338,7 +340,8 @@ class TaurusFactory(object):
         """Activates the polling (client side) for the given attribute with the
            given period (seconds).
 
-           :param attribute: (taurus.core.tango.TangoAttribute) attribute name.
+           :param attribute: (taurus.core.taurusattribute.TaurusAttribute)
+                             the attribute to be added
            :param period: (float) polling period (in seconds)
            :param unsubscribe_evts: (bool) whether or not to unsubscribe from events
         """
@@ -350,17 +353,14 @@ class TaurusFactory(object):
         """Deactivate the polling (client side) for the given attribute. If the
            polling of the attribute was not previously enabled, nothing happens.
 
-           :param attribute: (str) attribute name.
+           :param attribute: (taurus.core.taurusattribute.TaurusAttribute)
+                             the attribute to be removed
         """
-        p = None
-        for period, timer in self.polling_timers.iteritems():
-            if timer.containsAttribute(attribute):
-                timer.removeAttribute(attribute)
-                if timer.getAttributeCount() == 0:
-                    p = period
-                break
-        if p:
-            del self.polling_timers[period]
+        timers = dict(self.polling_timers)
+        for period, timer in timers.items():
+            timer.removeAttribute(attribute)
+            if not timer.dev_dict and period in self.polling_timers:
+                del self.polling_timers[period]
 
     def __str__(self):
         return '{0}()'.format(self.__class__.__name__)
@@ -393,6 +393,17 @@ class TaurusFactory(object):
         if self.getAuthorityNameValidator().isValid(name, strict=strict):
             ret.append(TaurusElementType.Authority)
         return ret
+
+    def getValidatorFromName(self, name):
+        """
+        Obtain the validator object corresponding to the given model
+        name. If the model name is not valid for any TaurusModel class,
+        it returns None
+        """
+        modeltypes = self.getValidTypesForName(name)
+        if not modeltypes:
+            return None
+        return self.elementTypesMap[modeltypes[0]].getNameValidator()
 
     def findObjectClass(self, absolute_name):
         """

@@ -32,10 +32,12 @@ __docformat__ = 'restructuredtext'
 import time
 import threading
 import numpy
-from taurus.external import unittest
+import unittest
+import pytest
 from taurus.core.util.timer import Timer
 
 
+@pytest.mark.flaky(max_runs=3, min_passes=2)
 class TimerTest(unittest.TestCase):
     '''Test case for testing the taurus.core.util.timer.Timer class'''
 

@@ -25,13 +25,13 @@
 
 """This module contains the base TaurusModel class"""
 
-__all__ = ["TaurusModel"]
-
-__docformat__ = "restructuredtext"
+from builtins import object
 
 import weakref
-import operator
-import threading
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 
 from .util.log import Logger
 from .util.event import (CallableRef,
@@ -40,6 +40,10 @@ from .util.event import (CallableRef,
 from .taurusbasetypes import TaurusEventType, MatchLevel
 from .taurushelper import Factory
 
+__all__ = ["TaurusModel"]
+
+__docformat__ = "restructuredtext"
+
 
 class TaurusModel(Logger):
 
@@ -47,7 +51,7 @@ class TaurusModel(Logger):
     RegularEvent = (TaurusEventType.Change,
                     TaurusEventType.Config, TaurusEventType.Periodic)
 
-    def __init__(self, full_name, parent, serializationMode=None):
+    def __init__(self, full_name='', parent=None, serializationMode=None):
         v = self.getNameValidator()
         self._full_name, self._norm_name, self._simp_name = v.getNames(
             full_name, self.factory())
@@ -62,7 +66,7 @@ class TaurusModel(Logger):
             s_obj = parent
             if s_obj is None:
                 s_obj = self.factory()
-                serializationMode = s_obj.getSerializationMode()
+            serializationMode = s_obj.getSerializationMode()
         self._serialization_mode = serializationMode
 
         self._parentObj = parent
@@ -175,33 +179,29 @@ class TaurusModel(Logger):
         return ret
 
     def getFragmentObj(self, fragmentName=None):
-        """Returns a fragment object of the model. A fragment of a model is a
-        python attribute of the model object.
-
-        Fragment names including dots will be used to recursively get fragments
-        of fragments.
+        """Returns a fragment object of the model. A fragment is computed from
+        a model by evaluating the expression `<model>.<fragmentName>`
 
         For a simple fragmentName (no dots), this is roughly equivalent to
         getattr(self, fragmentName)
 
-        If the model does not have the fragment, :class:`AttributeError` is
-        raised
+        If the fragment cannot be computed, :class:`AttributeError` is raised
 
         :param fragmentName: (str or None) the returned value will correspond to
                          the given fragmentName. If None is passed the
                          defaultFragmentName will be used instead.
 
-        :return: (obj) the member of the modelObj referred by the fragment.
+        :return: (obj) the computed fragment of the modelObj.
         """
         if fragmentName is None:
             fragmentName = self.defaultFragmentName
-        obj = self
-        for fn in fragmentName.split('.'):
-            if fn == '':
-                # avoid a generic Exception, make it AttributeError instead
-                raise AttributeError('Cannot get empty fragment')
-            obj = getattr(obj, fn)
-        return obj
+        try:
+            return eval('obj.' + fragmentName, {}, {'obj' : self})
+        except Exception as e:
+            # Note: always raise AttributeError to comply with existing API
+            msg = "Cannot get fragment of {!r}.{!s}: Reason: {!r}"
+            raise AttributeError(msg.format(self, fragmentName, e))
+
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # API for listeners
@@ -218,7 +218,7 @@ class TaurusModel(Logger):
     def _getCallableRef(self, listener, cb=None):
         # return weakref.ref(listener, self._listenerDied)
         meth = getattr(listener, 'eventReceived', None)
-        if meth is not None and operator.isCallable(meth):
+        if meth is not None and hasattr(meth, '__call__'):
             return weakref.ref(listener, cb)
         else:
             return CallableRef(listener, cb)
@@ -248,7 +248,7 @@ class TaurusModel(Logger):
         return True
 
     def forceListening(self):
-        class __DummyListener:
+        class __DummyListener(object):
 
             def eventReceived(self, *args):
                 pass
@@ -280,7 +280,7 @@ class TaurusModel(Logger):
         if listeners is None:
             return
 
-        if not operator.isSequenceType(listeners):
+        if not isinstance(listeners, Sequence):
             listeners = listeners,
 
         for listener in listeners:
@@ -291,9 +291,9 @@ class TaurusModel(Logger):
             if l is None:
                 continue
             meth = getattr(l, 'eventReceived', None)
-            if meth is not None and operator.isCallable(meth):
+            if meth is not None and hasattr(meth, '__call__'):
                 l.eventReceived(self, event_type, event_value)
-            elif operator.isCallable(l):
+            elif hasattr(l, '__call__'):
                 l(self, event_type, event_value)
 
     def isWritable(self):

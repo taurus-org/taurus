@@ -24,13 +24,17 @@
 #############################################################################
 
 """This module provides a set of basic Taurus widgets based on QLabel"""
+from __future__ import absolute_import
 
-__all__ = ["TaurusLabel"]
+from builtins import str
+from builtins import object
 
-__docformat__ = 'restructuredtext'
-
-import operator
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 import re
+import string
 
 from taurus.core.taurusbasetypes import (TaurusElementType, TaurusEventType,
                                          AttrQuality, TaurusDevState)
@@ -41,6 +45,11 @@ from taurus.qt.qtgui.base import TaurusScalarAttributeControllerHelper
 from taurus.qt.qtgui.base import TaurusConfigurationControllerHelper
 from taurus.qt.qtgui.base import updateLabelBackground
 
+
+__all__ = ["TaurusLabel"]
+
+__docformat__ = 'restructuredtext'
+
 _QT_PLUGIN_INFO = {
     'module': 'taurus.qt.qtgui.display',
     'group': 'Taurus Display',
@@ -49,6 +58,20 @@ _QT_PLUGIN_INFO = {
 
 TaurusModelType = TaurusElementType
 EventType = TaurusEventType
+
+
+class _SafeFormatter(string.Formatter):
+    """
+    Like default formatter but leaves unmatched keys in the result string
+    instead of raising an exception.
+    Inspired by:
+    https://github.com/silx-kit/pyFAI/blob/0.19/pyFAI/utils/stringutil.py#L41
+    """
+    def get_field(self, field_name, args, kwargs):
+        try:
+            return string.Formatter.get_field(self, field_name, args, kwargs)
+        except KeyError:
+            return "{%s}" % field_name, field_name
 
 
 class TaurusLabelController(TaurusBaseController):
@@ -86,7 +109,10 @@ class TaurusLabelController(TaurusBaseController):
 
         # handle special cases (that are not covered with fragment)
         if fgRole.lower() == 'state':
-            value = self.state().name
+            try:
+                value = self.state().name
+            except AttributeError:
+                pass  # protect against calls with state not instantiated
         elif fgRole.lower() in ('', 'none'):
             pass
         else:
@@ -113,9 +139,7 @@ class TaurusLabelController(TaurusBaseController):
             return
         toolTip = label.getFormatedToolTip()
         if self._trimmedText:
-            toolTip = u"<p><b>Value:</b> %s</p><hr>%s" %\
-                      (unicode(self._text, errors='replace'),
-                       unicode(str(toolTip), errors='replace'))
+            toolTip = u"<p><b>Value:</b> %s</p><hr>%s" % (self._text, toolTip)
         label.setToolTip(toolTip)
 
     _updateBackground = updateLabelBackground
@@ -227,6 +251,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     _deprecatedRoles = dict(value='rvalue', w_value='wvalue')
 
     def __init__(self, parent=None, designMode=False):
+        self._safeFormatter = _SafeFormatter()
         self._prefix = self.DefaultPrefix
         self._suffix = self.DefaultSuffix
         self._permanentText = None
@@ -318,6 +343,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     def setModel(self, m):
         # force to build another controller
         self._controller = None
+        self._permanentText = None
         TaurusBaseWidget.setModel(self, m)
         if self.modelFragmentName:
             self.setFgRole(self.modelFragmentName)
@@ -343,7 +369,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
                 return
             if type(mi_value) == int:
                 mi_value = mi_value,
-            if not operator.isSequenceType(mi_value):
+            if not isinstance(mi_value, Sequence):
                 return
             self._modelIndex = mi_value
         self._modelIndexStr = mi
@@ -367,9 +393,9 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         - 'none' : no background
         - 'state' a color depending on the device state
         - 'quality' a color depending on the attribute quality
-        - 'value' a color depending on the rvalue of the attribute
+        - 'rvalue' a color depending on the rvalue of the attribute
         - <arbitrary member name> a color based on the value of an arbitrary
-          member of the model object (warning: experimental feature!)
+        member of the model object (warning: experimental feature!)
 
         .. warning:: the <arbitrary member name> support is still experimental
                      and its API may change in future versions
@@ -378,12 +404,23 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self.controllerUpdate()
 
     def resetBgRole(self):
+        """Reset the background role to its default value"""
         self.setBgRole(self.DefaultBgRole)
 
     def getFgRole(self):
+        """get the foreground role for this label (see :meth:`setFgRole`)"""
         return self._fgRole
 
     def setFgRole(self, fgRole):
+        """Set what is shown as the foreground (the text) of the label
+        Valid Roles are:
+
+        - 'rvalue' the read value of the attribute
+        - 'wvalue' the write value of the attribute
+        - 'none' : no text
+        - 'quality' - the quality of the attribute is displayed
+        - 'state' - the device state
+        """
         # warn about deprecated roles
         role = self._deprecatedRoles.get(fgRole, fgRole)
         if fgRole != role:
@@ -393,6 +430,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self.controllerUpdate()
 
     def resetFgRole(self):
+        """Reset the foreground role to its default value"""
         self.setFgRole(self.DefaultFgRole)
 
     def getPrefixText(self):
@@ -432,6 +470,11 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self._setPermanentText(text)
 
     def setAutoTrim(self, trim):
+        """Enable/disable auto-trimming of the text. If trim is True, the text
+        in the label will be trimmed when it doesn't fit in the available space
+
+        :param trim: (bool)
+        """
         self._autoTrim = trim
         self.controllerUpdate()
 
@@ -451,10 +494,21 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         self.dynamicTextInteractionFlags = True
 
     def getAutoTrim(self):
+        """
+        Whether auto-trimming of the text is enabled.
+
+        :return: (bool)
+        """
         return self._autoTrim
 
     def resetAutoTrim(self):
+        """Reset auto-trimming to its default value"""
         self.setAutoTrim(self.DefaultAutoTrim)
+
+    def resetFormat(self):
+        """reimplement to update controller if format is changed"""
+        TaurusBaseWidget.resetFormat(self)
+        self.controllerUpdate()
 
     def displayValue(self, v):
         """Reimplementation of displayValue for TaurusLabel"""
@@ -463,11 +517,18 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
         else:
             value = self._permanentText
 
-        attr = self.getModelObj()
-        dev = attr.getParent()
+        dev = None
+        attr = None
+
+        modeltype = self.getModelType()
+        if modeltype == TaurusElementType.Device:
+            dev = self.getModelObj()
+        elif modeltype == TaurusElementType.Attribute:
+            attr = self.getModelObj()
+            dev = attr.getParent()
 
         try:
-            v = value.format(dev=dev, attr=attr)
+            v = self._safeFormatter.format(value, dev=dev, attr=attr)
         except Exception as e:
             self.warning(
                 "Error formatting display (%r). Reverting to raw string", e)
@@ -484,9 +545,6 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #: This property holds the unique URI string representing the model name
     #: with which this widget will get its data from. The convention used for
     #: the string can be found :ref:`here <model-concept>`.
-    #:
-    #: In case the property :attr:`useParentModel` is set to True, the model
-    #: text must start with a '/' followed by the attribute name.
     #:
     #: **Access functions:**
     #:
@@ -549,8 +607,8 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     #: Valid values are:
     #:
     #:     #. ''/'None' - no value is displayed
-    #:     #. 'value' - the value is displayed
-    #:     #. 'w_value' - the write value is displayed
+    #:     #. 'rvalue' - the value is displayed
+    #:     #. 'wvalue' - the write value is displayed
     #:     #. 'quality' - the quality is displayed
     #:     #. 'state' - the device state is displayed
     #:
@@ -573,7 +631,8 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     bgRole = Qt.pyqtProperty("QString", getBgRole, setBgRole,
                              resetBgRole, doc="background role")
 
-    #: This property holds the
+    #: Specifies wether the text will be trimmed when it doesn't fit in the
+    #: available space
     #:
     #: **Access functions:**
     #:
@@ -583,7 +642,7 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
     autoTrim = Qt.pyqtProperty("bool", getAutoTrim, setAutoTrim,
                                resetAutoTrim, doc="auto trim text")
 
-    #: This property holds the
+    #: Specifies whether the user can drag data from this widget
     #:
     #: **Access functions:**
     #:
@@ -619,8 +678,8 @@ class TaurusLabel(Qt.QLabel, TaurusBaseWidget):
 
 def demo():
     "Label"
-    import demo.tauruslabeldemo
-    return demo.tauruslabeldemo.main()
+    from .demo import tauruslabeldemo
+    return tauruslabeldemo.main()
 
 
 def main():

@@ -30,9 +30,13 @@ taurusvalue.py:
 __all__ = ["TaurusValue", "TaurusValuesFrame", "DefaultTaurusValueCheckBox",
            "DefaultUnitsWidget", "TaurusPlotButton", "TaurusArrayEditorButton",
            "TaurusValuesTableButton", "TaurusValuesTableButton_W",
-           "DefaultLabelWidget", "TaurusDevButton", "TaurusImageButton"]
+           "DefaultLabelWidget", "DefaultReadWidgetLabel", "TaurusDevButton",
+           "TaurusImageButton"]
 
 __docformat__ = 'restructuredtext'
+
+from future.utils import string_types
+from future.builtins import str
 
 import weakref
 import re
@@ -52,6 +56,7 @@ from taurus.qt.qtgui.input import TaurusWheelEdit, TaurusValueLineEdit
 from taurus.qt.qtgui.button import TaurusLauncherButton
 from taurus.qt.qtgui.util import TaurusWidgetFactory, ConfigurationMenu
 from taurus.qt.qtgui.compact import TaurusReadWriteSwitcher
+from taurus.core.util.log import deprecation_decorator
 
 
 class DefaultTaurusValueCheckBox(TaurusValueCheckBox):
@@ -98,13 +103,8 @@ class DefaultLabelWidget(TaurusLabel):
             config = self.taurusValueBuddy().getLabelConfig()
             TaurusLabel.setModel(self, '%s#%s' % (fullname, config))
         elif elementtype == TaurusElementType.Device:
-            # @TODO: tango-centric!
-            # TaurusLabel.setModel(self, '%s/state#dev_alias'%fullname)
-            #
-            # The following is a workaround to avoid tango-centricity, but
-            # it has the drawback that the model is not set (e.g., no tooltip)
             devName = self.taurusValueBuddy().getModelObj().getSimpleName()
-            TaurusLabel.setModel(self, None)
+            TaurusLabel.setModel(self, model)
             self.setText(devName)
 
     _BCK_COMPAT_TAGS = {'<attr_name>': '{attr.name}',
@@ -159,16 +159,18 @@ class DefaultLabelWidget(TaurusLabel):
         event.accept()
 
     def getModelMimeData(self):
-        '''reimplemented to use the taurusValueBuddy model instead of its own model'''
+        """
+        reimplemented to use the taurusValueBuddy model instead of its own
+        model
+        """
         mimeData = TaurusLabel.getModelMimeData(self)
-        mimeData.setData(TAURUS_MODEL_MIME_TYPE,
-                         self.taurusValueBuddy().getModelName())
+        _modelname = str(self.taurusValueBuddy().getModelName())
+        modelname = _modelname.encode(encoding='utf8')
+        mimeData.setData(TAURUS_MODEL_MIME_TYPE, modelname)
         if self.taurusValueBuddy().getModelType() == TaurusElementType.Device:
-            mimeData.setData(TAURUS_DEV_MIME_TYPE,
-                             self.taurusValueBuddy().getModelName())
+            mimeData.setData(TAURUS_DEV_MIME_TYPE, modelname)
         elif self.taurusValueBuddy().getModelType() == TaurusElementType.Attribute:
-            mimeData.setData(TAURUS_ATTR_MIME_TYPE,
-                             self.taurusValueBuddy().getModelName())
+            mimeData.setData(TAURUS_ATTR_MIME_TYPE, modelname)
         return mimeData
 
     @classmethod
@@ -203,7 +205,18 @@ class CenteredLed(TaurusLed):
     DefaultAlignment = Qt.Qt.AlignHCenter | Qt.Qt.AlignVCenter
 
 
+class UnitLessLineEdit(TaurusValueLineEdit):
+    """A customised TaurusValueLineEdit that always shows the magnitude"""
+    def setModel(self, model):
+        if model is None or model == '':
+            return TaurusValueLineEdit.setModel(self, None)
+        return TaurusValueLineEdit.setModel(self, model + "#wvalue.magnitude")
+
+
+
 class DefaultUnitsWidget(TaurusLabel):
+
+    FORMAT = "{}"
 
     def __init__(self, *args):
         TaurusLabel.__init__(self, *args)
@@ -321,7 +334,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             layout = Qt.QHBoxLayout(self)
             dummy = ExpandingLabel()
             layout.addWidget(dummy)
-            dummy.setUseParentModel(True)
+            #dummy.setUseParentModel(True)
             dummy.setModel("#attr_fullname")
             dummy.setPrefixText("< TaurusValue: ")
             dummy.setSuffixText(" >")
@@ -332,18 +345,25 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self._readWidget = None
         self._writeWidget = None
         self._unitsWidget = None
-        self._customWidget = None
+        self._customWidget = None  # deprecated
         self._extraWidget = None
 
         if customWidgetMap is None:
             customWidgetMap = {}
-        self.setCustomWidgetMap(customWidgetMap)
+        else:
+            self.deprecated(
+                dep="customWidgetMap arg",
+                alt="Form item factories",
+                rel="4.6.5"
+            )
+        self._customWidgetMap = customWidgetMap  # deprecated
+
 
         self.labelWidgetClassID = 'Auto'
         self.readWidgetClassID = 'Auto'
         self.writeWidgetClassID = 'Auto'
         self.unitsWidgetClassID = 'Auto'
-        self.customWidgetClassID = 'Auto'
+        self.customWidgetClassID = 'Auto'  # deprecated
         self.extraWidgetClassID = 'Auto'
         self.setPreferredRow(-1)
         self._row = None
@@ -361,7 +381,8 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.registerConfigProperty(self.isCompact, self.setCompact, 'compact')
 
     def setVisible(self, visible):
-        for w in (self.labelWidget(), self.readWidget(), self.writeWidget(), self.unitsWidget(), self.customWidget(), self.extraWidget()):
+        for w in (self.labelWidget(), self.readWidget(), self.writeWidget(),
+                  self.unitsWidget(), self._customWidget, self.extraWidget()):
             if w is not None:
                 w.setVisible(visible)
         Qt.QWidget.setVisible(self, visible)
@@ -377,7 +398,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         itself.
         '''
         if followCompact and self.isCompact():
-            return self._readWidget.readWidget
+            return getattr(self._readWidget, 'readWidget', self._readWidget)
         return self._readWidget
 
     def writeWidget(self, followCompact=False):
@@ -393,6 +414,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         '''Returns the units widget'''
         return self._unitsWidget
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def customWidget(self):
         '''Returns the custom widget'''
         return self._customWidget
@@ -430,8 +452,6 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self.updateUnitsWidget()
             self.updateExtraWidget()
 
-#        self.updateCustomWidget()
-
         # do the base class stuff too
         Qt.QWidget.setParent(self, parent)
 
@@ -439,8 +459,21 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         """
         Reimplemented to call onSetFormatter of the read widget (if provided)
         """
-        if hasattr(self._readWidget, 'onSetFormatter'):
-            return self._readWidget.onSetFormatter()
+        rw = self.readWidget(followCompact=True)
+        if hasattr(rw, 'onSetFormatter'):
+            return rw.onSetFormatter()
+
+    def setFormat(self, format):
+        """
+        Reimplemented to call setFormat of the read widget (if provided)
+        """
+        TaurusBaseWidget.setFormat(self, format)
+        try:
+            rw = self.readWidget(followCompact=True)
+        except AttributeError:
+            return
+        if hasattr(rw, 'setFormat'):
+            rw.setFormat(format)
 
     def getAllowWrite(self):
         return self._allowWrite
@@ -571,22 +604,24 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         modelobj = self.getModelObj()
         if modelobj is None:
             if returnAll:
-                return [TaurusValueLineEdit]
+                return [UnitLessLineEdit]
             else:
-                return TaurusValueLineEdit
+                return UnitLessLineEdit
         modelType = modelobj.getType()
         if modelobj.data_format == DataFormat._0D:
             if modelType == DataType.Boolean:
                 result = [DefaultTaurusValueCheckBox, TaurusValueLineEdit]
             else:
-                result = [TaurusValueLineEdit,
+                result = [UnitLessLineEdit,
                           TaurusValueSpinBox, TaurusWheelEdit]
         elif modelobj.data_format == DataFormat._1D:
+            result = [TaurusValuesTableButton_W, TaurusValueLineEdit]
             if modelType in (DataType.Float, DataType.Integer):
-                result = [TaurusArrayEditorButton,
-                          TaurusValuesTableButton_W, TaurusValueLineEdit]
-            else:
-                result = [TaurusValuesTableButton_W, TaurusValueLineEdit]
+                try:
+                    import PyQt4.Qwt5  # noqa
+                    result.insert(0, TaurusArrayEditorButton)
+                except:
+                    pass
         elif modelobj.data_format == DataFormat._2D:
             result = [TaurusValuesTableButton_W]
         else:
@@ -604,19 +639,28 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         #            return DefaultUnitsWidget
         return DefaultUnitsWidget
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def getDefaultCustomWidgetClass(self):
+        self.__getDefaultCustomWidgetClass()
+
+    def __getDefaultCustomWidgetClass(self):
+        """
+        renamed from __getDefaultCustomWidgetClass to avoid deprecation
+        warnings. To be removed.
+        """
         modelclass = self.getModelClass()
         if modelclass and modelclass.getTaurusElementType() != TaurusElementType.Device:
             return None
         try:
-            key = self.getModelObj().getDeviceProxy().info().dev_class  # TODO: Tango-centric
+            key = self.getModelObj().getDeviceProxy().info().dev_class
         except:
             return None
-        return self.getCustomWidgetMap().get(key, None)
+        return self._customWidgetMap.get(key, None)
 
     def getDefaultExtraWidgetClass(self):
         return None
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def setCustomWidgetMap(self, cwmap):
         '''Sets a map map for custom widgets.
 
@@ -626,6 +670,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         '''
         self._customWidgetMap = cwmap
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def getCustomWidgetMap(self):
         '''Returns the map used to create custom widgets.
 
@@ -771,14 +816,22 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         else:
             return TaurusWidgetFactory().getWidgetClass(classID)
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def customWidgetClassFactory(self, classID):
+        return self.__customWidgetClassFactory(self, classID)
+
+    def __customWidgetClassFactory(self, classID):
+        """
+        renamed from customWidgetClassFactory to avoid deprecation warnings.
+        To be removed.
+        """
         if classID is None or classID == 'None':
             return None
         classID = globals().get(classID, classID)
         if isinstance(classID, type):
             return classID
         elif str(classID) == 'Auto':
-            return self.getDefaultCustomWidgetClass()
+            return self.__getDefaultCustomWidgetClass()
         else:
             return TaurusWidgetFactory().getWidgetClass(classID)
 
@@ -820,7 +873,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         try:
             klass = self.readWidgetClassFactory(self.readWidgetClassID)
             self._readWidget = self._newSubwidget(self._readWidget, klass)
-        except Exception, e:
+        except Exception as e:
             self._destroyWidget(self._readWidget)
             self._readWidget = Qt.QLabel('[Error]')
             msg = 'Error creating read widget:\n' + str(e)
@@ -897,13 +950,17 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             if hasattr(self._unitsWidget, 'setModel'):
                 self._unitsWidget.setModel(self.getFullModelName())
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def updateCustomWidget(self):
+        self.__updateCustomWidget()
+
+    def __updateCustomWidget(self):
         # get the class for the widget and replace it if necessary
-        klass = self.customWidgetClassFactory(self.customWidgetClassID)
+        klass = self.__customWidgetClassFactory(self.customWidgetClassID)
         self._customWidget = self._newSubwidget(self._customWidget, klass)
 
         # take care of the layout
-        self.addCustomWidgetToLayout()
+        self.__addCustomWidgetToLayout()
 
         if self._customWidget is not None:
             # set the model for the subwidget
@@ -959,7 +1016,15 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             self.parent().layout().addWidget(self._unitsWidget, self._row,
                                              4, 1, 1, alignment)
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def addCustomWidgetToLayout(self):
+        self.__addCustomWidgetToLayout()
+
+    def __addCustomWidgetToLayout(self):
+        """
+        Renamed from addCustomWidgetToLayout to avoid deprecation warnings.
+        To be removed.
+        """
         if self._customWidget is not None and self.parent() is not None:
             alignment = getattr(self._customWidget, 'layoutAlignment',
                                 Qt.Qt.AlignmentFlag(0))
@@ -987,7 +1052,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         """
         TaurusBaseWidget.parentModelChanged(self, parentmodel_name)
         if not self._designMode:  # in design mode, no subwidgets are created
-            self.updateCustomWidget()
+            self.__updateCustomWidget()
             self.updateLabelWidget()
             self.updateReadWidget()
             self.updateWriteWidget()
@@ -1046,16 +1111,19 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
     def resetUnitsWidgetClass(self):
         self.unitsWidgetClassID = 'Auto'
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     @Qt.pyqtSlot('QString', name='setCustomWidget')
     def setCustomWidgetClass(self, classID):
         '''substitutes the current widget by a new one. classID can be one of:
         None, 'Auto', a TaurusWidget class name, or any class'''
         self.customWidgetClassID = classID
-        self.updateCustomWidget()
+        self.__updateCustomWidget()
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def getCustomWidgetClass(self):
         return self.customWidgetClassID
 
+    @deprecation_decorator(alt="item factories", rel="4.6.5")
     def resetCustomWidgetClass(self):
         self.customWidgetClassID = 'Auto'
 
@@ -1073,12 +1141,28 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.extraWidgetClassID = 'Auto'
 
     def setCompact(self, compact):
+
+        # don't do anything if it is already done
         if compact == self._compact:
             return
+
+        #do not switch to compact mode if the write widget is None
+        if compact and self.writeWidget() is None:
+            self.debug('No write widget. Ignoring setCompact(True)')
+            return
+
+        # Backup the current RW format
+        rw = self.readWidget(followCompact=True)
+        format = rw.getFormat()
+
         self._compact = compact
         if self.getModel():
             self.updateReadWidget()
             self.updateWriteWidget()
+
+        # Apply the format to the new RW
+        rw = self.readWidget(followCompact=True)
+        rw.setFormat(format)
 
     def isCompact(self):
         return self._compact
@@ -1115,11 +1199,16 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         configdict = TaurusBaseWidget.createConfig(
             self, allowUnpickable=allowUnpickable)
         # store the subwidgets classIDs and configs
-        for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
+        for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget',
+                    'ExtraWidget'):
             # calls self.getLabelWidgetClass, self.getReadWidgetClass,...
             classID = getattr(self, 'get%sClass' % key)()
-            if isinstance(classID, (str, Qt.QString)) or allowUnpickable:
-                #configdict[key] = classID
+            if isinstance(classID, type):
+                # If the class is not from taurus, it doesn't have classid, so we generate it.
+                classID = "{0.__module__}:{0.__name__}".format(classID)
+
+            if (isinstance(classID, string_types)
+                    or allowUnpickable):
                 configdict[key] = {'classid': classID}
                 widget = getattr(self, key[0].lower() + key[1:])()
                 if isinstance(widget, BaseConfigurableClass):
@@ -1140,12 +1229,20 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         # first do the basic stuff...
         TaurusBaseWidget.applyConfig(self, configdict, **kwargs)
         # restore the subwidgets classIDs
-        for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget', 'CustomWidget', 'ExtraWidget'):
+        for key in ('LabelWidget', 'ReadWidget', 'WriteWidget', 'UnitsWidget',
+                    'ExtraWidget'):
             if key in configdict:
                 widget_configdict = configdict[key]
-                getattr(self, 'set%sClass' % key)(
-                    widget_configdict.get('classid', None))
-                if widget_configdict.has_key('delegate'):
+                classID = widget_configdict.get('classid', None)
+                if classID is not None and ":" in classID:
+                    # classid is of type "module:type" instead of a taurus class name
+                    import importlib
+                    module, name = classID.split(":")
+                    module = importlib.import_module(module)
+                    classID = getattr(module, name)
+                getattr(self, 'set%sClass' % key)(classID)
+
+                if 'delegate' in widget_configdict:
                     widget = getattr(self, key[0].lower() + key[1:])()
                     if isinstance(widget, BaseConfigurableClass):
                         widget.applyConfig(widget_configdict[
@@ -1158,7 +1255,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
         self.__modelClass = taurus.Manager().findObjectClass(model or '')
         TaurusBaseWidget.setModel(self, model)
         if not self._designMode:  # in design mode, no subwidgets are created
-            self.updateCustomWidget()
+            self.__updateCustomWidget()
             self.updateLabelWidget()
             self.updateReadWidget()
             self.updateWriteWidget()
@@ -1173,7 +1270,7 @@ class TaurusValue(Qt.QWidget, TaurusBaseWidget):
             return
 
         if self.__error or evt_type == TaurusEventType.Config:
-            self.updateCustomWidget()
+            self.__updateCustomWidget()
             self.updateLabelWidget()
             self.updateReadWidget()
             self.updateWriteWidget()
@@ -1349,68 +1446,29 @@ class TaurusValuesFrame(TaurusFrame):
     model = Qt.pyqtProperty("QStringList", getModel, setModel, resetModel)
 
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 if __name__ == "__main__":
-
-    import sys
-
     from taurus.qt.qtgui.application import TaurusApplication
-
-    app = TaurusApplication(sys.argv)
-    form = Qt.QMainWindow()
-    # ly=Qt.QVBoxLayout(form)
-    # container=Qt.QWidget()
-#    container = TaurusValuesFrame()
     from taurus.qt.qtgui.panel import TaurusForm
-    container = TaurusForm()
-    # ly.addWidget(container)
-    form.setCentralWidget(container)
+    import sys
+    app = TaurusApplication(cmd_line_parser=None)
 
-    try:
-        from taurus.qt.qtgui.extra_pool import PoolMotorSlim, PoolChannel
-        container.setCustomWidgetMap({'SimuMotor': PoolMotorSlim,
-                                      'Motor': PoolMotorSlim,
-                                      'PseudoMotor': PoolMotorSlim,
-                                      'PseudoCounter': PoolChannel,
-                                      'CTExpChannel': PoolChannel,
-                                      'ZeroDExpChannel': PoolChannel,
-                                      'OneDExpChannel': PoolChannel,
-                                      'TwoDExpChannel': PoolChannel})
-    except:
-        pass
+    w = TaurusForm()
 
-    # set a model list
-    if len(sys.argv) > 1:
-        models = sys.argv[1:]
-        container.setModel(models)
-    else:
-        models = []
+    models = ["sys/tg_test/1/short_scalar"] * 4
+    w.setModel(models)
 
-    # models assigned for debugging.... comment out when releasing
-    # models=['bl97/pc/dummy-01/Current','bl97/pysignalsimulator/1/value1','bl97/pc/dummy-02/RemoteMode','bl97/pc/dummy-02/CurrentSetpoint','bl97/pc/dummy-02/Current']
-    # models=['bl97/pc/dummy-01/Current']
-    # models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/Current','bl97/pc/dummy-02/RemoteMode','bl97/pysignalsimulator/1/value1']
-    # models=['bl97/pc/dummy-01/CurrentSetpoint','bl97/pc/dummy-02/RemoteMode']
-    # models=['sys/tg_test/1/state','sys/tg_test/1/status','sys/tg_test/1/short_scalar','sys/tg_test/1']
-    #models =  ['sys/tg_test/1']+['sys/tg_test/1/%s_scalar'%s for s in ('float','short','string','long','boolean') ]
-    # models =  ['sys/tg_test/1/float_scalar','sys/tg#_test/1/double_scalar']
+    w[0].writeWidget().setDangerMessage('BOOO')
+    w[1].setWriteWidgetClass(TaurusValueLineEdit)
+    w[2].setWriteWidgetClass('None')
 
-    container.setModel(models)
+    class DummyCW(Qt.QLabel):
+        def setModel(self, name):
+            Qt.QLabel.setText(self, name)
 
-    # container.getItemByIndex(0).writeWidget().setDangerMessage('BOOO') #uncomment to test the dangerous operation support
-    # container.getItemByIndex(0).readWidget().setShowState(True)
-    # container.getItemByIndex(0).setWriteWidgetClass(TaurusValueLineEdit)
-    # container[0].setWriteWidgetClass('None')
-    # container.setModel(models)
+    w[3].setCustomWidgetClass(DummyCW)
 
-    container.setModifiableByUser(True)
-    form.show()
-
-    # show an Attributechooser dialog if no model was given
-    if models == []:
-        from taurus.qt.qtgui.panel import TaurusModelChooser
-        modelChooser = TaurusModelChooser()
-        modelChooser.updateModels.connect(container.setModel)
-        modelChooser.show()
+    w.setModifiableByUser(True)
+    w.show()
 
     sys.exit(app.exec_())
+

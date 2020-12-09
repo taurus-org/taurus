@@ -27,9 +27,7 @@
 
 # todo: tango-centric!!
 
-__all__ = ["TaurusDbTreeWidget"]
-
-__docformat__ = 'restructuredtext'
+from __future__ import absolute_import
 
 from taurus.external.qt import Qt
 from taurus.core.taurusbasetypes import TaurusElementType
@@ -37,7 +35,12 @@ from taurus.core.taurusauthority import TaurusAuthority
 from taurus.qt.qtcore.model import *
 from taurus.qt.qtgui.base import TaurusBaseWidget
 from taurus.qt.qtgui.icon import getElementTypeIcon, getElementTypeIconName
-from taurustree import TaurusBaseTreeWidget
+from .taurustree import TaurusBaseTreeWidget
+
+
+__all__ = ["TaurusDbTreeWidget"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusDbTreeWidget(TaurusBaseTreeWidget):
@@ -270,9 +273,6 @@ class _TaurusTreePanel(Qt.QWidget, TaurusBaseWidget):
     #: This property holds the unique URI string representing the model name
     #: with which this widget will get its data from. The convention used for
     #: the string can be found :ref:`here <model-concept>`.
-    #:
-    #: In case the property :attr:`useParentModel` is set to True, the model
-    #: text must start with a '/' followed by the attribute name.
     #:
     #: **Access functions:**
     #:

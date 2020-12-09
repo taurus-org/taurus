@@ -26,12 +26,8 @@
 
 """This module provides the set of base class taurus controllers."""
 
-__all__ = ["TaurusBaseController", "TaurusAttributeControllerHelper",
-           "TaurusScalarAttributeControllerHelper",
-           "TaurusConfigurationControllerHelper",
-           "updateLabelBackground"]
-
-__docformat__ = 'restructuredtext'
+from builtins import str
+from builtins import object
 
 import weakref
 
@@ -41,6 +37,14 @@ from taurus.core.taurusbasetypes import DataFormat, TaurusEventType
 
 from taurus.qt.qtgui.util import QT_ATTRIBUTE_QUALITY_PALETTE
 from taurus.qt.qtgui.util import QT_DEVICE_STATE_PALETTE
+
+
+__all__ = ["TaurusBaseController", "TaurusAttributeControllerHelper",
+           "TaurusScalarAttributeControllerHelper",
+           "TaurusConfigurationControllerHelper",
+           "updateLabelBackground"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusBaseController(object):
@@ -204,7 +208,7 @@ class TaurusScalarAttributeControllerHelper(TaurusAttributeControllerHelper):
                 for i in idx:
                     value = value[i]
             return widget.displayValue(value)
-        except Exception, e:
+        except Exception as e:
             return widget.getNoneValue()
 
     def displayValue(self, value):
@@ -323,7 +327,10 @@ def updateLabelBackground(ctrl, widget):
                 palette = QT_ATTRIBUTE_QUALITY_PALETTE
                 bgItem = ctrl.quality()
             elif bgRole == 'state':
-                bgItem = ctrl.state()
+                try:
+                    bgItem = ctrl.state()
+                except AttributeError:
+                    pass  # protect against calls with state not instantiated
             elif bgRole == 'value':
                 bgItem = ctrl.value()
             else:

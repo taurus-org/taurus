@@ -31,8 +31,10 @@ __docformat__ = 'restructuredtext'
 
 import numpy
 import PyTango
-from taurus.external import unittest
-from taurus.external.pint import Quantity, UR, UndefinedUnitError
+import unittest
+from taurus.core.units import Quantity, UR
+from pint import UndefinedUnitError
+
 import taurus
 from taurus.core import DataType, DataFormat
 from taurus.core.tango.tangoattribute import TangoAttrValue
@@ -733,7 +735,7 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
         dev = PyTango.DeviceProxy(self.DEV_NAME)
         infoex = dev.get_attribute_config_ex(attr_name)[0]
         try:
-            unit =  UR.parse_units(infoex.unit)
+            unit = UR.parse_units(infoex.unit)
         except (UndefinedUnitError, UnicodeDecodeError):
             unit = UR.parse_units(None)
         if cfg in ['range', 'alarms', 'warnings']:
@@ -799,7 +801,7 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
         self.assertTrue(isinstance(read_value, TangoAttrValue), msg)
 
         # Test attribute
-        for k, exp in expected.iteritems():
+        for k, exp in expected.items():
             try:
                 got = getattr(a, k)
             except AttributeError:
@@ -807,11 +809,11 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
                        (attrname, k))
                 self.fail(msg)
             msg = ('%s for "%s" should be %r (got %r)' %
-                   (k, attrname,  exp, got))
+                   (k, attrname, exp, got))
             self.__assertValidValue(exp, got, msg)
 
         # Test attribute value
-        for k, exp in expected_attrv.iteritems():
+        for k, exp in expected_attrv.items():
             try:
                 got = getattr(read_value, k)
             except AttributeError:
@@ -834,18 +836,22 @@ class AttributeTestCase(TangoSchemeTestLauncher, unittest.TestCase):
         if isinstance(exp, Quantity):
             exp = exp.magnitude
         try:
-            # for those values that can be handled by numpy.allclose()
-            chk = numpy.allclose(got, exp)
+            # first try the most generic equality
+            chk = bool(got == exp)
         except:
-            if isinstance(got, numpy.ndarray):
-                # uchars were not handled with allclose
-                # UGLY!! but numpy.all does not work
-                chk = got.tolist() == exp.tolist()
-            else:
-                # for the rest
-                chk = bool(got == exp)
-
+            chk = False
+        if not chk:
+            # some cases may fail the simple equality but still be True
+            try:
+                # for those values that can be handled by numpy.allclose()
+                chk = numpy.allclose(got, exp)
+            except:
+                if isinstance(got, numpy.ndarray):
+                    # uchars were not handled with allclose
+                    # UGLY!! but numpy.all does not work
+                    chk = got.tolist() == exp.tolist()
         self.assertTrue(chk, msg)
+
 
 if __name__ == '__main__':
     pass

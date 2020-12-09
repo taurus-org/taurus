@@ -25,20 +25,28 @@
 #############################################################################
 
 """This module provides a set of basic Taurus widgets based on QLed"""
+from __future__ import absolute_import
 
-__all__ = ["TaurusLed"]
-
-__docformat__ = 'restructuredtext'
+from builtins import str
+from builtins import object
 
 import weakref
-import operator
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 
 from taurus.external.qt import Qt
 
 from taurus.core import DataFormat, AttrQuality, DataType
 
 from taurus.qt.qtgui.base import TaurusBaseWidget
-from qled import QLed
+from .qled import QLed
+
+
+__all__ = ["TaurusLed"]
+
+__docformat__ = 'restructuredtext'
 
 _QT_PLUGIN_INFO = {
     'module': 'taurus.qt.qtgui.display',
@@ -76,23 +84,20 @@ class _TaurusLedController(object):
         fgRole = widget.fgRole
         value = None
         if fgRole == 'rvalue':
-            value = bool(obj.rvalue)
+            value = obj.rvalue
         elif fgRole == 'wvalue':
-            value = bool(obj.wvalue)
+            value = obj.wvalue
         elif fgRole == 'quality':
             return obj.quality
 
         # handle 1D and 2D values
-        if obj.data_format == DataFormat._0D:
-            return value
+        if obj.data_format is not DataFormat._0D:
+            idx = widget.getModelIndexValue()
+            if idx:
+                for i in idx:
+                    value = value[i]
 
-        idx = widget.getModelIndexValue()
-        if idx is None or len(idx) == 0:
-            return value
-
-        for i in idx:
-            value = value[i]
-        return value
+        return bool(value)
 
     def usePreferedColor(self, widget):
         return True
@@ -347,7 +352,7 @@ class TaurusLed(QLed, TaurusBaseWidget):
                 return
             if type(mi_value) == int:
                 mi_value = mi_value,
-            if not operator.isSequenceType(mi_value):
+            if not isinstance(mi_value, Sequence):
                 return
             self._modelIndex = mi_value
         self._modelIndexStr = mi
@@ -365,9 +370,6 @@ class TaurusLed(QLed, TaurusBaseWidget):
     #: This property holds the unique URI string representing the model name
     #: with which this widget will get its data from. The convention used for
     #: the string can be found :ref:`here <model-concept>`.
-    #:
-    #: In case the property :attr:`useParentModel` is set to True, the model
-    #: text must start with a '/' followed by the attribute name.
     #:
     #: **Access functions:**
     #:
@@ -454,8 +456,8 @@ class TaurusLed(QLed, TaurusBaseWidget):
 
 def demo():
     "Led"
-    import demo.taurusleddemo
-    return demo.taurusleddemo.main()
+    from .demo import taurusleddemo
+    return taurusleddemo.main()
 
 
 def main():

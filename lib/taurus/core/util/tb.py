@@ -26,8 +26,8 @@
 """This module contains a set of useful traceback elements based on python's
 :mod:`traceback` system."""
 
+from builtins import str
 import sys
-import inspect
 import traceback
 import threading
 
@@ -50,7 +50,7 @@ def format_frame_stacks(frames=None, limit=None):
     frame_stacks = extract_frame_stacks(frames=frames, limit=limit)
     ret = []
 
-    for ident, (frame, frame_stack) in frame_stacks.items():
+    for ident, (frame, frame_stack) in list(frame_stacks.items()):
         curr_th, th = _get_thread(), _get_thread(ident)
         if th is None:
             th_name = "<Unknown>"
@@ -73,7 +73,7 @@ def extract_frame_stacks(frames=None, limit=None):
     if frames is None:
         frames = _get_frames()
     ret = {}
-    for ident, frame in frames.items():
+    for ident, frame in list(frames.items()):
         frame_stack = traceback.extract_stack(frame, limit=limit)
         ret[ident] = frame, frame_stack
     return ret

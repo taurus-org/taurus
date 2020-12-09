@@ -221,7 +221,7 @@ def build_gui():
 
 def main():
     from taurus.qt.qtgui.application import TaurusApplication
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     w = build_gui()
     tree = TreeQObjectWidget(qobject_root=w)

@@ -25,6 +25,8 @@
 
 """This module provides a panel to display taurus messages"""
 
+from builtins import object
+
 __all__ = ["TaurusMessageReportHandler"]
 
 __docformat__ = 'restructuredtext'

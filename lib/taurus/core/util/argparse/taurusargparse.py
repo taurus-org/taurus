@@ -23,6 +23,8 @@
 ##
 #############################################################################
 
+# TODO: This module should be updated to use argparse instead of optparse
+
 """Helper command line parser for taurus based on :mod:`optparse`.
 Suppose you have an application file::
 
@@ -82,6 +84,12 @@ __all__ = ["get_taurus_parser", "init_taurus_args", "parse_taurus_args",
 __docformat__ = "restructuredtext"
 
 
+from taurus.core.util import log as __log
+
+__log.deprecated(dep='taurus.core.util.argparse', rel='4.5.4',
+                 alt='argparse or (better) click')
+
+
 def get_taurus_parser(parser=None):
     """ Returns a :class:`optparse.OptionParser` initialized with a
     :class:`optparse.OptionGroup` containning some taurus options.
@@ -102,7 +110,7 @@ def get_taurus_parser(parser=None):
                                      "Basic options present in any taurus application")
 
         help_tauruslog = "taurus log level. Allowed values are (case insensitive): critical, "\
-                         "error, warning/warn, info, debug, trace"
+                         "error, warning, info, debug, trace"
         help_tangohost = "Tango host name (either HOST:PORT or a Taurus URI, e.g. tango://foo:1234)"
         help_tauruspolling = "taurus global polling period in milliseconds"
         help_taurusserial = "taurus serialization mode. Allowed values are (case insensitive): "\
@@ -198,8 +206,8 @@ def init_taurus_args(parser=None, args=None, values=None):
             rfoo.utils.rconsole.spawn_server(port=options.remote_console_port)
             taurus.info("rconsole started. You can connect to it by typing: rconsole -p %d",
                         options.remote_console_port)
-        except Exception, e:
-            taurus.warning("Cannot spawn debugger. Reason: %s", str(e))
+        except Exception as e:
+            taurus.warning("Cannot spawn debugger. Reason: %s", e)
 
     # initialize default formatter
     if options.default_formatter is not None:

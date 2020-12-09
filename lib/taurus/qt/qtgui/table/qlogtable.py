@@ -26,16 +26,17 @@
 """This module provides Qt table widgets which display logging messages from the
 python :mod:`logging` module"""
 
-__all__ = ["QLoggingTableModel", "QLoggingTable", "QLoggingWidget",
-           "QRemoteLoggingTableModel"]
+from __future__ import absolute_import
 
-__docformat__ = 'restructuredtext'
+from operator import attrgetter
+from builtins import range
 
 import logging
 import logging.handlers
 import datetime
 import threading
 import socket
+import click
 
 import taurus
 from taurus.core.util.log import Logger
@@ -46,10 +47,17 @@ from taurus.core.util.decorator.memoize import memoized
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.model import FilterToolBar
 from taurus.qt.qtgui.util import ActionFactory
+import taurus.cli.common
 
-from qtable import QBaseTableWidget
+from .qtable import QBaseTableWidget
 
-LEVEL, TIME, MSG, NAME, ORIGIN = range(5)
+
+__all__ = ["QLoggingTableModel", "QLoggingTable", "QLoggingWidget",
+           "QRemoteLoggingTableModel"]
+
+__docformat__ = 'restructuredtext'
+
+LEVEL, TIME, MSG, NAME, ORIGIN = list(range(5))
 HORIZ_HEADER = 'Level', 'Time', 'Message', 'By', 'Origin'
 
 __LEVEL_BRUSH = {
@@ -76,18 +84,9 @@ def getBrushForLevel(level):
         elevel = taurus.Error
     elif level <= taurus.Critical:
         elevel = taurus.Critical
-    f, g = map(Qt.QBrush, __LEVEL_BRUSH[elevel])
+    f, g = list(map(Qt.QBrush, __LEVEL_BRUSH[elevel]))
     return f, g
 
-
-def _origin_cmp(rec1, rec2):
-    c1 = cmp(rec1.process, rec2.process)
-    if c1 == 0:
-        c2 = cmp(rec1.thread, rec2.thread)
-        if c2 == 0:
-            return cmp(rec1.name, rec2.name)
-        return c2
-    return c1
 
 gethostname = memoized(socket.gethostname)
 
@@ -119,7 +118,7 @@ def _get_record_origin_tooltip(rec):
     host, procName, procID, threadName, threadID = _get_record_origin(rec)
     pathname, filename, modulename, funcname, lineno = _get_record_trace(rec)
     timestamp = str(datetime.datetime.fromtimestamp(rec.created))
-    bgcolor, fgcolor = map(Qt.QBrush.color, getBrushForLevel(rec.levelno))
+    bgcolor, fgcolor = list(map(Qt.QBrush.color, getBrushForLevel(rec.levelno)))
     bgcolor = "#%02x%02x%02x" % (
         bgcolor.red(), bgcolor.green(), bgcolor.blue())
     fgcolor = "#%02x%02x%02x" % (
@@ -150,31 +149,27 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
     DftColSize = Qt.QSize(80, 20), Qt.QSize(200, 20), \
         Qt.QSize(300, 20), Qt.QSize(180, 20), Qt.QSize(240, 20),
 
-    def __init__(self, capacity=500000, freq=0.25):
+    def __init__(self, parent=None, capacity=500000, freq=0.25):
         super(Qt.QAbstractTableModel, self).__init__()
         logging.Handler.__init__(self)
         self._capacity = capacity
         self._records = []
         self._accumulated_records = []
         Logger.addRootLogHandler(self)
-        self.startTimer(freq * 1000)
+        self.startTimer(int(freq * 1000))
 
     # ---------------------------------
     # Qt.QAbstractTableModel overwrite
     # ---------------------------------
 
     def sort(self, column, order=Qt.Qt.AscendingOrder):
-        if column == LEVEL:
-            f = lambda a, b: cmp(a.levelno, b.levelno)
-        elif column == TIME:
-            f = lambda a, b: cmp(a.created, b.created)
-        elif column == MSG:
-            f = lambda a, b: cmp(a.msg, b.msg)
-        elif column == NAME:
-            f = lambda a, b: cmp(a.name, b.name)
-        elif column == ORIGIN:
-            f = _origin_cmp
-        self._records = sorted(self._records, cmp=f,
+        column2key_map = {LEVEL: attrgetter('levelno'),
+                          TIME: attrgetter('created'),
+                          MSG: attrgetter('msg'),
+                          NAME: attrgetter('name'),
+                          ORIGIN: attrgetter('process', 'thread', 'name'),
+        }
+        self._records = sorted(self._records, key=column2key_map[column],
                                reverse=order == Qt.Qt.DescendingOrder)
 
     def rowCount(self, index=Qt.QModelIndex()):
@@ -188,74 +183,74 @@ class QLoggingTableModel(Qt.QAbstractTableModel, logging.Handler):
 
     def data(self, index, role=Qt.Qt.DisplayRole):
         if not index.isValid() or not (0 <= index.row() < len(self._records)):
-            return Qt.QVariant()
+            return None
         record = self.getRecord(index)
         column = index.column()
         if role == Qt.Qt.DisplayRole:
             if column == LEVEL:
-                return Qt.QVariant(record.levelname)
+                return record.levelname
             elif column == TIME:
                 dt = datetime.datetime.fromtimestamp(record.created)
-                return Qt.QVariant(str(dt))
-                # return Qt.QVariant(dt.strftime("%Y-%m-%d %H:%m:%S.%f"))
+                return str(dt)
+                # return dt.strftime("%Y-%m-%d %H:%m:%S.%f")
             elif column == MSG:
-                return Qt.QVariant(record.getMessage())
+                return record.getMessage()
             elif column == NAME:
-                return Qt.QVariant(record.name)
+                return record.name
             elif column == ORIGIN:
-                return Qt.QVariant(_get_record_origin_str(record))
+                return _get_record_origin_str(record)
         elif role == Qt.Qt.TextAlignmentRole:
             if column in (LEVEL, MSG):
-                return Qt.QVariant(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter)
-            return Qt.QVariant(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
+                return Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter
+            return Qt.Qt.AlignRight | Qt.Qt.AlignVCenter
         elif role == Qt.Qt.BackgroundRole:
             if column == LEVEL:
-                return Qt.QVariant(getBrushForLevel(record.levelno)[0])
+                return getBrushForLevel(record.levelno)[0]
         elif role == Qt.Qt.ForegroundRole:
             if column == LEVEL:
-                return Qt.QVariant(getBrushForLevel(record.levelno)[1])
+                return getBrushForLevel(record.levelno)[1]
         elif role == Qt.Qt.ToolTipRole:
-            return Qt.QVariant(_get_record_origin_tooltip(record))
+            return _get_record_origin_tooltip(record)
         elif role == Qt.Qt.SizeHintRole:
             return self._getSizeHint(column)
         # elif role == Qt.Qt.StatusTipRole:
         # elif role == Qt.Qt.CheckStateRole:
         elif role == Qt.Qt.FontRole:
-            return Qt.QVariant(self.DftFont)
-        return Qt.QVariant()
+            return self.DftFont
+        return None
 
     def _getSizeHint(self, column):
-        return Qt.QVariant(QLoggingTableModel.DftColSize[column])
+        return QLoggingTableModel.DftColSize[column]
 
     def headerData(self, section, orientation, role=Qt.Qt.DisplayRole):
         if role == Qt.Qt.TextAlignmentRole:
             if orientation == Qt.Qt.Horizontal:
-                return Qt.QVariant(int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter))
-            return Qt.QVariant(int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter))
+                return int(Qt.Qt.AlignLeft | Qt.Qt.AlignVCenter)
+            return int(Qt.Qt.AlignRight | Qt.Qt.AlignVCenter)
         elif role == Qt.Qt.SizeHintRole:
             if orientation == Qt.Qt.Vertical:
-                return Qt.QVariant(Qt.QSize(50, 20))
+                return Qt.QSize(50, 20)
             else:
                 return self._getSizeHint(section)
         elif role == Qt.Qt.FontRole:
-            return Qt.QVariant(Qt.QFont("Mono", 8))
+            return Qt.QFont("Mono", 8)
         elif role == Qt.Qt.ToolTipRole:
             if section == LEVEL:
-                return Qt.QVariant("log level")
+                return "log level"
             elif section == TIME:
-                return Qt.QVariant("log time stamp")
+                return "log time stamp"
             elif section == MSG:
-                return Qt.QVariant("log message")
+                return "log message"
             elif section == NAME:
-                return Qt.QVariant("object who recorded the log")
+                return "object who recorded the log"
             elif section == ORIGIN:
-                return Qt.QVariant("the host, process and thread where the "
-                                   "log was executed from")
+                return ("the host, process and thread where the"
+                        + " log was executed from")
         if role != Qt.Qt.DisplayRole:
-            return Qt.QVariant()
+            return None
         if orientation == Qt.Qt.Horizontal:
-            return Qt.QVariant(HORIZ_HEADER[section])
-        return Qt.QVariant(int(section + 1))
+            return HORIZ_HEADER[section]
+        return int(section + 1)
 
     def insertRows(self, position, rows=1, index=Qt.QModelIndex()):
         self.beginInsertRows(Qt.QModelIndex(), position, position + rows - 1)
@@ -345,7 +340,7 @@ class QLoggingTable(Qt.QTableView):
         """Overwrite of slot rows inserted to do proper resize and scroll to
         bottom if desired"""
         Qt.QTableView.rowsInserted(self, index, start, end)
-        for i in xrange(start, end + 1):
+        for i in range(start, end + 1):
             self.resizeRowToContents(i)
         if start == 0:
             self.resizeColumnsToContents()
@@ -376,8 +371,7 @@ class LoggingToolBar(FilterToolBar):
         self._logLevelComboBox = logLevelComboBox = Qt.QComboBox()
         levels = "Trace", "Debug", "Info", "Warning", "Error", "Critical"
         for level in levels:
-            logLevelComboBox.addItem(
-                level, Qt.QVariant(getattr(taurus, level)))
+            logLevelComboBox.addItem(level, getattr(taurus, level))
         logLevelComboBox.setCurrentIndex(0)
         logLevelComboBox.currentIndexChanged.connect(self.onLogLevelChanged)
         logLevelComboBox.setToolTip("Filter by log level")
@@ -405,12 +399,12 @@ class LoggingToolBar(FilterToolBar):
 
     def getLogLevel(self):
         combo = self.getLogLevelComboBox()
-        return Qt.from_qvariant(combo.itemData(combo.currentIndex()))
+        return combo.itemData(combo.currentIndex())
 
     def setLogLevel(self, level):
         combo = self.getLogLevelComboBox()
         for i in range(combo.count()):
-            l = Qt.from_qvariant(combo.itemData(i))
+            l = combo.itemData(i)
             if l == level:
                 combo.setCurrentIndex(i)
 
@@ -489,7 +483,11 @@ class QLoggingWidget(QBaseTableWidget):
             klass = QLoggingTable
         view = QBaseTableWidget.createViewWidget(self, klass=klass)
         hh = view.horizontalHeader()
-        hh.setSectionResizeMode(MSG, Qt.QHeaderView.Stretch)
+        if hh.length() > 0:
+            try:
+                hh.setSectionResizeMode(MSG, Qt.QHeaderView.Stretch)
+            except AttributeError:  # PyQt4
+                hh.setResizeMode(MSG, Qt.QHeaderView.Stretch)
         view.setShowGrid(False)
         view.sortByColumn(TIME, Qt.Qt.AscendingOrder)
         return view
@@ -562,7 +560,7 @@ def fill_log():
     import time
     import random
 
-    for i in xrange(10):
+    for i in range(10):
         taurus.info("Hello world %04d" % i)
 
     loggers = ["Object%02d" % (i + 1) for i in range(10)]
@@ -601,5 +599,43 @@ def main():
     app.exec_()
     w.stop_logging()
 
+
+@click.command('qlogmon')
+@click.option(
+    '--port', 'port', type=int,
+    default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
+    show_default=True,
+    help='Port where log server is running',
+)
+@click.option(
+    '--log-name', 'log_name',
+    default=None,
+    help='Filter specific log object',
+)
+@taurus.cli.common.log_level
+def qlogmon_cmd(port, log_name, log_level):
+    """Show the Taurus Remote Log Monitor"""
+    import taurus
+    host = socket.gethostname()
+    level = getattr(taurus, log_level.capitalize(), taurus.Trace)
+
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(cmd_line_parser=None,
+                            app_name="Taurus remote logger")
+    w = QLoggingWidget(perspective="Remote")
+    w.setMinimumSize(1024, 600)
+
+    filterbar = w.getFilterBar()
+    filterbar.setLogLevel(level)
+    if log_name is not None:
+        filterbar.setFilterText(log_name)
+    w.getPerspectiveBar().setEnabled(False)
+    w.getQModel().connect_logging(host, port)
+    w.show()
+    app.exec_()
+    w.getQModel().disconnect_logging()
+
+
 if __name__ == '__main__':
     main()
+    # qlogmon_cmd

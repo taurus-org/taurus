@@ -8,14 +8,14 @@ designer-generated files, and then the recheckTaurusParent() workaround is usefu
 call recheckTaurusParent for all designer created widgets that use TaurusParentModel.
 You can do it right after calling the setupUi method.
 '''
-
+from __future__ import print_function
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.container import TaurusWidget
 from taurus.qt.qtgui.display import TaurusLabel
 import sys
 from taurus.qt.qtgui.application import TaurusApplication
 
-app = TaurusApplication(sys.argv)
+app = TaurusApplication(sys.argv, cmd_line_parser=None)
 
 # The problem arises in some situations when the Taurus parenting is not the same
 # as the Qt parenting. For demonstration we use 3 widgets:
@@ -60,8 +60,8 @@ p.layout().addWidget(m)
 # c.recheckTaurusParent()
 
 p.setModel('sys/tg_test/1/state')
-print 'p model:', p.getModelName()
-print 'c model:', c.getModelName()
+print('p model:', p.getModelName())
+print('c model:', c.getModelName())
 
 
 p.show()

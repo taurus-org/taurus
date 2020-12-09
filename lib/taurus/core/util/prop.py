@@ -24,6 +24,9 @@
 #############################################################################
 
 """This module contains a decorator to simplify the use of property."""
+from __future__ import print_function
+from __future__ import absolute_import
+
 
 __all__ = ["propertx"]
 
@@ -47,7 +50,7 @@ def propertx(fct):
 
 if __name__ == '__main__':
 
-    from log import Logger
+    from .log import Logger
 
     class example(object, Logger):
 
@@ -60,15 +63,15 @@ if __name__ == '__main__':
         def bar():
             # BAR doc
             def get(self):
-                print "\tgetting", self._a
+                print("\tgetting", self._a)
                 return self._a
 
             def set(self, val):
-                print "\tsetting", val
+                print("\tsetting", val)
                 self._a = val
             return get, set
 
     foo = example()
-    print foo.bar
+    print(foo.bar)
     # foo.bar='egg'
     # print foo.bar

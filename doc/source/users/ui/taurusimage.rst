@@ -40,28 +40,8 @@ You may also use TaurusImageDialog as a stand-alone application for showing imag
 attributes from the control system. You can launch the stand-alone Taurus Image
 with the following command::
 
-    taurusimage [options] <model>
-	
-Options::
+    taurus guiqwt image [options] <model>
 
-  -h, --help            show this help message and exit
-  --demo                show a demo of the widget
-  --version             show program's version number and exit
+Run the following command for more details::
 
-  Taurus Options:
-    Basic options present in any taurus application
-
-    --taurus-log-level=LEVEL
-                        taurus log level. Allowed values are (case
-                        insensitive): critical, error, warning/warn, info,
-                        debug, trace
-    --taurus-polling-period=MILLISEC
-                        taurus global polling period in milliseconds
-    --taurus-serialization-mode=SERIAL
-                        taurus serialization mode. Allowed values are (case
-                        insensitive): serial, concurrent (default)
-    --tango-host=TANGO_HOST
-                        Tango host name
-
-    
-The model is the name of a taurus image attribute 
+    taurus guiqwt image --help

@@ -27,11 +27,15 @@
 This module provides a set of basic taurus widgets based on QAbstractSpinBox
 """
 
+from __future__ import absolute_import
+
 from taurus.external.qt import Qt
 
-from tauruslineedit import TaurusValueLineEdit
+from .tauruslineedit import TaurusValueLineEdit
 from taurus.qt.qtgui.icon import getStandardIcon
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
+from taurus.qt.qtgui.util import PintValidator
+
 
 __all__ = ["TaurusValueSpinBox", "TaurusValueSpinBoxEx"]
 
@@ -48,9 +52,9 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         # Overwrite not to show quality by default
         self._showQuality = False
 
-        self._singleStep = 1.0
-
         lineEdit = TaurusValueLineEdit(designMode=designMode)
+        lineEdit.setValidator(PintValidator(self))
+        lineEdit.setEnableWheelEvent(True)
         self.setLineEdit(lineEdit)
         self.setAccelerated(True)
 
@@ -66,20 +70,15 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
     def keyPressEvent(self, evt):
         return self.lineEdit().keyPressEvent(evt)
 
+    def wheelEvent(self, evt):
+        return self.lineEdit().wheelEvent(evt)
+
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
     # Mandatory overload from QAbstractSpinBox
     # ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 
     def stepBy(self, steps):
-        self.setValue(self.getValue() + self._getSingleStepQuantity() * steps)
-
-        if self.lineEdit().getAutoApply():
-            self.lineEdit().editingFinished.emit()
-        else:
-            kmods = Qt.QCoreApplication.instance().keyboardModifiers()
-            controlpressed = bool(kmods & Qt.Qt.ControlModifier)
-            if controlpressed:
-                self.lineEdit().writeValue(forceApply=True)
+        return self.lineEdit()._stepBy(steps)
 
     def stepEnabled(self):
         ret = Qt.QAbstractSpinBox.StepEnabled(Qt.QAbstractSpinBox.StepNone)
@@ -156,14 +155,14 @@ class TaurusValueSpinBox(Qt.QAbstractSpinBox):
         return self.lineEdit().resetForcedApply()
 
     def getSingleStep(self):
-        return self._singleStep
+        return self.lineEdit().getSingleStep()
 
     @Qt.pyqtSlot(float)
     def setSingleStep(self, step):
-        self._singleStep = step
+        self.lineEdit().setSingleStep(step)
 
     def resetSingleStep(self):
-        self.setSingleStep(1.0)
+        self.lineEdit().resetSingleStep()
 
     def _getSingleStepQuantity(self):
         """
@@ -221,7 +220,6 @@ class TaurusValueSpinBoxEx(Qt.QWidget):
     def __init__(self, qt_parent=None, designMode=False):
         Qt.QWidget.__init__(self, qt_parent)
         layout = Qt.QGridLayout()
-        layout.setMargin(0)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
@@ -293,7 +291,7 @@ if __name__ == "__main__":
     main()
 #     import sys
 #     from taurus.qt.qtgui.application import TaurusApplication
-#     app = TaurusApplication()
+#     app = TaurusApplication(cmd_line_parser=None)
 
 #     w = TaurusValueSpinBox()
 #     w.setModel('sys/tg_test/1/double_scalar')

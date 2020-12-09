@@ -22,12 +22,12 @@
 ##
 #############################################################################
 
-__all__ = ['EvaluationDeviceNameValidator',
-           'EvaluationAttributeNameValidator']
+from __future__ import absolute_import
+from future.utils import string_types
 
+from builtins import zip
 import re
 import hashlib
-
 import taurus
 from taurus import isValidName, debug
 from taurus.core import TaurusElementType
@@ -35,6 +35,9 @@ from taurus.core import TaurusElementType
 from taurus.core.taurusvalidator import (TaurusAttributeNameValidator,
                                          TaurusDeviceNameValidator,
                                          TaurusAuthorityNameValidator)
+
+__all__ = ['EvaluationDeviceNameValidator',
+           'EvaluationAttributeNameValidator']
 
 # Pattern for python variables
 PY_VAR = r'(?<![\.a-zA-Z0-9_])[a-zA-Z_][a-zA-Z0-9_]*'
@@ -180,7 +183,7 @@ class EvaluationDeviceNameValidator(TaurusDeviceNameValidator):
 
     def getNames(self, fullname, factory=None):
         '''reimplemented from :class:`TaurusDeviceNameValidator`'''
-        from evalfactory import EvaluationFactory
+        from .evalfactory import EvaluationFactory
         # TODO: add mechanism to select strict mode instead of hardcoding here
         groups = self.getUriGroups(fullname)
         if groups is None:
@@ -249,20 +252,20 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
                           string containing a semi-colon separated list of
                           symbol=value pairs can also be passed.
         '''
-        if isinstance(substmap, str):
+        if isinstance(substmap, string_types):
             substmap = dict(K_EQUALS_V_RE.findall(substmap))
         ret = expr
         protected = {}
 
         # temporarily replace the text within quotes by hash-based placeholders
         for s in QUOTED_TEXT_RE.findall(expr):
-            placeholder = hashlib.md5(s).hexdigest()
+            placeholder = hashlib.md5(s.encode('utf-8')).hexdigest()
             protected[placeholder] = s
             ret = re.sub(s, placeholder, ret)
 
         # Substitute each k by its v in the expr (unless they are in
         # references)
-        for k, v in substmap.iteritems():
+        for k, v in substmap.items():
             # create a pattern for matching complete word k
             # unless it is within between curly brackets
             keyPattern = r'(?<!\w)%s(?!\w)(?![^\{]*\})' % k
@@ -270,7 +273,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
             ret = re.sub(keyPattern, v, ret)
 
         # restore the protected strings
-        for placeholder, s in protected.iteritems():
+        for placeholder, s in protected.items():
             ret = re.sub(placeholder, s, ret)
         return ret
 
@@ -294,7 +297,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         # print refs
 
         if refs and not ign_quoted:
-            _, refs = zip(*refs)
+            _, refs = list(zip(*refs))
             return refs
 
         ret = []
@@ -362,7 +365,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
         # create the groups dict with unmangled refs in its values
         groups = {}
         for n, g in _groups.items():
-            if isinstance(g, str):  # avoid None or boolean values
+            if isinstance(g, string_types):  # avoid None or boolean values
                 g = g.format(**refs_dict)
             groups[n] = g
 
@@ -424,7 +427,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
 
     def getNames(self, fullname, factory=None, fragment=False):
         '''reimplemented from :class:`TaurusDeviceNameValidator`'''
-        from evalfactory import EvaluationFactory
+        from .evalfactory import EvaluationFactory
         groups = self.getUriGroups(fullname)
         if groups is None:
             return None
@@ -497,7 +500,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
     def getDeviceName(self, name):
         #@TODO: Maybe this belongs to the factory, not the validator
         '''Obtain the fullname of the device from the attribute name'''
-        from evalfactory import EvaluationFactory
+        from .evalfactory import EvaluationFactory
         groups = self.getUriGroups(name)
         if groups is None:
             return None
@@ -512,7 +515,7 @@ class EvaluationAttributeNameValidator(TaurusAttributeNameValidator):
     def getDBName(self, s):
         #@TODO: Maybe this belongs to the factory, not the validator
         '''returns the full data base name for the given attribute name'''
-        from evalfactory import EvaluationFactory
+        from .evalfactory import EvaluationFactory
         m = self.name_re.match(s)
         if m is None:
             return None

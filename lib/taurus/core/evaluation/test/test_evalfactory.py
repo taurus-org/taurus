@@ -28,7 +28,7 @@
 import re
 
 import taurus
-from taurus.external import unittest
+import unittest
 from taurus.test import insertTest
 
 

@@ -26,19 +26,21 @@
 """This configuration contains base modules and classes that may be used
 by specific TaurusGui-based GUIs"""
 
-__docformat__ = 'restructuredtext'
+from builtins import object
 
-import os
-import sys
 from lxml import etree
+from future.utils import string_types
 from taurus.qt.qtgui.util import ExternalAppAction
 from taurus.qt.qtgui.util import TaurusWidgetFactory
 from taurus.core.util.log import Logger
 
+
+__docformat__ = 'restructuredtext'
+
 # this is here only for backwards compatibility. It should not be used at all
 
 
-class Qt_Qt:
+class Qt_Qt(object):
     LeftDockWidgetArea = 1
     RightDockWidgetArea = 2
     BottomDockWidgetArea = 3
@@ -223,9 +225,9 @@ class TaurusGuiComponentDescription(object):
             w.setModel(self.model)
         # connect (if an sdm is given)
         if sdm is not None:
-            for dataUID, signalname in self.sharedDataWrite.iteritems():
+            for dataUID, signalname in self.sharedDataWrite.items():
                 sdm.connectWriter(dataUID, w, signalname)
-            for dataUID, slotname in self.sharedDataRead.iteritems():
+            for dataUID, slotname in self.sharedDataRead.items():
                 sdm.connectReader(dataUID, getattr(w, slotname))
         # set the name
         w.name = self.name
@@ -250,19 +252,19 @@ class TaurusGuiComponentDescription(object):
         floating.text = str(self._floating)
 
         sharedDataWrite = etree.SubElement(root, "sharedDataWrite")
-        for k, v in self._sharedDataWrite.iteritems():
+        for k, v in self._sharedDataWrite.items():
             item = etree.SubElement(
                 sharedDataWrite, "item", datauid=k, signalName=v)
 
         sharedDataRead = etree.SubElement(root, "sharedDataRead")
-        for k, v in self._sharedDataRead.iteritems():
+        for k, v in self._sharedDataRead.items():
             item = etree.SubElement(
                 sharedDataRead, "item", datauid=k, slotName=v)
 
         model = etree.SubElement(root, "model")
         model.text = self._model
 
-        return etree.tostring(root, pretty_print=True)
+        return etree.tostring(root, pretty_print=True, encoding='unicode')
 
     @staticmethod
     def fromXml(xmlstring):
@@ -363,7 +365,26 @@ class PanelDescription(TaurusGuiComponentDescription):
     '''
 
     def __init__(self, *args, **kwargs):
+        """
+
+        Constructor. The following arguments are processed (the rest are
+        directly passed to the constructor of
+        :class:`TaurusGuiComponentDescription` )
+
+        :param instrumentkey: (str)
+        :param model_in_config: (bool) whther to store model in settigns file or not
+        :param modifiable_by_user: (bool) whether user can edit widget or not
+        :param widget_formatter: (str) formatter used by this widget
+        :param widget_properties: (dict) a dictionary of property_names:values
+                                  to be set on the widget
+
+        """
         self.instrumentkey = kwargs.pop('instrumentkey', None)
+        self.icon = kwargs.pop("icon", None)
+        self.model_in_config = kwargs.pop("model_in_config", None)
+        self.modifiable_by_user = kwargs.pop("modifiable_by_user", None)
+        self.widget_formatter = kwargs.pop("widget_formatter", None)
+        self.widget_properties = kwargs.pop("widget_properties", {})
         TaurusGuiComponentDescription.__init__(self, *args, **kwargs)
 
     @staticmethod
@@ -381,13 +402,13 @@ class PanelDescription(TaurusGuiComponentDescription):
         sharedDataWrite = None
         sharedDataRead = None
         model = getattr(panel.widget(), 'model', None)
-        if model is None or isinstance(model, basestring):
+        if model is None or isinstance(model, string_types):
             pass
         elif hasattr(model, '__iter__'):
             # if model is a sequence, convert to space-separated string
             try:
                 model = " ".join(model)
-            except Exception, e:
+            except Exception as e:
                 msg = ('Cannot convert %s to a space-separated string: %s' %
                        (model, e))
                 Logger().debug(msg)
@@ -395,11 +416,22 @@ class PanelDescription(TaurusGuiComponentDescription):
         else:
             # ignore other "model" attributes (they are not from Taurus)
             model = None
-        return PanelDescription(name, classname=classname,
-                                modulename=modulename, widgetname=widgetname,
-                                floating=floating,
-                                sharedDataWrite=sharedDataWrite,
-                                sharedDataRead=sharedDataRead, model=model)
+
+        return PanelDescription(
+            name,
+            classname=classname,
+            modulename=modulename,
+            widgetname=widgetname,
+            floating=floating,
+            sharedDataWrite=sharedDataWrite,
+            sharedDataRead=sharedDataRead,
+            model=model,
+            icon=panel.icon,
+            model_in_config=panel.model_in_config,
+            modifiable_by_user=panel.modifiable_by_user,
+            widget_formatter=panel.widget_formatter,
+            widget_properties=panel.widget_properties
+            )
 
 
 class ToolBarDescription(TaurusGuiComponentDescription):

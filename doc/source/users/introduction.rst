@@ -47,7 +47,7 @@ four attributes (state, position, velocity, acceleration) of a Tango device
     from taurus.qt.qtgui.panel import TaurusForm
     from taurus.qt.qtgui.application import TaurusApplication
     
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     
     attrs = [ 'state', 'position', 'velocity', 'acceleration' ]
     model = [ 'motor/icepap/01/%s' % attr for attr in attrs ]
@@ -66,7 +66,7 @@ four attributes (state, position, velocity, acceleration) of a Tango device
 The above example can even be achieved even without typing any code::
 
     % cd taurus/qt/qtgui/panel
-    % taurusform motor/icepap/01/state motor/icepap/01/position motor/icepap/01/velocity
+    % taurus form motor/icepap/01/state motor/icepap/01/position motor/icepap/01/velocity
   
 For many more examples, See the :ref:`examples` page.
 

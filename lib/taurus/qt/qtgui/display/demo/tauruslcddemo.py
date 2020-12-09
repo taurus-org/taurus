@@ -88,8 +88,8 @@ def demo():
 
             model_widget.textChanged.connect(w.setModel)
             model_index_widget.textChanged.connect(w.setModelIndex)
-            fg_widget.currentIndexChanged[str].connect(w.setFgRole)
-            bg_widget.currentIndexChanged[str].connect(w.setBgRole)
+            fg_widget.currentIndexChanged['QString'].connect(w.setFgRole)
+            bg_widget.currentIndexChanged['QString'].connect(w.setBgRole)
 
             model_widget.setText("sys/tg_test/1/double_scalar")
             fg_widget.setCurrentIndex(0)

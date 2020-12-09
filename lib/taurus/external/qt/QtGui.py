@@ -1,41 +1,37 @@
 # -*- coding: utf-8 -*-
+#
+# Copyright © 2018- CELLS / ALBA Synchrotron, Bellaterra, Spain
+# Copyright © 2014-2015 Colin Duquesnoy
+# Copyright © 2009-2018 The Spyder Development Team
+#
+# Licensed under the terms of the MIT License
+# (see LICENSE.txt for details)
 
-##############################################################################
-##
-## This file is part of Taurus
-##
-## http://taurus-scada.org
-##
-## Copyright 2011 CELLS / ALBA Synchrotron, Bellaterra, Spain
-##
-## Taurus is free software: you can redistribute it and/or modify
-## it under the terms of the GNU Lesser General Public License as published by
-## the Free Software Foundation, either version 3 of the License, or
-## (at your option) any later version.
-##
-## Taurus is distributed in the hope that it will be useful,
-## but WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU Lesser General Public License for more details.
-##
-## You should have received a copy of the GNU Lesser General Public License
-## along with Taurus.  If not, see <http://www.gnu.org/licenses/>.
-##
-##############################################################################
+"""
+Provides QtGui classes and functions.
+.. warning:: Contrary to qtpy.QtGui, this module exposes the namespace
+    available in ``PyQt4.QtGui``.
+    See: http://pyqt.sourceforge.net/Docs/PyQt5/pyqt4_differences.html#qtgui-module
+"""
+import warnings
 
-"""This module exposes QtGui module"""
+from . import PYQT5, PYQT4, PYSIDE, PYSIDE2, PythonQtError
 
-from taurus.external.qt import API_NAME, _updateQtSubModule
 
-__backend = API_NAME
+if PYQT5:
+    from PyQt5.QtGui import *
+    # import * from QtWidgets and QtPrintSupport for PyQt4 style compat
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtPrintSupport import *
+elif PYSIDE2:
+    from PySide2.QtGui import *
+    # import * from QtWidgets and QtPrintSupport for PyQt4 style compat
+    from PySide2.QtWidgets import *
+    from PySide2.QtPrintSupport import *
+elif PYQT4:
+    from PyQt4.QtGui import *
 
-_updateQtSubModule(globals(), "QtGui")
-
-if __backend == 'PyQt5':
-    _updateQtSubModule(globals(), "QtWidgets")
+elif PYSIDE:
+    from PySide.QtGui import *
 else:
-    # early import of qtpy.QtWidgets as a workaround for
-    # https://github.com/taurus-org/taurus/issues/401
-    import qtpy.QtWidgets as __qtpy_QtWidgets
-
-del _updateQtSubModule, API_NAME
+    raise PythonQtError('No Qt bindings could be found')

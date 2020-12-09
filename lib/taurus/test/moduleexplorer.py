@@ -25,8 +25,9 @@
 ###########################################################################
 
 '''Utility code for returning info about a module'''
+from __future__ import print_function
 
-import sys
+from builtins import object
 import os
 import inspect
 import glob
@@ -50,27 +51,36 @@ class ModuleExplorer(object):
         for p in paterns:
             if re.match(p, name) is not None:
                 if self.verbose:
-                    print 'excluding "%s" (matches %s)' % (name, p.pattern)
+                    print('excluding "%s" (matches %s)' % (name, p.pattern))
                 return True
         return False
 
     def _getlocalmembernames(self, module, predicate=None):
         ret = []
-        modulepath, tail = os.path.split(inspect.getabsfile(module))
+        modulepath, _ = os.path.split(inspect.getabsfile(module))
         for n, v in inspect.getmembers(module, predicate):
             if inspect.isbuiltin(v):
                 continue  # ignore builtin functions
             try:
-                memberpath, tail = os.path.split(inspect.getabsfile(v))
+                memberpath, _ = os.path.split(inspect.getabsfile(v))
             except TypeError:
                 continue  # ignore builtin modules
             if memberpath == modulepath:
                 ret.append(n)
         return ret
 
-    def _getSubmodulesFromPath(self, modulepath):
+    def _getSubpackagesFromPath(self, modulepath):
         g = glob.glob(os.path.join(modulepath, '*', '__init__.py'))
         ret = [re.findall(r".+\/(.*)\/__init__.py", s)[0] for s in g]
+        return ret
+
+    def _getSubmodulesFromPath(self, modulepath, module):
+        _imp = [n for n, m in inspect.getmembers(module, inspect.ismodule)]
+        ret = []
+        for s in glob.glob(os.path.join(modulepath, '*.py')):
+            f = os.path.split(s)[1][:-3]
+            if not f.startswith('_') and f not in _imp:
+                ret.append(f)
         return ret
 
     def _isclass_with_init(self, obj):
@@ -90,7 +100,7 @@ class ModuleExplorer(object):
                  externalmembernames, submodules, warnings
         '''
         if self.verbose:
-            print "Exploring %s..." % modulename
+            print("Exploring %s..." % modulename)
         warnings = []
         try:
             module = __import__(modulename, fromlist=[''])
@@ -99,7 +109,7 @@ class ModuleExplorer(object):
                 modulename, repr(e))
             warnings.append(msg)
             if self.verbose:
-                print msg
+                print(msg)
             return dict(modulename=modulename,
                         basemodulename=modulename.split('.')[-1],
                         modulepath=None,
@@ -110,14 +120,21 @@ class ModuleExplorer(object):
                         externalmembernames=[],
                         submodules={},
                         warnings=warnings)
-        modulepath, tail = os.path.split(inspect.getabsfile(module))
 
-        submodulenames = sorted(self._getSubmodulesFromPath(modulepath))
+        if module.__name__ == module.__package__:
+            modulepath, _ = os.path.split(inspect.getabsfile(module))
+        else:
+            modulepath = inspect.getabsfile(module)
+
+        submodulenames = sorted(
+            self._getSubpackagesFromPath(modulepath)
+            + self._getSubmodulesFromPath(modulepath, module)
+        )
         localclassnames = sorted(
-             [n for n, _ in inspect.getmembers(module, self._isclass_with_init)]
+            self._getlocalmembernames(module, self._isclass_with_init)
         )
         localfunctionnames = sorted(
-             [n for n, _ in inspect.getmembers(module, inspect.isfunction)]
+            self._getlocalmembernames(module, inspect.isfunction)
         )
         localenumerationnames = sorted([])  # @todo
         externalmembernames = sorted([])  # @todo
@@ -174,7 +191,7 @@ class ModuleExplorer(object):
                 ret = [(mname, el) for el in info[key]]
         except KeyError:
             return []
-        for sminfo in info['submodules'].itervalues():
+        for sminfo in info['submodules'].values():
             ret += ModuleExplorer.getAll(sminfo, key)
         return ret
 
@@ -200,25 +217,28 @@ class ModuleExplorer(object):
         return minfo, ModuleExplorer.getAll(minfo, 'warnings')
 
 
-def main(modulename='taurus', exclude_patterns=(
-                                    '_[^\.]*[^_]',
-                                    '.*\.test',
-                                    'taurus\.external',
-                                    'taurus\.qt\.qtgui\.extra_sardana',
-                                    'taurus\.qt\.qtgui\.extra_pool',
-                                    'taurus\.qt\.qtgui\.extra_macroexecutor',
-                                    'taurus\.qt\.qtgui\.resource',
-                                    'taurus\.qt\.qtgui\.taurusgui\.conf',
-                                    )
-         ):
+def main(
+        modulename='taurus',
+        exclude_patterns=(
+            r'_[^\.]*[^_]',
+            r'.*\.test',
+            r'taurus\.external',
+            r'taurus\.qt\.qtgui\.extra_sardana',
+            r'taurus\.qt\.qtgui\.extra_pool',
+            r'taurus\.qt\.qtgui\.extra_macroexecutor',
+            r'taurus\.qt\.qtgui\.resource',
+            r'taurus\.qt\.qtgui\.taurusgui\.conf',
+        )
+):
     moduleinfo, allw = ModuleExplorer.explore(
         modulename, exclude_patterns=exclude_patterns, verbose=True)
-    print '\n\n' + '*' * 50
-    print "Exploration finished with %i warnings:" % (len(allw))
+    print('\n\n' + '*' * 50)
+    print("Exploration finished with %i warnings:" % (len(allw)))
     for m, w in allw:
-        print w
-    print '*' * 50 + '\n'
-    print
+        print(w)
+    print('*' * 50 + '\n')
+    print()
+    print(len(allw))
     assert len(allw) == 0
 
     # import pprint

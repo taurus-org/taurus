@@ -23,27 +23,29 @@
 ##
 #############################################################################
 
-""" Every TaurusWidget should have the following Qt Designer extended capabilities:
+"""
+Every TaurusWidget should have the following Qt Designer extended
+capabilities:
 
   - Task menu:
     it means when you right click on the widget in the designer, it will have
     the following additional items:
-    - 'Edit model...' - opens a customized dialog for editing the widget model
+
+    - 'Edit model...': opens a customized dialog for editing the widget model
 
   - Property Sheet:
     it means that in the Qt Designer property sheet it will have the following
     properties customized:
-    - 'model' - will have a '...' button that will open a customized dialog for
+
+    - 'model': will have a '...' button that will open a customized dialog for
       editing the widget model (same has 'Edit model...' task menu item
 """
 
-from taurus.core.util.log import Logger
-from taurus.external.qt import Qt
-from taurus.external.qt import QtDesigner
+from __future__ import absolute_import
 
+from taurus.external.qt import QtDesigner
 from taurus.qt.qtgui.container.qcontainer import QGroupWidget
 
-#import sip
 
 Q_TYPEID = {'QPyDesignerContainerExtension':     'com.trolltech.Qt.Designer.Container',
             'QPyDesignerPropertySheetExtension': 'com.trolltech.Qt.Designer.PropertySheet',
@@ -105,7 +107,8 @@ class QGroupWidgetExtensionFactory(QtDesigner.QExtensionFactory):
 
 
 def create_plugin():
-    from taurusplugin.taurusplugin import TaurusWidgetPlugin
+    from taurus.qt.qtdesigner.taurusplugin.taurusplugin import (
+        TaurusWidgetPlugin)
 
     class QGroupWidgetPlugin(TaurusWidgetPlugin):
 

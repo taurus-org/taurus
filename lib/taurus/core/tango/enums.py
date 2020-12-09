@@ -31,7 +31,7 @@ __all__ = ["TangoObjectType", "EVENT_TO_POLLING_EXCEPTIONS",
 __docformat__ = "restructuredtext"
 
 from taurus.core.util.enumeration import Enumeration
-from taurus.external.enum import IntEnum
+from enum import IntEnum
 
 TangoObjectType = Enumeration("TangoObjectType",
                               ["Authority", "Server", "Class", "Device",

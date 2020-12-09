@@ -25,15 +25,18 @@
 
 """Utilities for creating generic tests for Taurus widgets"""
 
+from builtins import range
+from builtins import object
 import time
 import taurus.core
-from taurus.external import unittest
+import unittest
 from taurus.qt.qtgui.application import TaurusApplication
 
 
 class BaseWidgetTestCase(object):
-
     '''
+    DEPRECATED: use pytest-qt instead of this
+
     A base class for tests that need a widget instance
 
     To use it, simply inherit from BaseWidgetTestCase *and* unittest.TestCase
@@ -57,15 +60,18 @@ class BaseWidgetTestCase(object):
           - The widget must be instantiated
 
         """
+        from taurus.core.util import deprecated
+        deprecated(dep="BaseWidgetTestCase", alt="pytest-qt", rel="4.6.5")
+        raise unittest.SkipTest("*WidgetTestCase is deprecated. Use pytest-qt")
+
         unittest.TestCase.setUp(self)
 
         from taurus.core.util.log import _DEPRECATION_COUNT
         self._depCounter = _DEPRECATION_COUNT
         self._depCounter.clear()
-
         app = TaurusApplication.instance()
         if app is None:
-            app = TaurusApplication([])
+            app = TaurusApplication([], cmd_line_parser=None)
         self._app = app
 
         if self._klass is not None:
@@ -84,14 +90,16 @@ class BaseWidgetTestCase(object):
         self.assertTrue(deps <= maximum, msg)
 
     def processEvents(self, repetitions=1, sleep=0):
-         for i in xrange(repetitions):
+         for i in range(repetitions):
             time.sleep(sleep)
             self._app.processEvents()
 
 
 class GenericWidgetTestCase(BaseWidgetTestCase):
+    '''
+    DEPRECATED: use pytest-qt instead of this
 
-    '''a base class for testing common cases of arbitrary Taurus widget classes
+    a base class for testing common cases of arbitrary Taurus widget classes
 
     To use it, simply inherit from GenericWidgetTestCase *and* unittest.TestCase
     and provide the following class members:
@@ -117,6 +125,13 @@ class GenericWidgetTestCase(BaseWidgetTestCase):
             None should be used as a placeholder when a model cannot be created
             for a given modelname.
         """
+        from taurus.core.util import deprecated
+        deprecated(
+            dep="GenericWidgetTestCase",
+            alt="test_set_models and pytest-qt",
+            rel="4.6.5"
+        )
+
         # Make sure the basics are taken care of (QApplication, etc)
         BaseWidgetTestCase.setUp(self)
 

@@ -30,10 +30,10 @@ __all__ = ["TangoAuthorityNameValidator", "TangoDeviceNameValidator",
 
 __docformat__ = "restructuredtext"
 
-import socket
 from taurus.core.taurusvalidator import (TaurusAttributeNameValidator,
                                          TaurusDeviceNameValidator,
                                          TaurusAuthorityNameValidator)
+from taurus.core.util.fqdn import fqdn_no_alias
 
 
 # todo: I do not understand the behaviour of getNames for Auth, Dev and Attr in
@@ -52,7 +52,7 @@ class TangoAuthorityNameValidator(TaurusAuthorityNameValidator):
     '''
 
     scheme = 'tango'
-    authority = '//(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
+    authority = r'//(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
     path = '(?!)'
     query = '(?!)'
     fragment = '(?!)'
@@ -63,7 +63,7 @@ class TangoAuthorityNameValidator(TaurusAuthorityNameValidator):
         '''
         ret = TaurusAuthorityNameValidator.getUriGroups(self, name, strict)
         if ret is not None:
-            fqdn = socket.getfqdn(ret["host"])
+            fqdn = fqdn_no_alias(ret["host"])
             ret["host"] = fqdn
             ret["authority"] = "//{host}:{port}".format(**ret)
         return ret
@@ -97,7 +97,7 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
         '''
         ret = TaurusDeviceNameValidator.getUriGroups(self, name, strict)
         if ret is not None and ret.get("host", None) is not None:
-            fqdn = socket.getfqdn(ret["host"])
+            fqdn = fqdn_no_alias(ret["host"])
             ret["host"] = fqdn
             ret["authority"] = "//{host}:{port}".format(**ret)
         return ret
@@ -122,7 +122,7 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
             import PyTango
             host, port = PyTango.ApiUtil.get_env_var('TANGO_HOST').split(":")
             # Get the fully qualified domain name
-            host = socket.getfqdn(host)
+            host = fqdn_no_alias(host)
             default_authority = "//{0}:{1}".format(host, port)
 
         authority = groups.get('authority')
@@ -181,7 +181,7 @@ class TangoDeviceNameValidator(TaurusDeviceNameValidator):
                   r'(?P<path>%(path)s)' + \
                   r'(\?(?P<query>%(query)s))?' + \
                   r'(#%(fragment)s)?$'
-        authority = '(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
+        authority = r'(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
         path = '/?(?P<devname>((?P<_devalias>([^/?#:]+))|' + \
                '(?P<_devslashname>[^/?#:]+/[^/?#:]+/[^/?#:]+)))'
 
@@ -222,7 +222,7 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
         '''
         ret = TaurusAttributeNameValidator.getUriGroups(self, name, strict)
         if ret is not None and ret.get("host", None) is not None:
-            fqdn = socket.getfqdn(ret["host"])
+            fqdn = fqdn_no_alias(ret["host"])
             ret["host"] = fqdn
             ret["authority"] = "//{host}:{port}".format(**ret)
         return ret
@@ -267,7 +267,7 @@ class TangoAttributeNameValidator(TaurusAttributeNameValidator):
                   r'(?P<path>%(path)s)' + \
                   r'(\?(?P<query>%(query)s))?' + \
                   r'(#%(fragment)s)?$'
-        authority = '(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
+        authority = r'(?P<host>([\w\-_]+\.)*[\w\-_]+):(?P<port>\d{1,5})'
         query = 'configuration(=(?P<fragment>(?P<cfgkey>[^# ]+)))?'
 
         return pattern % dict(scheme=self.scheme,

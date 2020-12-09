@@ -24,8 +24,10 @@
 
 
 """Taurus import tests"""
+from __future__ import absolute_import
 
-from taurus.external import unittest
+import sys
+import unittest
 
 
 class TaurusImportTestCase(unittest.TestCase):
@@ -36,7 +38,7 @@ class TaurusImportTestCase(unittest.TestCase):
 
     def setUp(self):
         """Preconditions: moduleexplorer utility has to be available """
-        from moduleexplorer import ModuleExplorer
+        from .moduleexplorer import ModuleExplorer
         self.explore = ModuleExplorer.explore
 
     def testImportSubmodules(self):
@@ -46,7 +48,12 @@ class TaurusImportTestCase(unittest.TestCase):
         Expected Results: It is expected to get no warning message
         on module importing
         """
-        exclude_patterns = [r'taurus\.qt\.qtgui\.extra_.*']
+        exclude_patterns = [r'taurus\.qt\.qtgui\.extra_.*',
+                            r'taurus\.qt\.qtgui\.qwt5',
+                            r'taurus\.external\.qt\.QtUiTools',
+                            r'taurus\.external\.qt\.QtWebKit',
+                            r'taurus\.external\.qt\.Qwt5',
+                            ]
 
         try:
             import PyTango
@@ -57,12 +64,16 @@ class TaurusImportTestCase(unittest.TestCase):
         except ImportError:
             exclude_patterns.append(r'taurus\.core\.epics')
 
+        from taurus.external.qt import PYSIDE2
+        if PYSIDE2:
+            exclude_patterns.append(r'taurus\.external\.qt\.QtDesigner')
+            exclude_patterns.append(r'taurus\.qt\.qtdesigner')
 
         moduleinfo, wrn = self.explore('taurus', verbose=False,
                                        exclude_patterns=exclude_patterns)
         msg = None
         if wrn:
-            msg = '\n%s' % '\n'.join(zip(*wrn)[1])
+            msg = '\n%s' % '\n'.join(list(zip(*wrn))[1])
         self.assertEqual(len(wrn), 0, msg=msg)
 
 

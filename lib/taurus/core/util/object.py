@@ -25,6 +25,8 @@
 
 """This module contains the base Object class for taurus."""
 
+from builtins import object
+
 __all__ = ["Object"]
 
 __docformat__ = "restructuredtext"

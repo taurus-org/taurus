@@ -24,10 +24,9 @@
 #############################################################################
 
 """The core module"""
+from __future__ import absolute_import
 
-__docformat__ = "restructuredtext"
-
-import release as Release
+from . import release as Release
 # from .enums import * #note: all the enums from enums.py were moved to
 # taurusbasetypes.py
 from .taurusbasetypes import *
@@ -43,9 +42,12 @@ from .taurusmanager import *
 from .taurusoperation import *
 from .tauruspollingtimer import *
 from .taurusvalidator import *
+from .units import *
 
 # enable compatibility code with tau V1 if tauv1 package is present
 try:
     from .tauv1 import *
 except:
     pass
+
+__docformat__ = "restructuredtext"

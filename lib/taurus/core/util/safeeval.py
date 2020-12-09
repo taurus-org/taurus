@@ -26,6 +26,10 @@
 """
 safeeval.py: Safe eval replacement with whitelist support
 """
+from __future__ import print_function
+
+from builtins import range
+from builtins import object
 
 __all__ = ["SafeEvaluator"]
 
@@ -58,7 +62,7 @@ class SafeEvaluator(object):
         self.safe_dict = safedict
         if defaultSafe:
             import numpy
-            from taurus.external.pint import Quantity
+            from taurus.core.units import Quantity, UR
             self.safe_dict['pow'] = pow
             self.safe_dict['len'] = len
             self.safe_dict['int'] = int
@@ -77,6 +81,7 @@ class SafeEvaluator(object):
                 self.safe_dict[n] = getattr(numpy.random, n)
             self.safe_dict['Quantity'] = Quantity
             self.safe_dict['Q'] = Quantity  # Q() is an alias for Quantity()
+            self.safe_dict['UR'] = UR
 
         self._originalSafeDict = self.safe_dict.copy()
 
@@ -115,14 +120,14 @@ class SafeEvaluator(object):
 
 if __name__ == '__main__':
 
-    x = range(6)
+    x = list(range(6))
     sev = SafeEvaluator()
-    print "trying to evaluate a variable that has not been registered"
+    print("trying to evaluate a variable that has not been registered")
     try:
         # This will fail because 'x' is not registered in sev
-        print sev.safeEval('x+2')
+        print(sev.safeEval('x+2'))
     except:
-        print "failed!!"
+        print("failed!!")
 
     sev.addSafe({'x': x})  # After registering x, we can use it...
     f0 = 'x'
@@ -134,16 +139,17 @@ if __name__ == '__main__':
     f5 = 'open("/etc/passwd")'
 
     for f in [f0, f1, f2, f3, f4, f5]:
-        print 'Evaluating "%s":' % f
+        print('Evaluating "%s":' % f)
         try:
-            print sev.eval(f)
+            print(sev.eval(f))
         except:
-            print 'ERROR: %s cannot be evaluated' % f
+            print('ERROR: %s cannot be evaluated' % f)
 
+    import numpy
     vector = numpy.arange(6)
     # Another way of registering a variable is using the init method...
     sev2 = SafeEvaluator({'x': x, 'y': vector}, defaultSafe=False)
-    print 'x*y=', sev2.eval('x*y')
+    print('x*y=', sev2.eval('x*y'))
     y = 0  # note that the registered variable is local to the evaluator!!
     # here, y still has the previously registered value instead of 0
-    print 'x*y=', sev2.eval('x*y')
+    print('x*y=', sev2.eval('x*y'))

@@ -25,15 +25,17 @@
 
 """This module provides basic pure Qt container widgets"""
 
-__all__ = ["QGroupWidget"]
+from builtins import str
 
-__docformat__ = 'restructuredtext'
-
-import sys
 import json
 
 from taurus.external.qt import Qt
 from taurus.qt.qtgui.icon import getStandardIcon
+
+__all__ = ["QGroupWidget"]
+
+__docformat__ = 'restructuredtext'
+
 
 _TitleBarStyleExpanded = """.QFrame {{
 border-width: 0px;
@@ -137,14 +139,14 @@ class QGroupWidget(Qt.QWidget):
     def __init(self):
         panelLayout = Qt.QVBoxLayout()
         panelLayout.setSpacing(0)
-        panelLayout.setMargin(0)
+        panelLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(panelLayout)
 
         self._titleBar = titleBar = Qt.QFrame()
         panelLayout.addWidget(titleBar, 0)
 
         l = Qt.QHBoxLayout()
-        l.setMargin(2)
+        l.setContentsMargins(2, 2, 2, 2)
         l.setSpacing(2)
         self._titleBar.setLayout(l)
 

@@ -26,9 +26,7 @@
 """
 scales.py: Custom scales used by taurus.qt.qtgui.plot module
 """
-__all__ = ["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine",
-           "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw",
-           "FixedLabelsScaleDraw"]
+from __future__ import print_function
 
 import numpy
 from datetime import datetime, timedelta
@@ -36,12 +34,16 @@ from time import mktime
 from taurus.external.qt import Qt
 
 import guiqwt
-__guiqwt_version = map(int, guiqwt.__version__.split('.')[:3])
+__guiqwt_version = list(map(int, guiqwt.__version__.split('.')[:3]))
 
 if __guiqwt_version <= [2, 3, 1]:
     import taurus.external.qt.Qwt5 as qwt
 else:
     import qwt
+
+__all__ = ["DateTimeScaleEngine", "DeltaTimeScaleEngine", "FixedLabelsScaleEngine",
+           "FancyScaleDraw", "TaurusTimeScaleDraw", "DeltaTimeScaleDraw",
+           "FixedLabelsScaleDraw"]
 
 
 def _getDefaultAxisLabelsAlignment(axis, rotation):
@@ -225,7 +227,7 @@ class DateTimeScaleEngine(qwt.QwtLinearScaleEngine):
 
         elif dx > 2:  # 2s
             format = "%H:%M:%S"
-            majticks = range(int(x1) + 1, int(x2))
+            majticks = list(range(int(x1) + 1, int(x2)))
 
         else:  # less than 2s (show microseconds)
             scaleDiv = qwt.QwtLinearScaleEngine.divideScale(
@@ -326,8 +328,8 @@ class TaurusTimeScaleDraw(FancyScaleDraw):
         t = datetime.fromtimestamp(val)
         try:  # If the scaleDiv was created by a DateTimeScaleEngine it has a _datetimeLabelFormat
             s = t.strftime(self._datetimeLabelFormat)
-        except AttributeError, e:
-            print "Warning: cannot get the datetime label format (Are you using a DateTimeScaleEngine?)"
+        except AttributeError as e:
+            print("Warning: cannot get the datetime label format (Are you using a DateTimeScaleEngine?)")
             s = t.isoformat(' ')
         return qwt.QwtText(s)
 

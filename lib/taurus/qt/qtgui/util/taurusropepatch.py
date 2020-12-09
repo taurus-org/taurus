@@ -39,7 +39,7 @@ def apply():
     """Monkey patching rope for better performances"""
     import rope
     if rope.VERSION not in ('0.9.3', '0.9.2'):
-        raise ImportError, "rope %s can't be patched" % rope.VERSION
+        raise ImportError("rope %s can't be patched" % rope.VERSION)
 
     # Patching pycore.PyCore, so that forced builtin modules (i.e. modules
     # that were declared as 'extension_modules' in rope preferences)

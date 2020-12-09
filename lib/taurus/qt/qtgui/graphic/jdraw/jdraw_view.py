@@ -24,22 +24,28 @@
 #############################################################################
 
 """This module contains the graphics view widget for jdraw files"""
+from __future__ import absolute_import
 
-__all__ = ["TaurusJDrawSynopticsView"]
-
-__docformat__ = 'restructuredtext'
+from builtins import str
 
 import os
 import traceback
+
+from future.utils import string_types
+
 import taurus
-from taurus.external.qt import Qt
+from taurus.external.qt import Qt, compat
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core import taurushelper
 from taurus.qt.qtgui.graphic.taurusgraphic import parseTangoUri, TaurusGraphicsItem, SynopticSelectionStyle
 from taurus.qt.qtcore.mimetypes import TAURUS_ATTR_MIME_TYPE, TAURUS_DEV_MIME_TYPE, TAURUS_MODEL_MIME_TYPE
 from taurus.qt.qtgui.base import TaurusBaseWidget
 
-import jdraw_parser
+from taurus.qt.qtgui.graphic.jdraw.jdraw_parser import parse
+
+__all__ = ["TaurusJDrawSynopticsView"]
+
+__docformat__ = 'restructuredtext'
 
 
 class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
@@ -74,7 +80,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
      allows to configure custom context menus for graphic items using a list
      of tuples. Empty tuples will insert separators in the menu.
     '''
-    itemsChanged = Qt.pyqtSignal(str, dict)
+    itemsChanged = Qt.pyqtSignal('QString', dict)
     modelsChanged = Qt.pyqtSignal(list)
     graphicItemSelected = Qt.pyqtSignal('QString')
     graphicSceneClicked = Qt.pyqtSignal('QPoint')
@@ -120,8 +126,8 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         self.emitColors()
 
     def openJDraw(self):
-        ifile = unicode(Qt.QFileDialog.getOpenFileName(
-            self, 'Load JDraw File', '', 'JDraw File (*.jdw)'))
+        ifile, _ = compat.getOpenFileName(
+            self, 'Load JDraw File', '', 'JDraw File (*.jdw)')
         if not ifile:
             return
         fileName = ifile.split("/")
@@ -158,9 +164,11 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
             self.warning('Unable to emitColors: %s' % traceback.format_exc())
         return item_colors
 
+    @Qt.pyqtSlot(object)
     @Qt.pyqtSlot('QString')
     def selectGraphicItem(self, item_name):
-        self.scene().selectGraphicItem(item_name)
+        if self.scene() is not None:
+            self.scene().selectGraphicItem(item_name)
         return False
 
     def _graphicItemSelected(self, item_name):
@@ -268,7 +276,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
         # self.fitting()
 
     def getGraphicsFactory(self, delayed=False):
-        import jdraw
+        from . import jdraw
         # self.parent())
         return jdraw.TaurusJDrawGraphicsFactory(self, alias=(self.alias or None), delayed=delayed)
 
@@ -317,17 +325,12 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
             mimeData = Qt.QMimeData()
             if model:
                 taurusType = taurushelper.getValidTypesForName(model, False)
+                model = str(model).encode('utf8')
                 if TaurusElementType.Device in taurusType:
-                    self.debug('getMimeData(): DeviceModel at %s: %s',
-                               self.mousePos, model)
                     mimeData.setData(TAURUS_DEV_MIME_TYPE, model)
                 if TaurusElementType.Attribute in taurusType:
-                    self.debug('getMimeData(): AttributeModel at %s: %s',
-                               self.mousePos, model)
                     mimeData.setData(TAURUS_ATTR_MIME_TYPE, model)
                 else:
-                    self.debug('getMimeData(): UnknownModel at %s: %s',
-                               self.mousePos, model)
                     mimeData.setData(TAURUS_MODEL_MIME_TYPE, model)
         except:
             self.debug(
@@ -386,8 +389,8 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.debug("Starting to parse %s" % filename)
                 self.path = os.path.dirname(filename)
                 factory = self.getGraphicsFactory(delayed=delayed)
-                scene = jdraw_parser.parse(filename, factory)
-                scene.setSelectionStyle(self._selectionStyle)
+                scene = parse(filename, factory)
+                self.setSelectionStyle(self._selectionStyle)
                 self.debug("Obtained %s(%s)", type(scene).__name__, filename)
                 if not scene:
                     self.warning("TaurusJDrawSynopticsView.setModel(%s): Unable to parse %s!!!" % (
@@ -440,7 +443,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
     model = Qt.pyqtProperty("QString", getModel, setModel)
 
     def setSelectionStyle(self, selectionStyle):
-        if isinstance(selectionStyle, (Qt.QString, basestring)):
+        if isinstance(selectionStyle,  string_types):
             selectionStyle = str(selectionStyle).upper()
             try:
                 selectionStyle = SynopticSelectionStyle[selectionStyle]
@@ -448,7 +451,7 @@ class TaurusJDrawSynopticsView(Qt.QGraphicsView, TaurusBaseWidget):
                 self.debug('invalid selectionStyle "%s"', selectionStyle)
                 return
         if self.scene() is not None:
-            self.scene().setSelectionStyle(selectionStyle)
+            self.setSelectionStyle(selectionStyle)
         self._selectionStyle = selectionStyle
 
     def getSelectionStyle(self):
@@ -474,7 +477,7 @@ def jdraw_view_main():
     taurus.setLogLevel(taurus.Info)
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
 
     #form = Qt.QDialog()
     # ly=Qt.QVBoxLayout(form)
@@ -488,9 +491,6 @@ def jdraw_view_main():
     # print '%s setModel(%s)'%(time.ctime(),sys.argv[1])
     form.setModel(sys.argv[1])
     form.setWindowTitle(sys.argv[1].rsplit('.', 1)[0])
-    #def kk(*args):print("\tgraphicItemSelected(%s)"%str(args))
-    #form.connect(form,Qt.SIGNAL("graphicItemSelected(QString)"), kk)
-    # form.fitting()
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

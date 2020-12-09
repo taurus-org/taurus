@@ -24,26 +24,32 @@
 #############################################################################
 
 """This module contains the taurus base manager class"""
+from __future__ import print_function
 
-__all__ = ["TaurusManager"]
-
-__docformat__ = "restructuredtext"
+from builtins import range
 
 import os
 import atexit
+import pkg_resources
 
 from .util.singleton import Singleton
 from .util.log import Logger, taurus4_deprecation
 from .util.threadpool import ThreadPool
-
-from .taurusbasetypes import OperationMode, ManagerState, TaurusSerializationMode
+from .taurusbasetypes import (OperationMode, ManagerState,
+                              TaurusSerializationMode)
 from .taurusauthority import TaurusAuthority
 from .taurusdevice import TaurusDevice
 from .taurusattribute import TaurusAttribute
 from .taurusexception import TaurusException
 from .taurusfactory import TaurusFactory
 from .taurushelper import getSchemeFromName
+import taurus
 from taurus import tauruscustomsettings
+
+
+__all__ = ["TaurusManager"]
+
+__docformat__ = "restructuredtext"
 
 
 class TaurusManager(Singleton, Logger):
@@ -82,13 +88,16 @@ class TaurusManager(Singleton, Logger):
         this_path = os.path.abspath(__file__)
         self._this_path = os.path.dirname(this_path)
         self._serialization_mode = self.DefaultSerializationMode
-        if self._serialization_mode == TaurusSerializationMode.Concurrent:
-            self._thread_pool = ThreadPool(name="TaurusTP",
-                                           parent=self,
-                                           Psize=5,
-                                           Qsize=1000)
-        else:
-            self._thread_pool = None
+
+        self._thread_pool = ThreadPool(name="TaurusTP",
+                                       parent=self,
+                                       Psize=5,
+                                       Qsize=1000)
+
+        self._sthread_pool = ThreadPool(name="TaurusTSP",
+                                       parent=self,
+                                       Psize=1,
+                                       Qsize=0)
         self._plugins = None
 
         self._initial_default_scheme = self.default_scheme
@@ -108,27 +117,55 @@ class TaurusManager(Singleton, Logger):
 
         self._thread_pool.join()
         self._thread_pool = None
+        self._sthread_pool.join()
+        self._sthread_pool = None
 
         self._state = ManagerState.CLEANED
 
     def addJob(self, job, callback=None, *args, **kw):
-        """Add a new job (callable) to the queue. The new job will be processed
-        by a separate thread
+        """ Deprecated. Wrapper of enqueueJob. See enqueueJob documentation.
+        """
+        self.deprecated(dep='addJob', alt='enqueueJob', rel='4.3.2')
+        self.enqueueJob(job, callback=callback, job_args=args, job_kwargs=kw)
 
+    def enqueueJob(self, job, callback=None, job_args=(), job_kwargs=None,
+                   serialization_mode=None):
+        """ Enqueue a job (callable) to the queue. The new job will be
+        processed by a separate thread
         :param job: (callable) a callable object
         :param callback: (callable) called after the job has been processed
-        :param args: (list) list of arguments passed to the job
-        :param kw: (dict) keyword arguments passed to the job
+        :param job_args: (sequence) positional arguments passed to the job
+        :param job_kwargs: (dict) keyword arguments passed to the job
+        :param serialization_mode: (TaurusSerializationMode) serialization
+        mode
         """
-        if self._serialization_mode == TaurusSerializationMode.Concurrent:
+        if job_kwargs is None:
+            job_kwargs = {}
+
+        if serialization_mode is None:
+            serialization_mode = self._serialization_mode
+
+        if serialization_mode == TaurusSerializationMode.Concurrent:
             if not hasattr(self, "_thread_pool") or self._thread_pool is None:
                 self.info("Job cannot be processed.")
                 self.debug(
-                    "The requested job cannot be processed. Make sure this manager is initialized")
+                    "The requested job cannot be processed. "
+                    + "Make sure this manager is initialized")
                 return
-            self._thread_pool.add(job, callback, *args, **kw)
+            self._thread_pool.add(job, callback, *job_args, **job_kwargs)
+        elif serialization_mode == TaurusSerializationMode.Serial:
+            if (not hasattr(self, "_sthread_pool")
+                    or self._sthread_pool is None):
+                self.info("Job cannot be processed.")
+                self.debug(
+                    "The requested job cannot be processed. "
+                    + "Make sure this manager is initialized")
+                return
+
+            self._sthread_pool.add(job, callback, *job_args, **job_kwargs)
         else:
-            job(*args, **kw)
+            raise TaurusException("{} serialization mode not supported".format(
+                serialization_mode))
 
     def setSerializationMode(self, mode):
         """Sets the serialization mode for the system.
@@ -291,11 +328,13 @@ class TaurusManager(Singleton, Logger):
         for plugin_class in plugin_classes:
             schemes = list(plugin_class.schemes)
             for scheme in schemes:
-                if plugins.has_key(scheme):
+                if scheme in plugins:
                     k = plugins[scheme]
-                    self.warning("Conflicting plugins: %s and %s both implement "
-                                 "scheme %s. Will keep using %s" % (k.__name__,
-                                                                    plugin_class.__name__, scheme, k.__name__))
+                    self.warning(
+                        "Conflicting plugins: %s and %s both implement "
+                        "scheme %s. Will keep using %s" % (k.__name__,
+                                                           plugin_class.__name__,
+                                                           scheme, k.__name__))
                 else:
                     plugins[scheme] = plugin_class
         return plugins
@@ -333,10 +372,22 @@ class TaurusManager(Singleton, Logger):
         full_module_names.extend(
             getattr(tauruscustomsettings, 'EXTRA_SCHEME_MODULES', []))
 
+        full_module_names.extend(
+            getattr(taurus.core, 'PLUGIN_SCHEME_MODULES', []))
+
+        # ---------------------------------------------------------------------
+        # Note: this is an experimental feature introduced in v 4.5.0a
+        # It may be removed or changed in future releases
+
+        # Discover the taurus.core.schemes plugins
+        schemes_ep = pkg_resources.iter_entry_points('taurus.core.schemes')
+        full_module_names.extend([p.name for p in schemes_ep])
+        # ---------------------------------------------------------------------
+
         for full_module_name in full_module_names:
             try:
                 m = __import__(full_module_name, fromlist=['*'], level=0)
-            except Exception, imp1:
+            except Exception as imp1:
                 # just in case we are in python 2.4
                 try:
                     m = __import__(full_module_name,
@@ -348,8 +399,8 @@ class TaurusManager(Singleton, Logger):
             for s in m.__dict__.values():
                 plugin = None
                 try:
-                    if issubclass(s, TaurusFactory) and \
-                       issubclass(s, Singleton):
+                    if (issubclass(s, TaurusFactory)
+                            and issubclass(s, Singleton)):
                         if hasattr(s, 'schemes'):
                             schemes = getattr(s, 'schemes')
                             if len(schemes):
@@ -368,7 +419,7 @@ class TaurusManager(Singleton, Logger):
 
     def _find_scheme(self, factory_class):
         class_name = factory_class.__name__
-        for i in xrange(1, len(class_name)):
+        for i in range(1, len(class_name)):
             if class_name[i].isupper():
                 return class_name[:i].lower()
 
@@ -395,6 +446,7 @@ class TaurusManager(Singleton, Logger):
     def __repr__(self):
         return self.__str__name__("")
 
+
 if __name__ == '__main__':
     manager = TaurusManager()
-    print manager.getPlugins()
+    print(manager.getPlugins())

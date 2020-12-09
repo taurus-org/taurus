@@ -94,10 +94,10 @@ def demo():
 
             inverted_widget.toggled.connect(w.setLedInverted)
             model_widget.textChanged.connect(w.setModel)
-            fg_widget.currentIndexChanged[str].connect(w.setFgRole)
+            fg_widget.currentIndexChanged['QString'].connect(w.setFgRole)
             model_index_widget.textChanged.connect(w.setModelIndex)
-            on_color_widget.currentIndexChanged[str].connect(w.setOnColor)
-            off_color_widget.currentIndexChanged[str].connect(w.setOffColor)
+            on_color_widget.currentIndexChanged['QString'].connect(w.setOnColor)
+            off_color_widget.currentIndexChanged['QString'].connect(w.setOffColor)
 
             inverted_widget.setChecked(False)
             model_widget.setText("sys/tg_test/1/state")

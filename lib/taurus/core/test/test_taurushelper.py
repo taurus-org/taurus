@@ -31,8 +31,8 @@ __docformat__ = 'restructuredtext'
 
 import numpy
 import functools
-from taurus.external import unittest
-from taurus.external.pint import Quantity
+import unittest
+from taurus.core.units import Quantity
 import taurus
 from taurus.test import insertTest
 from taurus.core import (TaurusElementType, TaurusAttribute, TaurusDevice,
@@ -212,7 +212,7 @@ class IsValidNameTestCase(unittest.TestCase):
             elementType = [elementType]
         manager = taurus.Manager()
         scheme = manager.getScheme(name)
-        supportedSchemes = manager.getPlugins().keys()
+        supportedSchemes = list(manager.getPlugins().keys())
         if scheme not in supportedSchemes:
             self.skipTest('"%s" scheme not supported' % scheme)
         returned = taurus.isValidName(name, etypes=elementType, strict=strict)
@@ -240,7 +240,7 @@ class AuthorityTestCase(unittest.TestCase):
             klass = TaurusAuthority
         manager = taurus.Manager()
         scheme = manager.getScheme(name)
-        supportedSchemes = manager.getPlugins().keys()
+        supportedSchemes = list(manager.getPlugins().keys())
         if scheme not in supportedSchemes:
             self.skipTest('"%s" scheme not supported' % scheme)
         a = taurus.Authority(name)
@@ -255,7 +255,7 @@ class AuthorityTestCase(unittest.TestCase):
 @insertTest(helper_name='get_object', name='eval:@Foo')
 @insertTest(helper_name='get_object', name='eval://dev=Foo')
 @insertTest(helper_name='get_object', name='eval:@datetime.*')
-@insertTest(helper_name='get_object', name='eval:@d=datetime.date(2017,03,29)')
+@insertTest(helper_name='get_object', name='eval:@d=datetime.date(2017,3,29)')
 class DeviceTestCase(unittest.TestCase):
     '''TestCase for the taurus.Device helper'''
 
@@ -265,7 +265,7 @@ class DeviceTestCase(unittest.TestCase):
             klass = TaurusDevice
         manager = taurus.Manager()
         scheme = manager.getScheme(name)
-        supportedSchemes = manager.getPlugins().keys()
+        supportedSchemes = list(manager.getPlugins().keys())
         if scheme not in supportedSchemes:
             self.skipTest('"%s" scheme not supported' % scheme)
 
@@ -404,7 +404,7 @@ class DeviceTestCase(unittest.TestCase):
                           label='Q("1km").to("mm").magnitude',
                           type=DataType.Float))
 @insertTest(helper_name='read_attr',
-            name='eval:@d=datetime.date(1931,04,14)/d.isoformat()',
+            name='eval:@d=datetime.date(1931,4,14)/d.isoformat()',
             expected=dict(rvalue='1931-04-14', value='1931-04-14',
                           wvalue=None, w_value=None,
                           label='d.isoformat()',
@@ -419,7 +419,7 @@ class AttributeTestCase(unittest.TestCase):
             klass = TaurusAttribute
         manager = taurus.Manager()
         scheme = manager.getScheme(name)
-        supportedSchemes = manager.getPlugins().keys()
+        supportedSchemes = list(manager.getPlugins().keys())
         if scheme not in supportedSchemes:
             self.skipTest('"%s" scheme not supported' % scheme)
         a = taurus.Attribute(name)
@@ -441,7 +441,7 @@ class AttributeTestCase(unittest.TestCase):
         msg = ('read() for "%s" did not return a TaurusAttrValue (got a %s)' %
                (name, readvalue.__class__.__name__))
         self.assertTrue(isinstance(readvalue, TaurusAttrValue), msg)
-        for k, exp in expected.iteritems():
+        for k, exp in expected.items():
             try:
                 got = getattr(readvalue, k)
             except AttributeError:
@@ -464,6 +464,20 @@ class AttributeTestCase(unittest.TestCase):
                     chk = bool(got == exp)
 
                 self.assertTrue(chk, msg)
+
+
+class ValidatorFromName(unittest.TestCase):
+    """TestCase for the taurus.getValidatorFromName helper"""
+
+    def test_getValidatorFromName(self):
+        """check that getValidatorFromName returns the expected values"""
+
+        self.assertIsInstance(
+            taurus.getValidatorFromName('eval:@foo'),
+            taurus.core.evaluation.evalvalidator.EvaluationDeviceNameValidator
+        )
+        self.assertIsNone(taurus.getValidatorFromName('eval:@/'))
+        self.assertIsNone(taurus.getValidatorFromName('unsupported:scheme'))
 
 
 if __name__ == '__main__':

@@ -28,17 +28,18 @@ emitter.py: This module provides a task scheduler used by TaurusGrid and
     TaurusDevTree widgets
 """
 
-from Queue import Queue, Empty
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+from queue import Queue, Empty
 import traceback
-from functools import partial
-from collections import Iterable
+
+from future.utils import string_types
 
 import taurus
 from taurus.external.qt import Qt
 from taurus.core.util.log import Logger
-from taurus.core.util.singleton import Singleton
-
-from taurus.core.taurusbasetypes import SubscriptionState
 
 
 ###############################################################################
@@ -46,7 +47,7 @@ from taurus.core.taurusbasetypes import SubscriptionState
 
 
 def isString(seq):
-    if isinstance(seq, basestring):
+    if isinstance(seq, string_types):
         return True  # It matches most python str-like classes
     if any(s in str(type(seq)).lower() for s in ('vector', 'array', 'list',)):
         return False
@@ -80,7 +81,7 @@ class MethodModel(object):
 class QEmitter(Qt.QObject):
     """Emitter class providing two signals."""
 
-    doSomething = Qt.pyqtSignal(Iterable)
+    doSomething = Qt.pyqtSignal(list)
     somethingDone = Qt.pyqtSignal()
     newQueue = Qt.pyqtSignal()
 
@@ -90,9 +91,6 @@ class QEmitter(Qt.QObject):
 
 class TaurusEmitterThread(Qt.QThread):
     """
-    The TaurusEmitterThread Class
-    ==========================
-
     This object get items from a python Queue and performs a thread safe 
     operation on them.
     It is useful to serialize Qt tasks in a background thread.
@@ -105,8 +103,7 @@ class TaurusEmitterThread(Qt.QThread):
     :param cursor: if True or QCursor a custom cursor is set while 
         the Queue is not empty
 
-    How TaurusEmitterThread works
-    --------------------------
+    How TaurusEmitterThread works:
 
     TaurusEmitterThread is a worker thread that processes a queue of iterables 
     passed as arguments to the specified method every time that  
@@ -125,7 +122,7 @@ class TaurusEmitterThread(Qt.QThread):
         to ``self.todo queue``
       + every time that a *somethingDone* signal arrives ``next()`` is called.
       + ``next()`` can be called also externally to ensure that the main queue 
-      is being processed.
+        is being processed.
       + the queue can be accessed externally using ``getQueue()``
       + ``getQueue().qsize()`` returns number of remaining objects in queue.
       + while there are objects in queue the ``.next()`` method will 
@@ -138,13 +135,12 @@ class TaurusEmitterThread(Qt.QThread):
       - if an object is found, it is sent in a *doSomething* signal.
       - if *"exit"* is found the loop exits.
 
-    Usage example
-    -------------
+    Usage example:
 
     .. code-block:: python
 
         #Applying TaurusEmitterThread to an existing class:
-        from Queue import Queue
+        from queue import Queue
         from functools import partial
 
         def modelSetter(args):
@@ -279,7 +275,7 @@ class TaurusEmitterThread(Qt.QThread):
                 method(*args)
             except:
                 self.log.error('At TaurusEmitterThread._doSomething(%s): \n%s'
-                               % (map(str, args), traceback.format_exc()))
+                               % (list(map(str, args)), traceback.format_exc()))
         self.emitter.somethingDone.emit()
         self._done += 1
         return
@@ -365,7 +361,7 @@ class DelayedSubscriber(Logger):
                                                  sleep=sleep, loopwait=pause,
                                                  polling=period)
 
-        self._modelsQueue.put((self.addUnsubscribedAttributes,))
+        self._modelsQueue.put([self.addUnsubscribedAttributes])
         self._modelsThread.start()
 
     def _modelSubscriber(self, method, args=[]):
@@ -376,8 +372,7 @@ class DelayedSubscriber(Logger):
         """Check all pending subscriptions in the current factory
         """
         attrs = []
-        items = self._factory.getExistingAttributes().items()
-        for name, attr in items:
+        for name, attr in self._factory.getExistingAttributes().items():
             if attr is None:
                 continue
             elif attr.hasListeners() and not attr.isUsingEvents():
@@ -407,7 +402,7 @@ class DelayedSubscriber(Logger):
                 self.debug('addModelObj(%s), proxy not available' % modelObj)
                 return
 
-        self._modelsQueue.put((modelObj.subscribePendingEvents,))
+        self._modelsQueue.put([modelObj.subscribePendingEvents])
         self.debug('addModelObj(%s)' % str(modelObj))
 
     def cleanUp(self):
@@ -416,7 +411,7 @@ class DelayedSubscriber(Logger):
         Logger.cleanUp(self)
 
 
-class SingletonWorker():
+class SingletonWorker(object):
     """
     SingletonWorker is used to manage TaurusEmitterThread as Singleton objects
 

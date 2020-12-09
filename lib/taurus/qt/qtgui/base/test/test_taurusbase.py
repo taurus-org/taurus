@@ -26,76 +26,55 @@
 """Unit tests for taurusbase"""
 
 
-from taurus.external import unittest
-from taurus.test import insertTest
-from taurus.qt.qtgui.test import BaseWidgetTestCase
-from taurus.core.tango.test import TangoSchemeTestLauncher  # tango-centric
+import pytest
 from taurus.qt.qtgui.container import TaurusWidget
 
-DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
+from taurus.test.pytest import check_taurus_deprecations
+
+try:
+    # The following are Tango-centric imports.
+    from taurus.core.tango.test import taurus_test_ds  # pytest fixture
+
+    _TANGO_MISSING = False
+except:
+    _TANGO_MISSING = True
 
 
-@insertTest(helper_name='getDisplayValue',
-            model='eval:1+2#',
-            expected='-----')
-@insertTest(helper_name='getDisplayValue',
-            model='eval:1+2#label',
-            expected='1+2')
-@insertTest(helper_name='getDisplayValue',
-            model='eval:1+2',
-            expected='3')
-# This checks if the pre-tep3 behavior is kept (and it fails)
-# ...but I think it should *not* be kept
-@insertTest(helper_name='getDisplayValue',
-            model='tango://' + DEV_NAME + '/double_scalar?configuration',
-            expected='double_scalar?configuration',
-            test_skip="old behaviour which we probably don't want")
-@insertTest(helper_name='getDisplayValue',
-            model='tango://' + DEV_NAME + '/float_scalar?configuration=label',
-            expected='float_scalar')
-@insertTest(helper_name='getDisplayValue',
-            model='tango:' + DEV_NAME + '/double_scalar#rvalue.magnitude',
-            expected='1.23')
-@insertTest(helper_name='getDisplayValue',
-            model='tango:' + DEV_NAME + '/float_scalar#label',
-            expected='float_scalar')
-@insertTest(helper_name='getDisplayValue',
-            model='tango:' + DEV_NAME + '/float_scalar#',
-            expected='-----')
-@insertTest(helper_name='getDisplayValue',
-            model='tango:' + DEV_NAME + '/state',
-            expected='ON')
-# This fails due to encode/decode rounding errors for float<-->numpy.float32
-@insertTest(helper_name='getDisplayValue',
-            model='tango:' + DEV_NAME + '/float_scalar',
-            expected='1.23 mm',
-            test_skip='enc/decode rounding errors for float<-->numpy.float32')
-@insertTest(helper_name='getDisplayValue',
-            model='tango:' + DEV_NAME + '/double_scalar',
-            expected='1.23 mm')
-@insertTest(helper_name='getDisplayValue',
-            model='tango:' + DEV_NAME + '/short_scalar',
-            expected='123 mm')
-@insertTest(helper_name='getDisplayValue',
-            model='tango:' + DEV_NAME + '/boolean_scalar',
-            expected='True')
-class GetDisplayValueTestCase(TangoSchemeTestLauncher, BaseWidgetTestCase,
-                              unittest.TestCase):
-    """Check TaurusBaseComponent.getDisplayValue
-    """
-    _klass = TaurusWidget
+@pytest.mark.skipif(_TANGO_MISSING, reason="tango-dependent test")
+@pytest.mark.parametrize(
+    "model, expected",
+    [
+        ("/boolean_scalar", "True"),
+        ("/short_scalar", "123 mm"),
+        ("/double_scalar", "1.23 mm"),
+        ("/state", "ON"),
+        ("/float_scalar#", "-----"),
+        ("/float_scalar#label", "float_scalar"),
+        ("/double_scalar#rvalue.magnitude", "1.23"),
+        #("/float_scalar?configuration=label", "float_scalar"),
+        ("eval:1+2", "3"),
+        ("eval:1+2#label", "1+2"),
+        ("eval:1+2#", "-----"),
+    ],
+)
+def test_display_value(
+    qtbot,
+    caplog,
+    taurus_test_ds,
+    model,
+    expected
+):
+    """Check the getDisplayValue method"""
+    with check_taurus_deprecations(caplog):
+        w = TaurusWidget()
+        qtbot.addWidget(w)
+        if model.startswith("/"):
+            model = "tango:{}{}".format(taurus_test_ds, model)
+        with qtbot.waitSignal(w.modelChanged, timeout=3200):
+            w.setModel(model)
 
-    def setUp(self):
-        BaseWidgetTestCase.setUp(self)
+        def _ok():
+            """Check text"""
+            assert w.getDisplayValue() == expected
 
-    # def tearDown(self):
-    #     BaseWidgetTestCase.tearDown(self)
-
-    def getDisplayValue(self, model=None, expected=None):
-        '''Check if setModel works when using parent model'''
-        self._widget.setModel(model)
-        got = self._widget.getDisplayValue()
-        msg = ('getDisplayValue for "%s" should be %r (got %r)' %
-               (model, expected, got))
-        self.assertEqual(expected, got, msg)
-        self.assertMaxDeprecations(0)
+        qtbot.waitUntil(_ok, timeout=3200)

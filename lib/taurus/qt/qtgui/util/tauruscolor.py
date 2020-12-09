@@ -37,6 +37,7 @@ from taurus.external.qt import Qt
 from taurus.core.util.colors import ColorPalette, \
     DEVICE_STATE_DATA, ATTRIBUTE_QUALITY_DATA
 from taurus.core.taurusbasetypes import AttrQuality
+from taurus.core.util.log import deprecation_decorator
 
 
 class QtColorPalette(ColorPalette):
@@ -47,8 +48,6 @@ class QtColorPalette(ColorPalette):
         self._qcolor_cache_bg = dict()
         self._qbrush_cache_fg = dict()
         self._qbrush_cache_bg = dict()
-        self._qvariant_cache_fg = dict()
-        self._qvariant_cache_bg = dict()
 
     def qbrush(self, stoq):
         # print stoq
@@ -57,10 +56,10 @@ class QtColorPalette(ColorPalette):
 
         f = self._qbrush_cache_fg
         b = self._qbrush_cache_bg
-        if not f.has_key(name):
+        if name not in f:
             f[name] = Qt.QBrush(self.qcolor(stoq)[1])
 
-        if not b.has_key(name):
+        if name not in b:
             b[name] = Qt.QBrush(self.qcolor(stoq)[0])
             if name == 'None':
                 b[name].setStyle(Qt.Qt.BDiagPattern)
@@ -73,26 +72,18 @@ class QtColorPalette(ColorPalette):
 
         f = self._qcolor_cache_fg
         b = self._qcolor_cache_bg
-        if not f.has_key(name):
+        if name not in f:
             f[name] = Qt.QColor(self.number(name, True))
 
-        if not b.has_key(name):
+        if name not in b:
             b[name] = Qt.QColor(self.number(name))
 
         return (b[name], f[name])
 
+    @deprecation_decorator(alt='QtColorPalette.qcolor()', rel='4.5')
     def qvariant(self, stoq):
         """Returns the color for the specified state or quality"""
-        name = self._decoder(stoq)
-
-        f = self._qvariant_cache_fg
-        b = self._qvariant_cache_bg
-        if not f.has_key(name):
-            (back, fore) = self.qcolor(name)
-            f[name] = Qt.QVariant(fore)
-            b[name] = Qt.QVariant(back)
-
-        return (b[name], f[name])
+        return self.qcolor(stoq)
 
 
 

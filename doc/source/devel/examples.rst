@@ -10,7 +10,7 @@
 Examples
 ========
 
-Here you will find a host of example figures with the code that generated them.
+Here you will find a set of example figures with the code that generated them.
 
 In order for the examples to work on your computer, you need to have a 
 Tango device server running. The following section explains how to do this.
@@ -49,7 +49,7 @@ header::
     from taurus.external.qt import Qt
     from taurus.qt.qtgui.application import TaurusApplication
     
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None)
     panel = Qt.QWidget()
     layout = Qt.QHBoxLayout()
     panel.setLayout(layout)
@@ -79,7 +79,7 @@ code::
     from taurus.external.qt import Qt
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication(sys.argv)
+    app = TaurusApplication(sys.argv, cmd_line_parser=None,)
     panel = Qt.QWidget()
     layout = Qt.QHBoxLayout()
     panel.setLayout(layout)
@@ -369,7 +369,7 @@ feature-rich and very configurable GUIs by using existing widgets as "panels".
 TaurusGuis can be created via a wizard application (no programming at all!) with
 a few clicks. You can try it out by running::
 
-	taurusgui --new-gui
+	taurus newgui
 	
 For more details and tricks regarding TaurusGui, check :ref:`this <taurusgui_newgui>`.
 

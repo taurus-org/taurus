@@ -25,6 +25,9 @@
 
 """helper methods for taurus sphinx documentation"""
 
+from __future__ import print_function
+
+
 __expr = ('or',)
 
 
@@ -65,9 +68,9 @@ def process_param(line):
                 new_lines.append('%s:type %s: %s' %
                                  (prefix, param_name, klass))
         new_lines.append('%s:param %s: %s' % (prefix, param_name, desc))
-    except Exception, e:
-        print "Taurus sphinx extension: Not able to process param: '%s'" % line
-        print "      Reason:", str(e)
+    except Exception as e:
+        print("Taurus sphinx extension: Not able to process param: '%s'" % line)
+        print("      Reason:", str(e))
         new_lines.append(line)
     return new_lines
 
@@ -85,9 +88,9 @@ def process_return(line):
                 desc = desc[pos + 1:]
                 new_lines.append('%s:rtype: %s' % (prefix, klass))
         new_lines.append('%s:return: %s' % (prefix, desc))
-    except Exception, e:
-        print "TaurusExtension: Not able to process 'return': '%s'" % line
-        print "      Reason:", str(e)
+    except Exception as e:
+        print("TaurusExtension: Not able to process 'return': '%s'" % line)
+        print("      Reason:", str(e))
         new_lines.append(line)
     return new_lines
 
@@ -105,9 +108,9 @@ def process_raise(line):
                 klass = "(" + process_type(elem_type, obj_type='exc') + ")"
                 desc = desc[pos + 1:]
         new_lines.append('%s:raise: %s %s' % (prefix, klass, desc))
-    except Exception, e:
-        print "TaurusExtension: Not able to process 'raise': '%s'" % line
-        print "      Reason:", str(e)
+    except Exception as e:
+        print("TaurusExtension: Not able to process 'raise': '%s'" % line)
+        print("      Reason:", str(e))
         new_lines.append(line)
     return new_lines
 

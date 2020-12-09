@@ -25,12 +25,15 @@
 
 """This module provides basic taurus container widget"""
 
+from __future__ import absolute_import
+
+from taurus.external.qt import Qt
+from .taurusbasecontainer import TaurusBaseContainer
+
+
 __all__ = ["TaurusWidget"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
-from taurusbasecontainer import TaurusBaseContainer
 
 
 class TaurusWidget(Qt.QWidget, TaurusBaseContainer):
@@ -48,8 +51,8 @@ class TaurusWidget(Qt.QWidget, TaurusBaseContainer):
         widget.model = 'sys/database/2'
         stateWidget = TaurusLabel()
         layout.addWidget(stateWidget)
-        stateWidget.useParentModel = True
-        stateWidget.model = '/state'"""
+        stateWidget.model = 'sys/database/2/state'
+        """
 
     def __init__(self, parent=None, designMode=False):
         name = self.__class__.__name__

@@ -27,23 +27,28 @@
 taurusconfigeditor.py:
 """
 
+from future import standard_library
+standard_library.install_aliases()
+
+from taurus.external.qt import Qt, compat
+import pickle
+import os
+import shutil
+import tempfile
+import click
+from taurus.qt.qtcore.configuration import BaseConfigurableClass
+from taurus.qt.qtgui.container import TaurusWidget
+
+
 __all__ = ["QConfigEditor"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
-import cPickle as pickle
-import os
-import tempfile
-from taurus.qt.qtcore.configuration import BaseConfigurableClass
-from taurus.qt.qtgui.container import TaurusWidget
-import shutil
 
 
 class QConfigEditorModel(Qt.QStandardItemModel):
     '''A custom Model for QConfigEditor'''
 
-    showError = Qt.pyqtSignal(str, str)
+    showError = Qt.pyqtSignal('QString', 'QString')
 
     def __init__(self, parent=None, designMode=False):
         super(Qt.QStandardItemModel, self).__init__()
@@ -57,13 +62,12 @@ class QConfigEditorModel(Qt.QStandardItemModel):
     def setData(self, index, value, role=Qt.Qt.DisplayRole):
         '''see :meth:`Qt.QAbstractTableModel.setData`'''
 
-        idx_data_str = Qt.from_qvariant(index.data(), str)
-        value_str = Qt.from_qvariant(value, str)
-        if idx_data_str == value_str:
+        idx_data_str = index.data()
+        if idx_data_str == value:
             return False
         #self.itemFromIndex(index).setData(value, role)
         try:
-            self.valueChanged(value_str, index)
+            self.valueChanged(value, index)
         except:
             self.showError.emit('Wrong value!',
                       'The value you entered is wrong. The old value will be restored.')
@@ -77,10 +81,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
 
         :param iniFileName: (str)
         '''
-        self.originalFile = unicode(iniFileName)
-        self._file = tempfile.NamedTemporaryFile()
-        self._temporaryFile = unicode(self._file.name)
-
+        self.originalFile = iniFileName
+        self._temporaryFile = tempfile.NamedTemporaryFile(delete=False).name
         shutil.copyfile(self.originalFile, self._temporaryFile)
 
         self._settings = Qt.QSettings(
@@ -97,7 +99,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         '''
         tmpindex = self._toDeleteIndex
         item = self.itemFromIndex(tmpindex)
-        path = Qt.from_qvariant(item.data(Qt.Qt.UserRole), str)
+        path = item.data(Qt.Qt.UserRole)
         self._delete = False
         self._configurationDictionaries = self.removeBranch(
             self._configurationDictionaries, path)
@@ -108,8 +110,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
             group = str(path).split(';', 1)[0]
         itemToMark = self.itemFromIndex(tmpindex.parent())
         while(itemToMark is not None):
-            itemToMark.setData(Qt.QVariant(
-                Qt.QFont("Arial", 10, Qt.QFont.Bold)), Qt.Qt.FontRole)
+            itemToMark.setData(
+                Qt.QFont("Arial", 10, Qt.QFont.Bold), Qt.Qt.FontRole)
             itemToMark = self.itemFromIndex(itemToMark.index().parent())
 
         self.markedItems.append(self._toDeleteIndex.parent())
@@ -138,7 +140,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                 key = val[0]
             dict[key] = self.removeBranch(dict[key], path)
             if self._delete == True:
-                if not dict.has_key('__orderedConfigNames__'):
+                if '__orderedConfigNames__' not in dict:
                     return dict
                 dict['__orderedConfigNames__'] = self.removeBranch(
                     dict['__orderedConfigNames__'], path)
@@ -150,7 +152,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                     return dict
                 dict.remove(val[0])
                 return dict
-            if not dict.has_key('__orderedConfigNames__'):
+            if '__orderedConfigNames__' not in dict:
                 self._delete = True
             dict.pop(val[0])
             return dict
@@ -165,7 +167,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         :param index: (QModelIndex) index of the model
         '''
         changedItem = self.itemFromIndex(index)
-        path = Qt.from_qvariant(changedItem.data(Qt.Qt.UserRole), str)
+        path = changedItem.data(Qt.Qt.UserRole)
         self._configurationDictionaries = self.changeTreeValue(
             self._configurationDictionaries, path, value)
         try:
@@ -177,14 +179,14 @@ class QConfigEditorModel(Qt.QStandardItemModel):
 
         self.itemFromIndex(index.sibling(index.row(), 1)
                            ).setText(str(type(eval(value))))
-        changedItem.setData(Qt.QVariant(
-            'Value has been changed. Old value: ' + str(changedItem.text())),
+        changedItem.setData(
+            'Value has been changed. Old value: ' + str(changedItem.text()),
             Qt.Qt.ToolTipRole)
-        itemToMark.setData(Qt.QVariant(Qt.QIcon.fromTheme('emblem-important')),
+        itemToMark.setData(Qt.QIcon.fromTheme('emblem-important'),
                            Qt.Qt.DecorationRole)
         while(itemToMark is not None):
-            itemToMark.setData(Qt.QVariant(
-                Qt.QFont("Arial", 10, Qt.QFont.Bold)), Qt.Qt.FontRole)
+            itemToMark.setData(
+                Qt.QFont("Arial", 10, Qt.QFont.Bold), Qt.Qt.FontRole)
             itemToMark = self.itemFromIndex(itemToMark.index().parent())
         self.saveSettings(group)
 
@@ -232,7 +234,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         configdict = self.getTaurusConfigFromSettings()
         if configdict is not None:
             mainConfig[None] = configdict
-            item.setData(Qt.QVariant('None'), Qt.Qt.UserRole)
+            item.setData('None', Qt.Qt.UserRole)
             self.fillTaurusConfig(item, configdict)
         self._settings.beginGroup("Perspectives")
         self.perspectives = self._settings.childGroups()
@@ -240,7 +242,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
             item = Qt.QStandardItem(name)
             item.setEditable(False)
             # item.setSelectable(False)
-            path = Qt.QVariant("Perspectives/" + name)
+            path = "Perspectives/" + name
             item.setData(path, Qt.Qt.UserRole)
             root.appendRow(item)
             self._settings.beginGroup(name)
@@ -272,8 +274,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                 child.setEditable(False)
                 item.appendRow(child)
 
-                txt = Qt.from_qvariant(item.data(Qt.Qt.UserRole), str)
-                path = Qt.QVariant(txt + ";__itemConfigurations__;" + k)
+                txt = item.data(Qt.Qt.UserRole)
+                path = txt + ";__itemConfigurations__;" + k
                 child.setData(path, Qt.Qt.UserRole)
                 # recursive call to fill all nodes
                 self.fillTaurusConfig(child, value)
@@ -286,8 +288,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
 
                 item.appendRow([child, typeV, valueV])
 
-                txt = Qt.from_qvariant(item.data(Qt.Qt.UserRole), str)
-                path = Qt.QVariant(txt + ";__itemConfigurations__;" + k)
+                txt = item.data(Qt.Qt.UserRole)
+                path = txt + ";__itemConfigurations__;" + k
                 child.setEditable(False)
                 typeV.setEditable(False)
 
@@ -312,8 +314,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                 if BaseConfigurableClass.isTaurusConfig(value):
                     child.setEditable(False)
                     item.appendRow(child)
-                    txt = Qt.from_qvariant(item.data(Qt.Qt.UserRole), str)
-                    path = Qt.QVariant(txt + ";" + k)
+                    txt = item.data(Qt.Qt.UserRole)
+                    path = txt + ";" + k
                     child.setData(path, Qt.Qt.UserRole)
                     # recursive call to fill all nodes
                     self.fillTaurusConfig(child, value)
@@ -323,8 +325,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
                     typeV.setForeground(Qt.QBrush(Qt.QColor('gray')))
                     child.setForeground(Qt.QBrush(Qt.QColor('gray')))
                     item.appendRow([child, typeV, valueV])
-                    txt = Qt.from_qvariant(item.data(Qt.Qt.UserRole), str)
-                    path = Qt.QVariant(txt + ";" + k)
+                    txt = item.data(Qt.Qt.UserRole)
+                    path = txt + ";" + k
 
                     child.setData(path, Qt.Qt.UserRole)
                     child.setEditable(False)
@@ -342,11 +344,11 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         :returns (dict)
         '''
         result = None
-        qstate = Qt.from_qvariant(self._settings.value(key), 'toByteArray')
-        if qstate is not None and not qstate.isNull():
+        qstate = self._settings.value(key)
+        if qstate is not None:
             try:
                 result = pickle.loads(qstate.data())
-            except Exception, e:
+            except Exception as e:
                 msg = 'problems loading TaurusConfig: \n%s' % repr(e)
                 Qt.QMessageBox.critical(None, 'Error loading settings', msg)
         return result
@@ -363,6 +365,8 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         '''
         if self.markedItems == []:
             return
+        self._settings.sync()
+
         shutil.copyfile(self._temporaryFile, self.originalFile)
         self.clearChanges()
         # self.reloadFile()
@@ -377,8 +381,10 @@ class QConfigEditorModel(Qt.QStandardItemModel):
             self._settings.beginGroup(group)
 
         # store the config dict
-        self._settings.setValue("TaurusConfig", Qt.QVariant(
-            Qt.QByteArray(pickle.dumps(self._configurationDictionaries[group]))))
+        self._settings.setValue(
+            "TaurusConfig",
+            Qt.QByteArray(pickle.dumps(self._configurationDictionaries[group]))
+        )
         if group is not None:
             self._settings.endGroup()
         #self.info('MainWindow settings saved in "%s"'%self._settings.fileName())
@@ -390,7 +396,7 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         '''
         if self.markedItems == []:
             return
-        shutil.copyfile(self.originalFile, self._temporaryFile)
+
         self.reloadFile()
 
     def clearChanges(self):
@@ -400,9 +406,9 @@ class QConfigEditorModel(Qt.QStandardItemModel):
         for index in self.markedItems:
             itemToMark = self.itemFromIndex(index)
             while(itemToMark is not None):
-                itemToMark.setData(Qt.QVariant(
-                    Qt.QFont("Arial", 10, Qt.QFont.Normal)), Qt.Qt.FontRole)
-                itemToMark.setData(Qt.QVariant(), Qt.Qt.DecorationRole)
+                itemToMark.setData(Qt.QFont("Arial", 10, Qt.QFont.Normal),
+                                   Qt.Qt.FontRole)
+                itemToMark.setData(None, Qt.Qt.DecorationRole)
                 itemToMark = self.itemFromIndex(itemToMark.index().parent())
 
 
@@ -434,7 +440,7 @@ class QConfigEditor(TaurusWidget):
         '''Reimplemented from :meth:`QWidget.contextMenuEvent`'''
 
         self.tree._toDeleteIndex = self.treeview.selectedIndexes()[0]
-        text = Qt.from_qvariant(self.tree._toDeleteIndex.data(), str)
+        text = self.tree._toDeleteIndex.data()
         if self.tree._toDeleteIndex.column() in [1, 2] or text in ['LAST', '[custom]'] or text in self.tree.perspectives:
             return
         menu = Qt.QMenu()
@@ -465,7 +471,7 @@ class QConfigEditor(TaurusWidget):
                 path = Qt.QDir.homePath()
             else:
                 path = self.tree.originalFile
-            iniFileName = Qt.QFileDialog.getOpenFileName(
+            iniFileName, _ = compat.getOpenFileName(
                 self, 'Select a settings file', path, 'Ini Files (*.ini)')
             if not iniFileName:
                 return
@@ -488,26 +494,23 @@ class QConfigEditor(TaurusWidget):
         self.tree.restoreOriginal()
 
 
-def main():
+@click.command('config')
+@click.argument('config_file', type=click.Path(exists=True), required=False)
+def config_cmd(config_file):
+    """Open the taurus configuration editor"""
     from taurus.qt.qtgui.application import TaurusApplication
-    from taurus.core.util import argparse
-    from taurus import Release
     import sys
 
-    parser = argparse.get_taurus_parser()
-    parser.set_usage("%prog [options] [INIFILENAME]")
-    parser.set_description("taurus configuration editor")
-    app = TaurusApplication(cmd_line_parser=parser,
-                            app_name="taurusconfigeditor",
-                            app_version=Release.version)
-    args = app.get_command_line_args()
+    app = TaurusApplication(cmd_line_parser=None)
+
     w = QConfigEditor()
     w.setMinimumSize(500, 500)
     w.show()
-    if len(args) == 1:
-        w.loadFile(args[0])
+    if config_file:
+        w.loadFile(config_file)
 
     sys.exit(app.exec_())
 
+
 if __name__ == '__main__':
-    main()
+    config_cmd()

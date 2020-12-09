@@ -25,16 +25,21 @@
 
 """This module provides an arrow based widget."""
 
-__all__ = ["QWheelEdit"]
-
-__docformat__ = 'restructuredtext'
+from builtins import map
+from builtins import range
 
 import os
 import math
 import numpy
 
 from taurus.external.qt import Qt
-from taurus.external.pint import Q_
+from taurus.core.units import Q_
+
+
+__all__ = ["QWheelEdit"]
+
+__docformat__ = 'restructuredtext'
+
 
 class _ArrowButton(Qt.QPushButton):
     """Private class to be used by QWheelEdit for an arrow button"""
@@ -89,14 +94,14 @@ class _DownArrowButton(_ArrowButton):
         pm = Qt.QPixmapCache.find(_DownArrowButton.ArrowPixmapKey)
         if pm is None:
             pm = Qt.QPixmap(self.ArrowPixmapName)
-            pm = pm.transformed(Qt.QMatrix().rotate(180))
+            pm = pm.transformed(Qt.QTransform().rotate(180))
             Qt.QPixmapCache.insert(_DownArrowButton.ArrowPixmapKey, pm)
         return pm
 
 class _DigitLabel(Qt.QLabel):
     """A private single digit label to be used by QWheelEdit widget"""
 
-    PixmapKeys = map(str, xrange(10)) + ['blank', 'minus', 'point']
+    PixmapKeys = list(map(str, range(10))) + ['blank', 'minus', 'point']
 
     def __init__(self, lbl, parent=None):
         Qt.QLabel.__init__(self, parent)
@@ -169,15 +174,6 @@ class _DigitLabel(Qt.QLabel):
     skin = Qt.pyqtProperty('QString', getSkin, setSkin, resetSkin)
 
 
-class _NumericEditor(Qt.QLineEdit):
-    """A private editor to be used by QWheelEdit widget"""
-
-    def __init__(self, parent=None):
-        Qt.QLineEdit.__init__(self, parent)
-        self.setValidator(Qt.QDoubleValidator(self))
-        self.setFrame(False)
-
-
 class QWheelEdit(Qt.QFrame):
     """A widget designed to handle numeric scalar values. It allows interaction
     based on single digit as well as normal value edition."""
@@ -207,12 +203,20 @@ class QWheelEdit(Qt.QFrame):
         self._maxValue = numpy.finfo('d').max  # inf
         self._editor = None
         self._editing = False
+        self._hideEditWidget = True
         self._showArrowButtons = True
+        self._forwardReturn = False
+        self._validator = Qt.QDoubleValidator(self)
+        self._validator.setNotation(self._validator.StandardNotation)
         self._setDigits(QWheelEdit.DefaultIntDigitCount,
                         QWheelEdit.DefaultDecDigitCount)
         self._setValue(0)
 
         self._build()
+        self.setDigitCountAction = Qt.QAction("Change digits", self)
+        self.setDigitCountAction.triggered.connect(self._onSetDigitCount)
+        self.addAction(self.setDigitCountAction)
+        self.setContextMenuPolicy(Qt.Qt.ActionsContextMenu)
 
     def _getMinPossibleValue(self):
         """_getMinPossibleValue(self) -> None
@@ -223,7 +227,7 @@ class QWheelEdit(Qt.QFrame):
         @return (float) the minimum possible value
         """
         decmax = 0
-        for i in xrange(self.getDecDigitCount()):
+        for i in range(self.getDecDigitCount()):
             decmax += 9 * math.pow(10, -(i + 1))
         return -math.pow(10.0, self.getIntDigitCount()) + 1 - decmax
 
@@ -236,7 +240,7 @@ class QWheelEdit(Qt.QFrame):
         @return (float) the maximum possible value
         """
         decmax = 0
-        for i in xrange(self.getDecDigitCount()):
+        for i in range(self.getDecDigitCount()):
             decmax += 9 * math.pow(10, -(i + 1))
         return math.pow(10.0, self.getIntDigitCount()) - 1 + decmax
 
@@ -247,7 +251,7 @@ class QWheelEdit(Qt.QFrame):
 
         l = self.layout()
         l.setSpacing(0)
-        l.setMargin(0)
+        l.setContentsMargins(0, 0, 0, 0)
 
         id = self.getIntDigitCount()
         dd = self.getDecDigitCount()
@@ -270,7 +274,7 @@ class QWheelEdit(Qt.QFrame):
         l.setColumnMinimumWidth(0, _ArrowButton.ButtonSize)
         l.setColumnStretch(0, 1)
 
-        for i in xrange(id):
+        for i in range(id):
             col = i + 1
             d = _DigitLabel('0')
             up = _UpArrowButton(id - i - 1)
@@ -293,7 +297,7 @@ class QWheelEdit(Qt.QFrame):
             self._digitLabels.append(dotLabel)
             l.addWidget(dotLabel, 1, id + 1)
 
-        for i in xrange(id, digits):
+        for i in range(id, digits):
             col = i + 1
             if showDot:
                 col += 1
@@ -314,17 +318,28 @@ class QWheelEdit(Qt.QFrame):
         self._upButtons.buttonClicked.connect(self.buttonPressed)
         self._downButtons.buttonClicked.connect(self.buttonPressed)
 
-        ed = _NumericEditor(self)
+        ed = Qt.QLineEdit(self)
+        ed.setFrame(False)
         ed.returnPressed.connect(self.editingFinished)
-        ed.editingFinished.connect(ed.hide)
+        ed.editingFinished.connect(self.hideEditWidget)
         rect = Qt.QRect(l.cellRect(1, 0).topLeft(),
                         l.cellRect(1, l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
         ed.setAlignment(Qt.Qt.AlignRight)
-        ed.validator().setRange(self.getMinValue(), self.getMaxValue(),
-                                self.getDecDigitCount())
+        ed.setValidator(self._validator)
         ed.setVisible(False)
         self._editor = ed
+
+        self._updateValidator()
+
+        # set the minimum height for the widget
+        # (otherwise the hints seem to be ignored by the layouts)
+        min_height = max(ed.minimumSizeHint().height(),
+                         signLabel.minimumSizeHint().height())
+        if self.getShowArrowButtons():
+            min_height += 2 * _ArrowButton.ButtonSize
+        self.setMinimumHeight(min_height)
+
         self.clearWarning()
 
     def _clear(self):
@@ -355,17 +370,6 @@ class QWheelEdit(Qt.QFrame):
         self._editor.destroy()
         self._editor = None
 
-    def _setMinMax(self, min, max):
-        """_setMinMax(self, min, max) -> None
-
-        Sets the minimum and maximum values for this widget
-
-        @param[in] min(float) minimum value
-        @param[in] max(float) maximum value
-        """
-        self._minValue = min
-        self._maxValue = max
-
     def _setDigits(self, int_nb=None, dec_nb=None):
         """_setDigits(self, int_nb=None, dec_nb=None) -> None
 
@@ -393,8 +397,7 @@ class QWheelEdit(Qt.QFrame):
         if self._decDigitCount > 0:
             total_chars += 1  # for dot
         self._valueFormat = '%%+0%d.%df' % (total_chars, self._decDigitCount)
-        self._setMinMax(self._getMinPossibleValue(),
-                        self._getMaxPossibleValue())
+        self._updateValidator()
         # we call setValue to update the self._value_str
         self._setValue(self.getValue())
 
@@ -442,7 +445,7 @@ class QWheelEdit(Qt.QFrame):
         if len(v_str) > len(self._digitLabels):
             # do auto adjust
             if '.' in v_str:
-                dc = map(len, v_str.split('.'))
+                dc = list(map(len, v_str.split('.')))
             else:
                 dc = len(v_str), 0
             self._setDigits(*dc)
@@ -484,13 +487,29 @@ class QWheelEdit(Qt.QFrame):
         Sets value of this widget. If the given value exceeds any limit, the
         value is NOT set.
         """
+        if v is None:
+            return
         if self._roundFunc:
             v = self._roundFunc(v)
-        if v > self._maxValue or v < self._minValue:
+        if v > self._validator.top() or v < self._validator.bottom():
+            Qt.QMessageBox.warning(
+                self,
+                "Invalid Value",
+                "'{}' is out of the allowed range ({}, {})".format(
+                    v,
+                    self._validator.bottom(),
+                    self._validator.top(),
+                )
+            )
             return
         self._previous_value = self._value
         self._value = v
-        self._buildValueStr(v)
+
+        str_value = self._buildValueStr(v)
+        ed = self.getEditWidget()
+        if ed is not None:
+            ed.setText(str_value)
+
 
     def setWarning(self, msg):
         """setWarning(self, msg) -> None
@@ -520,8 +539,33 @@ class QWheelEdit(Qt.QFrame):
 
         @param[in] b (_ArrowButton) the button which was pressed
         """
-        self._setValue(self.getValue() + b._inc)
-        self._updateValue()
+        if self._editing:
+            self.hideEditWidget()
+        else:
+            self._setValue(self.getValue() + b._inc)
+            self._updateValue()
+
+    def _onSetDigitCount(self):
+        text, ok = Qt.QInputDialog.getText(
+            self,
+            "Change digits",
+            "Enter digits as <int_nb>.<dec_nb>",
+            text="{:d}.{:d}".format(
+                self.getIntDigitCount(),
+                self.getDecDigitCount()
+            )
+        )
+        if ok:
+            try:
+                dc = list(map(int, text.split('.')))
+                self.setDigitCount(*dc)
+            except Exception as e:
+                Qt.QMessageBox.warning(
+                    self,
+                    "Invalid digit count specification",
+                    'Invalid specification: "{}"\nReason:{}'.format(text, e)
+                )
+                self._onSetDigitCount()
 
     def setDigitCount(self, int_nb, dec_nb):
         """setDigitCount(self, int_nb, dec_nb) -> None
@@ -651,17 +695,19 @@ class QWheelEdit(Qt.QFrame):
         @param[in] v (float) the new minimum allowed value
         """
         self._minValue = v
-        w = self.getEditWidget()
-        if not w is None:
-            w.validator().setRange(self._minValue, self._maxValue, self._decDigitCount)
+        self._updateValidator()
+
+    def _updateValidator(self):
+        min_ = max(self._minValue, self._getMinPossibleValue())
+        max_ = min(self._maxValue, self._getMaxPossibleValue())
+        self._validator.setRange(min_, max_, self._decDigitCount)
 
     def resetMinValue(self):
         """resetMinValue(self) -> None
 
-        Resets the minimum allowed value to the minimum possible according to
-        the current total number of digits
+        Resets the minimum allowed value to -inf
         """
-        self.setMinValue(self._getMinPossibleValue())
+        self.setMinValue(numpy.finfo('d').min)
 
     def getMaxValue(self):
         """getMaxValue(self) -> float
@@ -680,17 +726,14 @@ class QWheelEdit(Qt.QFrame):
         @param[in] v (float) the new maximum allowed value
         """
         self._maxValue = v
-        w = self.getEditWidget()
-        if not w is None:
-            w.validator().setRange(self._minValue, self._maxValue, self._decDigitCount)
+        self._updateValidator()
 
     def resetMaxValue(self):
         """resetMaxValue(self) -> None
 
-        Resets the maximum allowed value to the maximum possible according to
-        the current total number of digits
+        Resets the maximum allowed value to +inf
         """
-        self.setMaxValue(self._getMaxPossibleValue())
+        self.setMaxValue(numpy.finfo('d').max)
 
     def getAutoRepeat(self):
         return self._upButtons.buttons()[0].autoRepeat()
@@ -751,11 +794,11 @@ class QWheelEdit(Qt.QFrame):
                                                                l.columnCount() - 1).bottomRight())
         ed.setGeometry(rect)
         ed.setAlignment(Qt.Qt.AlignRight)
-        ed.setMaxLength(self.getDigitCount() + 2)
         ed.setText(self.getValueStr())
         ed.selectAll()
         ed.setFocus()
         ed.setVisible(True)
+        self._editing = True
 
     def hideEditWidget(self):
         """hideEditWidget(self) -> None
@@ -764,11 +807,12 @@ class QWheelEdit(Qt.QFrame):
         """
         ed = self.getEditWidget()
         ed.setVisible(False)
+        self._editing = False
         self.setFocus()
 
     def wheelEvent(self, evt):
-        numDegrees = evt.delta() / 8
-        numSteps = numDegrees / 15
+        numDegrees = evt.delta() // 8
+        numSteps = numDegrees // 15
         #w = Qt.QApplication.focusWidget()
         w = self.focusWidget()
         if not isinstance(w, _DigitLabel):
@@ -789,7 +833,6 @@ class QWheelEdit(Qt.QFrame):
         widget when this happens
         """
         self.showEditWidget()
-        self._editing = True
 
     def keyPressEvent(self, key_event):
         """keyPressEvent(self, key_event) -> None
@@ -801,20 +844,16 @@ class QWheelEdit(Qt.QFrame):
         if k == Qt.Qt.Key_F2:
             if self._editing:
                 self.hideEditWidget()
-                self._editing = False
             else:
                 self.showEditWidget()
-                self._editing = True
             return
         elif k == Qt.Qt.Key_Escape:
             if self._editing:
                 self.hideEditWidget()
-                self._editing = False
                 return
         elif k in (Qt.Qt.Key_Return, Qt.Qt.Key_Enter):
             if self._editing:
                 self.hideEditWidget()
-                self._editing = False
             else:
                 self.returnPressed.emit()
 
@@ -830,6 +869,63 @@ class QWheelEdit(Qt.QFrame):
 
     def resetShowArrowButtons(self):
         self.setShowArrowButtons(True)
+
+    def getHideEditWidget(self):
+        """getHideEditWidget(self) -> bool
+
+        Gets the info if edition widget should be hidden when 'focusOut' event
+        occurs.
+
+        @return (bool)
+        """
+        return self._hideEditWidget
+
+    def setHideEditWidget(self, focus_out=True):
+        """setFocusOut(self, focus_out=True) -> None
+
+        Sets if edition widget should be hidden when 'focusOut' event occurs.
+        If set to False, edition widget is hidden only when 'F2', 'Esc',
+        'Enter' and arrow button are pressed. Default set to True.
+
+        @param[in] focus_out (bool) whether or not to hide edition widget
+        after 'focusOut' event.
+        """
+        if focus_out and not self._hideEditWidget:
+            ed = self.getEditWidget()
+            ed.editingFinished.connect(self.hideEditWidget)
+            self._hideEditWidget = True
+        elif not focus_out and self._hideEditWidget:
+            ed = self.getEditWidget()
+            ed.editingFinished.disconnect(self.hideEditWidget)
+            self._hideEditWidget = False
+
+    def isReturnForwarded(self):
+        """isReturnForwarded(self) -> bool
+
+        Gets the info if returnPressed is forwarded.
+
+        @return (bool)
+        """
+        return self._forwardReturn
+
+    def setReturnForwarded(self, forward_rtn=False):
+        """setReturnForwarded(self, forward_rtn=False) -> None
+
+        Sets forwarding of returnPressed. If set to True, returnPressed from
+        edition widget emits returnPressed of 'QWheelEdit' widget.
+
+        @param[in] forward_rtn (bool) whether or not to forward returnPressed
+        signal
+        """
+        if forward_rtn and not self._forwardReturn:
+            ed = self.getEditWidget()
+            ed.returnPressed.connect(self.returnPressed)
+            self._forwardReturn = True
+
+        elif not forward_rtn and self._forwardReturn:
+            ed = self.getEditWidget()
+            ed.returnPressed.disconnect(self.returnPressed)
+            self._forwardReturn = False
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
     # QT properties
@@ -864,6 +960,7 @@ class QWheelEdit(Qt.QFrame):
 
 
 def main():
+    import taurus.qt.qtgui.icon  # otherwise the arrows don't show in the demo
     global arrowWidget
 
     def resetAll():
@@ -878,6 +975,7 @@ def main():
 
     def setNone():
         arrowWidget.setValue(None)
+
     a = Qt.QApplication([])
     panel = Qt.QWidget()
     l = Qt.QFormLayout(panel)
@@ -889,6 +987,8 @@ def main():
     resetbutton.setDefault(True)
     nanbutton = Qt.QPushButton("Set NAN", panel)
     nonebutton = Qt.QPushButton("Set None", panel)
+    hideEditCB = Qt.QCheckBox()
+    hideEditCB.setChecked(True)
     showarrowbutton = Qt.QCheckBox("", panel)
 
     l.addRow("Value", arrowWidget)
@@ -897,6 +997,7 @@ def main():
     l.addRow("Minimum value:", minv)
     l.addRow("Maximum value:", maxv)
     l.addRow("Show arrows:", showarrowbutton)
+    l.addRow("hideEditCB", hideEditCB)
     l.addRow(button_layout)
     button_layout.addWidget(nanbutton)
     button_layout.addWidget(nonebutton)
@@ -914,6 +1015,7 @@ def main():
     showarrowbutton.stateChanged.connect(arrowWidget.setShowArrowButtons)
     nanbutton.clicked.connect(setNAN)
     nonebutton.clicked.connect(setNone)
+    hideEditCB.toggled.connect(arrowWidget.setHideEditWidget)
     resetbutton.clicked.connect(resetAll)
     panel.setVisible(True)
     a.exec_()

@@ -23,8 +23,6 @@
 ##
 #############################################################################
 
-__docformat__ = "restructuredtext"
-
 """
 Release data for the taurus project. It contains the following members:
 
@@ -40,6 +38,7 @@ Release data for the taurus project. It contains the following members:
 """
 
 # -*- coding: utf-8 -*-
+__docformat__ = "restructuredtext"
 
 
 # Name of the package for release purposes.  This is the name which labels
@@ -48,7 +47,7 @@ name = 'taurus'
 
 # we use semantic versioning (http://semver.org/) and we update it using the
 # bumpversion script (https://github.com/peritus/bumpversion)
-version = '4.3.0-alpha'
+version = '4.7.1-alpha'
 
 # generate version_info and revision (**deprecated** since version 4.0.2-dev).
 if '-' in version:

@@ -24,16 +24,25 @@
 #############################################################################
 
 """This module provides an Input panel (usually used inside a TaurusDialog)"""
+from __future__ import print_function
+
+from builtins import str
+from builtins import object
+
+try:
+    from collections.abc import Sequence, Mapping
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence, Mapping
+import numpy
+
+from future.utils import string_types
+
+from taurus.external.qt import Qt
+from taurus.qt.qtgui.util.ui import UILoadable
 
 __all__ = ["TaurusInputPanel"]
 
 __docformat__ = 'restructuredtext'
-
-import collections
-import numpy
-
-from taurus.external.qt import Qt
-from taurus.qt.qtgui.util.ui import UILoadable
 
 
 @UILoadable(with_ui='_ui')
@@ -105,7 +114,7 @@ class TaurusInputPanel(Qt.QWidget):
         layout = Qt.QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         panel.setLayout(layout)
-        if isinstance(input_data, collections.Mapping):
+        if isinstance(input_data, Mapping):
             single_panel, getter = self.create_single_input_panel(input_data)
             layout.addWidget(single_panel)
             self.value = getter
@@ -120,8 +129,8 @@ class TaurusInputPanel(Qt.QWidget):
         self.setText(input_data['prompt'])
 
         data_type = input_data.get('data_type', 'String')
-        is_seq = not isinstance(data_type, (str, unicode)) and \
-            isinstance(data_type, collections.Sequence)
+        is_seq = not isinstance(data_type, string_types) and \
+            isinstance(data_type, Sequence)
         if is_seq:
             panel, getter = self.create_selection_panel(input_data)
         else:
@@ -160,8 +169,8 @@ class TaurusInputPanel(Qt.QWidget):
         self._ui.inputWidget = combobox = Qt.QComboBox()
         items = input_data['data_type']
         for item in items:
-            is_seq = not isinstance(item, (str, unicode)) and \
-                isinstance(item, collections.Sequence)
+            is_seq = not isinstance(item, string_types) and \
+                isinstance(item, Sequence)
             if is_seq:
                 text, userData = item
             else:
@@ -172,7 +181,7 @@ class TaurusInputPanel(Qt.QWidget):
 
     def _get_combobox_value(self):
         combo = self._ui.inputWidget
-        return Qt.from_qvariant(combo.itemData(combo.currentIndex()))
+        return combo.itemData(combo.currentIndex())
 
     def _create_radiobutton_panel(self, input_data):
         panel = self._create_group_panel(input_data)
@@ -182,8 +191,8 @@ class TaurusInputPanel(Qt.QWidget):
         self._ui.inputWidget = buttongroup = Qt.QButtonGroup()
         buttongroup.setExclusive(True)
         for item in items:
-            is_seq = not isinstance(item, (str, unicode)) and \
-                isinstance(item, collections.Sequence)
+            is_seq = not isinstance(item, string_types) and \
+                isinstance(item, Sequence)
             if is_seq:
                 text, userData = item
             else:
@@ -209,8 +218,8 @@ class TaurusInputPanel(Qt.QWidget):
         default_value = input_data.get('default_value')
         if default_value is None:
             default_value = ()
-        dft_is_seq = not isinstance(default_value, (str, unicode)) and \
-            isinstance(default_value, collections.Sequence)
+        dft_is_seq = not isinstance(default_value, string_types) and \
+            isinstance(default_value, Sequence)
         if not dft_is_seq:
             default_value = default_value,
 
@@ -218,14 +227,14 @@ class TaurusInputPanel(Qt.QWidget):
         listwidget.setSelectionMode(Qt.QAbstractItemView.MultiSelection)
 
         for item in items:
-            is_seq = not isinstance(item, (str, unicode)) and \
-                isinstance(item, collections.Sequence)
+            is_seq = not isinstance(item, string_types) and \
+                isinstance(item, Sequence)
             if is_seq:
                 text, userData = item
             else:
                 text, userData = str(item), item
             item_widget = Qt.QListWidgetItem(text, listwidget)
-            item_widget.setData(Qt.Qt.UserRole, Qt.to_qvariant(userData))
+            item_widget.setData(Qt.Qt.UserRole, userData)
             if userData in default_value:
                 item_widget.setSelected(True)
         layout.addWidget(listwidget)
@@ -233,7 +242,7 @@ class TaurusInputPanel(Qt.QWidget):
 
     def _get_multi_selection_value(self):
         listwidget = self._ui.inputWidget
-        return [Qt.from_qvariant(item.data(Qt.Qt.UserRole)) for item in listwidget.selectedItems()]
+        return [item.data(Qt.Qt.UserRole) for item in listwidget.selectedItems()]
 
     def _create_group_panel(self, input_data):
         title = input_data.get('key', '')
@@ -402,7 +411,7 @@ def main():
     class Listener(object):
 
         def on_accept(self):
-            print "user selected", self.panel.value()
+            print("user selected", self.panel.value())
 
     d = dict(prompt="What's your favourite car brand?",
              data_type=["Mazda", "Skoda", "Citroen",

@@ -24,7 +24,9 @@
 #############################################################################
 
 """This package provides a set of utilities (e.g. logging) to taurus qtcore"""
+from __future__ import absolute_import
+
+from .tauruslog import *
+from .signal import baseSignal
 
 __docformat__ = 'restructuredtext'
-
-from tauruslog import *

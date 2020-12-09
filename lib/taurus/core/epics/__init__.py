@@ -54,11 +54,11 @@ Epics attributes (should) work just as other Taurus attributes and can be
 referred by their model name wherever a Taurus Attribute model is expected. For
 example, you can launch a `TaurusForm` with an epics attribute::
 
-    $> taurusform ca:my:example
+    $> taurus form ca:my:example
 
 Similarly, you can combine epics attributes with attributes from other schemes::
 
-    $> taurusform 'ca:my:example' 'tango:sys/tg_test/1/float_scalar'\
+    $> taurus form 'ca:my:example' 'tango:sys/tg_test/1/float_scalar'\
        'eval:{ca:my:example}*{tango:sys/tg_test/1/float_scalar}'
 
 Currently, the taurus epics scheme just supports epics PVs, implementing them as
@@ -66,5 +66,5 @@ taurus attributes. Other model types such as the Authority, and Device classes
 are just convenience dummy objects in the epics scheme at this point.
 Epics records may eventually be mapped as Devices.
 """
-
-from epicsfactory import *
+from __future__ import absolute_import
+from .epicsfactory import *

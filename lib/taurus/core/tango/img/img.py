@@ -25,6 +25,12 @@
 
 """The img submodule. It contains specific device implementation for CCDs and
 2D detectors"""
+from future.utils import string_types
+
+from taurus.core.taurusbasetypes import TaurusEventType
+from taurus.core.tango import TangoDevice
+from taurus.core.util.containers import CaselessDict, CaselessList
+from threading import Lock
 
 __all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
            'CCDPVCAM', 'ImgBeamAnalyzer', 'Falcon', 'LimaCCDs']
@@ -32,13 +38,8 @@ __all__ = ['ImageDevice', 'ImageCounterDevice', 'PyImageViewer', 'ImgGrabber',
 __docformat__ = 'restructuredtext'
 
 
-from taurus.core.taurusbasetypes import TaurusEventType
-from taurus.core.tango import TangoDevice
-from taurus.core.util.containers import CaselessDict, CaselessList
-from threading import RLock
-
-
 class ImageDevice(TangoDevice):
+
     """A class encapsulating a generic image device"""
 
     def __init__(self, name, image_name='image', **kw):
@@ -65,12 +66,15 @@ class ImageCounterDevice(ImageDevice):
     """A class encapsulating a generic image device that has an image counter
     attribute"""
 
-    def __init__(self, name, image_name='image', image_ct='imagecounter', **kw):
+    def __init__(self, name, image_name='image', image_ct='imagecounter',
+                 **kw):
+        self.lock = Lock()
         self._image_data = CaselessDict()
         self._image_id_attr_name = image_ct
         self.call__init__(ImageDevice, name, image_name, **kw)
-        self._busy = False
+        self.image_attr = self.getAttribute(image_name)
         self._image_id_attr = self.getAttribute(self._image_id_attr_name)
+        self.discard_event = False
         self._image_id_attr.addListener(self)
 
     def _setDirty(self, names=None):
@@ -84,7 +88,7 @@ class ImageCounterDevice(ImageDevice):
         dirty = []
         for name in names:
             d = self._image_data.get(name)
-            if d is None or d[0] == True:
+            if d is None or d[0] is True:
                 dirty.append(name)
         return names
 
@@ -94,21 +98,29 @@ class ImageCounterDevice(ImageDevice):
     def eventReceived(self, evt_src, evt_type, evt_value):
         if evt_src == self._image_id_attr:
             if evt_type == TaurusEventType.Change:
+
                 # discard events if there is one being processed
-                if not self._busy:
-                    self._busy = True
-                    self.debug("Processing image %d" % evt_value.rvalue)
-                    # read the related Image attributes
-                    # (asap and in one action)
-                    images = self.getImageData()
-                    self._setDirty()
-                    self.fireEvent(evt_type, evt_value)
-                    # maintain this fireEvent for backwards compatibility
-                    # with Qub widget
-                    self._emitImageEvents(evt_type, images)
-                    self._busy = False
-                else:
-                    self.debug("Discard image %d" % evt_value.value)
+                if self.lock.locked():
+                    self.discard_event = True
+                    self.debug("Discard event %d" % evt_value.value)
+                    return
+
+                with self.lock:
+                    while True:
+                        self.debug("Processing image %d" % evt_value.rvalue)
+                        # read the related Image attributes
+                        # (asap and in one action)
+                        images = self.getImageData()
+                        self._setDirty()
+                        self.fireEvent(evt_type, evt_value)
+                        # maintain this fireEvent for backwards compatibility
+                        # with Qub widget
+                        self._emitImageEvents(evt_type, images)
+
+                        if self.discard_event:
+                            self.discard_event = False
+                        else:
+                            break
         else:
             ImageDevice.eventReceived(self, evt_src, evt_type, evt_value)
 
@@ -127,7 +139,7 @@ class ImageCounterDevice(ImageDevice):
     def getImageData(self, names=None):
         if names is None:
             names = self.getImageAttrNames()
-        elif isinstance(names, str):
+        elif isinstance(names, string_types):
             names = (names,)
 
         fetch = self._getDirty(names)
@@ -139,6 +151,7 @@ class ImageCounterDevice(ImageDevice):
         except:
             pass
         return self._image_data
+
 
 PyImageViewer = ImageCounterDevice
 ImgGrabber = ImageCounterDevice
@@ -164,9 +177,9 @@ class Falcon(ImageCounterDevice):
     def getImageData(self, names=None):
         data = ImageCounterDevice.getImageData(self, names=names)
         if self._color:
-            for k, v in data.items():
+            for k, v in list(data.items()):
                 s = v[1].value.shape
-                v[1].value = v[1].value.reshape((s[0], s[1] / 3, 3))
+                v[1].value = v[1].value.reshape((s[0], s[1] // 3, 3))
         return data
 
 
@@ -183,4 +196,3 @@ class LimaCCDs(ImageCounterDevice):
         self.call__init__(ImageCounterDevice, name, image_name, image_ct, **kw)
         self.debug("Prepared to listen image counter (%s) for the %s images"
                    % (self.getImageIDAttrName(), self.getImageAttrNames()))
-

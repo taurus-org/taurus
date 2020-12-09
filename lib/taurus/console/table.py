@@ -24,13 +24,19 @@
 #############################################################################
 
 """ """
+from __future__ import division
+from builtins import map
+from builtins import range
+from builtins import object
+from past.utils import old_div
+from functools import reduce
 
 __all__ = ["Table"]
 
 __docformat__ = "restructuredtext"
 
 
-class Table:
+class Table(object):
 
     DefTermWidth = 80
 
@@ -57,14 +63,14 @@ class Table:
         self.col_head_sep = col_head_sep
         self.border = border
 
-        max_len_fn = lambda x: reduce(max, map(len, x))
+        max_len_fn = lambda x: reduce(max, list(map(len, x)))
 
         self.row_head_str = row_head_str
         self.row_head_fmt = row_head_fmt
         if row_head_str is not None and len(row_head_str) != self.nr_row:
             msg = 'RowHeadStr nr (%d) and RowNr (%d) mistmatch' % \
                   (len(row_head_str), self.nr_row)
-            raise ValueError, msg
+            raise ValueError(msg)
         if row_head_width is None:
             if row_head_str is not None:
                 row_head_width = max_len_fn(row_head_str)
@@ -75,12 +81,12 @@ class Table:
         self.col_head_str = col_head_str
         self.col_head_fmt = col_head_fmt
         if col_head_str is not None and len(col_head_str) != self.nr_col:
-            msg = 'ColHeadStr nr (%d) and ColNr (%d) mistmatch' % \
-                  len(col_head_str), self.nr_col
-            raise ValueError, msg
+            msg = 'ColHeadStr nr (%d) and ColNr (%d) mistmatch' % (
+                  len(col_head_str), self.nr_col)
+            raise ValueError(msg)
         if col_head_width is None:
             if col_head_str is not None:
-                col_head_width = reduce(max, map(max_len_fn, col_head_str))
+                col_head_width = reduce(max, list(map(max_len_fn, col_head_str)))
             else:
                 col_head_width = 10
         self.col_head_width = col_head_width
@@ -106,7 +112,7 @@ class Table:
         width = term_width - chw   # At least one disp column!
         if rhw > 0:
             width -= rhw + lcs
-        disp_cols = width / (chw + lcs) + 1
+        disp_cols = old_div(width, (chw + lcs)) + 1
         tot_width = chw + (disp_cols - 1) * (chw + lcs)
         tot_rows = chl + self.nr_row
         if rhw > 0:
@@ -123,36 +129,36 @@ class Table:
         else:
             row_head = [''] * tot_rows
 
-        for i in xrange(0, self.nr_col, disp_cols):
+        for i in range(0, self.nr_col, disp_cols):
             if i > 0:
-                nr_sep = tot_width / len(self.row_sep)
+                nr_sep = old_div(tot_width, len(self.row_sep))
                 output.append(self.row_sep * nr_sep)
 
             row_end = min(i + disp_cols, self.nr_col)
             line = list(row_head)
-            for j in xrange(i, row_end):
+            for j in range(i, row_end):
                 elem = self.elem_list[j]
                 if chl:
                     col_head = self.col_head_str[j]
                     if j > i:
-                        for k in xrange(tot_rows):
+                        for k in range(tot_rows):
                             line[k] += self.col_sep
                     fmt = self.col_head_fmt
-                    for k in xrange(chl):
+                    for k in range(chl):
                         line[k] += fmt % (chw, col_head[k])
 
-                for k in xrange(self.nr_row):
+                for k in range(self.nr_row):
                     fmt = self.elem_fmt[k]
                     line[chl + k] += fmt % (chw, elem[k])
 
-            max_width = reduce(max, map(len, line))
+            max_width = reduce(max, list(map(len, line)))
             if self.border is not None:
-                nr_border = max_width / len(self.border)
+                nr_border = old_div(max_width, len(self.border))
                 output.append(self.border * nr_border)
             for l in line[:chl]:
                 output.append(l)
             if self.col_head_sep is not None:
-                nr_sep = max_width / len(self.col_head_sep)
+                nr_sep = old_div(max_width, len(self.col_head_sep))
                 output.append(self.col_head_sep * nr_sep)
             for l in line[chl:]:
                 output.append(l)

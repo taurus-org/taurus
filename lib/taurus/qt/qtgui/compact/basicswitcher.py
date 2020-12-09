@@ -26,14 +26,15 @@
 """This module provides some basic usable widgets based on TaurusReadWriteSwitcher
 """
 
+from __future__ import absolute_import
+
+from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
+from taurus.qt.qtgui.input import TaurusValueLineEdit, TaurusValueCheckBox
+from .abstractswitcher import TaurusReadWriteSwitcher
+
 __all__ = ["TaurusLabelEditRW", "TaurusBoolRW"]
 
 __docformat__ = 'restructuredtext'
-
-from taurus.external.qt import Qt
-from taurus.qt.qtgui.display import TaurusLabel, TaurusLed
-from taurus.qt.qtgui.input import TaurusValueLineEdit, TaurusValueCheckBox
-from abstractswitcher import TaurusReadWriteSwitcher
 
 
 class TaurusLabelEditRW(TaurusReadWriteSwitcher):
@@ -58,7 +59,7 @@ def _demo():
     from taurus.qt.qtgui.panel import TaurusForm
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication()
+    app = TaurusApplication(cmd_line_parser=None)
 
     f = TaurusForm()
     f.model = ['sys/tg_test/1/long_scalar', 'sys/tg_test/1/long_scalar',

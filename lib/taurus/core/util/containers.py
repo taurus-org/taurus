@@ -27,6 +27,20 @@
 This module contains a set of useful containers that are not part of the standard
 python distribution.
 """
+from __future__ import print_function
+
+from builtins import range
+from builtins import object
+
+from future.utils import string_types
+
+import copy
+import time
+import weakref
+try:
+    from collections.abc import Sequence
+except ImportError:  # bck-compat py 2.7
+    from collections import Sequence
 
 __all__ = ["CaselessList", "CaselessDict", "CaselessWeakValueDict", "LoopList",
            "CircBuf", "LIFO", "TimedQueue", "self_locked", "ThreadDict",
@@ -34,11 +48,6 @@ __all__ = ["CaselessList", "CaselessDict", "CaselessWeakValueDict", "LoopList",
            "DefaultThreadDict", "getDictAsTree", "ArrayBuffer", ]
 
 __docformat__ = "restructuredtext"
-
-import copy
-import time
-import weakref
-import operator
 
 
 class CaselessList(list):
@@ -58,21 +67,21 @@ class CaselessList(list):
     def __init__(self, inlist=[]):
         list.__init__(self)
         for entry in inlist:
-            if not isinstance(entry, basestring):
+            if not isinstance(entry, string_types):
                 raise TypeError('Members of this object must be strings. '
                                 'You supplied \"%s\" which is \"%s\"' %
                                 (entry, type(entry)))
             self.append(entry)
 
     def __lowerstreq(self, a, b):
-        a = type(a) == str and a or str(a)
-        b = type(b) == str and b or str(b)
+        a = str(a)
+        b = str(b)
         return (a.lower() == b.lower())
 
     def findentry(self, item):
         """A caseless way of checking if an item is in the list or not.
         It returns None or the entry."""
-        if not isinstance(item, basestring):
+        if not isinstance(item, string_types):
             raise TypeError('Members of this object must be strings. '
                             'You supplied \"%s\"' % type(item))
         for entry in self:
@@ -109,7 +118,7 @@ class CaselessList(list):
 
     def append(self, item):
         """Adds an item to the list and checks it's a string."""
-        if not isinstance(item, basestring):
+        if not isinstance(item, string_types):
             raise TypeError('Members of this object must be strings. '
                             'You supplied \"%s\"' % type(item))
         list.append(self, item)
@@ -121,7 +130,7 @@ class CaselessList(list):
             raise TypeError('You can only extend lists with lists. '
                             'You supplied \"%s\"' % type(item))
         for entry in item:
-            if not isinstance(entry, basestring):
+            if not isinstance(entry, string_types):
                 raise TypeError('Members of this object must be strings. '
                                 'You supplied \"%s\"' % type(entry))
             list.append(self, entry)
@@ -129,7 +138,7 @@ class CaselessList(list):
     def count(self, item):
         """Counts references to 'item' in a caseless manner.
         If item is not a string it will always return 0."""
-        if not isinstance(item, basestring):
+        if not isinstance(item, string_types):
             return 0
         count = 0
         for entry in self:
@@ -148,7 +157,7 @@ class CaselessList(list):
             maxindex = len(self)
         minindex = max(0, minindex) - 1
         maxindex = min(len(self), maxindex)
-        if not isinstance(item, basestring):
+        if not isinstance(item, string_types):
             raise TypeError('Members of this object must be strings. '
                             'You supplied \"%s\"' % type(item))
         index = minindex
@@ -161,7 +170,7 @@ class CaselessList(list):
     def insert(self, i, x):
         """s.insert(i, x) same as s[i:i] = [x]
         Raises TypeError if x isn't a string."""
-        if not isinstance(x, basestring):
+        if not isinstance(x, string_types):
             raise TypeError('Members of this object must be strings. '
                             'You supplied \"%s\"' % type(x))
         list.insert(self, i, x)
@@ -175,7 +184,7 @@ class CaselessList(list):
         the same length as the slice object requires.
         """
         if isinstance(index, int):
-            if not isinstance(value, basestring):
+            if not isinstance(value, string_types):
                 raise TypeError('Members of this object must be strings. '
                                 'You supplied \"%s\"' % type(value))
             list.__setitem__(self, index, value)
@@ -184,7 +193,7 @@ class CaselessList(list):
                 raise TypeError(
                     'Value given to set slice is not a sequence object.')
             for entry in value:
-                if not isinstance(entry, basestring):
+                if not isinstance(entry, string_types):
                     raise TypeError('Members of this object must be strings. '
                                     'You supplied \"%s\"' % type(entry))
             list.__setitem__(self, index, value)
@@ -194,7 +203,7 @@ class CaselessList(list):
     def __setslice__(self, i, j, sequence):
         """Called to implement assignment to self[i:j]."""
         for entry in sequence:
-            if not isinstance(entry, basestring):
+            if not isinstance(entry, string_types):
                 raise TypeError('Members of this object must be strings. '
                                 'You supplied \"%s\"' % type(entry))
         list.__setslice__(self, i, j, sequence)
@@ -247,9 +256,15 @@ class CaselessDict(dict):
     def __init__(self, other=None):
         if other:
             # Doesn't do keyword args
-            if isinstance(other, dict):
+
+            # -------------------------------------------------------
+            # TODO: when we drop py2 support, change this to
+            #       `if isinstance(other, collections.abc.Mapping)`
+            #
+            if hasattr(other, 'items'):
                 for k, v in other.items():
                     dict.__setitem__(self, k.lower(), v)
+            # -------------------------------------------------------
             else:
                 for k, v in other:
                     dict.__setitem__(self, k.lower(), v)
@@ -264,8 +279,8 @@ class CaselessDict(dict):
         return dict.__contains__(self, key.lower())
 
     def has_key(self, key):
-        """overwritten from :meth:`dict.has_key`"""
-        return dict.has_key(self, key.lower())
+        """overwritten from :meth:`dict.has_key` (needed for python2)"""
+        return key.lower() in self
 
     def get(self, key, def_val=None):
         """overwritten from :meth:`dict.get`"""
@@ -297,7 +312,7 @@ class CaselessDict(dict):
 class CaselessWeakValueDict(weakref.WeakValueDictionary):
 
     def __init__(self, other=None):
-        weakref.WeakValueDictionary.__init__(self)
+        weakref.WeakValueDictionary.__init__(self, other)
         if other:
             # Doesn't do keyword args
             if isinstance(other, dict):
@@ -317,8 +332,10 @@ class CaselessWeakValueDict(weakref.WeakValueDictionary):
         return weakref.WeakValueDictionary.__contains__(self, key.lower())
 
     def has_key(self, key):
-        """overwritten from :meth:`weakref.WeakValueDictionary.has_key`"""
-        return weakref.WeakValueDictionary.has_key(self, key.lower())
+        """overwritten from :meth:`weakref.WeakValueDictionary`
+        (needed for python2)
+        """
+        return key in self
 
     def get(self, key, def_val=None):
         """overwritten from :meth:`weakref.WeakValueDictionary.get`"""
@@ -330,8 +347,9 @@ class CaselessWeakValueDict(weakref.WeakValueDictionary):
 
     def update(self, other):
         """overwritten from :meth:`weakref.WeakValueDictionary.update`"""
-        for k, v in other.items():
-            weakref.WeakValueDictionary.__setitem__(self, k.lower(), v)
+        if other:
+            for k, v in other.items():
+                weakref.WeakValueDictionary.__setitem__(self, k.lower(), v)
 
     def fromkeys(self, iterable, value=None):
         d = CaselessWeakValueDict()
@@ -409,7 +427,7 @@ class PersistentDict(dict):
 
     def dump(self, fileobj):
         if self.format == 'csv':
-            csv.writer(fileobj).writerows(self.items())
+            csv.writer(fileobj).writerows(list(self.items()))
         elif self.format == 'json':
             json.dump(self, fileobj, separators=(',', ':'))
         elif self.format == 'pickle':
@@ -483,10 +501,12 @@ class LoopList(object):
         '''returns the current index'''
         return self._index
 
-    def next(self):
+    def __next__(self):
         '''advances one item in the list and returns it'''
         self._index += 1
         return self.current()
+
+    next = __next__
 
     def previous(self):
         '''goes one item back in the list and returns it'''
@@ -619,7 +639,7 @@ class TimedQueue(list):
         """ Initializes the list with a sequence or an initial value. """
         if arg is None:
             list.__init__(self)
-        elif operator.isSequenceType(arg):
+        elif isinstance(arg, Sequence):
             list.__init__(self, arg)
         else:
             list.__init__(self)
@@ -682,12 +702,12 @@ def self_locked(func, reentrant=True):
         self.lock.acquire()
         try:
             if self.trace:
-                print "locked: %s" % self.lock
+                print("locked: %s" % self.lock)
             result = func(self, *args, **kwargs)
         finally:
             self.lock.release()
             if self.trace:
-                print "released: %s" % self.lock
+                print("released: %s" % self.lock)
         return result
     return lock_fun
 
@@ -721,13 +741,13 @@ class ThreadDict(dict):
         self.parent = type(self).mro()[1]
 
     def tracer(self, text):
-        print text
+        print(text)
 
     def start(self):
         import threading
         if not self.threaded:
             return
-        if hasattr(self, '_Thread') and self._Thread and self._Thread.isAlive():
+        if hasattr(self, '_Thread') and self._Thread and self._Thread.is_alive():
             return
         self.event = threading.Event()
         self.event.clear()
@@ -745,7 +765,7 @@ class ThreadDict(dict):
         if not hasattr(self, '_Thread') or not self._Thread:
             return False
         else:
-            return self._Thread.isAlive()
+            return self._Thread.is_alive()
 
     def __del__(self):
         self.stop()
@@ -798,7 +818,7 @@ class ThreadDict(dict):
 
     @self_locked
     def append(self, key, value=None):
-        if not dict.has_key(self, key):
+        if key not in self:
             self.parent.__setitem__(self, key, value)
         if key not in self._threadkeys:
             self._threadkeys.append(key)
@@ -864,16 +884,16 @@ class ThreadDict(dict):
     #__repr__ = self_locked(dict.__repr__)
 
     #get = self_locked(dict.get)
-    has_key = self_locked(dict.has_key)
+    #has_key = self_locked(dict.has_key)
     update = self_locked(dict.update)
     copy = self_locked(dict.copy)
 
     keys = self_locked(dict.keys)
     values = self_locked(dict.values)
     items = self_locked(dict.items)
-    iterkeys = self_locked(dict.iterkeys)
-    itervalues = self_locked(dict.itervalues)
-    iteritems = self_locked(dict.iteritems)
+    #iterkeys = self_locked(dict.iterkeys)
+    #itervalues = self_locked(dict.itervalues)
+    #iteritems = self_locked(dict.iteritems)
 
 
 class SortedDict(dict):
@@ -893,7 +913,7 @@ class SortedDict(dict):
                     or a callable providing a sorting key algorithm.
         """
         import operator
-        if operator.isCallable(key):
+        if hasattr(key, '__call__'):
             self._keys = sorted(self._keys, key=key)
         else:
             for k in self._keys:
@@ -985,7 +1005,7 @@ except:
                 args = tuple()
             else:
                 args = self.default_factory,
-            return type(self), args, None, None, self.items()
+            return type(self), args, None, None, list(self.items())
 
         def copy(self):
             return self.__copy__()
@@ -996,7 +1016,7 @@ except:
         def __deepcopy__(self, memo):
             import copy
             return type(self)(self.default_factory,
-                              copy.deepcopy(self.items()))
+                              copy.deepcopy(list(self.items())))
 
         def __repr__(self):
             return 'defaultdict(%s, %s)' % (self.default_factory,
@@ -1047,12 +1067,12 @@ def getDictAsTree(dct):
     """This method will print a recursive dict in a tree-like
        shape::
 
-           >>> print getDictAsTree({'A':{'B':[1,2],'C':[3]}})"""
+           >>> print(getDictAsTree({'A':{'B':[1,2],'C':[3]}}))"""
     def add_to_level(l, d):
         lines = []
         if isinstance(d, dict):
             for k, v in d.items():
-                print 'with key "%s"' % k
+                print('with key "%s"' % k)
                 lines.append([''] * l + [str(k)])
                 lines += add_to_level(l + 1, v)
         elif type(d) in [list, set]:  # End of recursion
@@ -1065,7 +1085,7 @@ def getDictAsTree(dct):
             lines.append([''] * l + [str(d)])
         return lines
     ls = ['\t'.join(line) for line in add_to_level(0, dct)]
-    print 'lines are : \n', ls
+    print('lines are : \n', ls)
     return '\n'.join(ls)
 
 
@@ -1124,8 +1144,8 @@ class ArrayBuffer(object):
     def __str__(self):
         return self.__buffer[:self.__end].__str__()
 
-    def __nonzero__(self):
-        return self.__buffer[:self.__end].__nonzero__()
+    def __bool__(self):
+        return self.__buffer[:self.__end].__bool__()
 
     def __setitem__(self, i, x):
         self.__buffer[:self.__end].__setitem__(i, x)
@@ -1313,5 +1333,5 @@ class ArrayBuffer(object):
 
 def chunks(l, n):
     '''Generator which yields successive n-sized chunks from l'''
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i + n]

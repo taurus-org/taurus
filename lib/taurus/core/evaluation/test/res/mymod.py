@@ -27,8 +27,10 @@
 This module is used for the tests of custom evaluation devices.
 """
 
+from __future__ import print_function
+from builtins import object
 import os
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 
 modattr = 'hello world'
 
@@ -82,16 +84,16 @@ if __name__ == "__main__":
     def test1():
         n = 'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(987)/c.foo'
         a = taurus.Attribute(n)
-        print "READ 1:   ", a.read()
+        print("READ 1:   ", a.read())
         # print a.range
-        print "WRITE+READ", a.write(Quantity(999, "m"))
-        print "READ 2:   ", a.read(cache=False)
+        print("WRITE+READ", a.write(Quantity(999, "m")))
+        print("READ 2:   ", a.read(cache=False))
 
     def test2(models):
         for m in models:
-            print m
+            print(m)
             a = taurus.Attribute(m)
-            print "   -->", a.writable, a.read().rvalue
+            print("   -->", a.writable, a.read().rvalue)
 
     models = [
       # instance models
@@ -107,7 +109,7 @@ if __name__ == "__main__":
       'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass()/c.foo',
       # passing args to the instance
       'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(1)/c.foo',
-      'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(2)/float(c.get_foo())',
+      'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(2)/c.get_foo()',
       'eval:@c=taurus.core.evaluation.test.res.mymod.MyClass(foomag=2)/c.foo',
       # module models
       'eval:@taurus.core.evaluation.test.res.mymod.*/modattr',

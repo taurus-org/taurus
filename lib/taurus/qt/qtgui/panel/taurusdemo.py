@@ -23,8 +23,9 @@
 ##
 #############################################################################
 
+from __future__ import print_function
 import sys
-import operator
+import click
 
 import taurus.core.util
 import taurus.qt.qtgui.util
@@ -54,20 +55,20 @@ class TaurusDemoPanel(Qt.QWidget):
                 continue
             internal_widget_module = sys.modules[internal_widget_module_name]
             if hasattr(internal_widget_module, "demo"):
-                if operator.isCallable(internal_widget_module.demo):
+                if hasattr(internal_widget_module.demo, '__call__'):
                     demos[internal_widget_module_name] = internal_widget_module.demo
 
         groups = set()
 
-        for demo_name in demos.keys():
+        for demo_name in demos:
             parts = demo_name.split(".")
             group = parts[-2]
             groups.add(group)
 
-        for group in groups:
+        for group in sorted(groups):
             self.addGroup(group)
 
-        for demo_name in sorted(demos.keys()):
+        for demo_name in sorted(demos):
             demo_func = demos[demo_name]
             parts = demo_name.split(".")
             group = parts[-2]
@@ -75,10 +76,10 @@ class TaurusDemoPanel(Qt.QWidget):
                 continue
             try:
                 self.addDemo(demo_func.__doc__, demo_func, group)
-            except Exception, e:
-                print 80 * "-"
-                print "Problems adding demo", demo_name
-                print e
+            except Exception as e:
+                print(80 * "-")
+                print("Problems adding demo", demo_name)
+                print(e)
 
     def addGroup(self, name):
         g = Qt.QGroupBox(name)
@@ -96,7 +97,7 @@ class TaurusDemoPanel(Qt.QWidget):
         button = Qt.QPushButton(name, self)
         button._f = f
         layout.addWidget(button, row, 0)
-        button.connect(button, Qt.SIGNAL("clicked()"), self.go)
+        button.clicked.connect(self.go)
 
     def go(self):
         b = self.sender()
@@ -111,28 +112,24 @@ class TaurusDemoPanel(Qt.QWidget):
             dialog.setLayout(layout)
             layout.addWidget(w)
             dialog.exec_()
-        except Exception, e:
+        except Exception as e:
             if dialog is not None:
                 dialog.done(0)
                 dialog.hide()
                 dialog = None
-            print str(e)
+            print(str(e))
             return
             d = Qt.QErrorMessage()
             d.showMessage(str(e))
 
 
-def main():
-    import taurus.core.util.argparse
-    parser = taurus.core.util.argparse.get_taurus_parser()
-    parser.set_description("A demo application for taurus")
-    app = taurus.qt.qtgui.application.TaurusApplication(cmd_line_parser=parser,
-                                                        app_name="taurusdemo",
-                                                        app_version="1.0",
-                                                        org_domain="Taurus",
-                                                        org_name="Tango community")
+@click.command('demo')
+def demo_cmd():
+    """A demo application for taurus"""
+    from taurus.qt.qtgui.application import TaurusApplication
+    app = TaurusApplication(cmd_line_parser=None)
     gui = TaurusDemoPanel()
-    gui.setWindowTitle(app.applicationName())
+    gui.setWindowTitle('Taurus demo')
     gui.show()
     sys.exit(app.exec_())
 

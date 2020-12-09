@@ -22,14 +22,11 @@
 ##
 #############################################################################
 
-'''
+"""
 Epics module. See __init__.py for more detailed documentation
-'''
-__all__ = ['EpicsFactory']
-
-
+"""
+from __future__ import absolute_import
 import weakref
-
 try:
     import epics
 except ImportError:
@@ -37,16 +34,16 @@ except ImportError:
     debug('cannot import epics module. ' +
           'Taurus will not support the "epics" scheme')
     raise
-
 from taurus.core.taurusexception import TaurusException
 from taurus.core.util.singleton import Singleton
 from taurus.core.util.log import Logger
 from taurus.core.taurusbasetypes import TaurusElementType
 from taurus.core.taurusfactory import TaurusFactory
+from .epicsattribute import EpicsAttribute
+from .epicsdevice import EpicsDevice
+from .epicsauthority import EpicsAuthority
 
-from epicsattribute import EpicsAttribute
-from epicsdevice import EpicsDevice
-from epicsauthority import EpicsAuthority
+__all__ = ['EpicsFactory']
 
 
 class EpicsFactory(Singleton, TaurusFactory, Logger):
@@ -145,17 +142,17 @@ class EpicsFactory(Singleton, TaurusFactory, Logger):
 
     def getAuthorityNameValidator(self):
         """Return EpicsAuthorityNameValidator"""
-        import epicsvalidator
+        from . import epicsvalidator
         return epicsvalidator.EpicsAuthorityNameValidator()
 
     def getDeviceNameValidator(self):
         """Return EpicsDeviceNameValidator"""
-        import epicsvalidator
+        from . import epicsvalidator
         return epicsvalidator.EpicsDeviceNameValidator()
 
     def getAttributeNameValidator(self):
         """Return EpicsAttributeNameValidator"""
-        import epicsvalidator
+        from . import epicsvalidator
         return epicsvalidator.EpicsAttributeNameValidator()
 
 if __name__ == "__main__":

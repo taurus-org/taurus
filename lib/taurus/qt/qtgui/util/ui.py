@@ -25,9 +25,7 @@
 
 """utilities to load ui files for widgets"""
 
-__all__ = ["loadUi",
-           "UILoadable",
-           ]
+from builtins import object
 
 import os
 import sys
@@ -35,6 +33,11 @@ import functools
 
 from taurus.external.qt import Qt
 from taurus.external.qt import uic
+
+
+__all__ = ["loadUi",
+           "UILoadable",
+           ]
 
 
 class __UI(object):
@@ -173,7 +176,7 @@ def UILoadable(klass=None, with_ui=None):
 def main():
     from taurus.qt.qtgui.application import TaurusApplication
 
-    app = TaurusApplication([])
+    app = TaurusApplication([], cmd_line_parser=None)
 
     @UILoadable(with_ui="ui")
     class A(Qt.QWidget):

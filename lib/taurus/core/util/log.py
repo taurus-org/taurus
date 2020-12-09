@@ -25,16 +25,13 @@
 
 """This module contains a set of useful logging elements based on python's
 :mod:`logging` system."""
+from __future__ import print_function
+from __future__ import absolute_import
 
-__all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
-           "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
-           "LogFilter",
-           "_log", "trace", "debug", "info", "warning", "error", "fatal",
-           "critical", "deprecated", "deprecation_decorator",
-           "taurus4_deprecation"]
+from builtins import str
+from builtins import object
 
-__docformat__ = "restructuredtext"
-
+import io
 import os
 import sys
 import logging.handlers
@@ -45,13 +42,23 @@ import inspect
 import threading
 import functools
 
-from object import Object
-from wrap import wraps
-from excepthook import BaseExceptHook
+from .object import Object
+from .wrap import wraps
+from .excepthook import BaseExceptHook
 
 # ------------------------------------------------------------------------------
 # TODO: substitute this ugly hack (below) by a more general mechanism
 from collections import defaultdict
+
+
+__all__ = ["LogIt", "TraceIt", "DebugIt", "InfoIt", "WarnIt", "ErrorIt",
+           "CriticalIt", "MemoryLogHandler", "LogExceptHook", "Logger",
+           "LogFilter",
+           "_log", "trace", "debug", "info", "warning", "error", "fatal",
+           "critical", "deprecated", "deprecation_decorator",
+           "taurus4_deprecation"]
+
+__docformat__ = "restructuredtext"
 
 
 class _DeprecationCounter(defaultdict):
@@ -61,14 +68,13 @@ class _DeprecationCounter(defaultdict):
 
     def getTotal(self):
         c = 0
-        for v in self.itervalues():
+        for v in self.values():
             c += v
         return c
 
     def pretty(self):
         from operator import itemgetter
-        sorted_items = sorted(
-            self.iteritems(), key=itemgetter(1), reverse=True)
+        sorted_items = sorted(self.items(), key=itemgetter(1), reverse=True)
         ret = '\n'.join(['\t%d * "%s"' % (v, k) for k, v in sorted_items])
         return "< Deprecation Counts (%d):\n%s >" % (self.getTotal(), ret)
 
@@ -168,7 +174,7 @@ class LogIt(object):
                 return f(*args, **kwargs)
 
             has_log = hasattr(f_self, "log")
-            fname = f.func_name
+            fname = f.__name__
             log_obj = f_self
             if not has_log:
                 log_obj = logging.getLogger()
@@ -188,7 +194,7 @@ class LogIt(object):
             out_msg = "<-"
             try:
                 ret = f(*args, **kwargs)
-            except Exception, e:
+            except Exception as e:
                 exc_info = sys.exc_info()
                 out_msg += " (with %s) %s" % (e.__class__.__name__, fname)
                 log_obj.log(self._level, out_msg, exc_info=exc_info)
@@ -325,27 +331,27 @@ class PrintIt(object):
     def __call__(self, f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            fname = f.func_name
+            fname = f.__name__
             in_msg = "-> %s" % fname
             if self._showargs:
                 if len(args) > 1:
                     in_msg += str(args[1:])
                 if len(kwargs):
                     in_msg += str(kwargs)
-            print
-            print in_msg
+            print()
+            print(in_msg)
             out_msg = "<-"
             try:
                 ret = f(*args, **kwargs)
-            except Exception, e:
+            except Exception as e:
                 out_msg += " (with %s) %s" % (e.__class__.__name__, fname)
-                print out_msg
+                print(out_msg)
                 raise
             out_msg += " %s" % fname
             if not ret is None and self._showret:
                 out_msg += " = %s" % str(ret)
-            print out_msg
-            print
+            print(out_msg)
+            print()
             return ret
         return wrapper
 
@@ -406,30 +412,6 @@ class LogExceptHook(BaseExceptHook):
         if text[-1] == '\n':
             text = text[:-1]
         self._log.log(self._level, "Unhandled exception:\n%s", text)
-
-
-class _Logger(logging.Logger):
-
-    def findCaller(self):
-        """
-        Find the stack frame of the caller so that we can note the source
-        file name, line number and function name.
-        """
-        f = currentframe()
-        # On some versions of IronPython, currentframe() returns None if
-        # IronPython isn't run with -X:Frames.
-        if f is not None:
-            f = f.f_back
-        rv = "(unknown file)", 0, "(unknown function)"
-        while hasattr(f, "f_code"):
-            co = f.f_code
-            filename = os.path.normcase(co.co_filename)
-            if filename in (_srcfile, logging._srcfile):
-                f = f.f_back
-                continue
-            rv = (co.co_filename, f.f_lineno, co.co_name)
-            break
-        return rv
 
 
 class Logger(Object):
@@ -645,7 +627,7 @@ class Logger(Object):
     def _getLogger(name=None):
         orig_logger_class = logging.getLoggerClass()
         try:
-            logging.setLoggerClass(_Logger)
+            logging.setLoggerClass(logging.Logger)
             ret = logging.getLogger(name)
             return ret
         finally:
@@ -678,7 +660,7 @@ class Logger(Object):
            :return: (sequence<logging.Logger) the list of log children
         """
         children = []
-        for _, ref in self.log_children.iteritems():
+        for _, ref in self.log_children.items():
             child = ref()
             if child is not None:
                 children.append(child)
@@ -699,6 +681,14 @@ class Logger(Object):
         """
         self.log_obj.addHandler(handler)
         self.log_handlers.append(handler)
+
+    def removeLogHandler(self, handler):
+        """Removes the given handler from this object's logger
+
+           :param handler: (logging.Handler) the handler to be removed
+        """
+        self.log_obj.removeHandler(handler)
+        self.log_handlers.remove(handler)
 
     def copyLogHandlers(self, other):
         """Copies the log handlers of other object to this object
@@ -875,10 +865,9 @@ class Logger(Object):
                 raise Exception(msg)
             if _DEPRECATION_COUNT[msg] > _MAX_DEPRECATIONS_LOGGED:
                 return
-
         if _callerinfo is None:
             _callerinfo = self.log_obj.findCaller()
-        filename, lineno, _ = _callerinfo
+        filename, lineno = _callerinfo[:2]
         depr_msg = warnings.formatwarning(
             msg, DeprecationWarning, filename, lineno)
         self.log_obj.warning(depr_msg, **kw)
@@ -1070,4 +1059,4 @@ if __name__ == '__main__':
         - zab
         """
 
-    print foo.__doc__
+    print(foo.__doc__)

@@ -29,7 +29,7 @@
 __docformat__ = 'restructuredtext'
 
 import taurus
-from taurus.external import unittest
+import unittest
 from taurus.core.test import (valid, invalid, names,
                               AbstractNameValidatorTestCase)
 from taurus.core.evaluation.evalvalidator import (EvaluationAuthorityNameValidator,

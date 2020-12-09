@@ -7,7 +7,7 @@ Creating GUIs with the TaurusGUI framework
 
 The easiest way to create a new GUI using Taurus is by invoking::
 
-    taurusgui --new-gui
+    taurus newgui
 
 This shows a "wizard" application that will guide you through
 the process of creating a :class:`TaurusGui`-based GUI in a few minutes
@@ -41,7 +41,7 @@ more advanced control can be exerted at several levels:
 - First, it is possible to edit the configuration files that define a
   TaurusGUI-based application. These are declarative python and XML files
   (editable as plain text) complemented by Qt settings files (editable with
-  the provided :ref:`taurusconfigbrowser <configurations>` application).
+  the provided :ref:`taurus config <configurations>` application).
 
 - On a lower level, custom specific widgets (created either programmatically, as in
   the :ref:`examples` or via the :ref:`Qt designer <taurusqtdesigner-tutorial>`)

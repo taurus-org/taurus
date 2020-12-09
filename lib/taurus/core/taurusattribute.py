@@ -34,7 +34,7 @@ import weakref
 from .taurusmodel import TaurusModel
 from taurus.core.taurusbasetypes import TaurusElementType, DataType
 from taurus.core.util.log import deprecation_decorator
-from taurus.external.pint import Quantity, UR
+from taurus.core.units import Quantity
 
 
 class TaurusAttribute(TaurusModel):
@@ -43,7 +43,7 @@ class TaurusAttribute(TaurusModel):
     _description = "A Taurus Attribute"
     defaultFragmentName = "rvalue"  # fragment to be used if none is specified
 
-    def __init__(self, name, parent, **kwargs):
+    def __init__(self, name='', parent=None, **kwargs):
         self.call__init__(TaurusModel, name, parent)
 
         # User enabled/disabled polling
@@ -79,7 +79,11 @@ class TaurusAttribute(TaurusModel):
 
     def cleanUp(self):
         self.trace("[TaurusAttribute] cleanUp")
-        self._unsubscribeEvents()
+        if hasattr(self, '_unsuscribeEvents'):
+            self.deprecated(
+                dep='TaurusAttribute._unsuscribeEvents API',
+                alt='If you need it called in cleanUp, re-implement cleanUp')
+            self._unsuscribeEvents()
         TaurusModel.cleanUp(self)
 
     #-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
@@ -145,14 +149,6 @@ class TaurusAttribute(TaurusModel):
     def poll(self):
         raise NotImplementedError("Not allowed to call AbstractClass" +
                                   " TaurusAttribute.poll")
-
-    def _subscribeEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute._subscribeEvents")
-
-    def _unsubscribeEvents(self):
-        raise NotImplementedError("Not allowed to call AbstractClass" +
-                                  " TaurusAttribute._unsubscribeEvents")
 
     def isUsingEvents(self):
         raise NotImplementedError("Not allowed to call AbstractClass" +
@@ -290,12 +286,12 @@ class TaurusAttribute(TaurusModel):
 
     def getDisplayDescrObj(self, cache=True):
         name = self.getLabel(cache=cache)
-        obj = [('name', name),
-               ('model', self.getFullName() or '')]
+        obj = [(u'name', name),
+               (u'model', self.getFullName() or u'')]
         descr = self.description
         if descr:
-            _descr = descr.replace("<", "&lt;").replace(">", "&gt;")
-            obj.append(('description', _descr))
+            _descr = descr.replace(u"<", u"&lt;").replace(u">", u"&gt;")
+            obj.append((u'description', _descr))
 
         if isinstance(self.rvalue, Quantity):
             _unitless = self.rvalue.unitless
@@ -309,7 +305,7 @@ class TaurusAttribute(TaurusModel):
                 else:
                     low = range[0].magnitude
                     high = range[1].magnitude
-                obj.append(('range', "[%s, %s]" % (low, high)))
+                obj.append((u'range', u"[%s, %s]" % (low, high)))
             if alarm != [None, None]:
                 if not _unitless:
                     low = alarm[0]
@@ -317,7 +313,7 @@ class TaurusAttribute(TaurusModel):
                 else:
                     low = alarm[0].magnitude
                     high = alarm[1].magnitude
-                obj.append(('alarm', "[%s, %s]" % (low, high)))
+                obj.append((u'alarm', u"[%s, %s]" % (low, high)))
             if warning != [None, None]:
                 if not _unitless:
                     low = warning[0]
@@ -325,7 +321,7 @@ class TaurusAttribute(TaurusModel):
                 else:
                     low = warning[0].magnitude
                     high = warning[1].magnitude
-                obj.append(('warning', "[%s, %s]" % (low, high)))
+                obj.append((u'warning', u"[%s, %s]" % (low, high)))
         return obj
 
     def isWritable(self, cache=True):

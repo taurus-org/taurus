@@ -25,7 +25,7 @@
 
 __all__ = ["tangoFormatter"]
 
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 
 def tangoFormatter(dtype=None, **kwargs):
     """

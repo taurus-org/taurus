@@ -58,7 +58,7 @@ class QFallBackWidget(Qt.QWidget):
         self.replaces = replaces
         self.exc_info = exc_info = kwargs.get("exc_info")
         layout = Qt.QVBoxLayout(self)
-        layout.setMargin(2)
+        layout.setContentsMargins(2, 2, 2, 2)
         layout.setSpacing(2)
         self.setLayout(layout)
         self.label = Qt.QLabel(self)

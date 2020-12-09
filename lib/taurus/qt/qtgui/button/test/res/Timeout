@@ -24,6 +24,8 @@
 #############################################################################
 
 """
+This module is deprecated. Use the Sleep command of TangoSchemeTest instead
+
 This module contains classes necessary by a simple python Tango Device Server.
 
 TimeoutDs is used to provoke timeout exceptions on requests.
@@ -36,9 +38,11 @@ The attibute value is the time that will take the read/write the attribute.
 TimeoutCmd expects as an argument a float scalar.
 The argument value is the time that will take to execute the command.
 
-#@TODO: create .bat file to allow starting on windows
-
 """
+from taurus.core.util.log import deprecated
+
+deprecated(dep='Timeout DS', alt='TangoSchemeTest.Sleep', rel="4.6.5")
+
 
 import PyTango  # Tango-centric
 import sys

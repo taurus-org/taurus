@@ -26,12 +26,15 @@
 """
 One of three degrees of enforcement may be specified by passing
 the 'debug' keyword argument to the decorator:
-    0 -- NONE:   No type-checking. Decorators disabled.
-    1 -- MEDIUM: Print warning message to stderr. (Default)
-    2 -- STRONG: Raise TypeError with message.
+
+    - 0 -- NONE:   No type-checking. Decorators disabled.
+    - 1 -- MEDIUM: Print warning message to stderr. (Default)
+    - 2 -- STRONG: Raise TypeError with message.
+
 If 'debug' is not passed to the decorator, the default level is used.
 
-Example usage:
+Example usage::
+
     >>> NONE, MEDIUM, STRONG = 0, 1, 2
     >>>
     >>> @accepts(int, int, int)
@@ -47,7 +50,7 @@ Example usage:
     TypeWarning:  'average' method returns (float), but result is (int)
     15
 
-Needed to cast params as floats in function def (or simply divide by 2.0).
+Needed to cast params as floats in function def (or simply divide by 2.0)::
 
     >>> TYPE_CHECK = STRONG
     >>> @accepts(int, debug=TYPE_CHECK)
@@ -63,23 +66,20 @@ Needed to cast params as floats in function def (or simply divide by 2.0).
 
 """
 
+from __future__ import print_function
+import sys
+
 __all__ = ["accepts", "returns"]
 
 __docformat__ = "restructuredtext"
 
-import sys
-
-
 def accepts(*types, **kw):
-    """ Function decorator. Checks that inputs given to decorated function
+    """
+    Function decorator. Checks that inputs given to decorated function
     are of the expected type.
 
-    Parameters:
-    types -- The expected types of the inputs to the decorated function.
-             Must specify type for each parameter.
-    kw    -- Optional specification of 'debug' level (this is the only valid
-             keyword argument, no other should be given).
-             debug = ( 0 | 1 | 2 )
+    :param types: The expected type of the decorated function's return value
+    :param debug: Optional specification of 'debug' level (0 | 1 | 2)
 
     """
     if not kw:
@@ -97,29 +97,26 @@ def accepts(*types, **kw):
                 if argtypes != types:
                     msg = info(f.__name__, types, argtypes, 0)
                     if debug == 1:
-                        print >> sys.stderr, 'TypeWarning: ', msg
+                        print('TypeWarning: ', msg, file=sys.stderr)
                     elif debug == 2:
-                        raise TypeError, msg
+                        raise TypeError(msg)
                 return f(*args)
             newf.__name__ = f.__name__
             return newf
         return decorator
-    except KeyError, key:
-        raise KeyError, key + "is not a valid keyword argument"
-    except TypeError, msg:
-        raise TypeError, msg
+    except KeyError as key:
+        raise KeyError(key + "is not a valid keyword argument")
+    except TypeError as msg:
+        raise TypeError(msg)
 
 
 def returns(ret_type, **kw):
-    """ Function decorator. Checks that return value of decorated function
+    """
+    Function decorator. Checks that return value of decorated function
     is of the expected type.
 
-    Parameters:
-    ret_type -- The expected type of the decorated function's return value.
-                Must specify type for each parameter.
-    kw       -- Optional specification of 'debug' level (this is the only valid
-                keyword argument, no other should be given).
-                debug=(0 | 1 | 2)
+    :param ret_type: The expected type of the decorated function's return value.
+    :param debug: Optional specification of 'debug' level (0 | 1 | 2)
 
     """
     try:
@@ -138,17 +135,17 @@ def returns(ret_type, **kw):
                 if res_type != ret_type:
                     msg = info(f.__name__, (ret_type,), (res_type,), 1)
                     if debug == 1:
-                        print >> sys.stderr, 'TypeWarning: ', msg
+                        print('TypeWarning: ', msg, file=sys.stderr)
                     elif debug == 2:
-                        raise TypeError, msg
+                        raise TypeError(msg)
                 return result
             newf.__name__ = f.__name__
             return newf
         return decorator
-    except KeyError, key:
-        raise KeyError, key + "is not a valid keyword argument"
-    except TypeError, msg:
-        raise TypeError, msg
+    except KeyError as key:
+        raise KeyError(key + "is not a valid keyword argument")
+    except TypeError as msg:
+        raise TypeError(msg)
 
 
 def info(fname, expected, actual, flag):

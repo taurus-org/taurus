@@ -25,6 +25,15 @@
 
 """a list of helper methods"""
 
+from __future__ import print_function
+
+from builtins import str
+from future.utils import string_types
+import re
+from taurus import tauruscustomsettings
+from .util.log import taurus4_deprecation
+import click
+
 __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'getValidTypesForName', 'isValidName', 'makeSchemeExplicit',
            'Manager', 'Factory', 'Device', 'Attribute', 'Configuration',
@@ -34,15 +43,10 @@ __all__ = ['check_dependencies', 'log_dependencies', 'getSchemeFromName',
            'resetLogLevel', 'resetLogFormat',
            'enableLogOutput', 'disableLogOutput',
            'log', 'trace', 'debug', 'info', 'warning', 'error', 'fatal',
-           'critical', 'deprecated', 'changeDefaultPollingPeriod']
+           'critical', 'deprecated', 'changeDefaultPollingPeriod',
+           'getValidatorFromName']
 
 __docformat__ = "restructuredtext"
-
-import sys
-import re
-from taurus import tauruscustomsettings
-from .util.log import taurus4_deprecation
-
 
 # regexp for finding the scheme
 __SCHEME_RE = re.compile(r'([^:/?#]+):.*')
@@ -74,36 +78,36 @@ def check_dependencies():
                 }
     import pkg_resources
     d = pkg_resources.get_distribution('taurus')
-    print "Dependencies for %s:" % d
+    print("Dependencies for %s:" % d)
     # minimum requirements (without extras)
     for r in d.requires():
         try:
             pkg_resources.require(str(r))
-            print '\t[*]',
+            print('\t[*]', end=' ')
         except Exception:
-            print '\t[ ]',
-        print '%s' % r
+            print('\t[ ]', end=' ')
+        print('%s' % r)
     # requirements for the extras
-    print '\nExtras:'
+    print('\nExtras:')
     for extra in sorted(d.extras):
-        print "Dependencies for taurus[%s]:" % extra
+        print("Dependencies for taurus[%s]:" % extra)
         # requirements from PyPI
         for r in d.requires(extras=[extra]):
             try:
                 r = str(r).split(';')[0]  # remove marker if present (see #612)
                 pkg_resources.require(r)
-                print '\t[*]',
+                print('\t[*]', end=' ')
             except Exception:
-                print '\t[ ]',
-            print '%s' % r
+                print('\t[ ]', end=' ')
+            print('%s' % r)
         # requirements outside PyPI
         for r, check in non_pypi.get(extra, ()):
             try:
                 check()
-                print '\t[*]',
+                print('\t[*]', end=' ')
             except Exception:
-                print '\t[ ]',
-            print '%s (not in PyPI)' % r
+                print('\t[ ]', end=' ')
+            print('%s (not in PyPI)' % r)
 
 
 def log_dependencies():
@@ -130,6 +134,21 @@ def getSchemeFromName(name, implicit=True):
         return getattr(tauruscustomsettings, 'DEFAULT_SCHEME', "tango")
     else:
         return None
+
+
+def getValidatorFromName(name):
+    """Helper for obtaining the validator object corresponding to the
+    given name.
+
+    :return: model name validator or None if name is not a supported model name
+    """
+
+    try:
+        factory = Factory(scheme=getSchemeFromName(name))
+    except:
+        return None
+    return factory.getValidatorFromName(name)
+
 
 
 def makeSchemeExplicit(name, default=None):
@@ -198,7 +217,7 @@ def isValidName(name, etypes=None, strict=None):
     for e in etypes:
         if e in validtypes:
             return True
-        return False
+    return False
 
 
 def Manager():
@@ -296,7 +315,7 @@ def Attribute(dev_or_attr_name, attr_name=None):
     if attr_name is None:
         return Factory(scheme=getSchemeFromName(dev_or_attr_name)).getAttribute(dev_or_attr_name)
     else:
-        if type(dev_or_attr_name) in types.StringTypes:
+        if isinstance(dev_or_attr_name, string_types):
             dev = Device(dev_or_attr_name)
         else:
             dev = dev_or_attr_name
@@ -390,6 +409,15 @@ def Object(*args):
     if klass is None:
         klass = factory.findObjectClass(name)
     return factory.getObject(klass, name)
+
+
+@click.command('check-deps')
+def check_dependencies_cmd():
+    """
+    Shows the taurus dependencies and checks if they are available
+    """
+    check_dependencies()
+
 
 from taurus.core.util import log as __log_mod
 

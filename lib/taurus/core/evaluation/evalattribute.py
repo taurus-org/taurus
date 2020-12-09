@@ -28,7 +28,7 @@ import numpy
 import re
 import weakref
 
-from taurus.external.pint import Quantity
+from taurus.core.units import Quantity
 from taurus.core.taurusattribute import TaurusAttribute
 from taurus.core.taurusbasetypes import SubscriptionState, TaurusEventType, \
     TaurusAttrValue, TaurusTimeVal, AttrQuality, DataType
@@ -60,6 +60,10 @@ class EvaluationAttrValue(TaurusAttrValue):
         self.config = self._attrRef
 
     def __getattr__(self, name):
+        # Do not try to delegate special methods
+        if name.startswith('__') and name.endswith('__'):
+            raise AttributeError("'%s' object has no attribute %s"
+                                 % (self.__class__.__name__, name))   
         try:
             ret = getattr(self._attrRef, name)
         except AttributeError:
@@ -167,7 +171,7 @@ class EvaluationAttribute(TaurusAttribute):
     _factory = None
     _scheme = 'eval'
 
-    def __init__(self, name, parent, **kwargs):
+    def __init__(self, name='', parent=None, **kwargs):
         self.call__init__(TaurusAttribute, name, parent, **kwargs)
         self._value = EvaluationAttrValue(attr=self)
 
@@ -200,7 +204,7 @@ class EvaluationAttribute(TaurusAttribute):
             for n in names[1:-1]:
                 obj = getattr(obj, n)
             obj = getattr(obj.__class__, names[-1])
-        except Exception, e:
+        except Exception as e:
             # self.info("%r", e)
             return
         ######################################################################
@@ -260,7 +264,7 @@ class EvaluationAttribute(TaurusAttribute):
             trstring = v.replaceUnquotedRef(trstring, '{%s}' % r, symbol)
 
         # validate the expression (look for missing symbols)
-        safesymbols = evaluator.getSafe().keys()
+        safesymbols = list(evaluator.getSafe().keys())
         # remove literal text strings from the validation
         trimmedstring = re.sub(QUOTED_TEXT_RE, '', trstring)
         for s in set(re.findall(PY_VAR_RE, trimmedstring)):
@@ -359,7 +363,7 @@ class EvaluationAttribute(TaurusAttribute):
             self._value.rvalue = rvalue
             self._value.time = TaurusTimeVal.now()
             self._value.quality = AttrQuality.ATTR_VALID
-        except Exception, e:
+        except Exception as e:
             self._value.quality = AttrQuality.ATTR_INVALID
             msg = " the function '%s' could not be evaluated. Reason: %s" \
                 % (self._transformation, repr(e))
@@ -441,12 +445,6 @@ class EvaluationAttribute(TaurusAttribute):
         v = self.read(cache=False)
         self.fireEvent(TaurusEventType.Periodic, v)
 
-    def _subscribeEvents(self):
-        pass
-
-    def _unsubscribeEvents(self):
-        pass
-
     def isUsingEvents(self):
         # if this attributes depends from others, then we consider it uses
         # events
@@ -484,7 +482,8 @@ class EvaluationAttribute(TaurusAttribute):
         if len(self._listeners) > 1 and \
            (initial_subscription_state == SubscriptionState.Subscribed or
                 self.isPollingActive()):
-            Manager().addJob(self.__fireRegisterEvent, None, (listener,))
+            Manager().enqueueJob(self.__fireRegisterEvent,
+                                 job_args=((listener,),))
         return ret
 
     def removeListener(self, listener):

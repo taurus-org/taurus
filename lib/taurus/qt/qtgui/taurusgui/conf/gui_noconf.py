@@ -32,7 +32,7 @@ if __name__ == '__main__':
     from taurus.qt.qtgui.taurusgui import TaurusGui
     from taurus.external.qt import Qt
     # if app_name name not given, it uses the file name
-    app = TaurusApplication(app_name='MyGui')
+    app = TaurusApplication(app_name='MyGui', cmd_line_parser=None)
     gui = TaurusGui()
     panel = Qt.QWidget()
     gui.createPanel(panel, 'Foo')

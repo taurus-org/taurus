@@ -25,75 +25,69 @@
 
 """Test for taurus.qt.qtgui.panel.taurusvalue"""
 
-from taurus.external import unittest
-from taurus.test import insertTest
-from taurus.qt.qtgui.test import BaseWidgetTestCase
+import pytest
 from taurus.qt.qtgui.panel import TaurusValue
-from taurus.core.tango.test import TangoSchemeTestLauncher
+from taurus.test.pytest import check_taurus_deprecations
 
-DEV_NAME = TangoSchemeTestLauncher.DEV_NAME
+try:
+    # The following are Tango-centric imports.
+    from taurus.core.tango.test import taurus_test_ds  # pytest fixture
+
+    _TANGO_MISSING = False
+except:
+    _TANGO_MISSING = True
 
 
-@insertTest(helper_name="texts",
-            model="tango:" + DEV_NAME + "/double_scalar",
-            expected=("double_scalar", "1.23", "0.00 mm", "mm"),
-            # expected=("double_scalar", "1.23", "0.0", "mm"),
-            # TODO: change taurusvalue's line edit to hide units
-            )
-class TaurusValueTest(TangoSchemeTestLauncher, BaseWidgetTestCase,
-                      unittest.TestCase):
-    """
-    Specific tests for TaurusValue
-    """
-    _klass = TaurusValue
-
-    def test_bug126(self):
-        """Verify that case is not lost when customizing a label (bug#126)"""
-        w = self._widget
-        # self._widget.setModel("eval:1")
-        self._widget.setModel("tango:" + DEV_NAME + "/double_scalar")
+@pytest.mark.skipif(_TANGO_MISSING, reason="tango-dependent test")
+def test_bug126(qtbot, caplog):
+    """Verify that case is not lost when customizing a label (bug#126)"""
+    with check_taurus_deprecations(caplog, expected=0):
+        w = TaurusValue()
+        qtbot.addWidget(w)
+        w.setModel("tango:sys/tg_test/1/double_scalar")
         label = "MIXEDcase"
         w.setLabelConfig(label)
-        self.processEvents(repetitions=10, sleep=.1)
-        shownLabel = str(w.labelWidget().text())
-        msg = 'Shown label ("%s") differs from set label ("%s")' % (shownLabel,
-                                                                    label)
-        self.assertEqual(label, shownLabel, msg)
-        self.assertMaxDeprecations(1)
 
-    def texts(self, model=None, expected=None, fgRole=None, maxdepr=0):
-        """Checks the texts for scalar attributes"""
-        self._widget.setModel(model)
-        if fgRole is not None:
-            self._widget.setFgRole(fgRole)
-        self.processEvents(repetitions=10, sleep=.1)
-        got = (str(self._widget.labelWidget().text()),
-               str(self._widget.readWidget().text()),
-               str(self._widget.writeWidget().displayText()),
-               str(self._widget.unitsWidget().text()),
-               )
-        msg = ('wrong text for "%s":\n expected: %s\n got: %s' %
-               (model, expected, got))
-        self.assertEqual(got, expected, msg)
-        self.assertMaxDeprecations(maxdepr)
+        def _ok():
+            assert w.labelWidget().text() == label
 
-    def test_labelCaseSensitivity(self):
-        """Verify that case is respected of in the label widget"""
-        w = self._widget
-        self._widget.setModel("tango:" + DEV_NAME + "/MIXEDcase")
-        label = "MIXEDcase"
-        self.processEvents(repetitions=10, sleep=.1)
-        shownLabel = str(w.labelWidget().text())
-        msg = 'Shown label ("%s") differs from set label ("%s")' % (shownLabel,
-                                                                    label)
-        self.assertEqual(label, shownLabel, msg)
-        self.assertMaxDeprecations(0)
+        qtbot.waitUntil(_ok, timeout=3200)
 
-    def tearDown(self):
-        """Set Model to None"""
-        self._widget.setModel(None)
-        TangoSchemeTestLauncher.tearDown(self)
-        unittest.TestCase.tearDown(self)
 
-if __name__ == "__main__":
-    pass
+@pytest.mark.skipif(_TANGO_MISSING, reason="tango-dependent test")
+def test_label_case_sensitivity(qtbot, caplog, taurus_test_ds):
+    """Verify that case is respected of in the label widget"""
+    with check_taurus_deprecations(caplog, expected=0):
+        w = TaurusValue()
+        qtbot.addWidget(w)
+        w.setModel("tango:{}/MIXEDcase".format(taurus_test_ds))
+
+        def _ok():
+                assert w.labelWidget().text() == "MIXEDcase"
+
+        qtbot.waitUntil(_ok, timeout=3200)
+
+
+def test_taurusvalue_subwidget_texts(qtbot, caplog):
+    """Checks the texts for scalar attributes"""
+
+    model = "eval:@a=taurus.core.evaluation.test.res.mymod.MyClass()/a.foo"
+    expected = ("a.foo", "123", "123", "m")
+    depr = 0
+
+    with check_taurus_deprecations(caplog, expected=depr):
+        w = TaurusValue()
+        qtbot.addWidget(w)
+        w.setModel(model)
+
+        def _ok():
+            got = (
+                str(w.labelWidget().text()),
+                str(w.readWidget().text()),
+                str(w.writeWidget().displayText()),
+                str(w.unitsWidget().text()),
+            )
+            assert got == expected
+
+        qtbot.waitUntil(_ok, timeout=3200)
+
