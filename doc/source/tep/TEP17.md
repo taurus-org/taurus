@@ -70,7 +70,7 @@ Outside TEP17 scope:
 - [ ] 1D ROI selector (C2)
 - [ ] Curve statistics calculator (mean, stdev...) as in curve stats
   dialog of TaurusPlot/Trend (C8)
-- [ ] UI for changing curve names (C8)
+- [x] UI for changing curve names (C8)
 - [ ] Peak locator: Visual label min/max of curves (C12)
 - [ ] UI for adding raw data (W8)
 
@@ -95,7 +95,7 @@ Outside TEP17 scope:
 - [x] Accessing Archived values (M40). Done via [taurus_tangoarchiving][] plugin
 - [ ] Accessing Tango Polling buffer (W24)
 - [x] Support for limiting curve buffers (C8)
-- [ ] UI for curve buffers (C2)
+- [x] UI for curve buffers (C2)
 
 
 ## Implementation strategies
