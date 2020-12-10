@@ -27,7 +27,7 @@ supported by `taurus.qt.qtgui.qwt5` are implemented in the current version of
 the [taurus_pyqtgraph][] plugin. The rest would be treated as future 
 enhancements. 
 
-The following is a list of features provided/planned and planned by the 
+The following is a list of features providedand planned by the 
 `taurus_pyqtgraph` (the checked features are already implemented in the 
 latest release of the plugin, v0.4.9, at the moment of writing):
 
