@@ -41,7 +41,7 @@ The expected benefits are:
 ## Considered implementation options
 
 During the many years since we first discussed this TEP, we studied several 
-alternatives ([yapsy][], pyutilib, [Marty Alchin's 6-line plugin framework][], 
+alternatives (yapsy, pyutilib, Marty Alchin's 6-line plugin framework, 
 ...) but we ended up deciding among using [stevedore][] or using [setuptools][] 
 entry points directly.
 
@@ -338,7 +338,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   
 [stevedore docs]: https://docs.openstack.org/stevedore/latest/
 [stevedore]: https://pypi.python.org/pypi/stevedore
-[yapsy]: https://pypi.python.org/pypi/Yapsy
+[setuptools]: https://setuptools.readthedocs.io/
 [SEP19]: https://github.com/reszelaz/sardana/blob/sep19/doc/source/sep/SEP19.md
 [pkg_resources]: https://setuptools.readthedocs.io/en/latest/pkg_resources.html
 [ep_spec]: https://packaging.python.org/specifications/entry-points/
