@@ -1,6 +1,6 @@
     Title: plugins support 
     TEP: 13
-    State: CANDIDATE
+    State: ACCEPTED
     Date: 2015-03-25
     Drivers: Carlos Pascual-Izarra <cpascual@cells.es>
     URL: http://www.taurus-scada.org/tep?TEP13.md
@@ -335,6 +335,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 - 2016-11-16: [mrosanes][] Adapt TEP format and URL according TEP16
 - 2020-12-11: [cpascual][] Full re-writing of the DRAFT and promotion to 
   CANDIDATE state
+- 2021-03-08: [cpascual][] Promoted from CANDIDATE to ACCEPTED state
   
 [stevedore docs]: https://docs.openstack.org/stevedore/latest/
 [stevedore]: https://pypi.python.org/pypi/stevedore
