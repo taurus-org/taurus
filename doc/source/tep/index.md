@@ -12,19 +12,19 @@ Proposals list
   ------------| --------- | ---------------------------------------------------------
   [TEP0][]   | OBSOLETE | Introducing Taurus Enhancement Proposal                  
   [TEP3][]   | ACCEPTED | Tango-Independent                                        
-  [SEP5][]   | ACCEPTED  | Implementation of tests infrastructure                   
-  [TEP7][]   | OBSOLETE  | Code contribution workflow                               
+  [SEP5][]   | ACCEPTED | Implementation of tests infrastructure                   
+  [TEP7][]   | OBSOLETE | Code contribution workflow                               
   [TEP8][]   | REJECTED | Remove from Taurus objects the direct Logger dependence  
-  [SEP9][]   | ACCEPTED  | Compact Read+Write widgets in Taurus                     
+  [SEP9][]   | ACCEPTED | Compact Read+Write widgets in Taurus                     
   [SEP10][] | ACCEPTED  | Taurus separation                                        
   [SEP11][] | ACCEPTED  | Direct load of .ui files                                       
   [SEP12][] | CANDIDATE | Use python Enum instead of taurus Enumeration
-  [TEP13][] | DRAFT     | Plugins support 
+  [TEP13][] | ACCEPTED  | Plugins support 
   [TEP14][] | ACCEPTED  | Core refactoring (quantities and configuration)
   [TEP15][] | ACCEPTED  | fragment-based slicing support in URIs
-  [TEP16][] | ACCEPTED     | Moving Taurus to Github
-  [TEP17][] | DRAFT   | Implement plots with pyqtgraph
-  [TEP18][] | ACCEPTED | Implement support for Qt5 in taurus
+  [TEP16][] | ACCEPTED  | Moving Taurus to Github
+  [TEP17][] | ACCEPTED  | Implement plots with pyqtgraph
+  [TEP18][] | ACCEPTED  | Implement support for Qt5 in taurus
 
 [TEP0]: http://www.taurus-scada.org/tep/?TEP0.md
 [TEP3]: http://www.taurus-scada.org/tep/?TEP3.md
