@@ -1,6 +1,6 @@
     Title: Implement plots with pyqtgraph
     TEP: 17
-    State: CANDIDATE
+    State: ACCEPTED
     Date: 2017-03-10
     Drivers: Carlos Pascual-Izarra cpascual@cells.es
     URL: http://www.taurus-scada.org/tep?TEP17.md
@@ -228,6 +228,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   implementation by [oscarprades][] added
 - 2020-12-09 [cpascual][]. TEP text updated to reflect the use of the 
   taurus_pyqtgraph plugin. Changed state to CANDIDATE and proposed for APPROVAL
+- 2021-03-08 [cpascual][]. Changed state to ACCEPTED
 
 [PyQwt5]: http://pyqwt.sourceforge.net/
 [taurus_pyqtgraph]: https://github.com/taurus-org/taurus_pyqtgraph
