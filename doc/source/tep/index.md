@@ -39,5 +39,5 @@ Proposals list
 [TEP14]: http://www.taurus-scada.org/tep/?TEP14.md
 [TEP15]: http://www.taurus-scada.org/tep/?TEP15.md
 [TEP16]: http://www.taurus-scada.org/tep/?TEP16.md
-[TEP17]: https://github.com/cpascual/taurus/blob/tep17/doc/source/tep/TEP17.md
+[TEP17]: http://www.taurus-scada.org/tep/?TEP17.md
 [TEP18]: http://www.taurus-scada.org/tep/?TEP18.md
